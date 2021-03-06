@@ -219,7 +219,6 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_discr = 0l;
 	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
 	{
-		using type_paire = std::pair<NoeudExpression *, NoeudBloc *>;
 		memoire_discr += noeud.paires_discr.taille_memoire();
 		taille_max_paires_discr = std::max(taille_max_paires_discr, noeud.paires_discr.taille());
 	});
