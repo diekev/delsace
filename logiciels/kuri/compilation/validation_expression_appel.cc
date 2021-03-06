@@ -1814,11 +1814,18 @@ ResultatValidation valide_appel_fonction(
 		}
 
 		if (it.poids_args == poids) {
-			rapporte_erreur(&espace, expr, "Je ne peux pas déterminer quelle fonction appeler car plusieurs fonctions correspondent à l'expression d'appel.")
-					.ajoute_message("Candidate possible :\n")
-					.ajoute_site(it.noeud_decl)
-					.ajoute_message("Candidate possible :\n")
-					.ajoute_site(candidate->noeud_decl);
+			auto e = rapporte_erreur(&espace, expr, "Je ne peux pas déterminer quelle fonction appeler car plusieurs fonctions correspondent à l'expression d'appel.");
+
+			if (it.noeud_decl && candidate->noeud_decl) {
+				e.ajoute_message("Candidate possible :\n");
+				e.ajoute_site(it.noeud_decl);
+				e.ajoute_message("Candidate possible :\n");
+				e.ajoute_site(candidate->noeud_decl);
+			}
+			else {
+				e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
+			}
+
 			return ResultatValidation::Erreur;
 		}
 	}
