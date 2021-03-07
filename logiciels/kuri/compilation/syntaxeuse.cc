@@ -2086,7 +2086,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	}
 	else if (noeud->ident == ID::__point_d_entree_systeme) {
 		m_unite->espace->fonction_point_d_entree = noeud;
-		noeud->drapeaux |= EST_RACINE;
+
+		// Ne compile le point d'entrée que pour les exécutbables
+		if (m_unite->espace->options.objet_genere == ObjetGenere::Executable) {
+			noeud->drapeaux |= EST_RACINE;
+		}
 	}
 
 	auto lexeme_bloc = lexeme_courant();
