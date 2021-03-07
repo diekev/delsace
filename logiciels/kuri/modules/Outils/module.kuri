@@ -1,3 +1,35 @@
+// Bibliothèque de diverses fonctions utiles dans différents domaines.
+
+// Retourne la valeur passée en paramètre si le drapeau est vrai, sinon, retourne 0.
+// À FAIRE : ceci ne devrait être que pour des entiers naturels puisque que -1 doit être
+//           une valeur où tous les bits sont actifs.
+optionel :: fonc (drapeau : bool, valeur : $T) -> T #enligne
+{
+	retourne -(drapeau comme T) & valeur
+}
+
+// Opération ternaire sans branche : si drapeau est vrai retourne v1, sinon v2.
+// À FAIRE : ceci ne devrait être que pour des entiers naturels puisque que -1 doit être
+//           une valeur où tous les bits sont actifs.
+sélectionne :: fonc (drapeau : bool, v1 : $T, v2 : T) -> T #enligne
+{
+	retourne (-(drapeau comme T) & v1) | (((drapeau comme T) - 1) & v2)
+}
+
+// Déplace les 4 valeurs minimales du tableau à son début.
+// Ceci est plus un exemple d'utilisation de « optionel » et « sélectionne »
+min4 :: fonc (p: []$T)
+{
+	q := p.longueur / 4
+	q2 := q + q
+
+	pour i dans q ... (q2 - 1) {
+		m0 := i - optionel(p[i - q] <= p[i], q)
+		m1 := i + q - optionel(p[i + q2] < p[i + q], q)
+		échange(*p[i - q],*p[sélectionne(p[m0] <= p[m1], m0, m1)])
+	}
+}
+
 est_puissance_de_2 :: fonc (x: z32) -> bool
 {
     retourne (x & (x - 1)) == 0
@@ -38,6 +70,7 @@ compte_nombre_de_bits_inactifs :: fonc (x: n32) -> n32
     retourne 32 - compte_nombre_de_bits_actifs(x)
 }
 
+/*
 // retourne 1.0 / (2.0 ^ puissance)
 réciproque_puissance_de_2 :: fonc (puissance: z32) -> r32
 {
@@ -60,3 +93,4 @@ abs :: fonc (x: r32) -> r32
     i &= 0x7fffffff;
     return f;
 }
+*/
