@@ -1490,7 +1490,7 @@ static void genere_code_C_depuis_fonctions_racines(
 	}
 
 	if (fonctions_racines.est_vide()) {
-		rapporte_erreur_sans_site(&espace, "Aucune fonction racine trouvée pour générer le code !\n");
+		espace.rapporte_erreur_sans_site("Aucune fonction racine trouvée pour générer le code !\n");
 		return;
 	}
 

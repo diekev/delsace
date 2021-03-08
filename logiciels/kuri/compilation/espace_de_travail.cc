@@ -509,12 +509,25 @@ PhaseCompilation EspaceDeTravail::phase_courante() const
 	return phase;
 }
 
-#include "erreur.h"
-
 void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message)
 {
 	erreur::imprime_site(*this, site);
 	std::cerr << message << '\n';
+}
+
+Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression *site, kuri::chaine_statique message, erreur::Genre genre)
+{
+	return ::rapporte_erreur(this, site, message, genre);
+}
+
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message)
+{
+	return ::rapporte_erreur(this, fichier, ligne, message);
+}
+
+Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre)
+{
+	return ::rapporte_erreur_sans_site(this, message, genre);
 }
 
 void EspaceDeTravail::imprime_programme() const

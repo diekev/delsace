@@ -1237,7 +1237,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
 
 		if (!fonction) {
-			rapporte_erreur(espace, metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
+			espace->rapporte_erreur(metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
 		}
 
 		if (globales.taille() != 0) {
@@ -1268,14 +1268,14 @@ void Tacheronne::execute_metaprogrammes()
 
 		// À FAIRE : précision des messages d'erreurs
 		if (it->resultat == MetaProgramme::ResultatExecution::ERREUR) {
-			rapporte_erreur(espace, it->directive, "Erreur lors de l'exécution du métaprogramme");
+			espace->rapporte_erreur(it->directive, "Erreur lors de l'exécution du métaprogramme");
 		}
 		else {
 			if (it->directive && it->directive->ident == ID::assert_) {
 				auto resultat = *reinterpret_cast<bool *>(it->donnees_execution->pointeur_pile);
 
 				if (!resultat) {
-					rapporte_erreur(espace, it->directive, "Échec de l'assertion");
+					espace->rapporte_erreur(it->directive, "Échec de l'assertion");
 				}
 			}
 			else if (it->directive && it->directive->ident == ID::execute) {
@@ -1291,7 +1291,7 @@ void Tacheronne::execute_metaprogrammes()
 				auto resultat = *reinterpret_cast<kuri::chaine_statique *>(it->donnees_execution->pointeur_pile);
 
 				if (resultat.taille() == 0) {
-					rapporte_erreur(espace, it->corps_texte, "Le corps-texte a retourné une chaine vide");
+					espace->rapporte_erreur(it->corps_texte, "Le corps-texte a retourné une chaine vide");
 				}
 
 				auto fichier_racine = espace->fichier(it->corps_texte->lexeme->fichier);
@@ -1339,7 +1339,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 		case GenreType::REFERENCE:
 		case GenreType::VARIADIQUE:
 		{
-			rapporte_erreur(espace, directive, "Type non pris en charge pour le résutat des exécutions !")
+			espace->rapporte_erreur(directive, "Type non pris en charge pour le résutat des exécutions !")
 					.ajoute_message("Le type est : ", chaine_type(type), "\n");
 			break;
 		}
@@ -1489,7 +1489,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			auto fonction = *reinterpret_cast<AtomeFonction **>(pointeur);
 
 			if (!fonction->decl) {
-				rapporte_erreur(espace, directive, "La fonction retournée n'a pas de déclaration !\n");
+				espace->rapporte_erreur(directive, "La fonction retournée n'a pas de déclaration !\n");
 			}
 
 			return assembleuse->cree_ref_decl(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
@@ -1533,7 +1533,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			auto taille_donnees = *reinterpret_cast<long *>(pointeur + 8);
 
 			if (taille_donnees == 0) {
-				rapporte_erreur(espace, directive, "Retour d'un tableau dynamique de taille 0 !");
+				espace->rapporte_erreur(directive, "Retour d'un tableau dynamique de taille 0 !");
 			}
 
 			/* crée un tableau fixe */

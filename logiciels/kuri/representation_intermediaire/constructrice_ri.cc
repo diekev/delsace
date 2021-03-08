@@ -2110,7 +2110,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 			}
 		}
 		else {
-			rapporte_erreur(espace(), noeud, "Utilisation de « tente » sur une union ayant plus de 2 membres !");
+			espace()->rapporte_erreur(noeud, "Utilisation de « tente » sur une union ayant plus de 2 membres !");
 		}
 
 		// test si membre actif est erreur

@@ -359,7 +359,7 @@ EspaceDeTravail *espace_defaut_compilation()
 
 void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message)
 {
-	::rapporte_erreur(espace, fichier, ligne, message);
+	espace->rapporte_erreur(fichier, ligne, message);
 }
 
 static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme, int> const &lexemes)
