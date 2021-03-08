@@ -33,6 +33,7 @@
 #include "representation_intermediaire/impression.hh"
 
 #include "arbre_syntaxique.hh"
+#include "compilatrice.hh"
 #include "coulisse.hh"
 #include "coulisse_asm.hh"
 #include "coulisse_c.hh"
@@ -40,9 +41,35 @@
 #include "identifiant.hh"
 #include "statistiques.hh"
 
-EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
-	: options(opts)
+/* ************************************************************************** */
+
+/* Redéfini certaines fonction afin de pouvoir controler leurs comportements.
+ * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
+ * la mémoire de notre coté, ou encore vérifier qu'il n'y ait pas de fuite de
+ * mémoire dans les métaprogrammes.
+ */
+static void *notre_malloc(size_t n)
+{
+	return malloc(n);
+}
+
+static void *notre_realloc(void *ptr, size_t taille)
+{
+	return realloc(ptr, taille);
+}
+
+static void notre_free(void *ptr)
+{
+	free(ptr);
+}
+
+/* ************************************************************************** */
+
+EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts, kuri::chaine nom_)
+	: nom(nom_)
+	, options(opts)
 	, typeuse(graphe_dependance, this->operateurs)
+	, gestionnaire_bibliotheques(GestionnaireBibliotheques(*this))
 {
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);
@@ -59,6 +86,21 @@ EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 	else {
 		assert(false);
 	}
+
+	auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
+
+	auto libc = gestionnaire_bibliotheques->cree_bibliotheque(nullptr, table_idents->identifiant_pour_chaine("c"));
+
+	auto malloc_ = libc->cree_symbole("malloc");
+	malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+
+	auto realloc_ = libc->cree_symbole("realloc");
+	realloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+
+	auto free_ = libc->cree_symbole("free");
+	free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
+
+	gestionnaire_bibliotheques->cree_bibliotheque(nullptr, table_idents->identifiant_pour_chaine("r16"));
 }
 
 EspaceDeTravail::~EspaceDeTravail()
@@ -325,6 +367,7 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
 	operateurs->rassemble_statistiques(stats);
 	graphe_dependance->rassemble_statistiques(stats);
+	gestionnaire_bibliotheques->rassemble_statistiques(stats);
 	typeuse.rassemble_statistiques(stats);
 
 	auto &stats_fichiers = stats.stats_fichiers;
@@ -514,8 +557,12 @@ void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine
 	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression *site, kuri::chaine_statique message, erreur::Genre genre)
+Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre)
 {
+	if (!site) {
+		return rapporte_erreur_sans_site(message, genre);
+	}
+
 	return ::rapporte_erreur(this, site, message, genre);
 }
 

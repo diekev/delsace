@@ -31,6 +31,7 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "bibliotheque.hh"
 #include "erreur.h"
 #include "graphe_dependance.hh"
 #include "message.hh"
@@ -135,10 +136,12 @@ public:
 
 	Module *module_kuri = nullptr;
 
+	dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
+
 	/* pour activer ou désactiver les optimisations */
 	bool optimisations = false;
 
-	explicit EspaceDeTravail(OptionsCompilation opts);
+	EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts, kuri::chaine nom_);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
 
@@ -219,7 +222,7 @@ public:
 
 	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message);
 
-	Erreur rapporte_erreur(NoeudExpression *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL);
+	Erreur rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL);
 	Erreur rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message);
 	Erreur rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
 

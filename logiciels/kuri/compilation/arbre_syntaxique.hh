@@ -69,6 +69,7 @@ struct NoeudTableauArgsVariadiques;
 struct NoeudTente;
 struct OperateurBinaire;
 struct OperateurUnaire;
+struct Symbole;
 struct TypeFonction;
 struct UniteCompilation;
 
@@ -610,6 +611,14 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclarationSymbole {
 	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
 	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
 	NoeudDeclarationVariable *param_sortie = nullptr;
+
+	/* pour les fonctions externes :
+	 * - nom du symbole dans la bibliothèque
+	 * - la bibliothèque où se trouve le Symbole
+	 * - le symbole lui-même */
+	kuri::chaine_statique nom_symbole = "";
+	IdentifiantCode *ident_bibliotheque = nullptr;
+	Symbole *symbole = nullptr;
 
 	NoeudDeclarationVariable *parametre_entree(long i) const
 	{

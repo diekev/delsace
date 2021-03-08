@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/structures/tableau_page.hh"
+#include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "structures/chaine.hh"
 #include "structures/tableau_compresse.hh"
@@ -32,7 +33,7 @@
 #include "identifiant.hh"
 
 struct Bibliotheque;
-struct Espace;
+struct EspaceDeTravail;
 struct NoeudExpression;
 struct Statistiques;
 
@@ -55,43 +56,75 @@ struct Statistiques;
 // -- ajout d'une chaine possible après l'identifiant suscité pour définir le nom du symbole
 // -- ajout de Symbole *symbole à NoeudDeclarationEnteteFonction pour définir le symbole dans la bibliothèque
 // -- ajout d'un noeud syntaxique ?
-// -- définis libc, libpthread, libm, etc. par la compilatrice
+
+enum class EtatRechercheSymbole : unsigned char {
+	NON_RECHERCHE,
+	TROUVE,
+	INTROUVE,
+	SURECRIS,
+};
 
 struct Symbole {
+	using type_fonction = void(*)();
+
 	Bibliotheque *bibliotheque = nullptr;
 	kuri::chaine nom = "";
-	// dso::symbole;
-	// pointeur pour appel;
+	EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
+
+	type_fonction ptr_fonction = nullptr;
+
+	bool charge(EspaceDeTravail *espace, NoeudExpression const *site);
+
+	void surecris_pointeur(type_fonction pointeur)
+	{
+		ptr_fonction = pointeur;
+		/* puisque nous remplaçons certaines fonctions de la bibliothèque C pour les
+		 * métaprogrammes, il nous faut se souvenir de ceci afin que lorsque nous
+		 * aurons un lieur, le lieur charge le bon symbole de la bibliothèque */
+		etat_recherche = EtatRechercheSymbole::SURECRIS;
+	}
+};
+
+enum class EtatRechercheBibliotheque : unsigned char {
+	NON_RECHERCHEE,
+	TROUVEE,
+	INTROUVEE,
 };
 
 struct Bibliotheque {
 	IdentifiantCode *ident = nullptr;
 	NoeudExpression *site = nullptr;
+	dls::systeme_fichier::shared_library bib{};
 
-	kuri::chaine nom = "";
+	EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
 
+	/* Le chemin pour une bibliothèque statique (*.a sur Linux). */
 	kuri::chaine chemin_statique = "";
+
+	/* Le chemin pour la version dynamique (*.so sur Linux). */
 	kuri::chaine chemin_dynamique = "";
 
-	// dso::shared_object
-
 	kuri::tableau_compresse<Bibliotheque *, int> dependances{};
-	tableau_page<Symbole *> symboles;
+	tableau_page<Symbole> symboles{};
 
-	Symbole *symbole(kuri::chaine_statique nom_symbole);
+	Symbole *cree_symbole(kuri::chaine_statique nom_symbole);
+
+	bool charge(EspaceDeTravail *espace);
 };
 
-struct GestionnaireBibliotheque {
-	Espace *espace = nullptr;
+struct GestionnaireBibliotheques {
+	EspaceDeTravail &espace;
 	tableau_page<Bibliotheque> bibliotheques{};
 
-	GestionnaireBibliotheque(Espace *espace_)
+	GestionnaireBibliotheques(EspaceDeTravail &espace_)
 		: espace(espace_)
 	{}
 
-	Bibliotheque *trouve_bibliotheque(NoeudExpression *site);
+	Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
 	Bibliotheque *cree_bibliotheque(NoeudExpression *site);
 
-	void rassemble_statistiques(Statistiques &stats);
+	Bibliotheque *cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident);
+
+	void rassemble_statistiques(Statistiques &stats) const;
 };

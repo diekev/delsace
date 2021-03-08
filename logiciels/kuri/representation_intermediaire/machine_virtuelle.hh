@@ -27,7 +27,6 @@
 #include "code_binaire.hh"
 
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "structures/chaine.hh"
 
@@ -36,26 +35,6 @@ struct Compilatrice;
 struct MetaProgramme;
 struct Statistiques;
 struct TypeFonction;
-
-struct GestionnaireBibliotheques {
-	struct BibliothequePartagee {
-		dls::systeme_fichier::shared_library bib{};
-		kuri::chaine chemin{};
-	};
-
-	using type_fonction = void(*)();
-
-private:
-	kuri::tableau<BibliothequePartagee> bibliotheques{};
-	dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
-
-public:
-	void ajoute_bibliotheque(kuri::chaine const &chemin);
-	void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
-	type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
-
-	long memoire_utilisee() const;
-};
 
 struct FrameAppel {
 	AtomeFonction *fonction = nullptr;
@@ -136,8 +115,6 @@ private:
 	MetaProgramme *m_metaprogramme = nullptr;
 
 public:
-	GestionnaireBibliotheques gestionnaire_bibliotheques{};
-
 	kuri::tableau<Globale, int> globales{};
 	kuri::tableau<unsigned char, int> donnees_globales{};
 	kuri::tableau<unsigned char, int> donnees_constantes{};
@@ -149,10 +126,6 @@ public:
 	~MachineVirtuelle();
 
 	COPIE_CONSTRUCT(MachineVirtuelle);
-
-	typedef void (*fonction_symbole)();
-
-	fonction_symbole trouve_symbole(IdentifiantCode *symbole);
 
 	int ajoute_globale(Type *type, IdentifiantCode *ident);
 

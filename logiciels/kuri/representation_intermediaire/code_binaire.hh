@@ -39,6 +39,7 @@
 struct AtomeFonction;
 struct Compilatrice;
 struct DonneesExecution;
+struct EspaceDeTravail;
 struct IdentifiantCode;
 struct InstructionAppel;
 struct MachineVirtuelle;
@@ -274,6 +275,6 @@ struct Globale {
 	int adresse = 0;
 };
 
-void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle *mv);
+void genere_code_binaire_pour_fonction(EspaceDeTravail *espace, AtomeFonction *fonction, MachineVirtuelle *mv);
 
 ffi_type *converti_type_ffi(Type *type);

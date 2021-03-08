@@ -233,13 +233,9 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const kuri::chaine &nom)
 {
-	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", options);
-	espace->nom = nom;
-
-	espaces_de_travail->ajoute(espace);
-
+	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
 	espace->module_kuri = importe_module(espace, "Kuri", {});
-
+	espaces_de_travail->ajoute(espace);
 	return espace;
 }
 

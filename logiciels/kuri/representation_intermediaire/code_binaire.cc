@@ -32,6 +32,7 @@
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "compilation/arbre_syntaxique.hh"
+#include "compilation/bibliotheque.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/outils_lexemes.hh"
@@ -818,17 +819,22 @@ struct ConvertisseuseRI {
 	void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
 };
 
-void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle *mv)
+void genere_code_binaire_pour_fonction(EspaceDeTravail *espace, AtomeFonction *fonction, MachineVirtuelle *mv)
 {
 	/* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
 	if (fonction->decl && fonction->decl->est_externe) {
 		auto &donnees_externe = fonction->donnees_externe;
+		auto decl = fonction->decl;
 
-		if (fonction->decl->possede_drapeau(COMPILATRICE)) {
-			donnees_externe.ptr_fonction = trouve_fonction_compilatrice(fonction->decl->ident);
+		if (decl->possede_drapeau(COMPILATRICE)) {
+			donnees_externe.ptr_fonction = trouve_fonction_compilatrice(decl->ident);
 		}
 		else {
-			donnees_externe.ptr_fonction = mv->trouve_symbole(fonction->decl->ident);
+			if (!decl->symbole->charge(espace, decl)) {
+				return;
+			}
+
+			donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
 		}
 
 		if (fonction->decl->est_variadique) {
