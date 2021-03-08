@@ -145,7 +145,8 @@ private:
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_legales, "valeurs_légales") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_illegales, "valeurs_illégales") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compacte, "compacte") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(dependance_bibliotheque, "dépendance_bibliothèque")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

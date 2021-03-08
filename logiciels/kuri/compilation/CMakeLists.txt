@@ -41,6 +41,7 @@ set(SOURCES
 	allocatrice_noeud.hh
 	arbre_syntaxique.hh
 	assembleuse_arbre.h
+	bibliotheque.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
@@ -77,6 +78,7 @@ set(SOURCES
 	allocatrice_noeud.cc
 	arbre_syntaxique.cc
 	assembleuse_arbre.cc
+	bibliotheque.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
