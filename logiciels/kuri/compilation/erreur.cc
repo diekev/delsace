@@ -513,7 +513,7 @@ Erreur &Erreur::ajoute_conseil(const kuri::chaine &c)
 	return *this;
 }
 
-static kuri::chaine chaine_pour_erreur(erreur::Genre genre)
+static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 {
 	switch (genre) {
 		default:
@@ -534,6 +534,10 @@ static kuri::chaine chaine_pour_erreur(erreur::Genre genre)
 		{
 			return "ERREUR DE TYPAGE";
 		}
+		case erreur::Genre::AVERTISSEMENT:
+		{
+			return "AVERTISSEMENT";
+		}
 	}
 
 	return "ERREUR";
@@ -542,57 +546,52 @@ static kuri::chaine chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const kuri::chaine &message, erreur::Genre genre)
+dls::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message)
 {
-	auto fichier = espace->fichier(site->lexeme->fichier);
-
 	auto flux = dls::flux_chaine();
-	flux << COULEUR_CYAN_GRAS << "-- ";
-
 	auto chaine_erreur = chaine_pour_erreur(genre);
-	flux << chaine_erreur << ' ';
 
+	flux << COULEUR_CYAN_GRAS << "-- ";
+	flux << chaine_erreur << ' ';
 	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
 		flux << '-';
 	}
-
 	flux << "\n\n" << COULEUR_NORMALE;
 
-	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : ";
-	erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
-	flux << '\n';
+	flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
+
+	if (genre != erreur::Genre::AVERTISSEMENT) {
+		flux << "\nErreur : ";
+	}
+	else {
+		flux << "\nAvertissement : ";
+	}
+
+	if (site) {
+		auto fichier = espace->fichier(site->lexeme->fichier);
+		erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
+		flux << '\n';
+	}
+
 	flux << message;
 	flux << '\n';
 	flux << '\n';
 
+	return flux.chn();
+}
+
+Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const kuri::chaine &message, erreur::Genre genre)
+{
 	auto erreur = Erreur(espace);
-	erreur.message = flux.chn();
+	erreur.message = genere_entete_erreur(espace, site, genre, message);
+	erreur.genre_erreur(genre);
 	return erreur;
 }
 
 Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chaine &message, erreur::Genre genre)
 {
-	auto flux = dls::flux_chaine();
-	flux << COULEUR_CYAN_GRAS << "-- ";
-
-	auto chaine_erreur = chaine_pour_erreur(genre);
-	flux << chaine_erreur << ' ';
-
-	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
-		flux << '-';
-	}
-
-	flux << "\n\n" << COULEUR_NORMALE;
-
-	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : ";
-	flux << message;
-	flux << '\n';
-	flux << '\n';
-
 	auto erreur = Erreur(espace);
-	erreur.message = flux.chn();
+	erreur.message = genere_entete_erreur(espace, nullptr, genre, message);
 	erreur.genre_erreur(genre);
 	return erreur;
 }

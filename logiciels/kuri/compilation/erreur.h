@@ -66,7 +66,8 @@ namespace erreur {
 	ENUMERE_GENRE_ERREUR_EX(ASSIGNATION_MAUVAIS_TYPE) \
 	ENUMERE_GENRE_ERREUR_EX(CONTROLE_INVALIDE) \
 	ENUMERE_GENRE_ERREUR_EX(MODULE_INCONNU) \
-	ENUMERE_GENRE_ERREUR_EX(APPEL_INVALIDE)
+	ENUMERE_GENRE_ERREUR_EX(APPEL_INVALIDE) \
+	ENUMERE_GENRE_ERREUR_EX(AVERTISSEMENT)
 
 enum class Genre : int {
 #define ENUMERE_GENRE_ERREUR_EX(type) type,
@@ -198,3 +199,5 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *sit
 Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, const kuri::chaine &fichier, int ligne, const kuri::chaine &message);
+
+dls::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message);

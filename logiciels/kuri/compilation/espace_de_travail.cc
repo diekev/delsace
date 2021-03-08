@@ -511,8 +511,7 @@ PhaseCompilation EspaceDeTravail::phase_courante() const
 
 void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message)
 {
-	erreur::imprime_site(*this, site);
-	std::cerr << message << '\n';
+	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression *site, kuri::chaine_statique message, erreur::Genre genre)
