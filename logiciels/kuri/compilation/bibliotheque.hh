@@ -92,7 +92,11 @@ enum class EtatRechercheBibliotheque : unsigned char {
 };
 
 struct Bibliotheque {
+	/* l'identifiant qui sera utilisé après les directives #externe, défini via ident :: #bibliothèque "nom" */
 	IdentifiantCode *ident = nullptr;
+
+	kuri::chaine_statique nom = "";
+
 	NoeudExpression *site = nullptr;
 	dls::systeme_fichier::shared_library bib{};
 
@@ -122,9 +126,14 @@ struct GestionnaireBibliotheques {
 
 	Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
+	Bibliotheque *trouve_ou_cree_bibliotheque(IdentifiantCode *ident);
+
 	Bibliotheque *cree_bibliotheque(NoeudExpression *site);
 
-	Bibliotheque *cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident);
+	Bibliotheque *cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident, kuri::chaine_statique nom);
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+private:
+	void resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque);
 };

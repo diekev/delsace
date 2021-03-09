@@ -116,19 +116,45 @@ Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *id
 	return nullptr;
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site)
+Bibliotheque *GestionnaireBibliotheques::trouve_ou_cree_bibliotheque(IdentifiantCode *ident)
 {
-	return cree_bibliotheque(site, site->ident);
+	return cree_bibliotheque(nullptr, ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident)
+Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site)
+{
+	return cree_bibliotheque(site, site->ident, "");
+}
+
+Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident, kuri::chaine_statique nom)
 {
 	auto bibliotheque = trouve_bibliotheque(ident);
 
 	if (bibliotheque) {
+		if (nom != "" && bibliotheque->etat_recherche == EtatRechercheBibliotheque::NON_RECHERCHEE) {
+			bibliotheque->site = site;
+			bibliotheque->ident = ident;
+			bibliotheque->nom = nom;
+			resoud_chemins_bibliotheque(site, bibliotheque);
+		}
+
 		return bibliotheque;
 	}
 
+	bibliotheque = bibliotheques.ajoute_element();
+
+	if (nom != "") {
+		bibliotheque->nom = nom;
+		resoud_chemins_bibliotheque(site, bibliotheque);
+	}
+
+	bibliotheque->site = site;
+	bibliotheque->ident = ident;
+	return bibliotheque;
+}
+
+void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque)
+{
 	// regarde soit dans le module courant, soit dans le chemin système
 	// chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
 	//                  /lib/i386-linux-gnu/ pour 32-bit
@@ -151,8 +177,8 @@ Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site
 	// pour un fichier dynamique :
 	// /chemin/de/base/libnom.so
 
-	const auto nom_statique = enchaine("lib", ident->nom, ".a");
-	const auto nom_dynamique = enchaine("lib", ident->nom, ".so");
+	const auto nom_statique = enchaine("lib", bibliotheque->nom, ".a");
+	const auto nom_dynamique = enchaine("lib", bibliotheque->nom, ".so");
 
 	kuri::chaine chemin_statique;
 	kuri::chaine chemin_dynamique;
@@ -180,20 +206,15 @@ Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site
 
 	if (!chemin_statique_trouve && !chemin_dynamique_trouve) {
 		espace.rapporte_erreur(site, "Impossible de résoudre le chemin vers une bibliothèque")
-				.ajoute_message("La bibliothèque en question est « ", ident->nom, " »\n");
-		return nullptr;
+				.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n");
+		return;
 	}
 
-	std::cerr << "Création d'une bibliothèque pour " << ident->nom << '\n';
+	std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
 	std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
 	std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
-
-	bibliotheque = bibliotheques.ajoute_element();
-	bibliotheque->site = site;
-	bibliotheque->ident = ident;
 	bibliotheque->chemin_statique = chemin_statique;
 	bibliotheque->chemin_dynamique = chemin_dynamique;
-	return bibliotheque;
 }
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
