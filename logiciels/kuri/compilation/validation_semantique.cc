@@ -2421,6 +2421,18 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 		}
 	}
 
+	if (decl->est_externe) {
+		auto bibliotheque = espace->gestionnaire_bibliotheques->trouve_bibliotheque(decl->ident_bibliotheque);
+
+		if (!bibliotheque) {
+			espace->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver la fonction")
+					.ajoute_message("« ", decl->ident_bibliotheque->nom, " » ne réfère à aucune bibliothèque !");
+			return ResultatValidation::Erreur;
+		}
+
+		decl->symbole = bibliotheque->cree_symbole(decl->nom_symbole);
+	}
+
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
