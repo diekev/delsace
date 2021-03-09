@@ -89,6 +89,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 
 	auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
 
+	/* La bibliothèque C. */
 	auto libc = gestionnaire_bibliotheques->cree_bibliotheque(nullptr, table_idents->identifiant_pour_chaine("c"));
 
 	auto malloc_ = libc->cree_symbole("malloc");
@@ -100,7 +101,11 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 	auto free_ = libc->cree_symbole("free");
 	free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
 
+	/* La bibliothèque r16. */
 	gestionnaire_bibliotheques->cree_bibliotheque(nullptr, table_idents->identifiant_pour_chaine("r16"));
+
+	/* La bibliothèque pthread. */
+	gestionnaire_bibliotheques->cree_bibliotheque(nullptr, table_idents->identifiant_pour_chaine("pthread"));
 }
 
 EspaceDeTravail::~EspaceDeTravail()

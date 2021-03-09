@@ -40,7 +40,6 @@ static Compilatrice *ptr_compilatrice = nullptr;
 Compilatrice::Compilatrice()
 	: ordonnanceuse(this)
 {
-	this->bibliotheques_dynamiques->ajoute("pthread");
 	this->definitions->ajoute("_REENTRANT");
 
 	ptr_compilatrice = this;
