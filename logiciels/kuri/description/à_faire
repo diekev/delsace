@@ -416,6 +416,19 @@ initialisation de tableaux fixes :
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 
+voir le système de type de Odin (https://odin-lang.org/), notamment
+- type pointeur (intptr)
+- transmutage (bitcast)
+- expression type (z32(8))
+- auto_cast
+- type sur 128-bits
+- bit_sets (énum_drapeau)
+
+voir le système de type de zig, notamment pour les bitfields
+- n3 pour un entier naturel sur 3-bits
+- z6 pour un entier relatif sur 6-bits
+etc..
+
 // --------------------------- Discriminations
 
 discr sur union anonyme
@@ -878,3 +891,63 @@ struct StructureGlobale : public ValeurGlobale {
 
     ValeurGlobale accede_valeur();
 };
+
+// exploration pour la génération des NoeudExpressions et des NoeudsCodes
+// doit pouvoir tenir synchronisé l'allocation des noeuds et les genres
+// sorte de langage dédié uniquement pour la définition de l'interface des noeuds
+// - génère le code d'allocation
+// - génère le code de calcul d'étendue de noeud
+// - génère le code de copie de noeud ?
+
+// - supprime tous le code qui n'est pas de NoeudExpression de arbre_syntaxique.hh
+
+NoeudExpression {
+    @code NoeudCode
+
+    GenreNoeud genre code
+    DrapeauNoeud drapeaux
+    pointeur IdentifiantCode ident code
+    pointeur const Lexeme lexeme code // on devra convertir ceci en fichier/ligne/colonne
+    pointeur Type type code // convertis en InfoType
+    pointeur NoeudExpression substitution
+}
+
+NoeudExpressionBinaire : NoeudExpression {
+    @genre EXPRESSION_BINAIRE
+    @comme expression_binaire
+    @code  NoeudExpressionBinaire
+
+    pointeur NoeudExpression operande_gauche code
+    pointeur NoeudExpression operande_droite code
+}
+
+NoeudExpressionUnaire : NoeudExpression {
+    @genre EXPRESSION_UNAIRE
+    @comme expression_unaire
+    @code  NoeudCodeExpressionUnaire
+
+    pointeur NoeudExpression operande code
+}
+
+NoeudExpressionParenthese : NoeudExpression {
+    @genre EXPRESSION_PARENTHESE
+    @comme parenthese
+    @code  NoeudCodeParenthèse
+}
+
+NoeudDeclarationBibliotheque : NoeudExpression {
+    @genre DECLARATION_BIBLIOTHQUE
+    @comme decl_bibliotheque
+    @code  NoeudCodeBibliothèque
+
+    chaine_statique nom
+}
+
+NoeudStruct : NoeudDeclaration {
+    @genre DECLARATION_STRUCTURE
+    @comme structure
+    @code  NoeudCodeStructure
+
+    pointeur NoeudBloc bloc code
+}
+
