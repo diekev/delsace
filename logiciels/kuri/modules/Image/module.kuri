@@ -47,11 +47,13 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     retourne image.tampon[index]
 }
 
-#bibliothèque "libmodule_c_image.a"
+libimage :: #bibliothèque "module_c_image"
+
+liboiio :: #bibliothèque "OpenImageIO"
+
+#dépendance_bibliothèque libimage liboiio
 
 #chemin "/opt/lib/oiio/lib/"
-
-#bibliothèque "OpenImageIO"
 
 ImageIO :: struct {
     données : *r32
@@ -62,15 +64,15 @@ ImageIO :: struct {
     composants : z32
 }
 
-IMG_ouvre_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
+IMG_ouvre_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe libimage
 
-IMG_ecris_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
+IMG_ecris_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe libimage
 
-IMG_detruit_image :: fonc (image: *ImageIO) #externe
+IMG_detruit_image :: fonc (image: *ImageIO) #externe libimage
 
-IMG_calcul_empreinte_floue :: fonc (chemin: ChaineC, composants_x: z32, composants_y: z32, résultat: *z8, taille_résultat: *z64) #externe
+IMG_calcul_empreinte_floue :: fonc (chemin: ChaineC, composants_x: z32, composants_y: z32, résultat: *z8, taille_résultat: *z64) #externe libimage
 
-IMG_check_proxy :: fonc () #externe
+IMG_check_proxy :: fonc () #externe libimage
 
 calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
 {

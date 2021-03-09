@@ -1,5 +1,7 @@
-#bibliothèque "libmodule_c_ftgl.a"
-#bibliothèque "freetype"
+libftgl :: #bibliothèque "module_c_ftgl"
+libfreetype :: #bibliothèque "freetype"
+
+#dépendance_bibliothèque libftgl libfreetype
 
 vec2 :: struct #externe {
     x := 0.0
@@ -33,8 +35,8 @@ texture_atlas_t :: struct #externe {
     data : *n8
 }
 
-texture_atlas_new :: fonc (width: n64, height: n64, depth: n64 ) -> *texture_atlas_t #externe
-texture_atlas_delete :: fonc (atlas: *texture_atlas_t) -> rien #externe
+texture_atlas_new :: fonc (width: n64, height: n64, depth: n64 ) -> *texture_atlas_t #externe libftgl
+texture_atlas_delete :: fonc (atlas: *texture_atlas_t) -> rien #externe libftgl
 
 texture_font_t :: struct #externe {
     glyphs : *vector_t
@@ -58,8 +60,8 @@ texture_font_t :: struct #externe {
     padding : z32
 }
 
-texture_font_new_from_file :: fonc (atlas: *texture_atlas_t, pt_size: r32, filename: *z8) -> *texture_font_t #externe
-texture_font_delete :: fonc (font: *texture_font_t) -> rien #externe
+texture_font_new_from_file :: fonc (atlas: *texture_atlas_t, pt_size: r32, filename: *z8) -> *texture_font_t #externe libftgl
+texture_font_delete :: fonc (font: *texture_font_t) -> rien #externe libftgl
 
 texture_glyph_t :: struct #externe {
     codepoint : n32
@@ -78,8 +80,8 @@ texture_glyph_t :: struct #externe {
     outline_thickness : r32
 }
 
-texture_font_get_glyph :: fonc (font: *texture_font_t, c: *z8) -> *texture_glyph_t #externe
-texture_glyph_get_kerning :: fonc (glyph: *texture_glyph_t, c: *z8) -> r32 #externe
+texture_font_get_glyph :: fonc (font: *texture_font_t, c: *z8) -> *texture_glyph_t #externe libftgl
+texture_glyph_get_kerning :: fonc (glyph: *texture_glyph_t, c: *z8) -> r32 #externe libftgl
 
 markup_t :: struct #externe {
     family : *z8

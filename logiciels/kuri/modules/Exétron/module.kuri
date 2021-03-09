@@ -1,15 +1,15 @@
-#bibliothèque "libexetron.a"
+libexétron :: #bibliothèque "exetron"
 
 // ------------------------------------------
 // FilExécution
 
 FilExécution :: struct #externe
 
-EXETRON_nombre_fils_materiel :: fonc () -> n32 #externe
-EXETRON_cree_fil :: fonc (rappel: #nulctx fonc(*rien)(rien), données: *rien) -> *FilExécution #externe
-EXETRON_join_fil :: fonc (fil: *FilExécution) -> bool #externe
-EXTRONT_detache_fil :: fonc (fil: *FilExécution) #externe
-EXETRON_detruit_fil :: fonc (fil: *FilExécution) #externe
+EXETRON_nombre_fils_materiel :: fonc () -> n32 #externe libexétron
+EXETRON_cree_fil :: fonc (rappel: #nulctx fonc(*rien)(rien), données: *rien) -> *FilExécution #externe libexétron
+EXETRON_join_fil :: fonc (fil: *FilExécution) -> bool #externe libexétron
+EXTRONT_detache_fil :: fonc (fil: *FilExécution) #externe libexétron
+EXETRON_detruit_fil :: fonc (fil: *FilExécution) #externe libexétron
 
 DonnéesCréationFil :: struct ($T: type_de_données) {
     rappel: fonc(*T)(rien)
@@ -53,10 +53,10 @@ détruit :: fonc (fil: &*FilExécution)
 
 Mutex :: struct #externe
 
-EXETRON_cree_mutex :: fonc () -> *Mutex #externe
-EXETRON_detruit_mutex :: fonc (mutex: *Mutex) #externe
-EXETRON_verrouille_mutex :: fonc (mutex: *Mutex) #externe
-EXETRON_deverrouille_mutex :: fonc (mutex: *Mutex) #externe
+EXETRON_cree_mutex :: fonc () -> *Mutex #externe libexétron
+EXETRON_detruit_mutex :: fonc (mutex: *Mutex) #externe libexétron
+EXETRON_verrouille_mutex :: fonc (mutex: *Mutex) #externe libexétron
+EXETRON_deverrouille_mutex :: fonc (mutex: *Mutex) #externe libexétron
 
 crée_mutex :: fonc () -> *Mutex
 {
