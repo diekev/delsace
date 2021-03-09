@@ -1,9 +1,9 @@
-#bibliothèque_statique "/opt/lib/mysql/lib/libmysqlclient.a"
-#bibliothèque_statique "/opt/lib/mysql/lib/libmysqlservices.a"
+#bibliothèque "/opt/lib/mysql/lib/libmysqlclient.a"
+#bibliothèque "/opt/lib/mysql/lib/libmysqlservices.a"
 
-#bibliothèque_dynamique "crypto"
-#bibliothèque_dynamique "ssl"
-#bibliothèque_dynamique "dl"
+#bibliothèque "crypto"
+#bibliothèque "ssl"
+#bibliothèque "dl"
 
 #chemin "/opt/lib/mysql/lib/private/"
 

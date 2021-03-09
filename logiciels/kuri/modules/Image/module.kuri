@@ -47,11 +47,11 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     retourne image.tampon[index]
 }
 
-#bibliothèque_statique "libmodule_c_image.a"
+#bibliothèque "libmodule_c_image.a"
 
 #chemin "/opt/lib/oiio/lib/"
 
-#bibliothèque_dynamique "OpenImageIO"
+#bibliothèque "OpenImageIO"
 
 ImageIO :: struct {
     données : *r32

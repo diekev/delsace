@@ -97,8 +97,7 @@ private:
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_dynamique, "bibliothèque_dynamique") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_statique, "bibliothèque_statique") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque, "bibliothèque") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(def, "def") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin, "chemin") \

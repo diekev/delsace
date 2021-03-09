@@ -37,27 +37,6 @@
 #include "outils_lexemes.hh"
 #include "typage.hh"
 
-// Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier
-static auto trouve_chemin_si_dans_dossier(Module *module, kuri::chaine const &chaine)
-{
-	auto chaine_ = dls::chaine(chaine);
-	/* vérifie si le chemin est relatif ou absolu */
-	auto chemin = std::filesystem::path(chaine_.c_str());
-
-	if (!std::filesystem::exists(chemin)) {
-		/* le chemin n'est pas absolu, détermine s'il est dans le même dossier */
-		auto chemin_abs = dls::chaine(module->chemin()) + chaine_;
-
-		chemin = std::filesystem::path(chemin_abs.c_str());
-
-		if (std::filesystem::exists(chemin)) {
-			return kuri::chaine(chemin_abs.c_str(), chemin_abs.taille());
-		}
-	}
-
-	return chaine;
-}
-
 static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &interface, NoeudDeclarationEnteteFonction *noeud)
 {
 #define INIT_MEMBRE(membre, nom) \
@@ -1042,19 +1021,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			consomme();
 
-			if (directive == ID::bibliotheque_dynamique) {
+			if (directive == ID::bibliotheque) {
 				auto chaine_bib = lexeme_courant()->chaine;
 				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
-
-				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-				m_compilatrice.bibliotheques_dynamiques->ajoute(chaine);
-			}
-			else if (directive == ID::bibliotheque_statique) {
-				auto chaine_bib = lexeme_courant()->chaine;
-				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
-
-				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-				m_compilatrice.bibliotheques_statiques->ajoute(chaine);
+				auto ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(chaine_bib);
+				m_unite->espace->gestionnaire_bibliotheques->cree_bibliotheque(nullptr, ident);
 			}
 			else if (directive == ID::def) {
 				auto chaine = lexeme_courant()->chaine;
@@ -2275,6 +2246,22 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 				if (lexeme_mot_cle->genre == GenreLexeme::COROUT) {
 					lance_erreur("Une coroutine ne peut pas être externe");
+				}
+
+				consomme();
+
+				if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+					lance_erreur("attendu une chaine de caractère après #externe");
+				}
+
+				noeud->ident_bibliotheque = lexeme_courant()->ident;
+
+				if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
+					consomme();
+					noeud->nom_symbole = lexeme_courant()->chaine;
+				}
+				else {
+					noeud->nom_symbole = noeud->ident->nom;
 				}
 			}
 			else if (ident_directive == ID::sanstrace) {

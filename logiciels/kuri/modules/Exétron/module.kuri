@@ -1,4 +1,4 @@
-#bibliothèque_statique "libexetron.a"
+#bibliothèque "libexetron.a"
 
 // ------------------------------------------
 // FilExécution

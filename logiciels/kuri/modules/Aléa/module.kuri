@@ -1,7 +1,7 @@
 // Interface pour le module C Aléa
 
-#bibliothèque_statique "libmodule_c_alea.a"
-#bibliothèque_dynamique "m"
+#bibliothèque "libmodule_c_alea.a"
+#bibliothèque "m"
 
 GNA :: struct #externe;
 

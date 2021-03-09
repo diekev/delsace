@@ -1,6 +1,6 @@
 // Interface Kuri pour Krypto
 
-#bibliothèque_statique "libkrypto.a"
+#bibliothèque "libkrypto.a"
 
 importe Fondation
 

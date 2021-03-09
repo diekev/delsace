@@ -1,6 +1,6 @@
 // À FAIRE : implémente les fonctions suivantes avec notre langage
 
-#bibliothèque_dynamique "m"
+#bibliothèque "m"
 
 sqrt :: fonc (v: r64) -> r64 #externe
 cos :: fonc (a : r64) -> r64 #externe

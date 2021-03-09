@@ -1655,13 +1655,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
 		enchaineuse << chm;
 	}
 
-	for (auto const &bib : *compilatrice.bibliotheques_statiques.verrou_lecture()) {
-		enchaineuse << " " << bib;
-	}
-
-	for (auto const &bib : *compilatrice.bibliotheques_dynamiques.verrou_lecture()) {
-		enchaineuse << " -l" << bib;
-	}
+	// À FAIRE(bibliothèques)
 
 	if (espace.options.architecture_cible == ArchitectureCible::X86) {
 		enchaineuse << " -m32 ";

@@ -187,16 +187,6 @@ long Compilatrice::memoire_utilisee() const
 {
 	auto memoire = taille_de(Compilatrice);
 
-	memoire += bibliotheques_dynamiques->taille() * taille_de(kuri::chaine);
-	POUR (*bibliotheques_dynamiques.verrou_lecture()) {
-		memoire += it.taille();
-	}
-
-	memoire += bibliotheques_statiques->taille() * taille_de(kuri::chaine);
-	POUR (*bibliotheques_statiques.verrou_lecture()) {
-		memoire += it.taille();
-	}
-
 	memoire += chemins->taille() * taille_de(dls::vue_chaine_compacte);
 	memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
 

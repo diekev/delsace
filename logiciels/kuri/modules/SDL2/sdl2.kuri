@@ -1,6 +1,6 @@
 // Interface pour la bibliothèque SDL2
 
-#bibliothèque_dynamique "SDL2"
+#bibliothèque "SDL2"
 
 DrapeauxInit :: énum_drapeau n32 {
     SDL_INIT_TIMER :: 0x00000001

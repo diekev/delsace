@@ -1,5 +1,5 @@
-#bibliothèque_statique "libalembic.a"
-#bibliothèque_dynamique "Alembic"
+#bibliothèque "libalembic.a"
+#bibliothèque "Alembic"
 
 #chemin "/opt/lib/alembic/lib"
 

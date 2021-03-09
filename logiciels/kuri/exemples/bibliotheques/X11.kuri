@@ -1,5 +1,5 @@
 
-#bibliothèque_dynamique "X11"
+#bibliothèque "X11"
 
 Display :: struct #externe;
 _XEvent :: union externe nonsûr {

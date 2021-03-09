@@ -2,8 +2,8 @@
 
 importe GlibC
 
-#bibliothèque_dynamique "ssl"
-#bibliothèque_dynamique "crypto"
+#bibliothèque "ssl"
+#bibliothèque "crypto"
 
 //###############################################################################
 
