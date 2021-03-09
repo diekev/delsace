@@ -128,21 +128,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		}
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		{
-			auto inst = noeud->comme_charge();
-			auto lexeme = inst->expr->lexeme;
-			auto fichier = espace->fichier(inst->lexeme->fichier);
-			auto temps = dls::chrono::compte_seconde();
+			const auto inst = noeud->comme_charge();
+			const auto lexeme = inst->expr->lexeme;
+			const auto fichier = espace->fichier(inst->lexeme->fichier);
+			const auto temps = dls::chrono::compte_seconde();
 			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, inst->expr);
 			temps_chargement += temps.temps();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
-			auto inst = noeud->comme_importe();
-			auto lexeme = inst->expr->lexeme;
-			auto fichier = espace->fichier(inst->lexeme->fichier);
-			auto temps = dls::chrono::compte_seconde();
-			auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
+			const auto inst = noeud->comme_importe();
+			const auto lexeme = inst->expr->lexeme;
+			const auto fichier = espace->fichier(inst->lexeme->fichier);
+			const auto temps = dls::chrono::compte_seconde();
+			const auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
 
 			// @concurrence critique
