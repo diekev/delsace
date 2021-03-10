@@ -514,8 +514,12 @@ void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine
 	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression *site, kuri::chaine_statique message, erreur::Genre genre)
+Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre)
 {
+	if (!site) {
+		return rapporte_erreur_sans_site(message, genre);
+	}
+
 	return ::rapporte_erreur(this, site, message, genre);
 }
 
