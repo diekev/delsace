@@ -2015,8 +2015,6 @@ ResultatValidation valide_appel_fonction(
 		expr->type = candidate->type;
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
-		expr->aide_generation_code = APPEL_POINTEUR_FONCTION;
-
 		if (!candidate->requiers_contexte) {
 			expr->drapeaux |= FORCE_NULCTX;
 		}
