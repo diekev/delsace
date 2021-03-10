@@ -11,6 +11,7 @@
 - ajout de #boucle_pour
 - ajout de #insère pour controler où nous collons du code
 - ajout de #enligne pour les appels de fonctions
+- ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
 - renomme #assert #vérifie
 
