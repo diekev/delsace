@@ -145,9 +145,10 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_struct += noeud.arbre_aplatis.taille_memoire();
 		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille());
 
-		memoire_struct += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
-		POUR (*noeud.monomorphisations.verrou_lecture()) {
-			memoire_struct += it.premier.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+		if (noeud.monomorphisations) {
+			memoire_struct += noeud.monomorphisations->memoire_utilisee();
+			taille_max_items_monomorphisations = std::max(taille_max_items_monomorphisations, noeud.monomorphisations->nombre_items_max());
+			taille_max_monomorphisations = std::max(taille_max_monomorphisations, noeud.monomorphisations->taille());
 		}
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudStruct", m_noeuds_struct) + memoire_struct });
@@ -195,13 +196,11 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		taille_max_params_sorties = std::max(taille_max_params_sorties, noeud.params_sorties.taille());
 		taille_max_annotations = std::max(taille_max_annotations, noeud.annotations.taille());
 
-		memoire_entete_fonction += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
-		POUR (*noeud.monomorphisations.verrou_lecture()) {
-			memoire_entete_fonction += it.premier.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
-			taille_max_items_monomorphisations = std::max(taille_max_items_monomorphisations, it.premier.taille());
+		if (noeud.monomorphisations) {
+			memoire_entete_fonction += noeud.monomorphisations->memoire_utilisee();
+			taille_max_items_monomorphisations = std::max(taille_max_items_monomorphisations, noeud.monomorphisations->nombre_items_max());
+			taille_max_monomorphisations = std::max(taille_max_monomorphisations, noeud.monomorphisations->taille());
 		}
-
-		taille_max_monomorphisations = std::max(taille_max_monomorphisations, noeud.monomorphisations->taille());
 
 		memoire_entete_fonction += noeud.nom_broye_.taille();
 	});

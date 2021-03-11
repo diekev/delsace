@@ -27,6 +27,7 @@
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntaxique.hh"
+#include "monomorphisations.hh"
 
 struct AllocatriceNoeud {
 	tableau_page<NoeudExpression> m_noeuds_expression{};
@@ -56,6 +57,9 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudAssignation> m_noeuds_assignation{};
 	tableau_page<NoeudExpressionLitterale> m_noeuds_litterales{};
 	tableau_page<NoeudModule> m_noeuds_module{};
+
+	tableau_page<Monomorphisations<NoeudDeclarationEnteteFonction>> m_monomorphisations_fonctions{};
+	tableau_page<Monomorphisations<NoeudStruct>> m_monomorphisations_structs{};
 
 	AllocatriceNoeud() = default;
 	~AllocatriceNoeud() = default;
@@ -243,6 +247,16 @@ struct AllocatriceNoeud {
 		}
 
 		return noeud;
+	}
+
+	Monomorphisations<NoeudDeclarationEnteteFonction> *cree_monomorphisations_fonction()
+	{
+		return m_monomorphisations_fonctions.ajoute_element();
+	}
+
+	Monomorphisations<NoeudStruct> *cree_monomorphisations_struct()
+	{
+		return m_monomorphisations_structs.ajoute_element();
 	}
 
 	long nombre_noeuds() const;

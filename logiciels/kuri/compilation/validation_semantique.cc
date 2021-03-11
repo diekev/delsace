@@ -37,6 +37,7 @@
 #include "espace_de_travail.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
+#include "monomorphisations.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "validation_expression_appel.hh"
@@ -2185,6 +2186,10 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 				it->drapeaux |= DECLARATION_FUT_VALIDEE;
 			}
 		});
+
+		if (!decl->monomorphisations) {
+			decl->monomorphisations = m_tacheronne.allocatrice_noeud.cree_monomorphisations_fonction();
+		}
 	}
 
 	{
@@ -3371,6 +3376,10 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (valide_arbre_aplatis(decl, decl->arbre_aplatis_params) == ResultatValidation::Erreur) {
 			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return ResultatValidation::Erreur;
+		}
+
+		if (!decl->monomorphisations) {
+			decl->monomorphisations = m_tacheronne.allocatrice_noeud.cree_monomorphisations_struct();
 		}
 
 		// nous validerons les membres lors de la monomorphisation

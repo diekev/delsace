@@ -59,6 +59,7 @@ set(SOURCES
 	message.hh
 	metaprogramme.hh
 	modules.hh
+	monomorphisations.hh
 	noeud_code.hh
 	options.hh
 	operateurs.hh
@@ -94,6 +95,7 @@ set(SOURCES
 	message.cc
 	metaprogramme.cc
 	modules.cc
+	monomorphisations.cc
 	noeud_code.cc
 	operateurs.cc
 	options.cc

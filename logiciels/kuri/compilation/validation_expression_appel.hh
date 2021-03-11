@@ -30,7 +30,7 @@
 #include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 
-#include "arbre_syntaxique.hh" // pour ItemMonomorphisation
+#include "monomorphisations.hh"
 #include "transformation_type.hh"
 
 struct Compilatrice;

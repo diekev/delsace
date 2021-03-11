@@ -31,6 +31,7 @@
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "monomorphisations.hh"
 #include "portee.hh"
 #include "validation_semantique.hh"
 
@@ -1599,29 +1600,12 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		NoeudDeclarationEnteteFonction *decl,
-		NoeudDeclarationEnteteFonction::tableau_item_monomorphisation const &items_monomorphisation)
+		kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-	auto monomorphisations = decl->monomorphisations.verrou_ecriture();
+	auto monomorphisation = decl->monomorphisations->trouve_monomorphisation(items_monomorphisation);
 
-	POUR (*monomorphisations) {
-		if (it.premier.taille() != items_monomorphisation.taille()) {
-			continue;
-		}
-
-		auto trouve = true;
-
-		for (auto i = 0; i < items_monomorphisation.taille(); ++i) {
-			if (it.premier[i] != items_monomorphisation[i]) {
-				trouve = false;
-				break;
-			}
-		}
-
-		if (!trouve) {
-			continue;
-		}
-
-		return { it.second, false };
+	if (monomorphisation) {
+		return { monomorphisation, false };
 	}
 
 	auto copie = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(contexte.m_tacheronne.assembleuse, decl, decl->bloc_parent));
@@ -1658,7 +1642,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 		copie->params = std::move(nouveau_params);
 	}
 
-	monomorphisations->ajoute({ items_monomorphisation, copie });
+	decl->monomorphisations->ajoute(items_monomorphisation, copie);
 
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie->corps);
@@ -1672,27 +1656,10 @@ static NoeudStruct *monomorphise_au_besoin(
 		NoeudStruct *decl_struct,
 		kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-	auto monomorphisations = decl_struct->monomorphisations.verrou_ecriture();
+	auto monomorphisation = decl_struct->monomorphisations->trouve_monomorphisation(items_monomorphisation);
 
-	POUR (*monomorphisations) {
-		if (it.premier.taille() != items_monomorphisation.taille()) {
-			continue;
-		}
-
-		auto trouve = true;
-
-		for (auto i = 0; i < items_monomorphisation.taille(); ++i) {
-			if (it.premier[i] != items_monomorphisation[i]) {
-				trouve = false;
-				break;
-			}
-		}
-
-		if (!trouve) {
-			continue;
-		}
-
-		return it.second;
+	if (monomorphisation) {
+		return monomorphisation;
 	}
 
 	auto copie = copie_noeud(contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)->comme_structure();
@@ -1725,7 +1692,7 @@ static NoeudStruct *monomorphise_au_besoin(
 		copie->bloc->membres->ajoute(decl_constante);
 	}
 
-	monomorphisations->ajoute({ items_monomorphisation, copie });
+	decl_struct->monomorphisations->ajoute(items_monomorphisation, copie);
 
 	contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
 
