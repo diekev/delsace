@@ -509,12 +509,12 @@ PhaseCompilation EspaceDeTravail::phase_courante() const
 	return phase;
 }
 
-void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message)
+void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const
 {
 	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre)
+Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre) const
 {
 	if (!site) {
 		return rapporte_erreur_sans_site(message, genre);
@@ -523,12 +523,12 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chain
 	return ::rapporte_erreur(this, site, message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message)
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const
 {
 	return ::rapporte_erreur(this, fichier, ligne, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre)
+Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre) const
 {
 	return ::rapporte_erreur_sans_site(this, message, genre);
 }
