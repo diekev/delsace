@@ -47,7 +47,6 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #define AVEC_THREADS

@@ -27,7 +27,6 @@
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/numerique.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "structures/enchaineuse.hh"
 

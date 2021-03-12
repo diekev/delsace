@@ -30,7 +30,6 @@
 #include <unistd.h>
 
 #include "biblinternes/chrono/outils.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
