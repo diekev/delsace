@@ -27,7 +27,6 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/garde_portee.h"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/file_fixe.hh"
 
 #include "arbre_syntaxique.hh"
@@ -2150,12 +2149,8 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 		return ResultatValidation::OK;
 	}
 
-	auto flux = dls::flux_chaine();
-	flux << "Impossible d'accéder au membre d'un objet n'étant pas une structure";
-	flux << ", le type est ";
-	flux << chaine_type(type);
-
-	rapporte_erreur(flux.chn().c_str(), structure, erreur::Genre::TYPE_DIFFERENTS);
+	espace->rapporte_erreur(structure, "Impossible de référencer un membre d'un type n'étant pas une structure")
+			.ajoute_message("Note: le type est « ", chaine_type(type), " »");
 	return ResultatValidation::Erreur;
 }
 
