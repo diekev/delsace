@@ -78,7 +78,7 @@ enum class Genre : int {
 const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
 
-using frappe = lng::erreur::frappe<Genre>;
+using frappe = lng::erreur::frappe<Genre, dls::chaine>;
 
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
