@@ -433,13 +433,8 @@ void valeur_manquante_discr(
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)
 {
-	Enchaineuse enchaineuse;
-	enchaineuse << "\n----------------------------------------------------------------\n";
-	enchaineuse << "Dans l'espace de travail « " << espace.nom << " » :\n";
-	enchaineuse << "Erreur : impossible de trouver la fonction principale\n";
-	enchaineuse << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
-	enchaineuse << "\n----------------------------------------------------------------\n";
-	throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::MEMBRE_INACTIF);
+	espace.rapporte_erreur_sans_site("impossible de trouver la fonction principale")
+			.ajoute_message("Veuillez vérifier qu'elle soit bien présente dans un module");
 }
 
 void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
