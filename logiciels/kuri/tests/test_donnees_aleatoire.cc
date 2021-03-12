@@ -64,7 +64,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse();
+		analyseuse.analyse();
 	}
 	catch (...) {
 
@@ -493,7 +493,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse();
+		analyseuse.analyse();
 	}
 	catch (...) {
 

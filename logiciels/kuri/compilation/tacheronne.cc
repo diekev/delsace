@@ -725,7 +725,7 @@ void Tacheronne::gere_tache()
 				auto unite = tache.unite;
 				auto debut_parsage = dls::chrono::compte_seconde();
 				auto syntaxeuse = Syntaxeuse(*this, unite);
-				syntaxeuse.lance_analyse();
+				syntaxeuse.analyse();
 				temps_parsage += debut_parsage.temps();
 				tache_fut_completee = true;
 				break;

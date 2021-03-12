@@ -24,14 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/chrono/outils.hh"
-#include "biblinternes/structures/chaine.hh"
-
-#include "erreur.h"
-#include "lexemes.hh"
+#include "base_syntaxeuse.hh"
 
 struct Compilatrice;
-struct Fichier;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
@@ -55,26 +50,11 @@ struct DonneesPrecedence {
 	Associativite associativite = Associativite::GAUCHE;
 };
 
-struct Syntaxeuse {
+struct Syntaxeuse : BaseSyntaxeuse {
 private:
 	Compilatrice &m_compilatrice;
 	Tacheronne &m_tacheronne;
-	Fichier *m_fichier = nullptr;
 	UniteCompilation *m_unite = nullptr;
-	kuri::tableau<Lexeme, int> &m_lexemes;
-	int m_position = 0;
-
-	dls::chrono::metre_seconde m_chrono_analyse{};
-
-	Lexeme *m_lexeme_courant{};
-
-	/* Pour les messages d'erreurs. */
-	struct DonneesEtatSyntaxage {
-		Lexeme *lexeme = nullptr;
-		const char *message = nullptr;
-	};
-
-	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
 	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
@@ -88,55 +68,10 @@ public:
 
 	COPIE_CONSTRUCT(Syntaxeuse);
 
-	void lance_analyse();
-
 private:
-	inline void consomme()
-	{
-		m_position += 1;
-
-		if (!fini()) {
-			m_lexeme_courant += 1;
-		}
-	}
-
-	inline void consomme(GenreLexeme genre_lexeme, const char *message)
-	{
-		if (m_lexemes[m_position].genre != genre_lexeme) {
-			lance_erreur(message);
-		}
-
-		return consomme();
-	}
-
-	inline void recule()
-	{
-		m_position -= 1;
-
-		if (m_position >= 0) {
-			m_lexeme_courant = &m_lexemes[m_position];
-		}
-	}
-
-	inline Lexeme *lexeme_courant()
-	{
-		return m_lexeme_courant;
-	}
-
-	inline Lexeme const *lexeme_courant() const
-	{
-		return m_lexeme_courant;
-	}
-
-	inline bool fini() const
-	{
-		return m_position >= m_lexemes.taille();
-	}
-
-	inline bool apparie(GenreLexeme genre_lexeme) const
-	{
-		return m_lexeme_courant->genre == genre_lexeme;
-	}
+	void quand_commence() override;
+	void quand_termine() override;
+	void analyse_une_chose() override;
 
 	bool apparie_expression() const;
 	bool apparie_expression_unaire() const;
@@ -169,17 +104,5 @@ private:
 	NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
 	NoeudExpression *analyse_instruction_tantque();
 
-	/**
-	 * Lance une exception de type ErreurSyntaxique contenant la chaine passée
-	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance Lexeme lui correspondant.
-	 */
-	[[noreturn]] void lance_erreur(const kuri::chaine &quoi,
-			erreur::Genre genre = erreur::Genre::SYNTAXAGE);
-
-	void empile_etat(const char *message, Lexeme *lexeme);
-
-	void depile_etat();
-
-	kuri::chaine cree_message_erreur(const kuri::chaine &quoi);
+	void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 };

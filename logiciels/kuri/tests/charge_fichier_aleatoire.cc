@@ -27,6 +27,7 @@
 
 #include "compilation/syntaxeuse.hh"
 #include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
