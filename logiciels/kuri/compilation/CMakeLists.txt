@@ -66,7 +66,7 @@ set(SOURCES
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
-  statistiques.hh
+	statistiques.hh
 	structures.hh
 	syntaxeuse.hh
 	tacheronne.hh
@@ -103,7 +103,7 @@ set(SOURCES
 	options.cc
 	outils_lexemes.cc
 	portee.cc
-  statistiques.cc
+	statistiques.cc
 	structures.cc
 	syntaxeuse.cc
 	tacheronne.cc
