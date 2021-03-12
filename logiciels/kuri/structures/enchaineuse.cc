@@ -173,6 +173,20 @@ kuri::chaine Enchaineuse::chaine() const
 	return resultat;
 }
 
+void Enchaineuse::permute(Enchaineuse &autre)
+{
+	if (tampon_courant != &m_tampon_base && autre.tampon_courant != &autre.m_tampon_base) {
+		std::swap(tampon_courant, autre.tampon_courant);
+	}
+
+	for (auto i = 0; i < TAILLE_TAMPON; ++i) {
+		std::swap(m_tampon_base.donnees[i], autre.m_tampon_base.donnees[i]);
+	}
+
+	std::swap(m_tampon_base.occupe, autre.m_tampon_base.occupe);
+	std::swap(m_tampon_base.suivant, autre.m_tampon_base.suivant);
+}
+
 Enchaineuse &operator <<(Enchaineuse &enchaineuse, const kuri::chaine_statique &chn)
 {
 	enchaineuse.ajoute(chn.pointeur(), chn.taille());
