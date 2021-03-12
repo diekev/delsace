@@ -28,8 +28,6 @@
 #include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/unicode.hh"
 
-#include "biblinternes/structures/flux_chaine.hh"
-
 #include <cmath>
 
 #include "compilatrice.hh"
@@ -760,27 +758,27 @@ void Lexeuse::lance_erreur(const kuri::chaine &quoi) const
 {
 	auto ligne_courante = m_donnees->tampon[m_compte_ligne];
 
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
-	ss << ligne_courante;
+	Enchaineuse enchaineuse;
+	enchaineuse << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
+	enchaineuse << ligne_courante;
 
 	/* La position ligne est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */
 	for (auto i = 0l; i < m_position_ligne;) {
 		if (ligne_courante[i] == '\t') {
-			ss << '\t';
+			enchaineuse << '\t';
 		}
 		else {
-			ss << ' ';
+			enchaineuse << ' ';
 		}
 
 		i += lng::decalage_pour_caractere(ligne_courante, i);
 	}
 
-	ss << "^~~~\n";
-	ss << quoi;
+	enchaineuse << "^~~~\n";
+	enchaineuse << quoi;
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::LEXAGE);
+	throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::LEXAGE);
 }
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)

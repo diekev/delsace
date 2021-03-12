@@ -26,7 +26,6 @@
 
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
@@ -62,7 +61,7 @@ static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpressi
 }
 
 void imprime_ligne_avec_message(
-		dls::flux_chaine &flux,
+		Enchaineuse &flux,
 		Fichier *fichier,
 		Lexeme const *lexeme,
 		kuri::chaine_statique message)
@@ -109,7 +108,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *
 			.ajoute_site(site_original);
 }
 
-[[noreturn]] void lance_erreur_transtypage_impossible(
+void lance_erreur_transtypage_impossible(
 		const Type *type_cible,
 		const Type *type_expression,
 		EspaceDeTravail const &espace,
@@ -122,7 +121,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *
 			.ajoute_message("Type de l'expression : ", chaine_type(type_expression), "\n\n");
 }
 
-[[noreturn]] void lance_erreur_assignation_type_differents(
+void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
@@ -434,13 +433,13 @@ void valeur_manquante_discr(
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)
 {
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Dans l'espace de travail « " << espace.nom << " » :\n";
-	ss << "Erreur : impossible de trouver la fonction principale\n";
-	ss << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
-	ss << "\n----------------------------------------------------------------\n";
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
+	Enchaineuse enchaineuse;
+	enchaineuse << "\n----------------------------------------------------------------\n";
+	enchaineuse << "Dans l'espace de travail « " << espace.nom << " » :\n";
+	enchaineuse << "Erreur : impossible de trouver la fonction principale\n";
+	enchaineuse << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
+	enchaineuse << "\n----------------------------------------------------------------\n";
+	throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::MEMBRE_INACTIF);
 }
 
 void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
@@ -453,20 +452,20 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 	auto fichier = espace.fichier(lexeme->fichier);
 	std::cerr << fichier->chemin() << ':' << lexeme->ligne + 1 << '\n';
 
-	dls::flux_chaine ss;
+	Enchaineuse enchaineuse;
 
 	auto etendue = calcule_etendue_noeud(site, fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon()[pos.index_ligne];
-	ss << ligne;
-	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
+	enchaineuse << ligne;
+	lng::erreur::imprime_caractere_vide(enchaineuse, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.pos_min, pos_mot);
+	enchaineuse << '^';
+	lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.pos_max);
+	enchaineuse << '\n';
 
-	std::cerr << ss.chn();
+	std::cerr << enchaineuse.chaine();
 }
 
 }
@@ -479,12 +478,14 @@ Erreur::Erreur(EspaceDeTravail const *espace_)
 
 Erreur::~Erreur() noexcept(false)
 {
-	throw erreur::frappe(message.c_str(), erreur::Genre::NORMAL);
+	if (!fut_bougee) {
+		throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::NORMAL);
+	}
 }
 
 Erreur &Erreur::ajoute_message(const kuri::chaine &m)
 {
-	message += dls::chaine(m);
+	enchaineuse << m;
 	return *this;
 }
 
@@ -493,23 +494,16 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 	assert(espace);
 
 	auto fichier = espace->fichier(site->lexeme->fichier);
-	auto flux = dls::flux_chaine();
-	flux << message;
 
-	erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
-	flux << '\n';
+	erreur::imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
+	enchaineuse << '\n';
 
-	message = flux.chn();
 	return *this;
 }
 
 Erreur &Erreur::ajoute_conseil(const kuri::chaine &c)
 {
-	auto flux = dls::flux_chaine();
-	flux << message;
-	flux << "\033[4mConseil\033[00m : " << c;
-
-	message = flux.chn();
+	enchaineuse << "\033[4mConseil\033[00m : " << c;
 	return *this;
 }
 
@@ -546,9 +540,9 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-dls::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message)
+kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message)
 {
-	auto flux = dls::flux_chaine();
+	auto flux = Enchaineuse();
 	auto chaine_erreur = chaine_pour_erreur(genre);
 
 	flux << COULEUR_CYAN_GRAS << "-- ";
@@ -577,13 +571,13 @@ dls::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression 
 	flux << '\n';
 	flux << '\n';
 
-	return flux.chn();
+	return flux.chaine();
 }
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const kuri::chaine &message, erreur::Genre genre)
 {
 	auto erreur = Erreur(espace);
-	erreur.message = genere_entete_erreur(espace, site, genre, message);
+	erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
 	erreur.genre_erreur(genre);
 	return erreur;
 }
@@ -591,36 +585,34 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *sit
 Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chaine &message, erreur::Genre genre)
 {
 	auto erreur = Erreur(espace);
-	erreur.message = genere_entete_erreur(espace, nullptr, genre, message);
+	erreur.enchaineuse << genere_entete_erreur(espace, nullptr, genre, message);
 	erreur.genre_erreur(genre);
 	return erreur;
 }
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine const &fichier, int ligne, kuri::chaine const &message)
 {
-	auto flux = dls::flux_chaine();
-	flux << COULEUR_CYAN_GRAS << "-- ";
+	auto erreur = Erreur(espace);
+	erreur.enchaineuse << COULEUR_CYAN_GRAS << "-- ";
 
 	auto chaine_erreur = kuri::chaine("ERREUR");
-	flux << chaine_erreur << ' ';
+	erreur.enchaineuse << chaine_erreur << ' ';
 
 	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
-		flux << '-';
+		erreur.enchaineuse << '-';
 	}
 
-	flux << "\n\n" << COULEUR_NORMALE;
+	erreur.enchaineuse << "\n\n" << COULEUR_NORMALE;
 
 	const Fichier *f = espace->fichier({ fichier.pointeur(), fichier.taille() });
 
-	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : " << f->chemin() << ":" << ligne << ":\n";
-	flux << f->tampon()[ligne - 1];
-	flux << '\n';
-	flux << message;
-	flux << '\n';
-	flux << '\n';
+	erreur.enchaineuse << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
+	erreur.enchaineuse << "\nErreur : " << f->chemin() << ":" << ligne << ":\n";
+	erreur.enchaineuse << f->tampon()[ligne - 1];
+	erreur.enchaineuse << '\n';
+	erreur.enchaineuse << message;
+	erreur.enchaineuse << '\n';
+	erreur.enchaineuse << '\n';
 
-	auto erreur = Erreur(espace);
-	erreur.message = flux.chn();
 	return erreur;
 }

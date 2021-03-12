@@ -1375,11 +1375,12 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
 
-		dls::flux_chaine ss;
+		Enchaineuse ss;
 		ss << "as -o /tmp/execution_kuri.o ";
 		ss << chemin_execution_S;
+		ss << '\0';
 
-		auto err = system(ss.chn().c_str());
+		const auto err = system(ss.chaine().pointeur());
 
 		if (err != 0) {
 			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
@@ -1392,7 +1393,7 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 		return false;
 	}
 
-	dls::flux_chaine ss;
+	Enchaineuse ss;
 #if 1
 	ss << "gcc ";
 	ss << racine_kuri / "fichiers/point_d_entree.c";
@@ -1408,8 +1409,9 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 	ss << "/tmp/kuri.o ";
 	ss << "-o " << dest;
 #endif
+	ss << '\0';
 
-	auto err = system(ss.chn().c_str());
+	const auto err = system(ss.chaine().pointeur());
 
 	if (err != 0) {
 		std::cerr << "Ne peut pas créer l'executable !\n";

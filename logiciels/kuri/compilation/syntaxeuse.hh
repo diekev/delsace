@@ -181,5 +181,5 @@ private:
 
 	void depile_etat();
 
-	dls::chaine cree_message_erreur(const kuri::chaine &quoi);
+	kuri::chaine cree_message_erreur(const kuri::chaine &quoi);
 };

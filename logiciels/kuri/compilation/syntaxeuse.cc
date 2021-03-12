@@ -27,7 +27,6 @@
 #include <filesystem>
 
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
@@ -2731,7 +2730,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 void Syntaxeuse::lance_erreur(const kuri::chaine &quoi, erreur::Genre genre)
 {
-	throw erreur::frappe(cree_message_erreur(quoi).c_str(), genre);
+	throw erreur::frappe(cree_message_erreur(quoi), genre);
 }
 
 void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)
@@ -2744,12 +2743,12 @@ void Syntaxeuse::depile_etat()
 	m_donnees_etat_syntaxage.pop_back();
 }
 
-dls::chaine Syntaxeuse::cree_message_erreur(const kuri::chaine &quoi)
+kuri::chaine Syntaxeuse::cree_message_erreur(const kuri::chaine &quoi)
 {
 	auto lexeme = lexeme_courant();
 	auto fichier = m_unite->espace->fichier(lexeme->fichier);
 
-	auto flux = dls::flux_chaine();
+	auto flux = Enchaineuse();
 
 	flux << "\n";
 	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
@@ -2760,5 +2759,5 @@ dls::chaine Syntaxeuse::cree_message_erreur(const kuri::chaine &quoi)
 
 	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi);
 
-	return flux.chn();
+	return flux.chaine();
 }

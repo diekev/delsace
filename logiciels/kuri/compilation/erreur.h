@@ -27,9 +27,9 @@
 #include "modules.hh"
 
 #include "biblinternes/langage/erreur.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
 
 #include "validation_expression_appel.hh"
 
@@ -78,109 +78,120 @@ enum class Genre : int {
 const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
 
-using frappe = lng::erreur::frappe<Genre, dls::chaine>;
+using frappe = lng::erreur::frappe<Genre, kuri::chaine>;
 
 void imprime_ligne_avec_message(
-		dls::flux_chaine &flux,
+		Enchaineuse &flux,
 		Fichier *fichier,
 		Lexeme const *lexeme,
 		kuri::chaine_statique message);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 
-[[noreturn]] void lance_erreur(
+void lance_erreur(
 		const kuri::chaine &quoi,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site,
 		Genre type = Genre::NORMAL);
 
-[[noreturn]] void redefinition_fonction(
+void redefinition_fonction(
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site_redefinition,
 		const NoeudExpression *site_original);
 
-[[noreturn]] void redefinition_symbole(
+void redefinition_symbole(
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site_redefinition,
 		const NoeudExpression *site_original);
 
-[[noreturn]] void lance_erreur_transtypage_impossible(const Type *type_cible,
+void lance_erreur_transtypage_impossible(const Type *type_cible,
 		const Type *type_enf,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site_expression,
 		const NoeudExpression *site);
 
-[[noreturn]] void lance_erreur_assignation_type_differents(
+void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site);
 
-[[noreturn]] void lance_erreur_type_operation(
+void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site);
 
-[[noreturn]] void lance_erreur_fonction_inconnue(
+void lance_erreur_fonction_inconnue(
 		EspaceDeTravail const &espace,
 		NoeudExpression *n,
 		dls::tablet<DonneesCandidate, 10> const &candidates);
 
-[[noreturn]] void lance_erreur_fonction_nulctx(
+void lance_erreur_fonction_nulctx(
 		EspaceDeTravail const &espace,
 		NoeudExpression const *appl_fonc,
 		NoeudExpression const *decl_fonc,
 		NoeudExpression const *decl_appel);
 
-[[noreturn]] void lance_erreur_acces_hors_limites(
+void lance_erreur_acces_hors_limites(
 		EspaceDeTravail const &espace,
 		NoeudExpression *b,
 		long taille_tableau,
 		Type *type_tableau,
 		long index_acces);
 
-[[noreturn]] void membre_inconnu(
+void membre_inconnu(
 		EspaceDeTravail const &espace,
 		NoeudExpression *acces,
 		NoeudExpression *structure,
 		NoeudExpression *membre,
 		TypeCompose *type);
 
-[[noreturn]] void membre_inactif(
+void membre_inactif(
 			EspaceDeTravail const &espace,
 			ContexteValidationCode &contexte,
 			NoeudExpression *acces,
 			NoeudExpression *structure,
 			NoeudExpression *membre);
 
-[[noreturn]] void valeur_manquante_discr(
+void valeur_manquante_discr(
 		EspaceDeTravail const &espace,
 		NoeudExpression *expression,
 		const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 
-[[noreturn]] void fonction_principale_manquante(EspaceDeTravail const &espace);
+void fonction_principale_manquante(EspaceDeTravail const &espace);
 }
 
 struct Erreur {
 	EspaceDeTravail const *espace = nullptr;
-	dls::chaine message{};
+	bool fut_bougee = false;
+	Enchaineuse enchaineuse{};
 	erreur::Genre genre = erreur::Genre::NORMAL;
 
 	Erreur(EspaceDeTravail const *espace_);
 
-	COPIE_CONSTRUCT(Erreur);
+	Erreur(Erreur &) = delete;
+	Erreur &operator=(Erreur &) = delete;
 
-	[[noreturn]] ~Erreur() noexcept(false);
+	Erreur(Erreur &&autre)
+	{
+		this->permute(autre);
+	}
+
+	Erreur &operator=(Erreur &&autre)
+	{
+		this->permute(autre);
+		return *this;
+	}
+
+	~Erreur() noexcept(false);
 
 	Erreur &ajoute_message(kuri::chaine const &m);
 
 	template <typename... Ts>
 	Erreur &ajoute_message(Ts... ts)
 	{
-		dls::flux_chaine ss;
-		((ss << ts), ...);
-		message += ss.chn();
+		((enchaineuse << ts), ...);
 		return *this;
 	}
 
@@ -192,6 +203,15 @@ struct Erreur {
 	{
 		genre = genre_;
 	}
+
+	void permute(Erreur &autre)
+	{
+		enchaineuse.permute(autre.enchaineuse);
+		std::swap(genre, autre.genre);
+		std::swap(espace, autre.espace);
+
+		autre.fut_bougee = true;
+	}
 };
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, kuri::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
@@ -200,4 +220,4 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chai
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, const kuri::chaine &fichier, int ligne, const kuri::chaine &message);
 
-dls::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message);
+kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, erreur::Genre genre, const kuri::chaine_statique message);
