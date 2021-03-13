@@ -29,6 +29,7 @@
 
 namespace kuri {
 
+#if 0
 static int compare_chaine(chaine_statique const &chn1, chaine_statique const &chn2)
 {
 	auto p1 = chn1.pointeur();
@@ -65,20 +66,21 @@ static int compare_chaine(chaine_statique const &chn1, chaine_statique const &ch
 	return strncmp(p1, p2, static_cast<size_t>(taille));
 #endif
 }
+#endif
 
 bool operator<(const chaine_statique &c1, const chaine_statique &c2)
 {
-	return compare_chaine(c1, c2) < 0;
+	return std::string_view{c1.pointeur(), static_cast<size_t>(c1.taille())} < std::string_view{c2.pointeur(), static_cast<size_t>(c2.taille())};
 }
 
 bool operator>(const chaine_statique &c1, const chaine_statique &c2)
 {
-	return compare_chaine(c1, c2) > 0;
+	return std::string_view{c1.pointeur(), static_cast<size_t>(c1.taille())} > std::string_view{c2.pointeur(), static_cast<size_t>(c2.taille())};
 }
 
-bool operator==(chaine_statique const &vc1, chaine_statique const &vc2)
+bool operator==(chaine_statique const &c1, chaine_statique const &c2)
 {
-	return compare_chaine(vc1, vc2) == 0;
+	return std::string_view{c1.pointeur(), static_cast<size_t>(c1.taille())} == std::string_view{c2.pointeur(), static_cast<size_t>(c2.taille())};
 }
 
 bool operator==(chaine_statique const &vc1, char const *vc2)
@@ -93,7 +95,7 @@ bool operator==(char const *vc1, chaine_statique const &vc2)
 
 bool operator!=(chaine_statique const &vc1, chaine_statique const &vc2)
 {
-	return compare_chaine(vc1, vc2) != 0;
+	return !(vc1 == vc2);
 }
 
 bool operator!=(chaine_statique const &vc1, char const *vc2)
