@@ -123,8 +123,6 @@ struct Fichier {
 
 template <int i>
 struct EnveloppeFichier {
-	static const int tag;
-
 	Fichier *fichier = nullptr;
 
 	EnveloppeFichier(Fichier &f)
@@ -135,7 +133,23 @@ struct EnveloppeFichier {
 using FichierExistant = EnveloppeFichier<0>;
 using FichierNeuf = EnveloppeFichier<1>;
 
-using ResultatFichier = Resultat<FichierExistant, FichierNeuf>;
+enum class TagPourResultatFichier {
+	INVALIDE,
+	NOUVEAU_FICHIER,
+	FICHIER_EXISTANT,
+};
+
+template <>
+struct tag_pour_donnees<TagPourResultatFichier, FichierExistant> {
+	static constexpr auto tag = TagPourResultatFichier::FICHIER_EXISTANT;
+};
+
+template <>
+struct tag_pour_donnees<TagPourResultatFichier, FichierNeuf> {
+	static constexpr auto tag = TagPourResultatFichier::NOUVEAU_FICHIER;
+};
+
+using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFichier>;
 
 struct DonneesConstantesModule {
 	/* le nom du module, qui est le nom du dossier où se trouve les fichiers */

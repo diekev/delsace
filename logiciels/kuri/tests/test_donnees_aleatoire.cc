@@ -482,7 +482,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
 		auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", true);
-		auto fichier = resultat.t2().fichier;
+		auto fichier = resultat.resultat<FichierNeuf>().fichier;
 
 		auto donnees_fichier = fichier->donnees_constantes;
 		donnees_fichier->charge_tampon(lng::tampon_source("texte_test"));

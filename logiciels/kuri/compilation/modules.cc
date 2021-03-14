@@ -29,12 +29,6 @@
 #include "portee.hh"
 #include "statistiques.hh"
 
-template <>
-const int FichierExistant::tag = tags++;
-
-template <>
-const int FichierNeuf::tag = tags++;
-
 /* ************************************************************************** */
 
 bool Fichier::importe_module(IdentifiantCode *nom_module) const

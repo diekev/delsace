@@ -1306,8 +1306,8 @@ void Tacheronne::execute_metaprogrammes()
 				auto nom_fichier = enchaine(it);
 				auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
 
-				if (resultat_fichier.tag_type() == FichierNeuf::tag) {
-					auto fichier = resultat_fichier.t2().fichier;
+				if (resultat_fichier.est<FichierNeuf>()) {
+					auto fichier = resultat_fichier.resultat<FichierNeuf>().fichier;
 					auto donnees_fichier = fichier->donnees_constantes;
 
 					fichier->module = module;
