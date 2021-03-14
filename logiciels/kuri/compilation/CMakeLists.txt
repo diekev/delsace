@@ -28,6 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_representation_intermediaire
+	kuri_statistiques
 	kuri_structures
 	stdc++fs
 	langage
@@ -66,7 +67,6 @@ set(SOURCES
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
-	statistiques.hh
 	structures.hh
 	syntaxeuse.hh
 	tacheronne.hh
@@ -103,7 +103,6 @@ set(SOURCES
 	options.cc
 	outils_lexemes.cc
 	portee.cc
-	statistiques.cc
 	structures.cc
 	syntaxeuse.cc
 	tacheronne.cc

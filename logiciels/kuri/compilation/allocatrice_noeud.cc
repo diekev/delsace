@@ -27,7 +27,7 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/definitions.h"
 
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 long AllocatriceNoeud::nombre_noeuds() const
 {

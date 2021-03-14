@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
+
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
@@ -191,3 +193,9 @@ struct StatistiquesTypage {
 	EntreesStats<EntreeTemps> structures{"Structures"};
 	EntreesStats<EntreeTemps> assignations{"Assignations"};
 };
+
+void imprime_stats(
+		Statistiques const &stats,
+		dls::chrono::compte_seconde debut_compilation);
+
+void imprime_stats_detaillee(Statistiques &stats);

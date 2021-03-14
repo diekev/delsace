@@ -28,10 +28,11 @@
 
 #include "biblinternes/flux/outils.h"
 
+#include "statistiques/statistiques.hh"
+
 #include "espace_de_travail.hh"
 #include "erreur.h"
 #include "lexeuse.hh"
-#include "statistiques.hh"
 
 /* ************************************************************************** */
 

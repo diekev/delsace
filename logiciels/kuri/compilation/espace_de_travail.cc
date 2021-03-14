@@ -38,7 +38,7 @@
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
 #include "identifiant.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 	: options(opts)

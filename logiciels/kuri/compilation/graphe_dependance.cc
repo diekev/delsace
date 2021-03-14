@@ -27,7 +27,7 @@
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 #include "typage.hh"
 
 const char *chaine_type_relation(TypeRelation type)

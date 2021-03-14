@@ -42,6 +42,7 @@ add_subdirectory(modules_c/FTGL)
 add_subdirectory(modules_c/Image)
 add_subdirectory(modules_c/Krypto)
 add_subdirectory(representation_intermediaire)
+add_subdirectory(statistiques)
 add_subdirectory(structures)
 add_subdirectory(tests)
 

@@ -33,7 +33,7 @@
 #include "identifiant.hh"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 /* ************************************************************************** */
 

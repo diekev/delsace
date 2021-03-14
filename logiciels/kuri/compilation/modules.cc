@@ -27,7 +27,7 @@
 #include "structures/enchaineuse.hh"
 
 #include "portee.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 /* ************************************************************************** */
 

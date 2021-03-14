@@ -29,7 +29,7 @@
 
 #include "allocatrice_noeud.hh"
 #include "validation_semantique.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
