@@ -26,8 +26,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblexternes/iprof/prof.h"
-
 #include <thread>
 
 #include "compilation/compilatrice.hh"
@@ -46,7 +44,6 @@
 #include "date.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/systeme_fichier/shared_library.h"
 
 #define AVEC_THREADS
 
