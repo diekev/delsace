@@ -24,9 +24,10 @@
 
 #include "transformation_type.hh"
 
+#include "parsage/outils_lexemes.hh"
+
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "outils_lexemes.hh"
 #include "validation_semantique.hh"
 
 const char *chaine_transformation(TypeTransformation type)

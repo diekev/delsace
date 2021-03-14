@@ -27,6 +27,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	kuri_parsage
 	kuri_representation_intermediaire
 	kuri_statistiques
 	kuri_structures
@@ -42,30 +43,22 @@ set(SOURCES
 	allocatrice_noeud.hh
 	arbre_syntaxique.hh
 	assembleuse_arbre.h
-	base_syntaxeuse.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
 	coulisse_asm.hh
 	coulisse_c.hh
-	empreinte_parfaite.hh
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
 	expression.h
-	gerante_chaine.hh
 	graphe_dependance.hh
-	identifiant.hh
-	lexemes.hh
-	lexeuse.hh
 	message.hh
 	metaprogramme.hh
-	modules.hh
 	monomorphisations.hh
 	noeud_code.hh
 	options.hh
 	operateurs.hh
-	outils_lexemes.hh
 	portee.hh
 	structures.hh
 	syntaxeuse.hh
@@ -79,7 +72,6 @@ set(SOURCES
 	allocatrice_noeud.cc
 	arbre_syntaxique.cc
 	assembleuse_arbre.cc
-	base_syntaxeuse.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
@@ -89,19 +81,13 @@ set(SOURCES
 	erreur.cc
 	espace_de_travail.cc
 	expression.cc
-	gerante_chaine.cc
 	graphe_dependance.cc
-	identifiant.cc
-	lexemes.cc
-	lexeuse.cc
 	message.cc
 	metaprogramme.cc
-	modules.cc
 	monomorphisations.cc
 	noeud_code.cc
 	operateurs.cc
 	options.cc
-	outils_lexemes.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc

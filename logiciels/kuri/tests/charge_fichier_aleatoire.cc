@@ -28,8 +28,9 @@
 #include "compilation/syntaxeuse.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
-#include "compilation/lexeuse.hh"
-#include "compilation/modules.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
 
 int main(int argc, char *argv[])
 {
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		donnees_fichier->charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
 
-		auto lexeuse = Lexeuse(compilatrice, donnees_fichier);
+		auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
 		lexeuse.performe_lexage();
 	}
 	catch (erreur::frappe const &e) {

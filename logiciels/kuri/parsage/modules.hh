@@ -42,6 +42,7 @@
 
 struct Compilatrice;
 struct EspaceDeTravail;
+struct Enchaineuse;
 struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
@@ -202,12 +203,12 @@ struct SystemeModule {
 	long memoire_utilisee() const;
 };
 
-/* ************************************************************************** */
+void imprime_ligne_avec_message(
+		Enchaineuse &flux,
+		Fichier *fichier,
+		Lexeme const *lexeme,
+		kuri::chaine_statique message);
 
-struct PositionLexeme {
-	long index_ligne = 0;
-	long numero_ligne = 0;
-	long pos = 0;
-};
-
-PositionLexeme position_lexeme(Lexeme const &lexeme);
+/* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
+ * le fichier existe bel et bien. */
+dls::chaine charge_contenu_fichier(dls::chaine const &chemin);

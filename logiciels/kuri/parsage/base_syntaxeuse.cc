@@ -24,7 +24,8 @@
 
 #include "base_syntaxeuse.hh"
 
-#include "erreur.h"
+#include "structures/enchaineuse.hh"
+
 #include "modules.hh"
 
 BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier)
@@ -77,10 +78,10 @@ kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 	enchaineuse << m_fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
 
 	POUR (m_donnees_etat_syntaxage) {
-		erreur::imprime_ligne_avec_message(enchaineuse, m_fichier, it.lexeme, it.message);
+		imprime_ligne_avec_message(enchaineuse, m_fichier, it.lexeme, it.message);
 	}
 
-	erreur::imprime_ligne_avec_message(enchaineuse, m_fichier, lexeme, message);
+	imprime_ligne_avec_message(enchaineuse, m_fichier, lexeme, message);
 	return enchaineuse.chaine();
 }
 

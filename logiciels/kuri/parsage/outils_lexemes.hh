@@ -25,6 +25,15 @@
 #pragma once
 
 enum class GenreLexeme : unsigned int;
+struct Lexeme;
+
+struct PositionLexeme {
+	long index_ligne = 0;
+	long numero_ligne = 0;
+	long pos = 0;
+};
+
+PositionLexeme position_lexeme(Lexeme const &lexeme);
 
 bool est_operateur_bool(GenreLexeme type);
 

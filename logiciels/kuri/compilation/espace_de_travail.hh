@@ -31,11 +31,12 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "parsage/modules.hh"
+
 #include "erreur.h"
 #include "graphe_dependance.hh"
 #include "message.hh"
 #include "metaprogramme.hh"
-#include "modules.hh"
 #include "options.hh"
 #include "operateurs.hh"
 #include "typage.hh"

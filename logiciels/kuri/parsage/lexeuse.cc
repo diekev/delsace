@@ -30,10 +30,10 @@
 
 #include <cmath>
 
-#include "compilatrice.hh"
-#include "erreur.h"
 #include "empreinte_parfaite.hh"
+#include "gerante_chaine.hh"
 #include "identifiant.hh"
+#include "modules.hh"
 
 /**
  * Idées pour des optimisations :
@@ -205,13 +205,15 @@ static int longueur_utf8_depuis_premier_caractere[] = {
 	4, 4, 4, 4, 4, 4
 };
 
-Lexeuse::Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, int drapeaux)
-	: m_compilatrice(compilatrice)
+Lexeuse::Lexeuse(ContexteLexage contexte, DonneesConstantesFichier *donnees, int drapeaux)
+	: m_gerante_chaine(contexte.gerante_chaine)
+	, m_table_identifiants(contexte.table_identifiants)
 	, m_donnees(donnees)
 	, m_debut_mot(donnees->tampon.debut())
 	, m_debut(donnees->tampon.debut())
 	, m_fin(donnees->tampon.fin())
 	, m_drapeaux(drapeaux)
+	, m_rappel_erreur(contexte.rappel_erreur)
 {}
 
 void Lexeuse::performe_lexage()
@@ -395,7 +397,7 @@ void Lexeuse::performe_lexage()
 					default:
 					{
 						/* Le caractère (octet) courant est invalide dans le codec unicode. */
-						lance_erreur("Le codec Unicode ne peut comprendre le caractère !");
+						rapporte_erreur("Le codec Unicode ne peut comprendre le caractère !");
 					}
 				}
 
@@ -547,7 +549,7 @@ void Lexeuse::performe_lexage()
 				auto valeur = this->lexe_caractere_litteral(nullptr);
 
 				if (this->caractere_courant() != '\'') {
-					lance_erreur("attendu une apostrophe");
+					rapporte_erreur("attendu une apostrophe");
 				}
 
 				/* Saute la dernière apostrophe si nécessaire. */
@@ -581,7 +583,7 @@ void Lexeuse::performe_lexage()
 				POUSSE_MOT_SI_NECESSAIRE
 
 				if (this->caractere_voisin(1) == '/') {
-					lance_erreur("fin de commentaire bloc en dehors d'un commentaire");
+					rapporte_erreur("fin de commentaire bloc en dehors d'un commentaire");
 				}
 
 				APPARIE_SUIVANT('=', GenreLexeme::MULTIPLIE_EGAL)
@@ -680,7 +682,7 @@ void Lexeuse::performe_lexage()
 	}
 
 	if (m_taille_mot_courant != 0) {
-		lance_erreur("Des caractères en trop se trouvent à la fin du texte !");
+		rapporte_erreur("Des caractères en trop se trouvent à la fin du texte !");
 	}
 
 #undef CAS_CARACTERE
@@ -690,7 +692,7 @@ void Lexeuse::performe_lexage()
 
 	// crée les identifiants à la fin pour améliorer la cohérence de cache
 	{
-		auto table_identifiants = m_compilatrice.table_identifiants.verrou_ecriture();
+		auto table_identifiants = m_table_identifiants.verrou_ecriture();
 
 		POUR (m_donnees->lexemes) {
 			if (it.genre == GenreLexeme::EXTERNE) {
@@ -707,7 +709,7 @@ void Lexeuse::performe_lexage()
 
 	// crée les chaines littérales à la fin pour améliorer la cohérence de cache
 	{
-		auto gerante_chaine = m_compilatrice.gerante_chaine.verrou_ecriture();
+		auto gerante_chaine = m_gerante_chaine.verrou_ecriture();
 
 		/* en dehors de la boucle car nous l'utilisons comme tampon */
 		kuri::chaine chaine;
@@ -754,8 +756,9 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
 	return dls::vue_chaine_compacte(m_debut_mot, m_taille_mot_courant);
 }
 
-void Lexeuse::lance_erreur(const kuri::chaine &quoi) const
+void Lexeuse::rapporte_erreur(const kuri::chaine &quoi)
 {
+	m_possede_erreur = true;
 	auto ligne_courante = m_donnees->tampon[m_compte_ligne];
 
 	Enchaineuse enchaineuse;
@@ -778,7 +781,7 @@ void Lexeuse::lance_erreur(const kuri::chaine &quoi) const
 	enchaineuse << "^~~~\n";
 	enchaineuse << quoi;
 
-	throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::LEXAGE);
+	m_rappel_erreur(enchaineuse.chaine());
 }
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
@@ -949,7 +952,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 	if (!point_trouve && !exposant_trouve) {
 		if (nombre_de_chiffres > 20) {
-			lance_erreur("constante entière trop grande");
+			rapporte_erreur("constante entière trop grande");
 		}
 
 		this->pousse_lexeme_entier(resultat_entier);
@@ -979,12 +982,12 @@ void Lexeuse::lexe_nombre_decimal()
 				break;
 			}
 
-			lance_erreur("point superflux dans l'expression du nombre");
+			rapporte_erreur("point superflux dans l'expression du nombre");
 		}
 
 		if (c == 'e') {
 			if (exposant_trouve) {
-				lance_erreur("exposant superflux dans l'expression du nombre");
+				rapporte_erreur("exposant superflux dans l'expression du nombre");
 			}
 
 			exposant_trouve = true;
@@ -1091,7 +1094,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 	}
 
 	if (nombre_de_chiffres > 16) {
-		lance_erreur("constante entière trop grande");
+		rapporte_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
@@ -1135,7 +1138,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 	}
 
 	if (nombre_de_chiffres % 8 != 0 || nombre_de_chiffres > 16) {
-		lance_erreur("Une constante réelle hexadécimale doit avoir 8 ou 16 chiffres");
+		rapporte_erreur("Une constante réelle hexadécimale doit avoir 8 ou 16 chiffres");
 	}
 
 	if (nombre_de_chiffres == 8) {
@@ -1182,7 +1185,7 @@ void Lexeuse::lexe_nombre_binaire()
 	}
 
 	if (nombre_de_chiffres > 64) {
-		lance_erreur("constante entière trop grande");
+		rapporte_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
@@ -1220,7 +1223,7 @@ void Lexeuse::lexe_nombre_octal()
 	}
 
 	if (nombre_de_chiffres > 22) {
-		lance_erreur("constante entière trop grande");
+		rapporte_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
@@ -1286,7 +1289,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			auto c0 = hex_depuis_char(n);
 
 			if (c0 == 256) {
-				lance_erreur("\\u doit prendre 4 chiffres hexadécimaux");
+				rapporte_erreur("\\u doit prendre 4 chiffres hexadécimaux");
 			}
 
 			v <<= 4;
@@ -1300,7 +1303,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 		auto n = lng::point_de_code_vers_utf8(v, sequence);
 
 		if (n == 0) {
-			lance_erreur("Séquence Unicode invalide");
+			rapporte_erreur("Séquence Unicode invalide");
 		}
 
 		if (chaine) {
@@ -1319,7 +1322,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			auto c0 = hex_depuis_char(n);
 
 			if (c0 == 256) {
-				lance_erreur("\\U doit prendre 8 chiffres hexadécimaux");
+				rapporte_erreur("\\U doit prendre 8 chiffres hexadécimaux");
 			}
 
 			v <<= 4;
@@ -1333,7 +1336,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 		auto n = lng::point_de_code_vers_utf8(v, sequence);
 
 		if (n == 0) {
-			lance_erreur("Séquence Unicode invalide");
+			rapporte_erreur("Séquence Unicode invalide");
 		}
 
 		if (chaine) {
@@ -1382,7 +1385,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			auto c0 = hex_depuis_char(n);
 
 			if (c0 == 256) {
-				lance_erreur("\\x doit prendre 2 chiffres hexadécimaux");
+				rapporte_erreur("\\x doit prendre 2 chiffres hexadécimaux");
 			}
 
 			v <<= 4;
@@ -1397,7 +1400,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			auto n = this->caractere_courant();
 
 			if (n < '0' || n > '9') {
-				lance_erreur("\\d doit prendre 3 chiffres décimaux");
+				rapporte_erreur("\\d doit prendre 3 chiffres décimaux");
 			}
 
 			v *= 10;
@@ -1408,11 +1411,11 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 		}
 
 		if (v > 255) {
-			lance_erreur("Valeur décimale trop grande, le maximum est 255");
+			rapporte_erreur("Valeur décimale trop grande, le maximum est 255");
 		}
 	}
 	else {
-		lance_erreur("Séquence d'échappement invalide");
+		rapporte_erreur("Séquence d'échappement invalide");
 	}
 
 	if (chaine) {

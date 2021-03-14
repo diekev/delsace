@@ -26,8 +26,9 @@
 
 #include "biblinternes/outils/numerique.hh"
 
-#include "compilation/identifiant.hh"
 #include "compilation/typage.hh"
+
+#include "parsage/identifiant.hh"
 
 #include "instructions.hh"
 

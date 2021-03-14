@@ -29,13 +29,14 @@
 #include "biblinternes/outils/garde_portee.h"
 #include "biblinternes/structures/file_fixe.hh"
 
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "erreur.h"
-#include "outils_lexemes.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
 #include "tacheronne.hh"

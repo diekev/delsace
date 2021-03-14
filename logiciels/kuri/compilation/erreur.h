@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include "modules.hh"
-
 #include "biblinternes/langage/erreur.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
@@ -34,6 +33,7 @@
 #include "validation_expression_appel.hh"
 
 struct EspaceDeTravail;
+struct Fichier;
 struct Lexeme;
 struct NoeudExpression;
 struct Type;
@@ -79,12 +79,6 @@ const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
 
 using frappe = lng::erreur::frappe<Genre, kuri::chaine>;
-
-void imprime_ligne_avec_message(
-		Enchaineuse &flux,
-		Fichier *fichier,
-		Lexeme const *lexeme,
-		kuri::chaine_statique message);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 

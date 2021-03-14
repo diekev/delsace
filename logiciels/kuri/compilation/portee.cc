@@ -28,7 +28,7 @@
 
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
-#include "modules.hh"
+#include "parsage/modules.hh"
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {

@@ -30,9 +30,10 @@
 
 #include "structures/enchaineuse.hh"
 
+#include "parsage/identifiant.hh"
+#include "parsage/modules.hh"
+
 #include "arbre_syntaxique.hh"
-#include "identifiant.hh"
-#include "modules.hh"
 #include "typage.hh"
 
 // À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés pour les fonctions

@@ -33,11 +33,11 @@
 
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
-#include "compilation/modules.hh"
 #include "compilation/tacheronne.hh"
 
-#include "compilation/erreur.h"
+#include "parsage/modules.hh"
 
 struct Test {
 	const char *cas = "";
@@ -381,10 +381,7 @@ int main()
 
 		if (std::filesystem::exists(chemin)) {
 			auto compilatrice = Compilatrice{};
-			compilatrice.importe_kuri = false;
-			auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
-
-			auto contenu_fichier = charge_fichier(chemin.c_str(), *espace, {});
+			auto contenu_fichier = charge_contenu_fichier(chemin.c_str());
 			auto tampon = lng::tampon_source(std::move(contenu_fichier));
 
 			if (tampon.nombre_lignes() == 0) {

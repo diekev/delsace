@@ -27,10 +27,11 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tuples.hh"
 
+#include "parsage/lexemes.hh"
+
 #include "structures/tableau.hh"
 
 #include "expression.h"
-#include "lexemes.hh"
 #include "transformation_type.hh"
 #include "typage.hh"
 

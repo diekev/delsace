@@ -30,9 +30,10 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "parsage/lexeuse.hh"
+
 #include "espace_de_travail.hh"
 #include "erreur.h"
-#include "lexeuse.hh"
 
 /* ************************************************************************** */
 
@@ -133,25 +134,6 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine
 
 /* ************************************************************************** */
 
-dls::chaine charge_fichier(
-		const dls::chaine &chemin,
-		EspaceDeTravail &espace,
-		NoeudExpression const *site)
-{
-	std::ifstream fichier;
-	fichier.open(chemin.c_str());
-
-	if (!fichier.is_open()) {
-		erreur::lance_erreur(
-					"Impossible d'ouvrir le fichier correspondant au module",
-					espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
-
-	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
-}
-
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const kuri::chaine &nom, Module *module, NoeudExpression const *site)
 {
 	auto chemin = dls::chaine(module->chemin()) + dls::chaine(nom) + ".kuri";
@@ -242,6 +224,19 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 	espace->module_kuri = importe_module(espace, "Kuri", {});
 
 	return espace;
+}
+
+ContexteLexage Compilatrice::contexte_lexage()
+{
+	auto rappel_erreur = [](kuri::chaine message) {
+		throw erreur::frappe(message, erreur::Genre::LEXAGE);
+	};
+
+	return {
+		gerante_chaine,
+		table_identifiants,
+		rappel_erreur
+	};
 }
 
 /* ************************************************************************** */
@@ -413,10 +408,10 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chem
 	}
 
 	auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
-	auto tampon = charge_fichier(chemin, *espace, site);
+	auto tampon = charge_contenu_fichier(chemin);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+	auto lexeuse = Lexeuse(ptr_compilatrice->contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
 	lexeuse.performe_lexage();
 
 	return converti_tableau_lexemes(donnees_fichier->lexemes);

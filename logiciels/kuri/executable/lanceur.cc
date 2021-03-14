@@ -33,9 +33,10 @@
 #include "compilation/environnement.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
-#include "compilation/modules.hh"
 #include "compilation/options.hh"
 #include "compilation/tacheronne.hh"
+
+#include "parsage/modules.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 

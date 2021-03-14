@@ -28,12 +28,13 @@
 
 #include "biblinternes/outils/assert.hh"
 
+#include "parsage/modules.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "modules.hh"
-#include "outils_lexemes.hh"
 #include "typage.hh"
 
 // Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier

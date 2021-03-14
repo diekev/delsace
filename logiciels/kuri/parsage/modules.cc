@@ -24,9 +24,13 @@
 
 #include "modules.hh"
 
+#include <fstream>
+
+#include "biblinternes/langage/erreur.hh"
+#include "biblinternes/outils/numerique.hh"
+
 #include "structures/enchaineuse.hh"
 
-#include "portee.hh"
 #include "statistiques/statistiques.hh"
 
 /* ************************************************************************** */
@@ -137,13 +141,38 @@ long SystemeModule::memoire_utilisee() const
 	return memoire;
 }
 
-/* ************************************************************************** */
-
-PositionLexeme position_lexeme(Lexeme const &lexeme)
+void imprime_ligne_avec_message(
+		Enchaineuse &flux,
+		Fichier *fichier,
+		Lexeme const *lexeme,
+		kuri::chaine_statique message)
 {
-	auto pos = PositionLexeme{};
-	pos.pos = lexeme.colonne;
-	pos.numero_ligne = lexeme.ligne + 1;
-	pos.index_ligne = lexeme.ligne;
-	return pos;
+	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
+	flux << message << "\n";
+
+	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
+
+	for (auto i = 0; i < 5 - nc; ++i) {
+		flux << ' ';
+	}
+
+	flux << lexeme->ligne + 1 << " | " << fichier->tampon()[lexeme->ligne];
+	flux << "      | ";
+
+	lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon()[lexeme->ligne]);
+	flux << '^';
+	lng::erreur::imprime_tilde(flux, lexeme->chaine);
+	flux << '\n';
+}
+
+dls::chaine charge_contenu_fichier(const dls::chaine &chemin)
+{
+	std::ifstream fichier;
+	fichier.open(chemin.c_str());
+
+	if (!fichier.is_open()) {
+		return "";
+	}
+
+	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
 }

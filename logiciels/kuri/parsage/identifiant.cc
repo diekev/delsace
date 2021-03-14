@@ -24,8 +24,6 @@
 
 #include "identifiant.hh"
 
-#include "biblinternes/outils/definitions.h"
-
 TableIdentifiant::TableIdentifiant()
 {
 	initialise_identifiants(*this);

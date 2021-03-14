@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "base_syntaxeuse.hh"
+#include "parsage/base_syntaxeuse.hh"
 
 struct Compilatrice;
 struct NoeudBloc;

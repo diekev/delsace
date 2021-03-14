@@ -29,10 +29,11 @@
 #include "biblinternes/json/json.hh"
 
 #include "compilation/compilatrice.hh"
-#include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
-#include "compilation/outils_lexemes.hh"
-#include "compilation/modules.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/outils_lexemes.hh"
+#include "parsage/modules.hh"
 
 #include "options.hh"
 
@@ -134,12 +135,11 @@ static void reecris_fichier(
 		}
 
 		auto compilatrice = Compilatrice{};
-		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
-		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
+		auto tampon = charge_contenu_fichier(chemin.c_str());
 		donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-		auto lexeuse = Lexeuse(compilatrice, donnees_fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		lexeuse.performe_lexage();
 
 		auto os = std::ofstream(chemin);

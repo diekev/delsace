@@ -26,13 +26,15 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 
-#include "gerante_chaine.hh"
-#include "identifiant.hh"
+#include "parsage/gerante_chaine.hh"
+#include "parsage/identifiant.hh"
+#include "parsage/modules.hh"
+
 #include "message.hh"
-#include "modules.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
 
+struct ContexteLexage;
 struct EspaceDeTravail;
 struct OptionsCompilation;
 struct Statistiques;
@@ -118,15 +120,12 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
+	ContexteLexage contexte_lexage();
+
 	long memoire_utilisee() const;
 
 	void rassemble_statistiques(Statistiques &stats) const;
 };
-
-dls::chaine charge_fichier(
-		dls::chaine const &chemin,
-		EspaceDeTravail &espace,
-		NoeudExpression const *site);
 
 /* manipule les options de compilation pour l'espace de travail défaut */
 OptionsCompilation *obtiens_options_compilation();

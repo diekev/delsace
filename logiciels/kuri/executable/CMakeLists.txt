@@ -32,6 +32,7 @@ set(NOM_PROJET kuri)
 
 set(BIBLIOTHEQUES
 	kuri_compilation
+	kuri_parsage
 	kuri_representation_intermediaire
 	stdc++fs
 	bib_outils

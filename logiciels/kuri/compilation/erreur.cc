@@ -27,10 +27,13 @@
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"
 
+#include "parsage/identifiant.hh"
+#include "parsage/lexemes.hh"
+#include "parsage/modules.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
-#include "identifiant.hh"
-#include "lexemes.hh"
 #include "validation_semantique.hh"
 
 namespace erreur {
@@ -58,30 +61,6 @@ static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpressi
 	auto etendue_expr = calcule_etendue_noeud(expr);
 	auto ligne = fichier->tampon()[lexeme->ligne];
 	return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min], etendue_expr.pos_max - etendue_expr.pos_min);
-}
-
-void imprime_ligne_avec_message(
-		Enchaineuse &flux,
-		Fichier *fichier,
-		Lexeme const *lexeme,
-		kuri::chaine_statique message)
-{
-	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
-	flux << message << "\n";
-
-	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
-
-	for (auto i = 0; i < 5 - nc; ++i) {
-		flux << ' ';
-	}
-
-	flux << lexeme->ligne + 1 << " | " << fichier->tampon()[lexeme->ligne];
-	flux << "      | ";
-
-	lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon()[lexeme->ligne]);
-	flux << '^';
-	lng::erreur::imprime_tilde(flux, lexeme->chaine);
-	flux << '\n';
 }
 
 void lance_erreur(const kuri::chaine &quoi,
@@ -490,7 +469,7 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 
 	auto fichier = espace->fichier(site->lexeme->fichier);
 
-	erreur::imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
+	imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
 	enchaineuse << '\n';
 
 	return *this;
@@ -558,7 +537,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace, NoeudExpression
 
 	if (site) {
 		auto fichier = espace->fichier(site->lexeme->fichier);
-		erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
+		imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
 		flux << '\n';
 	}
 

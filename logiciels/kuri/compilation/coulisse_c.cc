@@ -31,13 +31,15 @@
 
 #include "structures/table_hachage.hh"
 
+#include "parsage/identifiant.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
-#include "identifiant.hh"
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"

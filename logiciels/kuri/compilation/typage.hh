@@ -30,9 +30,10 @@
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "parsage/lexemes.hh"
+
 #include "structures/chaine.hh"
 
-#include "lexemes.hh"
 #include "operateurs.hh"
 
 struct AtomeConstante;

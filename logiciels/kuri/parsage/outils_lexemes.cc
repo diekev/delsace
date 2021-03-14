@@ -26,6 +26,15 @@
 
 #include "lexemes.hh"
 
+PositionLexeme position_lexeme(Lexeme const &lexeme)
+{
+	auto pos = PositionLexeme{};
+	pos.pos = lexeme.colonne;
+	pos.numero_ligne = lexeme.ligne + 1;
+	pos.index_ligne = lexeme.ligne;
+	return pos;
+}
+
 bool est_operateur_bool(GenreLexeme type)
 {
 	switch (type) {
