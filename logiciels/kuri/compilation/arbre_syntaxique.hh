@@ -877,6 +877,6 @@ struct Etendue {
 	long pos_max = 0;
 };
 
-Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier);
+Etendue calcule_etendue_noeud(const NoeudExpression *racine);
 
 void simplifie_arbre(EspaceDeTravail *espace, AssembleuseArbre *assem, Typeuse &typeuse, NoeudExpression *arbre);

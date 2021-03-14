@@ -55,7 +55,7 @@ static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpressi
 {
 	auto lexeme = expr->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
-	auto etendue_expr = calcule_etendue_noeud(expr, fichier);
+	auto etendue_expr = calcule_etendue_noeud(expr);
 	auto ligne = fichier->tampon()[lexeme->ligne];
 	return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min], etendue_expr.pos_max - etendue_expr.pos_min);
 }
@@ -449,7 +449,7 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 
 	Enchaineuse enchaineuse;
 
-	auto etendue = calcule_etendue_noeud(site, fichier);
+	auto etendue = calcule_etendue_noeud(site);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon()[pos.index_ligne];
