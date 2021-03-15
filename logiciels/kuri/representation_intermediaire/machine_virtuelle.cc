@@ -708,7 +708,17 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 		/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
 		auto pointeur_debut = frame->pointeur;
 		auto instruction = LIS_OCTET();
-		auto site = LIS_POINTEUR(NoeudExpression);
+		auto site_courant = LIS_POINTEUR(NoeudExpression);
+
+		/* Fais en sorte d'avoir toujours un site valide. */
+		static NoeudExpression *site = nullptr;
+		if (site_courant) {
+			site = site_courant;
+		}
+
+		/* Ce site est utilisé pour déterminer où se trouve le dernier site valide
+		 * au cas où le pointeur est désynchroniser et une instruction est invalide. */
+		static NoeudExpression *dernier_site = nullptr;
 
 		switch (instruction) {
 			case OP_LABEL:
@@ -1271,10 +1281,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			}
 			default:
 			{
-				std::cerr << "Opération inconnue dans la MV\n";
+				rapporte_erreur(m_metaprogramme->unite->espace, dernier_site, "Erreur interne : Opération inconnue dans la MV !");
 				return ResultatInterpretation::ERREUR;
 			}
 		}
+
+		dernier_site = site;
 	}
 
 	return ResultatInterpretation::OK;
