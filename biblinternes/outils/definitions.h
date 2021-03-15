@@ -57,6 +57,10 @@
 	x(x const &) = default; \
 	x &operator=(x const &) = default
 
+#define EMPECHE_COPIE(x) \
+	x(x const &) = delete; \
+	x &operator=(x const &) = delete
+
 #define COPIE_CONSTRUCT_MOUV(x) \
 	x(x &&) = default; \
 	x &operator=(x &&) = default
