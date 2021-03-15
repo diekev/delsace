@@ -533,11 +533,31 @@ compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource
 	compilatrice_rapporte_erreur(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
 }
 
+compilatrice_rapporte_erreur :: fonc (message: chaine, site: *NoeudCode)
+{
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numero_ligne, message)
+}
+
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, site: *NoeudCode)
+{
+	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numero_ligne, message)
+}
+
 compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, fichier: chaine, ligne: z32, message: chaine) #compilatrice
 
 compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCodeSource())
 {
 	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+}
+
+compilatrice_rapporte_avertissement :: fonc (message: chaine, site: *NoeudCode)
+{
+	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numero_ligne, message)
+}
+
+compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, message: chaine, site: *NoeudCode)
+{
+	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numero_ligne, message)
 }
 
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
