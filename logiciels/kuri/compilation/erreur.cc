@@ -558,15 +558,17 @@ static kuri::chaine genere_entete_erreur_impl(
 		flux << "\nAvertissement : ";
 	}
 
-	if (site_ou_ligne.est<const NoeudExpression *>()) {
-		const auto site = site_ou_ligne.resultat<const NoeudExpression *>();
-		imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
-		flux << '\n';
-	}
-	else if (site_ou_ligne.est<int>()) {
-		const auto ligne = site_ou_ligne.resultat<int>();
-		imprime_ligne_avec_message(flux, fichier, ligne, "");
-		flux << '\n';
+	if (fichier) {
+		if (site_ou_ligne.est<const NoeudExpression *>()) {
+			const auto site = site_ou_ligne.resultat<const NoeudExpression *>();
+			imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
+			flux << '\n';
+		}
+		else if (site_ou_ligne.est<int>()) {
+			const auto ligne = site_ou_ligne.resultat<int>();
+			imprime_ligne_avec_message(flux, fichier, ligne, "");
+			flux << '\n';
+		}
 	}
 
 	flux << message;
