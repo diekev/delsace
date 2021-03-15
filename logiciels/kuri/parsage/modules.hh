@@ -205,8 +205,14 @@ struct SystemeModule {
 
 void imprime_ligne_avec_message(
 		Enchaineuse &flux,
-		Fichier *fichier,
+		const Fichier *fichier,
 		Lexeme const *lexeme,
+		kuri::chaine_statique message);
+
+void imprime_ligne_avec_message(
+		Enchaineuse &flux,
+		const Fichier *fichier,
+		int ligne,
 		kuri::chaine_statique message);
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que

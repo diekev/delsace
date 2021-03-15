@@ -146,6 +146,7 @@ void compilatrice_commence_interception(EspaceDeTravail *espace);
 void compilatrice_termine_interception(EspaceDeTravail *espace);
 
 void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
+void compilatrice_rapporte_avertissement(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
 
 /* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
  * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée

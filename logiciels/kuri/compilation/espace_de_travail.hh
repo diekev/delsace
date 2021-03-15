@@ -219,6 +219,7 @@ public:
 	PhaseCompilation phase_courante() const;
 
 	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
+	void rapporte_avertissement(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const;
 
 	Erreur rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL) const;
 	Erreur rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const;

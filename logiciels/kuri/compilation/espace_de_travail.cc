@@ -514,6 +514,12 @@ void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine
 	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
+void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier, int ligne, kuri::chaine const &message) const
+{
+	const Fichier *f = this->fichier({ chemin_fichier.pointeur(), chemin_fichier.taille() });
+	std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
+}
+
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre) const
 {
 	if (!site) {

@@ -113,6 +113,7 @@ private:
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_commence_interception, "compilatrice_commence_interception") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_termine_interception, "compilatrice_termine_interception") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_erreur, "compilatrice_rapporte_erreur") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_avertissement, "compilatrice_rapporte_avertissement") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_lexe_fichier, "compilatrice_lèxe_fichier") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_espace_courant, "compilatrice_espace_courant") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(demarre_un_espace_de_travail, "démarre_un_espace_de_travail") \

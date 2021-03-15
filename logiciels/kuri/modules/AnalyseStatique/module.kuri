@@ -1,5 +1,4 @@
 // Module d'analyse statique du code selon différents modèles (NASA, Linux, Google, etc.)
-// À FAIRE : compilatrice_rapporte_avertissement(...)
 // À FAIRE : préserve l'information qu'une fonction est marquée comme enlignée
 
 importe Compilatrice

@@ -358,6 +358,11 @@ void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique
 	espace->rapporte_erreur(fichier, ligne, message);
 }
 
+void compilatrice_rapporte_avertissement(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message)
+{
+	espace->rapporte_avertissement(fichier, ligne, message);
+}
+
 static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme, int> const &lexemes)
 {
 	auto resultat = kuri::tableau<kuri::Lexeme>();
