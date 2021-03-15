@@ -178,19 +178,19 @@ public:
 
 private:
 	template <typename T>
-	void empile(T valeur);
+	void empile(NoeudExpression *site, T valeur);
 
 	template <typename T>
-	T depile();
+	T depile(NoeudExpression *site);
 
-	void depile(long n);
+	void depile(NoeudExpression *site, long n);
 
 	bool appel(AtomeFonction *fonction, NoeudExpression *site);
 
 	bool appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame, NoeudExpression *site);
 	void appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel);
 
-	void empile_constante(FrameAppel *frame);
+	void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
 	void installe_metaprogramme(MetaProgramme *metaprogramme);
 
