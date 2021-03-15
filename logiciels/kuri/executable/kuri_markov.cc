@@ -29,10 +29,11 @@
 #include "biblinternes/structures/matrice_eparse.hh"
 
 #include "compilation/compilatrice.hh"
-#include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
-#include "compilation/modules.hh"
-#include "compilation/outils_lexemes.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
+#include "parsage/outils_lexemes.hh"
 
 #include "options.hh"
 
@@ -138,12 +139,11 @@ int main(int argc, char **argv)
 		}
 
 		auto compilatrice = Compilatrice{};
-		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
-		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
+		auto tampon = charge_contenu_fichier(chemin.c_str());
 		donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-		auto lexeuse = Lexeuse(compilatrice, donnees_fichier);
+		auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
 		lexeuse.performe_lexage();
 
 		test_markov_id_simple(donnees_fichier->lexemes);

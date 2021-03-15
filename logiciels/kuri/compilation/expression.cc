@@ -26,10 +26,11 @@
 
 #include "biblinternes/outils/conditions.h"
 
+#include "parsage/identifiant.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
-#include "identifiant.hh"
-#include "outils_lexemes.hh"
 #include "portee.hh"
 
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont toujours surl les lexèmes */

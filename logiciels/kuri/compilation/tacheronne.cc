@@ -29,12 +29,13 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/file.hh"
 
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
+
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
-#include "lexeuse.hh"
-#include "modules.hh"
 #include "syntaxeuse.hh"
 #include "validation_semantique.hh"
 
@@ -680,7 +681,7 @@ void Tacheronne::gere_tache()
 
 					if (!donnees->fut_charge) {
 						auto debut_chargement = dls::chrono::compte_seconde();
-						auto texte = charge_fichier(dls::chaine(donnees->chemin), *tache.unite->espace, {});
+						auto texte = charge_contenu_fichier(dls::chaine(donnees->chemin));
 						temps_chargement += debut_chargement.temps();
 
 						auto debut_tampon = dls::chrono::compte_seconde();
@@ -707,7 +708,7 @@ void Tacheronne::gere_tache()
 					if (!donnees->en_lexage) {
 						donnees->en_lexage = true;
 						auto debut_lexage = dls::chrono::compte_seconde();
-						auto lexeuse = Lexeuse(compilatrice, donnees);
+						auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees);
 						lexeuse.performe_lexage();
 						temps_lexage += debut_lexage.temps();
 						donnees->en_lexage = false;
@@ -725,7 +726,7 @@ void Tacheronne::gere_tache()
 				auto unite = tache.unite;
 				auto debut_parsage = dls::chrono::compte_seconde();
 				auto syntaxeuse = Syntaxeuse(*this, unite);
-				syntaxeuse.lance_analyse();
+				syntaxeuse.analyse();
 				temps_parsage += debut_parsage.temps();
 				tache_fut_completee = true;
 				break;
@@ -1306,8 +1307,8 @@ void Tacheronne::execute_metaprogrammes()
 				auto nom_fichier = enchaine(it);
 				auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
 
-				if (resultat_fichier.tag_type() == FichierNeuf::tag) {
-					auto fichier = resultat_fichier.t2().fichier;
+				if (resultat_fichier.est<FichierNeuf>()) {
+					auto fichier = resultat_fichier.resultat<FichierNeuf>().fichier;
 					auto donnees_fichier = fichier->donnees_constantes;
 
 					fichier->module = module;

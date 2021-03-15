@@ -24,12 +24,16 @@
 
 #pragma once
 
-extern int tags;
+#include <cassert>
+#include <type_traits>
+
+template <typename TypeTag, typename TypeDonnees>
+struct tag_pour_donnees;
 
 /* Cette classe contient une union de deux objets ayant un tag, et tient trace
  * duquel elle contient, utile pour discriminer les retours des fonctions.
  */
-template <typename T1, typename T2>
+template <typename T1, typename T2, typename TypeTag>
 struct Resultat {
 private:
 	union {
@@ -37,31 +41,34 @@ private:
 		T2 m_t2;
 	};
 
-	int tag = 0;
+	TypeTag tag = TypeTag::INVALIDE;
 
 public:
 	Resultat(T1 t1_)
 		: m_t1(t1_)
-		, tag(T1::tag)
+		, tag(tag_pour_donnees<TypeTag, T1>::tag)
 	{}
 
 	Resultat(T2 t2_)
 		: m_t2(t2_)
-		, tag(T2::tag)
+		, tag(tag_pour_donnees<TypeTag, T2>::tag)
 	{}
 
-	int tag_type() const
+	template <typename T>
+	bool est() const
 	{
-		return tag;
+		return tag == tag_pour_donnees<TypeTag, T>::tag;
 	}
 
-	T1 t1() const
+	template <typename T>
+	T resultat()
 	{
-		return m_t1;
-	}
-
-	T2 t2() const
-	{
-		return m_t2;
+		assert(est<T>());
+		if constexpr (std::is_same_v<T, T1>) {
+			return m_t1;
+		}
+		else {
+			return m_t2;
+		}
 	}
 };

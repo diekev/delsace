@@ -27,8 +27,9 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/garde_portee.h"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/file_fixe.hh"
+
+#include "parsage/outils_lexemes.hh"
 
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
@@ -36,7 +37,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "erreur.h"
-#include "outils_lexemes.hh"
+#include "monomorphisations.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "validation_expression_appel.hh"
@@ -128,21 +129,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		}
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		{
-			auto inst = noeud->comme_charge();
-			auto lexeme = inst->expr->lexeme;
-			auto fichier = espace->fichier(inst->lexeme->fichier);
-			auto temps = dls::chrono::compte_seconde();
+			const auto inst = noeud->comme_charge();
+			const auto lexeme = inst->expr->lexeme;
+			const auto fichier = espace->fichier(inst->lexeme->fichier);
+			const auto temps = dls::chrono::compte_seconde();
 			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, inst->expr);
 			temps_chargement += temps.temps();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
-			auto inst = noeud->comme_importe();
-			auto lexeme = inst->expr->lexeme;
-			auto fichier = espace->fichier(inst->lexeme->fichier);
-			auto temps = dls::chrono::compte_seconde();
-			auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
+			const auto inst = noeud->comme_importe();
+			const auto lexeme = inst->expr->lexeme;
+			const auto fichier = espace->fichier(inst->lexeme->fichier);
+			const auto temps = dls::chrono::compte_seconde();
+			const auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
 
 			// @concurrence critique
@@ -2149,12 +2150,8 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 		return ResultatValidation::OK;
 	}
 
-	auto flux = dls::flux_chaine();
-	flux << "Impossible d'accéder au membre d'un objet n'étant pas une structure";
-	flux << ", le type est ";
-	flux << chaine_type(type);
-
-	rapporte_erreur(flux.chn().c_str(), structure, erreur::Genre::TYPE_DIFFERENTS);
+	espace->rapporte_erreur(structure, "Impossible de référencer un membre d'un type n'étant pas une structure")
+			.ajoute_message("Note: le type est « ", chaine_type(type), " »");
 	return ResultatValidation::Erreur;
 }
 
@@ -2185,6 +2182,10 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 				it->drapeaux |= DECLARATION_FUT_VALIDEE;
 			}
 		});
+
+		if (!decl->monomorphisations) {
+			decl->monomorphisations = m_tacheronne.allocatrice_noeud.cree_monomorphisations_fonction();
+		}
 	}
 
 	{
@@ -3383,6 +3384,10 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (valide_arbre_aplatis(decl, decl->arbre_aplatis_params) == ResultatValidation::Erreur) {
 			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return ResultatValidation::Erreur;
+		}
+
+		if (!decl->monomorphisations) {
+			decl->monomorphisations = m_tacheronne.allocatrice_noeud.cree_monomorphisations_struct();
 		}
 
 		// nous validerons les membres lors de la monomorphisation

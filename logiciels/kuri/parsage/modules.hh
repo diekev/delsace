@@ -42,6 +42,7 @@
 
 struct Compilatrice;
 struct EspaceDeTravail;
+struct Enchaineuse;
 struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
@@ -123,8 +124,6 @@ struct Fichier {
 
 template <int i>
 struct EnveloppeFichier {
-	static const int tag;
-
 	Fichier *fichier = nullptr;
 
 	EnveloppeFichier(Fichier &f)
@@ -135,7 +134,23 @@ struct EnveloppeFichier {
 using FichierExistant = EnveloppeFichier<0>;
 using FichierNeuf = EnveloppeFichier<1>;
 
-using ResultatFichier = Resultat<FichierExistant, FichierNeuf>;
+enum class TagPourResultatFichier {
+	INVALIDE,
+	NOUVEAU_FICHIER,
+	FICHIER_EXISTANT,
+};
+
+template <>
+struct tag_pour_donnees<TagPourResultatFichier, FichierExistant> {
+	static constexpr auto tag = TagPourResultatFichier::FICHIER_EXISTANT;
+};
+
+template <>
+struct tag_pour_donnees<TagPourResultatFichier, FichierNeuf> {
+	static constexpr auto tag = TagPourResultatFichier::NOUVEAU_FICHIER;
+};
+
+using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFichier>;
 
 struct DonneesConstantesModule {
 	/* le nom du module, qui est le nom du dossier où se trouve les fichiers */
@@ -188,12 +203,12 @@ struct SystemeModule {
 	long memoire_utilisee() const;
 };
 
-/* ************************************************************************** */
+void imprime_ligne_avec_message(
+		Enchaineuse &flux,
+		Fichier *fichier,
+		Lexeme const *lexeme,
+		kuri::chaine_statique message);
 
-struct PositionLexeme {
-	long index_ligne = 0;
-	long numero_ligne = 0;
-	long pos = 0;
-};
-
-PositionLexeme position_lexeme(Lexeme const &lexeme);
+/* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
+ * le fichier existe bel et bien. */
+dls::chaine charge_contenu_fichier(dls::chaine const &chemin);

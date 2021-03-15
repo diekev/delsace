@@ -23,5 +23,3 @@
  */
 
 #include "resultat.hh"
-
-int tags = 1;

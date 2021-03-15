@@ -28,10 +28,12 @@
 
 #include "biblinternes/flux/outils.h"
 
+#include "statistiques/statistiques.hh"
+
+#include "parsage/lexeuse.hh"
+
 #include "espace_de_travail.hh"
 #include "erreur.h"
-#include "lexeuse.hh"
-#include "statistiques.hh"
 
 /* ************************************************************************** */
 
@@ -105,22 +107,22 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine
 
 		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
 
-		if (resultat.tag_type() == FichierNeuf::tag) {
-			ordonnanceuse->cree_tache_pour_chargement(espace, resultat.t2().fichier);
+		if (resultat.est<FichierNeuf>()) {
+			ordonnanceuse->cree_tache_pour_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
 		}
 	}
 
 	if (module->nom() == ID::Kuri) {
 		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "constantes", "constantes.kuri", false);
 
-		if (resultat.tag_type() == FichierNeuf::tag) {
-			auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+		if (resultat.est<FichierNeuf>()) {
+			auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
 			if (!donnees_fichier->fut_charge) {
 				const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
 				donnees_fichier->charge_tampon(lng::tampon_source(source));
 			}
 
-			ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+			ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
 		}
 	}
 
@@ -130,25 +132,6 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine
 }
 
 /* ************************************************************************** */
-
-dls::chaine charge_fichier(
-		const dls::chaine &chemin,
-		EspaceDeTravail &espace,
-		NoeudExpression const *site)
-{
-	std::ifstream fichier;
-	fichier.open(chemin.c_str());
-
-	if (!fichier.is_open()) {
-		erreur::lance_erreur(
-					"Impossible d'ouvrir le fichier correspondant au module",
-					espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
-
-	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
-}
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const kuri::chaine &nom, Module *module, NoeudExpression const *site)
 {
@@ -175,8 +158,8 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
-	if (resultat.tag_type() == FichierNeuf::tag) {
-		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.t2().fichier);
+	if (resultat.est<FichierNeuf>()) {
+		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
 	}
 }
 
@@ -228,6 +211,19 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 	return espace;
 }
 
+ContexteLexage Compilatrice::contexte_lexage()
+{
+	auto rappel_erreur = [](kuri::chaine message) {
+		throw erreur::frappe(message, erreur::Genre::LEXAGE);
+	};
+
+	return {
+		gerante_chaine,
+		table_identifiants,
+		rappel_erreur
+	};
+}
+
 /* ************************************************************************** */
 
 OptionsCompilation *obtiens_options_compilation()
@@ -249,12 +245,12 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
-	if (resultat.tag_type() == FichierNeuf::tag) {
-		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+	if (resultat.est<FichierNeuf>()) {
+		auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
 		if (!donnees_fichier->fut_charge) {
 			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
 		}
-		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
 	}
 }
 
@@ -266,12 +262,12 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
-	if (resultat.tag_type() == FichierNeuf::tag) {
-		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+	if (resultat.est<FichierNeuf>()) {
+		auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
 		if (!donnees_fichier->fut_charge) {
 			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
 		}
-		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
 	}
 }
 
@@ -391,16 +387,16 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chem
 				chemin_absolu.c_str(),
 				ptr_compilatrice->importe_kuri);
 
-	if (resultat.tag_type() == FichierExistant::tag) {
-		auto donnees_fichier = resultat.t1().fichier->donnees_constantes;
+	if (resultat.est<FichierExistant>()) {
+		auto donnees_fichier = resultat.resultat<FichierExistant>().fichier->donnees_constantes;
 		return converti_tableau_lexemes(donnees_fichier->lexemes);
 	}
 
-	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
-	auto tampon = charge_fichier(chemin, *espace, site);
+	auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
+	auto tampon = charge_contenu_fichier(chemin);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+	auto lexeuse = Lexeuse(ptr_compilatrice->contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
 	lexeuse.performe_lexage();
 
 	return converti_tableau_lexemes(donnees_fichier->lexemes);

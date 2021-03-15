@@ -27,7 +27,7 @@
 #include "biblinternes/structures/tablet.hh"
 
 #include "compilation/arbre_syntaxique.hh"
-#include "compilation/identifiant.hh"
+#include "parsage/identifiant.hh"
 
 #include "constructrice_ri.hh"
 #include "impression.hh"

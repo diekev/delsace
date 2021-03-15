@@ -26,9 +26,10 @@
 
 #include <cstring>
 
-#include "compilation/compilatrice.hh"  // pour Module
-#include "compilation/lexeuse.hh"
-#include "compilation/modules.hh"
+#include "compilation/compilatrice.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
 
 #undef DEBOGUE_MORCEAUX
 
@@ -149,7 +150,7 @@ Lexeuse lexeuse(str, str + len);
 
 	auto compilatrice = Compilatrice();
 
-	Lexeuse lexeuse(compilatrice, &donnees_fichier);
+	Lexeuse lexeuse(compilatrice.contexte_lexage(), &donnees_fichier);
 	lexeuse.performe_lexage();
 
 	return verifie_lexemes(donnees_fichier.lexemes.begin(),

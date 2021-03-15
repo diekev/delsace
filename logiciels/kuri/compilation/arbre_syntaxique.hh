@@ -27,10 +27,11 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tuples.hh"
 
+#include "parsage/lexemes.hh"
+
 #include "structures/tableau.hh"
 
 #include "expression.h"
-#include "lexemes.hh"
 #include "transformation_type.hh"
 #include "typage.hh"
 
@@ -72,6 +73,9 @@ struct OperateurUnaire;
 struct Symbole;
 struct TypeFonction;
 struct UniteCompilation;
+
+template <typename T>
+struct Monomorphisations;
 
 #define ENUMERE_GENRES_NOEUD \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_ENUM) \
@@ -184,11 +188,8 @@ enum {
 	GENERE_BOUCLE_COROUTINE,
 	GENERE_BOUCLE_COROUTINE_INDEX,
 
-	APPEL_POINTEUR_FONCTION,
 	CONSTRUIT_OPAQUE,
 	MONOMORPHE_TYPE_OPAQUE,
-
-	ACCEDE_MODULE,
 
 	/* pour ne pas avoir à générer des conditions de vérification pour par
 	 * exemple les accès à des membres d'unions */
@@ -217,7 +218,7 @@ enum {
  * - les déréférencements (via mémoire(...))
  * - les opérateurs []
  * - les transtypages
- * - les prises d'addresses (via @...)
+ * - les prises d'addresses (via *...)
  *
  * Une valeur transcendantale est une valeur droite qui peut aussi être
  * une valeur gauche (l'intersection des deux ensembles).
@@ -527,45 +528,6 @@ struct NoeudExpressionMembre : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionMembre);
 };
 
-struct ItemMonomorphisation {
-	IdentifiantCode *ident = nullptr;
-	Type *type = nullptr;
-	ValeurExpression valeur{};
-	bool est_type = false;
-
-	bool operator == (ItemMonomorphisation const &autre)
-	{
-		if (ident != autre.ident) {
-			return false;
-		}
-
-		if (type != autre.type) {
-			return false;
-		}
-
-		if (est_type != autre.est_type) {
-			return false;
-		}
-
-		if (!est_type) {
-			if (valeur.type != autre.valeur.type) {
-				return false;
-			}
-
-			if (valeur.entier != autre.valeur.entier) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	bool operator != (ItemMonomorphisation const &autre)
-	{
-		return !(*this == autre);
-	}
-};
-
 // À FAIRE(poly) : opérateurs polymorphiques
 struct NoeudDeclarationEnteteFonction : public NoeudDeclarationSymbole {
 	NoeudDeclarationEnteteFonction() { genre = GenreNoeud::DECLARATION_ENTETE_FONCTION; }
@@ -588,13 +550,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclarationSymbole {
 
 	kuri::chaine nom_broye_ = "";
 
-	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
-	using tableau_item_monomorphisation = kuri::tableau<ItemMonomorphisation, int>;
-
-	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
-
-	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudDeclarationEnteteFonction *>> monomorphisations{};
+	Monomorphisations<NoeudDeclarationEnteteFonction> *monomorphisations = nullptr;
 
 	kuri::tableau<kuri::chaine_statique, int> annotations{};
 
@@ -687,12 +643,7 @@ struct NoeudStruct : public NoeudDeclarationSymbole {
 	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
 	NoeudStruct *polymorphe_de_base = nullptr;
 
-	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
-
-	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
-	using tableau_item_monomorphisation = kuri::tableau<ItemMonomorphisation, int>;
-	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
+	Monomorphisations<NoeudStruct> *monomorphisations = nullptr;
 };
 
 struct NoeudEnum : public NoeudDeclarationSymbole {
@@ -936,6 +887,6 @@ struct Etendue {
 	long pos_max = 0;
 };
 
-Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier);
+Etendue calcule_etendue_noeud(const NoeudExpression *racine);
 
 void simplifie_arbre(EspaceDeTravail *espace, AssembleuseArbre *assem, Typeuse &typeuse, NoeudExpression *arbre);

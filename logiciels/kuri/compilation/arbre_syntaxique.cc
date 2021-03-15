@@ -27,13 +27,14 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
+#include "parsage/identifiant.hh"
+#include "parsage/modules.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
-#include "identifiant.hh"
-#include "modules.hh"
-#include "outils_lexemes.hh"
 #include "typage.hh"
 
 /* ************************************************************************** */
@@ -1305,7 +1306,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 	}
 }
 
-Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
+Etendue calcule_etendue_noeud(const NoeudExpression *racine)
 {
 	if (racine == nullptr) {
 		return {};
@@ -1327,12 +1328,12 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = racine->comme_decl_var();
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->valeur, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->valeur);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
-			etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+			etendue_enfant = calcule_etendue_noeud(expr->expression);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1343,12 +1344,12 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = racine->comme_comme();
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->expression);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
-			etendue_enfant = calcule_etendue_noeud(expr->expression_type, fichier);
+			etendue_enfant = calcule_etendue_noeud(expr->expression_type);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1359,11 +1360,11 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = racine->comme_assignation();
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->variable, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->variable);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
-			etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+			etendue_enfant = calcule_etendue_noeud(expr->expression);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
@@ -1376,12 +1377,12 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = static_cast<NoeudExpressionBinaire const *>(racine);
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->expr1, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr1);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
-			etendue_enfant = calcule_etendue_noeud(expr->expr2, fichier);
+			etendue_enfant = calcule_etendue_noeud(expr->expr2);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1393,12 +1394,12 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = static_cast<NoeudExpressionMembre const *>(racine);
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->accede, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->accede);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
-			etendue_enfant = calcule_etendue_noeud(expr->membre, fichier);
+			etendue_enfant = calcule_etendue_noeud(expr->membre);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1418,7 +1419,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1428,7 +1429,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
 			auto inst = racine->comme_retour();
-			auto etendue_enfant = calcule_etendue_noeud(inst->expr, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(inst->expr);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			break;
@@ -1436,7 +1437,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		{
 			auto inst = racine->comme_retiens();
-			auto etendue_enfant = calcule_etendue_noeud(inst->expr, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(inst->expr);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			break;
@@ -1444,7 +1445,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto dir = static_cast<NoeudDirectiveExecution const *>(racine);
-			auto etendue_enfant = calcule_etendue_noeud(dir->expr, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(dir->expr);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			break;
@@ -1454,13 +1455,13 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = static_cast<NoeudExpressionAppel const *>(racine);
 
-			auto etendue_expr = calcule_etendue_noeud(expr->appelee, fichier);
+			auto etendue_expr = calcule_etendue_noeud(expr->appelee);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_expr.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_expr.pos_max);
 
 			POUR (expr->params) {
-				auto etendue_enfant = calcule_etendue_noeud(it, fichier);
+				auto etendue_enfant = calcule_etendue_noeud(it);
 
 				etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 				etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1475,7 +1476,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 
-			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1490,7 +1491,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 			auto expr = racine->comme_virgule();
 
 			POUR (expr->expressions) {
-				auto etendue_enfant = calcule_etendue_noeud(it, fichier);
+				auto etendue_enfant = calcule_etendue_noeud(it);
 				etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 				etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			}

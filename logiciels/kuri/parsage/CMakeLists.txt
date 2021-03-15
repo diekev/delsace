@@ -14,45 +14,46 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2020 Kévin Dietrich.
+# The Original Code is Copyright (C) 2021 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE kuri_representation_intermediaire)
+set(NOM_CIBLE kuri_parsage)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-	${INCLUSIONS_LIBFFI}
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	kuri_compilation
 	kuri_statistiques
+	kuri_structures
+	stdc++fs
+	langage
 	bib_outils
-	systeme_fichier
-	${BIBLIOTHEQUES_LIBFFI}
-	dl
+	bib_moultfilage
+	bib_structures
+	memoire
 )
 
 set(SOURCES
-	analyse.cc
-	code_binaire.cc
-    constructrice_ri.cc
-	impression.cc
-	instructions.cc
-	machine_virtuelle.cc
-	optimisations.cc
+	base_syntaxeuse.cc
+	gerante_chaine.cc
+	identifiant.cc
+	lexemes.cc
+	lexeuse.cc
+	modules.cc
+	outils_lexemes.cc
 
-	analyse.hh
-	code_binaire.hh
-    constructrice_ri.hh
-	impression.hh
-	instructions.hh
-	machine_virtuelle.hh
-	optimisations.hh
+	base_syntaxeuse.hh
+	empreinte_parfaite.hh
+	gerante_chaine.hh
+	identifiant.hh
+	lexemes.hh
+	lexeuse.hh
+	modules.hh
+	outils_lexemes.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
@@ -60,3 +61,4 @@ add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+

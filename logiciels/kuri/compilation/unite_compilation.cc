@@ -26,8 +26,9 @@
 
 #include "biblinternes/structures/ensemble.hh"
 
+#include "parsage/identifiant.hh"
+
 #include "arbre_syntaxique.hh"
-#include "identifiant.hh"
 #include "metaprogramme.hh"
 
 static constexpr auto CYCLES_MAXIMUM = 10;

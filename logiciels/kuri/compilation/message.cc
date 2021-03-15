@@ -26,7 +26,6 @@
 
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
-#include "modules.hh"
 #include "unite_compilation.hh"
 
 const char *chaine_phase_compilation(PhaseCompilation phase)

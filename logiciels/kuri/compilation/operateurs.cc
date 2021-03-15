@@ -28,8 +28,7 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "espace_de_travail.hh"
-#include "lexemes.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 		GenreLexeme genre_lexeme,

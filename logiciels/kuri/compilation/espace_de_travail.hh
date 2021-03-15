@@ -31,12 +31,13 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "parsage/modules.hh"
+
 #include "bibliotheque.hh"
 #include "erreur.h"
 #include "graphe_dependance.hh"
 #include "message.hh"
 #include "metaprogramme.hh"
-#include "modules.hh"
 #include "options.hh"
 #include "operateurs.hh"
 #include "typage.hh"
@@ -220,11 +221,11 @@ public:
 	void change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase);
 	PhaseCompilation phase_courante() const;
 
-	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message);
+	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
 
-	Erreur rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL);
-	Erreur rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message);
-	Erreur rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
+	Erreur rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL) const;
+	Erreur rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const;
+	Erreur rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL) const;
 
 	/* Imprime la RI de toutes les fonctions de l'espace de travail. */
 	void imprime_programme() const;

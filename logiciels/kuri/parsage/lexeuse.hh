@@ -25,22 +25,31 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/moultfilage/synchrone.hh"
 
 #include "structures/chaine.hh"
 
 #include "lexemes.hh"
 
-struct Compilatrice;
 struct DonneesConstantesFichier;
+struct GeranteChaine;
+struct TableIdentifiant;
 
 enum {
 	INCLUS_CARACTERES_BLANC = (1 << 0),
 	INCLUS_COMMENTAIRES     = (1 << 1),
 };
 
+struct ContexteLexage {
+	dls::outils::Synchrone<GeranteChaine> &gerante_chaine;
+	dls::outils::Synchrone<TableIdentifiant> &table_identifiants;
+	std::function<void(kuri::chaine)> rappel_erreur;
+};
+
 struct Lexeuse {
 private:
-	Compilatrice &m_compilatrice;
+	dls::outils::Synchrone<GeranteChaine> &m_gerante_chaine;
+	dls::outils::Synchrone<TableIdentifiant> &m_table_identifiants;
 	DonneesConstantesFichier *m_donnees;
 
 	const char *m_debut_mot = nullptr;
@@ -54,16 +63,26 @@ private:
 
 	int m_drapeaux = 0;
 	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
+	std::function<void(kuri::chaine)> m_rappel_erreur{};
+	bool m_possede_erreur = false;
 
 public:
-	Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, int drapeaux = 0);
+	Lexeuse(ContexteLexage contexte, DonneesConstantesFichier *donnees, int drapeaux = 0);
+
+	Lexeuse(Lexeuse const &) = delete;
+	Lexeuse &operator=(Lexeuse const &) = delete;
 
 	void performe_lexage();
+
+	bool possede_erreur() const
+	{
+		return m_possede_erreur;
+	}
 
 private:
 	ENLIGNE_TOUJOURS bool fini() const
 	{
-		return m_debut >= m_fin;
+		return !m_possede_erreur && m_debut >= m_fin;
 	}
 
 	template <int N>
@@ -87,7 +106,7 @@ private:
 
 	dls::vue_chaine_compacte mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const kuri::chaine &quoi) const;
+	void rapporte_erreur(const kuri::chaine &quoi);
 
 	ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
 	{

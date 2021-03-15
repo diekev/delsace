@@ -15,31 +15,12 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2021 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
+#include "monomorphisations.hh"
 
-enum class GenreLexeme : unsigned int;
-
-bool est_operateur_bool(GenreLexeme type);
-
-bool est_assignation_composee(GenreLexeme type);
-
-GenreLexeme operateur_pour_assignation_composee(GenreLexeme type);
-
-bool est_operateur_comp(GenreLexeme type);
-
-bool est_mot_cle(GenreLexeme id);
-
-bool est_chaine_litterale(GenreLexeme id);
-
-bool est_specifiant_type(GenreLexeme identifiant);
-
-bool est_identifiant_type(GenreLexeme identifiant);
-
-bool est_operateur_unaire(GenreLexeme identifiant);

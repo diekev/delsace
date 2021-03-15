@@ -43,7 +43,7 @@ enum {
 	AUCUNE_ERREUR,
 };
 
-using frappe = lng::erreur::frappe<int>;
+using frappe = lng::erreur::frappe<int, dls::chaine>;
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,

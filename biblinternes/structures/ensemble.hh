@@ -76,6 +76,11 @@ public:
 		m_ensemble.insert(valeur);
 	}
 
+	void insere(Cle &&valeur)
+	{
+		m_ensemble.insert(valeur);
+	}
+
 	long taille() const
 	{
 		return static_cast<long>(m_ensemble.size());

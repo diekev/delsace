@@ -321,7 +321,7 @@ license_ = u"""/*
  /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
  """
 
-with io.open(u"../compilation/lexemes.hh", u'w') as entete:
+with io.open(u"../parsage/lexemes.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'struct IdentifiantCode;\n\n')
@@ -333,7 +333,7 @@ with io.open(u"../compilation/lexemes.hh", u'w') as entete:
 	entete.write(u"const char *chaine_du_lexeme(GenreLexeme genre);")
 
 
-with io.open(u'../compilation/lexemes.cc', u'w') as source:
+with io.open(u'../parsage/lexemes.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "lexemes.hh"\n\n')
 	source.write(construit_fonction_chaine_du_genre_de_lexeme())

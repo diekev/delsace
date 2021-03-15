@@ -28,12 +28,13 @@
 
 #include <algorithm>
 
+#include "parsage/identifiant.hh"
+#include "parsage/outils_lexemes.hh"
+
 #include "arbre_syntaxique.hh"
 #include "graphe_dependance.hh"
-#include "identifiant.hh"
 #include "operateurs.hh"
-#include "outils_lexemes.hh"
-#include "statistiques.hh"
+#include "statistiques/statistiques.hh"
 
 /* ************************************************************************** */
 

@@ -26,8 +26,9 @@
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
-#include "compilation/lexeuse.hh"
-#include "compilation/modules.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -56,7 +57,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		donnees_fichier->charge_tampon(lng::tampon_source(std::move(texte)));
 
-		Lexeuse lexeuse(compilatrice, donnees_fichier);
+		Lexeuse lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
 		lexeuse.performe_lexage();
 
 		auto tacheronne = Tacheronne(compilatrice);
@@ -64,7 +65,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse();
+		analyseuse.analyse();
 	}
 	catch (...) {
 
@@ -482,7 +483,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
 		auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", true);
-		auto fichier = resultat.t2().fichier;
+		auto fichier = resultat.resultat<FichierNeuf>().fichier;
 
 		auto donnees_fichier = fichier->donnees_constantes;
 		donnees_fichier->charge_tampon(lng::tampon_source("texte_test"));
@@ -493,7 +494,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse();
+		analyseuse.analyse();
 	}
 	catch (...) {
 

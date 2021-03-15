@@ -24,9 +24,10 @@
 
 #include "noeud_code.hh"
 
+#include "parsage/identifiant.hh"
+
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
-#include "identifiant.hh"
 
 NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
 {

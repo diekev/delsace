@@ -26,6 +26,15 @@
 
 #include "lexemes.hh"
 
+PositionLexeme position_lexeme(Lexeme const &lexeme)
+{
+	auto pos = PositionLexeme{};
+	pos.pos = lexeme.colonne;
+	pos.numero_ligne = lexeme.ligne + 1;
+	pos.index_ligne = lexeme.ligne;
+	return pos;
+}
+
 bool est_operateur_bool(GenreLexeme type)
 {
 	switch (type) {
@@ -184,6 +193,23 @@ bool est_mot_cle(GenreLexeme id)
 		case GenreLexeme::UNION:
 		case GenreLexeme::COROUT:
 		case GenreLexeme::CHARGE:
+		case GenreLexeme::POUSSE_CONTEXTE:
+		case GenreLexeme::TENTE:
+		case GenreLexeme::PIEGE:
+		case GenreLexeme::NONSUR:
+		case GenreLexeme::NONATTEIGNABLE:
+		case GenreLexeme::COMME:
+		case GenreLexeme::INFO_DE:
+		case GenreLexeme::INIT_DE:
+		case GenreLexeme::TAILLE_DE:
+		case GenreLexeme::TYPE_DE:
+		case GenreLexeme::EMPL:
+		case GenreLexeme::MEMOIRE:
+		case GenreLexeme::NUL:
+		case GenreLexeme::REPRENDS:
+		case GenreLexeme::CONTINUE:
+		case GenreLexeme::ARRETE:
+		case GenreLexeme::SANSARRET:
 		{
 			return true;
 		}

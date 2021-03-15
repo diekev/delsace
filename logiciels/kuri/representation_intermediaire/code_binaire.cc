@@ -35,7 +35,8 @@
 #include "compilation/bibliotheque.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/operateurs.hh"
-#include "compilation/outils_lexemes.hh"
+
+#include "parsage/outils_lexemes.hh"
 
 #include "machine_virtuelle.hh"
 
