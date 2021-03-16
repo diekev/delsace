@@ -36,37 +36,66 @@ importe Compilatrice
 
 */
 
-vérifie_nasa :: fonc (espace: *EspaceDeTravail, code: *NoeudCode)
+VérificatriceNasa :: struct {
+    espace: *EspaceDeTravail
+    avertissement_est_erreur := faux
+}
+
+initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: *EspaceDeTravail)
 {
-    type := code.type
+    vérificatrice.espace = espace
+}
 
-    si type.id == id_info.STRUCTURE {
-        type_structure := type comme *InfoTypeStructure
+vérifie_code :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
+{
+    vérifie_utilisation_fonction_pointeur(vérificatrice, code)
 
-        pour type_structure.membres {
-            si it.id.id == id_info.FONCTION {
-                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-            }
-        }
-    }
-    sinon si type.id == id_info.FONCTION {
-        type_fonction := type comme *InfoTypeFonction
+    si code.genre == GenreNoeudCode.DECLARATION_CORPS_FONCTION {
+        corps := code comme *NoeudCodeCorpsFonction
+        bloc := corps.bloc
 
-        pour type_fonction.types_entrée {
-            si it.id == id_info.FONCTION {
-                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-            }
-        }
-
-        pour type_fonction.types_sortie {
-            si it.id == id_info.FONCTION {
-                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-            }
-        }
+        vérifie_longueur_fonction(vérificatrice, corps)
+        vérifie_bloc_fonction(vérificatrice, bloc)
     }
 }
 
-vérifie_nasa :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
+vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
+{
+    // À FAIRE: crash dans la MachineVirtuelle
+    // type := code.type
+
+    // discr type.id {
+    //     STRUCTURE {
+    //         type_structure := type comme *InfoTypeStructure
+
+    //         pour type_structure.membres {
+    //             si it.id.id == id_info.FONCTION {
+    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+    //             }
+    //         }
+    //     }
+    //     FONCTION {
+    //         type_fonction := type comme *InfoTypeFonction
+
+    //         pour type_fonction.types_entrée {
+    //             si it.id == id_info.FONCTION {
+    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+    //             }
+    //         }
+
+    //         pour type_fonction.types_sortie {
+    //             si it.id == id_info.FONCTION {
+    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+    //             }
+    //         }
+    //     }
+    //     sinon {
+    //         retourne
+    //     }
+    // }
+}
+
+vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: *NoeudCodeCorpsFonction)
 {
     bloc := corps.bloc
     entête := corps.entête
@@ -83,20 +112,141 @@ vérifie_nasa :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
         fin_bloc := dernière_expression.numero_ligne
 
         si (fin_bloc - début_bloc) > 60 {
-            compilatrice_rapporte_erreur(espace, entête.chemin_fichier, entête.numero_ligne, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
+            vérificatrice.avertis(corps, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
         }
     }
 }
 
-vérife_nasa :: fonc (espace: *EspaceDeTravail, code: *NoeudCode)
+vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
 {
-    si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {
-        vérifie_nasa(espace, code)
+    // À FAIRE: crash dans la MV si nous avons une discrimination avec juste un sinon
+    discr code.genre {
+        DECLARATION_VARIABLE {
+            code_déclaration := code comme *NoeudCodeDéclaration
+
+            ident := code_déclaration.valeur comme *NoeudCodeIdentifiant
+
+            si code_déclaration.expression {
+                vérifie_bloc_fonction(vérificatrice, code_déclaration.expression)
+            }
+        }
+        EXPRESSION_ASSIGNATION_VARIABLE {
+            assignation := code comme *NoeudCodeAssignation
+            vérifie_bloc_fonction(vérificatrice, assignation.assigné)
+            vérifie_bloc_fonction(vérificatrice, assignation.expression)
+        }
+        OPERATEUR_BINAIRE {
+            binaire := code comme *NoeudCodeOpérationBinaire
+            vérifie_bloc_fonction(vérificatrice, binaire.opérande_gauche)
+            vérifie_bloc_fonction(vérificatrice, binaire.opérande_droite)
+        }
+        OPERATEUR_UNAIRE {
+            unaire := code comme *NoeudCodeOpérationUnaire
+            vérifie_bloc_fonction(vérificatrice, unaire.opérande)
+        }
+        INSTRUCTION_SI {
+            code_si := code comme *NoeudCodeSi
+
+            vérifie_bloc_fonction(vérificatrice, code_si.condition)
+            vérifie_bloc_fonction(vérificatrice, code_si.bloc_si_vrai)
+
+            si code_si.bloc_si_faux {
+                vérifie_bloc_fonction(vérificatrice, code_si.bloc_si_faux)
+            }
+        }
+        INSTRUCTION_COMPOSEE {
+            bloc := code comme *NoeudCodeBloc
+
+            pour bloc.expressions {
+                vérifie_bloc_fonction(vérificatrice, it)
+            }
+        }
+        INSTRUCTION_RETOUR {
+            ret := code comme *NoeudCodeOpérationUnaire
+            si ret.opérande {
+                // @Incomplet : vérifie si nous avons une assignation
+                vérifie_bloc_fonction(vérificatrice, ret.opérande)
+            }
+        }
+        INSTRUCTION_BOUCLE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
+        }
+        INSTRUCTION_TANTQUE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
+        }
+        INSTRUCTION_REPETE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
+        }
+        EXPRESSION_REFERENCE_DECLARATION {
+            ident := code comme *NoeudCodeIdentifiant
+        }
+        EXPRESSION_PARENTHESE {
+            paren := code comme *NoeudCodeOpérationUnaire
+            vérifie_bloc_fonction(vérificatrice, paren.opérande)
+        }
+        EXPRESSION_APPEL_FONCTION {
+            appel := code comme *NoeudCodeAppel
+
+            ident := appel.expression comme *NoeudCodeIdentifiant
+
+            si appel.expression.genre == GenreNoeudCode.EXPRESSION_REFERENCE_DECLARATION {
+
+            }
+
+            // vérifie_bloc_fonction(vérificatrice, appel.expression)
+
+            // pour appel.params {
+            //    vérifie_bloc_fonction(vérificatrice, it)
+            //}
+        }
+        EXPRESSION_CONSTRUCTION_STRUCTURE {
+            appel := code comme *NoeudCodeAppel
+            pour appel.params {
+                // @Incomplet : vérifie si nous avons une assignation
+                vérifie_bloc_fonction(vérificatrice, it)
+            }
+        }
+        EXPRESSION_LITTERALE_NOMBRE_REEL {
+            lit := code comme *NoeudCodeLitteraleReel
+        }
+        EXPRESSION_COMME {
+            expr_comme := code comme *NoeudCodeComme
+            vérifie_bloc_fonction(vérificatrice, expr_comme.expression)
+        }
+        /*
+        EXPRESSION_VIRGULE {
+            virgule := code comme *NoeudCodeVirgule
+
+            pour virgule.expressions {
+                vérifie_bloc_fonction(vérificatrice, it)
+            }
+        }
+        EXPRESSION_REFERENCE_MEMBRE {
+            membre := code comme *NoeudCodeOpérationBinaire
+
+            vérifie_bloc_fonction(vérificatrice, membre.opérande_gauche)
+            vérifie_bloc_fonction(vérificatrice, membre.opérande_droite)
+        }
+        */
+        sinon {
+
+        }
     }
 
-    si code.genre == GenreNoeudCode.DECLARATION_CORPS_FONCTION {
-        vérifie_nasa(espace, code comme *NoeudCodeCorpsFonction)
+    retourne
+}
+
+avertis :: fonc (vérificatrice: *VérificatriceNasa, site: *NoeudCode, message: chaine)
+{
+    si vérificatrice.avertissement_est_erreur {
+        compilatrice_rapporte_erreur(vérificatrice.espace, site, message)
+        retourne
     }
+
+    compilatrice_rapporte_avertissement(vérificatrice.espace, site, message)
 }
 
 /*
