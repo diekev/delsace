@@ -3087,3 +3087,73 @@ void simplifie_arbre(EspaceDeTravail *espace, AssembleuseArbre *assem, Typeuse &
 	auto simplificatrice = Simplificatrice(espace, assem, typeuse);
 	simplificatrice.simplifie(arbre);
 }
+
+#if 0
+bool expression_est_constante(NoeudExpression *expression)
+{
+	switch (expression->genre) {
+		default:
+		{
+			return false;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+		{
+			return true;
+		}
+		case GenreNoeud::EXPRESSION_PARENTHESE:
+		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+		case GenreNoeud::OPERATEUR_UNAIRE:
+		{
+			auto op = static_cast<NoeudExpressionUnaire *>(expression);
+			return expression_est_constante(op->expr);
+		}
+		case GenreNoeud::OPERATEUR_BINAIRE:
+		{
+			auto op = static_cast<NoeudExpressionBinaire *>(expression);
+
+			if (!expression_est_constante(op->expr1)) {
+				return false;
+			}
+
+			if (!expression_est_constante(op->expr2)) {
+				return false;
+			}
+
+			return true;
+		}
+		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
+		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
+		{
+			auto appel = static_cast<NoeudExpressionAppel *>(expression);
+
+			POUR (appel->exprs) {
+				if (!expression_est_constante(it)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto op = static_cast<NoeudExpressionVirgule *>(expression);
+
+			POUR (op->expressions) {
+				if (!expression_est_constante(it)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+	}
+}
+#endif
