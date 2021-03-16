@@ -220,10 +220,6 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
  * Évalue l'expression dont « b » est la racine. L'expression doit être
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
  * lors de la compilation.
- *
- * Dans le future, ce sera sans doute la base d'un interpreteur pour exécuter de
- * manière arbitraire du code lors de la compilation. Pour cela, la prochaine
- * étape sera de pouvoir évaluer des fonctions entières.
  */
 ResultatExpression evalue_expression(
 		EspaceDeTravail *espace,
