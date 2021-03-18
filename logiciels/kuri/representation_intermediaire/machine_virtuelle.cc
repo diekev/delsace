@@ -1116,14 +1116,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
-					auto &messagere = compilatrice.messagere;
+					auto message = compilatrice.attend_message();
 
-					if (!messagere->possede_message()) {
+					if (!message) {
 						frame->pointeur = pointeur_debut;
 						return ResultatInterpretation::PASSE_AU_SUIVANT;
 					}
 
-					auto message = messagere->defile();
 					empile(site, message);
 					break;
 				}
@@ -1144,7 +1143,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 					if (espace_recu->metaprogramme != m_metaprogramme) {
 						/* L'espace du « site » est celui de métaprogramme, et non
-					 * l'espace reçu en paramètre. */
+						 * l'espace reçu en paramètre. */
 						rapporte_erreur(m_metaprogramme->unite->espace,
 										site,
 										"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
@@ -1159,9 +1158,75 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
-					auto chemin_recu = depile<kuri::chaine>(site);
-					auto resultat = compilatrice_lexe_fichier(chemin_recu, site);
+					auto chemin_recu = depile<kuri::chaine_statique>(site);
+					auto resultat = compilatrice.lexe_fichier(chemin_recu, site);
 					empile(site, resultat);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(obtiens_options_compilation)) {
+					auto options = compilatrice.options_compilation();
+					empile(site, options);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(ajourne_options_compilation)) {
+					auto options = depile<OptionsCompilation *>(site);
+					compilatrice.ajourne_options_compilation(options);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_ajoute_chaine_compilation)) {
+					auto chaine = depile<kuri::chaine_statique>(site);
+					auto espace = depile<EspaceDeTravail *>(site);
+					compilatrice.ajoute_chaine_compilation(espace, chaine);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_ajoute_fichier_compilation)) {
+					auto chaine = depile<kuri::chaine_statique>(site);
+					auto espace = depile<EspaceDeTravail *>(site);
+					compilatrice.ajoute_chaine_compilation(espace, chaine);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(ajoute_chaine_au_module)) {
+					auto chaine = depile<kuri::chaine_statique>(site);
+					auto module = depile<Module *>(site);
+					auto espace = depile<EspaceDeTravail *>(site);
+					compilatrice.ajoute_chaine_au_module(espace, module, chaine);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
+					auto options = depile<OptionsCompilation *>(site);
+					auto nom = depile<kuri::chaine_statique>(site);
+					auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
+					empile(site, espace);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(espace_defaut_compilation)) {
+					auto espace = compilatrice.espace_defaut_compilation();
+					empile(site, espace);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur)) {
+					auto message = depile<kuri::chaine_statique>(site);
+					auto ligne = depile<int>(site);
+					auto fichier = depile<kuri::chaine_statique>(site);
+					auto espace = depile<EspaceDeTravail *>(site);
+					espace->rapporte_erreur(fichier, ligne, message);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement)) {
+					auto message = depile<kuri::chaine_statique>(site);
+					auto ligne = depile<int>(site);
+					auto fichier = depile<kuri::chaine_statique>(site);
+					auto espace = depile<EspaceDeTravail *>(site);
+					espace->rapporte_avertissement(fichier, ligne, message);
 					break;
 				}
 

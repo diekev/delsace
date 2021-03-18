@@ -125,6 +125,16 @@ struct Compilatrice {
 	long memoire_utilisee() const;
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+public:
+	OptionsCompilation *options_compilation();
+	void ajourne_options_compilation(OptionsCompilation *options);
+	void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+	void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
+	void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+	const Message *attend_message();
+	EspaceDeTravail *espace_defaut_compilation();
+	kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne, const NoeudExpression *site);
 };
 
 /* manipule les options de compilation pour l'espace de travail défaut */

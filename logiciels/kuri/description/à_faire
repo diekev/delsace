@@ -33,7 +33,6 @@
 // -----------------------------------
 // Architecture/Qualité de code
 
-- déplace toutes les fonctions d'interface dans la MV afin de supprimer la variable globale "ptr_compilatrice"
 - supprime chaine::ajoute, en faveur de l'enchaineuse
 - structures: ajout d'un pointeur vers une Allocatrice
 - cache les nom broyés pour les IdentifiantsCode

@@ -37,15 +37,11 @@
 
 /* ************************************************************************** */
 
-static Compilatrice *ptr_compilatrice = nullptr;
-
 Compilatrice::Compilatrice()
 	: ordonnanceuse(this)
 {
 	this->bibliotheques_dynamiques->ajoute("pthread");
 	this->definitions->ajoute("_REENTRANT");
-
-	ptr_compilatrice = this;
 }
 
 Compilatrice::~Compilatrice()
@@ -85,7 +81,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine
 	auto nom_dossier = chemin_absolu.filename();
 
 	// @concurrence critique
-	auto module = espace->trouve_ou_cree_module(sys_module, ptr_compilatrice->table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()), chemin_absolu.c_str());
+	auto module = espace->trouve_ou_cree_module(sys_module, table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()), chemin_absolu.c_str());
 
 	if (module->importe) {
 		return module;
@@ -157,7 +153,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 	/* trouve le chemin absolu du fichier */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
+	auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
 	if (resultat.est<FichierNeuf>()) {
 		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
@@ -239,128 +235,72 @@ ContexteLexage Compilatrice::contexte_lexage()
 	};
 }
 
-/* ************************************************************************** */
+// -----------------------------------------------------------------------------
+// Implémentation des fonctions d'interface afin d'éviter les erreurs, toutes les
+// fonctions ne sont pas implémentées dans la Compilatrice, d'autres appelent
+// directement les fonctions se trouvant sur EspaceDeTravail, ou enlignent la
+// logique dans la MachineVirtuelle.
 
-OptionsCompilation *obtiens_options_compilation()
+OptionsCompilation *Compilatrice::options_compilation()
 {
-	return &ptr_compilatrice->espace_de_travail_defaut->options;
+	return &espace_de_travail_defaut->options;
 }
 
-void ajourne_options_compilation(OptionsCompilation *options)
+void Compilatrice::ajourne_options_compilation(OptionsCompilation *options)
 {
-	ptr_compilatrice->espace_de_travail_defaut->options = *options;
+	espace_de_travail_defaut->options = *options;
 }
 
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+{
+	auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
+	ajoute_chaine_au_module(espace, module, c);
+}
+
+void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c)
 {
 	auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
+	chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
 
-	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
-	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
+	auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "métaprogramme", "", importe_kuri);
 
 	if (resultat.est<FichierNeuf>()) {
 		auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
 		if (!donnees_fichier->fut_charge) {
 			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
 		}
-		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+		ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
 	}
 }
 
-void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c)
-{
-	auto chaine = dls::chaine(c.pointeur(), c.taille());
-
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
-
-	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
-
-	if (resultat.est<FichierNeuf>()) {
-		auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
-		if (!donnees_fichier->fut_charge) {
-			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
-		}
-		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
-	}
-}
-
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
 	auto vue = dls::chaine(c.pointeur(), c.taille());
 	auto chemin = std::filesystem::current_path() / vue.c_str();
 
 	if (!std::filesystem::exists(chemin)) {
 		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
-		ptr_compilatrice->possede_erreur = true;
+		possede_erreur = true;
 		return;
 	}
 
-	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
-	ptr_compilatrice->ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
+	auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
+	ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
 }
 
-// fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
-int fonction_test_variadique_externe(int sentinel, ...)
+Message const *Compilatrice::attend_message()
 {
-	va_list ap;
-	va_start(ap, sentinel);
-
-	int i = 0;
-	for (;; ++i) {
-		int t = va_arg(ap, int);
-
-		if (t == sentinel) {
-			break;
-		}
+	if (!messagere->possede_message()) {
+		return nullptr;
 	}
 
-	va_end(ap);
-
-	return i;
+	return messagere->defile();
 }
 
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les
- * MachineVirtuelles, et y retourner le message disponible */
-Message const *compilatrice_attend_message()
+EspaceDeTravail *Compilatrice::espace_defaut_compilation()
 {
-	assert(false);
-	return nullptr;
-}
-
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique nom, OptionsCompilation *options)
-{
-	return ptr_compilatrice->demarre_un_espace_de_travail(*options, kuri::chaine(nom.pointeur(), nom.taille()));
-}
-
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les
- * MachineVirtuelles, et y renseigner dans l'espace le métaprogramme en cours
- * d'exécution */
-void compilatrice_commence_interception(EspaceDeTravail * /*espace*/)
-{
-}
-
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les
- * MachineVirtuelles, et y vérifier que le métaprogramme terminant l'interception
- * est bel et bien celui l'ayant commencé */
-void compilatrice_termine_interception(EspaceDeTravail * /*espace*/)
-{
-}
-
-EspaceDeTravail *espace_defaut_compilation()
-{
-	return ptr_compilatrice->espace_de_travail_defaut;
-}
-
-void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message)
-{
-	espace->rapporte_erreur(fichier, ligne, message);
-}
-
-void compilatrice_rapporte_avertissement(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message)
-{
-	espace->rapporte_avertissement(fichier, ligne, message);
+	return espace_de_travail_defaut;
 }
 
 static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme, int> const &lexemes)
@@ -375,9 +315,9 @@ static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme
 	return resultat;
 }
 
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
+kuri::tableau<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
 {
-	auto espace = ptr_compilatrice->espace_de_travail_defaut;
+	auto espace = espace_de_travail_defaut;
 	auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
 
 	if (!std::filesystem::exists(chemin.c_str())) {
@@ -401,11 +341,11 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chem
 	auto module = espace->module(ID::chaine_vide);
 
 	auto resultat = espace->trouve_ou_cree_fichier(
-				ptr_compilatrice->sys_module,
+				sys_module,
 				module,
 				chemin_absolu.stem().c_str(),
 				chemin_absolu.c_str(),
-				ptr_compilatrice->importe_kuri);
+				importe_kuri);
 
 	if (resultat.est<FichierExistant>()) {
 		auto donnees_fichier = resultat.resultat<FichierExistant>().fichier->donnees_constantes;
@@ -416,15 +356,121 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chem
 	auto tampon = charge_contenu_fichier(chemin);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-	auto lexeuse = Lexeuse(ptr_compilatrice->contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+	auto lexeuse = Lexeuse(contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
 	lexeuse.performe_lexage();
 
 	return converti_tableau_lexemes(donnees_fichier->lexemes);
 }
 
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les Machines Virtuelles, et y retourner l'espace du métaprogramme */
+/* ************************************************************************** */
+
+// fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
+int fonction_test_variadique_externe(int sentinel, ...)
+{
+	va_list ap;
+	va_start(ap, sentinel);
+
+	int i = 0;
+	for (;; ++i) {
+		int t = va_arg(ap, int);
+
+		if (t == sentinel) {
+			break;
+		}
+	}
+
+	va_end(ap);
+
+	return i;
+}
+
+// -----------------------------------------------------------------------------
+// Implémentation « symbolique » des fonctions d'interface afin d'éviter les erreurs
+// de liaison des programmes. Ces fonctions sont soit implémentées via Compilatrice,
+// soit via EspaceDeTravail, ou directement dans la MachineVirtuelle.
+
+OptionsCompilation *obtiens_options_compilation()
+{
+	assert(false);
+	return nullptr;
+}
+
+void ajourne_options_compilation(OptionsCompilation */*options*/)
+{
+	assert(false);
+}
+
+EspaceDeTravail *espace_defaut_compilation()
+{
+	assert(false);
+	return nullptr;
+}
+
+void compilatrice_ajoute_chaine_compilation(EspaceDeTravail */*espace*/, kuri::chaine_statique /*c*/)
+{
+	assert(false);
+}
+
+void compilatrice_ajoute_fichier_compilation(EspaceDeTravail */*espace*/, kuri::chaine_statique /*c*/)
+{
+	assert(false);
+}
+
+void ajoute_chaine_au_module(EspaceDeTravail */*espace*/, Module */*module*/, kuri::chaine_statique /*c*/)
+{
+	assert(false);
+}
+
+EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique /*nom*/, OptionsCompilation */*options*/)
+{
+	assert(false);
+	return nullptr;
+}
+
 EspaceDeTravail *compilatrice_espace_courant()
 {
 	assert(false);
 	return nullptr;
+}
+
+Message const *compilatrice_attend_message()
+{
+	assert(false);
+	return nullptr;
+}
+
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les
+ * MachineVirtuelles, et y renseigner dans l'espace le métaprogramme en cours
+ * d'exécution */
+void compilatrice_commence_interception(EspaceDeTravail */*espace*/)
+{
+	assert(false);
+}
+
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les
+ * MachineVirtuelles, et y vérifier que le métaprogramme terminant l'interception
+ * est bel et bien celui l'ayant commencé */
+void compilatrice_termine_interception(EspaceDeTravail */*espace*/)
+{
+	assert(false);
+}
+
+void compilatrice_rapporte_erreur(EspaceDeTravail */*espace*/, kuri::chaine_statique /*fichier*/, int /*ligne*/, kuri::chaine_statique /*message*/)
+{
+	assert(false);
+}
+
+void compilatrice_rapporte_avertissement(EspaceDeTravail */*espace*/, kuri::chaine_statique /*fichier*/, int /*ligne*/, kuri::chaine_statique /*message*/)
+{
+	assert(false);
+}
+
+/* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
+ * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
+ * avec le site renseigné.
+ */
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
+{
+	assert(false);
+	return {};
 }
