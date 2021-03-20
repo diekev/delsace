@@ -67,7 +67,7 @@ struct NoeudSi;
 struct NoeudSiStatique;
 struct NoeudStruct;
 struct NoeudTableauArgsVariadiques;
-struct NoeudTente;
+struct NoeudInstructionTente;
 struct OperateurBinaire;
 struct OperateurUnaire;
 struct TypeFonction;
@@ -135,7 +135,7 @@ struct Monomorphisations;
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_CHARGE) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_MODULE)
 
-enum class GenreNoeud : char {
+enum class GenreNoeud : unsigned char {
 #define ENUMERE_GENRE_NOEUD_EX(genre) genre,
 	ENUMERE_GENRES_NOEUD
 #undef ENUMERE_GENRE_NOEUD_EX
@@ -307,8 +307,8 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(nombre_reel, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
 	EST_NOEUD_GENRE(non_initialisation, GenreNoeud::INSTRUCTION_NON_INITIALISATION)
 	EST_NOEUD_GENRE(nul, GenreNoeud::EXPRESSION_LITTERALE_NUL)
-	EST_NOEUD_GENRE(operateur_binaire, GenreNoeud::OPERATEUR_BINAIRE)
-	EST_NOEUD_GENRE(operateur_unaire, GenreNoeud::OPERATEUR_UNAIRE)
+	EST_NOEUD_GENRE(expression_binaire, GenreNoeud::OPERATEUR_BINAIRE)
+	EST_NOEUD_GENRE(expression_unaire, GenreNoeud::OPERATEUR_UNAIRE)
 	EST_NOEUD_GENRE(parenthese, GenreNoeud::EXPRESSION_PARENTHESE)
 	EST_NOEUD_GENRE(plage, GenreNoeud::EXPRESSION_PLAGE)
 	EST_NOEUD_GENRE(pour, GenreNoeud::INSTRUCTION_POUR)
@@ -319,7 +319,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(ref_type, GenreNoeud::EXPRESSION_REFERENCE_TYPE)
 	EST_NOEUD_GENRE(repete, GenreNoeud::INSTRUCTION_REPETE)
 	EST_NOEUD_GENRE(retiens, GenreNoeud::INSTRUCTION_RETIENS)
-	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR)
+	EST_NOEUD_GENRE(retourne, GenreNoeud::INSTRUCTION_RETOUR)
 	EST_NOEUD_GENRE(saufsi, GenreNoeud::INSTRUCTION_SAUFSI)
 	EST_NOEUD_GENRE(si, GenreNoeud::INSTRUCTION_SI)
 	EST_NOEUD_GENRE(si_statique, GenreNoeud::INSTRUCTION_SI_STATIQUE)
@@ -364,8 +364,8 @@ struct NoeudExpression {
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
 	COMME_NOEUD(litterale, NoeudExpressionLitterale)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
-	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
-	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
+	COMME_NOEUD(expression_binaire, NoeudExpressionBinaire)
+	COMME_NOEUD(expression_unaire, NoeudExpressionUnaire)
 	COMME_NOEUD(parenthese, NoeudExpressionUnaire)
 	COMME_NOEUD(plage, NoeudExpressionBinaire)
 	COMME_NOEUD(pour, NoeudPour)
@@ -375,14 +375,14 @@ struct NoeudExpression {
 	COMME_NOEUD(reference_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(repete, NoeudBoucle)
 	COMME_NOEUD(retiens, NoeudRetour)
-	COMME_NOEUD(retour, NoeudRetour)
+	COMME_NOEUD(retourne, NoeudRetour)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
 	COMME_NOEUD(si_statique, NoeudSiStatique)
 	COMME_NOEUD(structure, NoeudStruct)
 	COMME_NOEUD(taille, NoeudExpressionUnaire)
 	COMME_NOEUD(tantque, NoeudBoucle)
-	COMME_NOEUD(tente, NoeudTente)
+	COMME_NOEUD(tente, NoeudInstructionTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
 	COMME_NOEUD(empl, NoeudExpressionUnaire)
 	COMME_NOEUD(virgule, NoeudExpressionVirgule)
@@ -763,10 +763,10 @@ struct NoeudTableauArgsVariadiques : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudTableauArgsVariadiques);
 };
 
-struct NoeudTente : public NoeudExpression {
-	NoeudTente() { genre = GenreNoeud::INSTRUCTION_TENTE; }
+struct NoeudInstructionTente : public NoeudExpression {
+	NoeudInstructionTente() { genre = GenreNoeud::INSTRUCTION_TENTE; }
 
-	COPIE_CONSTRUCT(NoeudTente);
+	COPIE_CONSTRUCT(NoeudInstructionTente);
 
 	NoeudExpression *expression_appelee = nullptr;
 	NoeudExpression *expression_piegee = nullptr;
@@ -836,8 +836,8 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
 	COMME_NOEUD(litterale, NoeudExpressionLitterale)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
-	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
-	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
+	COMME_NOEUD(expression_binaire, NoeudExpressionBinaire)
+	COMME_NOEUD(expression_unaire, NoeudExpressionUnaire)
 	COMME_NOEUD(parenthese, NoeudExpressionUnaire)
 	COMME_NOEUD(plage, NoeudExpressionBinaire)
 	COMME_NOEUD(pour, NoeudPour)
@@ -847,14 +847,14 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(reference_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(repete, NoeudBoucle)
 	COMME_NOEUD(retiens, NoeudRetour)
-	COMME_NOEUD(retour, NoeudRetour)
+	COMME_NOEUD(retourne, NoeudRetour)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
 	COMME_NOEUD(si_statique, NoeudSiStatique)
 	COMME_NOEUD(structure, NoeudStruct)
 	COMME_NOEUD(taille, NoeudExpressionUnaire)
 	COMME_NOEUD(tantque, NoeudBoucle)
-	COMME_NOEUD(tente, NoeudTente)
+	COMME_NOEUD(tente, NoeudInstructionTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
 	COMME_NOEUD(empl, NoeudExpressionUnaire)
 	COMME_NOEUD(virgule, NoeudExpressionVirgule)

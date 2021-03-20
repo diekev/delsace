@@ -519,7 +519,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 						// @concurrence critique
 						if (type_union->decl == nullptr) {
 							static Lexeme lexeme_union = { "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-							auto decl_struct = m_tacheronne.assembleuse->cree_struct(&lexeme_union);
+							auto decl_struct = m_tacheronne.assembleuse->cree_structure(&lexeme_union);
 							decl_struct->type = type_union;
 
 							type_union->decl = decl_struct;
@@ -687,7 +687,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
 			CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, "opérateur unaire");
-			auto expr = noeud->comme_operateur_unaire();
+			auto expr = noeud->comme_expression_unaire();
 			expr->genre_valeur = GenreValeur::DROITE;
 
 			auto enfant = expr->operande;
@@ -882,7 +882,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
-			auto inst = noeud->comme_retour();
+			auto inst = noeud->comme_retourne();
 			noeud->genre_valeur = GenreValeur::DROITE;
 			return valide_expression_retour(inst);
 		}

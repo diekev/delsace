@@ -84,8 +84,8 @@ public:
 		return noeud;
 	}
 
-	NoeudAssignation *cree_assignation(const Lexeme *lexeme);
-	NoeudAssignation *cree_assignation(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
+	NoeudAssignation *cree_assignation_variable(const Lexeme *lexeme);
+	NoeudAssignation *cree_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
 	NoeudAssignation *cree_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
 	NoeudAssignation *cree_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
 	NoeudBloc *cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
@@ -98,7 +98,7 @@ public:
 	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-	NoeudDirectiveExecute *cree_execution(const Lexeme *lexeme);
+	NoeudDirectiveExecute *cree_execute(const Lexeme *lexeme);
 	NoeudDiscr *cree_discr(const Lexeme *lexeme);
 	NoeudEnum *cree_enum(const Lexeme *lexeme);
 	NoeudExpression *cree_arrete(const Lexeme *lexeme);
@@ -118,11 +118,11 @@ public:
 	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
 	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme);
 	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
-	NoeudExpressionBinaire *cree_op_binaire(const Lexeme *lexeme);
-	NoeudExpressionBinaire *cree_op_binaire(const Lexeme *lexeme, OperateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
+	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme);
+	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme, OperateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
 	NoeudExpressionBinaire *cree_plage(const Lexeme *lexeme);
-	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme);
-	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
+	NoeudExpressionMembre *cree_reference_membre(const Lexeme *lexeme);
+	NoeudExpressionMembre *cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
 	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme);
 	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
 	NoeudExpressionUnaire *cree_charge(Lexeme const *lexeme);
@@ -134,7 +134,7 @@ public:
 	NoeudExpressionUnaire *cree_info_de(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_init_de(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_memoire(const Lexeme *lexeme);
-	NoeudExpressionUnaire *cree_op_unaire(const Lexeme *lexeme);
+	NoeudExpressionUnaire *cree_expression_unaire(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_parenthese(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_taille_de(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_type_de(const Lexeme *lexeme);
@@ -145,8 +145,8 @@ public:
 	NoeudRetour *cree_retour(const Lexeme *lexeme);
 	NoeudSi *cree_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
 	NoeudSiStatique *cree_si_statique(const Lexeme *lexeme);
-	NoeudStruct *cree_struct(const Lexeme *lexeme);
-	NoeudTableauArgsVariadiques *cree_tableau_variadique(const Lexeme *lexeme);
-	NoeudTente *cree_tente(const Lexeme *lexeme);
+	NoeudStruct *cree_structure(const Lexeme *lexeme);
+	NoeudTableauArgsVariadiques *cree_args_variadiques(const Lexeme *lexeme);
+	NoeudInstructionTente *cree_tente(const Lexeme *lexeme);
 	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeCompose *type);
 };

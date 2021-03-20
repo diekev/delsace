@@ -50,7 +50,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct NoeudPour;
 struct NoeudStruct;
-struct NoeudTente;
+struct NoeudInstructionTente;
 struct Type;
 struct TypeFonction;
 

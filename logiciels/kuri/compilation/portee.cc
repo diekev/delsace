@@ -179,7 +179,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 	auto di = expressions->a(taille - 1);
 
-	if (di->est_retour() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+	if (di->est_retourne() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 		return di;
 	}
 
@@ -213,7 +213,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 		POUR (discr->paires_discr) {
 			di = derniere_instruction(it.second);
 
-			if (di == nullptr || !di->est_retour()) {
+			if (di == nullptr || !di->est_retourne()) {
 				break;
 			}
 		}

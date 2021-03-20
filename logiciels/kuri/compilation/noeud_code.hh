@@ -309,7 +309,7 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<InfoTypeUnion> infos_types_unions{};
 	tableau_page<InfoTypeOpaque> infos_types_opaques{};
 
-	NoeudCode *converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression);
+	NoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression);
 
 	InfoType *cree_info_type_pour(Type *type);
 

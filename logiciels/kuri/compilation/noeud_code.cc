@@ -29,7 +29,7 @@
 #include "arbre_syntaxique.hh"
 #include "espace_de_travail.hh"
 
-NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
+NoeudCode *ConvertisseuseNoeudCode::convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
 {
 	auto noeud_code = NoeudCode::nul();
 
@@ -51,7 +51,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto charge = noeud_expression->comme_charge();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, charge->operande);
+			n->operande = convertis_noeud_syntaxique(espace, charge->operande);
 
 			noeud_code = n;
 			break;
@@ -61,7 +61,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto importe = noeud_expression->comme_importe();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, importe->operande);
+			n->operande = convertis_noeud_syntaxique(espace, importe->operande);
 
 			noeud_code = n;
 			break;
@@ -76,12 +76,12 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->nom = { const_cast<char *>(decl->lexeme->chaine.pointeur()), decl->lexeme->chaine.taille() };
 
 			POUR (decl->params) {
-				auto n_param = converti_noeud_syntaxique(espace, it);
+				auto n_param = convertis_noeud_syntaxique(espace, it);
 				n->params_entree.ajoute(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
 			POUR (decl->params_sorties) {
-				auto n_param = converti_noeud_syntaxique(espace, it);
+				auto n_param = convertis_noeud_syntaxique(espace, it);
 				n->params_sortie.ajoute(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
@@ -101,12 +101,12 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto decl = static_cast<NoeudDeclarationCorpsFonction *>(noeud_expression);
 
 			auto n = noeuds_corps_fonctions.ajoute_element();
-			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, decl->bloc));
-			n->entete = static_cast<NoeudCodeEnteteFonction *>(converti_noeud_syntaxique(espace, decl->entete));
+			n->bloc = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, decl->bloc));
+			n->entete = static_cast<NoeudCodeEnteteFonction *>(convertis_noeud_syntaxique(espace, decl->entete));
 
 			n->arbre_aplatis.reserve(decl->arbre_aplatis.taille());
 			POUR (decl->arbre_aplatis) {
-				n->arbre_aplatis.ajoute(converti_noeud_syntaxique(espace, it));
+				n->arbre_aplatis.ajoute(convertis_noeud_syntaxique(espace, it));
 			}
 
 			noeud_code = n;
@@ -137,8 +137,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto decl = static_cast<NoeudDeclarationVariable *>(noeud_expression);
 
 			auto n = noeuds_declarations.ajoute_element();
-			n->valeur = converti_noeud_syntaxique(espace, decl->valeur);
-			n->expression = converti_noeud_syntaxique(espace, decl->expression);
+			n->valeur = convertis_noeud_syntaxique(espace, decl->valeur);
+			n->expression = convertis_noeud_syntaxique(espace, decl->expression);
 
 			noeud_code = n;
 			break;
@@ -153,7 +153,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->expressions.reserve(expressions->taille());
 
 			POUR (*expressions) {
-				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
+				n->expressions.ajoute(convertis_noeud_syntaxique(espace, it));
 			}
 
 			auto membres = noeud_bloc->membres.verrou_lecture();
@@ -162,7 +162,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			POUR (*membres) {
 				// le noeud_code peut être nul pour le contexte implicite
 				if (it->noeud_code == nullptr) {
-					converti_noeud_syntaxique(espace, it);
+					convertis_noeud_syntaxique(espace, it);
 				}
 
 				n->membres.ajoute(static_cast<NoeudCodeDeclaration *>(it->noeud_code));
@@ -176,8 +176,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_comme = noeud_expression->comme_comme();
 
 			auto n = noeuds_operations_binaire.ajoute_element();
-			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_comme->expression);
-			n->operande_droite = converti_noeud_syntaxique(espace, noeud_comme->expression_type);
+			n->operande_gauche = convertis_noeud_syntaxique(espace, noeud_comme->expression);
+			n->operande_droite = convertis_noeud_syntaxique(espace, noeud_comme->expression_type);
 
 			noeud_code = n;
 			break;
@@ -187,8 +187,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_op_bin = noeud_expression->comme_assignation_variable();
 
 			auto n = noeuds_assignations.ajoute_element();
-			n->assigne = converti_noeud_syntaxique(espace, noeud_op_bin->variable);
-			n->expression = converti_noeud_syntaxique(espace, noeud_op_bin->expression);
+			n->assigne = convertis_noeud_syntaxique(espace, noeud_op_bin->variable);
+			n->expression = convertis_noeud_syntaxique(espace, noeud_op_bin->expression);
 
 			noeud_code = n;
 			break;
@@ -201,8 +201,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_op_bin = static_cast<NoeudExpressionBinaire *>(noeud_expression);
 
 			auto n = noeuds_operations_binaire.ajoute_element();
-			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->operande_gauche);
-			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->operande_droite);
+			n->operande_gauche = convertis_noeud_syntaxique(espace, noeud_op_bin->operande_gauche);
+			n->operande_droite = convertis_noeud_syntaxique(espace, noeud_op_bin->operande_droite);
 			n->op = { &noeud_op_bin->lexeme->chaine[0], noeud_op_bin->lexeme->chaine.taille() };
 
 			noeud_code = n;
@@ -214,8 +214,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_reference_membre = static_cast<NoeudExpressionMembre *>(noeud_expression);
 
 			auto n = noeuds_reference_membre.ajoute_element();
-			n->accede = converti_noeud_syntaxique(espace, noeud_reference_membre->accedee);
-			n->membre = converti_noeud_syntaxique(espace, noeud_reference_membre->membre);
+			n->accede = convertis_noeud_syntaxique(espace, noeud_reference_membre->accedee);
+			n->membre = convertis_noeud_syntaxique(espace, noeud_reference_membre->membre);
 
 			noeud_code = n;
 			break;
@@ -226,7 +226,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			auto n = noeuds_directive.ajoute_element();
 			n->ident = directive->ident->nom;
-			n->expression = converti_noeud_syntaxique(espace, directive->operande);
+			n->expression = convertis_noeud_syntaxique(espace, directive->operande);
 
 			noeud_code = n;
 			break;
@@ -237,7 +237,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			auto n = noeuds_directive.ajoute_element();
 			n->ident = directive->ident->nom;
-			n->expression = converti_noeud_syntaxique(espace, directive->expression);
+			n->expression = convertis_noeud_syntaxique(espace, directive->expression);
 
 			noeud_code = n;
 			break;
@@ -248,11 +248,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_appel = static_cast<NoeudExpressionAppel *>(noeud_expression);
 
 			auto n = noeuds_appel.ajoute_element();
-			n->expression = converti_noeud_syntaxique(espace, noeud_appel->appelee);
+			n->expression = convertis_noeud_syntaxique(espace, noeud_appel->appelee);
 			n->params.reserve(noeud_appel->parametres.taille());
 
 			POUR (noeud_appel->parametres) {
-				n->params.ajoute(converti_noeud_syntaxique(espace, it));
+				n->params.ajoute(convertis_noeud_syntaxique(espace, it));
 			}
 
 			noeud_code = n;
@@ -272,7 +272,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto expr = static_cast<NoeudExpressionUnaire *>(noeud_expression);
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, expr->operande);
+			n->operande = convertis_noeud_syntaxique(espace, expr->operande);
 			n->op =  { &expr->lexeme->chaine[0], expr->lexeme->chaine.taille() };
 
 			noeud_code = n;
@@ -280,10 +280,10 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
-			auto expr = noeud_expression->comme_retour();
+			auto expr = noeud_expression->comme_retourne();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, expr->expression);
+			n->operande = convertis_noeud_syntaxique(espace, expr->expression);
 
 			noeud_code = n;
 			break;
@@ -293,7 +293,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto expr = noeud_expression->comme_retiens();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, expr->expression);
+			n->operande = convertis_noeud_syntaxique(espace, expr->expression);
 
 			noeud_code = n;
 			break;
@@ -304,9 +304,9 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_si = static_cast<NoeudSi *>(noeud_expression);
 
 			auto n = noeuds_sis.ajoute_element();
-			n->condition = converti_noeud_syntaxique(espace, noeud_si->condition);
-			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si->bloc_si_vrai));
-			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si->bloc_si_faux));
+			n->condition = convertis_noeud_syntaxique(espace, noeud_si->condition);
+			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, noeud_si->bloc_si_vrai));
+			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, noeud_si->bloc_si_faux));
 
 			noeud_code = n;
 			break;
@@ -316,9 +316,9 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_si_statique = noeud_expression->comme_si_statique();
 
 			auto n = noeuds_sis.ajoute_element();
-			n->condition = converti_noeud_syntaxique(espace, noeud_si_statique->condition);
-			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si_statique->bloc_si_vrai));
-			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si_statique->bloc_si_faux));
+			n->condition = convertis_noeud_syntaxique(espace, noeud_si_statique->condition);
+			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, noeud_si_statique->bloc_si_vrai));
+			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, noeud_si_statique->bloc_si_faux));
 
 			noeud_code = n;
 			break;
@@ -330,8 +330,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_boucle = static_cast<NoeudBoucle *>(noeud_expression);
 
 			auto n = noeuds_boucles.ajoute_element();
-			n->condition = converti_noeud_syntaxique(espace, noeud_boucle->condition);
-			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_boucle->bloc));
+			n->condition = convertis_noeud_syntaxique(espace, noeud_boucle->condition);
+			n->bloc = static_cast<NoeudCodeBloc *>(convertis_noeud_syntaxique(espace, noeud_boucle->bloc));
 
 			noeud_code = n;
 			break;
@@ -414,11 +414,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_pour = noeud_expression->comme_pour();
 
 			auto n = noeuds_pour.ajoute_element();
-			n->variable = converti_noeud_syntaxique(espace, noeud_pour->variable);
-			n->expression = converti_noeud_syntaxique(espace, noeud_pour->expression);
-			n->bloc = converti_noeud_syntaxique(espace, noeud_pour->bloc);
-			n->bloc_sansarret = converti_noeud_syntaxique(espace, noeud_pour->bloc_sansarret);
-			n->bloc_sinon = converti_noeud_syntaxique(espace, noeud_pour->bloc_sinon);
+			n->variable = convertis_noeud_syntaxique(espace, noeud_pour->variable);
+			n->expression = convertis_noeud_syntaxique(espace, noeud_pour->expression);
+			n->bloc = convertis_noeud_syntaxique(espace, noeud_pour->bloc);
+			n->bloc_sansarret = convertis_noeud_syntaxique(espace, noeud_pour->bloc_sansarret);
+			n->bloc_sinon = convertis_noeud_syntaxique(espace, noeud_pour->bloc_sinon);
 
 			noeud_code = n;
 			break;
@@ -430,13 +430,13 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_discr = static_cast<NoeudDiscr *>(noeud_expression);
 
 			auto n = noeuds_discr.ajoute_element();
-			n->expression = converti_noeud_syntaxique(espace, noeud_discr->expression_discriminee);
-			n->bloc_sinon = converti_noeud_syntaxique(espace, noeud_discr->bloc_sinon);
+			n->expression = convertis_noeud_syntaxique(espace, noeud_discr->expression_discriminee);
+			n->bloc_sinon = convertis_noeud_syntaxique(espace, noeud_discr->bloc_sinon);
 			n->paires_discr.reserve(noeud_discr->paires_discr.taille());
 
 			POUR (noeud_discr->paires_discr) {
-				auto expr = converti_noeud_syntaxique(espace, it.first);
-				auto bloc = converti_noeud_syntaxique(espace, it.second);
+				auto expr = convertis_noeud_syntaxique(espace, it.first);
+				auto bloc = convertis_noeud_syntaxique(espace, it.second);
 
 				n->paires_discr.ajoute({ expr, bloc });
 			}
@@ -449,8 +449,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_pc = noeud_expression->comme_pousse_contexte();
 
 			auto n = noeuds_pousse_contexte.ajoute_element();
-			n->expression = converti_noeud_syntaxique(espace, noeud_pc->expression);
-			n->bloc = converti_noeud_syntaxique(espace, noeud_pc->bloc);
+			n->expression = convertis_noeud_syntaxique(espace, noeud_pc->expression);
+			n->bloc = convertis_noeud_syntaxique(espace, noeud_pc->bloc);
 
 			noeud_code = n;
 			break;
@@ -460,9 +460,9 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_tente = noeud_expression->comme_tente();
 
 			auto n = noeuds_tente.ajoute_element();
-			n->expression_appel = converti_noeud_syntaxique(espace, noeud_tente->expression_appelee);
-			n->expression_piege = converti_noeud_syntaxique(espace, noeud_tente->expression_piegee);
-			n->bloc = converti_noeud_syntaxique(espace, noeud_tente->bloc);
+			n->expression_appel = convertis_noeud_syntaxique(espace, noeud_tente->expression_appelee);
+			n->expression_piege = convertis_noeud_syntaxique(espace, noeud_tente->expression_piegee);
+			n->bloc = convertis_noeud_syntaxique(espace, noeud_tente->bloc);
 
 			noeud_code = n;
 			break;
@@ -472,7 +472,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_empl = noeud_expression->comme_empl();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(espace, noeud_empl->operande);
+			n->operande = convertis_noeud_syntaxique(espace, noeud_empl->operande);
 
 			noeud_code = n;
 			break;
@@ -485,7 +485,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->expressions.reserve(noeud_virgule->expressions.taille());
 
 			POUR (noeud_virgule->expressions) {
-				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
+				n->expressions.ajoute(convertis_noeud_syntaxique(espace, it));
 			}
 
 			noeud_code = n;

@@ -85,15 +85,15 @@ NoeudBoucle *AssembleuseArbre::cree_boucle(const Lexeme *lexeme)
 	return cree_noeud<GenreNoeud::INSTRUCTION_BOUCLE>(lexeme)->comme_boucle();
 }
 
-NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(Lexeme const *lexeme)
+NoeudExpressionBinaire *AssembleuseArbre::cree_expression_binaire(Lexeme const *lexeme)
 {
-	return cree_noeud<GenreNoeud::OPERATEUR_BINAIRE>(lexeme)->comme_operateur_binaire();
+	return cree_noeud<GenreNoeud::OPERATEUR_BINAIRE>(lexeme)->comme_expression_binaire();
 }
 
-NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, const OperateurBinaire *op, NoeudExpression *expr1, NoeudExpression *expr2)
+NoeudExpressionBinaire *AssembleuseArbre::cree_expression_binaire(const Lexeme *lexeme, const OperateurBinaire *op, NoeudExpression *expr1, NoeudExpression *expr2)
 {
 	assert(op);
-	auto op_bin = cree_op_binaire(lexeme);
+	auto op_bin = cree_expression_binaire(lexeme);
 	op_bin->operande_gauche = expr1;
 	op_bin->operande_droite = expr2;
 	op_bin->op = op;
@@ -146,12 +146,12 @@ NoeudExpression *AssembleuseArbre::cree_continue(const Lexeme *lexeme)
 	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
 }
 
-NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme)
+NoeudAssignation *AssembleuseArbre::cree_assignation_variable(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)->comme_assignation_variable();
 }
 
-NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression)
+NoeudAssignation *AssembleuseArbre::cree_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression)
 {
 	auto assignation = cree_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)->comme_assignation_variable();
 
@@ -202,23 +202,23 @@ NoeudDeclarationVariable *AssembleuseArbre::cree_declaration_variable(NoeudExpre
 	return decl;
 }
 
-NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme)
+NoeudExpressionMembre *AssembleuseArbre::cree_reference_membre(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_MEMBRE>(lexeme)->comme_reference_membre();
 }
 
-NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
+NoeudExpressionMembre *AssembleuseArbre::cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
 {
-	auto acces = cree_acces_membre(lexeme);
+	auto acces = cree_reference_membre(lexeme);
 	acces->accedee = accede;
 	acces->type = type;
 	acces->index_membre = index;
 	return acces;
 }
 
-NoeudExpressionUnaire *AssembleuseArbre::cree_op_unaire(const Lexeme *lexeme)
+NoeudExpressionUnaire *AssembleuseArbre::cree_expression_unaire(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)->comme_operateur_unaire();
+	return cree_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)->comme_expression_unaire();
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme)
@@ -344,7 +344,7 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, No
 {
 	auto type = valeur->type;
 
-	auto inc = cree_op_binaire(lexeme);
+	auto inc = cree_expression_binaire(lexeme);
 	inc->op = type->operateur_ajt;
 	assert(inc->op);
 	inc->operande_gauche = valeur;
@@ -358,14 +358,14 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, No
 		inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
 	}
 
-	return cree_assignation(valeur->lexeme, valeur, inc);
+	return cree_assignation_variable(valeur->lexeme, valeur, inc);
 }
 
 NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, NoeudExpression *valeur)
 {
 	auto type = valeur->type;
 
-	auto inc = cree_op_binaire(lexeme);
+	auto inc = cree_expression_binaire(lexeme);
 	inc->op = type->operateur_sst;
 	assert(inc->op);
 	inc->operande_gauche = valeur;
@@ -379,7 +379,7 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, No
 		inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
 	}
 
-	return cree_assignation(valeur->lexeme, valeur, inc);
+	return cree_assignation_variable(valeur->lexeme, valeur, inc);
 }
 
 NoeudPour *AssembleuseArbre::cree_pour(const Lexeme *lexeme)
@@ -412,12 +412,12 @@ NoeudEnum *AssembleuseArbre::cree_enum(const Lexeme *lexeme)
 	return cree_noeud<GenreNoeud::DECLARATION_ENUM>(lexeme)->comme_enum();
 }
 
-NoeudStruct *AssembleuseArbre::cree_struct(const Lexeme *lexeme)
+NoeudStruct *AssembleuseArbre::cree_structure(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::DECLARATION_STRUCTURE>(lexeme)->comme_structure();
 }
 
-NoeudTableauArgsVariadiques *AssembleuseArbre::cree_tableau_variadique(const Lexeme *lexeme)
+NoeudTableauArgsVariadiques *AssembleuseArbre::cree_args_variadiques(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES>(lexeme)->comme_args_variadiques();
 }
@@ -429,7 +429,7 @@ NoeudDeclarationEnteteFonction *AssembleuseArbre::cree_entete_fonction(const Lex
 
 NoeudRetour *AssembleuseArbre::cree_retour(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::INSTRUCTION_RETOUR>(lexeme)->comme_retour();
+	return cree_noeud<GenreNoeud::INSTRUCTION_RETOUR>(lexeme)->comme_retourne();
 }
 
 NoeudRetour *AssembleuseArbre::cree_retiens(const Lexeme *lexeme)
@@ -457,7 +457,7 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_plage(const Lexeme *lexeme)
 	return cree_noeud<GenreNoeud::EXPRESSION_PLAGE>(lexeme)->comme_plage();
 }
 
-NoeudDirectiveExecute *AssembleuseArbre::cree_execution(const Lexeme *lexeme)
+NoeudDirectiveExecute *AssembleuseArbre::cree_execute(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::DIRECTIVE_EXECUTE>(lexeme)->comme_execute();
 }
@@ -477,7 +477,7 @@ NoeudExpressionUnaire *AssembleuseArbre::cree_info_de(const Lexeme *lexeme)
 	return cree_noeud<GenreNoeud::EXPRESSION_INFO_DE>(lexeme)->comme_info_de();
 }
 
-NoeudTente *AssembleuseArbre::cree_tente(const Lexeme *lexeme)
+NoeudInstructionTente *AssembleuseArbre::cree_tente(const Lexeme *lexeme)
 {
 	return cree_noeud<GenreNoeud::INSTRUCTION_TENTE>(lexeme)->comme_tente();
 }

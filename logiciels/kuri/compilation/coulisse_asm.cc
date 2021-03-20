@@ -225,7 +225,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::OPERATION_UNAIRE:
         {
-            auto inst_un = inst->comme_op_unaire();
+			auto inst_un = inst->comme_op_unaire();
 
             switch (inst_un->op) {
                 case OperateurUnaire::Genre::Positif:
@@ -259,7 +259,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::OPERATION_BINAIRE:
         {
-            auto inst_bin = inst->comme_op_binaire();
+			auto inst_bin = inst->comme_op_binaire();
 
 			/* @Incomplet: charge dans les registres */
             switch (inst_bin->op) {
@@ -362,7 +362,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::RETOUR:
         {
-            auto inst_retour = inst->comme_retour();
+			auto inst_retour = inst->comme_retour();
 
 			/* @Incomplet: restore la pile */
 			os << "  add " << RSP << ' ' << taille_allouee << '\n';

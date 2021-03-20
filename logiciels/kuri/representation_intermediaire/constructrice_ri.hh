@@ -41,7 +41,7 @@ struct NoeudExpressionAppel;
 struct NoeudExpressionMembre;
 struct NoeudPour;
 struct NoeudStruct;
-struct NoeudTente;
+struct NoeudInstructionTente;
 struct TypeEnum;
 struct TypeTableauFixe;
 
@@ -160,8 +160,8 @@ public:
 	InstructionOpBinaire *cree_op_comparaison(NoeudExpression *site_, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 
 	InstructionAccedeIndex *cree_acces_index(NoeudExpression *site_, Atome *accede, Atome *index);
-	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, int index, bool cree_seulement = false);
-	Instruction *cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, int index);
+	InstructionAccedeMembre *cree_reference_membre(NoeudExpression *site_, Atome *accede, int index, bool cree_seulement = false);
+	Instruction *cree_reference_membre_et_charge(NoeudExpression *site_, Atome *accede, int index);
 
 	InstructionTranstype *cree_transtype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op);
 
@@ -182,7 +182,7 @@ private:
 	AtomeFonction *genere_ri_pour_fonction_principale();
 	void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
 	void genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place, TransformationType const &transformation);
-	void genere_ri_pour_tente(NoeudTente *noeud);
+	void genere_ri_pour_tente(NoeudInstructionTente *noeud);
 	void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
 	void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
 	void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);

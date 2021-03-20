@@ -50,7 +50,7 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudPousseContexte> m_noeuds_pousse_contexte{};
 	tableau_page<NoeudExpressionAppel> m_noeuds_appel{};
 	tableau_page<NoeudTableauArgsVariadiques> m_noeuds_tableau_args_variadiques{};
-	tableau_page<NoeudTente> m_noeuds_tente{};
+	tableau_page<NoeudInstructionTente> m_noeuds_tente{};
 	tableau_page<NoeudDirectiveExecute> m_noeuds_directive_execution{};
 	tableau_page<NoeudExpressionVirgule> m_noeuds_expression_virgule{};
 	tableau_page<NoeudRetour> m_noeuds_retour{};

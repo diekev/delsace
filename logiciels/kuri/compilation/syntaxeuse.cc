@@ -859,7 +859,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			if (apparie_expression()) {
 				// nous avons l'expression d'un type
-				auto noeud = m_tacheronne.assembleuse->cree_op_binaire(lexeme);
+				auto noeud = m_tacheronne.assembleuse->cree_expression_binaire(lexeme);
 				noeud->operande_gauche = expression_entre_crochets;
 				noeud->operande_droite = analyse_expression({ PRECEDENCE_TYPE, Associativite::GAUCHE }, racine_expression, lexeme_final);
 
@@ -1052,7 +1052,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				m_compilatrice.definitions->ajoute(chaine);
 			}
 			else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
-				auto noeud = m_tacheronne.assembleuse->cree_execution(lexeme);
+				auto noeud = m_tacheronne.assembleuse->cree_execute(lexeme);
 				noeud->ident = directive;
 
 				if (directive == ID::test) {
@@ -1199,7 +1199,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			auto noeud = m_tacheronne.assembleuse->cree_op_binaire(lexeme);
+			auto noeud = m_tacheronne.assembleuse->cree_expression_binaire(lexeme);
 			noeud->operande_gauche = gauche;
 			noeud->operande_droite = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			return noeud;
@@ -1435,7 +1435,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				}
 			}
 
-			auto noeud = m_tacheronne.assembleuse->cree_assignation(lexeme);
+			auto noeud = m_tacheronne.assembleuse->cree_assignation_variable(lexeme);
 			noeud->variable = gauche;
 			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 
@@ -1447,7 +1447,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			auto noeud = m_tacheronne.assembleuse->cree_acces_membre(lexeme);
+			auto noeud = m_tacheronne.assembleuse->cree_reference_membre(lexeme);
 			noeud->accedee = gauche;
 			noeud->membre = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			return noeud;
@@ -2538,7 +2538,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	empile_etat("dans le syntaxage de la structure", lexeme_mot_cle);
 	consomme();
 
-	auto noeud_decl = m_tacheronne.assembleuse->cree_struct(gauche->lexeme);
+	auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
 	noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
 

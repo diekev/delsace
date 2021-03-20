@@ -38,7 +38,7 @@ struct NoeudStruct;
 struct Tacheronne;
 struct UniteCompilation;
 
-enum class GenreNoeud : char;
+enum class GenreNoeud : unsigned char;
 
 enum class Associativite : int {
 	GAUCHE,

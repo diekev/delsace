@@ -1073,7 +1073,7 @@ static auto apparie_appel_fonction(
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_tableau_variadique(&lexeme_tableau);
+			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(&lexeme_tableau);
 
 			noeud_tableau->type = type_donnees_argument_variadique;
 			// @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas sélectionné
@@ -1880,7 +1880,7 @@ ResultatValidation valide_appel_fonction(
 					.ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
 					.ajoute_site(decl_fonction_appelee)
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
-					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
+					.ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
 			return ResultatValidation::Erreur;
 		}
 
@@ -2001,7 +2001,7 @@ ResultatValidation valide_appel_fonction(
 					.ajoute_message(chaine_type(expr->type))
 					.ajoute_message("\n")
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
-					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
+					.ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
 			return ResultatValidation::Erreur;
 		}
 	}
