@@ -87,7 +87,7 @@ Date hui_systeme()
 	auto jour_semaine = ((inst.seconde / (3600 * 24)) - 3) % 7;
 
 	Date date;
-	date.jour = static_cast<int>(jours);
+	date.jour = static_cast<int>(jours + 1);
 	date.mois = mois + 1;
 	date.annee = static_cast<int>(annees + 1970);
 	date.heure = static_cast<int>(heures) + 2; // UTC
