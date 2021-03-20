@@ -168,7 +168,7 @@ void lance_erreur_fonction_inconnue(
 					e.ajoute_message("\tRequiers ", type_fonc->types_entrees.taille() - dc.requiers_contexte, " arguments\n");
 				}
 
-				e.ajoute_message("\tObtenu ", noeud_appel->params.taille(), " arguments\n");
+				e.ajoute_message("\tObtenu ", noeud_appel->parametres.taille(), " arguments\n");
 				e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
 			}
 			else if (dc.raison == MENOMMAGE_ARG) {

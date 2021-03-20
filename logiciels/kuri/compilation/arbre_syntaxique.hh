@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -83,8 +83,8 @@ struct Monomorphisations;
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_STRUCTURE) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_VARIABLE) \
 	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_CUISINE) \
-	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_EXECUTION) \
-	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_APPEL_FONCTION) \
+	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_EXECUTE) \
+	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_APPEL) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_ASSIGNATION_VARIABLE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_CONSTRUCTION_STRUCTURE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_CONSTRUCTION_TABLEAU) \
@@ -274,7 +274,7 @@ struct NoeudExpression {
 		return dls::outils::est_element(this->genre, __VA_ARGS__); \
 	}
 
-	EST_NOEUD_GENRE(appel, GenreNoeud::EXPRESSION_APPEL_FONCTION)
+	EST_NOEUD_GENRE(appel, GenreNoeud::EXPRESSION_APPEL)
 	EST_NOEUD_GENRE(args_variadiques, GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES)
 	EST_NOEUD_GENRE(assignation, GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE)
 	EST_NOEUD_GENRE(bloc, GenreNoeud::INSTRUCTION_COMPOSEE)
@@ -289,13 +289,13 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(controle_boucle, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
 	EST_NOEUD_GENRE(cuisine, GenreNoeud::DIRECTIVE_CUISINE)
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
-	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
+	EST_NOEUD_GENRE(declaration_variable, GenreNoeud::DECLARATION_VARIABLE)
 	EST_NOEUD_GENRE(declaration, GenreNoeud::DECLARATION_VARIABLE, GenreNoeud::DECLARATION_CORPS_FONCTION, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)
 	EST_NOEUD_GENRE(decl_module, GenreNoeud::DECLARATION_MODULE)
 	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)
 	EST_NOEUD_GENRE(entete_fonction, GenreNoeud::DECLARATION_ENTETE_FONCTION)
-	EST_NOEUD_GENRE(execute, GenreNoeud::DIRECTIVE_EXECUTION)
+	EST_NOEUD_GENRE(execute, GenreNoeud::DIRECTIVE_EXECUTE)
 	EST_NOEUD_GENRE(expansion_variadique, GenreNoeud::EXPANSION_VARIADIQUE)
 	EST_NOEUD_GENRE(corps_fonction, GenreNoeud::DECLARATION_CORPS_FONCTION)
 	EST_NOEUD_GENRE(indexage, GenreNoeud::EXPRESSION_INDEXAGE)
@@ -313,7 +313,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(plage, GenreNoeud::EXPRESSION_PLAGE)
 	EST_NOEUD_GENRE(pour, GenreNoeud::INSTRUCTION_POUR)
 	EST_NOEUD_GENRE(pousse_contexte, GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE)
-	EST_NOEUD_GENRE(ref_decl, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION)
+	EST_NOEUD_GENRE(reference_declaration, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION)
 	EST_NOEUD_GENRE(ref_membre, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE)
 	EST_NOEUD_GENRE(ref_membre_union, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION)
 	EST_NOEUD_GENRE(ref_type, GenreNoeud::EXPRESSION_REFERENCE_TYPE)
@@ -352,7 +352,7 @@ struct NoeudExpression {
 	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_module, NoeudModule)
-	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
+	COMME_NOEUD(declaration_variable, NoeudDeclarationVariable)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
 	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)
@@ -370,7 +370,7 @@ struct NoeudExpression {
 	COMME_NOEUD(plage, NoeudExpressionBinaire)
 	COMME_NOEUD(pour, NoeudPour)
 	COMME_NOEUD(pousse_contexte, NoeudPousseContexte)
-	COMME_NOEUD(ref_decl, NoeudExpressionReference)
+	COMME_NOEUD(reference_declaration, NoeudExpressionReference)
 	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(repete, NoeudBoucle)
@@ -479,14 +479,14 @@ struct NoeudRetour : public NoeudExpression {
 	NoeudRetour() { genre = GenreNoeud::INSTRUCTION_RETOUR; }
 	COPIE_CONSTRUCT(NoeudRetour);
 
-	NoeudExpression *expr = nullptr;
+	NoeudExpression *expression = nullptr;
 	kuri::tableau_compresse<DonneesAssignations, int> donnees_exprs{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {
 	NoeudExpressionReference() { genre = GenreNoeud::EXPRESSION_REFERENCE_DECLARATION; }
 
-	NoeudDeclaration *decl = nullptr;
+	NoeudDeclaration *declaration_referee = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionReference);
 };
@@ -494,7 +494,7 @@ struct NoeudExpressionReference : public NoeudExpression {
 struct NoeudExpressionUnaire : public NoeudExpression {
 	NoeudExpressionUnaire() {}
 
-	NoeudExpression *expr = nullptr;
+	NoeudExpression *operande = nullptr;
 
 	OperateurUnaire const *op = nullptr;
 
@@ -506,8 +506,8 @@ using NoeudExpressionParenthese = NoeudExpressionUnaire;
 struct NoeudExpressionBinaire : public NoeudExpression {
 	NoeudExpressionBinaire() {}
 
-	NoeudExpression *expr1 = nullptr;
-	NoeudExpression *expr2 = nullptr;
+	NoeudExpression *operande_gauche = nullptr;
+	NoeudExpression *operande_droite = nullptr;
 
 	OperateurBinaire const *op = nullptr;
 
@@ -519,7 +519,7 @@ struct NoeudExpressionBinaire : public NoeudExpression {
 struct NoeudExpressionMembre : public NoeudExpression {
 	NoeudExpressionMembre() { genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE; }
 
-	NoeudExpression *accede = nullptr;
+	NoeudExpression *accedee = nullptr;
 	NoeudExpression *membre = nullptr;
 
 	int index_membre = 0;
@@ -572,10 +572,10 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclarationSymbole {
 		auto param = params[static_cast<int>(i)];
 
 		if (param->est_empl()) {
-			return param->comme_empl()->expr->comme_decl_var();
+			return param->comme_empl()->operande->comme_declaration_variable();
 		}
 
-		return param->comme_decl_var();
+		return param->comme_declaration_variable();
 	}
 
 	// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module
@@ -596,13 +596,13 @@ struct NoeudDeclarationCorpsFonction : public NoeudDeclarationSymbole {
 };
 
 struct NoeudExpressionAppel : public NoeudExpression {
-	NoeudExpressionAppel() { genre = GenreNoeud::EXPRESSION_APPEL_FONCTION; }
+	NoeudExpressionAppel() { genre = GenreNoeud::EXPRESSION_APPEL; }
 
 	NoeudExpression *appelee = nullptr;
 
-	kuri::tableau<NoeudExpression *, int> params{};
+	kuri::tableau<NoeudExpression *, int> parametres{};
 
-	kuri::tableau<NoeudExpression *, int> exprs{};
+	kuri::tableau<NoeudExpression *, int> parametres_resolus{};
 
 	NoeudExpression const *noeud_fonction_appelee = nullptr;
 
@@ -735,7 +735,7 @@ struct NoeudBloc : public NoeudExpression {
 struct NoeudDiscr : public NoeudExpression {
 	NoeudDiscr() { genre = GenreNoeud::INSTRUCTION_DISCR; }
 
-	NoeudExpression *expr = nullptr;
+	NoeudExpression *expression_discriminee = nullptr;
 
 	kuri::tableau<std::pair<NoeudExpression *, NoeudBloc *>, int> paires_discr{};
 
@@ -749,7 +749,7 @@ struct NoeudDiscr : public NoeudExpression {
 struct NoeudPousseContexte : public NoeudExpression {
 	NoeudPousseContexte() { genre = GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE; }
 
-	NoeudExpression *expr = nullptr;
+	NoeudExpression *expression = nullptr;
 	NoeudBloc *bloc = nullptr;
 
 	COPIE_CONSTRUCT(NoeudPousseContexte);
@@ -758,7 +758,7 @@ struct NoeudPousseContexte : public NoeudExpression {
 struct NoeudTableauArgsVariadiques : public NoeudExpression {
 	NoeudTableauArgsVariadiques() { genre = GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES; }
 
-	kuri::tableau<NoeudExpression *, int> exprs{};
+	kuri::tableau<NoeudExpression *, int> expressions{};
 
 	COPIE_CONSTRUCT(NoeudTableauArgsVariadiques);
 };
@@ -768,17 +768,17 @@ struct NoeudTente : public NoeudExpression {
 
 	COPIE_CONSTRUCT(NoeudTente);
 
-	NoeudExpression *expr_appel = nullptr;
-	NoeudExpression *expr_piege = nullptr;
+	NoeudExpression *expression_appelee = nullptr;
+	NoeudExpression *expression_piegee = nullptr;
 	NoeudBloc *bloc = nullptr;
 };
 
 struct NoeudDirectiveExecution : NoeudExpression {
-	NoeudDirectiveExecution() { genre = GenreNoeud::DIRECTIVE_EXECUTION; }
+	NoeudDirectiveExecution() { genre = GenreNoeud::DIRECTIVE_EXECUTE; }
 
 	COPIE_CONSTRUCT(NoeudDirectiveExecution);
 
-	NoeudExpression *expr = nullptr;
+	NoeudExpression *expression = nullptr;
 
 	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 };
@@ -823,7 +823,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
 	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
-	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
+	COMME_NOEUD(declaration_variable, NoeudDeclarationVariable)
 	COMME_NOEUD(decl_module, NoeudModule)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
@@ -842,7 +842,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(plage, NoeudExpressionBinaire)
 	COMME_NOEUD(pour, NoeudPour)
 	COMME_NOEUD(pousse_contexte, NoeudPousseContexte)
-	COMME_NOEUD(ref_decl, NoeudExpressionReference)
+	COMME_NOEUD(reference_declaration, NoeudExpressionReference)
 	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(repete, NoeudBoucle)

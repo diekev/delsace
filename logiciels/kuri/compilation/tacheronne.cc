@@ -404,7 +404,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				taches_generation_ri.enfile(tache_terminee);
 			}
 
-			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTION) {
+			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTE) {
 				auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
 
 				if (message_enfile) {
@@ -781,8 +781,8 @@ void Tacheronne::gere_tache()
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
 						if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
 							auto expression_operation = static_cast<NoeudExpressionBinaire *>(unite->operateur_attendu);
-							auto type1 = expression_operation->expr1->type;
-							auto type2 = expression_operation->expr2->type;
+							auto type1 = expression_operation->operande_gauche->type;
+							auto type2 = expression_operation->operande_droite->type;
 							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appeler.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("Le type à gauche de l'opérateur est ")
 									.ajoute_message(chaine_type(type1))
@@ -793,7 +793,7 @@ void Tacheronne::gere_tache()
 						}
 						else {
 							auto expression_operation = static_cast<NoeudExpressionUnaire *>(unite->operateur_attendu);
-							auto type = expression_operation->expr->type;
+							auto type = expression_operation->operande->type;
 							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appeler.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("\nLe type à droite de l'opérateur est ")
 									.ajoute_message(chaine_type(type))
@@ -964,7 +964,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 
 					return true;
 				}
-				case GenreNoeud::DIRECTIVE_EXECUTION:
+				case GenreNoeud::DIRECTIVE_EXECUTE:
 				{
 					auto dir = static_cast<NoeudDirectiveExecution *>(unite->noeud);
 					aplatis_arbre(dir);
@@ -1436,7 +1436,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 				auto pointeur_membre = pointeur + it.decalage;
 				auto noeud_membre = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, it.type, pointeur_membre);
-				construction_structure->exprs.ajoute(noeud_membre);
+				construction_structure->parametres_resolus.ajoute(noeud_membre);
 			}
 
 			return construction_structure;
@@ -1448,7 +1448,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			if (type_union->est_nonsure) {
 				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_union->type_le_plus_grand, pointeur);
-				construction_union->exprs.ajoute(expr);
+				construction_union->parametres_resolus.ajoute(expr);
 			}
 			else {
 				auto pointeur_donnees = pointeur;
@@ -1458,11 +1458,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				auto type_donnees = type_union->membres[index_membre].type;
 
 				for (auto i = 0; i < index_membre; ++i) {
-					construction_union->exprs.ajoute(nullptr);
+					construction_union->parametres_resolus.ajoute(nullptr);
 				}
 
 				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_donnees, pointeur_donnees);
-				construction_union->exprs.ajoute(expr);
+				construction_union->parametres_resolus.ajoute(expr);
 			}
 
 			return construction_union;
@@ -1493,7 +1493,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				espace->rapporte_erreur(directive, "La fonction retournée n'a pas de déclaration !\n");
 			}
 
-			return assembleuse->cree_ref_decl(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
+			return assembleuse->cree_reference_declaration(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
 		}
 		case GenreType::OPAQUE:
 		{
@@ -1523,7 +1523,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			auto construction = assembleuse->cree_construction_tableau(lexeme);
 			construction->type = type_tableau;
-			construction->expr = virgule;
+			construction->operande = virgule;
 			return construction;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:

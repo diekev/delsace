@@ -94,8 +94,8 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, 
 {
 	assert(op);
 	auto op_bin = cree_op_binaire(lexeme);
-	op_bin->expr1 = expr1;
-	op_bin->expr2 = expr2;
+	op_bin->operande_gauche = expr1;
+	op_bin->operande_droite = expr2;
 	op_bin->op = op;
 	op_bin->type = op->type_resultat;
 	return op_bin;
@@ -103,18 +103,18 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, 
 
 NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::DECLARATION_VARIABLE>(lexeme)->comme_decl_var();
+	return cree_noeud<GenreNoeud::DECLARATION_VARIABLE>(lexeme)->comme_declaration_variable();
 }
 
-NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme)
+NoeudExpressionReference *AssembleuseArbre::cree_reference_declaration(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_DECLARATION>(lexeme)->comme_ref_decl();
+	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_DECLARATION>(lexeme)->comme_reference_declaration();
 }
 
-NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme, NoeudDeclaration *decl)
+NoeudExpressionReference *AssembleuseArbre::cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl)
 {
-	auto ref = cree_ref_decl(lexeme);
-	ref->decl = decl;
+	auto ref = cree_reference_declaration(lexeme);
+	ref->declaration_referee = decl;
 	ref->type = decl->type;
 	ref->ident = decl->ident;
 	return ref;
@@ -167,7 +167,7 @@ NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme, Noeud
 
 NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression)
 {
-	auto ref = cree_ref_decl(lexeme);
+	auto ref = cree_reference_declaration(lexeme);
 	ref->ident = ident;
 	ref->type = type;
 	return cree_declaration(ref, expression);
@@ -181,7 +181,7 @@ NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionRefe
 	declaration->valeur = ref;
 	declaration->expression = expression;
 
-	ref->decl = declaration;
+	ref->declaration_referee = declaration;
 
 	auto donnees = DonneesAssignations();
 	donnees.expression = expression;
@@ -198,7 +198,7 @@ NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionRefe
 	auto decl = cree_declaration(ref->lexeme);
 	decl->valeur = ref;
 	decl->ident = ref->ident;
-	ref->decl = decl;
+	ref->declaration_referee = decl;
 	return decl;
 }
 
@@ -210,7 +210,7 @@ NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme)
 NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
 {
 	auto acces = cree_acces_membre(lexeme);
-	acces->accede = accede;
+	acces->accedee = accede;
 	acces->type = type;
 	acces->index_membre = index;
 	return acces;
@@ -230,8 +230,8 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme)
 NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification)
 {
 	auto indexage = cree_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
-	indexage->expr1 = expr1;
-	indexage->expr2 = expr2;
+	indexage->operande_gauche = expr1;
+	indexage->operande_droite = expr2;
 	indexage->type = type_dereference_pour(expr1->type);
 	if (ignore_verification) {
 		indexage->aide_generation_code = IGNORE_VERIFICATION;
@@ -241,7 +241,7 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, No
 
 NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::EXPRESSION_APPEL_FONCTION>(lexeme)->comme_appel();
+	return cree_noeud<GenreNoeud::EXPRESSION_APPEL>(lexeme)->comme_appel();
 }
 
 NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type)
@@ -251,7 +251,7 @@ NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudEx
 	appel->type = type;
 
 	if (appelee->est_entete_fonction()) {
-		appel->appelee = cree_ref_decl(lexeme, appelee->comme_entete_fonction());
+		appel->appelee = cree_reference_declaration(lexeme, appelee->comme_entete_fonction());
 	}
 	else {
 		appel->appelee = appelee;
@@ -264,7 +264,7 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
 {
 	auto structure = cree_appel(lexeme);
 	structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-	structure->exprs.reserve(type->membres.taille());
+	structure->parametres_resolus.reserve(type->membres.taille());
 
 	if (type->est_structure()) {
 		structure->appelee = type->comme_structure()->decl;
@@ -347,15 +347,15 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, No
 	auto inc = cree_op_binaire(lexeme);
 	inc->op = type->operateur_ajt;
 	assert(inc->op);
-	inc->expr1 = valeur;
+	inc->operande_gauche = valeur;
 	inc->type = type;
 
 	if (est_type_entier(type)) {
-		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);
+		inc->operande_droite = cree_lit_entier(valeur->lexeme, type, 1);
 	}
 	else if (type->est_reel()) {
 		// À FAIRE(r16)
-		inc->expr2 = cree_lit_reel(valeur->lexeme, type, 1.0);
+		inc->operande_droite = cree_lit_reel(valeur->lexeme, type, 1.0);
 	}
 
 	return cree_assignation(valeur->lexeme, valeur, inc);
@@ -368,15 +368,15 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, No
 	auto inc = cree_op_binaire(lexeme);
 	inc->op = type->operateur_sst;
 	assert(inc->op);
-	inc->expr1 = valeur;
+	inc->operande_gauche = valeur;
 	inc->type = type;
 
 	if (est_type_entier(type)) {
-		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);
+		inc->operande_droite = cree_lit_entier(valeur->lexeme, type, 1);
 	}
 	else if (type->est_reel()) {
 		// À FAIRE(r16)
-		inc->expr2 = cree_lit_reel(valeur->lexeme, type, 1.0);
+		inc->operande_droite = cree_lit_reel(valeur->lexeme, type, 1.0);
 	}
 
 	return cree_assignation(valeur->lexeme, valeur, inc);
@@ -459,7 +459,7 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_plage(const Lexeme *lexeme)
 
 NoeudDirectiveExecution *AssembleuseArbre::cree_execution(const Lexeme *lexeme)
 {
-	return cree_noeud<GenreNoeud::DIRECTIVE_EXECUTION>(lexeme)->comme_execute();
+	return cree_noeud<GenreNoeud::DIRECTIVE_EXECUTE>(lexeme)->comme_execute();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_type_de(const Lexeme *lexeme)

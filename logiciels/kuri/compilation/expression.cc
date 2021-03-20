@@ -293,7 +293,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
 			auto expr_taille_de = static_cast<NoeudExpressionUnaire *>(b);
-			auto type = expr_taille_de->expr->type;
+			auto type = expr_taille_de->operande->type;
 
 			auto res = ResultatExpression();
 			res.valeur.type = TypeExpression::ENTIER;
@@ -370,7 +370,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto res = evalue_expression(espace, bloc, inst->expr);
+			auto res = evalue_expression(espace, bloc, inst->operande);
 
 			if (res.est_errone) {
 				return res;
@@ -388,13 +388,13 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
 			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto res1 = evalue_expression(espace, bloc, inst->expr1);
+			auto res1 = evalue_expression(espace, bloc, inst->operande_gauche);
 
 			if (res1.est_errone) {
 				return res1;
 			}
 
-			auto res2 = evalue_expression(espace, bloc, inst->expr2);
+			auto res2 = evalue_expression(espace, bloc, inst->operande_droite);
 
 			if (res2.est_errone) {
 				return res2;
@@ -426,18 +426,18 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			return evalue_expression(espace, bloc, inst->expr);
+			return evalue_expression(espace, bloc, inst->operande);
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
 			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			return evalue_expression(espace, bloc, inst->expr1);
+			return evalue_expression(espace, bloc, inst->operande_gauche);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
 			auto ref_membre = b->comme_ref_membre();
-			auto type_accede = ref_membre->accede->type;
+			auto type_accede = ref_membre->accedee->type;
 
 			if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
 				auto type_enum = type_accede->comme_enum();
@@ -450,7 +450,7 @@ ResultatExpression evalue_expression(
 			}
 
 			if (type_accede->est_tableau_fixe()) {
-				if (!ref_membre->membre->est_ref_decl()) {
+				if (!ref_membre->membre->est_reference_declaration()) {
 					auto res = ResultatExpression();
 					res.est_errone = true;
 					res.noeud_erreur = b;
@@ -459,7 +459,7 @@ ResultatExpression evalue_expression(
 					return res;
 				}
 
-				auto ref_decl_membre = ref_membre->membre->comme_ref_decl();
+				auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
 
 				if (ref_decl_membre->ident->nom == "taille") {
 					auto res = ResultatExpression();

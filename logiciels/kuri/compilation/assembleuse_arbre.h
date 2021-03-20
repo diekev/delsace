@@ -123,8 +123,8 @@ public:
 	NoeudExpressionBinaire *cree_plage(const Lexeme *lexeme);
 	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme);
 	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
-	NoeudExpressionReference *cree_ref_decl(const Lexeme *lexeme);
-	NoeudExpressionReference *cree_ref_decl(const Lexeme *lexeme, NoeudDeclaration *decl);
+	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme);
+	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
 	NoeudExpressionUnaire *cree_charge(Lexeme const *lexeme);
 	NoeudExpressionUnaire *cree_construction_tableau(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_controle_boucle(const Lexeme *lexeme);

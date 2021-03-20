@@ -209,9 +209,9 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_entete_appel = 0l;
 	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
 	{
-		memoire_entete_appel += noeud.params.taille_memoire();
-		memoire_entete_appel += noeud.exprs.taille_memoire();
-		taille_max_params_appels = std::max(taille_max_params_appels, noeud.params.taille());
+		memoire_entete_appel += noeud.parametres.taille_memoire();
+		memoire_entete_appel += noeud.parametres_resolus.taille_memoire();
+		taille_max_params_appels = std::max(taille_max_params_appels, noeud.parametres.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionAppel", m_noeuds_appel) + memoire_entete_appel });
 
@@ -226,8 +226,8 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_tableau_args_variadiques = 0l;
 	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
 	{
-		memoire_tableau_args_variadiques += noeud.exprs.taille_memoire();
-		taille_max_expr_variadiques = std::max(taille_max_expr_variadiques, noeud.exprs.taille());
+		memoire_tableau_args_variadiques += noeud.expressions.taille_memoire();
+		taille_max_expr_variadiques = std::max(taille_max_expr_variadiques, noeud.expressions.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTableauArgsVariadiques", m_noeuds_tableau_args_variadiques) + memoire_tableau_args_variadiques });
 

@@ -140,7 +140,7 @@ struct AllocatriceNoeud {
 				break;
 			}
 			case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-			case GenreNoeud::EXPRESSION_APPEL_FONCTION:
+			case GenreNoeud::EXPRESSION_APPEL:
 			{
 				noeud = m_noeuds_appel.ajoute_element();
 				break;
@@ -169,7 +169,7 @@ struct AllocatriceNoeud {
 				noeud = m_noeuds_retour.ajoute_element();
 				break;
 			}
-			case GenreNoeud::DIRECTIVE_EXECUTION:
+			case GenreNoeud::DIRECTIVE_EXECUTE:
 			{
 				noeud = m_noeuds_directive_execution.ajoute_element();
 				break;

@@ -871,8 +871,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 #if 0
 			auto expr = static_cast<NoeudExpressionBinaire *>(b);
-			auto enfant1 = expr->expr1;
-			auto enfant2 = expr->expr2;
+			auto enfant1 = expr->operande_gauche;
+			auto enfant2 = expr->operande_droite;
 			auto type1 = enfant1->type;
 			auto type2 = enfant2->type;
 			auto op = expr->op;
