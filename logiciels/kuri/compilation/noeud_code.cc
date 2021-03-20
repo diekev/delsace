@@ -184,7 +184,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto noeud_op_bin = noeud_expression->comme_assignation();
+			auto noeud_op_bin = noeud_expression->comme_assignation_variable();
 
 			auto n = noeuds_assignations.ajoute_element();
 			n->assigne = converti_noeud_syntaxique(espace, noeud_op_bin->variable);

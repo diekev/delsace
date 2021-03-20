@@ -170,7 +170,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr = racine->comme_assignation();
+			auto expr = racine->comme_assignation_variable();
 
 			imprime_tab(os, tab);
 			os << "assignation : " << expr->lexeme->chaine << '\n';
@@ -282,7 +282,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTE:
 		{
-			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
+			auto expr = static_cast<NoeudDirectiveExecute *>(racine);
 
 			imprime_tab(os, tab);
 			os << "dir exécution :\n";
@@ -625,8 +625,8 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
 			CREE_NOEUD_POUR_COPIE(GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE);
-			auto expr = racine->comme_assignation();
-			auto nexpr = nracine->comme_assignation();
+			auto expr = racine->comme_assignation_variable();
+			auto nexpr = nracine->comme_assignation_variable();
 
 			nexpr->variable = copie_noeud(assem, expr->variable, bloc_parent);
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
@@ -721,8 +721,8 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::DIRECTIVE_EXECUTE:
 		{
 			CREE_NOEUD_POUR_COPIE(GenreNoeud::DIRECTIVE_EXECUTE);
-			auto expr = static_cast<NoeudDirectiveExecution const *>(racine);
-			auto nexpr = static_cast<NoeudDirectiveExecution *>(nracine);
+			auto expr = static_cast<NoeudDirectiveExecute const *>(racine);
+			auto nexpr = static_cast<NoeudDirectiveExecute *>(nracine);
 
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
 			break;
@@ -873,8 +873,8 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::DECLARATION_MODULE:
 		{
 			CREE_NOEUD_POUR_COPIE(GenreNoeud::DECLARATION_MODULE);
-			auto expr = racine->comme_decl_module();
-			auto nexpr = nracine->comme_decl_module();
+			auto expr = racine->comme_declaration_module();
+			auto nexpr = nracine->comme_declaration_module();
 			nexpr->module = expr->module;
 			break;
 		}
@@ -944,7 +944,7 @@ static void aplatis_arbre(
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr = racine->comme_assignation();
+			auto expr = racine->comme_assignation_variable();
 			expr->drapeaux |= drapeau;
 
 			aplatis_arbre(expr->variable, arbre_aplatis, drapeau);
@@ -1029,10 +1029,10 @@ static void aplatis_arbre(
 			}
 
 			POUR (expr->parametres) {
-				if (it->est_assignation()) {
+				if (it->est_assignation_variable()) {
 					// n'aplatis pas le nom du paramètre car cela clasherait avec une variable locale,
 					// ou résulterait en une erreur de compilation « variable inconnue »
-					auto expr_assing = it->comme_assignation();
+					auto expr_assing = it->comme_assignation_variable();
 					aplatis_arbre(expr_assing->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 				}
 				else {
@@ -1100,7 +1100,7 @@ static void aplatis_arbre(
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTE:
 		{
-			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
+			auto expr = static_cast<NoeudDirectiveExecute *>(racine);
 			expr->drapeaux |= drapeau;
 
 			if (expr->ident == ID::assert_ || expr->ident == ID::test) {
@@ -1358,7 +1358,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine)
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr = racine->comme_assignation();
+			auto expr = racine->comme_assignation_variable();
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->variable);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
@@ -1444,7 +1444,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine)
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTE:
 		{
-			auto dir = static_cast<NoeudDirectiveExecution const *>(racine);
+			auto dir = static_cast<NoeudDirectiveExecute const *>(racine);
 			auto etendue_enfant = calcule_etendue_noeud(dir->expression);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1586,7 +1586,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			}
 
 			if (entete->est_declaration_type) {
-				entete->substitution = assem->cree_ref_type(entete->lexeme, entete->type);
+				entete->substitution = assem->cree_reference_type(entete->lexeme, entete->type);
 				return;
 			}
 
@@ -1623,7 +1623,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			auto expr_bin = noeud->comme_operateur_binaire();
 
 			if (expr_bin->type->est_type_de_donnees()) {
-				noeud->substitution = assem->cree_ref_type(expr_bin->lexeme, expr_bin->type);
+				noeud->substitution = assem->cree_reference_type(expr_bin->lexeme, expr_bin->type);
 				return;
 			}
 
@@ -1648,7 +1648,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 					auto const &type_z64 = typeuse[TypeBase::Z64];
 					auto type_pointe = type2->comme_pointeur()->type_pointe;
 					auto soustraction = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_sst, comme_type(expr_bin->operande_gauche, type_z64), comme_type(expr_bin->operande_droite, type_z64));
-					auto taille_de = assem->cree_lit_entier(expr_bin->lexeme, type_z64, std::max(type_pointe->taille_octet, 1u));
+					auto taille_de = assem->cree_litterale_entier(expr_bin->lexeme, type_z64, std::max(type_pointe->taille_octet, 1u));
 					auto div = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_div, soustraction, taille_de);
 					expr_bin->substitution = div;
 				}
@@ -1677,7 +1677,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 					auto type_pointe = type_pointeur->comme_pointeur()->type_pointe;
 
-					auto taille_de = assem->cree_lit_entier(expr_entier->lexeme, type_entier, std::max(type_pointe->taille_octet, 1u));
+					auto taille_de = assem->cree_litterale_entier(expr_entier->lexeme, type_entier, std::max(type_pointe->taille_octet, 1u));
 					auto mul = assem->cree_op_binaire(expr_entier->lexeme, type_entier->operateur_mul, expr_entier, taille_de);
 
 					OperateurBinaire *op_arithm = nullptr;
@@ -1724,7 +1724,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			auto expr_un = noeud->comme_operateur_unaire();
 
 			if (expr_un->type->est_type_de_donnees()) {
-				expr_un->substitution = assem->cree_ref_type(expr_un->lexeme, expr_un->type);
+				expr_un->substitution = assem->cree_reference_type(expr_un->lexeme, expr_un->type);
 				return;
 			}
 
@@ -1776,16 +1776,16 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 				auto decl_const = decl_ref->comme_declaration_variable();
 
 				if (decl_ref->type->est_reel()) {
-					expr_ref->substitution = assem->cree_lit_reel(expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reel);
+					expr_ref->substitution = assem->cree_litterale_reel(expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reel);
 					return;
 				}
 
-				expr_ref->substitution = assem->cree_lit_entier(expr_ref->lexeme, decl_ref->type, static_cast<unsigned long>(decl_const->valeur_expression.entier));
+				expr_ref->substitution = assem->cree_litterale_entier(expr_ref->lexeme, decl_ref->type, static_cast<unsigned long>(decl_const->valeur_expression.entier));
 				return;
 			}
 
 			if (dls::outils::est_element(decl_ref->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)) {
-				expr_ref->substitution = assem->cree_ref_type(expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
+				expr_ref->substitution = assem->cree_reference_type(expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
 				return;
 			}
 
@@ -1793,7 +1793,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto ref_membre = noeud->comme_ref_membre();
+			auto ref_membre = noeud->comme_reference_membre();
 			auto accede = ref_membre->accedee;
 			auto type_accede = accede->type;
 
@@ -1807,11 +1807,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 				auto type_enum = ref_membre->type->comme_enum();
 				auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
-				auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+				auto valeur_lit_enum = assem->cree_litterale_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
 				auto op = type_enum->operateur_etb;
 				auto et = assem->cree_op_binaire(noeud->lexeme, op, accede, valeur_lit_enum);
 
-				auto zero = assem->cree_lit_entier(noeud->lexeme, type_enum, 0);
+				auto zero = assem->cree_litterale_entier(noeud->lexeme, type_enum, 0);
 				op = type_enum->operateur_dif;
 				auto dif = assem->cree_op_binaire(noeud->lexeme, op, et, zero);
 
@@ -1820,7 +1820,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			}
 
 			if (accede->est_reference_declaration()) {
-				if (accede->comme_reference_declaration()->declaration_referee->est_decl_module()) {
+				if (accede->comme_reference_declaration()->declaration_referee->est_declaration_module()) {
 					ref_membre->substitution = accede;
 					simplifie(accede);
 					return;
@@ -1837,19 +1837,19 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 			if (type_accede->est_tableau_fixe()) {
 				auto taille = type_accede->comme_tableau_fixe()->taille;
-				noeud->substitution = assem->cree_lit_entier(noeud->lexeme, noeud->type, static_cast<unsigned long>(taille));
+				noeud->substitution = assem->cree_litterale_entier(noeud->lexeme, noeud->type, static_cast<unsigned long>(taille));
 				return;
 			}
 
 			if (type_accede->est_enum() || type_accede->est_erreur()) {
 				auto type_enum = type_accede->comme_enum();
 				auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-				noeud->substitution = assem->cree_lit_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+				noeud->substitution = assem->cree_litterale_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
 				return;
 			}
 
 			if (type_accede->est_type_de_donnees() && noeud->genre_valeur == GenreValeur::DROITE) {
-				noeud->substitution = assem->cree_ref_type(noeud->lexeme, typeuse.type_type_de_donnees(noeud->type));
+				noeud->substitution = assem->cree_reference_type(noeud->lexeme, typeuse.type_type_de_donnees(noeud->type));
 				return;
 			}
 
@@ -1876,7 +1876,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 				std::cerr << "[simplification] : taille octet de 0 pour le type : " << chaine_type(type) << '\n';
 			});
 
-			noeud->substitution = assem->cree_lit_entier(noeud->lexeme, expr->type, type->taille_octet);
+			noeud->substitution = assem->cree_litterale_entier(noeud->lexeme, expr->type, type->taille_octet);
 			return;
 		}
 		case GenreNoeud::EXPRESSION_COMME:
@@ -2051,7 +2051,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 				auto bloc = assem->cree_bloc_seul(si->lexeme, si->bloc_parent);
 
-				auto decl_temp = assem->cree_declaration(si->lexeme, si->type, nullptr, nullptr);
+				auto decl_temp = assem->cree_declaration_variable(si->lexeme, si->type, nullptr, nullptr);
 				auto ref_temp = assem->cree_reference_declaration(si->lexeme, decl_temp);
 
 				auto nouveau_si = assem->cree_si(si->lexeme, si->genre);
@@ -2105,7 +2105,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			}
 
 			if (appel->aide_generation_code == MONOMORPHE_TYPE_OPAQUE) {
-				appel->substitution = assem->cree_ref_type(appel->lexeme, appel->type);
+				appel->substitution = assem->cree_reference_type(appel->lexeme, appel->type);
 			}
 
 			if (appel->noeud_fonction_appelee) {
@@ -2123,7 +2123,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto assignation = noeud->comme_assignation();
+			auto assignation = noeud->comme_assignation_variable();
 
 			simplifie(assignation->variable);
 
@@ -2132,7 +2132,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 				for (auto var : it.variables.plage()) {
 					if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-						auto ref_membre = var->comme_ref_membre();
+						auto ref_membre = var->comme_reference_membre();
 						auto ref_var = ref_membre->accedee;
 
 						// À FAIRE : référence
@@ -2144,14 +2144,14 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 						if (it.expression->comme_litterale()->valeur_bool) {
 							// a.DRAPEAU = vrai -> a = a | DRAPEAU
-							auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+							auto valeur_lit_enum = assem->cree_litterale_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
 							auto op = type_enum->operateur_oub;
 							auto ou = assem->cree_op_binaire(noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
 							it.expression->substitution = ou;
 						}
 						else {
 							// a.DRAPEAU = faux -> a = a & ~DRAPEAU
-							auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, ~static_cast<unsigned>(valeur_enum));
+							auto valeur_lit_enum = assem->cree_litterale_entier(noeud->lexeme, type_enum, ~static_cast<unsigned>(valeur_enum));
 							auto op = type_enum->operateur_etb;
 							auto et = assem->cree_op_binaire(noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
 							it.expression->substitution = et;
@@ -2288,8 +2288,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 	auto it = var->comme_declaration_variable();
 
-	auto zero = assem->cree_lit_entier(var->lexeme, type_index_it, 0);
-	auto index_it = idx ? idx->comme_declaration_variable() : assem->cree_declaration(var->lexeme, type_index_it, ident_index_it, zero);
+	auto zero = assem->cree_litterale_entier(var->lexeme, type_index_it, 0);
+	auto index_it = idx ? idx->comme_declaration_variable() : assem->cree_declaration_variable(var->lexeme, type_index_it, ident_index_it, zero);
 
 	auto ref_it = it->valeur->comme_reference_declaration();
 	auto ref_index = index_it->valeur->comme_reference_declaration();
@@ -2407,7 +2407,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 			if (type_itere->est_tableau_fixe()) {
 				auto taille_tableau = type_itere->comme_tableau_fixe()->taille;
-				expr_taille = assem->cree_lit_entier(inst->lexeme, typeuse[TypeBase::Z64], static_cast<unsigned long>(taille_tableau));
+				expr_taille = assem->cree_litterale_entier(inst->lexeme, typeuse[TypeBase::Z64], static_cast<unsigned long>(taille_tableau));
 			}
 			else {
 				expr_taille = assem->cree_acces_membre(inst->lexeme, expression_iteree, typeuse[TypeBase::Z64], 1);
@@ -2438,7 +2438,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 			if (inverse_boucle) {
 				expr_index = assem->cree_op_binaire(inst->lexeme, ref_index->type->operateur_sst, expr_taille, ref_index);
-				expr_index = assem->cree_op_binaire(inst->lexeme, ref_index->type->operateur_sst, expr_index, assem->cree_lit_entier(ref_index->lexeme, ref_index->type, 1));
+				expr_index = assem->cree_op_binaire(inst->lexeme, ref_index->type->operateur_sst, expr_index, assem->cree_litterale_entier(ref_index->lexeme, ref_index->type, 1));
 			}
 
 			auto indexage = assem->cree_indexage(inst->lexeme, expr_pointeur, expr_index, true);
@@ -2941,19 +2941,19 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
 			if (N == DISCR_ENUM) {
 				auto valeur = valeur_enum(expression->type->comme_enum(), expr->ident);
-				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
+				auto constante = assem->cree_litterale_entier(expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
 				comparaison.operande_droite = constante;
 			}
 			else if (N == DISCR_UNION) {
 				auto const type_union = discr->expression_discriminee->type->comme_union();
 				auto index = trouve_index_membre(type_union, expr->ident);
-				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+				auto constante = assem->cree_litterale_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
 				comparaison.operande_droite = constante;
 			}
 			else if (N == DISCR_UNION_ANONYME) {
 				auto const type_union = discr->expression_discriminee->type->comme_union();
 				auto index = trouve_index_membre(type_union, expr->type);
-				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+				auto constante = assem->cree_litterale_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
 				comparaison.operande_droite = constante;
 			}
 			else {

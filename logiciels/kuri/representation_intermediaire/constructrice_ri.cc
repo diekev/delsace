@@ -776,12 +776,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			genere_ri_pour_acces_membre(noeud->comme_ref_membre());
+			genere_ri_pour_acces_membre(noeud->comme_reference_membre());
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			genere_ri_pour_acces_membre_union(noeud->comme_ref_membre_union());
+			genere_ri_pour_acces_membre_union(noeud->comme_reference_membre_union());
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
@@ -798,7 +798,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr_ass = noeud->comme_assignation();
+			auto expr_ass = noeud->comme_assignation_variable();
 
 			POUR (expr_ass->donnees_exprs.plage()) {
 				auto expression = it.expression;

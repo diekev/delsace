@@ -98,7 +98,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudSiStatique", m_noeuds_si_statique) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudPousseContexte", m_noeuds_pousse_contexte) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
-	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDirectiveExecute", m_noeuds_directive_execution) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionLitterale", m_noeuds_litterales) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudModule", m_noeuds_module) });

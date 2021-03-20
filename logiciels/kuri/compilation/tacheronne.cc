@@ -966,7 +966,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				}
 				case GenreNoeud::DIRECTIVE_EXECUTE:
 				{
-					auto dir = static_cast<NoeudDirectiveExecution *>(unite->noeud);
+					auto dir = static_cast<NoeudDirectiveExecute *>(unite->noeud);
 					aplatis_arbre(dir);
 
 					// À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la fin
@@ -1331,7 +1331,7 @@ void Tacheronne::execute_metaprogrammes()
 	}
 }
 
-NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecution *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
+NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecute *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
 {
 	switch (type->genre) {
 		case GenreType::EINI:
@@ -1380,7 +1380,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = static_cast<unsigned long>(*reinterpret_cast<long *>(pointeur));
 			}
 
-			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+			return assembleuse->cree_litterale_entier(lexeme, type, valeur);
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
@@ -1400,12 +1400,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = *reinterpret_cast<unsigned long *>(pointeur);
 			}
 
-			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+			return assembleuse->cree_litterale_entier(lexeme, type, valeur);
 		}
 		case GenreType::BOOL:
 		{
 			auto valeur = *reinterpret_cast<bool *>(pointeur);
-			auto noeud_syntaxique = assembleuse->cree_lit_bool(lexeme);
+			auto noeud_syntaxique = assembleuse->cree_litterale_bool(lexeme);
 			noeud_syntaxique->valeur_bool = valeur;
 			return noeud_syntaxique;
 		}
@@ -1421,7 +1421,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = *reinterpret_cast<double *>(pointeur);
 			}
 
-			return assembleuse->cree_lit_reel(lexeme, type, valeur);
+			return assembleuse->cree_litterale_reel(lexeme, type, valeur);
 		}
 		case GenreType::STRUCTURE:
 		{
@@ -1474,7 +1474,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			kuri::chaine_statique chaine = { *reinterpret_cast<char **>(valeur_pointeur), valeur_chaine };
 
-			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
+			auto lit_chaine = assembleuse->cree_litterale_chaine(lexeme);
 			lit_chaine->index_chaine = compilatrice.gerante_chaine->ajoute_chaine(chaine);
 			lit_chaine->type = type;
 			return lit_chaine;
@@ -1483,7 +1483,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 		{
 			auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
 			type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
-			return assembleuse->cree_ref_type(lexeme, type_de_donnees);
+			return assembleuse->cree_reference_type(lexeme, type_de_donnees);
 		}
 		case GenreType::FONCTION:
 		{

@@ -155,7 +155,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			}
 			else {
 				fichier->modules_importes.insere(module);
-				auto noeud_module = m_tacheronne.assembleuse->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)->comme_decl_module();
+				auto noeud_module = m_tacheronne.assembleuse->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)->comme_declaration_module();
 				noeud_module->module = module;
 				noeud_module->ident = inst->operande->ident;
 				noeud_module->bloc_parent = inst->bloc_parent;
@@ -271,25 +271,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				auto tuple = type_expression->comme_tuple();
 
 				POUR (tuple->membres) {
-					auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+					auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(noeud->lexeme);
 					decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 					decl_sortie->type = it.type;
 					decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 					decl_entete->params_sorties.ajoute(decl_sortie);
 				}
 
-				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(noeud->lexeme);
 				decl_entete->param_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
 				decl_entete->param_sortie->type = type_expression;
 			}
 			else {
-				auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(noeud->lexeme);
 				decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 				decl_sortie->type = type_expression;
 				decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 				decl_entete->params_sorties.ajoute(decl_sortie);
-				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(noeud->lexeme);
 				decl_entete->param_sortie->type = type_expression;
 			}
 
@@ -362,7 +362,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto inst = noeud->comme_ref_membre();
+			auto inst = noeud->comme_reference_membre();
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			if (valide_acces_membre(inst) == ResultatValidation::Erreur) {
@@ -374,7 +374,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto inst = noeud->comme_assignation();
+			auto inst = noeud->comme_assignation_variable();
 			return valide_assignation(inst);
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
@@ -1010,7 +1010,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				 * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
 				 * les cas où nous avons une fonction polymorphique : les données des déclarations
 				 * ne sont pas copiées */
-				f = m_tacheronne.assembleuse->cree_declaration(f->comme_reference_declaration(), nullptr);
+				f = m_tacheronne.assembleuse->cree_declaration_variable(f->comme_reference_declaration(), nullptr);
 				auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
 				if (decl_f != nullptr) {
@@ -1646,7 +1646,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 					}
 
 					/* pousse la variable dans le bloc suivant */
-					auto decl_expr = m_tacheronne.assembleuse->cree_declaration(expr_paire->lexeme);
+					auto decl_expr = m_tacheronne.assembleuse->cree_declaration_variable(expr_paire->lexeme);
 					decl_expr->ident = expr_paire->ident;
 					decl_expr->lexeme = expr_paire->lexeme;
 					decl_expr->bloc_parent = bloc_paire;
@@ -1925,7 +1925,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 				var_piege->type = type_de_l_erreur;
 
-				auto decl_var_piege = m_tacheronne.assembleuse->cree_declaration(var_piege->lexeme);
+				auto decl_var_piege = m_tacheronne.assembleuse->cree_declaration_variable(var_piege->lexeme);
 				decl_var_piege->bloc_parent = inst->bloc;
 				decl_var_piege->valeur = var_piege;
 				decl_var_piege->type = var_piege->type;
@@ -1996,7 +1996,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 					continue;
 				}
 
-				auto decl_membre = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
+				auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(decl->lexeme);
 				decl_membre->ident = it.nom;
 				decl_membre->type = it.type;
 				decl_membre->bloc_parent = bloc_parent;
@@ -2022,9 +2022,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 	if (structure->est_reference_declaration()) {
 		auto decl = structure->comme_reference_declaration()->declaration_referee;
 
-		if (decl->est_decl_module()) {
+		if (decl->est_declaration_module()) {
 			auto ref = membre->comme_reference_declaration();
-			auto res = valide_reference_declaration(ref, decl->comme_decl_module()->module->bloc);
+			auto res = valide_reference_declaration(ref, decl->comme_declaration_module()->module->bloc);
 
 			if (res != ResultatValidation::OK) {
 				return res;
@@ -2501,8 +2501,8 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtE
 		auto virgule = expr->comme_virgule();
 
 		POUR (virgule->expressions) {
-			if (it->est_assignation()) {
-				auto assignation = it->comme_assignation();
+			if (it->est_assignation_variable()) {
+				auto assignation = it->comme_assignation_variable();
 				expressions.ajoute({ assignation->variable->ident, assignation->expression });
 			}
 			else {
@@ -2511,8 +2511,8 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtE
 		}
 	}
 	else {
-		if (expr->est_assignation()) {
-			auto assignation = expr->comme_assignation();
+		if (expr->est_assignation_variable()) {
+			auto assignation = expr->comme_assignation_variable();
 			expressions.ajoute({ assignation->variable->ident, assignation->expression });
 		}
 		else {
@@ -2546,7 +2546,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
 		auto expr = inst->expression;
 
-		if (expr->est_assignation()) {
+		if (expr->est_assignation_variable()) {
 			rapporte_erreur("Impossible d'assigner la valeur de retour pour un #corps_texte", inst->expression);
 			return ResultatValidation::Erreur;
 		}
@@ -2801,7 +2801,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(NoeudExp
 		}
 		else {
 			// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
-			assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION || decl->est_decl_module());
+			assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION || decl->est_declaration_module());
 			expr->declaration_referee = decl;
 			expr->type = decl->type;
 
@@ -2857,7 +2857,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 	/* mise en place du type de la fonction : () -> chaine */
 	fonction->est_metaprogramme = true;
 
-	auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(lexeme);
+	auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
 	decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 	decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
 	decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -2936,7 +2936,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = ID::contexte;
 
-			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
+			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration_variable(decl->lexeme);
 			decl_ctx->bloc_parent = decl->bloc_parent;
 			decl_ctx->valeur = val_ctx;
 			decl_ctx->type = val_ctx->type;
@@ -3009,7 +3009,7 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = ID::contexte;
 
-			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
+			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration_variable(decl->lexeme);
 			decl_ctx->bloc_parent = decl->bloc_parent;
 			decl_ctx->valeur = val_ctx;
 			decl_ctx->type = val_ctx->type;
@@ -3624,8 +3624,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
-		if (it->est_assignation()) {
-			auto expr_assign = it->comme_assignation();
+		if (it->est_assignation_variable()) {
+			auto expr_assign = it->comme_assignation_variable();
 			auto variable = expr_assign->variable;
 
 			for (auto &membre : type_compose->membres) {

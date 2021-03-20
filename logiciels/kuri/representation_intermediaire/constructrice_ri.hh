@@ -34,7 +34,7 @@
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
-struct NoeudDirectiveExecution;
+struct NoeudDirectiveExecute;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;

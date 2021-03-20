@@ -1615,7 +1615,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(copie->lexeme);
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(copie->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = espace.typeuse.type_type_de_donnees(it.type);
@@ -1679,7 +1679,7 @@ static NoeudStruct *monomorphise_au_besoin(
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(decl_struct->lexeme);
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(decl_struct->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = it.type;
@@ -1735,8 +1735,8 @@ ResultatValidation valide_appel_fonction(
 
 		POUR (expr->parametres) {
 			// l'argument est nommé
-			if (it->est_assignation()) {
-				auto assign = it->comme_assignation();
+			if (it->est_assignation_variable()) {
+				auto assign = it->comme_assignation_variable();
 				auto nom_arg = assign->variable;
 				auto arg = assign->expression;
 

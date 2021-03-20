@@ -436,7 +436,7 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto ref_membre = b->comme_ref_membre();
+			auto ref_membre = b->comme_reference_membre();
 			auto type_accede = ref_membre->accedee->type;
 
 			if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
