@@ -81,6 +81,15 @@ copie_signe :: fonc (a: r64, b: r64) -> r64
     retourne copysign(a, b)
 }
 
+racine :: fonc (a: $T, index: T) -> T
+{
+    si index <= 0 {
+        retourne 0
+    }
+
+    retourne puissance(a, 1.0 / index)
+}
+
 // calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
 racine_carrée :: fonc (n: r64) -> r64
 {
