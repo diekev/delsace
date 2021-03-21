@@ -889,14 +889,27 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: z8) -> z64
 
     tantque début < parseuse.chn.taille {
         si parseuse.chn[début] == c {
-            arrête
+            retourne début
         }
 
         début += 1
     }
 
-    si début >= parseuse.chn.taille {
-        retourne -1
+    retourne début
+}
+
+trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: ...z8) -> z64
+{
+    début : z64 = parseuse.curseur
+
+    tantque début < parseuse.chn.taille {
+        pour c {
+            si parseuse.chn[début] == it {
+                retourne début
+            }
+        }
+
+        début += 1
     }
 
     retourne début
