@@ -29,6 +29,7 @@
 - erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 - aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
 - compilation infinie si nous utilisons #exécute pour une globale
+- prendre l'adresse d'une référence échoue à convertir vers un pointeur
 
 // -----------------------------------
 // Architecture/Qualité de code
@@ -47,6 +48,8 @@
 -- instructions continue/arrête/reprends devront définir sur quelles boucles elles opèrent : => ajout d'un noeud syntaxique
 - trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
+- supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
+- ajout des bugs à la liste des tests de compilation, tests de régressions pour les bugs
 
 // -----------------------------------
 // Fonctionnalités diverses
