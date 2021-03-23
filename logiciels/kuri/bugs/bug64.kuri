@@ -1,0 +1,30 @@
+importe Fondation
+
+modifie_via_pointeur :: fonc (a: *z32)
+{
+    mémoire(a) = 123456
+}
+
+passe_référence_à_pointeur :: fonc (a: &z32)
+{
+    modifie_via_pointeur(*a)
+}
+
+test :: fonc ()
+{
+    a := 0
+    passe_référence_à_pointeur(a)
+
+    si a == 123456 {
+        imprime("SUCCÈS\n")
+    }
+    sinon {
+        imprime("ÉCHEC\n")
+    }
+}
+
+principale :: fonc () -> z32
+{
+    test()
+    retourne 0
+}
