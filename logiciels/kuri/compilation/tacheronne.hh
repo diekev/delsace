@@ -164,6 +164,7 @@ public:
 	void purge_messages();
 
 	void supprime_toutes_les_taches();
+	void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
 
 private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);

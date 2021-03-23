@@ -70,4 +70,5 @@ struct OptionsCompilation {
 	ObjetGenere objet_genere = ObjetGenere::Executable;
 
 	bool emets_metriques = true;
+	bool continue_si_erreur = false;
 };

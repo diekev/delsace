@@ -311,6 +311,10 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 	 * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
 	auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
 
+	if (espace->possede_erreur) {
+		return nouvelle_tache;
+	}
+
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
 		case GenreTache::COMPILATION_TERMINEE:
@@ -566,7 +570,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 		return taches_optimisation.defile();
 	}
 
-	if (espace->peut_generer_code_final()) {
+	if (!espace->possede_erreur && espace->peut_generer_code_final()) {
 		if (espace->options.objet_genere == ObjetGenere::Rien) {
 			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 		}
@@ -581,6 +585,10 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 	}
 
 	if (!compilation_terminee) {
+		if (espace->possede_erreur) {
+			espace = m_compilatrice->espace_defaut_compilation();
+		}
+
 		if (!toutes_les_tacheronnes_dorment()) {
 			return Tache::dors(espace);
 		}
@@ -637,6 +645,22 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
 		taches_message.enfile(Tache::compilation_terminee());
 		taches_optimisation.enfile(Tache::compilation_terminee());
 	}
+}
+
+void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace)
+{
+	auto predicat = [&](Tache const &tache) {
+		return tache.espace == espace;
+	};
+
+	taches_chargement.efface_si(predicat);
+	taches_lexage.efface_si(predicat);
+	taches_parsage.efface_si(predicat);
+	taches_typage.efface_si(predicat);
+	taches_generation_ri.efface_si(predicat);
+	taches_execution.efface_si(predicat);
+	taches_message.efface_si(predicat);
+	taches_optimisation.efface_si(predicat);
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)

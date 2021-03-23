@@ -138,6 +138,7 @@ public:
 
 	/* pour activer ou désactiver les optimisations */
 	bool optimisations = false;
+	mutable bool possede_erreur = false;
 
 	Compilatrice &m_compilatrice;
 

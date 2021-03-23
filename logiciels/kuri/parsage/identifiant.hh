@@ -116,6 +116,7 @@ private:
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_avertissement, "compilatrice_rapporte_avertissement") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_lexe_fichier, "compilatrice_lèxe_fichier") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_espace_courant, "compilatrice_espace_courant") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_possede_erreur, "compilatrice_possède_erreur") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(demarre_un_espace_de_travail, "démarre_un_espace_de_travail") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(espace_defaut_compilation, "espace_défaut_compilation") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fonction_test_variadique_externe, "fonction_test_variadique_externe") \

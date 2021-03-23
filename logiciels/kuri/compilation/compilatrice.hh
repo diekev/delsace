@@ -127,12 +127,14 @@ struct Compilatrice {
 
 	void rassemble_statistiques(Statistiques &stats) const;
 
-	void rapporte_erreur(kuri::chaine_statique message, erreur::Genre genre);
+	void rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre);
 
 	bool possede_erreur() const
 	{
 		return m_possede_erreur;
 	}
+
+	bool possede_erreur(EspaceDeTravail const *espace) const;
 
 	erreur::Genre code_erreur() const
 	{
@@ -170,6 +172,8 @@ void compilatrice_termine_interception(EspaceDeTravail *espace);
 
 void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
 void compilatrice_rapporte_avertissement(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
+
+bool compilatrice_possede_erreur(EspaceDeTravail const *espace);
 
 /* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
  * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée

@@ -455,7 +455,7 @@ Erreur::Erreur(EspaceDeTravail const *espace_)
 Erreur::~Erreur() noexcept(false)
 {
 	if (!fut_bougee) {
-		espace->m_compilatrice.rapporte_erreur(enchaineuse.chaine(), genre);
+		espace->m_compilatrice.rapporte_erreur(espace, enchaineuse.chaine(), genre);
 	}
 }
 

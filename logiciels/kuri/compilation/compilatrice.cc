@@ -208,12 +208,23 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 	sys_module->rassemble_stats(stats);
 }
 
-void Compilatrice::rapporte_erreur(kuri::chaine_statique message, erreur::Genre genre)
+void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre)
 {
-	ordonnanceuse->supprime_toutes_les_taches();
+	if (espace && espace->options.continue_si_erreur) {
+		ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
+	}
+	else {
+		ordonnanceuse->supprime_toutes_les_taches();
+		m_possede_erreur = true;
+		m_code_erreur = genre;
+	}
+
 	std::cerr << message << '\n';
-	m_possede_erreur = true;
-	m_code_erreur = genre;
+}
+
+bool Compilatrice::possede_erreur(const EspaceDeTravail *espace) const
+{
+	return espace->possede_erreur;
 }
 
 /* ************************************************************************** */
@@ -233,7 +244,7 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 ContexteLexage Compilatrice::contexte_lexage()
 {
 	auto rappel_erreur = [this](kuri::chaine message) {
-		this->rapporte_erreur(message, erreur::Genre::LEXAGE);
+		this->rapporte_erreur(nullptr, message, erreur::Genre::LEXAGE);
 	};
 
 	return {
@@ -480,4 +491,10 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chem
 {
 	assert(false);
 	return {};
+}
+
+bool compilatrice_possede_erreur(EspaceDeTravail const */*espace*/)
+{
+	assert(false);
+	return false;
 }

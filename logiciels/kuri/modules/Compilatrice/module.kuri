@@ -46,6 +46,7 @@ OptionsCompilation :: struct {
     objet_généré : ObjetGénéré
 
     émets_métriques := vrai
+	continue_si_erreur := faux
 }
 
 // ----------------------------------------------------------------------------
@@ -530,7 +531,12 @@ compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine,
 
 compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
 {
-	compilatrice_rapporte_erreur(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
+}
+
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := PositionCodeSource())
+{
+	compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
 }
 
 compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine)
@@ -569,6 +575,8 @@ compilatrice_espace_courant :: fonc () -> *EspaceDeTravail #compilatrice
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
 
 espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice
+
+compilatrice_possède_erreur :: fonc (espace: *EspaceDeTravail) -> bool #compilatrice
 
 // ----------------------------------------------------------------------------
 

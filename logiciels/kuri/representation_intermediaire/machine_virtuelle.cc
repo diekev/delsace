@@ -1230,6 +1230,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 					break;
 				}
 
+				if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
+					auto espace = depile<EspaceDeTravail *>(site);
+					empile(site, compilatrice.possede_erreur(espace));
+					break;
+				}
+
 				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 				break;
 			}

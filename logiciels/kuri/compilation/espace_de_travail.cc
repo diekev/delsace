@@ -523,6 +523,8 @@ void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre) const
 {
+	possede_erreur = true;
+
 	if (!site) {
 		return rapporte_erreur_sans_site(message, genre);
 	}
@@ -532,11 +534,13 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chain
 
 Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const
 {
+	possede_erreur = true;
 	return ::rapporte_erreur(this, fichier, ligne, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre) const
 {
+	possede_erreur = true;
 	return ::rapporte_erreur_sans_site(this, message, genre);
 }
 
