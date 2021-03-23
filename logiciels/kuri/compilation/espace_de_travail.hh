@@ -139,7 +139,9 @@ public:
 	/* pour activer ou désactiver les optimisations */
 	bool optimisations = false;
 
-	explicit EspaceDeTravail(OptionsCompilation opts);
+	Compilatrice &m_compilatrice;
+
+	explicit EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
 
@@ -227,4 +229,9 @@ public:
 
 	/* Imprime la RI de toutes les fonctions de l'espace de travail. */
 	void imprime_programme() const;
+
+	Compilatrice &compilatrice()
+	{
+		return m_compilatrice;
+	}
 };

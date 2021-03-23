@@ -616,6 +616,29 @@ void OrdonnanceuseTache::purge_messages()
 	}
 }
 
+void OrdonnanceuseTache::supprime_toutes_les_taches()
+{
+	taches_chargement.efface();
+	taches_lexage.efface();
+	taches_parsage.efface();
+	taches_typage.efface();
+	taches_generation_ri.efface();
+	taches_execution.efface();
+	taches_message.efface();
+	taches_optimisation.efface();
+
+	for (int i = 0; i < nombre_de_tacheronnes; ++i) {
+		taches_chargement.enfile(Tache::compilation_terminee());
+		taches_lexage.enfile(Tache::compilation_terminee());
+		taches_parsage.enfile(Tache::compilation_terminee());
+		taches_typage.enfile(Tache::compilation_terminee());
+		taches_generation_ri.enfile(Tache::compilation_terminee());
+		taches_execution.enfile(Tache::compilation_terminee());
+		taches_message.enfile(Tache::compilation_terminee());
+		taches_optimisation.enfile(Tache::compilation_terminee());
+	}
+}
+
 Tacheronne::Tacheronne(Compilatrice &comp)
 	: compilatrice(comp)
 	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud))
@@ -634,7 +657,7 @@ void Tacheronne::gere_tache()
 	auto tache_fut_completee = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
-	while (!compilatrice.possede_erreur) {
+	while (true) {
 		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux, !mv.terminee());
 
 		if (tache.genre != GenreTache::DORS) {
@@ -738,7 +761,6 @@ void Tacheronne::gere_tache()
 
 				if (unite->est_bloquee()) {
 					mv.stop = true;
-					compilatrice.possede_erreur = true;
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
 						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite->espace, unite->symbole_attendu);

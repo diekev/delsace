@@ -129,7 +129,7 @@ static void reecris_fichier(
 {
 	std::cerr << "Réécriture du fichier " << chemin << "\n";
 
-	try {
+	{
 		if (chemin.is_relative()) {
 			chemin = std::filesystem::absolute(chemin);
 		}
@@ -167,9 +167,6 @@ static void reecris_fichier(
 				os << lexeme.chaine;
 			}
 		}
-	}
-	catch (const erreur::frappe &erreur_frappe) {
-		std::cerr << erreur_frappe.message() << '\n';
 	}
 }
 

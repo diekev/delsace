@@ -24,6 +24,7 @@
 
 #include "erreur.h"
 
+#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"
 
@@ -33,6 +34,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "arbre_syntaxique.hh"
+#include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "validation_semantique.hh"
 
@@ -453,7 +455,7 @@ Erreur::Erreur(EspaceDeTravail const *espace_)
 Erreur::~Erreur() noexcept(false)
 {
 	if (!fut_bougee) {
-		throw erreur::frappe(enchaineuse.chaine(), erreur::Genre::NORMAL);
+		espace->m_compilatrice.rapporte_erreur(enchaineuse.chaine(), genre);
 	}
 }
 

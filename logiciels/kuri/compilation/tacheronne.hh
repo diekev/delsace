@@ -163,6 +163,8 @@ public:
 
 	void purge_messages();
 
+	void supprime_toutes_les_taches();
+
 private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
 

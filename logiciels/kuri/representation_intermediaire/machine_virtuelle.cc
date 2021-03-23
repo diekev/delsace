@@ -1484,7 +1484,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 		desinstalle_metaprogramme(it);
 
-		if (stop || compilatrice.possede_erreur) {
+		if (stop || compilatrice.possede_erreur()) {
 			break;
 		}
 	}

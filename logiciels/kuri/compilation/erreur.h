@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/ensemble.hh"
 
 #include "structures/chaine.hh"
@@ -77,8 +76,6 @@ enum class Genre : int {
 
 const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
-
-using frappe = lng::erreur::frappe<Genre, kuri::chaine>;
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 

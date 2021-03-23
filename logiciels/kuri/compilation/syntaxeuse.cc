@@ -2719,5 +2719,5 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
-	throw erreur::frappe(message_erreur, erreur::Genre::SYNTAXAGE);
+	m_compilatrice.rapporte_erreur(message_erreur, erreur::Genre::SYNTAXAGE);
 }

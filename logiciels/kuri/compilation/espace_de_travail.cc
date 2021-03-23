@@ -40,9 +40,10 @@
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
 
-EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
+EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts)
 	: options(opts)
 	, typeuse(graphe_dependance, this->operateurs)
+	, m_compilatrice(compilatrice)
 {
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);

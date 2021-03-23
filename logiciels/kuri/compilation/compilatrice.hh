@@ -50,7 +50,8 @@ struct Compilatrice {
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
-	bool possede_erreur = false;
+	bool m_possede_erreur = false;
+	erreur::Genre m_code_erreur{};
 	bool active_tests = false;
 
 	template <typename T>
@@ -125,6 +126,18 @@ struct Compilatrice {
 	long memoire_utilisee() const;
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+	void rapporte_erreur(kuri::chaine_statique message, erreur::Genre genre);
+
+	bool possede_erreur() const
+	{
+		return m_possede_erreur;
+	}
+
+	erreur::Genre code_erreur() const
+	{
+		return m_code_erreur;
+	}
 
 public:
 	OptionsCompilation *options_compilation();
