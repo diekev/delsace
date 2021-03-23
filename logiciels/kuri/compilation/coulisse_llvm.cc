@@ -1474,7 +1474,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravai
 		std::cout << "Écriture du code dans un fichier..." << std::endl;
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
 		if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-			compilatrice.possede_erreur = true;
+			espace.rapporte_erreur_sans_site("Impossible de créer le fichier objet");
 			return 1;
 		}
 		temps_fichier_objet = debut_fichier_objet.temps();
@@ -1487,7 +1487,7 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &
 {
 	auto debut_executable = dls::chrono::compte_seconde();
 	if (!::cree_executable(espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
-		compilatrice.possede_erreur = true;
+		espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
 		return false;
 	}
 

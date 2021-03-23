@@ -1628,8 +1628,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &
 	temps_fichier_objet = debut_fichier_objet.temps();
 
 	if (err != 0) {
-		std::cerr << "Ne peut pas créer le fichier objet !\n";
-		compilatrice.possede_erreur = true;
+		espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
 		return false;
 	}
 
@@ -1679,8 +1678,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
 	auto err = system(dls::chaine(commande).c_str());
 
 	if (err != 0) {
-		std::cerr << "Ne peut pas créer l'exécutable !\n";
-		compilatrice.possede_erreur = true;
+		espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
 		return false;
 	}
 

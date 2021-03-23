@@ -280,8 +280,7 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::cha
 	auto chemin = std::filesystem::current_path() / vue.c_str();
 
 	if (!std::filesystem::exists(chemin)) {
-		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
-		possede_erreur = true;
+		espace->rapporte_erreur_sans_site(enchaine("Le fichier ", chemin, " n'existe pas !"));
 		return;
 	}
 
