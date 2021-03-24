@@ -112,7 +112,6 @@ int main(int argc, char *argv[])
 
 	std::ostream &os = std::cout;
 
-	auto resultat = 0;
 	auto debut_compilation   = dls::chrono::compte_seconde();
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 
