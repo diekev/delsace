@@ -210,6 +210,12 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre)
 {
+	if (espace) {
+		// Toutes les erreurs ne transitent pas forcément par EspaceDeTravail
+		// (comme les erreurs de syntaxage ou de lexage).
+		espace->possede_erreur = true;
+	}
+
 	if (espace && espace->options.continue_si_erreur) {
 		ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
 	}
