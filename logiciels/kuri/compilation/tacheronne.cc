@@ -1453,6 +1453,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			auto valeur = *reinterpret_cast<bool *>(pointeur);
 			auto noeud_syntaxique = assembleuse->cree_litterale_bool(lexeme);
 			noeud_syntaxique->valeur_bool = valeur;
+			noeud_syntaxique->type = type;
 			return noeud_syntaxique;
 		}
 		case GenreType::REEL:
