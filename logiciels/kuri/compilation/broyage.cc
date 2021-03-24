@@ -33,7 +33,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "typage.hh"
 
 // À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés pour les fonctions

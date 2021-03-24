@@ -22,7 +22,7 @@
  *
  */
 
-#include "allocatrice_noeud.hh"
+#include "allocatrice.hh"
 
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/definitions.h"

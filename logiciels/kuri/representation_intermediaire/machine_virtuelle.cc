@@ -26,7 +26,8 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 
-#include "compilation/arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"

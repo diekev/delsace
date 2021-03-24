@@ -31,8 +31,9 @@
 
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
-#include "assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"

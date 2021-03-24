@@ -27,7 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/file_fixe.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "graphe_dependance.hh"
 #include "validation_expression_appel.hh"
 

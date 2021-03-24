@@ -22,8 +22,9 @@
  *
  */
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/syntaxeuse.hh"
-#include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 

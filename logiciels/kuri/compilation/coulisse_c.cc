@@ -34,7 +34,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "environnement.hh"

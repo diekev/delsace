@@ -28,7 +28,9 @@
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 
-#include "allocatrice_noeud.hh"
+#include "allocatrice.hh"
+
+struct TypeCompose;
 
 struct AssembleuseArbre {
 private:

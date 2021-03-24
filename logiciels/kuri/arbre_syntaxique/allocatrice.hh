@@ -26,8 +26,11 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntaxique.hh"
-#include "monomorphisations.hh"
+#include "compilation/monomorphisations.hh"
+
+#include "noeud_expression.hh"
+
+struct Statistiques;
 
 struct AllocatriceNoeud {
 	tableau_page<NoeudExpression> m_noeuds_expression{};

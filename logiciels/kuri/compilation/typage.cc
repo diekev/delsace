@@ -31,7 +31,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "graphe_dependance.hh"
 #include "operateurs.hh"
 #include "statistiques/statistiques.hh"

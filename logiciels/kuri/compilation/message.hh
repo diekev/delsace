@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/file.hh"
 
-#include "noeud_code.hh"
+#include "arbre_syntaxique/noeud_code.hh"
 
 struct EspaceDeTravail;
 struct Module;

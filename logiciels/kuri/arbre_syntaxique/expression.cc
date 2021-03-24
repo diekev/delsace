@@ -22,16 +22,17 @@
  *
  */
 
-#include "expression.h"
+#include "expression.hh"
 
 #include "biblinternes/outils/conditions.h"
 
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
-#include "espace_de_travail.hh"
-#include "portee.hh"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/portee.hh"
+
+#include "noeud_expression.hh"
 
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont toujours surl les lexèmes */
 

@@ -24,10 +24,11 @@
 
 #include "noeud_code.hh"
 
+#include "compilation/espace_de_travail.hh"
+
 #include "parsage/identifiant.hh"
 
-#include "arbre_syntaxique.hh"
-#include "espace_de_travail.hh"
+#include "noeud_expression.hh"
 
 NoeudCode *ConvertisseuseNoeudCode::convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
 {
@@ -526,7 +527,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 {
 	auto cree_info_type_entier = [this](uint taille_en_octet, bool est_signe)
 	{
-		auto info_type = infos_types_entiers.ajoute_element();
+		auto info_type = allocatrice_infos_types.infos_types_entiers.ajoute_element();
 		info_type->genre = GenreInfoType::ENTIER;
 		info_type->taille_en_octet = taille_en_octet;
 		info_type->est_signe = est_signe;
@@ -551,7 +552,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::OCTET:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::OCTET;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -560,7 +561,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::BOOL:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::BOOLEEN;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -569,7 +570,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::CHAINE:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::CHAINE;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -578,7 +579,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::EINI:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::EINI;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -589,7 +590,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_tableau = type->comme_tableau_dynamique();
 
-			auto info_type = infos_types_tableaux.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
 			info_type->genre = GenreInfoType::TABLEAU;
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->est_tableau_fixe = false;
@@ -603,7 +604,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_variadique = type->comme_variadique();
 
-			auto info_type = infos_types_tableaux.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
 			info_type->genre = GenreInfoType::TABLEAU;
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->est_tableau_fixe = false;
@@ -621,7 +622,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_tableau = type->comme_tableau_fixe();
 
-			auto info_type = infos_types_tableaux.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
 			info_type->genre = GenreInfoType::TABLEAU;
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->est_tableau_fixe = true;
@@ -648,7 +649,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::REEL:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::REEL;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -657,7 +658,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::RIEN:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::RIEN;
 			info_type->taille_en_octet = 0;
 
@@ -666,7 +667,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
-			auto info_type = infos_types.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
 			info_type->genre = GenreInfoType::TYPE_DE_DONNEES;
 			info_type->taille_en_octet = type->taille_octet;
 
@@ -676,7 +677,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		case GenreType::POINTEUR:
 		case GenreType::REFERENCE:
 		{
-			auto info_type = infos_types_pointeurs.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_element();
 			info_type->genre = GenreInfoType::POINTEUR;
 			info_type->type_pointe = cree_info_type_pour(type_dereference_pour(type));
 			info_type->taille_en_octet = type->taille_octet;
@@ -689,7 +690,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_struct = type->comme_structure();
 
-			auto info_type = infos_types_structures.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_structures.ajoute_element();
 			type->info_type = info_type;
 
 			info_type->genre = GenreInfoType::STRUCTURE;
@@ -699,7 +700,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->membres.reserve(type_struct->membres.taille());
 
 			POUR (type_struct->membres) {
-				auto info_type_membre = infos_types_membres_structures.ajoute_element();
+				auto info_type_membre = allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
 				info_type_membre->nom = it.nom->nom;
@@ -714,7 +715,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_union = type->comme_union();
 
-			auto info_type = infos_types_unions.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_unions.ajoute_element();
 			info_type->genre = GenreInfoType::UNION;
 			info_type->est_sure = !type_union->est_nonsure;
 			info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
@@ -724,7 +725,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->membres.reserve(type_union->membres.taille());
 
 			POUR (type_union->membres) {
-				auto info_type_membre = infos_types_membres_structures.ajoute_element();
+				auto info_type_membre = allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
 				info_type_membre->nom = it.nom->nom;
@@ -741,7 +742,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_enum = type->comme_enum();
 
-			auto info_type = infos_types_enums.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
 			info_type->genre = GenreInfoType::ENUM;
 			info_type->nom = type_enum->nom->nom;
 			info_type->est_drapeau = type_enum->est_drapeau;
@@ -766,7 +767,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_fonction = type->comme_fonction();
 
-			auto info_type = infos_types_fonctions.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_element();
 			info_type->genre = GenreInfoType::FONCTION;
 			info_type->est_coroutine = false;
 			info_type->taille_en_octet = type->taille_octet;
@@ -799,7 +800,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		{
 			auto type_opaque = type->comme_opaque();
 
-			auto info_type = infos_types_opaques.ajoute_element();
+			auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
 			info_type->nom = type_opaque->ident->nom;
 			info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
 
@@ -840,16 +841,7 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += noeuds_litterale_caractere.memoire_utilisee();
 	memoire += noeuds_litterale_booleen.memoire_utilisee();
 
-	memoire += infos_types.memoire_utilisee();
-	memoire += infos_types_entiers.memoire_utilisee();
-	memoire += infos_types_enums.memoire_utilisee();
-	memoire += infos_types_fonctions.memoire_utilisee();
-	memoire += infos_types_membres_structures.memoire_utilisee();
-	memoire += infos_types_pointeurs.memoire_utilisee();
-	memoire += infos_types_structures.memoire_utilisee();
-	memoire += infos_types_tableaux.memoire_utilisee();
-	memoire += infos_types_unions.memoire_utilisee();
-	memoire += infos_types_opaques.memoire_utilisee();
+	memoire += allocatrice_infos_types.memoire_utilisee();
 
 	return memoire;
 }

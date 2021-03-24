@@ -32,7 +32,7 @@
 #include "representation_intermediaire/instructions.hh"
 #include "representation_intermediaire/impression.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "coulisse.hh"
 #include "coulisse_asm.hh"
 #include "coulisse_c.hh"

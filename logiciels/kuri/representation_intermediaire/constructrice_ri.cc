@@ -30,7 +30,7 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"

@@ -31,7 +31,8 @@
 
 #include "biblinternes/chrono/outils.hh"
 
-#include "compilation/assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
+
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"

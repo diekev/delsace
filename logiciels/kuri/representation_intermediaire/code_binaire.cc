@@ -31,7 +31,8 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
-#include "compilation/arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/compilatrice.hh"
 #include "compilation/operateurs.hh"
 

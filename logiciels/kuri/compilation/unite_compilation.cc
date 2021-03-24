@@ -26,10 +26,12 @@
 
 #include "biblinternes/structures/ensemble.hh"
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/identifiant.hh"
 
-#include "arbre_syntaxique.hh"
 #include "metaprogramme.hh"
+#include "typage.hh"
 
 static constexpr auto CYCLES_MAXIMUM = 10;
 

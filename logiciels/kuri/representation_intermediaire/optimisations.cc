@@ -26,7 +26,8 @@
 
 #include "biblinternes/structures/tablet.hh"
 
-#include "compilation/arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/identifiant.hh"
 
 #include "constructrice_ri.hh"

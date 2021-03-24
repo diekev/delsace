@@ -32,7 +32,7 @@
 #include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 
-#include "assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"

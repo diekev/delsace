@@ -14,26 +14,24 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2018-2021 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE kuri_compilation)
+set(NOM_CIBLE kuri_arbre_syntaxique)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	kuri_arbre_syntaxique
+	kuri_compilation
 	kuri_parsage
-	kuri_representation_intermediaire
 	kuri_statistiques
 	kuri_structures
-	stdc++fs
-	langage
 	bib_outils
 	bib_moultfilage
 	bib_structures
@@ -41,62 +39,24 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	broyage.hh
-	compilatrice.hh
-	coulisse.hh
-	coulisse_asm.hh
-	coulisse_c.hh
-	environnement.hh
-	erreur.h
-	espace_de_travail.hh
-	graphe_dependance.hh
-	message.hh
-	metaprogramme.hh
-	monomorphisations.hh
-	options.hh
-	operateurs.hh
-	portee.hh
-	structures.hh
-	syntaxeuse.hh
-	tacheronne.hh
-	transformation_type.hh
-	typage.hh
-	unite_compilation.hh
-	validation_expression_appel.hh
-	validation_semantique.hh
+	allocatrice.cc
+	assembleuse.cc
+	expression.cc
+	infos_types.cc
+	noeud_code.cc
+	noeud_expression.cc
+	utilitaires.cc
 
-	broyage.cc
-	compilatrice.cc
-	coulisse.cc
-	coulisse_asm.cc
-	coulisse_c.cc
-	environnement.cc
-	erreur.cc
-	espace_de_travail.cc
-	graphe_dependance.cc
-	message.cc
-	metaprogramme.cc
-	monomorphisations.cc
-	operateurs.cc
-	options.cc
-	portee.cc
-	structures.cc
-	syntaxeuse.cc
-	tacheronne.cc
-	transformation_type.cc
-	typage.cc
-	unite_compilation.cc
-	validation_expression_appel.cc
-	validation_semantique.cc
+	allocatrice.hh
+	assembleuse.hh
+	expression.hh
+	infos_types.hh
+	noeud_code.hh
+	noeud_expression.hh
+	utilitaires.hh
 )
 
-if(AVEC_LLVM)
-	set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
-	set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
-endif()
-
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
-
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
-
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+

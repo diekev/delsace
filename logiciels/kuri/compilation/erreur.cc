@@ -33,7 +33,7 @@
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "validation_semantique.hh"

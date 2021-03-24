@@ -24,7 +24,8 @@
 
 #include "analyse.hh"
 
-#include "compilation/arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/erreur.h"
 
 #include "impression.hh"

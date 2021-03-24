@@ -22,10 +22,10 @@
  *
  */
 
-#include "assembleuse_arbre.h"
+#include "assembleuse.hh"
 
-#include "allocatrice_noeud.hh"
-#include "operateurs.hh"
+#include "compilation/operateurs.hh"
+#include "compilation/typage.hh"
 
 AssembleuseArbre::AssembleuseArbre(AllocatriceNoeud &allocatrice)
 	: m_allocatrice_noeud(allocatrice)

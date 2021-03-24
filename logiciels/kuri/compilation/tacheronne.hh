@@ -27,7 +27,8 @@
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/structures/file.hh"
 
-#include "allocatrice_noeud.hh"
+#include "arbre_syntaxique/allocatrice.hh"
+
 #include "validation_semantique.hh"
 #include "statistiques/statistiques.hh"
 #include "unite_compilation.hh"
