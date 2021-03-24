@@ -2,11 +2,15 @@
 
 // Il est possible d'avoir des expressions en tout genre dans les énums
 
-MonÉnum :: énum z32 {
-    A-B := 5
-}
+importe Support
 
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné("
+    MonÉnum :: énum z32 {
+        A-B := 5
+    }")
+
+    imprime_succès(erreur_survenue)
     retourne 0
 }

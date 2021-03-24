@@ -2,12 +2,15 @@
 
 // La coulisse C possède un bug où le déloge de pointeur déréférencé ne compile pas
 
+importe Support
+
 principale :: fonc () -> z32
 {
-    ptr := loge [32]z32
+    ptr := loge_tableau(z32, 32)
     indirection := *ptr
 
-    déloge mémoire(indirection)
+    déloge(mémoire(indirection))
 
+    imprime_succès(vrai)
     retourne 0
 }

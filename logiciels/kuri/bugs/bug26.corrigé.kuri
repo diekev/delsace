@@ -3,6 +3,8 @@
 // NOTE : modifier noeud_courant dans la parseuse de HTML, où le bug a été
 //        détecté quand il sera résolu
 
+importe Support
+
 TypeBase :: struct {
     inutilisé : z32
 }
@@ -13,7 +15,7 @@ TypeDérivé :: struct {
 
 retourne_dérivé :: fonc () -> *TypeDérivé
 {
-    retourne loge TypeDérivé
+    retourne loge(TypeDérivé)
 }
 
 retourne_base :: fonc () -> *TypeBase
@@ -24,5 +26,6 @@ retourne_base :: fonc () -> *TypeBase
 principale :: fonc () -> z32
 {
     x := retourne_base()
+    imprime_succès(vrai)
     retourne 0
 }

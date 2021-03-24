@@ -2,6 +2,8 @@
 
 // On ne peut pas comparer un pointeur de fonction avec "nul"
 
+importe Support
+
 foo :: fonc () -> rien
 {
 
@@ -10,10 +12,6 @@ foo :: fonc () -> rien
 principale :: fonc () -> z32
 {
     ptr := foo
-
-    si ptr == nul {
-        retourne 1
-    }
-
+    imprime_succès(ptr != nul)
     retourne 0
 }

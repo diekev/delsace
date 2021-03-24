@@ -1,11 +1,16 @@
 // crash quand un paramètre de fonction n'a pas de type
 
-foo :: fonc (a) -> rien
-{
-
-}
+importe Support
 
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné("
+    foo :: fonc (a) -> rien
+    {
+
+    }
+    ")
+
+    imprime_succès(erreur_survenue)
     retourne 0
 }

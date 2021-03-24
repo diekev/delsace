@@ -5,8 +5,12 @@
 // il est assez étrange que les blocs ne soit pas ajoutés comme enfants de l'instruction « si »
 // je pense que le bug doit également être présent pour les boucles
 
+importe Fondation
+importe Support
+
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné("
     a := 7
     b := 8
     c := 9
@@ -20,7 +24,8 @@ principale :: fonc () -> z32
         (b == c)
         {
 
-        }
+    }")
 
+    imprime_succès(erreur_survenue)
     retourne 0
 }

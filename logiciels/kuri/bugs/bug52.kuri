@@ -1,17 +1,26 @@
 // erreur de compilation quand nous utilisons un type qui a le même nom qu'une fonction
 // si la fonction est déclarée avant le type
 
-stat :: fonc ()
-{
-
-}
-
-stat :: struct {
-    i: z32
-}
+importe Support
 
 principale :: fonc () -> z32
 {
-    s : stat
+    erreur_survenue := #exécute compile_script_erroné(«
+        stat :: fonc ()
+        {
+
+        }
+
+        stat :: struct {
+            i: z32
+        }
+
+        principale :: fonc () -> z32
+        {
+            s : stat
+            retourne 0
+        }
+    »)
+    imprime_succès(erreur_survenue)
     retourne 0
 }

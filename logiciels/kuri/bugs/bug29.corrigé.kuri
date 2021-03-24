@@ -1,11 +1,11 @@
 // ne peut pas passer un pointeur à un eini via l'opérateur de prise d'adresse
 
-importe Fondation
+importe Support
 
 passe_eini :: fonc (e: eini)
 {
     a : *z32 = mémoire(e.pointeur comme **z32)
-    imprime("a = %\n", mémoire(a))
+    imprime_succès(mémoire(a) == 127)
 }
 
 principale :: fonc () -> z32

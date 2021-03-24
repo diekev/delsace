@@ -1,5 +1,7 @@
 // r16 est utilisé dans certaines conversions entre r32 et r64
 
+// À FAIRE : avoir une bonne manière de tester ceci
+
 principale :: fonc () -> z32
 {
     a : r64 = 30.0

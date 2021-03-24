@@ -2,7 +2,7 @@
 
 // On ne peut avoir plusieurs blocs pousse_contexte dans un même bloc (coulisse C)
 
-importe Fondation
+importe Support
 
 principale :: fonc () -> z32
 {
@@ -19,5 +19,6 @@ principale :: fonc () -> z32
         mots = divise("Je suis une autre chaine !", ' ')
     }
 
+    imprime_succès(vrai)
     retourne 0
 }

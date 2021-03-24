@@ -1,5 +1,7 @@
 // Impossible de compiler un programme quand nous avons une constante de type de fonction
 
+importe Support
+
 TypeFonction :: fonc(z32)(rien)
 
 Struct :: struct {
@@ -8,5 +10,6 @@ Struct :: struct {
 
 principale :: fonc () -> z32
 {
+    imprime_succès(vrai)
     retourne 0
 }

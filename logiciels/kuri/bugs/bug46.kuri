@@ -1,10 +1,14 @@
 // boucle infinie quand il manque le ':' avant un type
 
-fonction :: fonc (a *rien) // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
-{
-}
+importe Support
 
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné(«
+    fonction :: fonc (a *rien) // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
+    {
+    }
+    »)
+    imprime_succès(erreur_survenue)
     retourne 0
 }

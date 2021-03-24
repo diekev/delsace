@@ -1,4 +1,6 @@
-importe Fondation
+// Prendre un pointeur depuis une référence échoue
+
+importe Support
 
 modifie_via_pointeur :: fonc (a: *z32)
 {
@@ -10,21 +12,10 @@ passe_référence_à_pointeur :: fonc (a: &z32)
     modifie_via_pointeur(*a)
 }
 
-test :: fonc ()
+principale :: fonc () -> z32
 {
     a := 0
     passe_référence_à_pointeur(a)
-
-    si a == 123456 {
-        imprime("SUCCÈS\n")
-    }
-    sinon {
-        imprime("ÉCHEC\n")
-    }
-}
-
-principale :: fonc () -> z32
-{
-    test()
+    imprime_succès(a == 123456)
     retourne 0
 }

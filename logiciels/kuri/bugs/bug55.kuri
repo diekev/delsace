@@ -1,5 +1,7 @@
 // erreur de compilation quand nous accédons à une soustructure via une expression d'appel
 
+importe Support
+
 Parent :: struct {
     Enfant :: struct {
         z : r32
@@ -11,5 +13,6 @@ Parent :: struct {
 principale :: fonc () -> z32
 {
     e := Parent.Enfant(z = 1.0)
+    imprime_succès(vrai)
     retourne 0
 }

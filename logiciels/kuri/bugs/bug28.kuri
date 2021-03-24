@@ -1,6 +1,6 @@
 // la génération de la RI ou du code C est mauvaise pour les déréférencement de tableau fixe
 
-importe Fondation
+importe Support
 
 remplis_tableau :: fonc (tabl: *[3]z32)
 {
@@ -18,8 +18,6 @@ principale :: fonc () -> z32
 {
     tabl : [3]z32
     remplis_tableau(*tabl)
-
-    imprime("tabl : %\n", tabl)
-
+    imprime_succès(tabl[0] == 1 && tabl[1] == 2 && tabl[3] == 3)
     retourne 0
 }

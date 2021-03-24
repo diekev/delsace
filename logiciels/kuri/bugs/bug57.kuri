@@ -1,9 +1,9 @@
 // les arithmétiques de pointeurs ne prennent pas en compte la taille du type pointé, dans la machine virtuelle
 // NOTE : voir cas dans Documentation/construit_documentation.kuri
 
-importe Fondation
+importe Support
 
-principale :: fonc () -> z32
+test_arithmétique_pointeur :: fonc () -> bool
 {
     x : [3]z32
     y := *x[0]
@@ -13,7 +13,12 @@ principale :: fonc () -> z32
 
     mémoire(y) = 2
 
-    imprime("x : %\n", x)
+    retourne x[0] == 1 && x[1] == 2
+}
 
+principale :: fonc () -> z32
+{
+    succès := #exécute test_arithmétique_pointeur()
+    imprime_succès(succès)
     retourne 0
 }

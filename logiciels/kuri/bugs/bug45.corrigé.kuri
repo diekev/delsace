@@ -1,13 +1,19 @@
 // aucune erreur quand la valeur de retour d'un appel n'est pas utilisée
 
-fonction :: fonc () -> z32
-{
-    retourne 0
-}
-
 principale :: fonc () -> z32
 {
-    ptr := fonction
-    ptr()
+    erreur_survenue := #exécute compile_script_erroné(«
+    fonction :: fonc () -> z32
+    {
+        retourne 0
+    }
+    principale :: fonc () -> z32
+    {
+        ptr := fonction
+        ptr()
+        retourne 0
+    }
+    »)
+    imprime_succès(erreur_survenue)
     retourne 0
 }

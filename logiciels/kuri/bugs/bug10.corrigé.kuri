@@ -8,20 +8,33 @@
 // les structures basées sur les expressions fournies pas le programmeur (ou 0/nul/"" le cas échéant)
 // Les fonctions serait alors appelées, et disponible via le système d'introspection via un mot-clé (init_de ?)
 
+importe Support
+
 MaStructure :: struct {
     tabl : []z32
 }
 
 principale :: fonc () -> z32
 {
-    x := loge MaStructure
+    x := loge(MaStructure)
+
+    si x.tabl.taille != 0 {
+        imprime_succès(faux)
+        retourne 1
+    }
+
+    si x.tabl.pointeur != nul {
+        imprime_succès(faux)
+        retourne 1
+    }
 
     // il est possible que le bug ne soit pas visible, si la mémoire où le tableau
     // se trouve est déjà à 0
     tableau_ajoute(*x.tabl, 0)
 
-    déloge x.tabl
-    déloge x
+    déloge(x.tabl)
+    déloge(x)
 
+    imprime_succès(vrai)
     retourne 0
 }

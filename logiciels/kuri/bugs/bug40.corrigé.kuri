@@ -1,14 +1,21 @@
 // Ce code ne devrait pas compiler car nous ne pouvons pas savoir s'il faut appeler la fonction ou le pointeur de fonction
 
-foo :: fonc ()
-{
-
-}
-
-foo := foo
+importe Support
 
 principale :: fonc () -> z32
 {
-    foo()
+    erreur_survenue := #exécute compile_script_erroné("
+    foo :: fonc ()
+    {
+
+    }
+    foo := foo
+    principale :: fonc () -> z32
+    {
+        foo()
+        retourne 0
+    }
+    ")
+    imprime_succès(erreur_survenue)
     retourne 0
 }

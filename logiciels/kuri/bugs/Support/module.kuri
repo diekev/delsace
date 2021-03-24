@@ -1,0 +1,38 @@
+importe Compilatrice
+importe Fondation
+
+// À FAIRE : il nous faut attendre que la compilation de l'espace soit terminé (envoyer un message ?)
+
+compile_fichier_erroné :: fonc (chemin: chaine) -> bool
+{
+    options : OptionsCompilation
+    options.continue_si_erreur = vrai
+
+    espace := démarre_un_espace_de_travail("bug", *options)
+    ajoute_fichier_à_la_compilation(espace, chemin)
+
+    // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
+    retourne compilatrice_possède_erreur(espace)
+}
+
+compile_script_erroné :: fonc (script: chaine) -> bool
+{
+    options : OptionsCompilation
+    options.continue_si_erreur = vrai
+
+    espace := démarre_un_espace_de_travail("bug", *options)
+    ajoute_chaine_à_la_compilation(espace, script)
+
+    // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
+    retourne compilatrice_possède_erreur(espace)
+}
+
+imprime_succès :: fonc (s: bool)
+{
+    si s {
+        imprime("SUCCÈS\n")
+    }
+    sinon {
+        imprime("ÉCHEC\n")
+    }
+}

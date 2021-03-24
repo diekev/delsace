@@ -2,15 +2,19 @@
 // Résolution : le crash est dû au fait que les globales utiliserait des instructions normales alors qu'il n'y a pas de fonction_courante
 //              émets une erreur de syntaxage
 
-Structure :: struct {
-    valeur: z32
-}
-
-tableau := []Structure = [
-    Structure(valeur = 0)
-]
+importe Support
 
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné("
+    Structure :: struct {
+        valeur: z32
+    }
+
+    tableau := []Structure = [
+        Structure(valeur = 0)
+    ]")
+
+    imprime_succès(erreur_survenue)
     retourne 0
 }

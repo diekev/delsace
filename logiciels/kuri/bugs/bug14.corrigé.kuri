@@ -2,6 +2,8 @@
 
 // Les variables des constructions de structures ne sont pas validées
 
+importe Support
+
 Vecteur :: struct {
     x := 1.0
     y := 4.0
@@ -11,5 +13,6 @@ Vecteur :: struct {
 principale :: fonc () -> z32
 {
     v := Vecteur{ x = 2.0, y = 4.0, w = 6.0 }
+    imprime_succès(vrai)
     retourne 0
 }

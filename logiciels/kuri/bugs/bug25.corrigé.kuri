@@ -5,6 +5,8 @@
 // ceci fait également échoué le typage, puisque que toute transformation serait marquée
 // comme inutile (le type du paramètre étant toujours celui de l'expression passée)
 
+importe Support
+
 fait_partie_de :: fonc (valeur: $T, liste: ...$T) -> bool
 {
     pour liste {
@@ -22,5 +24,6 @@ principale :: fonc () -> z32
         retourne 1
     }
 
+    imprime_succès(vrai)
     retourne 0
 }

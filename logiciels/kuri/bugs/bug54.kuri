@@ -1,5 +1,7 @@
 // crash quand nous passons un pointeur de fonction polymorphique à une fonction
 
+importe Support
+
 reçoie_une_fonction :: fonc (a: $T, rappel: fonc(T)(rien))
 {
 
@@ -14,5 +16,6 @@ principale :: fonc () -> z32
 {
     reçoie_une_fonction(0, reçoie_une_fonction)
     reçoie_une_autre_fonction(0, reçoie_une_fonction)
+    imprime_succès(vrai)
     retourne 0
 }
