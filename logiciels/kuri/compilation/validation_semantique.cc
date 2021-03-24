@@ -338,11 +338,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			noeud->type = noeud_directive->expression->type;
 
 			// À FAIRE: ceci ne prend en compte les expressions pour les variables globales
-			if (fonction_courante) {
+			if (metaprogramme->fonction) {
 				/* avance l'index car il est inutile de revalider ce noeud */
 				unite->index_courant += 1;
 				unite->attend_sur_metaprogramme(metaprogramme);
-				graphe->ajoute_dependances(*fonction_courante->noeud_dependance, donnees_dependance);
+				graphe->cree_noeud_fonction(metaprogramme->fonction);
+				graphe->ajoute_dependances(*metaprogramme->fonction->noeud_dependance, donnees_dependance);
 				return ResultatValidation::Erreur;
 			}
 
