@@ -32,6 +32,7 @@ endif()
 
 set(RACINE_INSTALLATION kuri)
 
+add_subdirectory(adn)
 add_subdirectory(arbre_syntaxique)
 add_subdirectory(compilation)
 add_subdirectory(executable)

@@ -43,8 +43,6 @@ GenreLexeme operateur_pour_assignation_composee(GenreLexeme type);
 
 bool est_operateur_comp(GenreLexeme type);
 
-bool est_mot_cle(GenreLexeme id);
-
 bool est_chaine_litterale(GenreLexeme id);
 
 bool est_specifiant_type(GenreLexeme identifiant);

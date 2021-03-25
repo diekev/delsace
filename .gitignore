@@ -10,5 +10,10 @@ logiciels/kuri/modules/Aléa/*.h
 logiciels/kuri/modules/FTGL/*.h
 logiciels/kuri/modules/Image/*.h
 
+logiciels/kuri/modules/Compilatrice/lexèmes.kuri
+logiciels/kuri/parsage/lexemes.cc
+logiciels/kuri/parsage/lexemes.hh
+
+
 .chaines_ajoutées
 .vscode/
