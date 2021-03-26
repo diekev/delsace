@@ -1,0 +1,49 @@
+// ----------------------------------------------------------------------------
+// Définitions des options de compilation.
+
+// Ces structures doivent être tenues synchronisées avec celles dans options.hh
+TypeCoulisse :: énum z32 {
+    C
+    LLVM
+    ASM
+}
+
+ArchitectureCible :: énum z32 {
+    X64
+    X86
+}
+
+NiveauOptimisation :: énum z32 {
+    AUCUN
+	O0
+	O1
+	O2
+	Os
+	Oz
+	O3
+}
+
+OptionsLangage :: énum_drapeau n32 {
+    ACTIVE_INTROSPECTION
+    ACTIVE_COROUTINE
+
+	//TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
+}
+
+ObjetGénéré :: énum {
+	Exécutable
+	FichierObjet
+	Rien
+}
+
+OptionsCompilation :: struct {
+    nom_sortie := "a.out"
+    type_coulisse := TypeCoulisse.C
+    niveau_optimisation := NiveauOptimisation.AUCUN
+    architecture_cible := ArchitectureCible.X64
+    options_langage : OptionsLangage
+    objet_généré : ObjetGénéré
+
+    émets_métriques := vrai
+	continue_si_erreur := faux
+}

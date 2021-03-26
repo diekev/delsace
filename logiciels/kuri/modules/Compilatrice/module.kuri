@@ -1,391 +1,15 @@
 // Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
+importe Fondation
+
+charge "ipa"
+charge "code"
 charge "lexèmes"
+charge "message"
+charge "options"
 
 // ----------------------------------------------------------------------------
-
-// Ces structures doivent être tenues synchronisées avec celles dans options.hh
-TypeCoulisse :: énum z32 {
-    C
-    LLVM
-    ASM
-}
-
-ArchitectureCible :: énum z32 {
-    X64
-    X86
-}
-
-NiveauOptimisation :: énum z32 {
-    AUCUN
-	O0
-	O1
-	O2
-	Os
-	Oz
-	O3
-}
-
-OptionsLangage :: énum_drapeau n32 {
-    ACTIVE_INTROSPECTION
-    ACTIVE_COROUTINE
-
-	//TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
-}
-
-ObjetGénéré :: énum {
-	Exécutable
-	FichierObjet
-	Rien
-}
-
-OptionsCompilation :: struct {
-    nom_sortie := "a.out"
-    type_coulisse := TypeCoulisse.C
-    niveau_optimisation := NiveauOptimisation.AUCUN
-    architecture_cible := ArchitectureCible.X64
-    options_langage : OptionsLangage
-    objet_généré : ObjetGénéré
-
-    émets_métriques := vrai
-	continue_si_erreur := faux
-}
-
-// ----------------------------------------------------------------------------
-// structures pour l'arbre syntaxique des programmes, à tenir synchronisé avec noeud_code.hh
-// GenreNoeudCode est une copie carbone de l'énumération de arbre_syntaxique.hh
-
-GenreNoeudCode :: énum z32 {
-	DECLARATION_ENUM
-	DECLARATION_ENTETE_FONCTION
-	DECLARATION_CORPS_FONCTION
-	DECLARATION_STRUCTURE
-	DECLARATION_VARIABLE
-	DIRECTIVE_CUISINE
-	DIRECTIVE_EXECUTION
-	EXPRESSION_APPEL_FONCTION
-	EXPRESSION_ASSIGNATION_VARIABLE
-	EXPRESSION_CONSTRUCTION_STRUCTURE
-	EXPRESSION_CONSTRUCTION_TABLEAU
-	EXPRESSION_INDEXAGE
-	EXPRESSION_INFO_DE
-	EXPRESSION_INIT_DE
-	EXPRESSION_LITTERALE_BOOLEEN
-	EXPRESSION_LITTERALE_CARACTERE
-	EXPRESSION_LITTERALE_CHAINE
-	EXPRESSION_LITTERALE_NOMBRE_REEL
-	EXPRESSION_LITTERALE_NOMBRE_ENTIER
-	EXPRESSION_LITTERALE_NUL
-	EXPRESSION_MEMOIRE
-	EXPRESSION_PARENTHESE
-	EXPRESSION_PLAGE
-	EXPRESSION_REFERENCE_DECLARATION
-	EXPRESSION_REFERENCE_MEMBRE
-	EXPRESSION_REFERENCE_MEMBRE_UNION
-	EXPRESSION_REFERENCE_TYPE
-	EXPRESSION_TABLEAU_ARGS_VARIADIQUES
-	EXPRESSION_TAILLE_DE
-	EXPRESSION_TYPE_DE
-	EXPRESSION_COMME
-	EXPRESSION_VIRGULE
-	INSTRUCTION_BOUCLE
-	INSTRUCTION_COMPOSEE
-	INSTRUCTION_CONTINUE_ARRETE
-	INSTRUCTION_DISCR
-	INSTRUCTION_DISCR_ENUM
-	INSTRUCTION_DISCR_UNION
-	INSTRUCTION_NON_INITIALISATION
-	INSTRUCTION_POUR
-	INSTRUCTION_POUSSE_CONTEXTE
-	INSTRUCTION_REPETE
-	INSTRUCTION_RETIENS
-	INSTRUCTION_RETOUR
-	INSTRUCTION_SAUFSI
-	INSTRUCTION_SI
-	INSTRUCTION_SI_STATIQUE
-	INSTRUCTION_TANTQUE
-	INSTRUCTION_TENTE
-	OPERATEUR_BINAIRE
-	OPERATEUR_COMPARAISON_CHAINEE
-	OPERATEUR_UNAIRE
-	EXPANSION_VARIADIQUE
-	INSTRUCTION_EMPL
-	INSTRUCTION_IMPORTE
-	INSTRUCTION_CHARGE
-}
-
-NoeudCode :: struct {
-    genre : GenreNoeudCode
-    type : *InfoType
-
-	chemin_fichier : chaine
-	nom_fichier : chaine
-	numero_ligne := 0
-	numero_colonne := 0
-}
-
-NoeudCodeEntêteFonction :: struct {
-    empl base : NoeudCode
-
-    nom: chaine
-
-    params_entrée : []*NoeudCodeDéclaration
-    params_sortie : []*NoeudCodeDéclaration
-
-	annotations : []chaine
-
-	est_opérateur : bool
-	est_coroutine : bool
-}
-
-NoeudCodeCorpsFonction :: struct {
-    empl base : NoeudCode
-
-	entête : *NoeudCodeEntêteFonction
-    bloc : *NoeudCodeBloc
-
-	arbre_aplatis : []*NoeudCode
-}
-
-NoeudCodeAssignation :: struct {
-    empl base : NoeudCode
-
-    assigné : *NoeudCode
-    expression : *NoeudCode
-}
-
-NoeudCodeDéclaration :: struct {
-    empl base : NoeudCode
-
-    valeur : *NoeudCode
-    expression : *NoeudCode
-}
-
-NoeudCodeOpérationUnaire :: struct {
-    empl base : NoeudCode
-
-    opérande : *NoeudCode
-	op : chaine
-}
-
-NoeudCodeOpérationBinaire :: struct {
-    empl base : NoeudCode
-
-    opérande_gauche : *NoeudCode
-    opérande_droite : *NoeudCode
-	op : chaine
-}
-
-NoeudCodeComme :: struct {
-    empl base : NoeudCode
-
-    expression : *NoeudCode
-	expression_type : *NoeudCode
-}
-
-NoeudCodeBloc :: struct {
-    empl base : NoeudCode
-
-    expressions : []*NoeudCode
-    membres : []*NoeudCodeDéclaration
-}
-
-NoeudCodeSi :: struct {
-    empl base : NoeudCode
-
-    condition : *NoeudCode
-    bloc_si_vrai : *NoeudCodeBloc
-    bloc_si_faux : *NoeudCodeBloc
-}
-
-NoeudCodeBoucle :: struct {
-    empl base : NoeudCode
-
-    condition : *NoeudCode
-    bloc : *NoeudCodeBloc
-}
-
-NoeudCodePour :: struct {
-    empl base : NoeudCode
-
-	variable : *NoeudCode
-	expression : *NoeudCode
-	bloc : *NoeudCodeBloc
-	bloc_sansarret : *NoeudCodeBloc
-	bloc_sinon : *NoeudCodeBloc
-}
-
-NoeudCodeTente :: struct {
-    empl base : NoeudCode
-
-	expression_appel : *NoeudCode
-	expression_piege : *NoeudCode
-	bloc : *NoeudCodeBloc
-}
-
-NoeudCodeDiscr :: struct {
-    empl base : NoeudCode
-
-	PaireDiscr :: struct {
-		expression : *NoeudCode
-		bloc : *NoeudCode
-	}
-
-	expression : *NoeudCode
-	bloc_sinon : *NoeudCodeBloc
-	paires_discr : []PaireDiscr
-}
-
-NoeudCodePousseContexte :: struct {
-    empl base : NoeudCode
-
-	expression : *NoeudCode
-	bloc : *NoeudCodeBloc
-}
-
-NoeudCodeReferenceMembre :: struct {
-    empl base : NoeudCode
-
-	accede : *NoeudCode
-	membre : *NoeudCode
-}
-
-NoeudCodeAppel :: struct {
-    empl base : NoeudCode
-
-	expression : *NoeudCode
-	params : []*NoeudCode
-}
-
-NoeudCodeVirgule :: struct {
-	empl base : NoeudCode
-
-	expressions : []*NoeudCode
-}
-
-NoeudCodeDirective :: struct {
-	empl base : NoeudCode
-
-	ident : chaine
-	expression : *NoeudCode
-}
-
-NoeudCodeIdentifiant :: struct {
-	empl base : NoeudCode
-
-	ident : chaine
-}
-
-NoeudCodeLitteraleEntier :: struct {
-	empl base : NoeudCode
-
-	valeur : n64
-}
-
-NoeudCodeLitteraleReel :: struct {
-	empl base : NoeudCode
-
-	valeur : r64
-}
-
-NoeudCodeLitteraleCaractere :: struct {
-	empl base : NoeudCode
-
-	valeur : z8
-}
-
-NoeudCodeLitteraleChaine :: struct {
-	empl base : NoeudCode
-
-	valeur : chaine
-}
-
-NoeudCodeLitteraleBooleen :: struct {
-	empl base : NoeudCode
-
-	valeur : bool
-}
-
-// ----------------------------------------------------------------------------
-
-EspaceDeTravail :: struct #externe;
-Module :: struct #externe;
-
-// ----------------------------------------------------------------------------
-// structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
-
-GenreMessage :: énum z32 {
-    INVALIDE
-
-    FICHIER_OUVERT
-    FICHIER_FERMÉ
-    MODULE_OUVERT
-    MODULE_FERMÉ
-    TYPAGE_CODE_TERMINÉ
-    PHASE_COMPILATION
-}
-
-PhaseCompilation :: énum {
-	PARSAGE_EN_COURS
-	PARSAGE_TERMINÉ
-	TYPAGE_TERMINÉ
-	GÉNÉRATION_CODE_TERMINÉE
-	AVANT_GÉNÉRATION_OBJET
-	APRÈS_GÉNÉRATION_OBJET
-	AVANT_LIAISON_EXÉCUTABLE
-	APRÈS_LIAISON_EXÉCUTABLE
-	COMPILATION_TERMINÉE
-}
-
-Message :: struct {
-    genre : GenreMessage
-	espace : *EspaceDeTravail
-}
-
-MessageFichier :: struct {
-    empl base : Message
-
-    chemin: chaine
-}
-
-MessageModule :: struct {
-    empl base : Message
-
-    chemin: chaine
-    module: *Module
-}
-
-MessageTypageCodeTerminé :: struct {
-    empl base : Message
-
-    code : *NoeudCode
-}
-
-MessagePhaseCompilation :: struct {
-	empl base : Message
-
-	phase : PhaseCompilation
-}
-
-// ----------------------------------------------------------------------------
-
-ajoute_chaine_à_la_compilation :: fonc(espace: *EspaceDeTravail, c: chaine) -> rien #compilatrice
-
-ajoute_fichier_à_la_compilation :: fonc(espace: *EspaceDeTravail, c: chaine) -> rien #compilatrice
-
-ajoute_chaine_au_module :: fonc (espace: *EspaceDeTravail, module: *Module, c: chaine) #compilatrice
-
-compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #compilatrice
-
-compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #compilatrice
-
-compilatrice_attend_message :: fonc () -> *Message #compilatrice
-
-compilatrice_commence_interception :: fonc (espace: *EspaceDeTravail) #compilatrice
-
-compilatrice_termine_interception :: fonc (espace: *EspaceDeTravail) #compilatrice
-
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine, ligne: z32, message: chaine) #compilatrice
+// Fonctions auxilliaires pour l'IPA.
 
 compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
 {
@@ -407,8 +31,6 @@ compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode
 	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numero_ligne, message)
 }
 
-compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, fichier: chaine, ligne: z32, message: chaine) #compilatrice
-
 compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCodeSource())
 {
 	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
@@ -424,38 +46,23 @@ compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *No
 	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numero_ligne, message)
 }
 
-/* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
-compilatrice_lèxe_fichier :: fonc (fichier: chaine) -> []Lexème #compilatrice
-
-/* Retourne l'espace de travail dans lequel le métaprogramme appelant la fonction est exécuté. */
-compilatrice_espace_courant :: fonc () -> *EspaceDeTravail #compilatrice
-
-démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
-
-espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice
-
-compilatrice_possède_erreur :: fonc (espace: *EspaceDeTravail) -> bool #compilatrice
-
-// ----------------------------------------------------------------------------
-
 désactive_compilation_espace_défaut :: fonc ()
 {
     options := compilatrice_obtiens_options()
     options.objet_généré = ObjetGénéré.Rien
+	// À FAIRE : ajourne les options manuellement
 }
 
 // ----------------------------------------------------------------------------
-// fonctions de travail sur les lexèmes
+// Fonctions de travail sur les lexèmes.
 
 est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
 {
     retourne genre == GenreLexème.CHAINE_LITTERALE || genre == GenreLexème.CARACTERE
 }
 
-// -----------------------------------------------
-// fonctions utiles pour les tests unitaires
-
-importe Fondation
+// ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour les tests unitaires
 
 compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionCodeSource())
 {

@@ -1,0 +1,55 @@
+// ----------------------------------------------------------------------------
+// structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
+
+GenreMessage :: énum z32 {
+    INVALIDE
+
+    FICHIER_OUVERT
+    FICHIER_FERMÉ
+    MODULE_OUVERT
+    MODULE_FERMÉ
+    TYPAGE_CODE_TERMINÉ
+    PHASE_COMPILATION
+}
+
+PhaseCompilation :: énum {
+	PARSAGE_EN_COURS
+	PARSAGE_TERMINÉ
+	TYPAGE_TERMINÉ
+	GÉNÉRATION_CODE_TERMINÉE
+	AVANT_GÉNÉRATION_OBJET
+	APRÈS_GÉNÉRATION_OBJET
+	AVANT_LIAISON_EXÉCUTABLE
+	APRÈS_LIAISON_EXÉCUTABLE
+	COMPILATION_TERMINÉE
+}
+
+Message :: struct {
+    genre : GenreMessage
+	espace : *EspaceDeTravail
+}
+
+MessageFichier :: struct {
+    empl base : Message
+
+    chemin: chaine
+}
+
+MessageModule :: struct {
+    empl base : Message
+
+    chemin: chaine
+    module: *Module
+}
+
+MessageTypageCodeTerminé :: struct {
+    empl base : Message
+
+    code : *NoeudCode
+}
+
+MessagePhaseCompilation :: struct {
+	empl base : Message
+
+	phase : PhaseCompilation
+}
