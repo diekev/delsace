@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -222,20 +222,27 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_extra("...", "INCONNU");
 }
 
-static void remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
+static bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
 {
+	bool remplacement_effectue = false;
 	size_t index = 0;
 	while (true) {
 		/* Locate the substring to replace. */
 		index = std_string.find(motif, index);
-		if (index == std::string::npos) break;
+
+		if (index == std::string::npos) {
+			break;
+		}
 
 		/* Make the replacement. */
 		std_string.replace(index, motif.size(), remplacement);
 
 		/* Advance index forward so the next iteration doesn't pick it up as well. */
 		index += motif.size();
+		remplacement_effectue = true;
 	}
+
+	return remplacement_effectue;
 }
 
 static kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
@@ -460,6 +467,100 @@ static void genere_fichier_kuri(const ListeLexemes &lexemes, std::ostream &os)
 	genere_fonction_kuri_pour_drapeau(lexemes, "est_opérateur_unaire", EST_OPERATEUR_UNAIRE, os);
 }
 
+static int genere_empreinte_parfaite(const ListeLexemes &lexemes, std::ostream &os)
+{
+	const char *debut_fichier = R"(
+%compare-lengths
+%compare-strncmp
+%define class-name EmpreinteParfaite
+%define hash-function-name calcule_empreinte
+%define initializer-suffix ,GenreLexeme::CHAINE_CARACTERE
+%define lookup-function-name lexeme_pour_chaine
+%define slot-name nom
+%enum
+%global-table
+%language=C++
+%readonly-tables
+%struct-type
+
+%{
+#include "lexemes.hh"
+%}
+
+struct EntreeTable {  const char *nom; GenreLexeme genre;  };
+)";
+
+	const char *fin_fichier = R"(
+inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
+{
+  return EmpreinteParfaite::lexeme_pour_chaine(chn.pointeur(), static_cast<size_t>(chn.taille()));
+}
+)";
+
+	std::ofstream fichier_tmp("/tmp/empreinte_parfaite.txt");
+
+	fichier_tmp << debut_fichier;
+	fichier_tmp << "%%\n";
+
+	POUR (lexemes.lexemes) {
+		if ((it.drapeaux & EST_MOT_CLE) != 0) {
+			fichier_tmp << "\"" << it.chaine << "\", GenreLexeme::" << it.nom_enum_sans_accent << '\n';
+		}
+	}
+
+	fichier_tmp << "%%\n";
+	fichier_tmp << fin_fichier;
+
+	fichier_tmp.close();
+
+	const auto commande = "gperf -m100 /tmp/empreinte_parfaite.txt --output-file=/tmp/empreinte_parfaite.hh";
+
+	if (system(commande) != 0) {
+		std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte parfaite depuis GPerf\n";
+		return 1;
+	}
+
+	std::ifstream fichier_tmp_entree("/tmp/empreinte_parfaite.hh");
+
+	if (!fichier_tmp_entree.is_open()) {
+		std::cerr << "Impossible d'ouvrir le fichier /tmp/empreinte_parfaite.hh\n";
+		return 1;
+	}
+
+	os << "#pragma once\n\n";
+
+	std::string ligne;
+	while (std::getline(fichier_tmp_entree, ligne)) {
+		if (ligne.size() > 5 && ligne.substr(0, 5) == "#line") {
+			continue;
+		}
+
+		if (remplace(ligne, "const struct EntreeTable *", "inline GenreLexeme ")) {
+			os << ligne << '\n';
+			continue;
+		}
+
+		if (remplace(ligne, "return &wordlist[key];", "return wordlist[key].genre;")) {
+			os << ligne << '\n';
+			continue;
+		}
+
+		if (remplace(ligne, "return 0;", "return GenreLexeme::CHAINE_CARACTERE;")) {
+			os << ligne << '\n';
+			continue;
+		}
+
+		if (remplace(ligne, "unsigned int hval = len;", "unsigned int hval = static_cast<unsigned int>(len);")) {
+			os << ligne << '\n';
+			continue;
+		}
+
+		os << ligne << '\n';
+	}
+
+	return 0;
+}
+
 int main(int argc, const char **argv)
 {
 	if (argc != 2) {
@@ -489,6 +590,12 @@ int main(int argc, const char **argv)
 	else if (nom_fichier_sortie.filename() == "lexemes.hh") {
 		std::ofstream fichier_sortie(argv[1]);
 		genere_fichier_entete(lexemes, fichier_sortie);
+	}
+	else if (nom_fichier_sortie.filename() == "empreinte_parfaite.hh") {
+		std::ofstream fichier_sortie(nom_fichier_sortie);
+		if (genere_empreinte_parfaite(lexemes, fichier_sortie) != 0) {
+			return 1;
+		}
 	}
 	else {
 		std::cerr << "Fichier de sortie « " << argv[1] << " » inconnu !\n";

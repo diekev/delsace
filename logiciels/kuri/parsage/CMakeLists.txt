@@ -74,4 +74,10 @@ add_custom_command(
 	DEPENDS genere_lexemes
 )
 
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/empreinte_parfaite.hh
+	COMMAND genere_lexemes "${CMAKE_CURRENT_SOURCE_DIR}/empreinte_parfaite.hh"
+	DEPENDS genere_lexemes lexemes.hh
+)
+
 add_dependencies(${NOM_CIBLE} genere_lexemes)
