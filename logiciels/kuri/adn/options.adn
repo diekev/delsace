@@ -1,0 +1,51 @@
+// ADN pour les options de compilation.
+
+énum RésultatCompilation {
+    @code RésultatCompilation
+
+    RIEN
+    EXÉCUTABLE
+    FICHIER_OBJET
+    BIBLIOTHÈQUE_STATIQUE
+    BIBLIOTHÈQUE_DYNAMIQUE
+}
+
+énum ArchitectureCible {
+    @code ArchitectureCible
+
+    I868
+    X64
+}
+
+énum TypeCoulisse {
+    @code TypeCoulisse
+
+    C
+    LLVM
+    ASM
+}
+
+énum NiveauOptimisation {
+    AUCUN
+	O0
+	O1
+	O2
+	Os
+	Oz
+	O3
+}
+
+struct OptionsDeCompilation {
+    @code OptionsDeCompilation
+
+    chaine nom_sortie = "a.out"
+
+    TypeCoulisse coulisse = C
+    RésultatCompilation résultat = EXÉCUTABLE
+    ArchitectureCible architecture = X64
+    NiveauOptimisation niveau_optimisation = AUCUN
+
+    bool émets_métriques = vrai
+    bool continue_si_erreur = faux
+    bool erreur_si_avertissement = faux
+}
