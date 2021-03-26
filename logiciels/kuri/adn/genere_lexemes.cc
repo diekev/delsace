@@ -32,41 +32,54 @@
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
+enum {
+	EST_MOT_CLE = (1 << 0),
+	EST_ASSIGNATION_COMPOSEE = (1 << 1),
+	EST_OPERATEUR_BOOL = (1 << 2),
+	EST_OPERATEUR_COMPARAISON = (1 << 3),
+	EST_CHAINE_LITTERALE = (1 << 4),
+	EST_SPECIFIANT_TYPE = (1 << 5),
+	EST_IDENTIFIANT_TYPE = (1 << 6),
+	EST_OPERATEUR_UNAIRE = (1 << 7),
+};
+
 struct Lexeme {
 	kuri::chaine_statique chaine = "";
 	kuri::chaine_statique nom_enum = "";
 
 	kuri::chaine nom_enum_sans_accent = "";
 
-	bool est_mot_cle = false;
+	uint32_t drapeaux = 0;
 };
 
 struct ListeLexemes {
 	kuri::tableau<Lexeme> lexemes{};
 
-	void ajoute_mot_cle(kuri::chaine_statique chaine)
+	void ajoute_mot_cle(kuri::chaine_statique chaine, uint drapeaux = 0)
 	{
 		auto lexeme = Lexeme{};
 		lexeme.chaine = chaine;
-		lexeme.est_mot_cle = true;
+		lexeme.drapeaux = EST_MOT_CLE | drapeaux;
 
 		lexemes.ajoute(lexeme);
 	}
 
-	void ajoute_ponctuation(kuri::chaine_statique chaine, kuri::chaine_statique nom_enum)
+	void ajoute_ponctuation(kuri::chaine_statique chaine, kuri::chaine_statique nom_enum, uint32_t drapeaux = 0)
 	{
 		auto lexeme = Lexeme{};
 		lexeme.chaine = chaine;
 		lexeme.nom_enum = nom_enum;
+		lexeme.drapeaux = drapeaux;
 
 		lexemes.ajoute(lexeme);
 	}
 
-	void ajoute_extra(kuri::chaine_statique chaine, kuri::chaine_statique nom_enum)
+	void ajoute_extra(kuri::chaine_statique chaine, kuri::chaine_statique nom_enum, uint32_t drapeaux = 0)
 	{
 		auto lexeme = Lexeme{};
 		lexeme.chaine = chaine;
 		lexeme.nom_enum = nom_enum;
+		lexeme.drapeaux = drapeaux;
 
 		lexemes.ajoute(lexeme);
 	}
@@ -75,9 +88,9 @@ struct ListeLexemes {
 static void construit_lexemes(ListeLexemes &lexemes)
 {
 	lexemes.ajoute_mot_cle("arrête");
-	lexemes.ajoute_mot_cle("bool");
+	lexemes.ajoute_mot_cle("bool", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("boucle");
-	lexemes.ajoute_mot_cle("chaine");
+	lexemes.ajoute_mot_cle("chaine", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("charge");
 	lexemes.ajoute_mot_cle("comme");
 	lexemes.ajoute_mot_cle("continue");
@@ -87,8 +100,8 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_mot_cle("discr");
 	lexemes.ajoute_mot_cle("dyn");
 	lexemes.ajoute_mot_cle("définis");
-	lexemes.ajoute_mot_cle("eini");
-	lexemes.ajoute_mot_cle("eini_erreur");
+	lexemes.ajoute_mot_cle("eini", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("eini_erreur", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("empl");
 	lexemes.ajoute_mot_cle("erreur");
 	lexemes.ajoute_mot_cle("externe");
@@ -99,25 +112,25 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_mot_cle("info_de");
 	lexemes.ajoute_mot_cle("init_de");
 	lexemes.ajoute_mot_cle("mémoire");
-	lexemes.ajoute_mot_cle("n16");
-	lexemes.ajoute_mot_cle("n32");
-	lexemes.ajoute_mot_cle("n64");
-	lexemes.ajoute_mot_cle("n8");
+	lexemes.ajoute_mot_cle("n16", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("n32", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("n64", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("n8", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("nonatteignable");
 	lexemes.ajoute_mot_cle("nonsûr");
 	lexemes.ajoute_mot_cle("nul");
-	lexemes.ajoute_mot_cle("octet");
+	lexemes.ajoute_mot_cle("octet", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("opérateur");
 	lexemes.ajoute_mot_cle("piège");
 	lexemes.ajoute_mot_cle("pour");
 	lexemes.ajoute_mot_cle("pousse_contexte");
-	lexemes.ajoute_mot_cle("r16");
-	lexemes.ajoute_mot_cle("r32");
-	lexemes.ajoute_mot_cle("r64");
+	lexemes.ajoute_mot_cle("r16", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("r32", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("r64", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("reprends");
 	lexemes.ajoute_mot_cle("retiens");
 	lexemes.ajoute_mot_cle("retourne");
-	lexemes.ajoute_mot_cle("rien");
+	lexemes.ajoute_mot_cle("rien", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("répète");
 	lexemes.ajoute_mot_cle("sansarrêt");
 	lexemes.ajoute_mot_cle("saufsi");
@@ -127,26 +140,26 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_mot_cle("taille_de");
 	lexemes.ajoute_mot_cle("tantque");
 	lexemes.ajoute_mot_cle("tente");
-	lexemes.ajoute_mot_cle("type_de");
-	lexemes.ajoute_mot_cle("type_de_données");
+	lexemes.ajoute_mot_cle("type_de", EST_SPECIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("type_de_données", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("union");
 	lexemes.ajoute_mot_cle("vrai");
-	lexemes.ajoute_mot_cle("z16");
-	lexemes.ajoute_mot_cle("z32");
-	lexemes.ajoute_mot_cle("z64");
-	lexemes.ajoute_mot_cle("z8");
+	lexemes.ajoute_mot_cle("z16", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("z32", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("z64", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_mot_cle("z8", EST_IDENTIFIANT_TYPE);
 	lexemes.ajoute_mot_cle("énum");
 	lexemes.ajoute_mot_cle("énum_drapeau");
-	lexemes.ajoute_ponctuation("!", "EXCLAMATION");
+	lexemes.ajoute_ponctuation("!", "EXCLAMATION", EST_OPERATEUR_UNAIRE | EST_OPERATEUR_BOOL);
 	lexemes.ajoute_ponctuation("\"", "GUILLEMET");
 	lexemes.ajoute_ponctuation("#", "DIRECTIVE");
-	lexemes.ajoute_ponctuation("$", "DOLLAR");
+	lexemes.ajoute_ponctuation("$", "DOLLAR", EST_SPECIFIANT_TYPE);
 	lexemes.ajoute_ponctuation("%", "POURCENT");
-	lexemes.ajoute_ponctuation("&", "ESPERLUETTE");
+	lexemes.ajoute_ponctuation("&", "ESPERLUETTE", EST_SPECIFIANT_TYPE);
 	lexemes.ajoute_ponctuation("'", "APOSTROPHE");
 	lexemes.ajoute_ponctuation("(", "PARENTHESE_OUVRANTE");
 	lexemes.ajoute_ponctuation(")", "PARENTHESE_FERMANTE");
-	lexemes.ajoute_ponctuation("*", "FOIS");
+	lexemes.ajoute_ponctuation("*", "FOIS", EST_SPECIFIANT_TYPE);
 	lexemes.ajoute_ponctuation("+", "PLUS");
 	lexemes.ajoute_ponctuation(",", "VIRGULE");
 	lexemes.ajoute_ponctuation("-", "MOINS");
@@ -154,54 +167,54 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_ponctuation("/", "DIVISE");
 	lexemes.ajoute_ponctuation(":", "DOUBLE_POINTS");
 	lexemes.ajoute_ponctuation(";", "POINT_VIRGULE");
-	lexemes.ajoute_ponctuation("<", "INFERIEUR");
+	lexemes.ajoute_ponctuation("<", "INFERIEUR", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
 	lexemes.ajoute_ponctuation("=", "EGAL");
-	lexemes.ajoute_ponctuation(">", "SUPERIEUR");
+	lexemes.ajoute_ponctuation(">", "SUPERIEUR", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
 	lexemes.ajoute_ponctuation("@", "AROBASE");
-	lexemes.ajoute_ponctuation("[", "CROCHET_OUVRANT");
+	lexemes.ajoute_ponctuation("[", "CROCHET_OUVRANT", EST_OPERATEUR_UNAIRE | EST_SPECIFIANT_TYPE);
 	lexemes.ajoute_ponctuation("]", "CROCHET_FERMANT");
 	lexemes.ajoute_ponctuation("^", "CHAPEAU");
 	lexemes.ajoute_ponctuation("{", "ACCOLADE_OUVRANTE");
 	lexemes.ajoute_ponctuation("|", "BARRE");
 	lexemes.ajoute_ponctuation("}", "ACCOLADE_FERMANTE");
-	lexemes.ajoute_ponctuation("~", "TILDE");
-	lexemes.ajoute_ponctuation("!=", "DIFFERENCE");
-	lexemes.ajoute_ponctuation("%=", "MODULO_EGAL");
-	lexemes.ajoute_ponctuation("&&", "ESP_ESP");
-	lexemes.ajoute_ponctuation("&=", "ET_EGAL");
+	lexemes.ajoute_ponctuation("~", "TILDE", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_ponctuation("!=", "DIFFERENCE", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
+	lexemes.ajoute_ponctuation("%=", "MODULO_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation("&&", "ESP_ESP", EST_OPERATEUR_BOOL);
+	lexemes.ajoute_ponctuation("&=", "ET_EGAL", EST_ASSIGNATION_COMPOSEE);
 	lexemes.ajoute_ponctuation("*/", "FIN_BLOC_COMMENTAIRE");
-	lexemes.ajoute_ponctuation("*=", "MULTIPLIE_EGAL");
-	lexemes.ajoute_ponctuation("+=", "PLUS_EGAL");
-	lexemes.ajoute_ponctuation("-=", "MOINS_EGAL");
+	lexemes.ajoute_ponctuation("*=", "MULTIPLIE_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation("+=", "PLUS_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation("-=", "MOINS_EGAL", EST_ASSIGNATION_COMPOSEE);
 	lexemes.ajoute_ponctuation("->", "RETOUR_TYPE");
 	lexemes.ajoute_ponctuation("/*", "DEBUT_BLOC_COMMENTAIRE");
 	lexemes.ajoute_ponctuation("//", "DEBUT_LIGNE_COMMENTAIRE");
-	lexemes.ajoute_ponctuation("/=", "DIVISE_EGAL");
+	lexemes.ajoute_ponctuation("/=", "DIVISE_EGAL", EST_ASSIGNATION_COMPOSEE);
 	lexemes.ajoute_ponctuation("::", "DECLARATION_CONSTANTE");
 	lexemes.ajoute_ponctuation(":=", "DECLARATION_VARIABLE");
 	lexemes.ajoute_ponctuation("<<", "DECALAGE_GAUCHE");
-	lexemes.ajoute_ponctuation("<=", "INFERIEUR_EGAL");
-	lexemes.ajoute_ponctuation("==", "EGALITE");
-	lexemes.ajoute_ponctuation(">=", "SUPERIEUR_EGAL");
+	lexemes.ajoute_ponctuation("<=", "INFERIEUR_EGAL", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
+	lexemes.ajoute_ponctuation("==", "EGALITE", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
+	lexemes.ajoute_ponctuation(">=", "SUPERIEUR_EGAL", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
 	lexemes.ajoute_ponctuation(">>", "DECALAGE_DROITE");
-	lexemes.ajoute_ponctuation("^=", "OUX_EGAL");
-	lexemes.ajoute_ponctuation("|=", "OU_EGAL");
-	lexemes.ajoute_ponctuation("||", "BARRE_BARRE");
+	lexemes.ajoute_ponctuation("^=", "OUX_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation("|=", "OU_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPERATEUR_BOOL);
 	lexemes.ajoute_ponctuation("---", "NON_INITIALISATION");
-	lexemes.ajoute_ponctuation("...", "TROIS_POINTS");
-	lexemes.ajoute_ponctuation("<<=", "DEC_GAUCHE_EGAL");
-	lexemes.ajoute_ponctuation(">>=", "DEC_DROITE_EGAL");
+	lexemes.ajoute_ponctuation("...", "TROIS_POINTS", EST_SPECIFIANT_TYPE);
+	lexemes.ajoute_ponctuation("<<=", "DEC_GAUCHE_EGAL", EST_ASSIGNATION_COMPOSEE);
+	lexemes.ajoute_ponctuation(">>=", "DEC_DROITE_EGAL", EST_ASSIGNATION_COMPOSEE);
 	lexemes.ajoute_extra("", "NOMBRE_REEL");
 	lexemes.ajoute_extra("", "NOMBRE_ENTIER");
-	lexemes.ajoute_extra("-", "PLUS_UNAIRE");
-	lexemes.ajoute_extra("+", "MOINS_UNAIRE");
-	lexemes.ajoute_extra("*", "FOIS_UNAIRE");
-	lexemes.ajoute_extra("&", "ESP_UNAIRE");
-	lexemes.ajoute_extra("", "CHAINE_CARACTERE");
-	lexemes.ajoute_extra("", "CHAINE_LITTERALE");
-	lexemes.ajoute_extra("", "CARACTÈRE");
+	lexemes.ajoute_extra("-", "PLUS_UNAIRE", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_extra("+", "MOINS_UNAIRE", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_extra("*", "FOIS_UNAIRE", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_extra("&", "ESP_UNAIRE", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_extra("", "CHAINE_CARACTERE", EST_IDENTIFIANT_TYPE);
+	lexemes.ajoute_extra("", "CHAINE_LITTERALE", EST_CHAINE_LITTERALE);
+	lexemes.ajoute_extra("", "CARACTÈRE", EST_CHAINE_LITTERALE);
 	lexemes.ajoute_extra("*", "POINTEUR");
-	lexemes.ajoute_extra("", "TABLEAU");
+	lexemes.ajoute_extra("", "TABLEAU", EST_OPERATEUR_UNAIRE);
 	lexemes.ajoute_extra("&", "REFERENCE");
 	lexemes.ajoute_extra("", "CARACTERE_BLANC");
 	lexemes.ajoute_extra("// commentaire", "COMMENTAIRE");
@@ -269,9 +282,9 @@ static void genere_enum(const ListeLexemes &lexemes, std::ostream &os)
 	os << "};\n";
 }
 
-static void genere_est_mot_cle(const ListeLexemes &lexemes, std::ostream &os)
+static void genere_fonction_cpp_pour_drapeau(const ListeLexemes &lexemes, kuri::chaine_statique nom, uint32_t drapeau, std::ostream &os)
 {
-	os << "bool est_mot_cle(GenreLexeme genre)\n";
+	os << "bool " << nom << "(GenreLexeme genre)\n";
 	os << "{\n";
 	os << "\tswitch (genre) {\n";
 	os << "\t\tdefault:\n";
@@ -279,7 +292,7 @@ static void genere_est_mot_cle(const ListeLexemes &lexemes, std::ostream &os)
 	os << "\t\t\treturn false;\n";
 	os << "\t\t}\n";
 	POUR (lexemes.lexemes) {
-		if (!it.est_mot_cle) {
+		if ((it.drapeaux & drapeau) == 0) {
 			continue;
 		}
 		os << "\t\tcase GenreLexeme::" << it.nom_enum_sans_accent << ":\n";
@@ -290,9 +303,9 @@ static void genere_est_mot_cle(const ListeLexemes &lexemes, std::ostream &os)
 	os << "\t}\n";
 	os << "}\n\n";
 
-	os << "bool est_mot_cle(const Lexeme &lexeme)\n";
+	os << "bool " << nom << "(const Lexeme &lexeme)\n";
 	os << "{\n";
-	os << "\treturn est_mot_cle(lexeme.genre);\n";
+	os << "\treturn " << nom << "(lexeme.genre);\n";
 	os << "}\n\n";
 }
 
@@ -368,6 +381,20 @@ struct chaine_statique;
 
 bool est_mot_cle(GenreLexeme genre);
 bool est_mot_cle(const Lexeme &lexeme);
+bool est_assignation_composee(GenreLexeme genre);
+bool est_assignation_composee(const Lexeme &lexeme);
+bool est_operateur_bool(GenreLexeme genre);
+bool est_operateur_bool(const Lexeme &lexeme);
+bool est_operateur_comparaison(GenreLexeme genre);
+bool est_operateur_comparaison(const Lexeme &lexeme);
+bool est_chaine_litterale(GenreLexeme genre);
+bool est_chaine_litterale(const Lexeme &lexeme);
+bool est_specifiant_type(GenreLexeme genre);
+bool est_specifiant_type(const Lexeme &lexeme);
+bool est_identifiant_type(GenreLexeme genre);
+bool est_identifiant_type(const Lexeme &lexeme);
+bool est_operateur_unaire(GenreLexeme genre);
+bool est_operateur_unaire(const Lexeme &lexeme);
 std::ostream &operator<<(std::ostream &os, GenreLexeme genre);
 kuri::chaine_statique chaine_du_genre_de_lexeme(GenreLexeme id);
 kuri::chaine_statique chaine_du_lexeme(GenreLexeme genre);
@@ -381,7 +408,34 @@ static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
 	os << "#include \"lexemes.hh\"\n";
 	os << "#include \"structures/chaine_statique.hh\"\n";
 	genere_impression_lexeme(lexemes, os);
-	genere_est_mot_cle(lexemes, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_mot_cle", EST_MOT_CLE, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_assignation_composee", EST_ASSIGNATION_COMPOSEE, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_operateur_bool", EST_OPERATEUR_BOOL, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_operateur_comparaison", EST_OPERATEUR_COMPARAISON, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_chaine_litterale", EST_CHAINE_LITTERALE, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_specifiant_type", EST_SPECIFIANT_TYPE, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_identifiant_type", EST_IDENTIFIANT_TYPE, os);
+	genere_fonction_cpp_pour_drapeau(lexemes, "est_operateur_unaire", EST_OPERATEUR_UNAIRE, os);
+}
+
+static void genere_fonction_kuri_pour_drapeau(const ListeLexemes &lexemes, kuri::chaine_statique nom, uint32_t drapeau, std::ostream &os)
+{
+	os << nom << " :: fonc (genre: GenreLexème) -> bool\n";
+	os << "{\n";
+	os << "\tdiscr genre {\n";
+	auto virgule = "\t\t";
+	POUR (lexemes.lexemes) {
+		if ((it.drapeaux & drapeau) == 0) {
+			continue;
+		}
+
+		os << virgule << it.nom_enum_sans_accent;
+		virgule = ",\n\t\t";
+	}
+	os << " { retourne vrai; }\n";
+	os << "\t\tsinon { retourne faux; }\n";
+	os << "\t}\n";
+	os << "}\n\n";
 }
 
 static void genere_fichier_kuri(const ListeLexemes &lexemes, std::ostream &os)
@@ -396,22 +450,14 @@ static void genere_fichier_kuri(const ListeLexemes &lexemes, std::ostream &os)
 	os << "\tgenre: GenreLexème\n";
 	os << "\ttexte: chaine\n";
 	os << "}\n\n";
-	os << "est_mot_clé :: fonc (genre: GenreLexème) -> bool\n";
-	os << "{\n";
-	os << "\tdiscr genre {\n";
-	auto virgule = "\t\t";
-	POUR (lexemes.lexemes) {
-		if (!it.est_mot_cle) {
-			continue;
-		}
-
-		os << virgule << it.nom_enum_sans_accent;
-		virgule = ",\n\t\t";
-	}
-	os << " { retourne vrai; }\n";
-	os << "\t\tsinon { retourne faux; }\n";
-	os << "\t}\n";
-	os << "}\n\n";
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_mot_clé", EST_MOT_CLE, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_assignation_composée", EST_ASSIGNATION_COMPOSEE, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_opérateur_bool", EST_OPERATEUR_BOOL, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_opérateur_comparaison", EST_OPERATEUR_COMPARAISON, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_chaine_littérale", EST_CHAINE_LITTERALE, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_spécifiant_type", EST_SPECIFIANT_TYPE, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_identifiant_type", EST_IDENTIFIANT_TYPE, os);
+	genere_fonction_kuri_pour_drapeau(lexemes, "est_opérateur_unaire", EST_OPERATEUR_UNAIRE, os);
 }
 
 int main(int argc, const char **argv)

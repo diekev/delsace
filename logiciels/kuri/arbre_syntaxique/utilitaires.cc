@@ -1487,7 +1487,7 @@ static void rassemble_operations_chainees(
 {
 	auto expr_bin = static_cast<NoeudExpressionBinaire *>(racine);
 
-	if (est_operateur_comp(expr_bin->operande_gauche->lexeme->genre)) {
+	if (est_operateur_comparaison(expr_bin->operande_gauche->lexeme->genre)) {
 		rassemble_operations_chainees(expr_bin->operande_gauche, comparaisons);
 
 		auto expr_operande = static_cast<NoeudExpressionBinaire *>(expr_bin->operande_gauche);

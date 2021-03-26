@@ -553,7 +553,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			}
 
 			/* détecte a comp b comp c */
-			if (est_operateur_comp(type_op) && est_operateur_comp(enfant1->lexeme->genre)) {
+			if (est_operateur_comparaison(type_op) && est_operateur_comparaison(enfant1->lexeme->genre)) {
 				expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
 				expr->type = espace->typeuse[TypeBase::BOOL];
 

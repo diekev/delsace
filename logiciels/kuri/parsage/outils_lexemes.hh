@@ -35,18 +35,4 @@ struct PositionLexeme {
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);
 
-bool est_operateur_bool(GenreLexeme type);
-
-bool est_assignation_composee(GenreLexeme type);
-
 GenreLexeme operateur_pour_assignation_composee(GenreLexeme type);
-
-bool est_operateur_comp(GenreLexeme type);
-
-bool est_chaine_litterale(GenreLexeme id);
-
-bool est_specifiant_type(GenreLexeme identifiant);
-
-bool est_identifiant_type(GenreLexeme identifiant);
-
-bool est_operateur_unaire(GenreLexeme identifiant);

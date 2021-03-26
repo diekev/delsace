@@ -54,14 +54,6 @@ désactive_compilation_espace_défaut :: fonc ()
 }
 
 // ----------------------------------------------------------------------------
-// Fonctions de travail sur les lexèmes.
-
-est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
-{
-    retourne genre == GenreLexème.CHAINE_LITTERALE || genre == GenreLexème.CARACTERE
-}
-
-// ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour les tests unitaires
 
 compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionCodeSource())
