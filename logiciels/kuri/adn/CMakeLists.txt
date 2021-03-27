@@ -33,6 +33,15 @@ target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
 
 ################################################################################
 
+set(NOM_BIBLIOTHEQUE kuri_adn)
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC adn.cc adn.hh)
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} kuri_parsage kuri_outils_adn)
+add_dependencies(${NOM_BIBLIOTHEQUE} kuri_parsage)
+
+################################################################################
+
 set(NOM_EXECUTABLE genere_lexemes)
 
 set(BIBLIOTHEQUES
@@ -56,6 +65,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	kuri_adn
 	kuri_outils_adn
 	kuri_parsage
 	kuri_structures
@@ -76,6 +86,7 @@ add_dependencies(${NOM_EXECUTABLE} kuri_parsage)
 set(NOM_EXECUTABLE genere_options)
 
 set(BIBLIOTHEQUES
+	kuri_adn
 	kuri_outils_adn
 	kuri_parsage
 	kuri_structures

@@ -1,10 +1,10 @@
 // ADN pour les fonctions d'interface de la Compilatrice.
 
-fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine c) -> rien
+fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> rien
 
-fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine c) -> rien
+fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> rien
 
-fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine c)
+fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 
 fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
@@ -16,17 +16,17 @@ fonction compilatrice_commence_interception(EspaceDeTravail * espace)
 
 fonction compilatrice_termine_interception(EspaceDeTravail * espace)
 
-fonction compilatrice_rapporte_erreur(EspaceDeTravail * espace, chaine fichier, z32 ligne, chaine message)
+fonction compilatrice_rapporte_erreur(EspaceDeTravail * espace, chaine_statique fichier, z32 ligne, chaine_statique message)
 
-fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine fichier, z32 ligne, chaine message)
+fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_statique fichier, z32 ligne, chaine_statique message)
 
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
-fonction compilatrice_lèxe_fichier(chaine fichier) -> Lexème []
+fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
 
 /* Retourne l'espace de travail dans lequel le métaprogramme appelant la fonction est exécuté. */
 fonction compilatrice_espace_courant() -> EspaceDeTravail *
 
-fonction démarre_un_espace_de_travail(chaine nom, OptionsDeCompilation * options) -> EspaceDeTravail *
+fonction démarre_un_espace_de_travail(chaine_statique nom, OptionsDeCompilation * options) -> EspaceDeTravail *
 
 fonction espace_défaut_compilation() -> EspaceDeTravail *
 
