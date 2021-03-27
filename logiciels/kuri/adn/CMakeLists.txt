@@ -19,14 +19,24 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_EXECUTABLE genere_lexemes)
-
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
+################################################################################
+
+set(NOM_BIBLIOTHEQUE kuri_outils_adn)
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC outils.cc outils.hh)
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+
+################################################################################
+
+set(NOM_EXECUTABLE genere_lexemes)
+
 set(BIBLIOTHEQUES
+	kuri_outils_adn
 	kuri_structures
 )
 
@@ -46,6 +56,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	kuri_outils_adn
 	kuri_parsage
 	kuri_structures
 	bib_structures

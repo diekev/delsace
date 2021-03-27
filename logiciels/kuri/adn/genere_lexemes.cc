@@ -32,6 +32,8 @@
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
+#include "outils.hh"
+
 enum {
 	EST_MOT_CLE = (1 << 0),
 	EST_ASSIGNATION_COMPOSEE = (1 << 1),
@@ -222,44 +224,6 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_extra("...", "INCONNU");
 }
 
-static bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
-{
-	bool remplacement_effectue = false;
-	size_t index = 0;
-	while (true) {
-		/* Locate the substring to replace. */
-		index = std_string.find(motif, index);
-
-		if (index == std::string::npos) {
-			break;
-		}
-
-		/* Make the replacement. */
-		std_string.replace(index, motif.size(), remplacement);
-
-		/* Advance index forward so the next iteration doesn't pick it up as well. */
-		index += motif.size();
-		remplacement_effectue = true;
-	}
-
-	return remplacement_effectue;
-}
-
-static kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
-{
-	auto std_string = std::string(avec_accent.pointeur(), static_cast<size_t>(avec_accent.taille()));
-
-	remplace(std_string, "é", "e");
-	remplace(std_string, "è", "e");
-	remplace(std_string, "ê", "e");
-	remplace(std_string, "û", "u");
-	remplace(std_string, "É", "E");
-	remplace(std_string, "È", "E");
-	remplace(std_string, "Ê", "E");
-
-	return kuri::chaine(std_string.c_str(), static_cast<long>(std_string.size()));
-}
-
 static void construit_nom_enums(ListeLexemes &lexemes)
 {
 	POUR (lexemes.lexemes) {
@@ -355,10 +319,10 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
 {
 	os << "#pragma once\n";
 	os << '\n';
-	os << "#include <iostream>\n";
-	os << "#include \"biblinternes/structures/chaine.hh\"\n";
+	inclus_systeme(os, "iostream");
+	inclus(os, "biblinternes/structures/chaine.hh");
 	os << '\n';
-	os << "struct IdentifiantCode;\n";
+	prodeclare_struct(os, "IdentifiantCode");
 	os << '\n';
 	genere_enum(lexemes, os);
 
@@ -412,8 +376,8 @@ kuri::chaine_statique chaine_du_lexeme(GenreLexeme genre);
 
 static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
 {
-	os << "#include \"lexemes.hh\"\n";
-	os << "#include \"structures/chaine_statique.hh\"\n";
+	inclus(os, "lexemes.hh");
+	inclus(os, "structures/chaine_statique.hh");
 	genere_impression_lexeme(lexemes, os);
 	genere_fonction_cpp_pour_drapeau(lexemes, "est_mot_cle", EST_MOT_CLE, os);
 	genere_fonction_cpp_pour_drapeau(lexemes, "est_assignation_composee", EST_ASSIGNATION_COMPOSEE, os);
