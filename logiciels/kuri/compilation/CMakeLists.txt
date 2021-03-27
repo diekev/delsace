@@ -27,38 +27,27 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
-add_library(kuri_ipa_compilatrice ipa.cc ipa.hh)
-target_include_directories(kuri_ipa_compilatrice PUBLIC "${INCLUSIONS}")
-target_link_libraries(kuri_ipa_compilatrice kuri_parsage)
-add_dependencies(kuri_ipa_compilatrice genere_ipa)
+macro(genere_code_adn __bibliotheque__ __generatrice__ __fichier__)
+	add_library(${__bibliotheque__} ${__fichier__}.cc ${__fichier__}.hh)
+	target_include_directories(${__bibliotheque__} PUBLIC "${INCLUSIONS}")
+	target_link_libraries(${__bibliotheque__} kuri_parsage)
+	add_dependencies(${__bibliotheque__} ${__generatrice__})
 
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.cc
-	COMMAND genere_ipa "${CMAKE_CURRENT_SOURCE_DIR}/ipa.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
-	DEPENDS genere_ipa ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
-)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.cc
+		COMMAND ${__generatrice__} "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+		DEPENDS ${__generatrice__} ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+	)
 
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh
-	COMMAND genere_ipa "${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
-	DEPENDS genere_ipa ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
-)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.hh
+		COMMAND ${__generatrice__} "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+		DEPENDS ${__generatrice__} ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+	)
+endmacro()
 
-add_library(kuri_options_compilatrice options.cc options.hh)
-target_include_directories(kuri_options_compilatrice PUBLIC "${INCLUSIONS}")
-add_dependencies(kuri_options_compilatrice genere_options)
-
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/options.cc
-	COMMAND genere_options "${CMAKE_CURRENT_SOURCE_DIR}/options.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
-	DEPENDS genere_options ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
-)
-
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/options.hh
-	COMMAND genere_options "${CMAKE_CURRENT_SOURCE_DIR}/options.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
-	DEPENDS genere_options ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
-)
+genere_code_adn(kuri_ipa_compilatrice genere_ipa ipa)
+genere_code_adn(kuri_options_compilatrice genere_options options)
 
 set(BIBLIOTHEQUES
 	kuri_arbre_syntaxique
