@@ -6,9 +6,9 @@ fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine c) ->
 
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine c)
 
-fonction compilatrice_obtiens_options() -> OptionsCompilation *
+fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
-fonction compilatrice_ajourne_options(OptionsCompilation * options) -> rien
+fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> rien
 
 fonction compilatrice_attend_message() -> Message *
 
@@ -26,7 +26,7 @@ fonction compilatrice_lèxe_fichier(chaine fichier) -> Lexème []
 /* Retourne l'espace de travail dans lequel le métaprogramme appelant la fonction est exécuté. */
 fonction compilatrice_espace_courant() -> EspaceDeTravail *
 
-fonction démarre_un_espace_de_travail(chaine nom, OptionsCompilation * options) -> EspaceDeTravail *
+fonction démarre_un_espace_de_travail(chaine nom, OptionsDeCompilation * options) -> EspaceDeTravail *
 
 fonction espace_défaut_compilation() -> EspaceDeTravail *
 

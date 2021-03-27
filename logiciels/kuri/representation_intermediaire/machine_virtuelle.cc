@@ -1173,7 +1173,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
-					auto options = depile<OptionsCompilation *>(site);
+					auto options = depile<OptionsDeCompilation *>(site);
 					compilatrice.ajourne_options_compilation(options);
 					break;
 				}
@@ -1201,7 +1201,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
-					auto options = depile<OptionsCompilation *>(site);
+					auto options = depile<OptionsDeCompilation *>(site);
 					auto nom = depile<kuri::chaine_statique>(site);
 					auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
 					empile(site, espace);

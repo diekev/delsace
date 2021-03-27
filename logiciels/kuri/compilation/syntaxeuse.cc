@@ -2080,7 +2080,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		m_unite->espace->fonction_point_d_entree = noeud;
 
 		// Ne compile le point d'entrée que pour les exécutbables
-		if (m_unite->espace->options.objet_genere == ObjetGenere::Executable) {
+		if (m_unite->espace->options.resultat == ResultatCompilation::EXECUTABLE) {
 			noeud->drapeaux |= EST_RACINE;
 		}
 	}

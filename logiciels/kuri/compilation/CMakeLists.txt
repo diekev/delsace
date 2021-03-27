@@ -22,6 +22,7 @@
 set(NOM_CIBLE kuri_compilation)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
@@ -29,6 +30,7 @@ set(INCLUSIONS
 add_library(kuri_ipa_compilatrice ipa.cc ipa.hh)
 target_include_directories(kuri_ipa_compilatrice PUBLIC "${INCLUSIONS}")
 target_link_libraries(kuri_ipa_compilatrice kuri_parsage)
+add_dependencies(kuri_ipa_compilatrice genere_ipa)
 
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.cc
@@ -40,6 +42,22 @@ add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh
 	COMMAND genere_ipa "${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
 	DEPENDS genere_ipa ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
+)
+
+add_library(kuri_options_compilatrice options.cc options.hh)
+target_include_directories(kuri_options_compilatrice PUBLIC "${INCLUSIONS}")
+add_dependencies(kuri_options_compilatrice genere_options)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/options.cc
+	COMMAND genere_options "${CMAKE_CURRENT_SOURCE_DIR}/options.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
+	DEPENDS genere_options ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
+)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/options.hh
+	COMMAND genere_options "${CMAKE_CURRENT_SOURCE_DIR}/options.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
+	DEPENDS genere_options ${CMAKE_CURRENT_SOURCE_DIR}/../adn/options.adn
 )
 
 set(BIBLIOTHEQUES
@@ -70,7 +88,6 @@ set(SOURCES
 	message.hh
 	metaprogramme.hh
 	monomorphisations.hh
-	options.hh
 	operateurs.hh
 	portee.hh
 	structures.hh
@@ -95,7 +112,6 @@ set(SOURCES
 	metaprogramme.cc
 	monomorphisations.cc
 	operateurs.cc
-	options.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc
@@ -118,5 +134,5 @@ target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 
-add_dependencies(kuri_ipa_compilatrice genere_ipa)
 add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)
+add_dependencies(${NOM_CIBLE} kuri_options_compilatrice)

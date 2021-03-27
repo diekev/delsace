@@ -36,7 +36,7 @@
 
 struct ContexteLexage;
 struct EspaceDeTravail;
-struct OptionsCompilation;
+struct OptionsDeCompilation;
 struct Statistiques;
 
 struct Compilatrice {
@@ -117,7 +117,7 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
-	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, kuri::chaine const &nom);
+	EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options, kuri::chaine const &nom);
 
 	/* ********************************************************************** */
 
@@ -142,8 +142,8 @@ struct Compilatrice {
 	}
 
 public:
-	OptionsCompilation *options_compilation();
-	void ajourne_options_compilation(OptionsCompilation *options);
+	OptionsDeCompilation *options_compilation();
+	void ajourne_options_compilation(OptionsDeCompilation *options);
 	void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
 	void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
 	void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);

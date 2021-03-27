@@ -40,7 +40,7 @@
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
 
-EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts)
+EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts)
 	: options(opts)
 	, typeuse(graphe_dependance, this->operateurs)
 	, m_compilatrice(compilatrice)
@@ -48,13 +48,13 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);
 
-	if (options.type_coulisse == TypeCoulisse::C) {
+	if (options.coulisse == TypeCoulisse::C) {
 		coulisse = memoire::loge<CoulisseC>("CoulisseC");
 	}
-	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+	else if (options.coulisse == TypeCoulisse::LLVM) {
 		coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
 	}
-	else if (options.type_coulisse == TypeCoulisse::ASM) {
+	else if (options.coulisse == TypeCoulisse::ASM) {
 		coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
 	}
 	else {
@@ -64,17 +64,17 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-	if (options.type_coulisse == TypeCoulisse::C) {
+	if (options.coulisse == TypeCoulisse::C) {
 		auto c = dynamic_cast<CoulisseC *>(coulisse);
 		memoire::deloge("CoulisseC", c);
 		coulisse = nullptr;
 	}
-	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+	else if (options.coulisse == TypeCoulisse::LLVM) {
 		auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
 		memoire::deloge("CoulisseLLVM", c);
 		coulisse = nullptr;
 	}
-	else if (options.type_coulisse == TypeCoulisse::ASM) {
+	else if (options.coulisse == TypeCoulisse::ASM) {
 		auto c = dynamic_cast<CoulisseASM *>(coulisse);
 		memoire::deloge("CoulisseASM", c);
 		coulisse = nullptr;

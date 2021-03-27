@@ -70,3 +70,21 @@ target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")
 
 add_dependencies(${NOM_EXECUTABLE} kuri_parsage)
+
+################################################################################
+
+set(NOM_EXECUTABLE genere_options)
+
+set(BIBLIOTHEQUES
+	kuri_outils_adn
+	kuri_parsage
+	kuri_structures
+	bib_structures
+	bib_moultfilage
+)
+
+add_executable(${NOM_EXECUTABLE} genere_options.cc)
+
+target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")

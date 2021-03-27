@@ -85,7 +85,7 @@ private:
 
 public:
 	kuri::chaine nom{};
-	OptionsCompilation options{};
+	OptionsDeCompilation options{};
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
@@ -142,7 +142,7 @@ public:
 
 	Compilatrice &m_compilatrice;
 
-	explicit EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts);
+	explicit EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
 

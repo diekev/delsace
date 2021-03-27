@@ -1517,7 +1517,7 @@ static void genere_code_C(
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
 {
-	if (espace.options.objet_genere == ObjetGenere::Executable) {
+	if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
 		genere_code_C_depuis_fonction_principale(compilatrice, constructrice_ri, espace, fichier_sortie);
 	}
 	else {
@@ -1525,13 +1525,13 @@ static void genere_code_C(
 	}
 }
 
-static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsCompilation const &ops)
+static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsDeCompilation const &ops)
 {
 	Enchaineuse enchaineuse;
 	enchaineuse << "/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ";
 
 	// À FAIRE : comment lié les tables pour un fichier objet ?
-//	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+//	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
 //		enchaineuse << "/tmp/tables_r16.o ";
 //	}
 
@@ -1543,7 +1543,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Op
 	 * lieu d'une chaine littérale à printf et al. */
 	enchaineuse << "-Wno-format-security ";
 
-	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+	if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
 		/* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une manière de le faire depuis les métaprogrammes */
 		enchaineuse << "-fno-stack-protector ";
 	}
@@ -1580,7 +1580,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Op
 		}
 	}
 
-	if (ops.architecture_cible == ArchitectureCible::X86) {
+	if (ops.architecture == ArchitectureCible::X86) {
 		enchaineuse << "-m32 ";
 	}
 
@@ -1593,7 +1593,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Op
 		enchaineuse << chm;
 	}
 
-	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+	if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
 		enchaineuse << " -o ";
 		enchaineuse << ops.nom_sortie;
 		enchaineuse << ".o";
@@ -1637,14 +1637,14 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &
 
 bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace)
 {
-	compile_objet_r16(std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()), espace.options.architecture_cible);
+	compile_objet_r16(std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()), espace.options.architecture);
 
 	auto debut_executable = dls::chrono::compte_seconde();
 
 	Enchaineuse enchaineuse;
 	enchaineuse << "/usr/bin/g++-9 /tmp/compilation_kuri.o ";
 
-	if (espace.options.architecture_cible == ArchitectureCible::X86) {
+	if (espace.options.architecture == ArchitectureCible::X86) {
 		enchaineuse << " /tmp/r16_tables_x86.o ";
 	}
 	else {
@@ -1664,7 +1664,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
 		enchaineuse << " -l" << bib;
 	}
 
-	if (espace.options.architecture_cible == ArchitectureCible::X86) {
+	if (espace.options.architecture == ArchitectureCible::X86) {
 		enchaineuse << " -m32 ";
 	}
 

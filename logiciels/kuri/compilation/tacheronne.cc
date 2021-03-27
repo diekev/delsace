@@ -456,7 +456,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		{
 			espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
-			if (espace->options.objet_genere == ObjetGenere::Executable) {
+			if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
 				espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
 				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
 				return Tache::liaison_objet(espace);
@@ -571,7 +571,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 	}
 
 	if (!espace->possede_erreur && espace->peut_generer_code_final()) {
-		if (espace->options.objet_genere == ObjetGenere::Rien) {
+		if (espace->options.resultat == ResultatCompilation::RIEN) {
 			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 		}
 		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {

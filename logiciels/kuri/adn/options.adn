@@ -13,7 +13,7 @@
 énum ArchitectureCible {
     @code ArchitectureCible
 
-    I868
+	X86
     X64
 }
 
@@ -40,10 +40,10 @@ struct OptionsDeCompilation {
 
     chaine nom_sortie = "a.out"
 
-    TypeCoulisse coulisse = C
-    RésultatCompilation résultat = EXÉCUTABLE
-    ArchitectureCible architecture = X64
-    NiveauOptimisation niveau_optimisation = AUCUN
+	TypeCoulisse coulisse = .C
+	RésultatCompilation résultat = .EXÉCUTABLE
+	ArchitectureCible architecture = .X64
+	NiveauOptimisation niveau_optimisation = .AUCUN
 
     bool émets_métriques = vrai
     bool continue_si_erreur = faux

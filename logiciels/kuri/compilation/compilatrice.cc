@@ -238,7 +238,7 @@ bool Compilatrice::possede_erreur(const EspaceDeTravail *espace) const
 
 /* ************************************************************************** */
 
-EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const kuri::chaine &nom)
+EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options, const kuri::chaine &nom)
 {
 	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options);
 	espace->nom = nom;
@@ -269,12 +269,12 @@ ContexteLexage Compilatrice::contexte_lexage()
 // directement les fonctions se trouvant sur EspaceDeTravail, ou enlignent la
 // logique dans la MachineVirtuelle.
 
-OptionsCompilation *Compilatrice::options_compilation()
+OptionsDeCompilation *Compilatrice::options_compilation()
 {
 	return &espace_de_travail_defaut->options;
 }
 
-void Compilatrice::ajourne_options_compilation(OptionsCompilation *options)
+void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
 {
 	espace_de_travail_defaut->options = *options;
 }

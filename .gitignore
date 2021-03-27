@@ -12,8 +12,11 @@ logiciels/kuri/modules/Image/*.h
 
 logiciels/kuri/compilation/ipa.cc
 logiciels/kuri/compilation/ipa.hh
+logiciels/kuri/compilation/options.cc
+logiciels/kuri/compilation/options.hh
 logiciels/kuri/modules/Compilatrice/lexèmes.kuri
 logiciels/kuri/modules/Compilatrice/ipa.kuri
+logiciels/kuri/modules/Compilatrice/options.kuri
 logiciels/kuri/parsage/empreinte_parfaite.hh
 logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh

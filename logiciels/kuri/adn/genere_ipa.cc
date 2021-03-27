@@ -258,7 +258,7 @@ static void genere_code_cpp(const kuri::tableau<Fonction> &fonctions, std::ostre
 		prodeclare_struct(os, "IdentifiantCode");
 		prodeclare_struct(os, "Message");
 		prodeclare_struct(os, "Module");
-		prodeclare_struct(os, "OptionsCompilation");
+		prodeclare_struct(os, "OptionsDeCompilation");
 		prodeclare_struct(os, "TableIdentifiant");
 		os << "\n";
 		prodeclare_struct_espace(os, "chaine_statique", "kuri", "");

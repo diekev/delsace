@@ -1470,7 +1470,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravai
 	}
 #endif
 
-	if (espace.options.objet_genere == ObjetGenere::Executable) {
+	if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
 		std::cout << "Écriture du code dans un fichier..." << std::endl;
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
 		if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
