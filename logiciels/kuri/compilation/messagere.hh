@@ -28,63 +28,12 @@
 
 #include "arbre_syntaxique/noeud_code.hh"
 
+#include "message.hh"
+
 struct EspaceDeTravail;
 struct Module;
 struct NoeudDeclaration;
 struct UniteCompilation;
-
-#define ENUMERE_PHASES_COMPILATION \
-	ENUMERE_PHASE(PARSAGE_EN_COURS) \
-	ENUMERE_PHASE(PARSAGE_TERMINE) \
-	ENUMERE_PHASE(TYPAGE_TERMINE) \
-	ENUMERE_PHASE(GENERATION_CODE_TERMINEE) \
-	ENUMERE_PHASE(AVANT_GENERATION_OBJET) \
-	ENUMERE_PHASE(APRES_GENERATION_OBJET) \
-	ENUMERE_PHASE(AVANT_LIAISON_EXECUTABLE) \
-	ENUMERE_PHASE(APRES_LIAISON_EXECUTABLE) \
-	ENUMERE_PHASE(COMPILATION_TERMINEE)
-
-enum class PhaseCompilation : int {
-#define ENUMERE_PHASE(x) x,
-	ENUMERE_PHASES_COMPILATION
-#undef ENUMERE_PHASE
-};
-
-const char *chaine_phase_compilation(PhaseCompilation phase);
-std::ostream &operator<<(std::ostream &os, PhaseCompilation phase);
-
-enum class GenreMessage : int {
-	INVALIDE,
-
-	FICHIER_OUVERT,
-	FICHIER_FERME,
-	MODULE_OUVERT,
-	MODULE_FERME,
-	TYPAGE_CODE_TERMINE,
-	PHASE_COMPILATION,
-};
-
-struct Message {
-	GenreMessage genre;
-	EspaceDeTravail *espace;
-};
-
-struct MessageFichier : public Message {
-	kuri::chaine chemin{};
-};
-
-struct MessageModule : public Message {
-	kuri::chaine chemin{};
-	Module *module = nullptr;
-};
-
-struct MessageTypageCodeTermine : public Message {
-	NoeudCode *noeud_code;
-};
-
-struct MessagePhaseCompilation : public Message {
-	PhaseCompilation phase;
-};
 
 struct Messagere {
 private:

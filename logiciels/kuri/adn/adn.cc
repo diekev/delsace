@@ -90,7 +90,13 @@ ProteineStruct::ProteineStruct(IdentifiantADN nom)
 void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 {
 	if (pour_entete) {
-		os << "struct " << m_nom.nom_cpp() << " {\n";
+		os << "struct " << m_nom.nom_cpp();
+
+		if (m_mere) {
+			os << " : public " << m_mere->nom().nom_cpp();
+		}
+
+		os << " {\n";
 
 		POUR (m_membres) {
 			os << "\t" << FormatCPP<Type>{it.type} << ' ' << it.nom.nom_cpp();
@@ -114,7 +120,6 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 				else {
 					os << supprime_accents(it.valeur_defaut);
 				}
-
 			}
 			else {
 				os << " = {}";
@@ -137,9 +142,9 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 
 		os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
 
-		POUR (m_membres) {
+		pour_chaque_membre_recursif([&os](Membre const &it) {
 			os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur." <<  it.nom.nom_cpp() << " << '\\n';" << '\n';
-		}
+		});
 
 		os << "\tos << \"}\\n\";\n";
 
@@ -156,13 +161,13 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 		os << "\n";
 		os << "{\n";
 
-		POUR (m_membres) {
-			if (dls::outils::est_element(it.type.nom, "TypeCoulisse", "RésultatCompilation", "ArchitectureCible", "NiveauOptimisation")) {
+		pour_chaque_membre_recursif([&os](Membre const &it) {
+			if (it.type.est_enum) {
 				os << "\tif (!est_valeur_legale(valeur." << it.nom.nom_cpp() << ")) {\n";
 				os << "\t\treturn false;\n";
 				os << "\t}\n";
 			}
-		}
+		});
 
 		os << "\treturn true;\n";
 		os << "}\n\n";
@@ -172,6 +177,10 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 void ProteineStruct::genere_code_kuri(std::ostream &os)
 {
 	os << m_nom.nom_kuri() << " :: struct {\n";
+	if (m_mere) {
+		os << "\templ base: " << m_mere->nom().nom_kuri() << "\n\n";
+	}
+
 	POUR (m_membres) {
 		os << "\t" << it.nom.nom_kuri();
 
@@ -200,6 +209,17 @@ void ProteineStruct::genere_code_kuri(std::ostream &os)
 void ProteineStruct::ajoute_membre(const Membre membre)
 {
 	m_membres.ajoute(membre);
+}
+
+void ProteineStruct::pour_chaque_membre_recursif(std::function<void (const Membre &)> rappel)
+{
+	if (m_mere) {
+		m_mere->pour_chaque_membre_recursif(rappel);
+	}
+
+	POUR (m_membres) {
+		rappel(it);
+	}
 }
 
 ProteineEnum::ProteineEnum(IdentifiantADN nom)
@@ -470,7 +490,30 @@ void SyntaxeuseADN::parse_struct()
 	auto proteine = cree_proteine<ProteineStruct>(lexeme_courant()->chaine);
 	consomme();
 
-	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après le nom de « énum »");
+	if (apparie(GenreLexeme::DOUBLE_POINTS)) {
+		consomme();
+
+		if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+			rapporte_erreur("Attendu le nom de la structure mère après « : »");
+		}
+
+		auto nom_struct_mere = lexeme_courant()->chaine;
+
+		POUR (proteines) {
+			if (it->nom().nom_kuri() == kuri::chaine_statique(nom_struct_mere)) {
+				if (!it->comme_struct()) {
+					rapporte_erreur("Impossible de trouver la structure mère !");
+				}
+
+				proteine->descend_de(it->comme_struct());
+				break;
+			}
+		}
+
+		consomme();
+	}
+
+	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après le nom de « struct »");
 
 	while (apparie(GenreLexeme::AROBASE)) {
 		consomme();
@@ -509,6 +552,20 @@ void SyntaxeuseADN::parse_struct()
 			consomme();
 		}
 
+		if (apparie(GenreLexeme::CROCHET_OUVRANT)) {
+			consomme();
+
+			while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				consomme();
+
+				if (!apparie(GenreLexeme::VIRGULE)) {
+					break;
+				}
+			}
+
+			consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant à la fin de la liste des attributs du membres");
+		}
+
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
 			consomme();
 		}
@@ -525,6 +582,17 @@ void SyntaxeuseADN::parse_type(Type &type)
 		rapporte_erreur("Attendu le nom d'un type");
 	}
 	type.nom = lexeme_courant()->chaine;
+
+	POUR (proteines) {
+		if (it->nom().nom_kuri() == type.nom) {
+			if (it->comme_enum()) {
+				type.est_enum = true;
+			}
+
+			break;
+		}
+	}
+
 	consomme();
 
 	while (est_specifiant_type(lexeme_courant()->genre)) {

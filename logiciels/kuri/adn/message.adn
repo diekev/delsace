@@ -2,9 +2,6 @@
 // Les messages sont directement passés par pointeurs aux métaprogrammes sans conversion au préalable.
 
 énum GenreMessage {
-    @code GenreMessage
-
-    INVALIDE
     FICHIER_OUVERT
     FICHIER_FERMÉ
     MODULE_OUVERT
@@ -14,8 +11,6 @@
 }
 
 énum PhaseCompilation {
-    @code PhaseCompilation
-
 	PARSAGE_EN_COURS
 	PARSAGE_TERMINÉ
 	TYPAGE_TERMINÉ
@@ -28,33 +23,23 @@
 }
 
 struct Message {
-    @code Message
-
     GenreMessage genre [code]
 	EspaceDeTravail * espace [code]
 }
 
 struct MessageFichier : Message {
-    @code MessageFichier
-
-    chemin: chaine [code]
+	chaine_statique chemin [code]
 }
 
 struct MessageModule : Message {
-    @code MessageModule
-
-    chemin: chaine [code]
-    module: *Module [code]
+	chaine_statique chemin [code]
+	Module * module [code]
 }
 
 struct MessageTypageCodeTerminé : Message {
-    @code MessageTypageCodeTerminé
-
-    code : *NoeudCode [code]
+	NoeudCode * code [code]
 }
 
 struct MessagePhaseCompilation : Message {
-    @code MessagePhaseCompilation
-
-	phase : PhaseCompilation [code]
+	PhaseCompilation phase [code]
 }

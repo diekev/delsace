@@ -48,6 +48,7 @@ endmacro()
 
 genere_code_adn(kuri_ipa_compilatrice genere_ipa ipa)
 genere_code_adn(kuri_options_compilatrice genere_options options)
+genere_code_adn(kuri_message_compilatrice genere_message message)
 
 set(BIBLIOTHEQUES
 	kuri_arbre_syntaxique
@@ -74,7 +75,7 @@ set(SOURCES
 	erreur.h
 	espace_de_travail.hh
 	graphe_dependance.hh
-	message.hh
+	messagere.hh
 	metaprogramme.hh
 	monomorphisations.hh
 	operateurs.hh
@@ -97,7 +98,7 @@ set(SOURCES
 	erreur.cc
 	espace_de_travail.cc
 	graphe_dependance.cc
-	message.cc
+	messagere.cc
 	metaprogramme.cc
 	monomorphisations.cc
 	operateurs.cc
@@ -125,3 +126,4 @@ target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 
 add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)
 add_dependencies(${NOM_CIBLE} kuri_options_compilatrice)
+add_dependencies(${NOM_CIBLE} kuri_message_compilatrice)

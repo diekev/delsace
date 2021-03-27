@@ -30,7 +30,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
-#include "message.hh"
+#include "messagere.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
 

@@ -35,7 +35,7 @@
 
 #include "erreur.h"
 #include "graphe_dependance.hh"
-#include "message.hh"
+#include "messagere.hh"
 #include "metaprogramme.hh"
 #include "options.hh"
 #include "operateurs.hh"

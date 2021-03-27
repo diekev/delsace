@@ -65,6 +65,7 @@ struct FormatCPP;
 struct Type {
 	kuri::chaine nom = "rien";
 	kuri::tableau<GenreLexeme> specifiants{};
+	bool est_enum = false;
 };
 
 template <>
@@ -89,6 +90,9 @@ struct Membre {
 	kuri::chaine_statique valeur_defaut = "";
 };
 
+class ProteineEnum;
+class ProteineStruct;
+
 class Proteine {
 protected:
 	IdentifiantADN m_nom{};
@@ -109,19 +113,46 @@ public:
 	{
 		return m_nom;
 	}
+
+	virtual ProteineEnum *comme_enum()
+	{
+		return nullptr;
+	}
+
+	virtual ProteineStruct *comme_struct()
+	{
+		return nullptr;
+	}
 };
 
 class ProteineStruct final : public Proteine {
 	kuri::tableau<Membre> m_membres{};
 
+	ProteineStruct *m_mere = nullptr;
+
 public:
 	ProteineStruct(IdentifiantADN nom);
+
+	ProteineStruct(ProteineStruct const &) = default;
+	ProteineStruct &operator=(ProteineStruct const &) = default;
 
 	void genere_code_cpp(std::ostream &os, bool pour_entete) override;
 
 	void genere_code_kuri(std::ostream &os) override;
 
 	void ajoute_membre(Membre const membre);
+
+	void descend_de(ProteineStruct *proteine)
+	{
+		m_mere = proteine;
+	}
+
+	ProteineStruct *comme_struct() override
+	{
+		return this;
+	}
+
+	void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
 };
 
 class ProteineEnum final : public Proteine {
@@ -135,6 +166,11 @@ public:
 	void genere_code_kuri(std::ostream &os) override;
 
 	void ajoute_membre(Membre const membre);
+
+	ProteineEnum *comme_enum() override
+	{
+		return this;
+	}
 };
 
 struct Parametre {
