@@ -152,31 +152,4 @@ public:
 	kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne, const NoeudExpression *site);
 };
 
-/* manipule les options de compilation pour l'espace de travail défaut */
-OptionsCompilation *obtiens_options_compilation();
-void ajourne_options_compilation(OptionsCompilation *options);
-
-EspaceDeTravail *espace_defaut_compilation();
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
 int fonction_test_variadique_externe(int sentinel, ...);
-
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique nom, OptionsCompilation *options);
-
-EspaceDeTravail *compilatrice_espace_courant();
-
-Message const *compilatrice_attend_message();
-void compilatrice_commence_interception(EspaceDeTravail *espace);
-void compilatrice_termine_interception(EspaceDeTravail *espace);
-
-void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
-void compilatrice_rapporte_avertissement(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
-
-bool compilatrice_possede_erreur(EspaceDeTravail const *espace);
-
-/* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
- * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
- * avec le site renseigné.
- */
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site);

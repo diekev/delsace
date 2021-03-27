@@ -35,3 +35,27 @@ add_executable(${NOM_EXECUTABLE} genere_lexemes.cc)
 target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")
+
+################################################################################
+
+set(NOM_EXECUTABLE genere_ipa)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+)
+
+set(BIBLIOTHEQUES
+	kuri_parsage
+	kuri_structures
+	bib_structures
+	bib_moultfilage
+)
+
+add_executable(${NOM_EXECUTABLE} genere_ipa.cc)
+
+target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")
+
+add_dependencies(${NOM_EXECUTABLE} kuri_parsage)

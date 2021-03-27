@@ -35,6 +35,7 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilatrice.hh"
+#include "ipa.hh"
 #include "espace_de_travail.hh"
 #include "typage.hh"
 
@@ -2282,6 +2283,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			else if (ident_directive == ID::compilatrice) {
 				noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
 				noeud->est_externe = true;
+
+				if (!est_fonction_compilatrice(noeud->ident)) {
+					rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie de l'IPA de la Compilatrice");
+				}
 			}
 			else if (ident_directive == ID::sansbroyage) {
 				noeud->drapeaux |= (FORCE_SANSBROYAGE);

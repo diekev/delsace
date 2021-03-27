@@ -26,8 +26,25 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
+add_library(kuri_ipa_compilatrice ipa.cc ipa.hh)
+target_include_directories(kuri_ipa_compilatrice PUBLIC "${INCLUSIONS}")
+target_link_libraries(kuri_ipa_compilatrice kuri_parsage)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.cc
+	COMMAND genere_ipa "${CMAKE_CURRENT_SOURCE_DIR}/ipa.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
+	DEPENDS genere_ipa ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
+)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh
+	COMMAND genere_ipa "${CMAKE_CURRENT_SOURCE_DIR}/ipa.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
+	DEPENDS genere_ipa ${CMAKE_CURRENT_SOURCE_DIR}/../adn/ipa.adn
+)
+
 set(BIBLIOTHEQUES
 	kuri_arbre_syntaxique
+	kuri_ipa_compilatrice
 	kuri_parsage
 	kuri_representation_intermediaire
 	kuri_statistiques
@@ -100,3 +117,6 @@ add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_dependencies(kuri_ipa_compilatrice genere_ipa)
+add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)

@@ -103,22 +103,7 @@ private:
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin, "chemin") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(creation_contexte, "création_contexte") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_chaine_a_la_compilation, "ajoute_chaine_à_la_compilation") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fichier_a_la_compilation, "ajoute_fichier_à_la_compilation") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_chaine_au_module, "ajoute_chaine_au_module") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice, "compilatrice") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_obtiens_options, "compilatrice_obtiens_options") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_ajourne_options, "compilatrice_ajourne_options") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_attend_message, "compilatrice_attend_message") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_commence_interception, "compilatrice_commence_interception") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_termine_interception, "compilatrice_termine_interception") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_erreur, "compilatrice_rapporte_erreur") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_avertissement, "compilatrice_rapporte_avertissement") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_lexe_fichier, "compilatrice_lèxe_fichier") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_espace_courant, "compilatrice_espace_courant") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_possede_erreur, "compilatrice_possède_erreur") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(demarre_un_espace_de_travail, "démarre_un_espace_de_travail") \
-	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(espace_defaut_compilation, "espace_défaut_compilation") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fonction_test_variadique_externe, "fonction_test_variadique_externe") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(test, "test") \
 	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(assert_, "assert") \

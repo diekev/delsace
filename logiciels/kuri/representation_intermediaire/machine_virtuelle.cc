@@ -32,6 +32,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
 
 #include "parsage/identifiant.hh"
@@ -1165,26 +1166,26 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 					break;
 				}
 
-				if (EST_FONCTION_COMPILATRICE(obtiens_options_compilation)) {
+				if (EST_FONCTION_COMPILATRICE(compilatrice_obtiens_options)) {
 					auto options = compilatrice.options_compilation();
 					empile(site, options);
 					break;
 				}
 
-				if (EST_FONCTION_COMPILATRICE(ajourne_options_compilation)) {
+				if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
 					auto options = depile<OptionsCompilation *>(site);
 					compilatrice.ajourne_options_compilation(options);
 					break;
 				}
 
-				if (EST_FONCTION_COMPILATRICE(compilatrice_ajoute_chaine_compilation)) {
+				if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
 					auto chaine = depile<kuri::chaine_statique>(site);
 					auto espace = depile<EspaceDeTravail *>(site);
 					compilatrice.ajoute_chaine_compilation(espace, chaine);
 					break;
 				}
 
-				if (EST_FONCTION_COMPILATRICE(compilatrice_ajoute_fichier_compilation)) {
+				if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
 					auto chaine = depile<kuri::chaine_statique>(site);
 					auto espace = depile<EspaceDeTravail *>(site);
 					compilatrice.ajoute_chaine_compilation(espace, chaine);

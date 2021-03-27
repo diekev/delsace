@@ -214,7 +214,7 @@ static void construit_lexemes(ListeLexemes &lexemes)
 	lexemes.ajoute_extra("", "CHAINE_LITTERALE", EST_CHAINE_LITTERALE);
 	lexemes.ajoute_extra("", "CARACTÈRE", EST_CHAINE_LITTERALE);
 	lexemes.ajoute_extra("*", "POINTEUR");
-	lexemes.ajoute_extra("", "TABLEAU", EST_OPERATEUR_UNAIRE);
+	lexemes.ajoute_extra("[]", "TABLEAU", EST_OPERATEUR_UNAIRE);
 	lexemes.ajoute_extra("&", "REFERENCE");
 	lexemes.ajoute_extra("", "CARACTERE_BLANC");
 	lexemes.ajoute_extra("// commentaire", "COMMENTAIRE");

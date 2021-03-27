@@ -10,11 +10,13 @@ logiciels/kuri/modules/Aléa/*.h
 logiciels/kuri/modules/FTGL/*.h
 logiciels/kuri/modules/Image/*.h
 
+logiciels/kuri/compilation/ipa.cc
+logiciels/kuri/compilation/ipa.hh
 logiciels/kuri/modules/Compilatrice/lexèmes.kuri
+logiciels/kuri/modules/Compilatrice/ipa.kuri
 logiciels/kuri/parsage/empreinte_parfaite.hh
 logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh
-
 
 .chaines_ajoutées
 .vscode/

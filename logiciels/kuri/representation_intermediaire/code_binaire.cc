@@ -34,6 +34,7 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/compilatrice.hh"
+#include "compilation/ipa.hh"
 #include "compilation/operateurs.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -773,34 +774,6 @@ ffi_type *converti_type_ffi(Type *type)
 	return static_cast<ffi_type *>(nullptr);
 }
 
-static auto trouve_fonction_compilatrice(IdentifiantCode *ident)
-{
-#define COMPARE_IDENT(ident_fonction, fonction) \
-	if (ident == ident_fonction) {\
-		return reinterpret_cast<void(*)()>(fonction); \
-	}
-
-	COMPARE_IDENT(ID::ajoute_chaine_a_la_compilation, compilatrice_ajoute_chaine_compilation);
-	COMPARE_IDENT(ID::ajoute_fichier_a_la_compilation, compilatrice_ajoute_fichier_compilation);
-	COMPARE_IDENT(ID::ajoute_chaine_au_module, ajoute_chaine_au_module);
-	COMPARE_IDENT(ID::compilatrice_ajourne_options, ajourne_options_compilation);
-	COMPARE_IDENT(ID::compilatrice_obtiens_options, obtiens_options_compilation);
-	COMPARE_IDENT(ID::fonction_test_variadique_externe, fonction_test_variadique_externe);
-	COMPARE_IDENT(ID::compilatrice_attend_message, compilatrice_attend_message);
-	COMPARE_IDENT(ID::compilatrice_commence_interception, compilatrice_commence_interception);
-	COMPARE_IDENT(ID::compilatrice_termine_interception, compilatrice_termine_interception);
-	COMPARE_IDENT(ID::compilatrice_rapporte_erreur, compilatrice_rapporte_erreur);
-	COMPARE_IDENT(ID::compilatrice_rapporte_avertissement, compilatrice_rapporte_avertissement);
-	COMPARE_IDENT(ID::compilatrice_lexe_fichier, compilatrice_lexe_fichier);
-	COMPARE_IDENT(ID::compilatrice_espace_courant, compilatrice_espace_courant);
-	COMPARE_IDENT(ID::demarre_un_espace_de_travail, demarre_un_espace_de_travail);
-	COMPARE_IDENT(ID::espace_defaut_compilation, espace_defaut_compilation);
-	COMPARE_IDENT(ID::compilatrice_possede_erreur, compilatrice_possede_erreur);
-
-	std::cerr << "Fonction compilatrice inconnue !\n";
-	return static_cast<void(*)()>(nullptr);
-}
-
 /* ************************************************************************** */
 
 struct ConvertisseuseRI {
@@ -829,7 +802,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		auto &donnees_externe = fonction->donnees_externe;
 
 		if (fonction->decl->possede_drapeau(COMPILATRICE)) {
-			donnees_externe.ptr_fonction = trouve_fonction_compilatrice(fonction->decl->ident);
+			donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(fonction->decl->ident);
 		}
 		else {
 			donnees_externe.ptr_fonction = mv->trouve_symbole(fonction->decl->ident);

@@ -34,6 +34,7 @@
 
 #include "espace_de_travail.hh"
 #include "erreur.h"
+#include "ipa.hh"
 
 /* ************************************************************************** */
 
@@ -42,6 +43,8 @@ Compilatrice::Compilatrice()
 {
 	this->bibliotheques_dynamiques->ajoute("pthread");
 	this->definitions->ajoute("_REENTRANT");
+
+	initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 }
 
 Compilatrice::~Compilatrice()
@@ -406,101 +409,4 @@ int fonction_test_variadique_externe(int sentinel, ...)
 	va_end(ap);
 
 	return i;
-}
-
-// -----------------------------------------------------------------------------
-// Implémentation « symbolique » des fonctions d'interface afin d'éviter les erreurs
-// de liaison des programmes. Ces fonctions sont soit implémentées via Compilatrice,
-// soit via EspaceDeTravail, ou directement dans la MachineVirtuelle.
-
-OptionsCompilation *obtiens_options_compilation()
-{
-	assert(false);
-	return nullptr;
-}
-
-void ajourne_options_compilation(OptionsCompilation */*options*/)
-{
-	assert(false);
-}
-
-EspaceDeTravail *espace_defaut_compilation()
-{
-	assert(false);
-	return nullptr;
-}
-
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail */*espace*/, kuri::chaine_statique /*c*/)
-{
-	assert(false);
-}
-
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail */*espace*/, kuri::chaine_statique /*c*/)
-{
-	assert(false);
-}
-
-void ajoute_chaine_au_module(EspaceDeTravail */*espace*/, Module */*module*/, kuri::chaine_statique /*c*/)
-{
-	assert(false);
-}
-
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique /*nom*/, OptionsCompilation */*options*/)
-{
-	assert(false);
-	return nullptr;
-}
-
-EspaceDeTravail *compilatrice_espace_courant()
-{
-	assert(false);
-	return nullptr;
-}
-
-Message const *compilatrice_attend_message()
-{
-	assert(false);
-	return nullptr;
-}
-
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les
- * MachineVirtuelles, et y renseigner dans l'espace le métaprogramme en cours
- * d'exécution */
-void compilatrice_commence_interception(EspaceDeTravail */*espace*/)
-{
-	assert(false);
-}
-
-/* cette fonction est symbolique, afin de pouvoir la détecter dans les
- * MachineVirtuelles, et y vérifier que le métaprogramme terminant l'interception
- * est bel et bien celui l'ayant commencé */
-void compilatrice_termine_interception(EspaceDeTravail */*espace*/)
-{
-	assert(false);
-}
-
-void compilatrice_rapporte_erreur(EspaceDeTravail */*espace*/, kuri::chaine_statique /*fichier*/, int /*ligne*/, kuri::chaine_statique /*message*/)
-{
-	assert(false);
-}
-
-void compilatrice_rapporte_avertissement(EspaceDeTravail */*espace*/, kuri::chaine_statique /*fichier*/, int /*ligne*/, kuri::chaine_statique /*message*/)
-{
-	assert(false);
-}
-
-/* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
- * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
- * avec le site renseigné.
- */
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
-{
-	assert(false);
-	return {};
-}
-
-bool compilatrice_possede_erreur(EspaceDeTravail const */*espace*/)
-{
-	assert(false);
-	return false;
 }
