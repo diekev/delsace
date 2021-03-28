@@ -38,7 +38,7 @@
 
 #include "adn.hh"
 
-static void genere_code_cpp(std::ostream &os, kuri::tableau<Proteine *> const &proteines, bool pour_entete)
+static void genere_code_cpp(FluxSortieCPP &os, kuri::tableau<Proteine *> const &proteines, bool pour_entete)
 {
 	os << "// Fichier généré automatiquement, NE PAS ÉDITER !\n\n";
 
@@ -60,7 +60,7 @@ static void genere_code_cpp(std::ostream &os, kuri::tableau<Proteine *> const &p
 	}
 }
 
-static void genere_code_kuri(std::ostream &os, kuri::tableau<Proteine *> const &proteines)
+static void genere_code_kuri(FluxSortieKuri &os, kuri::tableau<Proteine *> const &proteines)
 {
 	POUR (proteines) {
 		it->genere_code_kuri(os);
@@ -109,19 +109,22 @@ int main(int argc, const char **argv)
 
 	if (nom_fichier_sortie.filename() == "options.hh") {
 		std::ofstream fichier_sortie(argv[1]);
-		genere_code_cpp(fichier_sortie, syntaxeuse.proteines, true);
+		auto flux = FluxSortieCPP(fichier_sortie);
+		genere_code_cpp(flux, syntaxeuse.proteines, true);
 	}
 	else if (nom_fichier_sortie.filename() == "options.cc") {
 		{
 			std::ofstream fichier_sortie(argv[1]);
-			genere_code_cpp(fichier_sortie, syntaxeuse.proteines, false);
+			auto flux = FluxSortieCPP(fichier_sortie);
+			genere_code_cpp(flux, syntaxeuse.proteines, false);
 		}
 		{
 			// Génère le fichier de lexèmes pour le module Compilatrice
 			// Apparemment, ce n'est pas possible de le faire via CMake
 			nom_fichier_sortie.replace_filename("../modules/Compilatrice/options.kuri");
 			std::ofstream fichier_sortie(nom_fichier_sortie);
-			genere_code_kuri(fichier_sortie, syntaxeuse.proteines);
+			auto flux = FluxSortieKuri(fichier_sortie);
+			genere_code_kuri(flux, syntaxeuse.proteines);
 		}
 	}
 

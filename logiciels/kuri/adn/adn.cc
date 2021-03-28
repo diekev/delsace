@@ -26,25 +26,35 @@
 
 #include "biblinternes/outils/conditions.h"
 
-std::ostream &operator<<(std::ostream &os, FormatKuri<Type> format)
+FluxSortieCPP &operator<<(FluxSortieCPP &flux, const IdentifiantADN &ident)
 {
-	for (auto i = format.type.specifiants.taille() - 1; i >= 0; --i) {
-		const auto spec = format.type.specifiants[i];
+	return flux << ident.nom_cpp();
+}
+
+FluxSortieKuri &operator<<(FluxSortieKuri &flux, const IdentifiantADN &ident)
+{
+	return flux << ident.nom_kuri();
+}
+
+FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
+{
+	for (auto i = type.specifiants.taille() - 1; i >= 0; --i) {
+		const auto spec = type.specifiants[i];
 		os << chaine_du_lexeme(spec);
 	}
 
-	if (format.type.nom == "chaine_statique") {
+	if (type.nom == "chaine_statique") {
 		os << "chaine";
 	}
 	else {
-		os << format.type.nom;
+		os << type.nom;
 	}
 	return os;
 }
 
-std::ostream &operator<<(std::ostream &os, FormatCPP<Type> format)
+FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 {
-	const auto &specifiants = format.type.specifiants;
+	const auto &specifiants = type.specifiants;
 
 	const auto est_tableau = (specifiants.taille() > 0 && specifiants.derniere() == GenreLexeme::TABLEAU);
 
@@ -52,24 +62,24 @@ std::ostream &operator<<(std::ostream &os, FormatCPP<Type> format)
 		os << "kuri::tableau<";
 	}
 
-	if (format.type.nom == "rien") {
+	if (type.nom == "rien") {
 		os << "void";
 	}
-	else if (format.type.nom == "chaine_statique") {
+	else if (type.nom == "chaine_statique") {
 		os << "kuri::chaine_statique";
 	}
-	else if (format.type.nom == "chaine") {
+	else if (type.nom == "chaine") {
 		os << "kuri::chaine";
 	}
-	else if (format.type.nom == "z32") {
+	else if (type.nom == "z32") {
 		os << "int";
 	}
 	else {
-		os << supprime_accents(format.type.nom);
+		os << supprime_accents(type.nom);
 	}
 
-	for (auto i = format.type.specifiants.taille() - 1 - est_tableau; i >= 0; --i) {
-		const auto spec = format.type.specifiants[i];
+	for (auto i = type.specifiants.taille() - 1 - est_tableau; i >= 0; --i) {
+		const auto spec = type.specifiants[i];
 		os << chaine_du_lexeme(spec);
 	}
 
@@ -87,7 +97,7 @@ ProteineStruct::ProteineStruct(IdentifiantADN nom)
 	: Proteine(nom)
 {}
 
-void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
+void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
 	if (pour_entete) {
 		os << "struct " << m_nom.nom_cpp();
@@ -99,13 +109,13 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 		os << " {\n";
 
 		POUR (m_membres) {
-			os << "\t" << FormatCPP<Type>{it.type} << ' ' << it.nom.nom_cpp();
+			os << "\t" << it.type << ' ' << it.nom.nom_cpp();
 
 			if (it.valeur_defaut != "") {
 				os << " = ";
 
 				if (it.valeur_defaut_est_acces) {
-					os << FormatCPP<Type>{it.type} << "::";
+					os << it.type << "::";
 				}
 
 				if (dls::outils::est_element(it.type.nom, "chaine", "chaine_statique")) {
@@ -174,7 +184,7 @@ void ProteineStruct::genere_code_cpp(std::ostream &os, bool pour_entete)
 	}
 }
 
-void ProteineStruct::genere_code_kuri(std::ostream &os)
+void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
 	os << m_nom.nom_kuri() << " :: struct {\n";
 	if (m_mere) {
@@ -185,12 +195,12 @@ void ProteineStruct::genere_code_kuri(std::ostream &os)
 		os << "\t" << it.nom.nom_kuri();
 
 		if (it.valeur_defaut == "") {
-			os << ": " << FormatKuri<Type>{it.type};
+			os << ": " << it.type;
 		}
 		else {
 			os << " := ";
 			if (it.valeur_defaut_est_acces) {
-				os << FormatKuri<Type>{it.type} << ".";
+				os << it.type << ".";
 			}
 
 			if (dls::outils::est_element(it.type.nom, "chaine", "chaine_statique")) {
@@ -226,7 +236,7 @@ ProteineEnum::ProteineEnum(IdentifiantADN nom)
 	: Proteine(nom)
 {}
 
-void ProteineEnum::genere_code_cpp(std::ostream &os, bool pour_entete)
+void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
 	if (pour_entete) {
 		os << "enum class " << m_nom.nom_cpp() << " : int {\n";
@@ -279,7 +289,7 @@ void ProteineEnum::genere_code_cpp(std::ostream &os, bool pour_entete)
 	}
 }
 
-void ProteineEnum::genere_code_kuri(std::ostream &os)
+void ProteineEnum::genere_code_kuri(FluxSortieKuri &os)
 {
 	os << m_nom.nom_kuri() << " :: énum z32 {\n";
 	POUR (m_membres) {
@@ -297,9 +307,9 @@ ProteineFonction::ProteineFonction(IdentifiantADN nom)
 	: Proteine(nom)
 {}
 
-void ProteineFonction::genere_code_cpp(std::ostream &os, bool pour_entete)
+void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
-	os << FormatCPP<Type>{m_type_sortie} << ' ' << m_nom.nom_cpp();
+	os << m_type_sortie << ' ' << m_nom.nom_cpp();
 
 	auto virgule = "(";
 
@@ -308,7 +318,7 @@ void ProteineFonction::genere_code_cpp(std::ostream &os, bool pour_entete)
 	}
 	else {
 		for (auto &param : m_parametres) {
-			os << virgule << FormatCPP<Type>{param.type} << ' ' << param.nom.nom_cpp();
+			os << virgule << param.type << ' ' << param.nom.nom_cpp();
 			virgule = ", ";
 		}
 	}
@@ -331,7 +341,7 @@ void ProteineFonction::genere_code_cpp(std::ostream &os, bool pour_entete)
 	}
 }
 
-void ProteineFonction::genere_code_kuri(std::ostream &os)
+void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
 {
 	os << m_nom.nom_kuri() << " :: fonc ";
 
@@ -342,12 +352,12 @@ void ProteineFonction::genere_code_kuri(std::ostream &os)
 	}
 	else {
 		for (auto &param : m_parametres) {
-			os << virgule << param.nom.nom_kuri() << ": " << FormatKuri<Type>{param.type};
+			os << virgule << param.nom.nom_kuri() << ": " << param.type;
 			virgule = ", ";
 		}
 	}
 
-	os << ")" << " -> " << FormatKuri<Type>{m_type_sortie} << " #compilatrice" << "\n\n";
+	os << ")" << " -> " << m_type_sortie << " #compilatrice" << "\n\n";
 }
 
 void ProteineFonction::ajoute_parametre(Parametre const parametre)

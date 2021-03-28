@@ -39,7 +39,7 @@
 
 #include "adn.hh"
 
-static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, std::ostream &os)
+static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
 {
 	os << "// ----------------------------------------------------------------------------\n";
 	os << "// Prodéclarations de types opaques pour certains types non manipulable directement\n";
@@ -56,7 +56,7 @@ static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, std::os
 	}
 }
 
-static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines, std::ostream &os, bool pour_entete)
+static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines, FluxSortieCPP &os, bool pour_entete)
 {
 	os << "// Fichier généré automatiquement, NE PAS ÉDITER\n\n";
 
@@ -218,19 +218,22 @@ int main(int argc, const char **argv)
 
 	if (nom_fichier_sortie.filename() == "ipa.hh") {
 		std::ofstream fichier_sortie(argv[1]);
-		genere_code_cpp(syntaxeuse.proteines, fichier_sortie, true);
+		auto flux = FluxSortieCPP(fichier_sortie);
+		genere_code_cpp(syntaxeuse.proteines, flux, true);
 	}
 	else if (nom_fichier_sortie.filename() == "ipa.cc") {
 		{
 			std::ofstream fichier_sortie(argv[1]);
-			genere_code_cpp(syntaxeuse.proteines, fichier_sortie, false);
+			auto flux = FluxSortieCPP(fichier_sortie);
+			genere_code_cpp(syntaxeuse.proteines, flux, false);
 		}
 		{
 			// Génère le fichier de lexèmes pour le module Compilatrice
 			// Apparemment, ce n'est pas possible de le faire via CMake
 			nom_fichier_sortie.replace_filename("../modules/Compilatrice/ipa.kuri");
 			std::ofstream fichier_sortie(nom_fichier_sortie);
-			genere_code_kuri(syntaxeuse.proteines, fichier_sortie);
+			auto flux = FluxSortieKuri(fichier_sortie);
+			genere_code_kuri(syntaxeuse.proteines, flux);
 		}
 	}
 

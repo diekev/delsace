@@ -32,6 +32,56 @@
 
 #include "outils.hh"
 
+struct FluxSortieKuri {
+private:
+	std::ostream &m_os;
+
+	template <typename T>
+	friend FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur);
+
+public:
+	FluxSortieKuri(std::ostream &os)
+		: m_os(os)
+	{}
+
+	operator std::ostream&()
+	{
+		return m_os;
+	}
+};
+
+template <typename T>
+FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur)
+{
+	flux.m_os << valeur;
+	return flux;
+}
+
+struct FluxSortieCPP {
+private:
+	std::ostream &m_os;
+
+	template <typename T>
+	friend FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur);
+
+public:
+	FluxSortieCPP(std::ostream &os)
+		: m_os(os)
+	{}
+
+	operator std::ostream&()
+	{
+		return m_os;
+	}
+};
+
+template <typename T>
+FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur)
+{
+	flux.m_os << valeur;
+	return flux;
+}
+
 struct IdentifiantADN {
 private:
 	kuri::chaine_statique nom = "";
@@ -56,11 +106,9 @@ public:
 	}
 };
 
-template <typename T>
-struct FormatKuri;
+FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
 
-template <typename T>
-struct FormatCPP;
+FluxSortieKuri &operator<<(FluxSortieKuri &flux, IdentifiantADN const &ident);
 
 struct Type {
 	kuri::chaine nom = "rien";
@@ -68,19 +116,9 @@ struct Type {
 	bool est_enum = false;
 };
 
-template <>
-struct FormatKuri<Type> {
-	const Type &type;
-};
+FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type);
 
-std::ostream &operator<<(std::ostream &os, FormatKuri<Type> format);
-
-template <>
-struct FormatCPP<Type> {
-	const Type &type;
-};
-
-std::ostream &operator<<(std::ostream &os, FormatCPP<Type> format);
+FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type);
 
 struct Membre {
 	IdentifiantADN nom{};
@@ -101,8 +139,8 @@ public:
 	Proteine(IdentifiantADN nom);
 
 	virtual ~Proteine() = default;
-	virtual void genere_code_cpp(std::ostream &os, bool pour_entete) = 0;
-	virtual void genere_code_kuri(std::ostream &os) = 0;
+	virtual void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) = 0;
+	virtual void genere_code_kuri(FluxSortieKuri &os) = 0;
 
 	virtual bool est_fonction() const
 	{
@@ -136,9 +174,9 @@ public:
 	ProteineStruct(ProteineStruct const &) = default;
 	ProteineStruct &operator=(ProteineStruct const &) = default;
 
-	void genere_code_cpp(std::ostream &os, bool pour_entete) override;
+	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_kuri(std::ostream &os) override;
+	void genere_code_kuri(FluxSortieKuri &os) override;
 
 	void ajoute_membre(Membre const membre);
 
@@ -161,9 +199,9 @@ class ProteineEnum final : public Proteine {
 public:
 	ProteineEnum(IdentifiantADN nom);
 
-	void genere_code_cpp(std::ostream &os, bool pour_entete) override;
+	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_kuri(std::ostream &os) override;
+	void genere_code_kuri(FluxSortieKuri &os) override;
 
 	void ajoute_membre(Membre const membre);
 
@@ -185,9 +223,9 @@ class ProteineFonction final : public Proteine {
 public:
 	ProteineFonction(IdentifiantADN nom);
 
-	void genere_code_cpp(std::ostream &os, bool pour_entete) override;
+	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_kuri(std::ostream &os) override;
+	void genere_code_kuri(FluxSortieKuri &os) override;
 
 	Type &type_sortie()
 	{
