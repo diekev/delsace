@@ -1,0 +1,46 @@
+importe AnalyseStatique
+importe Compilatrice
+importe Fondation
+
+/*
+    À FAIRE : pour les messages d'erreurs, inclus la colonne, et utilise une recherche binaire pour trouver les lexèmes
+*/
+
+test_compilation :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    options := OptionsCompilation()
+    espace := démarre_un_espace_de_travail("nasa", *options)
+
+    compilatrice_commence_interception(espace)
+    ajoute_fichier_à_la_compilation(espace, "nasa.kuri")
+
+    vérificatrice : VérificatriceNasa
+    initialise_vérificatrice(*vérificatrice, espace)
+
+    boucle {
+        message := compilatrice_attend_message()
+
+        si message.espace != espace {
+            continue
+        }
+
+        si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+            message_typage := message comme *MessageTypageCodeTerminé
+            vérifie_code(*vérificatrice, message_typage.code)
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                arrête
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}
+
+#exécute test_compilation()

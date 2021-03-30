@@ -9,6 +9,7 @@ DOSSIERS=("exemples/applications/BDD" \
           "exemples/applications/Eliza" \
           "exemples/applications/Jeu" \
           "exemples/applications/MoteurRendu" \
+          "exemples/applications/NASA" \
           "exemples/applications/Site")
 
 for dossier in ${DOSSIERS[@]}; do
