@@ -188,7 +188,7 @@ private:
 	bool appel(AtomeFonction *fonction, NoeudExpression *site);
 
 	bool appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame, NoeudExpression *site);
-	void appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel);
+	void appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel, NoeudExpression *site, ResultatInterpretation &resultat);
 
 	void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
