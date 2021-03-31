@@ -46,6 +46,8 @@ static void genere_code_cpp(FluxSortieCPP &os, kuri::tableau<Proteine *> const &
 		os << "#pragma once\n\n";
 		inclus_systeme(os, "iostream");
 		os << '\n';
+		inclus(os, "biblinternes/outils/definitions.h");
+		os << '\n';
 		inclus(os, "structures/chaine.hh");
 		inclus(os, "structures/chaine_statique.hh");
 		os << '\n';
