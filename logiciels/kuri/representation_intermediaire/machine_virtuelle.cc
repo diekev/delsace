@@ -1188,7 +1188,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
 					auto chaine = depile<kuri::chaine_statique>(site);
 					auto espace = depile<EspaceDeTravail *>(site);
-					compilatrice.ajoute_chaine_compilation(espace, chaine);
+					compilatrice.ajoute_fichier_compilation(espace, chaine);
 					break;
 				}
 
