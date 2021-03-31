@@ -49,7 +49,7 @@ compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *No
 désactive_compilation_espace_défaut :: fonc ()
 {
     options := compilatrice_obtiens_options()
-    options.objet_généré = ObjetGénéré.Rien
+    options.résultat = RésultatCompilation.RIEN
 	// À FAIRE : ajourne les options manuellement
 }
 

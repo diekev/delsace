@@ -5,7 +5,7 @@ métaprogramme :: fonc ()
 {
     désactive_compilation_espace_défaut()
 
-    options := OptionsCompilation()
+    options := OptionsDeCompilation()
 
     espace := démarre_un_espace_de_travail("annotations", *options)
 

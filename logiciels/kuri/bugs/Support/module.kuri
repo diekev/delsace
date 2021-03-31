@@ -5,7 +5,7 @@ importe Fondation
 
 compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 {
-    options : OptionsCompilation
+    options : OptionsDeCompilation
     options.continue_si_erreur = vrai
 
     espace := démarre_un_espace_de_travail("bug", *options)
@@ -17,7 +17,7 @@ compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 
 compile_script_erroné :: fonc (script: chaine) -> bool
 {
-    options : OptionsCompilation
+    options : OptionsDeCompilation
     options.continue_si_erreur = vrai
 
     espace := démarre_un_espace_de_travail("bug", *options)
