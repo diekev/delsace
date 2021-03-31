@@ -58,8 +58,20 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 
 	const auto est_tableau = (specifiants.taille() > 0 && specifiants.derniere() == GenreLexeme::TABLEAU);
 
+	if (type.est_const) {
+		os << "const ";
+	}
+
 	if (est_tableau) {
-		os << "kuri::tableau<";
+		if (type.est_compresse) {
+			os << "kuri::tableau_compresse<";
+		}
+		else if (type.est_synchrone) {
+			os << "tableau_synchrone<";
+		}
+		else {
+			os << "kuri::tableau<";
+		}
 	}
 
 	if (type.nom == "rien") {
@@ -74,7 +86,10 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 	else if (type.nom == "z32") {
 		os << "int";
 	}
-	else {
+	else if (type.nom == "Monomorphisations") {
+		os << "Monomorphisations<CetteClasse>";
+	}
+	else {		
 		os << supprime_accents(type.nom);
 	}
 
@@ -84,8 +99,14 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 	}
 
 	if (est_tableau) {
-		os << ">";
+		if (type.est_synchrone) {
+			os << ">";
+		}
+		else {
+			os << ", int>"; // À FAIRE: ceci échouera pour les NoeudsCodes
+		}
 	}
+
 	return os;
 }
 
@@ -95,6 +116,7 @@ Proteine::Proteine(IdentifiantADN nom)
 
 ProteineStruct::ProteineStruct(IdentifiantADN nom)
 	: Proteine(nom)
+	, m_nom_code(nom)
 {}
 
 void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
@@ -107,6 +129,21 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		}
 
 		os << " {\n";
+
+		// À FAIRE : spécialise le nom du genre
+		if (!accede_nom_genre().est_nul()) {
+			os << "\t" << m_nom << "() { genre = GenreNoeud::" << accede_nom_genre() << "; }\n";
+			os << "\tCOPIE_CONSTRUCT(" << m_nom << ");\n";
+			os << "\n";
+		}
+
+		// petit hack pour pouvoir sainement déclarer les Monomorphisations
+		os << "\tusing CetteClasse = " << m_nom << ";\n";
+		os << "\tPOINTEUR_NUL(" << m_nom << ")\n";
+
+		if (!m_membres.est_vide()) {
+			os << "\n";
+		}
 
 		POUR (m_membres) {
 			os << "\t" << it.type << ' ' << it.nom.nom_cpp();
@@ -132,10 +169,32 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 				}
 			}
 			else {
-				os << " = {}";
+				if (it.type.est_pointeur && !it.type.est_tableau) {
+					os << " = nullptr";
+				}
+				else {
+					os << " = {}";
+				}
 			}
 
 			os << ";\n";
+		}
+
+		// Prodéclare les fonctions de discrimination.
+		if (est_racine_hierarchie()) {
+			pour_chaque_derivee_recursif([&os](const ProteineStruct &derivee) {
+				if (derivee.m_nom_comme.nom_cpp() == "") {
+					return;
+				}
+
+				const auto nom_comme = derivee.m_nom_comme;
+				const auto nom_noeud = derivee.m_nom;
+
+				os << "\n";
+				os << "\tinline bool est_" << nom_comme << "() const;\n";
+				os << "\tinline " << nom_noeud << " *comme_" << nom_comme << "();\n";
+				os << "\tinline const " << nom_noeud << " *comme_" << nom_comme << "() const;\n";
+			});
 		}
 
 		os << "};\n\n";
@@ -153,6 +212,15 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
 
 		pour_chaque_membre_recursif([&os](Membre const &it) {
+			if (it.type.est_tableau) {
+				return;
+			}
+
+			// À FAIRE : ostream << spécialisé pour ValeurExpression, TransformationType
+			if (dls::outils::est_element(it.type.nom, "ValeurExpression", "TransformationType")) {
+				return;
+			}
+
 			os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur." <<  it.nom.nom_cpp() << " << '\\n';" << '\n';
 		});
 
@@ -171,6 +239,13 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		os << "\n";
 		os << "{\n";
 
+		// À FAIRE : nom_genre_énum
+		if (!accede_nom_genre().est_nul()) {
+			os << "\tif (valeur.genre != GenreNoeud::" << accede_nom_genre() << ") {\n";
+			os << "\t\treturn false;\n";
+			os << "\t}\n";
+		}
+
 		pour_chaque_membre_recursif([&os](Membre const &it) {
 			if (it.type.est_enum) {
 				os << "\tif (!est_valeur_legale(valeur." << it.nom.nom_cpp() << ")) {\n";
@@ -184,9 +259,75 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 	}
 }
 
+void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
+{
+	// Implémente les fonctions de discrimination.
+	// Nous devons attendre que toutes les structures soient déclarées avant de
+	// pouvoir faire ceci.
+	if (est_racine_hierarchie()) {
+		pour_chaque_derivee_recursif([&os, this](const ProteineStruct &derivee) {
+			if (derivee.m_nom_comme.nom_cpp() == "") {
+				return;
+			}
+
+			const auto &nom_comme = derivee.m_nom_comme;
+			const auto &nom_noeud = derivee.m_nom;
+			const auto &nom_genre = derivee.m_nom_genre;
+
+			// À FAIRE: si/discr
+			if (derivee.est_racine_soushierachie() && nom_genre.nom_cpp() == "") {
+				os << "inline bool " << m_nom << "::est_" << nom_comme << "() const\n";
+				os << "{\n";
+				os << "\t ";
+
+				auto separateur = "return";
+
+				for (auto &derive : derivee.derivees()) {
+					os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
+					separateur = "|| ";
+				}
+
+				os << ";\n";
+				os << "}\n\n";
+			}
+			else {
+				os << "inline bool " << m_nom << "::est_" << nom_comme << "() const\n";
+				os << "{\n";
+
+				if (derivee.est_racine_soushierachie()) {
+					os << "\treturn this->genre == GenreNoeud::" << nom_genre;
+
+					for (auto &derive : derivee.derivees()) {
+						os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
+					}
+
+					os << ";\n";
+				}
+				else {
+					os << "\treturn this->genre == GenreNoeud::" << nom_genre << ";\n";
+				}
+
+				os << "}\n\n";
+			}
+
+			os << "inline " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "()\n";
+			os << "{\n";
+			os << "\tassert(est_" << nom_comme << "());\n";
+			os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
+			os << "}\n\n";
+
+			os << "inline const " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "() const\n";
+			os << "{\n";
+			os << "\tassert(est_" << nom_comme << "());\n";
+			os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
+			os << "}\n\n";
+		});
+	}
+}
+
 void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
-	os << m_nom.nom_kuri() << " :: struct {\n";
+	os << m_nom_code.nom_kuri() << " :: struct {\n";
 	if (m_mere) {
 		os << "\templ base: " << m_mere->nom().nom_kuri() << "\n\n";
 	}
@@ -218,6 +359,22 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 
 void ProteineStruct::ajoute_membre(const Membre membre)
 {
+	if (membre.est_a_copier) {
+		m_possede_membre_a_copier = true;
+	}
+
+	if (membre.est_enfant) {
+		m_possede_enfant = true;
+	}
+
+	m_possede_tableaux |= membre.type.est_tableau;
+
+	if (membre.est_code && m_paire) {
+		m_paire->m_possede_enfant = membre.est_enfant;
+		m_paire->m_possede_membre_a_copier = membre.est_a_copier;
+		m_paire->m_membres.ajoute(membre);
+	}
+
 	m_membres.ajoute(membre);
 }
 
@@ -232,6 +389,43 @@ void ProteineStruct::pour_chaque_membre_recursif(std::function<void (const Membr
 	}
 }
 
+void ProteineStruct::pour_chaque_copie_extra_recursif(std::function<void (const Membre &)> rappel)
+{
+	if (m_mere) {
+		m_mere->pour_chaque_copie_extra_recursif(rappel);
+	}
+
+	POUR (m_membres) {
+		if (it.est_a_copier) {
+			rappel(it);
+		}
+	}
+}
+
+void ProteineStruct::pour_chaque_enfant_recursif(std::function<void (const Membre &)> rappel)
+{
+	if (m_mere) {
+		m_mere->pour_chaque_enfant_recursif(rappel);
+	}
+
+	POUR (m_membres) {
+		if (it.est_enfant) {
+			rappel(it);
+		}
+	}
+}
+
+void ProteineStruct::pour_chaque_derivee_recursif(std::function<void (const ProteineStruct &)> rappel)
+{
+	POUR (derivees()) {
+		rappel(*it);
+
+		if (it->est_racine_soushierachie()) {
+			it->pour_chaque_derivee_recursif(rappel);
+		}
+	}
+}
+
 ProteineEnum::ProteineEnum(IdentifiantADN nom)
 	: Proteine(nom)
 {}
@@ -239,7 +433,13 @@ ProteineEnum::ProteineEnum(IdentifiantADN nom)
 void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
 	if (pour_entete) {
-		os << "enum class " << m_nom.nom_cpp() << " : int {\n";
+		auto type_valeur = "int";
+
+		if (m_nom.nom_cpp() == "GenreNoeud") {
+			type_valeur = "unsigned char";
+		}
+
+		os << "enum class " << m_nom.nom_cpp() << " : " << type_valeur << " {\n";
 
 		POUR (m_membres) {
 			os << "\t" << it.nom.nom_cpp() << ",\n";
@@ -372,6 +572,10 @@ SyntaxeuseADN::SyntaxeuseADN(Fichier *fichier)
 SyntaxeuseADN::~SyntaxeuseADN()
 {
 	POUR (proteines) {
+		delete it;
+	}
+
+	POUR (proteines_paires) {
 		delete it;
 	}
 }
@@ -528,10 +732,49 @@ void SyntaxeuseADN::parse_struct()
 	while (apparie(GenreLexeme::AROBASE)) {
 		consomme();
 
+		// 'comme' est un mot-clé dans le langage
+		if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !apparie(GenreLexeme::COMME)) {
+			rapporte_erreur("Attendu une chaine de caractère après @");
+		}
+
+		// utilise 'lexeme.chaine' car 'comme' est un mot-clé, il n'y a pas d'identifiant
 		if (apparie("code")) {
 			consomme();
+
+			if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				rapporte_erreur("Attendu une chaine de caractère après @code");
+			}
+
+			proteine->mute_nom_code(lexeme_courant()->chaine);
+
+			auto paire = new ProteineStruct(lexeme_courant()->chaine);
+			proteines_paires.ajoute(paire);
+			proteine->mute_paire(paire);
+
 			consomme();
-			// À FAIRE : code
+		}
+		else if (apparie("comme")) {
+			consomme();
+
+			if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_cle(lexeme_courant()->genre)) {
+				rapporte_erreur("Attendu une chaine de caractère après @code");
+			}
+
+			proteine->mute_nom_comme(lexeme_courant()->chaine);
+			consomme();
+		}
+		else if (apparie("genre")) {
+			consomme();
+
+			if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				rapporte_erreur("Attendu une chaine de caractère après @genre");
+			}
+
+			proteine->mute_nom_genre(lexeme_courant()->chaine);
+			consomme();
+		}
+		else {
+			rapporte_erreur("attribut inconnu");
 		}
 
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -566,11 +809,20 @@ void SyntaxeuseADN::parse_struct()
 			consomme();
 
 			while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-				consomme();
-
-				if (!apparie(GenreLexeme::VIRGULE)) {
-					break;
+				if (apparie("code")) {
+					membre.est_code = true;
 				}
+				else if (apparie("enfant")) {
+					membre.est_enfant = true;
+				}
+				else if (apparie("copie")) {
+					membre.est_a_copier = true;
+				}
+				else {
+					rapporte_erreur("attribut inconnu");
+				}
+
+				consomme();
 			}
 
 			consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant à la fin de la liste des attributs du membres");
@@ -591,6 +843,7 @@ void SyntaxeuseADN::parse_type(Type &type)
 	if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_cle(lexeme_courant()->genre)) {
 		rapporte_erreur("Attendu le nom d'un type");
 	}
+
 	type.nom = lexeme_courant()->chaine;
 
 	POUR (proteines) {
@@ -605,14 +858,38 @@ void SyntaxeuseADN::parse_type(Type &type)
 
 	consomme();
 
+	if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+		if (apparie("const")) {
+			type.est_const = true;
+			consomme();
+		}
+	}
+
 	while (est_specifiant_type(lexeme_courant()->genre)) {
 		if (lexeme_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
 			type.specifiants.ajoute(GenreLexeme::TABLEAU);
+			type.est_tableau = true;
 			consomme();
+
+			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				if (apparie("compressé")) {
+					type.est_compresse = true;
+					consomme();
+				}
+				else if (apparie("synchrone")) {
+					type.est_synchrone = true;
+					consomme();
+				}
+				else {
+					rapporte_erreur("attribut de tableau inconnu");
+				}
+			}
+
 			consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant après le crochet ouvrant");
 		}
 		else {
 			type.specifiants.ajoute(lexeme_courant()->genre);
+			type.est_pointeur = (lexeme_courant()->genre == GenreLexeme::FOIS);
 			consomme();
 		}
 	}

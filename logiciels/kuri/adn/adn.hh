@@ -95,6 +95,11 @@ public:
 		, nom_sans_accent(supprime_accents(nom))
 	{}
 
+	IdentifiantADN(kuri::chaine_statique n)
+		: nom(n)
+		, nom_sans_accent(supprime_accents(nom))
+	{}
+
 	kuri::chaine_statique nom_cpp() const
 	{
 		return nom_sans_accent;
@@ -103,6 +108,11 @@ public:
 	kuri::chaine_statique nom_kuri() const
 	{
 		return nom;
+	}
+
+	bool est_nul() const
+	{
+		return nom == "";
 	}
 };
 
@@ -114,6 +124,17 @@ struct Type {
 	kuri::chaine nom = "rien";
 	kuri::tableau<GenreLexeme> specifiants{};
 	bool est_enum = false;
+
+	bool est_synchrone = false;
+	bool est_compresse = false;
+	bool est_const = false;
+	bool est_tableau = false;
+	bool est_pointeur = false;
+
+	kuri::chaine_statique accesseur_tableau() const
+	{
+		return (est_synchrone ? "->" : ".");
+	}
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type);
@@ -123,6 +144,10 @@ FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type);
 struct Membre {
 	IdentifiantADN nom{};
 	Type type{};
+
+	bool est_code = false;
+	bool est_enfant = false;
+	bool est_a_copier = false;
 
 	bool valeur_defaut_est_acces = false;
 	kuri::chaine_statique valeur_defaut = "";
@@ -168,6 +193,18 @@ class ProteineStruct final : public Proteine {
 
 	ProteineStruct *m_mere = nullptr;
 
+	IdentifiantADN m_nom_code{};
+	IdentifiantADN m_nom_genre{};
+	IdentifiantADN m_nom_comme{};
+
+	kuri::tableau<ProteineStruct *> m_proteines_derivees{};
+
+	bool m_possede_enfant = false;
+	bool m_possede_membre_a_copier = false;
+	bool m_possede_tableaux = false;
+
+	ProteineStruct *m_paire = nullptr;
+
 public:
 	ProteineStruct(IdentifiantADN nom);
 
@@ -176,6 +213,8 @@ public:
 
 	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
+	void genere_code_cpp_apres_declaration(FluxSortieCPP &os);
+
 	void genere_code_kuri(FluxSortieKuri &os) override;
 
 	void ajoute_membre(Membre const membre);
@@ -183,6 +222,10 @@ public:
 	void descend_de(ProteineStruct *proteine)
 	{
 		m_mere = proteine;
+		m_possede_tableaux |= m_mere->m_possede_tableaux;
+		m_possede_enfant |= m_mere->m_possede_enfant;
+		m_possede_membre_a_copier |= m_mere->m_possede_membre_a_copier;
+		m_mere->m_proteines_derivees.ajoute(this);
 	}
 
 	ProteineStruct *comme_struct() override
@@ -190,7 +233,109 @@ public:
 		return this;
 	}
 
+	ProteineStruct *mere() const
+	{
+		return m_mere;
+	}
+
+	void mute_paire(ProteineStruct *paire)
+	{
+		m_paire = paire;
+		m_paire->m_paire = this;
+		m_paire->m_nom_genre = m_nom_genre;
+		m_paire->m_nom_comme = m_nom_comme;
+	}
+
+	ProteineStruct *paire() const
+	{
+		return m_paire;
+	}
+
+	void mute_nom_comme(dls::vue_chaine_compacte chaine)
+	{
+		m_nom_comme = chaine;
+
+		if (m_paire) {
+			m_paire->m_nom_comme = m_nom_comme;
+		}
+	}
+
+	void mute_nom_code(dls::vue_chaine_compacte chaine)
+	{
+		m_nom_code = chaine;
+	}
+
+	void mute_nom_genre(dls::vue_chaine_compacte chaine)
+	{
+		m_nom_genre = chaine;
+
+		if (m_paire) {
+			m_paire->m_nom_genre = m_nom_genre;
+		}
+	}
+
+	const IdentifiantADN &accede_nom_comme() const
+	{
+		return m_nom_comme;
+	}
+
+	const IdentifiantADN &accede_nom_code() const
+	{
+		return m_nom_code;
+	}
+
+	const IdentifiantADN &accede_nom_genre() const
+	{
+		return m_nom_genre;
+	}
+
+	bool est_classe_de_base() const
+	{
+		return !m_proteines_derivees.est_vide();
+	}
+
+	bool est_racine_hierarchie() const
+	{
+		return est_classe_de_base() && m_mere == nullptr;
+	}
+
+	bool est_racine_soushierachie() const
+	{
+		return est_classe_de_base() && m_mere != nullptr;
+	}
+
+	bool possede_enfants() const
+	{
+		return m_possede_enfant;
+	}
+
+	bool possede_membre_a_copier() const
+	{
+		return m_possede_membre_a_copier;
+	}
+
+	const kuri::tableau<ProteineStruct *> &derivees() const
+	{
+		return m_proteines_derivees;
+	}
+
+	const kuri::tableau<Membre> &membres() const
+	{
+		return m_membres;
+	}
+
+	bool possede_tableau() const
+	{
+		return m_possede_tableaux;
+	}
+
 	void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
+
+	void pour_chaque_copie_extra_recursif(std::function<void(Membre const &)> rappel);
+
+	void pour_chaque_enfant_recursif(std::function<void (const Membre &)> rappel);
+
+	void pour_chaque_derivee_recursif(std::function<void (const ProteineStruct &)> rappel);
 };
 
 class ProteineEnum final : public Proteine {
@@ -242,6 +387,7 @@ public:
 
 struct SyntaxeuseADN : public BaseSyntaxeuse {
 	kuri::tableau<Proteine *> proteines{};
+	kuri::tableau<Proteine *> proteines_paires{};
 
 	SyntaxeuseADN(Fichier *fichier);
 
