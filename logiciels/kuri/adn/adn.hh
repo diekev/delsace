@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau_page.hh"
+
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/lexemes.hh"
 
@@ -120,21 +122,246 @@ FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
 
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, IdentifiantADN const &ident);
 
+struct Proteine;
+struct TypeNominal;
+struct TypePointeur;
+struct TypeTableau;
+
 struct Type {
-	kuri::chaine nom = "rien";
-	kuri::tableau<GenreLexeme> specifiants{};
-	bool est_enum = false;
-
-	bool est_synchrone = false;
-	bool est_compresse = false;
 	bool est_const = false;
-	bool est_tableau = false;
-	bool est_pointeur = false;
 
-	kuri::chaine_statique accesseur_tableau() const
+    virtual ~Type() = default;
+
+    virtual bool est_tableau() const
+    {
+        return false;
+    }
+
+    virtual const TypeTableau *comme_tableau() const
+    {
+        return nullptr;
+    }
+
+    virtual bool est_pointeur() const
+    {
+        return false;
+    }
+
+    virtual const TypePointeur *comme_pointeur() const
+    {
+        return nullptr;
+    }
+
+    virtual bool est_nominal() const
+    {
+        return false;
+    }
+
+    virtual const TypeNominal *comme_nominal() const
+    {
+        return nullptr;
+    }
+
+    virtual kuri::chaine_statique accesseur() const
+    {
+        return "";
+    }
+
+	virtual kuri::chaine_statique valeur_defaut() const
 	{
-		return (est_synchrone ? "->" : ".");
+		return "{}";
 	}
+
+	template <typename... TypesChaines>
+	bool est_nominal(TypesChaines... chaines) const;
+};
+
+struct TypePointeur final : public Type {
+    Type *type_pointe = nullptr;
+
+    bool est_pointeur() const override
+    {
+        return true;
+    }
+
+    const TypePointeur *comme_pointeur() const override
+    {
+        return this;
+    }
+
+    kuri::chaine_statique accesseur() const override
+    {
+        return "->";
+    }
+
+	virtual kuri::chaine_statique valeur_defaut() const
+	{
+		return "nullptr";
+	}
+};
+
+struct TypeTableau final : public Type {
+    Type *type_pointe = nullptr;
+    bool est_compresse = false;
+    bool est_synchone = false;
+
+    bool est_tableau() const override
+    {
+        return true;
+    }
+
+    const TypeTableau *comme_tableau() const override
+    {
+        return this;
+    }
+
+    kuri::chaine_statique accesseur() const override
+    {
+        return (est_synchone ? "->" : ".");
+    }
+};
+
+struct TypeNominal final : public Type {
+    IdentifiantADN nom_cpp{};
+    IdentifiantADN nom_kuri{};
+
+    Proteine *est_proteine = nullptr;
+
+    bool est_nominal() const override
+    {
+        return true;
+    }
+
+    const TypeNominal *comme_nominal() const override
+    {
+        return this;
+    }
+
+    kuri::chaine_statique accesseur() const override
+    {
+        // À FAIRE: vérifie que nous avons une structure
+        return ".";
+    }
+
+	virtual kuri::chaine_statique valeur_defaut() const
+	{
+		if (nom_cpp.nom_cpp() == "bool") {
+			return "false";
+		}
+
+		// chaine et chaine_statique
+		if (nom_kuri.nom_cpp() == "chaine") {
+			return R"("")";
+		}
+
+		if (nom_kuri.nom_cpp() == "rien") {
+			return "";
+		}
+
+		return "{}";
+	}
+};
+
+// Déclare ceci après TypeNominal
+template <typename... TypesChaines>
+bool Type::est_nominal(TypesChaines... chaines) const
+{
+	if (!est_nominal()) {
+		return false;
+	}
+
+	const auto type_nominal = comme_nominal();
+	return ((type_nominal->nom_cpp.nom_cpp() == chaines) || ...);
+}
+
+struct Typeuse {
+private:
+    tableau_page<TypePointeur> types_pointeurs{};
+    tableau_page<TypeTableau> types_tableaux{};
+    tableau_page<TypeNominal> types_nominaux{};
+
+	Type *m_type_rien = nullptr;
+
+public:
+    Typeuse()
+    {
+        cree_type_nominal("chaine", "chaine");
+        cree_type_nominal("chaine_statique", "chaine");
+        cree_type_nominal("unsigned char", "n8");
+        cree_type_nominal("uint8_t", "n8");
+        cree_type_nominal("unsigned short", "n16");
+        cree_type_nominal("uint16_t", "n16");
+        cree_type_nominal("unsigned int", "n32");
+        cree_type_nominal("uint32_t", "n32");
+        cree_type_nominal("unsigned long", "n64");
+        cree_type_nominal("uint64_t", "n64");
+        cree_type_nominal("char", "z8");
+        cree_type_nominal("int8_t", "z8");
+        cree_type_nominal("short", "z16");
+        cree_type_nominal("int16_t", "z16");
+        cree_type_nominal("int", "z32");
+        cree_type_nominal("int32_t", "z32");
+        cree_type_nominal("long", "z64");
+        cree_type_nominal("int64_t", "z64");
+        cree_type_nominal("octet_t", "octet");
+        cree_type_nominal("bool", "bool");
+		m_type_rien = cree_type_nominal("void", "rien");
+    }
+
+	COPIE_CONSTRUCT(Typeuse);
+
+	Type *type_rien()
+	{
+		return m_type_rien;
+	}
+
+    TypePointeur *cree_type_pointeur(Type *type_pointe)
+    {
+        POUR_TABLEAU_PAGE (types_pointeurs) {
+            if (it.type_pointe == type_pointe) {
+                return &it;
+            }
+        }
+
+        auto resultat = types_pointeurs.ajoute_element();
+        resultat->type_pointe = type_pointe;
+        return resultat;
+    }
+
+    TypeTableau *cree_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
+    {
+        POUR_TABLEAU_PAGE (types_tableaux) {
+            if (it.type_pointe == type_pointe) {
+                return &it;
+            }
+        }
+
+        auto resultat = types_tableaux.ajoute_element();
+        resultat->type_pointe = type_pointe;
+        resultat->est_compresse = compresse;
+        resultat->est_synchone = synchrone;
+        return resultat;
+    }
+
+    TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp)
+    {
+        return cree_type_nominal(nom_cpp, nom_cpp);
+    }
+
+    TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
+    {
+        POUR_TABLEAU_PAGE (types_nominaux) {
+			// Les fichiers ADN doivent utiliser le nom C++
+            if (it.nom_cpp.nom_cpp() == nom_cpp) {
+                return &it;
+            }
+        }
+
+        auto resultat = types_nominaux.ajoute_element();
+        resultat->nom_cpp = nom_cpp;
+        resultat->nom_kuri = nom_kuri;
+        return resultat;
+    }
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type);
@@ -143,7 +370,7 @@ FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type);
 
 struct Membre {
 	IdentifiantADN nom{};
-	Type type{};
+	Type *type = nullptr;
 
 	bool est_code = false;
 	bool est_enfant = false;
@@ -358,21 +585,23 @@ public:
 
 struct Parametre {
 	IdentifiantADN nom{};
-	Type type{};
+	Type *type = nullptr;
 };
 
 class ProteineFonction final : public Proteine {
 	kuri::tableau<Parametre> m_parametres{};
-	Type m_type_sortie{};
+	Type *m_type_sortie = nullptr;
 
 public:
 	ProteineFonction(IdentifiantADN nom);
+
+	COPIE_CONSTRUCT(ProteineFonction);
 
 	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
 	void genere_code_kuri(FluxSortieKuri &os) override;
 
-	Type &type_sortie()
+	Type* &type_sortie()
 	{
 		return m_type_sortie;
 	}
@@ -388,6 +617,8 @@ public:
 struct SyntaxeuseADN : public BaseSyntaxeuse {
 	kuri::tableau<Proteine *> proteines{};
 	kuri::tableau<Proteine *> proteines_paires{};
+
+	Typeuse m_typeuse{};
 
 	SyntaxeuseADN(Fichier *fichier);
 
@@ -410,7 +641,7 @@ private:
 
 	void parse_struct();
 
-	void parse_type(Type &type);
+	Type *parse_type();
 
 	void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 };

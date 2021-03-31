@@ -38,72 +38,63 @@ FluxSortieKuri &operator<<(FluxSortieKuri &flux, const IdentifiantADN &ident)
 
 FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
 {
-	for (auto i = type.specifiants.taille() - 1; i >= 0; --i) {
-		const auto spec = type.specifiants[i];
-		os << chaine_du_lexeme(spec);
+	if (type.est_tableau()) {
+		const auto type_tableau = type.comme_tableau();
+		os << "[]";
+		os << *type_tableau->type_pointe;
+	}
+	else if (type.est_pointeur()) {
+		const auto type_pointeur = type.comme_pointeur();
+		os << "*";
+		os << *type_pointeur->type_pointe;
+	}
+	else if (type.est_nominal()) {
+		const auto type_nominal = type.comme_nominal();
+		os << type_nominal->nom_kuri;
 	}
 
-	if (type.nom == "chaine_statique") {
-		os << "chaine";
-	}
-	else {
-		os << type.nom;
-	}
 	return os;
 }
 
 FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 {
-	const auto &specifiants = type.specifiants;
-
-	const auto est_tableau = (specifiants.taille() > 0 && specifiants.derniere() == GenreLexeme::TABLEAU);
-
 	if (type.est_const) {
 		os << "const ";
 	}
 
-	if (est_tableau) {
-		if (type.est_compresse) {
-			os << "kuri::tableau_compresse<";
+	if (type.est_tableau()) {
+		const auto type_tableau = type.comme_tableau();
+
+		if (type_tableau->est_compresse) {
+			// À FAIRE: le « int » échouera pour les NoeudsCodes
+			os << "kuri::tableau_compresse<" << *type_tableau->type_pointe << ", int>";
 		}
-		else if (type.est_synchrone) {
-			os << "tableau_synchrone<";
+		else if (type_tableau->est_synchone) {
+			os << "tableau_synchrone<" << *type_tableau->type_pointe << ">";
 		}
 		else {
-			os << "kuri::tableau<";
+			// À FAIRE: le « int » échouera pour les NoeudsCodes
+			os << "kuri::tableau<" << *type_tableau->type_pointe << ", int>";
 		}
 	}
+	else if (type.est_pointeur()) {
+		const auto type_pointeur = type.comme_pointeur();
+		os << *type_pointeur->type_pointe << "*";
+	}
+	else if (type.est_nominal()) {
+		const auto type_nominal = type.comme_nominal();
 
-	if (type.nom == "rien") {
-		os << "void";
-	}
-	else if (type.nom == "chaine_statique") {
-		os << "kuri::chaine_statique";
-	}
-	else if (type.nom == "chaine") {
-		os << "kuri::chaine";
-	}
-	else if (type.nom == "z32") {
-		os << "int";
-	}
-	else if (type.nom == "Monomorphisations") {
-		os << "Monomorphisations<CetteClasse>";
-	}
-	else {		
-		os << supprime_accents(type.nom);
-	}
-
-	for (auto i = type.specifiants.taille() - 1 - est_tableau; i >= 0; --i) {
-		const auto spec = type.specifiants[i];
-		os << chaine_du_lexeme(spec);
-	}
-
-	if (est_tableau) {
-		if (type.est_synchrone) {
-			os << ">";
+		if (type_nominal->nom_cpp.nom_cpp() == "Monomorphisations") {
+			os << "Monomorphisations<CetteClass>";
+		}
+		else if (type_nominal->nom_cpp.nom_cpp() == "chaine") {
+			os << "kuri::chaine";
+		}
+		else if (type_nominal->nom_cpp.nom_cpp() == "chaine_statique") {
+			os << "kuri::chaine_statique";
 		}
 		else {
-			os << ", int>"; // À FAIRE: ceci échouera pour les NoeudsCodes
+			os << type_nominal->nom_cpp;
 		}
 	}
 
@@ -146,16 +137,16 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		}
 
 		POUR (m_membres) {
-			os << "\t" << it.type << ' ' << it.nom.nom_cpp();
+			os << "\t" << *it.type << ' ' << it.nom.nom_cpp();
 
 			if (it.valeur_defaut != "") {
 				os << " = ";
 
 				if (it.valeur_defaut_est_acces) {
-					os << it.type << "::";
+					os << *it.type << "::";
 				}
 
-				if (dls::outils::est_element(it.type.nom, "chaine", "chaine_statique")) {
+				if (it.type->est_nominal("chaine", "chaine_statique")) {
 					os << '"' << it.valeur_defaut << '"';
 				}
 				else if (it.valeur_defaut == "vrai") {
@@ -169,12 +160,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 				}
 			}
 			else {
-				if (it.type.est_pointeur && !it.type.est_tableau) {
-					os << " = nullptr";
-				}
-				else {
-					os << " = {}";
-				}
+				os << " = " << it.type->valeur_defaut();
 			}
 
 			os << ";\n";
@@ -212,12 +198,12 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
 
 		pour_chaque_membre_recursif([&os](Membre const &it) {
-			if (it.type.est_tableau) {
+			if (it.type->est_tableau()) {
 				return;
 			}
 
 			// À FAIRE : ostream << spécialisé pour ValeurExpression, TransformationType
-			if (dls::outils::est_element(it.type.nom, "ValeurExpression", "TransformationType")) {
+			if (it.type->est_nominal("ValeurExpression", "TransformationType")) {
 				return;
 			}
 
@@ -247,7 +233,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 		}
 
 		pour_chaque_membre_recursif([&os](Membre const &it) {
-			if (it.type.est_enum) {
+			if (it.type->est_nominal() && it.type->comme_nominal()->est_proteine && it.type->comme_nominal()->est_proteine->comme_enum()) {
 				os << "\tif (!est_valeur_legale(valeur." << it.nom.nom_cpp() << ")) {\n";
 				os << "\t\treturn false;\n";
 				os << "\t}\n";
@@ -336,15 +322,15 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 		os << "\t" << it.nom.nom_kuri();
 
 		if (it.valeur_defaut == "") {
-			os << ": " << it.type;
+			os << ": " << *it.type;
 		}
 		else {
 			os << " := ";
 			if (it.valeur_defaut_est_acces) {
-				os << it.type << ".";
+				os << *it.type << ".";
 			}
 
-			if (dls::outils::est_element(it.type.nom, "chaine", "chaine_statique")) {
+			if (it.type->est_nominal("chaine", "chaine_statique")) {
 				os << '"' << it.valeur_defaut << '"';
 			}
 			else {
@@ -367,7 +353,7 @@ void ProteineStruct::ajoute_membre(const Membre membre)
 		m_possede_enfant = true;
 	}
 
-	m_possede_tableaux |= membre.type.est_tableau;
+	m_possede_tableaux |= membre.type->est_tableau();
 
 	if (membre.est_code && m_paire) {
 		m_paire->m_possede_enfant = membre.est_enfant;
@@ -509,7 +495,7 @@ ProteineFonction::ProteineFonction(IdentifiantADN nom)
 
 void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
-	os << m_type_sortie << ' ' << m_nom.nom_cpp();
+	os << *m_type_sortie << ' ' << m_nom.nom_cpp();
 
 	auto virgule = "(";
 
@@ -518,7 +504,7 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 	}
 	else {
 		for (auto &param : m_parametres) {
-			os << virgule << param.type << ' ' << param.nom.nom_cpp();
+			os << virgule << *param.type << ' ' << param.nom.nom_cpp();
 			virgule = ", ";
 		}
 	}
@@ -530,13 +516,8 @@ void ProteineFonction::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 	}
 	else {
 		os << "\n{\n";
-
 		os << "\tassert(false);\n";
-
-		if (m_type_sortie.nom != "rien") {
-			os << "\treturn {};\n";
-		}
-
+		os << "\treturn " << m_type_sortie->valeur_defaut() << ";\n";
 		os << "}\n\n";
 	}
 }
@@ -552,12 +533,12 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
 	}
 	else {
 		for (auto &param : m_parametres) {
-			os << virgule << param.nom.nom_kuri() << ": " << param.type;
+			os << virgule << param.nom.nom_kuri() << ": " << *param.type;
 			virgule = ", ";
 		}
 	}
 
-	os << ")" << " -> " << m_type_sortie << " #compilatrice" << "\n\n";
+	os << ")" << " -> " << *m_type_sortie << " #compilatrice" << "\n\n";
 }
 
 void ProteineFonction::ajoute_parametre(Parametre const parametre)
@@ -615,7 +596,7 @@ void SyntaxeuseADN::parse_fonction()
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto parametre = Parametre{};
-		parse_type(parametre.type);
+		parametre.type = parse_type();
 
 		if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
 			rapporte_erreur("Attendu une chaine de caractère pour le nom du paramètre après son type");
@@ -637,7 +618,10 @@ void SyntaxeuseADN::parse_fonction()
 	// type de retour
 	if (apparie(GenreLexeme::RETOUR_TYPE)) {
 		consomme();
-		parse_type(fonction->type_sortie());
+		fonction->type_sortie() = parse_type();
+	}
+	else {
+		fonction->type_sortie() = m_typeuse.type_rien();
 	}
 
 	if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -784,7 +768,7 @@ void SyntaxeuseADN::parse_struct()
 
 	while (!apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
 		auto membre = Membre{};
-		parse_type(membre.type);
+		membre.type = parse_type();
 
 		if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
 			rapporte_erreur("Attendu le nom du membre après son type !");
@@ -838,18 +822,19 @@ void SyntaxeuseADN::parse_struct()
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin de la structure");
 }
 
-void SyntaxeuseADN::parse_type(Type &type)
+Type *SyntaxeuseADN::parse_type()
 {
 	if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_cle(lexeme_courant()->genre)) {
 		rapporte_erreur("Attendu le nom d'un type");
 	}
 
-	type.nom = lexeme_courant()->chaine;
+	auto type_nominal = m_typeuse.cree_type_nominal(lexeme_courant()->chaine);
+	Type *type = type_nominal;
 
 	POUR (proteines) {
-		if (it->nom().nom_kuri() == type.nom) {
+		if (it->nom().nom_cpp() == type_nominal->nom_cpp.nom_cpp()) {
 			if (it->comme_enum()) {
-				type.est_enum = true;
+				type_nominal->est_proteine = it;
 			}
 
 			break;
@@ -858,26 +843,29 @@ void SyntaxeuseADN::parse_type(Type &type)
 
 	consomme();
 
+	auto est_const = false;
+
 	if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
 		if (apparie("const")) {
-			type.est_const = true;
+			est_const = true;
 			consomme();
 		}
 	}
 
 	while (est_specifiant_type(lexeme_courant()->genre)) {
 		if (lexeme_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
-			type.specifiants.ajoute(GenreLexeme::TABLEAU);
-			type.est_tableau = true;
 			consomme();
+
+			auto est_compresse = false;
+			auto est_synchrone = false;
 
 			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
 				if (apparie("compressé")) {
-					type.est_compresse = true;
+					est_compresse = true;
 					consomme();
 				}
 				else if (apparie("synchrone")) {
-					type.est_synchrone = true;
+					est_synchrone = true;
 					consomme();
 				}
 				else {
@@ -886,13 +874,20 @@ void SyntaxeuseADN::parse_type(Type &type)
 			}
 
 			consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant après le crochet ouvrant");
+			type = m_typeuse.cree_type_tableau(type, est_compresse, est_synchrone);
 		}
-		else {
-			type.specifiants.ajoute(lexeme_courant()->genre);
-			type.est_pointeur = (lexeme_courant()->genre == GenreLexeme::FOIS);
+		else if (lexeme_courant()->genre == GenreLexeme::FOIS) {
+			type = m_typeuse.cree_type_pointeur(type);
 			consomme();
 		}
+		else {
+			rapporte_erreur("spécifiant type inconnu");
+		}
 	}
+
+	// À FAIRE : ceci n'est pas vraiment l'endroit pour stocker cette information
+	type->est_const = est_const;
+	return type;
 }
 
 void SyntaxeuseADN::gere_erreur_rapportee(const kuri::chaine &message_erreur)

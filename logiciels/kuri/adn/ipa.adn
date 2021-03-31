@@ -1,14 +1,14 @@
 // ADN pour les fonctions d'interface de la Compilatrice.
 
-fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> rien
+fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
 
-fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> rien
+fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
 
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 
 fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
-fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> rien
+fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void
 
 fonction compilatrice_attend_message() -> Message *
 
@@ -16,9 +16,9 @@ fonction compilatrice_commence_interception(EspaceDeTravail * espace)
 
 fonction compilatrice_termine_interception(EspaceDeTravail * espace)
 
-fonction compilatrice_rapporte_erreur(EspaceDeTravail * espace, chaine_statique fichier, z32 ligne, chaine_statique message)
+fonction compilatrice_rapporte_erreur(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
 
-fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_statique fichier, z32 ligne, chaine_statique message)
+fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
 
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
 fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
