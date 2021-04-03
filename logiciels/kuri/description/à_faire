@@ -83,18 +83,6 @@
 - correctitude de constance
 - nursery
 
-// --------------------------- Branches
-
-kuri_allocations
--- inutile ?
--- optimisation prématurée
-kuri_encapsulation_membres
--- remplace les boucles pour prendre des rappels
-kuri_ref_contexte
--- dépend sur la normalisation des types
-kuri_reusinage_atomes
--- inutile ?
-
 // --------------------------- Compilatrice
 
 remplace DonneesCandidate::raison par une chaine de caractère
