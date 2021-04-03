@@ -1,5 +1,7 @@
 // aucune erreur n'est lancée quand on ne peut déterminer une expression appel se basant sur un type polymorphique
 
+importe Support
+
 STRUCT :: struct {
     x := 0
 }
@@ -12,5 +14,6 @@ test_construit_poly :: fonc (t : $T) -> T
 principale :: fonc () -> z32
 {
     s := test_construit_poly(STRUCT())
+    imprime_succès(vrai)
     retourne 0
 }

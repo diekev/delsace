@@ -1,5 +1,7 @@
 // exception en point flottant quand une structure n'a pas de membre, autre que d'autres structures
 
+importe Support
+
 Structure :: struct {
     SousStructure :: struct {
         z: r32
@@ -9,5 +11,6 @@ Structure :: struct {
 principale :: fonc () -> z32
 {
     s : Structure
+    imprime_succès(vrai)
     retourne 0
 }

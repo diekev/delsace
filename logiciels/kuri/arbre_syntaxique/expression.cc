@@ -22,16 +22,17 @@
  *
  */
 
-#include "expression.h"
+#include "expression.hh"
 
 #include "biblinternes/outils/conditions.h"
 
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique.hh"
-#include "espace_de_travail.hh"
-#include "portee.hh"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/portee.hh"
+
+#include "noeud_expression.hh"
 
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont toujours surl les lexèmes */
 
@@ -220,10 +221,6 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
  * Évalue l'expression dont « b » est la racine. L'expression doit être
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
  * lors de la compilation.
- *
- * Dans le future, ce sera sans doute la base d'un interpreteur pour exécuter de
- * manière arbitraire du code lors de la compilation. Pour cela, la prochaine
- * étape sera de pouvoir évaluer des fonctions entières.
  */
 ResultatExpression evalue_expression(
 		EspaceDeTravail *espace,
@@ -296,8 +293,8 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto expr_taille_de = static_cast<NoeudExpressionUnaire *>(b);
-			auto type = expr_taille_de->expr->type;
+			auto expr_taille_de = b->comme_taille_de();
+			auto type = expr_taille_de->expression->type;
 
 			auto res = ResultatExpression();
 			res.valeur.type = TypeExpression::ENTIER;
@@ -373,8 +370,8 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto res = evalue_expression(espace, bloc, inst->expr);
+			auto inst = b->comme_expression_unaire();
+			auto res = evalue_expression(espace, bloc, inst->operande);
 
 			if (res.est_errone) {
 				return res;
@@ -391,14 +388,14 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto res1 = evalue_expression(espace, bloc, inst->expr1);
+			auto inst = b->comme_expression_binaire();
+			auto res1 = evalue_expression(espace, bloc, inst->operande_gauche);
 
 			if (res1.est_errone) {
 				return res1;
 			}
 
-			auto res2 = evalue_expression(espace, bloc, inst->expr2);
+			auto res2 = evalue_expression(espace, bloc, inst->operande_droite);
 
 			if (res2.est_errone) {
 				return res2;
@@ -429,19 +426,19 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			return evalue_expression(espace, bloc, inst->expr);
+			auto inst = b->comme_parenthese();
+			return evalue_expression(espace, bloc, inst->expression);
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			return evalue_expression(espace, bloc, inst->expr1);
+			auto inst = b->comme_comme();
+			return evalue_expression(espace, bloc, inst->expression);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto ref_membre = b->comme_ref_membre();
-			auto type_accede = ref_membre->accede->type;
+			auto ref_membre = b->comme_reference_membre();
+			auto type_accede = ref_membre->accedee->type;
 
 			if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
 				auto type_enum = type_accede->comme_enum();
@@ -454,7 +451,7 @@ ResultatExpression evalue_expression(
 			}
 
 			if (type_accede->est_tableau_fixe()) {
-				if (!ref_membre->membre->est_ref_decl()) {
+				if (!ref_membre->membre->est_reference_declaration()) {
 					auto res = ResultatExpression();
 					res.est_errone = true;
 					res.noeud_erreur = b;
@@ -463,7 +460,7 @@ ResultatExpression evalue_expression(
 					return res;
 				}
 
-				auto ref_decl_membre = ref_membre->membre->comme_ref_decl();
+				auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
 
 				if (ref_decl_membre->ident->nom == "taille") {
 					auto res = ResultatExpression();

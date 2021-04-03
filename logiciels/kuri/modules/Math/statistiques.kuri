@@ -64,3 +64,225 @@ p_distribution_normale :: fonc (qn: r32) -> r32
 
     retourne -sqrt(w1 * w3) comme r32
 }
+
+moyenne_arithmétique :: fonc (données: []$T) -> T
+{
+    résultat : T
+
+    si données.taille == 0 {
+        retourne résultat
+    }
+
+    si données.taille == 1 {
+        retourne données[0]
+    }
+
+    pour données {
+        résultat += it
+    }
+
+    résultat /= données.taille comme T
+
+    retourne résultat
+}
+
+moyenne_géométrique :: fonc (données: []$T) -> T
+{
+    résultat : T
+
+    si données.taille == 0 {
+        retourne résultat
+    }
+
+    si données.taille == 1 {
+        retourne données[0]
+    }
+
+    résultat = 1.0
+
+    pour données {
+        résultat *= it
+    }
+
+    si résultat == 0.0 {
+        retourne 0.0
+    }
+
+    résultat = puissance(résultat, données.taille comme T)
+
+    retourne résultat
+}
+
+moyenne_quadratique :: fonc (données: []$T) -> T
+{
+    résultat : T
+
+    si données.taille == 0 {
+        retourne résultat
+    }
+
+    si données.taille == 1 {
+        retourne données[0]
+    }
+
+    pour données {
+        résultat = it * it
+    }
+
+    si résultat == 0.0 {
+        retourne 0.0
+    }
+
+    facteur := 1.0 / données.taille comme T
+    retourne racine_carrée(facteur * résultat)
+}
+
+moyenne_harmonique :: fonc (données: []$T) -> T
+{
+    résultat : T
+
+    si données.taille == 0 {
+        retourne résultat
+    }
+
+    si données.taille == 1 {
+        résultat = données[0]
+
+        si résultat == 0 {
+            retourne 0
+        }
+
+        retourne 1.0 / résultat
+    }
+
+    pour données {
+        si it != 0 {
+            résultat += 1.0 / résultat
+        }
+    }
+
+    si résultat == 0 {
+        retourne résultat
+    }
+
+    retourne données.taille comme T / résultat
+}
+
+TypeMoyenne :: énum {
+    Arithmétique
+    Géométrique
+    Harmonique
+    Quadratique
+}
+
+moyenne :: fonc (données: []$T, type_moyenne: TypeMoyenne) -> T
+{
+    discr type_moyenne {
+        Arithmétique {
+            retourne moyenne_arithmétique(données)
+        }
+        Géométrique {
+            retourne moyenne_géométrique(données)
+        }
+        Harmonique {
+            retourne moyenne_harmonique(données)
+        }
+        Quadratique {
+            retourne moyenne_quadratique(données)
+        }
+    }
+
+    retourne 0 comme T
+}
+
+/* Ajourne une moyenne précalculée avec une nouvelle valeur. */
+ajourne_moyenne :: fonc (m: $T, n: z64, valeur: T, type_moyenne: TypeMoyenne) -> T
+{
+    si n <= 0 {
+        retourne 0
+    }
+
+    n_réel := n comme T
+
+    discr type_moyenne {
+        Arithmétique {
+            retourne ((m * n_réel) + valeur) / (n_réel + 1)
+        }
+        Géométrique {
+            retourne ((m * n_réel) * valeur) / (n_réel + 1)
+        }
+        Harmonique {
+            retourne (n_réel + 1) / ((m * n_réel) + (1.0 / valeur))
+        }
+        Quadratique {
+            retourne racine_carrée(((m * n_réel) + valeur * valeur) / (n_réel + 1))
+        }
+    }
+
+    retourne 0
+}
+
+moyenne_quasi_arithmétique :: fonc (données: []$T, primitive: fonc(T)(T), dérivée: fonc(T)(T)) -> T
+{
+    si données.taille == 0 {
+        retourne 0.0
+    }
+
+    si données.taille == 1 {
+        retourne f(données[0])
+    }
+
+    résultat : T
+
+    pour données {
+        résultat += primitive(it)
+    }
+
+    si résultat == 0 {
+        retourne 0
+    }
+
+    retourne dérivée(résultat / données.taille comme T)
+}
+
+variance :: fonc (données: []$T) -> T
+{
+    m := moyenne_arithmétique(données)
+    retourne variance(données, m)
+}
+
+variance :: fonc (données: []$T, m: T) -> T
+{
+    si données.taille == 0 {
+        retourne 0
+    }
+
+    résultat : T
+
+    pour données {
+        résultat += it * it
+    }
+
+    retourne résultat / données.taille comme T - m * m
+}
+
+covariance :: fonc (données1: []$T, données2: []T) -> T
+{
+    esp1 := moyenne_arithmétique(données1)
+    esp2 := moyenne_arithmétique(données2)
+    retourne covariance(données1, esp1, données1, esp2)
+}
+
+covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> T, z64
+{
+    taille := min(données1.taille, données2.taille)
+
+	résultat : T
+
+	pour i dans 0 ... taille - 1 {
+		résultat += (données1[i] - esp1) * (données2[i] - esp2)
+	}
+
+	résultat /= taille comme T
+	retourne résultat, taille
+}

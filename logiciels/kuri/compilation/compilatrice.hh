@@ -30,13 +30,13 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
-#include "message.hh"
+#include "messagere.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
 
 struct ContexteLexage;
 struct EspaceDeTravail;
-struct OptionsCompilation;
+struct OptionsDeCompilation;
 struct Statistiques;
 
 struct Compilatrice {
@@ -50,7 +50,8 @@ struct Compilatrice {
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
-	bool possede_erreur = false;
+	bool m_possede_erreur = false;
+	erreur::Genre m_code_erreur{};
 	bool active_tests = false;
 
 	template <typename T>
@@ -112,7 +113,7 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
-	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, kuri::chaine const &nom);
+	EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options, kuri::chaine const &nom);
 
 	/* ********************************************************************** */
 
@@ -121,30 +122,30 @@ struct Compilatrice {
 	long memoire_utilisee() const;
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+	void rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre);
+
+	bool possede_erreur() const
+	{
+		return m_possede_erreur;
+	}
+
+	bool possede_erreur(EspaceDeTravail const *espace) const;
+
+	erreur::Genre code_erreur() const
+	{
+		return m_code_erreur;
+	}
+
+public:
+	OptionsDeCompilation *options_compilation();
+	void ajourne_options_compilation(OptionsDeCompilation *options);
+	void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+	void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
+	void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+	const Message *attend_message();
+	EspaceDeTravail *espace_defaut_compilation();
+	kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne, const NoeudExpression *site);
 };
 
-/* manipule les options de compilation pour l'espace de travail défaut */
-OptionsCompilation *obtiens_options_compilation();
-void ajourne_options_compilation(OptionsCompilation *options);
-
-EspaceDeTravail *espace_defaut_compilation();
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
 int fonction_test_variadique_externe(int sentinel, ...);
-
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique nom, OptionsCompilation *options);
-
-EspaceDeTravail *compilatrice_espace_courant();
-
-Message const *compilatrice_attend_message();
-void compilatrice_commence_interception(EspaceDeTravail *espace);
-void compilatrice_termine_interception(EspaceDeTravail *espace);
-
-void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
-
-/* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
- * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
- * avec le site renseigné.
- */
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site);

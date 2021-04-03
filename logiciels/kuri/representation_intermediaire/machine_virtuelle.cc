@@ -26,11 +26,13 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 
-#include "compilation/arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
 
 #include "parsage/identifiant.hh"
@@ -102,8 +104,8 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
 
 #define OP_UNAIRE_POUR_TYPE(op, type) \
 	if (taille == static_cast<int>(sizeof(type))) { \
-		auto a = depile<type>(); \
-		empile(op a); \
+		auto a = depile<type>(site); \
+		empile(site, op a); \
 	}
 
 #define OP_UNAIRE(op) \
@@ -121,10 +123,10 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
 
 #define OP_BINAIRE_POUR_TYPE(op, type) \
 	if (taille == static_cast<int>(sizeof(type))) { \
-		auto b = depile<type>(); \
-		auto a = depile<type>(); \
+		auto b = depile<type>(site); \
+		auto a = depile<type>(site); \
 		auto r = op<type>()(a, b); \
-		empile(r); \
+		empile(site, r); \
 	}
 
 #define OP_BINAIRE(op) \
@@ -148,8 +150,8 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
 
 #define FAIS_TRANSTYPE(type_de, type_vers) \
 	if (taille_vers == static_cast<int>(sizeof(type_vers))) { \
-		auto v = depile<type_de>(); \
-		empile(static_cast<type_vers>(v)); \
+		auto v = depile<type_de>(site); \
+		empile(site, static_cast<type_vers>(v)); \
 	}
 
 #define FAIS_TRANSTYPE_AUGMENTE(type1, type2, type3, type4) \
@@ -383,23 +385,48 @@ MachineVirtuelle::~MachineVirtuelle()
 	}
 }
 
-void MachineVirtuelle::depile(long n)
-{
-	pointeur_pile -= n;
-}
-
 template <typename T>
-void MachineVirtuelle::empile(T valeur)
+void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 {
 	*reinterpret_cast<T *>(this->pointeur_pile) = valeur;
+#ifndef NDEBUG
+	if (pointeur_pile > (pile + TAILLE_PILE)) {
+		m_metaprogramme->unite->espace->rapporte_erreur(site, "Erreur interne : surrentamponnage de la pile de données");
+	}
+#else
+	static_cast<void>(site);
+#endif
 	this->pointeur_pile += static_cast<long>(sizeof(T));
+	// std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
 }
 
 template <typename T>
-T MachineVirtuelle::depile()
+T MachineVirtuelle::depile(NoeudExpression *site)
 {
 	this->pointeur_pile -= static_cast<long>(sizeof(T));
+	// std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
+#ifndef NDEBUG
+	if (pointeur_pile < pile) {
+		m_metaprogramme->unite->espace->rapporte_erreur(site, "Erreur interne : sousentamponnage de la pile de données")
+				.ajoute_message("Le type du site est « ", chaine_type(site->type), " »");
+	}
+#else
+	static_cast<void>(site);
+#endif
 	return *reinterpret_cast<T *>(this->pointeur_pile);
+}
+
+void MachineVirtuelle::depile(NoeudExpression *site, long n)
+{
+	pointeur_pile -= n;
+	// std::cerr << "Dépile " << n << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
+#ifndef NDEBUG
+	if (pointeur_pile < pile) {
+		m_metaprogramme->unite->espace->rapporte_erreur(site, "Erreur interne : sous-tamponnage de la pile de données");
+	}
+#else
+	static_cast<void>(site);
+#endif
 }
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
@@ -435,8 +462,135 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction, int t
 	return true;
 }
 
-void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel)
+void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel, NoeudExpression *site, ResultatInterpretation &resultat)
 {
+	/* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des pointeurs de fonctions. */
+	if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
+		empile(site, m_metaprogramme->unite->espace);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
+		auto message = compilatrice.attend_message();
+
+		if (!message) {
+			resultat = ResultatInterpretation::PASSE_AU_SUIVANT;
+			return;
+		}
+
+		empile(site, message);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
+		auto espace_recu = depile<EspaceDeTravail *>(site);
+
+		auto &messagere = compilatrice.messagere;
+		messagere->commence_interception(espace_recu);
+
+		espace_recu->metaprogramme = m_metaprogramme;
+		static_cast<void>(espace_recu);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
+		auto espace_recu = depile<EspaceDeTravail *>(site);
+
+		if (espace_recu->metaprogramme != m_metaprogramme) {
+			/* L'espace du « site » est celui de métaprogramme, et non
+				* l'espace reçu en paramètre. */
+			rapporte_erreur(m_metaprogramme->unite->espace,
+							site,
+							"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
+		}
+
+		espace_recu->metaprogramme = nullptr;
+
+		auto &messagere = compilatrice.messagere;
+		messagere->termine_interception(espace_recu);
+		compilatrice.ordonnanceuse->purge_messages();
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
+		auto chemin_recu = depile<kuri::chaine_statique>(site);
+		auto lexemes = compilatrice.lexe_fichier(chemin_recu, site);
+		empile(site, lexemes);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_obtiens_options)) {
+		auto options = compilatrice.options_compilation();
+		empile(site, options);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
+		auto options = depile<OptionsDeCompilation *>(site);
+		compilatrice.ajourne_options_compilation(options);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
+		auto chaine = depile<kuri::chaine_statique>(site);
+		auto espace = depile<EspaceDeTravail *>(site);
+		compilatrice.ajoute_chaine_compilation(espace, chaine);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
+		auto chaine = depile<kuri::chaine_statique>(site);
+		auto espace = depile<EspaceDeTravail *>(site);
+		compilatrice.ajoute_fichier_compilation(espace, chaine);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(ajoute_chaine_au_module)) {
+		auto chaine = depile<kuri::chaine_statique>(site);
+		auto module = depile<Module *>(site);
+		auto espace = depile<EspaceDeTravail *>(site);
+		compilatrice.ajoute_chaine_au_module(espace, module, chaine);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
+		auto options = depile<OptionsDeCompilation *>(site);
+		auto nom = depile<kuri::chaine_statique>(site);
+		auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
+		empile(site, espace);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(espace_defaut_compilation)) {
+		auto espace = compilatrice.espace_defaut_compilation();
+		empile(site, espace);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur)) {
+		auto message = depile<kuri::chaine_statique>(site);
+		auto ligne = depile<int>(site);
+		auto fichier = depile<kuri::chaine_statique>(site);
+		auto espace = depile<EspaceDeTravail *>(site);
+		espace->rapporte_erreur(fichier, ligne, message);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement)) {
+		auto message = depile<kuri::chaine_statique>(site);
+		auto ligne = depile<int>(site);
+		auto fichier = depile<kuri::chaine_statique>(site);
+		auto espace = depile<EspaceDeTravail *>(site);
+		espace->rapporte_avertissement(fichier, ligne, message);
+		return;
+	}
+
+	if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
+		auto espace = depile<EspaceDeTravail *>(site);
+		empile(site, compilatrice.possede_erreur(espace));
+		return;
+	}
+
 	auto type_fonction = ptr_fonction->decl->type->comme_fonction();
 	auto &donnees_externe = ptr_fonction->donnees_externe;
 
@@ -509,13 +663,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 	pointeur_pile = pointeur_arguments + taille_type_retour;
 }
 
-void MachineVirtuelle::empile_constante(FrameAppel *frame)
+void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
 {
 	auto drapeaux = LIS_OCTET();
 
 #define EMPILE_CONSTANTE(type) \
 	type v = *(reinterpret_cast<type *>(frame->pointeur)); \
-	empile(v); \
+	empile(site, v); \
 	frame->pointeur += (drapeaux >> 3); \
 	break;
 
@@ -539,7 +693,7 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 		case CONSTANTE_ENTIER_NATUREL | BITS_8:
 		{
 			// erreur de compilation pour transtype inutile avec drapeaux stricts
-			empile(LIS_OCTET());
+			empile(site, LIS_OCTET());
 			break;
 		}
 		case CONSTANTE_ENTIER_NATUREL | BITS_16:
@@ -614,7 +768,17 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 		/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
 		auto pointeur_debut = frame->pointeur;
 		auto instruction = LIS_OCTET();
-		auto site = LIS_POINTEUR(NoeudExpression);
+		auto site_courant = LIS_POINTEUR(NoeudExpression);
+
+		/* Fais en sorte d'avoir toujours un site valide. */
+		static NoeudExpression *site = nullptr;
+		if (site_courant) {
+			site = site_courant;
+		}
+
+		/* Ce site est utilisé pour déterminer où se trouve le dernier site valide
+		 * au cas où le pointeur est désynchroniser et une instruction est invalide. */
+		static NoeudExpression *dernier_site = nullptr;
 
 		switch (instruction) {
 			case OP_LABEL:
@@ -633,7 +797,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			{
 				auto decalage_si_vrai = LIS_4_OCTETS();
 				auto decalage_si_faux = LIS_4_OCTETS();
-				auto condition = depile<bool>();
+				auto condition = depile<bool>(site);
 
 				if (condition) {
 					frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
@@ -646,15 +810,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			}
 			case OP_CONSTANTE:
 			{
-				empile_constante(frame);
+				empile_constante(site, frame);
 				break;
 			}
 			case OP_CHAINE_CONSTANTE:
 			{
 				auto pointeur_chaine = LIS_8_OCTETS();
 				auto taille_chaine = LIS_8_OCTETS();
-				empile(pointeur_chaine);
-				empile(taille_chaine);
+				empile(site, pointeur_chaine);
+				empile(site, taille_chaine);
 				break;
 			}
 			case OP_COMPLEMENT_ENTIER:
@@ -871,8 +1035,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				auto taille_vers = LIS_4_OCTETS();
 
 				if (taille_de == 4 && taille_vers == 8) {
-					auto v = depile<float>();
-					empile(static_cast<double>(v));
+					auto v = depile<float>(site);
+					empile(site, static_cast<double>(v));
 				}
 
 				break;
@@ -883,8 +1047,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				auto taille_vers = LIS_4_OCTETS();
 
 				if (taille_de == 8 && taille_vers == 4) {
-					auto v = depile<double>();
-					empile(static_cast<float>(v));
+					auto v = depile<double>(site);
+					empile(site, static_cast<float>(v));
 				}
 
 				break;
@@ -897,15 +1061,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 #define TRANSTYPE_EVR(type_) \
 	if (taille_de == static_cast<int>(taille_de(type_))) {\
-		auto v = depile<type_>(); \
+		auto v = depile<type_>(site); \
 		if (taille_vers == 2) { \
 			/* @Incomplet : r16 */ \
 		} \
 		else if (taille_vers == 4) { \
-			empile(static_cast<float>(v)); \
+			empile(site, static_cast<float>(v)); \
 		} \
 		else if (taille_vers == 8) { \
-			empile(static_cast<double>(v)); \
+			empile(site, static_cast<double>(v)); \
 		} \
 	}
 
@@ -925,18 +1089,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 #define TRANSTYPE_RVE(type_) \
 	if (taille_de == static_cast<int>(taille_de(type_))) {\
-		auto v = depile<type_>(); \
+		auto v = depile<type_>(site); \
 		if (taille_vers == 1) { \
-			empile(static_cast<char>(v)); \
+			empile(site, static_cast<char>(v)); \
 		} \
 		else if (taille_vers == 2) { \
-			empile(static_cast<short>(v)); \
+			empile(site, static_cast<short>(v)); \
 		} \
 		else if (taille_vers == 4) { \
-			empile(static_cast<int>(v)); \
+			empile(site, static_cast<int>(v)); \
 		} \
 		else if (taille_vers == 8) { \
-			empile(static_cast<long>(v)); \
+			empile(site, static_cast<long>(v)); \
 		} \
 	}
 
@@ -971,12 +1135,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				pointeur_pile = frame->pointeur_pile;
+				// std::cerr << "Retourne, décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
 
 				if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
 					memcpy(pointeur_pile, pointeur_debut_retour, static_cast<unsigned>(taille_retour));
 				}
 
 				pointeur_pile += taille_retour;
+				// std::cerr << "Empile " << taille_retour << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
 
 				frame = &frames[profondeur_appel - 1];
 				break;
@@ -1004,74 +1170,32 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				auto taille_argument = LIS_4_OCTETS();
 				auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
 
-				if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
-					empile(m_metaprogramme->unite->espace);
-					break;
+				auto resultat = ResultatInterpretation::OK;
+				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site, resultat);
+
+				if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
+					frame->pointeur = pointeur_debut;
+					return resultat;
 				}
 
-				if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
-					auto &messagere = compilatrice.messagere;
-
-					if (!messagere->possede_message()) {
-						frame->pointeur = pointeur_debut;
-						return ResultatInterpretation::PASSE_AU_SUIVANT;
-					}
-
-					auto message = messagere->defile();
-					empile(message);
-					break;
-				}
-
-				if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
-					auto espace_recu = depile<EspaceDeTravail *>();
-
-					auto &messagere = compilatrice.messagere;
-					messagere->commence_interception(espace_recu);
-
-					espace_recu->metaprogramme = m_metaprogramme;
-					static_cast<void>(espace_recu);
-					break;
-				}
-
-				if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
-					auto espace_recu = depile<EspaceDeTravail *>();
-
-					if (espace_recu->metaprogramme != m_metaprogramme) {
-						/* L'espace du « site » est celui de métaprogramme, et non
-					 * l'espace reçu en paramètre. */
-						rapporte_erreur(m_metaprogramme->unite->espace,
-										site,
-										"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
-					}
-
-					espace_recu->metaprogramme = nullptr;
-
-					auto &messagere = compilatrice.messagere;
-					messagere->termine_interception(espace_recu);
-					compilatrice.ordonnanceuse->purge_messages();
-					break;
-				}
-
-				if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
-					auto chemin_recu = depile<kuri::chaine>();
-					auto resultat = compilatrice_lexe_fichier(chemin_recu, site);
-					empile(resultat);
-					break;
-				}
-
-				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 				break;
 			}
 			case OP_APPEL_POINTEUR:
 			{
 				auto taille_argument = LIS_4_OCTETS();
 				auto valeur_inst = LIS_8_OCTETS();
-				auto adresse = depile<void *>();
+				auto adresse = depile<void *>(site);
 				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
 				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
 				if (ptr_fonction->est_externe) {
-					appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+					auto resultat = ResultatInterpretation::OK;
+					appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site, resultat);
+
+					if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
+						frame->pointeur = pointeur_debut;
+						return resultat;
+					}
 				}
 				else {
 					if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
@@ -1084,7 +1208,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			case OP_ASSIGNE:
 			{
 				auto taille = LIS_4_OCTETS();
-				auto adresse_ou = depile<void *>();
+				auto adresse_ou = depile<void *>(site);
 				auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
 //				std::cerr << "----------------\n";
 //				std::cerr << "adresse_ou : " << adresse_ou << '\n';
@@ -1100,7 +1224,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-				depile(taille);
+				depile(site, taille);
 				break;
 			}
 			case OP_ALLOUE:
@@ -1111,6 +1235,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 //				std::cerr << "----------------\n";
 //				std::cerr << "alloue : " << type->taille_octet << '\n';
 				this->pointeur_pile += type->taille_octet;
+				// std::cerr << "Empile " << type->taille_octet << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
 
 				if (type->taille_octet == 0) {
 					rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
@@ -1122,7 +1247,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			case OP_CHARGE:
 			{
 				auto taille = LIS_4_OCTETS();
-				auto adresse_de = depile<void *>();
+				auto adresse_de = depile<void *>(site);
 				auto adresse_ou = static_cast<void *>(this->pointeur_pile);
 
 				if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
@@ -1135,37 +1260,38 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 				this->pointeur_pile += taille;
+				// std::cerr << "Empile " << taille << " octet(s), décalage : " << static_cast<int>(pointeur_pile - pile) << '\n';
 				break;
 			}
 			case OP_REFERENCE_VARIABLE:
 			{
 				auto index = LIS_4_OCTETS();
 				auto const &locale = frame->fonction->chunk.locales[index];
-				empile(&frame->pointeur_pile[locale.adresse]);
+				empile(site, &frame->pointeur_pile[locale.adresse]);
 				break;
 			}
 			case OP_REFERENCE_GLOBALE:
 			{
 				auto index = LIS_4_OCTETS();
 				auto const &globale = this->globales[index];
-				empile(&ptr_donnees_globales[globale.adresse]);
+				empile(site, &ptr_donnees_globales[globale.adresse]);
 				break;
 			}
 			case OP_REFERENCE_MEMBRE:
 			{
 				auto decalage = LIS_4_OCTETS();
-				auto adresse_de = depile<char *>();
-				empile(adresse_de + decalage);
+				auto adresse_de = depile<char *>(site);
+				empile(site, adresse_de + decalage);
 				//std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
 				break;
 			}
 			case OP_ACCEDE_INDEX:
 			{
 				auto taille_donnees = LIS_4_OCTETS();
-				auto adresse = depile<char *>();
-				auto index = depile<long>();
+				auto adresse = depile<char *>(site);
+				auto index = depile<long>(site);
 				auto nouvelle_adresse = adresse + index * taille_donnees;
-				empile(nouvelle_adresse);
+				empile(site, nouvelle_adresse);
 //				std::cerr << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n';
 //				std::cerr << "index            : " << index << '\n';
 //				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
@@ -1173,10 +1299,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			}
 			default:
 			{
-				std::cerr << "Opération inconnue dans la MV\n";
+				rapporte_erreur(m_metaprogramme->unite->espace, dernier_site, "Erreur interne : Opération inconnue dans la MV !");
 				return ResultatInterpretation::ERREUR;
 			}
 		}
+
+		dernier_site = site;
 	}
 
 	return ResultatInterpretation::OK;
@@ -1304,7 +1432,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 		desinstalle_metaprogramme(it);
 
-		if (stop || compilatrice.possede_erreur) {
+		if (stop || compilatrice.possede_erreur()) {
 			break;
 		}
 	}

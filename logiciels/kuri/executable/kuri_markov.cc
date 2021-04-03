@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	try {
+	{
 		auto chemin = std::filesystem::path(chemin_fichier);
 
 		if (chemin.is_relative()) {
@@ -147,9 +147,6 @@ int main(int argc, char **argv)
 		lexeuse.performe_lexage();
 
 		test_markov_id_simple(donnees_fichier->lexemes);
-	}
-	catch (const erreur::frappe &erreur_frappe) {
-		std::cerr << erreur_frappe.message() << '\n';
 	}
 
 	return 0;

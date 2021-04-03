@@ -15,14 +15,27 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2021 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#include "options.hh"
+#pragma once
 
-#include <cstring>
-#include <iostream>
+#include <string>
+
+namespace kuri {
+struct chaine;
+struct chaine_statique;
+}
+
+kuri::chaine supprime_accents(kuri::chaine_statique avec_accent);
+bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement);
+
+void inclus_systeme(std::ostream &os, kuri::chaine_statique fichier);
+void inclus(std::ostream &os, kuri::chaine_statique fichier);
+
+void prodeclare_struct(std::ostream &os, kuri::chaine_statique nom);
+void prodeclare_struct_espace(std::ostream &os, kuri::chaine_statique nom, kuri::chaine_statique espace, kuri::chaine_statique param_gabarit);

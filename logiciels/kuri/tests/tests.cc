@@ -31,7 +31,8 @@
 
 #include "biblinternes/chrono/outils.hh"
 
-#include "compilation/assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
+
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
@@ -296,17 +297,11 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
 	compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 
-	try {
-		auto tacheronne = Tacheronne(compilatrice);
-		tacheronne.gere_tache();
-	}
-	catch (const erreur::frappe &e) {
-		std::filesystem::current_path(chemin_courant);
-		return e.type();
-	}
+	auto tacheronne = Tacheronne(compilatrice);
+	tacheronne.gere_tache();
 
 	std::filesystem::current_path(chemin_courant);
-	return erreur::Genre::AUCUNE_ERREUR;
+	return compilatrice.code_erreur();
 }
 
 static auto decoupe_tampon(lng::tampon_source const &tampon)

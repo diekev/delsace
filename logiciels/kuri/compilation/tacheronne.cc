@@ -32,7 +32,7 @@
 #include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 
-#include "assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
@@ -311,6 +311,10 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 	 * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
 	auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
 
+	if (espace->possede_erreur) {
+		return nouvelle_tache;
+	}
+
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
 		case GenreTache::COMPILATION_TERMINEE:
@@ -404,7 +408,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				taches_generation_ri.enfile(tache_terminee);
 			}
 
-			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTION) {
+			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTE) {
 				auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
 
 				if (message_enfile) {
@@ -452,7 +456,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		{
 			espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
-			if (espace->options.objet_genere == ObjetGenere::Executable) {
+			if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
 				espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
 				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
 				return Tache::liaison_objet(espace);
@@ -566,8 +570,8 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 		return taches_optimisation.defile();
 	}
 
-	if (espace->peut_generer_code_final()) {
-		if (espace->options.objet_genere == ObjetGenere::Rien) {
+	if (!espace->possede_erreur && espace->peut_generer_code_final()) {
+		if (espace->options.resultat == ResultatCompilation::RIEN) {
 			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 		}
 		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
@@ -581,6 +585,10 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 	}
 
 	if (!compilation_terminee) {
+		if (espace->possede_erreur) {
+			espace = m_compilatrice->espace_defaut_compilation();
+		}
+
 		if (!toutes_les_tacheronnes_dorment()) {
 			return Tache::dors(espace);
 		}
@@ -616,6 +624,45 @@ void OrdonnanceuseTache::purge_messages()
 	}
 }
 
+void OrdonnanceuseTache::supprime_toutes_les_taches()
+{
+	taches_chargement.efface();
+	taches_lexage.efface();
+	taches_parsage.efface();
+	taches_typage.efface();
+	taches_generation_ri.efface();
+	taches_execution.efface();
+	taches_message.efface();
+	taches_optimisation.efface();
+
+	for (int i = 0; i < nombre_de_tacheronnes; ++i) {
+		taches_chargement.enfile(Tache::compilation_terminee());
+		taches_lexage.enfile(Tache::compilation_terminee());
+		taches_parsage.enfile(Tache::compilation_terminee());
+		taches_typage.enfile(Tache::compilation_terminee());
+		taches_generation_ri.enfile(Tache::compilation_terminee());
+		taches_execution.enfile(Tache::compilation_terminee());
+		taches_message.enfile(Tache::compilation_terminee());
+		taches_optimisation.enfile(Tache::compilation_terminee());
+	}
+}
+
+void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace)
+{
+	auto predicat = [&](Tache const &tache) {
+		return tache.espace == espace;
+	};
+
+	taches_chargement.efface_si(predicat);
+	taches_lexage.efface_si(predicat);
+	taches_parsage.efface_si(predicat);
+	taches_typage.efface_si(predicat);
+	taches_generation_ri.efface_si(predicat);
+	taches_execution.efface_si(predicat);
+	taches_message.efface_si(predicat);
+	taches_optimisation.efface_si(predicat);
+}
+
 Tacheronne::Tacheronne(Compilatrice &comp)
 	: compilatrice(comp)
 	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud))
@@ -634,7 +681,7 @@ void Tacheronne::gere_tache()
 	auto tache_fut_completee = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
-	while (!compilatrice.possede_erreur) {
+	while (true) {
 		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux, !mv.terminee());
 
 		if (tache.genre != GenreTache::DORS) {
@@ -738,7 +785,6 @@ void Tacheronne::gere_tache()
 
 				if (unite->est_bloquee()) {
 					mv.stop = true;
-					compilatrice.possede_erreur = true;
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
 						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite->espace, unite->symbole_attendu);
@@ -781,8 +827,8 @@ void Tacheronne::gere_tache()
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
 						if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
 							auto expression_operation = static_cast<NoeudExpressionBinaire *>(unite->operateur_attendu);
-							auto type1 = expression_operation->expr1->type;
-							auto type2 = expression_operation->expr2->type;
+							auto type1 = expression_operation->operande_gauche->type;
+							auto type2 = expression_operation->operande_droite->type;
 							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appeler.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("Le type à gauche de l'opérateur est ")
 									.ajoute_message(chaine_type(type1))
@@ -793,7 +839,7 @@ void Tacheronne::gere_tache()
 						}
 						else {
 							auto expression_operation = static_cast<NoeudExpressionUnaire *>(unite->operateur_attendu);
-							auto type = expression_operation->expr->type;
+							auto type = expression_operation->operande->type;
 							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appeler.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("\nLe type à droite de l'opérateur est ")
 									.ajoute_message(chaine_type(type))
@@ -964,9 +1010,9 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 
 					return true;
 				}
-				case GenreNoeud::DIRECTIVE_EXECUTION:
+				case GenreNoeud::DIRECTIVE_EXECUTE:
 				{
-					auto dir = static_cast<NoeudDirectiveExecution *>(unite->noeud);
+					auto dir = static_cast<NoeudDirectiveExecute *>(unite->noeud);
 					aplatis_arbre(dir);
 
 					// À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la fin
@@ -1331,7 +1377,7 @@ void Tacheronne::execute_metaprogrammes()
 	}
 }
 
-NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecution *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
+NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecute *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
 {
 	switch (type->genre) {
 		case GenreType::EINI:
@@ -1380,7 +1426,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = static_cast<unsigned long>(*reinterpret_cast<long *>(pointeur));
 			}
 
-			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+			return assembleuse->cree_litterale_entier(lexeme, type, valeur);
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
@@ -1400,13 +1446,14 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = *reinterpret_cast<unsigned long *>(pointeur);
 			}
 
-			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+			return assembleuse->cree_litterale_entier(lexeme, type, valeur);
 		}
 		case GenreType::BOOL:
 		{
 			auto valeur = *reinterpret_cast<bool *>(pointeur);
-			auto noeud_syntaxique = assembleuse->cree_lit_bool(lexeme);
-			noeud_syntaxique->valeur_bool = valeur;
+			auto noeud_syntaxique = assembleuse->cree_litterale_bool(lexeme);
+			noeud_syntaxique->valeur = valeur;
+			noeud_syntaxique->type = type;
 			return noeud_syntaxique;
 		}
 		case GenreType::REEL:
@@ -1421,7 +1468,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				valeur = *reinterpret_cast<double *>(pointeur);
 			}
 
-			return assembleuse->cree_lit_reel(lexeme, type, valeur);
+			return assembleuse->cree_litterale_reel(lexeme, type, valeur);
 		}
 		case GenreType::STRUCTURE:
 		{
@@ -1436,7 +1483,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 				auto pointeur_membre = pointeur + it.decalage;
 				auto noeud_membre = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, it.type, pointeur_membre);
-				construction_structure->exprs.ajoute(noeud_membre);
+				construction_structure->parametres_resolus.ajoute(noeud_membre);
 			}
 
 			return construction_structure;
@@ -1448,7 +1495,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			if (type_union->est_nonsure) {
 				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_union->type_le_plus_grand, pointeur);
-				construction_union->exprs.ajoute(expr);
+				construction_union->parametres_resolus.ajoute(expr);
 			}
 			else {
 				auto pointeur_donnees = pointeur;
@@ -1458,11 +1505,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				auto type_donnees = type_union->membres[index_membre].type;
 
 				for (auto i = 0; i < index_membre; ++i) {
-					construction_union->exprs.ajoute(nullptr);
+					construction_union->parametres_resolus.ajoute(nullptr);
 				}
 
 				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_donnees, pointeur_donnees);
-				construction_union->exprs.ajoute(expr);
+				construction_union->parametres_resolus.ajoute(expr);
 			}
 
 			return construction_union;
@@ -1474,8 +1521,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			kuri::chaine_statique chaine = { *reinterpret_cast<char **>(valeur_pointeur), valeur_chaine };
 
-			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
-			lit_chaine->index_chaine = compilatrice.gerante_chaine->ajoute_chaine(chaine);
+			auto lit_chaine = assembleuse->cree_litterale_chaine(lexeme);
+			lit_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(chaine);
 			lit_chaine->type = type;
 			return lit_chaine;
 		}
@@ -1483,7 +1530,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 		{
 			auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
 			type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
-			return assembleuse->cree_ref_type(lexeme, type_de_donnees);
+			return assembleuse->cree_reference_type(lexeme, type_de_donnees);
 		}
 		case GenreType::FONCTION:
 		{
@@ -1493,7 +1540,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 				espace->rapporte_erreur(directive, "La fonction retournée n'a pas de déclaration !\n");
 			}
 
-			return assembleuse->cree_ref_decl(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
+			return assembleuse->cree_reference_declaration(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
 		}
 		case GenreType::OPAQUE:
 		{
@@ -1523,7 +1570,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			auto construction = assembleuse->cree_construction_tableau(lexeme);
 			construction->type = type_tableau;
-			construction->expr = virgule;
+			construction->expression = virgule;
 			return construction;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:

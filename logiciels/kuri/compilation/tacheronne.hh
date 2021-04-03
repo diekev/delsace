@@ -27,7 +27,8 @@
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/structures/file.hh"
 
-#include "allocatrice_noeud.hh"
+#include "arbre_syntaxique/allocatrice.hh"
+
 #include "validation_semantique.hh"
 #include "statistiques/statistiques.hh"
 #include "unite_compilation.hh"
@@ -163,6 +164,9 @@ public:
 
 	void purge_messages();
 
+	void supprime_toutes_les_taches();
+	void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
+
 private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
 
@@ -222,5 +226,5 @@ private:
 	void execute_metaprogrammes();
 
 	/* Pour convertir le résultat des métaprogrammes en noeuds syntaxiques. */
-	NoeudExpression *noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecution *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur);
+	NoeudExpression *noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecute *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur);
 };

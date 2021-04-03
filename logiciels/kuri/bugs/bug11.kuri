@@ -1,27 +1,35 @@
 // Les blocs différés contenu dans le corps des boucles ne sont pas exécutés lors des instructions continue ou arrête
 
-importe Fondation
+importe Support
 
+// À FAIRE : meilleur test
 principale :: fonc () -> z32
 {
-    diffère { imprime("Bloc différé avant la boucle\n"); }
+    diffère {
+        //imprime("Bloc différé avant la boucle\n")
+    }
 
+    sentinel := 0
     i := 0
 
     boucle {
-        diffère { imprime("Bloc différé dans la boucle\n"); }
+        diffère {
+            sentinel = 5
+            //imprime("Bloc différé dans la boucle\n")
+        }
 
         i += 1
 
         si i % 2 == 0 {
-            imprime("continue\n")
+            //imprime("continue\n")
             continue
         }
         sinon si i == 11 {
-            imprime("arrête\n")
+            //imprime("arrête\n")
             arrête
         }
     }
 
+    imprime_succès(sentinel == 5)
     retourne 0
 }

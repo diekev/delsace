@@ -1,7 +1,12 @@
 // aucune erreur n'est lancée/compilation infinie quand on accède à une valeur inconnue
 
+importe Support
+
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné("
     a := MonÉnum.Valeur
+    ")
+    imprime_succès(erreur_survenue)
     retourne 0
 }

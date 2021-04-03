@@ -1,5 +1,7 @@
 // Impossible d'utiliser une globale avant sa déclaration
 
+importe Support
+
 foo :: fonc ()
 {
 }
@@ -7,6 +9,7 @@ foo :: fonc ()
 principale :: fonc () -> z32
 {
     foo2()
+    imprime_succès(vrai)
     retourne 0
 }
 

@@ -27,9 +27,9 @@
 #include "biblinternes/structures/tuples.hh"
 #include "biblinternes/moultfilage/synchrone.hh"
 
-#include "structures/tableau.hh"
+#include "arbre_syntaxique/expression.hh"
 
-#include "expression.h"
+#include "structures/tableau.hh"
 
 struct IdentifiantCode;
 struct Type;

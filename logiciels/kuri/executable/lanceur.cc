@@ -50,13 +50,7 @@
 
 void lance_tacheronne(Tacheronne *tacheronne)
 {
-	try {
-		tacheronne->gere_tache();
-	}
-	catch (const erreur::frappe &e) {
-		std::cerr << e.message() << '\n';
-		tacheronne->compilatrice.possede_erreur = true;
-	}
+	tacheronne->gere_tache();
 }
 
 #if 0
@@ -118,7 +112,6 @@ int main(int argc, char *argv[])
 
 	std::ostream &os = std::cout;
 
-	auto resultat = 0;
 	auto debut_compilation   = dls::chrono::compte_seconde();
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 
@@ -133,7 +126,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	try {
+	{
 		/* enregistre le dossier d'origine */
 		auto dossier_origine = std::filesystem::current_path();
 
@@ -222,7 +215,7 @@ int main(int argc, char *argv[])
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
 
-		if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+		if (!compilatrice.possede_erreur() && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
 			POUR (tacheronnes) {
 				stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
 				stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, it->temps_fichier_objet);
@@ -275,15 +268,10 @@ int main(int argc, char *argv[])
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
 	}
-	catch (const erreur::frappe &erreur_frappe) {
-		std::cerr << erreur_frappe.message() << '\n';
-		compilatrice.possede_erreur = true;
-		resultat = static_cast<int>(erreur_frappe.type());
-	}
 
 	stats.temps_nettoyage = debut_nettoyage.temps();
 
-	if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+	if (!compilatrice.possede_erreur() && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
 		imprime_stats(stats, debut_compilation);
 #ifdef STATISTIQUES_DETAILLEES
 		imprime_stats_detaillee(stats);
@@ -294,5 +282,5 @@ int main(int argc, char *argv[])
 	issitialise_llvm();
 #endif
 
-	return resultat;
+	return static_cast<int>(compilatrice.code_erreur());
 }

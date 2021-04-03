@@ -29,6 +29,8 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	kuri_arbre_syntaxique
+	kuri_ipa_compilatrice
 	kuri_compilation
 	kuri_statistiques
 	bib_outils
@@ -60,3 +62,6 @@ add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_dependencies(${NOM_CIBLE} kuri_arbre_syntaxique)
+add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)

@@ -2,6 +2,51 @@ importe Fondation
 importe GlibC
 importe Structures
 
+/*
+
+// pour la gestion des fichiers
+
+gestion centralisé de l'ouverture et la fermeture des fichiers, avec détection des changements
+peut-être une politique de cache (MRU, etc.)
+
+les bibliothèques devant ouvrir des fichiers devraient prendre un pointeur vers un gestionnaire
+le gestionnaire résoud les chemins et indique
+
+peut-être un système de catalogue par type de fichiers ?
+
+- fichier temporaire
+- compression/décompression
+- flux
+- (USD) FileSystemDiscovery
+
+notifie les applications quand un fichier change
+
+il nous faudrait des lecteurs et des écrivains ?
+
+fichier_fut_changé_sur_dique :: fonc (fichier: *Fichier)
+
+fichier_fut_ouvert :: fonc (fichier: *Fichier)
+
+fichier_ne_pas_trouvé :: fonc (chemin: CheminFichier)
+
+fichier_existe
+
+crée_fichier_pour_écriture
+
+ouvre_fichier_pour_écriture
+
+fichier_fut_fermé
+
+ferme_fichier
+
+- le fichier peut-être dans un catalogue
+- le fichier peut-être dans un cache
+- le fichier peut-être utilisé par plusieurs personnes
+- le fichier peut-être sur le réseau
+
+ */
+
+
 CheminFichier :: struct {
     chn : chaine
 }

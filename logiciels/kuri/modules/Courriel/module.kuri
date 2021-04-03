@@ -42,6 +42,7 @@ importe Temps
     - création d'un texte depuis un texte html (à mettre plutôt dans le module HTML)
     - type PièceJointe tenant du nom, nom de fichier, type de contenu (texte, flux octet, audio, image, vidéo, etc.)
     - (base64) : compression/décompression depuis un flux (peut-être avec une table virtuelle quand nous en aurons une, mais avec des rappels, c'est bien aussi)
+    - iCalendar invites
 
  */
 

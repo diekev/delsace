@@ -8,7 +8,7 @@ fais_conversion_code :: fonc ()
 {
     désactive_compilation_espace_défaut()
 
-    options : OptionsCompilation
+    options : OptionsDeCompilation
     espace := démarre_un_espace_de_travail("test_conversion", *options)
 
     compilatrice_commence_interception(espace)

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	fichier_entree.read(donnees, static_cast<long>(taille_fichier));
 
 #if 1
-	try {
+	{
 		auto compilatrice = Compilatrice{};
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
@@ -58,9 +58,6 @@ int main(int argc, char *argv[])
 
 		auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
 		lexeuse.performe_lexage();
-	}
-	catch (erreur::frappe const &e) {
-		std::cerr << e.message() << '\n';
 	}
 #else
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
@@ -82,7 +79,7 @@ int main(int argc, char *argv[])
 
 	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
 
-	try {
+	{
 		auto compilatrice = Compilatrice{};
 		auto module = compilatrice.cree_module("", "");
 		module->tampon = lng::tampon_source("texte_test");
@@ -93,9 +90,6 @@ int main(int argc, char *argv[])
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
-	}
-	catch (...) {
-
 	}
 
 	delete [] donnees;

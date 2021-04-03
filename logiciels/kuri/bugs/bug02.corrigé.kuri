@@ -7,11 +7,14 @@
 // ajoutant un membre implicit (comme C++), soit de se plaindre à la fin
 // de la compilation si une structure est vide et que plus rien n'est à compiler
 
+importe Support
+
 Vide :: struct {
 
 }
 
 principale :: fonc () -> z32
 {
+    imprime_succès(vrai)
     retourne 0
 }

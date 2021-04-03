@@ -1,7 +1,7 @@
 // impossible de construire une structure depuis une monomorphisation
 // NOTE : voir cas dans test_structure_poly.kuri
 
-importe Fondation
+importe Support
 
 Poly :: struct ($T: type_de_données) {
     x : T
@@ -10,5 +10,6 @@ Poly :: struct ($T: type_de_données) {
 principale :: fonc () -> z32
 {
     p := Poly(T = z32)(x = 5)
+    imprime_succès(vrai)
     retourne 0
 }

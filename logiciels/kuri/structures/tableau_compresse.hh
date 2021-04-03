@@ -126,6 +126,11 @@ public:
 		return m_taille;
 	}
 
+	TypeIndex taille_memoire() const
+	{
+		return alloue() ? 0 : m_taille * static_cast<TypeIndex>(sizeof(T));
+	}
+
 	TypeIndex capacite() const
 	{
 		return m_capacite;

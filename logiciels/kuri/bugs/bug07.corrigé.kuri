@@ -1,6 +1,6 @@
 // nous ne pouvons pas appeler un pointeur de fonction depuis une structure dans la coulisse C
 
-importe Fondation
+importe Support
 
 // ceci duplique imprime_log de Fondation, là où le bug a été trouvé
 // !!! ne pas oublier de modifier la fonction quand ce bug sera réglé
@@ -9,10 +9,12 @@ imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...e
 	message := imprime_chaine(format, ...args)
 
     contexte.logueur(message, ident, mode, contexte.données_logueur)
-	déloge message
+	déloge(message)
 }
 
 principale :: fonc () -> z32
 {
+    imprime_log(ModeLogage.AUCUN, "[]", "")
+    imprime_succès(vrai)
     retourne 0
 }

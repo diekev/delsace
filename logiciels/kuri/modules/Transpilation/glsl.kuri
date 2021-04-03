@@ -151,7 +151,7 @@ converti_code_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse,
 
                 converti_code_glsl(espace, enchaineuse, it, profondeur + 1)
 
-                si it.genre != GenreNoeudCode.INSTRUCTION_SI && it.genre != GenreNoeudCode.INSTRUCTION_RETOUR {
+                si it.genre != GenreNoeud.INSTRUCTION_SI && it.genre != GenreNoeud.INSTRUCTION_RETOUR {
                     ajoute_au_tampon(enchaineuse, ";\n")
                 }
             }

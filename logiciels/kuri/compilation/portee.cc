@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/conditions.h"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
@@ -179,7 +179,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 	auto di = expressions->a(taille - 1);
 
-	if (di->est_retour() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+	if (di->est_retourne() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 		return di;
 	}
 
@@ -191,7 +191,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 		}
 
 		if (!inst->bloc_si_faux->est_bloc()) {
-			return inst->bloc_si_faux;
+			return NoeudExpression::nul();
 		}
 
 		return derniere_instruction(inst->bloc_si_faux->comme_bloc());
@@ -211,9 +211,9 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 		/* vérifie que toutes les branches retournes */
 		POUR (discr->paires_discr) {
-			di = derniere_instruction(it.second);
+			di = derniere_instruction(it->bloc);
 
-			if (di == nullptr || !di->est_retour()) {
+			if (di == nullptr || !di->est_retourne()) {
 				break;
 			}
 		}

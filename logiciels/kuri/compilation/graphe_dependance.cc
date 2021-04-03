@@ -26,7 +26,7 @@
 
 #include "representation_intermediaire/instructions.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "statistiques/statistiques.hh"
 #include "typage.hh"
 

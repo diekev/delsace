@@ -4,11 +4,10 @@
 // Résolution : le bug est en fait dû au manque de valeur pour l'initalisation de types_de_données
 
 importe Compilatrice
+importe Support
 
 reproduit_bug :: fonc ()
 {
-    désactive_compilation_espace_défaut()
-
     MaStructure :: struct {
         type : type_de_données
         b : z32
@@ -36,3 +35,9 @@ reproduit_bug :: fonc ()
 }
 
 #exécute reproduit_bug()
+
+principale :: fonc () -> z32
+{
+    imprime_succès(vrai)
+    retourne 0
+}

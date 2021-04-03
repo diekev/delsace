@@ -871,8 +871,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 #if 0
 			auto expr = static_cast<NoeudExpressionBinaire *>(b);
-			auto enfant1 = expr->expr1;
-			auto enfant2 = expr->expr2;
+			auto enfant1 = expr->operande_gauche;
+			auto enfant2 = expr->operande_droite;
 			auto type1 = enfant1->type;
 			auto type2 = enfant2->type;
 			auto op = expr->op;
@@ -1470,11 +1470,11 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravai
 	}
 #endif
 
-	if (espace.options.objet_genere == ObjetGenere::Executable) {
+	if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
 		std::cout << "Écriture du code dans un fichier..." << std::endl;
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
 		if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-			compilatrice.possede_erreur = true;
+			espace.rapporte_erreur_sans_site("Impossible de créer le fichier objet");
 			return 1;
 		}
 		temps_fichier_objet = debut_fichier_objet.temps();
@@ -1487,7 +1487,7 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &
 {
 	auto debut_executable = dls::chrono::compte_seconde();
 	if (!::cree_executable(espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
-		compilatrice.possede_erreur = true;
+		espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
 		return false;
 	}
 

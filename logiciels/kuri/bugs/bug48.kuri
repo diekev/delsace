@@ -1,11 +1,15 @@
 // pas d'erreur de compilation si une expression d'appel possède un typage d'un paramètre
 
-// puisque fonc est malécrit, ceci est considéré comme un appel, mais les appels ne doivent pas pouvoir déclarer de type !
-fonction :: fon (a: z32)
-{
-}
+importe Support
 
 principale :: fonc () -> z32
 {
+    erreur_survenue := #exécute compile_script_erroné(«
+    // puisque fonc est malécrit, ceci est considéré comme un appel, mais les appels ne doivent pas pouvoir déclarer de type !
+    fonction :: fon (a: z32)
+    {
+    }
+    »)
+    imprime_succès(erreur_survenue)
     retourne 0
 }

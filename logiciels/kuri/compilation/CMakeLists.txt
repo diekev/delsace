@@ -22,11 +22,38 @@
 set(NOM_CIBLE kuri_compilation)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
+macro(genere_code_adn __bibliotheque__ __generatrice__ __fichier__)
+	add_library(${__bibliotheque__} ${__fichier__}.cc ${__fichier__}.hh)
+	target_include_directories(${__bibliotheque__} PUBLIC "${INCLUSIONS}")
+	target_link_libraries(${__bibliotheque__} kuri_parsage)
+	add_dependencies(${__bibliotheque__} ${__generatrice__})
+
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.cc
+		COMMAND ${__generatrice__} "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+		DEPENDS ${__generatrice__} ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+	)
+
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.hh
+		COMMAND ${__generatrice__} "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier__}.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+		DEPENDS ${__generatrice__} ${CMAKE_CURRENT_SOURCE_DIR}/../adn/${__fichier__}.adn
+	)
+endmacro()
+
+genere_code_adn(kuri_ipa_compilatrice genere_ipa ipa)
+genere_code_adn(kuri_options_compilatrice genere_options options)
+genere_code_adn(kuri_message_compilatrice genere_message message)
+
 set(BIBLIOTHEQUES
+	kuri_arbre_syntaxique
+	kuri_ipa_compilatrice
+	kuri_options_compilatrice
 	kuri_parsage
 	kuri_representation_intermediaire
 	kuri_statistiques
@@ -40,9 +67,6 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	allocatrice_noeud.hh
-	arbre_syntaxique.hh
-	assembleuse_arbre.h
 	bibliotheque.hh
 	broyage.hh
 	compilatrice.hh
@@ -52,13 +76,10 @@ set(SOURCES
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
-	expression.h
 	graphe_dependance.hh
-	message.hh
+	messagere.hh
 	metaprogramme.hh
 	monomorphisations.hh
-	noeud_code.hh
-	options.hh
 	operateurs.hh
 	portee.hh
 	structures.hh
@@ -70,9 +91,6 @@ set(SOURCES
 	validation_expression_appel.hh
 	validation_semantique.hh
 
-	allocatrice_noeud.cc
-	arbre_syntaxique.cc
-	assembleuse_arbre.cc
 	bibliotheque.cc
 	broyage.cc
 	compilatrice.cc
@@ -82,14 +100,11 @@ set(SOURCES
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc
-	expression.cc
 	graphe_dependance.cc
-	message.cc
+	messagere.cc
 	metaprogramme.cc
 	monomorphisations.cc
-	noeud_code.cc
 	operateurs.cc
-	options.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc
@@ -111,3 +126,7 @@ add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)
+add_dependencies(${NOM_CIBLE} kuri_options_compilatrice)
+add_dependencies(${NOM_CIBLE} kuri_message_compilatrice)

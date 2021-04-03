@@ -1,11 +1,14 @@
 // deux fonctions externes dans le même module peuvent avoir le même nom mais des types différents
 // il faut une erreur de compilation
 
-send :: fonc (a: z32) #externe
-send :: fonc (b: z64) #externe
+importe Support
 
 principale :: fonc () -> z32
 {
-    send(0)
+    erreur_survenue := #exécute compile_script_erroné(«
+    send :: fonc (a: z32) #externe
+    send :: fonc (b: z64) #externe
+    »)
+    imprime_succès(erreur_survenue)
     retourne 0
 }

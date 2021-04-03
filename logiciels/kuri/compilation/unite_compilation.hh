@@ -29,7 +29,7 @@
 
 #include <iostream>
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 
 struct EspaceDeTravail;
 struct Fichier;

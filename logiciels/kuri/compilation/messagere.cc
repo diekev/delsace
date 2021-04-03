@@ -24,27 +24,9 @@
 
 #include "message.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "espace_de_travail.hh"
 #include "unite_compilation.hh"
-
-const char *chaine_phase_compilation(PhaseCompilation phase)
-{
-#define ENUMERE_PHASE(x) case PhaseCompilation::x: return #x;
-
-	switch (phase) {
-		ENUMERE_PHASES_COMPILATION
-	}
-
-#undef ENUMERE_PHASE
-	return "PhaseCompilation inconnue";
-}
-
-std::ostream &operator<<(std::ostream &os, PhaseCompilation phase)
-{
-	os << chaine_phase_compilation(phase);
-	return os;
-}
 
 void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
@@ -114,12 +96,12 @@ bool Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 		return false;
 	}
 
-	convertisseuse_noeud_code.converti_noeud_syntaxique(espace, noeud_decl);
+	convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud_decl);
 
 	auto message = messages_typage_code.ajoute_element();
 	message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
 	message->espace = espace;
-	message->noeud_code = noeud_decl->noeud_code;
+	message->code = noeud_decl->noeud_code;
 
 	assert(unite);
 

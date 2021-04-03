@@ -32,7 +32,7 @@
 #include "representation_intermediaire/instructions.hh"
 #include "representation_intermediaire/impression.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "coulisse_asm.hh"
@@ -69,18 +69,19 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 	: nom(nom_)
 	, options(opts)
 	, typeuse(graphe_dependance, this->operateurs)
+	, m_compilatrice(compilatrice)
 	, gestionnaire_bibliotheques(GestionnaireBibliotheques(*this))
 {
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);
 
-	if (options.type_coulisse == TypeCoulisse::C) {
+	if (options.coulisse == TypeCoulisse::C) {
 		coulisse = memoire::loge<CoulisseC>("CoulisseC");
 	}
-	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+	else if (options.coulisse == TypeCoulisse::LLVM) {
 		coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
 	}
-	else if (options.type_coulisse == TypeCoulisse::ASM) {
+	else if (options.coulisse == TypeCoulisse::ASM) {
 		coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
 	}
 	else {
@@ -110,17 +111,17 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation 
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-	if (options.type_coulisse == TypeCoulisse::C) {
+	if (options.coulisse == TypeCoulisse::C) {
 		auto c = dynamic_cast<CoulisseC *>(coulisse);
 		memoire::deloge("CoulisseC", c);
 		coulisse = nullptr;
 	}
-	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+	else if (options.coulisse == TypeCoulisse::LLVM) {
 		auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
 		memoire::deloge("CoulisseLLVM", c);
 		coulisse = nullptr;
 	}
-	else if (options.type_coulisse == TypeCoulisse::ASM) {
+	else if (options.coulisse == TypeCoulisse::ASM) {
 		auto c = dynamic_cast<CoulisseASM *>(coulisse);
 		memoire::deloge("CoulisseASM", c);
 		coulisse = nullptr;
@@ -257,7 +258,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	if (decl->params_sorties.taille() > 1) {
 		auto index_membre = 0;
 		POUR (decl->params_sorties) {
-			it->atome = constructrice.cree_acces_membre(it, atome_param_sortie, index_membre++, true);
+			it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(it, atome_param_sortie, index_membre++, true);
 		}
 	}
 
@@ -562,8 +563,16 @@ void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine
 	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
+void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier, int ligne, kuri::chaine const &message) const
+{
+	const Fichier *f = this->fichier({ chemin_fichier.pointeur(), chemin_fichier.taille() });
+	std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
+}
+
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre) const
 {
+	possede_erreur = true;
+
 	if (!site) {
 		return rapporte_erreur_sans_site(message, genre);
 	}
@@ -573,11 +582,13 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chain
 
 Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const
 {
+	possede_erreur = true;
 	return ::rapporte_erreur(this, fichier, ligne, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre) const
 {
+	possede_erreur = true;
 	return ::rapporte_erreur_sans_site(this, message, genre);
 }
 

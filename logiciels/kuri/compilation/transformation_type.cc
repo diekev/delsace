@@ -52,6 +52,12 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
 		if (it == type_vers) {
 			return true;
 		}
+
+		if (it->est_structure()) {
+			if (est_type_de_base(it->comme_structure(), type_vers)) {
+				return true;
+			}
+		}
 	}
 
 	return false;

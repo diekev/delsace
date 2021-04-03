@@ -27,8 +27,7 @@
 struct DonneesExecution;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
-struct NoeudDirectiveExecution;
-struct NoeudDirectiveExecution;
+struct NoeudDirectiveExecute;
 struct NoeudStruct;
 struct UniteCompilation;
 
@@ -40,7 +39,7 @@ struct MetaProgramme {
 	};
 
 	/* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
-	NoeudDirectiveExecution *directive = nullptr;
+	NoeudDirectiveExecute *directive = nullptr;
 
 	/* non-nuls pour les corps-textes */
 	NoeudBloc *corps_texte = nullptr;

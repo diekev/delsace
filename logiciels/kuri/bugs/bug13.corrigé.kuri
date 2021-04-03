@@ -2,9 +2,12 @@
 
 // Il est impossible d'assigner une valeur à un paramètre qui possède une valeur par défaut
 
+importe Support
+
 test :: fonc (a := 0) -> rien
 {
     a = 5
+    imprime_succès(a == 5)
 }
 
 principale :: fonc () -> z32

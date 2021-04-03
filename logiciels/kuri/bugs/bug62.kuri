@@ -1,6 +1,7 @@
 // Les arithmétiques de pointeurs échouent dans la MV dans certains cas.
 
 importe Compilatrice
+importe Support
 
 reproduit_bug :: fonc ()
 {
@@ -11,3 +12,9 @@ reproduit_bug :: fonc ()
 }
 
 #exécute reproduit_bug()
+
+principale :: fonc () -> z32
+{
+    imprime_succès(vrai)
+    retourne 0
+}

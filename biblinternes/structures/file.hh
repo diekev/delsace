@@ -75,6 +75,18 @@ public:
 		}
 	}
 
+	void efface()
+	{
+		m_file.efface();
+	}
+
+	template <typename Predicat>
+	void efface_si(Predicat &&predicat)
+	{
+		auto fin = std::remove_if(m_file.debut(), m_file.fin(), predicat);
+		m_file.erase(fin, m_file.fin());
+	}
+
 	type_valeur defile()
 	{
 		auto t = front();

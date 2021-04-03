@@ -27,7 +27,8 @@
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
 
-#include "assembleuse_arbre.h"
+#include "arbre_syntaxique/assembleuse.hh"
+
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
@@ -505,7 +506,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 	else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
 		auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
-		auto accede = acces->accede;
+		auto accede = acces->accedee;
 		auto membre = acces->membre;
 
 		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident)) {
@@ -774,7 +775,7 @@ static auto apparie_appel_fonction(
 
 			for (auto &p : (*bloc_constantes->membres.verrou_lecture())) {
 				if (p->ident == it.ident) {
-					param = p->comme_decl_var();
+					param = p->comme_declaration_variable();
 					break;
 				}
 			}
@@ -1073,14 +1074,14 @@ static auto apparie_appel_fonction(
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_tableau_variadique(&lexeme_tableau);
+			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(&lexeme_tableau);
 
 			noeud_tableau->type = type_donnees_argument_variadique;
 			// @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas sélectionné
-			noeud_tableau->exprs.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
+			noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
-				noeud_tableau->exprs.ajoute(slots[i]);
+				noeud_tableau->expressions.ajoute(slots[i]);
 			}
 
 			if (index_premier_var_arg >= slots.taille()) {
@@ -1142,7 +1143,7 @@ static auto apparie_appel_structure(
 	auto type_compose = decl_struct->type->comme_compose();
 
 	if (decl_struct->est_polymorphe) {
-		if (expr->params.taille() != decl_struct->params_polymorphiques.taille()) {
+		if (expr->parametres.taille() != decl_struct->params_polymorphiques.taille()) {
 			resultat.raison = MECOMPTAGE_ARGS;
 			resultat.poids_args = 0.0;
 			return false;
@@ -1215,10 +1216,10 @@ static auto apparie_appel_structure(
 		auto est_type_argument_polymorphique = false;
 		POUR (arguments) {
 			// vérifie si l'argument est une valeur polymorphique de la fonction
-			if (it.expr->est_ref_decl()) {
-				auto ref_decl = it.expr->comme_ref_decl();
+			if (it.expr->est_reference_declaration()) {
+				auto ref_decl = it.expr->comme_reference_declaration();
 
-				if (ref_decl->decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+				if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 					est_type_argument_polymorphique = true;
 					break;
 				}
@@ -1241,10 +1242,10 @@ static auto apparie_appel_structure(
 			type_poly->structure = decl_struct;
 
 			POUR (arguments) {
-				if (it.expr->est_ref_decl()) {
-					auto ref_decl = it.expr->comme_ref_decl();
+				if (it.expr->est_reference_declaration()) {
+					auto ref_decl = it.expr->comme_reference_declaration();
 
-					if (ref_decl->decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+					if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 						type_poly->types_constants_structure.ajoute(it.expr->type);
 						break;
 					}
@@ -1272,13 +1273,13 @@ static auto apparie_appel_structure(
 	}
 
 	if (decl_struct->est_union) {
-		if (expr->params.taille() > 1) {
+		if (expr->parametres.taille() > 1) {
 			resultat.raison = TROP_D_EXPRESSION_POUR_UNION;
 			resultat.poids_args = 0.0;
 			return false;
 		}
 
-		if (expr->params.taille() == 0) {
+		if (expr->parametres.taille() == 0) {
 			resultat.raison = EXPRESSION_MANQUANTE_POUR_UNION;
 			resultat.poids_args = 0.0;
 			return false;
@@ -1434,7 +1435,7 @@ static auto trouve_candidates_pour_appel(
 		ContexteValidationAppel &resultat)
 {
 	auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
-	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
+	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->expression, candidates_appel)) {
 		return true;
 	}
 
@@ -1448,16 +1449,16 @@ static auto trouve_candidates_pour_appel(
 		if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
 			auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
 			auto candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
-			if (trouve_candidates_pour_fonction_appelee(contexte, espace, acces->expr2, candidates)) {
+			if (trouve_candidates_pour_fonction_appelee(contexte, espace, acces->operande_droite, candidates)) {
 				return true;
 			}
 
 			if (candidates.taille() == 0) {
-				contexte.unite->attend_sur_symbole(acces->expr2->comme_ref_decl());
+				contexte.unite->attend_sur_symbole(acces->operande_droite->comme_reference_declaration());
 				return true;
 			}
 
-			args.pousse_front({ nullptr, nullptr, acces->expr1 });
+			args.pousse_front({ nullptr, nullptr, acces->operande_gauche });
 
 			for (auto c : candidates) {
 				nouvelles_candidates.ajoute(c);
@@ -1510,7 +1511,7 @@ static auto trouve_candidates_pour_appel(
 					return true;
 				}
 			}
-			else if (decl->est_decl_var()) {
+			else if (decl->est_declaration_variable()) {
 				auto type = decl->type;
 				auto &dc = resultat.ajoute_donnees();
 
@@ -1519,7 +1520,7 @@ static auto trouve_candidates_pour_appel(
 					if (decl->unite == nullptr) {
 						contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl);
 					}
-					contexte.unite->attend_sur_declaration(decl->comme_decl_var());
+					contexte.unite->attend_sur_declaration(decl->comme_declaration_variable());
 					return true;
 				}
 
@@ -1615,7 +1616,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(copie->lexeme);
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(copie->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = espace.typeuse.type_type_de_donnees(it.type);
@@ -1629,7 +1630,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 
 	// Supprime les valeurs polymorphiques
 	// À FAIRE : optimise
-	auto nouveau_params = kuri::tableau<NoeudDeclarationVariable *, int>();
+	auto nouveau_params = kuri::tableau<NoeudExpression *, int>();
 	POUR (copie->params) {
 		if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 			continue;
@@ -1679,7 +1680,7 @@ static NoeudStruct *monomorphise_au_besoin(
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(decl_struct->lexeme);
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(decl_struct->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = it.type;
@@ -1728,15 +1729,15 @@ ResultatValidation valide_appel_fonction(
 	ctx.efface();
 
 	auto &args = ctx.args;
-	args.reserve(expr->params.taille());
+	args.reserve(expr->parametres.taille());
 
 	{
 		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "prépare arguments");
 
-		POUR (expr->params) {
+		POUR (expr->parametres) {
 			// l'argument est nommé
-			if (it->est_assignation()) {
-				auto assign = it->comme_assignation();
+			if (it->est_assignation_variable()) {
+				auto assign = it->comme_assignation_variable();
 				auto nom_arg = assign->variable;
 				auto arg = assign->expression;
 
@@ -1829,10 +1830,10 @@ ResultatValidation valide_appel_fonction(
 	statis_exprs.ajoute_taille(static_cast<int>(candidate->exprs.taille()));
 #endif
 
-	expr->exprs.reserve(static_cast<int>(candidate->exprs.taille()));
+	expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
 
 	for (auto enfant : candidate->exprs) {
-		expr->exprs.ajoute(enfant);
+		expr->parametres_resolus.ajoute(enfant);
 	}
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
@@ -1880,7 +1881,7 @@ ResultatValidation valide_appel_fonction(
 					.ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
 					.ajoute_site(decl_fonction_appelee)
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
-					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
+					.ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
 			return ResultatValidation::Erreur;
 		}
 
@@ -1896,7 +1897,7 @@ ResultatValidation valide_appel_fonction(
 
 			/* ajoute le type du tableau */
 			auto noeud_tabl = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
-			auto taille_tableau = noeud_tabl->exprs.taille();
+			auto taille_tableau = noeud_tabl->expressions.taille();
 			auto &type_tabl = noeud_tabl->type;
 
 			auto type_tfixe = espace.typeuse.type_tableau_fixe(type_tabl, taille_tableau);
@@ -1906,7 +1907,7 @@ ResultatValidation valide_appel_fonction(
 		auto i = 0;
 		/* les drapeaux pour les arguments simples */
 		for (; i < nombre_args_simples; ++i) {
-			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+			contexte.transtype_si_necessaire(expr->parametres_resolus[i], candidate->transformations[i]);
 		}
 
 		/* les drapeaux pour les arguments variadics */
@@ -1914,7 +1915,7 @@ ResultatValidation valide_appel_fonction(
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
 
 			for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-				contexte.transtype_si_necessaire(noeud_tableau->exprs[j], candidate->transformations[i]);
+				contexte.transtype_si_necessaire(noeud_tableau->expressions[j], candidate->transformations[i]);
 			}
 		}
 
@@ -1945,7 +1946,7 @@ ResultatValidation valide_appel_fonction(
 		}
 
 		expr->type = decl_fonction_appelee->type;
-		expr->appelee = decl_fonction_appelee;
+		expr->expression = decl_fonction_appelee;
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
 		if (candidate->noeud_decl) {
@@ -1966,9 +1967,9 @@ ResultatValidation valide_appel_fonction(
 			expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
 			expr->type = candidate->type;
 
-			for (auto i = 0; i < expr->exprs.taille(); ++i) {
-				if (expr->exprs[i] != nullptr) {
-					contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+			for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
+				if (expr->parametres_resolus[i] != nullptr) {
+					contexte.transtype_si_necessaire(expr->parametres_resolus[i], candidate->transformations[i]);
 				}
 			}
 
@@ -1990,8 +1991,8 @@ ResultatValidation valide_appel_fonction(
 			expr->type = candidate->type->comme_fonction()->type_sortie;
 		}
 
-		for (auto i = 0; i < expr->exprs.taille(); ++i) {
-			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+		for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
+			contexte.transtype_si_necessaire(expr->parametres_resolus[i], candidate->transformations[i]);
 		}
 
 		auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
@@ -2001,7 +2002,7 @@ ResultatValidation valide_appel_fonction(
 					.ajoute_message(chaine_type(expr->type))
 					.ajoute_message("\n")
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
-					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
+					.ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
 			return ResultatValidation::Erreur;
 		}
 	}

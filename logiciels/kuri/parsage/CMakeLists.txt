@@ -62,3 +62,22 @@ target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/lexemes.cc
+	COMMAND genere_lexemes "${CMAKE_CURRENT_SOURCE_DIR}/lexemes.cc"
+	DEPENDS genere_lexemes
+)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/lexemes.hh
+	COMMAND genere_lexemes "${CMAKE_CURRENT_SOURCE_DIR}/lexemes.hh"
+	DEPENDS genere_lexemes
+)
+
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/empreinte_parfaite.hh
+	COMMAND genere_lexemes "${CMAKE_CURRENT_SOURCE_DIR}/empreinte_parfaite.hh"
+	DEPENDS genere_lexemes lexemes.hh
+)
+
+add_dependencies(${NOM_CIBLE} genere_lexemes)

@@ -36,7 +36,7 @@
 #include "bibliotheque.hh"
 #include "erreur.h"
 #include "graphe_dependance.hh"
-#include "message.hh"
+#include "messagere.hh"
 #include "metaprogramme.hh"
 #include "options.hh"
 #include "operateurs.hh"
@@ -86,7 +86,7 @@ private:
 
 public:
 	kuri::chaine nom{};
-	OptionsCompilation options{};
+	OptionsDeCompilation options{};
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
@@ -141,6 +141,9 @@ public:
 
 	/* pour activer ou désactiver les optimisations */
 	bool optimisations = false;
+	mutable bool possede_erreur = false;
+
+	Compilatrice &m_compilatrice;
 
 	EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts, kuri::chaine nom_);
 
@@ -222,6 +225,7 @@ public:
 	PhaseCompilation phase_courante() const;
 
 	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
+	void rapporte_avertissement(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const;
 
 	Erreur rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre = erreur::Genre::NORMAL) const;
 	Erreur rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const;
@@ -229,4 +233,9 @@ public:
 
 	/* Imprime la RI de toutes les fonctions de l'espace de travail. */
 	void imprime_programme() const;
+
+	Compilatrice &compilatrice()
+	{
+		return m_compilatrice;
+	}
 };

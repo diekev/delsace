@@ -1,8 +1,22 @@
 // aucune erreur n'est rapportée quand nous tentons de retourner un pointeur de la pile depuis une fonction
 // nous devrions également vérifier les pointeurs dans les structures récurisivement
 
-foo :: fonc () -> *z32
+importe Support
+
+principale :: fonc () -> z32
 {
-    a := 0
-    retourne *a
+    erreur_survenue := #exécute compile_script_erroné("
+    foo :: fonc () -> *z32
+    {
+        a := 0
+        retourne *a
+    }
+    principale :: fonc () -> z32
+    {
+        x := foo()
+        retourne mémoire(x)
+    }
+    ")
+    imprime_succès(erreur_survenue)
+    retourne 0
 }
