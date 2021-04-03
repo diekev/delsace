@@ -695,7 +695,13 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 			info_type->genre = GenreInfoType::STRUCTURE;
 			info_type->taille_en_octet = type->taille_octet;
-			info_type->nom = type_struct->nom->nom;
+
+			if (type_struct->nom) {
+				info_type->nom = type_struct->nom->nom;
+			}
+			else {
+				info_type->nom = "anonyme";
+			}
 
 			info_type->membres.reserve(type_struct->membres.taille());
 
@@ -721,6 +727,13 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
 			info_type->decalage_index = type_union->decalage_index;
 			info_type->taille_en_octet = type_union->taille_octet;
+
+			if (type_union->nom) {
+				info_type->nom = type_union->nom->nom;
+			}
+			else {
+				info_type->nom = "anonyme";
+			}
 
 			info_type->membres.reserve(type_union->membres.taille());
 
