@@ -1,5 +1,29 @@
 Kuri
 ----
+ADN
+---
+
+Le langage permettant de comuniquer entre les programmes compilés et la Compilatrice, il est important d'avoir un système permettant de passer des structures entre eux.
+
+Ces structures doivent être tenues synchronisées entre la Compilatrice et le langage.
+
+Pour ce faire, nous générons du code lors de la compilation de la Compilatrice à partir de définitions écrites dans un langage dédié. Ce système s'appel l'ADN.
+
+Nous générons lors de la compilation les définitions C++ et Kuri de structures clés, ainsi que des fonctions auxilliaires afin de réduire le coup de maintenance du langage, et évite les bugs dûs à des problèmes d'ABI.
+
+Le code généré contient :
+- les lexèmes
+- la table d'empreinte parfaite pour déterminer si un identifiant est un mot-clé ou non
+- les noeuds syntaxiques pour la Compilatrice (NoeudExpression) et pour Kuri (NoeudCode)
+- l'allocation des noeuds, et la conversion entre les NoeudExpression et Kuri
+- l'assembleuse de l'arbre syntaxiques
+- la copie d'arbre syntaxique, principalement utilisée pour monomorphiser une fonction ou une structure
+- l'impression d'arbre syntaxique
+- le calcul de l'étendue d'un arbre syntaxique dans le code source, utile pour sur- ou sousligner le code source dans les messages d'erreurs
+- plusieurs fonctions pour les impressions de débogage
+- les messages passés entre la Compilatrice et les programmes, code C++ et Kuri
+- l'IPA de la Compilatrice pour les métaprogrammes
+- les options de compilations
 
 Compilatrice
 ------------
