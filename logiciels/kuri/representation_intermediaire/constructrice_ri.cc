@@ -542,6 +542,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::DECLARATION_MODULE:
+		case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
 		{
 			break;
 		}
@@ -699,7 +700,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			m_noeud_pour_appel = ancien_pour_appel;
 
-			genere_ri_pour_expression_droite(expr_appel->appelee, nullptr);
+			genere_ri_pour_expression_droite(expr_appel->expression, nullptr);
 			auto atome_fonc = depile_valeur();
 
 			assert_rappel(atome_fonc && atome_fonc->type != nullptr, [&]{
@@ -716,8 +717,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			assert_rappel(atome_fonc->type->est_fonction(), [&]{
 				std::cerr << "L'atome n'est pas de type fonction mais de type " << chaine_type(atome_fonc->type) << " !\n";
 				erreur::imprime_site(*espace(), expr_appel);
-				erreur::imprime_site(*espace(), expr_appel->appelee);
-				if (!expr_appel->appelee->substitution) {
+				erreur::imprime_site(*espace(), expr_appel->expression);
+				if (!expr_appel->expression->substitution) {
 					std::cerr << "L'appelée n'a pas de substitution !\n";
 				}
 			});
@@ -846,24 +847,24 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
-			empile_valeur(cree_constante_reelle(noeud->type, noeud->comme_litterale()->valeur_reelle));
+			empile_valeur(cree_constante_reelle(noeud->type, noeud->comme_litterale_reel()->valeur));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			if (noeud->type->est_reel()) {
-				empile_valeur(cree_constante_reelle(noeud->type, static_cast<double>(noeud->comme_litterale()->valeur_entiere)));
+				empile_valeur(cree_constante_reelle(noeud->type, static_cast<double>(noeud->comme_litterale_entier()->valeur)));
 			}
 			else {
-				empile_valeur(cree_constante_entiere(noeud->type, noeud->comme_litterale()->valeur_entiere));
+				empile_valeur(cree_constante_entiere(noeud->type, noeud->comme_litterale_entier()->valeur));
 			}
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			auto lit_chaine = noeud->comme_litterale();
-			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->index_chaine);
+			auto lit_chaine = noeud->comme_litterale_chaine();
+			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->valeur);
 			auto constante = cree_chaine(chaine);
 
 			assert_rappel((noeud->lexeme->chaine.taille() != 0 && chaine.taille() != 0) || (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0),
@@ -872,7 +873,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				std::cerr << "La chaine n'est pas de la bonne taille !\n";
 				std::cerr << "Le lexème a une chaine taille de " << noeud->lexeme->chaine.taille()
 						  << " alors que la chaine littérale a une taille de " << chaine.taille() << '\n';
-				std::cerr << "L'index de la chaine est de " << lit_chaine->index_chaine << '\n';
+				std::cerr << "L'index de la chaine est de " << lit_chaine->valeur << '\n';
 			});
 
 			if (fonction_courante == nullptr) {
@@ -887,13 +888,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
-			empile_valeur(cree_constante_booleenne(noeud->comme_litterale()->valeur_bool));
+			empile_valeur(cree_constante_booleenne(noeud->comme_litterale_bool()->valeur));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
 			// À FAIRE : caractères Unicode
-			auto caractere = static_cast<unsigned char>(noeud->comme_litterale()->valeur_entiere);
+			auto caractere = static_cast<unsigned char>(noeud->comme_litterale_caractere()->valeur);
 			empile_valeur(cree_constante_caractere(noeud->type, caractere));
 			break;
 		}
@@ -1258,7 +1259,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_controle_boucle();
 			auto label = static_cast<InstructionLabel *>(nullptr);
 
-			if (inst->operande == nullptr) {
+			if (inst->expression == nullptr) {
 				if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
 					label = insts_continue_arrete.back().label_continue;
 				}
@@ -1273,7 +1274,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
-				auto ident = inst->operande->ident;
+				auto ident = inst->expression->ident;
 
 				POUR (insts_continue_arrete) {
 					if (it.ident != ident) {
@@ -1346,7 +1347,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			auto expr = noeud->comme_construction_struct();
+			auto expr = noeud->comme_construction_structure();
 			auto alloc = static_cast<Atome *>(nullptr);
 
 			if (expr->type->genre == GenreType::UNION) {
@@ -1396,7 +1397,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 			else {			
 				/* appelee peut être nulle pour les structures anonymes crées par la compilatrice */
-				if (expr->appelee && expr->appelee->ident == ID::PositionCodeSource) {
+				if (expr->expression && expr->expression->ident == ID::PositionCodeSource) {
 					genere_ri_pour_position_code_source(noeud);
 					return;
 				}
@@ -1434,7 +1435,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr = noeud->comme_construction_tableau();
 
-			auto feuilles = expr->operande->comme_virgule();
+			auto feuilles = expr->expression->comme_virgule();
 
 			if (fonction_courante == nullptr) {
 				auto type_tableau_fixe = expr->type->comme_tableau_fixe();
@@ -1468,7 +1469,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
 			auto inst = noeud->comme_info_de();
-			auto enfant = inst->operande;
+			auto enfant = inst->expression;
 			auto valeur = cree_info_type(enfant->type);
 
 			/* utilise une temporaire pour simplifier la compilation d'expressions du style : info_de(z32).id */
@@ -1490,7 +1491,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
 			auto inst_mem = noeud->comme_memoire();
-			genere_ri_pour_noeud(inst_mem->operande);
+			genere_ri_pour_noeud(inst_mem->expression);
 			auto valeur = depile_valeur();
 
 			if (!expression_gauche) {
@@ -1505,7 +1506,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			// mémoire(@expr) = ...
-			if (inst_mem->operande->genre_valeur == GenreValeur::DROITE && !inst_mem->operande->est_comme()) {
+			if (inst_mem->expression->genre_valeur == GenreValeur::DROITE && !inst_mem->expression->est_comme()) {
 				empile_valeur(valeur);
 				return;
 			}
@@ -1533,7 +1534,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			genere_ri_pour_expression_droite(noeud->comme_expansion_variadique()->operande, nullptr);
+			genere_ri_pour_expression_droite(noeud->comme_expansion_variadique()->expression, nullptr);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
@@ -1615,7 +1616,7 @@ void ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, A
 	expression_gauche = ancienne_expression_gauche;
 
 	assert_rappel(valeur, [&] {
-		std::cerr << __func__ << ", valeur est nulle pour " << chaine_genre_noeud(noeud->genre) << '\n';
+		std::cerr << __func__ << ", valeur est nulle pour " << noeud->genre << '\n';
 		erreur::imprime_site(*m_espace, noeud);
 	});
 
@@ -2506,7 +2507,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 	}
 	else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
 		auto expr_unaire = condition->comme_parenthese();
-		genere_ri_pour_condition(expr_unaire->operande, label_si_vrai, label_si_faux);
+		genere_ri_pour_condition(expr_unaire->expression, label_si_vrai, label_si_faux);
 	}
 	else {
 		auto type_condition = condition->type;

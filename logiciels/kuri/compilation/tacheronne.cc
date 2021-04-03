@@ -1452,7 +1452,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 		{
 			auto valeur = *reinterpret_cast<bool *>(pointeur);
 			auto noeud_syntaxique = assembleuse->cree_litterale_bool(lexeme);
-			noeud_syntaxique->valeur_bool = valeur;
+			noeud_syntaxique->valeur = valeur;
 			noeud_syntaxique->type = type;
 			return noeud_syntaxique;
 		}
@@ -1522,7 +1522,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			kuri::chaine_statique chaine = { *reinterpret_cast<char **>(valeur_pointeur), valeur_chaine };
 
 			auto lit_chaine = assembleuse->cree_litterale_chaine(lexeme);
-			lit_chaine->index_chaine = compilatrice.gerante_chaine->ajoute_chaine(chaine);
+			lit_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(chaine);
 			lit_chaine->type = type;
 			return lit_chaine;
 		}
@@ -1570,7 +1570,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			auto construction = assembleuse->cree_construction_tableau(lexeme);
 			construction->type = type_tableau;
-			construction->operande = virgule;
+			construction->expression = virgule;
 			return construction;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:

@@ -28,12 +28,13 @@
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/identifiant.hh"
 #include "parsage/lexemes.hh"
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "validation_semantique.hh"
@@ -136,7 +137,7 @@ void lance_erreur_fonction_inconnue(
 		e.ajoute_message("Vérifiez que la fonction existe bel et bien dans un fichier importé\n");
 	}
 	else {
-		e.ajoute_message("Aucune candidate trouvée pour l'expression « ", chaine_expression(espace, b->comme_appel()->appelee), " » !\n");
+		e.ajoute_message("Aucune candidate trouvée pour l'expression « ", chaine_expression(espace, b->comme_appel()->expression), " » !\n");
 
 		for (auto &dc : candidates) {
 			auto decl = dc.noeud_decl;

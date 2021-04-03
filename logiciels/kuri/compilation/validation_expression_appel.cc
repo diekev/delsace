@@ -1435,7 +1435,7 @@ static auto trouve_candidates_pour_appel(
 		ContexteValidationAppel &resultat)
 {
 	auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
-	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
+	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->expression, candidates_appel)) {
 		return true;
 	}
 
@@ -1630,7 +1630,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 
 	// Supprime les valeurs polymorphiques
 	// À FAIRE : optimise
-	auto nouveau_params = kuri::tableau<NoeudDeclarationVariable *, int>();
+	auto nouveau_params = kuri::tableau<NoeudExpression *, int>();
 	POUR (copie->params) {
 		if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 			continue;
@@ -1946,7 +1946,7 @@ ResultatValidation valide_appel_fonction(
 		}
 
 		expr->type = decl_fonction_appelee->type;
-		expr->appelee = decl_fonction_appelee;
+		expr->expression = decl_fonction_appelee;
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
 		if (candidate->noeud_decl) {

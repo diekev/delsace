@@ -211,7 +211,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	if (decl->params_sorties.taille() > 1) {
 		auto index_membre = 0;
 		POUR (decl->params_sorties) {
-			it->atome = constructrice.cree_reference_membre(it, atome_param_sortie, index_membre++, true);
+			it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(it, atome_param_sortie, index_membre++, true);
 		}
 	}
 

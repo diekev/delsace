@@ -24,17 +24,22 @@
 
 #include "utilitaires.hh"
 
+#include "noeud_expression.hh"
+
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "compilation/broyage.hh"
+#include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
+#include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
 #include "assembleuse.hh"
-#include "noeud_expression.hh"
+#include "noeud_code.hh"
 
 /* ************************************************************************** */
 
@@ -169,7 +174,7 @@ static void aplatis_arbre(
 			auto expr = static_cast<NoeudExpressionAppel *>(racine);
 			expr->drapeaux |= drapeau;
 
-			auto appelee = expr->appelee;
+			auto appelee = expr->expression;
 
 			if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
 				// pour les expresssions de références de membre, puisqu'elles peuvent être des
@@ -249,7 +254,7 @@ static void aplatis_arbre(
 			drapeau |= DROITE_ASSIGNATION;
 			drapeau |= POUR_CUISSON;
 
-			aplatis_arbre(cuisine->operande, arbre_aplatis, drapeau);
+			aplatis_arbre(cuisine->expression, arbre_aplatis, drapeau);
 			arbre_aplatis.ajoute(cuisine);
 			break;
 		}
@@ -269,7 +274,7 @@ static void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
 			auto init_de = racine->comme_init_de();
-			aplatis_arbre(init_de->operande, arbre_aplatis, drapeau);
+			aplatis_arbre(init_de->expression, arbre_aplatis, drapeau);
 			arbre_aplatis.ajoute(racine);
 			break;
 		}
@@ -326,11 +331,16 @@ static void aplatis_arbre(
 			arbre_aplatis.ajoute(expr);
 
 			POUR (expr->paires_discr) {
-				aplatis_arbre(it.second, arbre_aplatis, DrapeauxNoeud::AUCUN);
+				aplatis_arbre(it->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			aplatis_arbre(expr->bloc_sinon, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
+			break;
+		}
+		case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
+		{
+			// Géré au dessus.
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_SAUFSI:
@@ -453,14 +463,13 @@ void aplatis_arbre(NoeudExpression *declaration)
 	}
 
 	if (declaration->est_declaration_variable()) {
-		auto decl_var = declaration->comme_declaration_variable();
-		if (decl_var->arbre_aplatis.taille() == 0) {
-			aplatis_arbre(decl_var, decl_var->arbre_aplatis, {});
+		auto declaration_variable = declaration->comme_declaration_variable();
+		if (declaration_variable->arbre_aplatis.taille() == 0) {
+			aplatis_arbre(declaration_variable, declaration_variable->arbre_aplatis, {});
 		}
 		return;
 	}
 }
-
 
 struct Simplificatrice {
 	EspaceDeTravail *espace;
@@ -484,7 +493,7 @@ private:
 	void simplifie_discr(NoeudDiscr *discr);
 	template<int N>
 	void simplifie_discr_impl(NoeudDiscr *discr);
-	void simplifie_retiens(NoeudRetour *retiens);
+	void simplifie_retiens(NoeudRetiens *retiens);
 	void simplifie_retour(NoeudRetour *inst);
 
 	NoeudExpression *simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin, bool pour_operande);
@@ -503,6 +512,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 	switch (noeud->genre) {
 		case GenreNoeud::DECLARATION_MODULE:
+		case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
 		{
 			break;
 		}
@@ -678,8 +688,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		case GenreNoeud::DIRECTIVE_CUISINE:
 		{
 			auto cuisine = noeud->comme_cuisine();
-			auto expr = cuisine->operande->comme_appel();
-			cuisine->substitution = assem->cree_reference_declaration(expr->lexeme, expr->appelee->comme_entete_fonction());
+			auto expr = cuisine->expression->comme_appel();
+			cuisine->substitution = assem->cree_reference_declaration(expr->lexeme, expr->expression->comme_entete_fonction());
 			return;
 		}
 		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
@@ -798,8 +808,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto expr = noeud->comme_taille();
-			auto type = expr->operande->type;
+			auto expr = noeud->comme_taille_de();
+			auto type = expr->expression->type;
 
 			assert_rappel(type->taille_octet != 0, [&] {
 				std::cerr << "[simplification] : taille octet de 0 pour le type : " << chaine_type(type) << '\n';
@@ -899,7 +909,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		{
 			auto tableau = noeud->comme_construction_tableau();
-			simplifie(tableau->operande);
+			simplifie(tableau->expression);
 			return;
 		}
 		case GenreNoeud::EXPRESSION_VIRGULE:
@@ -928,8 +938,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
 			auto parenthese = noeud->comme_parenthese();
-			simplifie(parenthese->operande);
-			parenthese->substitution = parenthese->operande;
+			simplifie(parenthese->expression);
+			parenthese->substitution = parenthese->expression;
 			return;
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
@@ -1008,7 +1018,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			auto appel = noeud->comme_construction_struct();
+			auto appel = noeud->comme_construction_structure();
 
 			POUR (appel->parametres_resolus) {
 				simplifie(it);
@@ -1038,10 +1048,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			}
 
 			if (appel->noeud_fonction_appelee) {
-				appel->appelee->substitution = assem->cree_reference_declaration(appel->lexeme, const_cast<NoeudDeclarationEnteteFonction *>(appel->noeud_fonction_appelee->comme_entete_fonction()));
+				appel->expression->substitution = assem->cree_reference_declaration(appel->lexeme, appel->noeud_fonction_appelee->comme_entete_fonction());
 			}
 			else {
-				simplifie(appel->appelee);
+				simplifie(appel->expression);
 			}
 
 			POUR (appel->parametres_resolus) {
@@ -1071,7 +1081,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 						auto type_enum = ref_membre->type->comme_enum();
 						auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
-						if (it.expression->comme_litterale()->valeur_bool) {
+						if (it.expression->comme_litterale_bool()->valeur) {
 							// a.DRAPEAU = vrai -> a = a | DRAPEAU
 							auto valeur_lit_enum = assem->cree_litterale_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
 							auto op = type_enum->operateur_oub;
@@ -1274,11 +1284,11 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 			/* condition */
 			auto expr_plage = expression_iteree->comme_plage();
-			simplifie(expr_plage->operande_gauche);
-			simplifie(expr_plage->operande_droite);
+			simplifie(expr_plage->debut);
+			simplifie(expr_plage->fin);
 
-			auto expr_debut = inverse_boucle ? expr_plage->operande_droite : expr_plage->operande_gauche;
-			auto expr_fin   = inverse_boucle ? expr_plage->operande_gauche : expr_plage->operande_droite;
+			auto expr_debut = inverse_boucle ? expr_plage->fin : expr_plage->debut;
+			auto expr_fin   = inverse_boucle ? expr_plage->debut : expr_plage->fin;
 
 			auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
 			bloc_pre->expressions->ajoute(init_it);
@@ -1625,7 +1635,7 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 	assignation->expression = inst->expression;
 	assignation->donnees_exprs = std::move(inst->donnees_exprs);
 
-	auto retour = assem->cree_retour(inst->lexeme);
+	auto retour = assem->cree_retourne(inst->lexeme);
 
 	if (type_sortie->est_rien()) {
 		retour->expression = nullptr;
@@ -1730,7 +1740,7 @@ void Simplificatrice::simplifie_coroutine(NoeudDeclarationEnteteFonction *corout
 	return;
 }
 
-void Simplificatrice::simplifie_retiens(NoeudRetour *retiens)
+void Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
 {
 #if 0
 	auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
@@ -1857,7 +1867,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
 	for (auto i = 0; i < discr->paires_discr.taille(); ++i) {
 		auto &it = discr->paires_discr[i];
-		auto virgule = it.first->comme_virgule();
+		auto virgule = it->expression->comme_virgule();
 
 		// crée les comparaisons
 		kuri::tableau<NoeudExpressionBinaire> comparaisons;
@@ -1896,8 +1906,8 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 		si_courant->condition = cree_expression_pour_op_chainee(comparaisons, &lexeme_ou);
 
 		// À FAIRE(union) : création d'une variable si nous avons une union
-		simplifie(it.second);
-		si_courant->bloc_si_vrai = it.second;
+		simplifie(it->bloc);
+		si_courant->bloc_si_vrai = it->bloc;
 
 		if (i != (discr->paires_discr.taille() - 1)) {
 			si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
@@ -1930,7 +1940,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 			valeur_f = cree_z32(idx_membre + 1);
 
 			/* ajout du membre au bloc */
-			auto valeur = cree_reference_membre(noeud, ptr_structure, 0);
+			auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
 			table_locales[f->ident] = valeur;
 		}
 		else {
@@ -1938,7 +1948,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 			valeur_f = cree_z32(idx_membre + 1);
 
 			/* ajout du membre au bloc */
-			auto valeur = cree_reference_membre(noeud, ptr_structure, 0);
+			auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
 			table_locales[f->ident] = valeur;
 		}
 	}
@@ -2063,3 +2073,690 @@ bool expression_est_constante(NoeudExpression *expression)
 	}
 }
 #endif
+
+// -----------------------------------------------------------------------------
+// Implémentation des méthodes supplémentaires de l'arbre syntaxique
+
+kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
+{
+	if (nom_broye_ != "") {
+		return nom_broye_;
+	}
+
+	if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
+		auto fichier = espace->fichier(lexeme->fichier);
+
+		if (est_metaprogramme) {
+			nom_broye_ = enchaine("metaprogramme", this);
+		}
+		else {
+			nom_broye_ = broye_nom_fonction(this, fichier->module->nom()->nom);
+		}
+	}
+	else {
+		nom_broye_ = lexeme->chaine;
+	}
+
+	return nom_broye_;
+}
+
+// -----------------------------------------------------------------------------
+// Implémentation des fonctions supplémentaires de la ConvertisseuseNoeudCode
+
+InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
+{
+	auto cree_info_type_entier = [this](uint taille_en_octet, bool est_signe)
+	{
+		auto info_type = allocatrice_infos_types.infos_types_entiers.ajoute_element();
+		info_type->genre = GenreInfoType::ENTIER;
+		info_type->taille_en_octet = taille_en_octet;
+		info_type->est_signe = est_signe;
+
+		return info_type;
+	};
+
+	// À FAIRE : il est possible que les types ne soient pas encore validé quand nous générons des messages pour les entêtes de fonctions
+	if (type == nullptr) {
+		return nullptr;
+	}
+
+	if (type->info_type != nullptr) {
+		return type->info_type;
+	}
+
+	switch (type->genre) {
+		case GenreType::POLYMORPHIQUE:
+		case GenreType::TUPLE:
+		{
+			return nullptr;
+		}
+		case GenreType::OCTET:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::OCTET;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::BOOL:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::BOOLEEN;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::CHAINE:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::CHAINE;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::EINI:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::EINI;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			auto type_tableau = type->comme_tableau_dynamique();
+
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = false;
+			info_type->taille_fixe = 0;
+			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		{
+			auto type_variadique = type->comme_variadique();
+
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = false;
+			info_type->taille_fixe = 0;
+
+			// type nul pour les types variadiques des fonctions externes (p.e. printf(const char *, ...))
+			if (type_variadique->type_pointe) {
+				info_type->type_pointe = cree_info_type_pour(type_variadique->type_pointe);
+			}
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_tableau = type->comme_tableau_fixe();
+
+			auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = true;
+			info_type->taille_fixe = type_tableau->taille;
+			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			type->info_type = cree_info_type_entier(4, true);
+			break;
+		}
+		case GenreType::ENTIER_NATUREL:
+		{
+			type->info_type = cree_info_type_entier(type->taille_octet, false);
+			break;
+		}
+		case GenreType::ENTIER_RELATIF:
+		{
+			type->info_type = cree_info_type_entier(type->taille_octet, true);
+			break;
+		}
+		case GenreType::REEL:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::REEL;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::RIEN:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::RIEN;
+			info_type->taille_en_octet = 0;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			auto info_type = allocatrice_infos_types.infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::TYPE_DE_DONNEES;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::POINTEUR:
+		case GenreType::REFERENCE:
+		{
+			auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_element();
+			info_type->genre = GenreInfoType::POINTEUR;
+			info_type->type_pointe = cree_info_type_pour(type_dereference_pour(type));
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_reference = type->genre == GenreType::REFERENCE;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_struct = type->comme_structure();
+
+			auto info_type = allocatrice_infos_types.infos_types_structures.ajoute_element();
+			type->info_type = info_type;
+
+			info_type->genre = GenreInfoType::STRUCTURE;
+			info_type->taille_en_octet = type->taille_octet;
+
+			if (type_struct->nom) {
+				info_type->nom = type_struct->nom->nom;
+			}
+			else {
+				info_type->nom = "anonyme";
+			}
+
+			info_type->membres.reserve(type_struct->membres.taille());
+
+			POUR (type_struct->membres) {
+				auto info_type_membre = allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
+				info_type_membre->info = cree_info_type_pour(it.type);
+				info_type_membre->decalage = it.decalage;
+				info_type_membre->nom = it.nom->nom;
+				info_type_membre->drapeaux = it.drapeaux;
+
+				info_type->membres.ajoute(info_type_membre);
+			}
+
+			break;
+		}
+		case GenreType::UNION:
+		{
+			auto type_union = type->comme_union();
+
+			auto info_type = allocatrice_infos_types.infos_types_unions.ajoute_element();
+			info_type->genre = GenreInfoType::UNION;
+			info_type->est_sure = !type_union->est_nonsure;
+			info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
+			info_type->decalage_index = type_union->decalage_index;
+			info_type->taille_en_octet = type_union->taille_octet;
+
+			if (type_union->nom) {
+				info_type->nom = type_union->nom->nom;
+			}
+			else {
+				info_type->nom = "anonyme";
+			}
+
+			info_type->membres.reserve(type_union->membres.taille());
+
+			POUR (type_union->membres) {
+				auto info_type_membre = allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
+				info_type_membre->info = cree_info_type_pour(it.type);
+				info_type_membre->decalage = it.decalage;
+				info_type_membre->nom = it.nom->nom;
+				info_type_membre->drapeaux = it.drapeaux;
+
+				info_type->membres.ajoute(info_type_membre);
+			}
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::ENUM:
+		case GenreType::ERREUR:
+		{
+			auto type_enum = type->comme_enum();
+
+			auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
+			info_type->genre = GenreInfoType::ENUM;
+			info_type->nom = type_enum->nom->nom;
+			info_type->est_drapeau = type_enum->est_drapeau;
+			info_type->taille_en_octet = type_enum->taille_octet;
+
+			info_type->noms.reserve(type_enum->membres.taille());
+			info_type->valeurs.reserve(type_enum->membres.taille());
+
+			POUR (type_enum->membres) {
+				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+					continue;
+				}
+
+				info_type->noms.ajoute(it.nom->nom);
+				info_type->valeurs.ajoute(it.valeur);
+			}
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::FONCTION:
+		{
+			auto type_fonction = type->comme_fonction();
+
+			auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_element();
+			info_type->genre = GenreInfoType::FONCTION;
+			info_type->est_coroutine = false;
+			info_type->taille_en_octet = type->taille_octet;
+
+			info_type->types_entrees.reserve(type_fonction->types_entrees.taille());
+
+			POUR (type_fonction->types_entrees) {
+				info_type->types_entrees.ajoute(cree_info_type_pour(it));
+			}
+
+			auto type_sortie = type_fonction->type_sortie;
+
+			if (type_sortie->est_tuple()) {
+				auto tuple = type_sortie->comme_tuple();
+				info_type->types_sorties.reserve(tuple->membres.taille());
+
+				POUR (tuple->membres) {
+					info_type->types_sorties.ajoute(cree_info_type_pour(it.type));
+				}
+			}
+			else {
+				info_type->types_sorties.reserve(1);
+				info_type->types_sorties.ajoute(cree_info_type_pour(type_sortie));
+			}
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+
+			auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
+			info_type->nom = type_opaque->ident->nom;
+			info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
+
+			type->info_type = info_type;
+			break;
+		}
+	}
+
+	return type->info_type;
+}
+
+Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *type)
+{
+	switch (type->genre) {
+		case GenreInfoType::EINI:
+		{
+			return typeuse[TypeBase::EINI];
+		}
+		case GenreInfoType::REEL:
+		{
+			if (type->taille_en_octet == 2) {
+				return typeuse[TypeBase::R16];
+			}
+
+			if (type->taille_en_octet == 4) {
+				return typeuse[TypeBase::R32];
+			}
+
+			if (type->taille_en_octet == 8) {
+				return typeuse[TypeBase::R64];
+			}
+
+			return nullptr;
+		}
+		case GenreInfoType::ENTIER:
+		{
+			const auto info_type_entier = static_cast<const InfoTypeEntier *>(type);
+
+			if (info_type_entier->est_signe) {
+				if (type->taille_en_octet == 1) {
+					return typeuse[TypeBase::Z8];
+				}
+
+				if (type->taille_en_octet == 2) {
+					return typeuse[TypeBase::Z16];
+				}
+
+				if (type->taille_en_octet == 4) {
+					return typeuse[TypeBase::Z32];
+				}
+
+				if (type->taille_en_octet == 8) {
+					return typeuse[TypeBase::Z64];
+				}
+
+				return nullptr;
+			}
+
+			if (type->taille_en_octet == 1) {
+				return typeuse[TypeBase::N8];
+			}
+
+			if (type->taille_en_octet == 2) {
+				return typeuse[TypeBase::N16];
+			}
+
+			if (type->taille_en_octet == 4) {
+				return typeuse[TypeBase::N32];
+			}
+
+			if (type->taille_en_octet == 8) {
+				return typeuse[TypeBase::N64];
+			}
+
+			return nullptr;
+		}
+		case GenreInfoType::OCTET:
+		{
+			return typeuse[TypeBase::OCTET];
+		}
+		case GenreInfoType::BOOLEEN:
+		{
+			return typeuse[TypeBase::BOOL];
+		}
+		case GenreInfoType::CHAINE:
+		{
+			return typeuse[TypeBase::CHAINE];
+		}
+		case GenreInfoType::RIEN:
+		{
+			return typeuse[TypeBase::RIEN];
+		}
+		case GenreInfoType::POINTEUR:
+		{
+			const auto info_type_pointeur = static_cast<const InfoTypePointeur *>(type);
+
+			auto type_pointe = convertis_info_type(typeuse, info_type_pointeur->type_pointe);
+
+			if (info_type_pointeur->est_reference) {
+				return typeuse.type_reference_pour(type_pointe);
+			}
+
+			return typeuse.type_pointeur_pour(type_pointe);
+		}
+		case GenreInfoType::TABLEAU:
+		{
+			const auto info_type_tableau = static_cast<const InfoTypeTableau *>(type);
+
+			auto type_pointe = convertis_info_type(typeuse, info_type_tableau->type_pointe);
+
+			if (info_type_tableau->est_tableau_fixe) {
+				return typeuse.type_tableau_fixe(type_pointe, info_type_tableau->taille_fixe);
+			}
+
+			return typeuse.type_tableau_dynamique(type_pointe);
+		}
+		case GenreInfoType::TYPE_DE_DONNEES:
+		{
+			// À FAIRE : préserve l'information de type connu
+			return typeuse.type_type_de_donnees(nullptr);
+		}
+		case GenreInfoType::FONCTION:
+		{
+			// À FAIRE
+			return nullptr;
+		}
+		case GenreInfoType::STRUCTURE:
+		{
+			// À FAIRE
+			return nullptr;
+		}
+		case GenreInfoType::ENUM:
+		{
+			// À FAIRE
+			return nullptr;
+		}
+		case GenreInfoType::UNION:
+		{
+			// À FAIRE
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// Implémentation des fonctions supplémentaires de l'AssembleuseArbre
+
+NoeudExpressionBinaire *AssembleuseArbre::cree_expression_binaire(const Lexeme *lexeme, const OperateurBinaire *op, NoeudExpression *expr1, NoeudExpression *expr2)
+{
+	assert(op);
+	auto op_bin = cree_expression_binaire(lexeme);
+	op_bin->operande_gauche = expr1;
+	op_bin->operande_droite = expr2;
+	op_bin->op = op;
+	op_bin->type = op->type_resultat;
+	return op_bin;
+}
+
+NoeudExpressionReference *AssembleuseArbre::cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl)
+{
+	auto ref = cree_reference_declaration(lexeme);
+	ref->declaration_referee = decl;
+	ref->type = decl->type;
+	ref->ident = decl->ident;
+	return ref;
+}
+
+NoeudSi *AssembleuseArbre::cree_si(const Lexeme *lexeme, GenreNoeud genre_noeud)
+{
+	if (genre_noeud == GenreNoeud::INSTRUCTION_SI) {
+		return static_cast<NoeudSi *>(cree_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme));
+	}
+
+	return static_cast<NoeudSi *>(cree_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme));
+}
+
+NoeudBloc *AssembleuseArbre::cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent)
+{
+	auto bloc = cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
+	bloc->bloc_parent = bloc_parent;
+	return bloc;
+}
+
+NoeudAssignation *AssembleuseArbre::cree_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression)
+{
+	auto assignation = cree_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)->comme_assignation_variable();
+
+	auto donnees = DonneesAssignations();
+	donnees.expression = expression;
+	donnees.variables.ajoute(assignee);
+	donnees.transformations.ajoute({});
+
+	assignation->donnees_exprs.ajoute(donnees);
+
+	return assignation;
+}
+
+NoeudDeclarationVariable *AssembleuseArbre::cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression)
+{
+	auto ref = cree_reference_declaration(lexeme);
+	ref->ident = ident;
+	ref->type = type;
+	return cree_declaration_variable(ref, expression);
+}
+
+NoeudDeclarationVariable *AssembleuseArbre::cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression)
+{
+	auto declaration = cree_declaration_variable(ref->lexeme);
+	declaration->ident = ref->ident;
+	declaration->type = ref->type;
+	declaration->valeur = ref;
+	declaration->expression = expression;
+
+	ref->declaration_referee = declaration;
+
+	auto donnees = DonneesAssignations();
+	donnees.expression = expression;
+	donnees.variables.ajoute(ref);
+	donnees.transformations.ajoute({});
+
+	declaration->donnees_decl.ajoute(donnees);
+
+	return declaration;
+}
+
+NoeudDeclarationVariable *AssembleuseArbre::cree_declaration_variable(NoeudExpressionReference *ref)
+{
+	auto decl = cree_declaration_variable(ref->lexeme);
+	decl->valeur = ref;
+	decl->ident = ref->ident;
+	ref->declaration_referee = decl;
+	return decl;
+}
+
+NoeudExpressionMembre *AssembleuseArbre::cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
+{
+	auto acces = cree_reference_membre(lexeme);
+	acces->accedee = accede;
+	acces->type = type;
+	acces->index_membre = index;
+	return acces;
+}
+
+NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification)
+{
+	auto indexage = cree_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
+	indexage->operande_gauche = expr1;
+	indexage->operande_droite = expr2;
+	indexage->type = type_dereference_pour(expr1->type);
+	if (ignore_verification) {
+		indexage->aide_generation_code = IGNORE_VERIFICATION;
+	}
+	return indexage;
+}
+
+NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type)
+{
+	auto appel = cree_appel(lexeme);
+	appel->noeud_fonction_appelee =	appelee;
+	appel->type = type;
+
+	if (appelee->est_entete_fonction()) {
+		appel->expression = cree_reference_declaration(lexeme, appelee->comme_entete_fonction());
+	}
+	else {
+		appel->expression = appelee;
+	}
+
+	return appel;
+}
+
+NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme *lexeme, TypeCompose *type)
+{
+	auto structure = cree_appel(lexeme);
+	structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
+	structure->parametres_resolus.reserve(type->membres.taille());
+
+	if (type->est_structure()) {
+		structure->expression = type->comme_structure()->decl;
+		structure->noeud_fonction_appelee = type->comme_structure()->decl;
+	}
+	else if (type->est_union()) {
+		structure->expression = type->comme_union()->decl;
+		structure->noeud_fonction_appelee = type->comme_union()->decl;
+	}
+
+	structure->type = type;
+	return structure;
+}
+
+NoeudExpressionLitteraleEntier *AssembleuseArbre::cree_litterale_entier(Lexeme const *lexeme, Type *type, unsigned long valeur)
+{
+	auto lit = cree_litterale_entier(lexeme);
+	lit->type = type;
+	lit->valeur = valeur;
+	return lit;
+}
+
+NoeudExpressionLitteraleReel *AssembleuseArbre::cree_litterale_reel(Lexeme const *lexeme, Type *type, double valeur)
+{
+	auto lit = cree_litterale_reel(lexeme);
+	lit->type = type;
+	lit->valeur = valeur;
+	return lit;
+}
+
+NoeudExpression *AssembleuseArbre::cree_reference_type(Lexeme const *lexeme, Type *type)
+{
+	auto ref_type = cree_reference_type(lexeme);
+	ref_type->type = type;
+	return ref_type;
+}
+
+NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, NoeudExpression *valeur)
+{
+	auto type = valeur->type;
+
+	auto inc = cree_expression_binaire(lexeme);
+	inc->op = type->operateur_ajt;
+	assert(inc->op);
+	inc->operande_gauche = valeur;
+	inc->type = type;
+
+	if (est_type_entier(type)) {
+		inc->operande_droite = cree_litterale_entier(valeur->lexeme, type, 1);
+	}
+	else if (type->est_reel()) {
+		// À FAIRE(r16)
+		inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
+	}
+
+	return cree_assignation_variable(valeur->lexeme, valeur, inc);
+}
+
+NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, NoeudExpression *valeur)
+{
+	auto type = valeur->type;
+
+	auto inc = cree_expression_binaire(lexeme);
+	inc->op = type->operateur_sst;
+	assert(inc->op);
+	inc->operande_gauche = valeur;
+	inc->type = type;
+
+	if (est_type_entier(type)) {
+		inc->operande_droite = cree_litterale_entier(valeur->lexeme, type, 1);
+	}
+	else if (type->est_reel()) {
+		// À FAIRE(r16)
+		inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
+	}
+
+	return cree_assignation_variable(valeur->lexeme, valeur, inc);
+}
+
+NoeudExpression *AssembleuseArbre::cree_arrete(const Lexeme *lexeme)
+{
+	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
+}
+
+NoeudExpression *AssembleuseArbre::cree_continue(const Lexeme *lexeme)
+{
+	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
+}

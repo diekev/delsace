@@ -211,7 +211,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 		/* vérifie que toutes les branches retournes */
 		POUR (discr->paires_discr) {
-			di = derniere_instruction(it.second);
+			di = derniere_instruction(it->bloc);
 
 			if (di == nullptr || !di->est_retourne()) {
 				break;

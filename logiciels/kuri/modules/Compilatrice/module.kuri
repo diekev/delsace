@@ -23,12 +23,12 @@ compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine,
 
 compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numero_ligne, message)
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numero_ligne, message)
+	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCodeSource())
@@ -38,12 +38,12 @@ compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCod
 
 compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numero_ligne, message)
+	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numero_ligne, message)
+	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
 
 désactive_compilation_espace_défaut :: fonc ()

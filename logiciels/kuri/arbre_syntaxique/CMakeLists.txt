@@ -56,7 +56,28 @@ set(SOURCES
 	utilitaires.hh
 )
 
+macro(genere_source __nom__)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.cc
+		COMMAND genere_noeuds "${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/noeuds.adn
+		DEPENDS genere_noeuds ../adn/noeuds.adn
+	)
+
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.hh
+		COMMAND genere_noeuds "${CMAKE_CURRENT_SOURCE_DIR}/${__nom__}.hh" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/noeuds.adn
+		DEPENDS genere_noeuds ../adn/noeuds.adn
+	)
+endmacro()
+
+genere_source(noeud_expression)
+genere_source(noeud_code)
+genere_source(allocatrice)
+genere_source(assembleuse)
+
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 
+add_dependencies(kuri_arbre_syntaxique genere_noeuds)
+add_dependencies(${NOM_CIBLE} kuri_arbre_syntaxique)

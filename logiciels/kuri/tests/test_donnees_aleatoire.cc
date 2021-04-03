@@ -22,7 +22,7 @@
  *
  */
 
-#include "arbre_syntaxique/noeud_expression.hh"
+#include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilation/syntaxeuse.hh"
 #include "compilation/compilatrice.hh"

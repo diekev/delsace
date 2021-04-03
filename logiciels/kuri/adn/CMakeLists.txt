@@ -118,3 +118,22 @@ add_executable(${NOM_EXECUTABLE} genere_message.cc)
 target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")
+
+################################################################################
+
+set(NOM_EXECUTABLE genere_noeuds)
+
+set(BIBLIOTHEQUES
+	kuri_adn
+	kuri_outils_adn
+	kuri_parsage
+	kuri_structures
+	bib_structures
+	bib_moultfilage
+)
+
+add_executable(${NOM_EXECUTABLE} genere_noeuds.cc)
+
+target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")

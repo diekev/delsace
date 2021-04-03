@@ -293,8 +293,8 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto expr_taille_de = static_cast<NoeudExpressionUnaire *>(b);
-			auto type = expr_taille_de->operande->type;
+			auto expr_taille_de = b->comme_taille_de();
+			auto type = expr_taille_de->expression->type;
 
 			auto res = ResultatExpression();
 			res.valeur.type = TypeExpression::ENTIER;
@@ -370,7 +370,7 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto inst = b->comme_expression_unaire();
 			auto res = evalue_expression(espace, bloc, inst->operande);
 
 			if (res.est_errone) {
@@ -388,7 +388,7 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto inst = b->comme_expression_binaire();
 			auto res1 = evalue_expression(espace, bloc, inst->operande_gauche);
 
 			if (res1.est_errone) {
@@ -426,14 +426,14 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			return evalue_expression(espace, bloc, inst->operande);
+			auto inst = b->comme_parenthese();
+			return evalue_expression(espace, bloc, inst->expression);
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			return evalue_expression(espace, bloc, inst->operande_gauche);
+			auto inst = b->comme_comme();
+			return evalue_expression(espace, bloc, inst->expression);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{

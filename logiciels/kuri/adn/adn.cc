@@ -26,6 +26,19 @@
 
 #include "biblinternes/outils/conditions.h"
 
+const IdentifiantADN &Type::accede_nom() const
+{
+	if (est_pointeur()) {
+		return comme_pointeur()->type_pointe->accede_nom();
+	}
+
+	if (est_tableau()) {
+		return comme_tableau()->type_pointe->accede_nom();
+	}
+
+	return comme_nominal()->nom_cpp;
+}
+
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, const IdentifiantADN &ident)
 {
 	return flux << ident.nom_cpp();
@@ -69,7 +82,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 			// À FAIRE: le « int » échouera pour les NoeudsCodes
 			os << "kuri::tableau_compresse<" << *type_tableau->type_pointe << ", int>";
 		}
-		else if (type_tableau->est_synchone) {
+		else if (type_tableau->est_synchrone) {
 			os << "tableau_synchrone<" << *type_tableau->type_pointe << ">";
 		}
 		else {
@@ -85,7 +98,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
 		const auto type_nominal = type.comme_nominal();
 
 		if (type_nominal->nom_cpp.nom_cpp() == "Monomorphisations") {
-			os << "Monomorphisations<CetteClass>";
+			os << "Monomorphisations<CetteClasse>";
 		}
 		else if (type_nominal->nom_cpp.nom_cpp() == "chaine") {
 			os << "kuri::chaine";
@@ -164,6 +177,30 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 			}
 
 			os << ";\n";
+		}
+
+		if (m_nom.nom_cpp() == "NoeudExpression") {
+			os << "\n";
+			os << "\tinline bool possede_drapeau(DrapeauxNoeud drapeaux_) const\n";
+			os << "\t{\n";
+			os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
+			os << "\t}\n";
+		}
+		else if (m_nom.nom_cpp() == "NoeudDeclarationEnteteFonction") {
+			os << "\t";
+			os << "\tNoeudDeclarationVariable *parametre_entree(long i) const\n";
+			os << "\t{\n";
+			os << "\t\tauto param = params[static_cast<int>(i)];\n";
+
+			os << "\t\tif (param->est_empl()) {\n";
+			os << "\t\t\treturn param->comme_empl()->expression->comme_declaration_variable();\n";
+			os << "\t\t}\n";
+
+			os << "\t\treturn param->comme_declaration_variable();\n";
+			os << "\t}\n";
+
+			os << "\t// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module\n";
+			os << "\tkuri::chaine const &nom_broye(EspaceDeTravail *espace);\n";
 		}
 
 		// Prodéclare les fonctions de discrimination.
@@ -298,13 +335,13 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
 
 			os << "inline " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "()\n";
 			os << "{\n";
-			os << "\tassert(est_" << nom_comme << "());\n";
+			os << "\tassert_rappel(est_" << nom_comme << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))" << ";\n";
 			os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
 			os << "}\n\n";
 
 			os << "inline const " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "() const\n";
 			os << "{\n";
-			os << "\tassert(est_" << nom_comme << "());\n";
+			os << "\tassert_rappel(est_" << nom_comme << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))" << ";\n";
 			os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
 			os << "}\n\n";
 		});
@@ -313,13 +350,37 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
 
 void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
-	os << m_nom_code.nom_kuri() << " :: struct {\n";
+	os << m_nom_code << " :: struct {";
 	if (m_mere) {
-		os << "\templ base: " << m_mere->nom().nom_kuri() << "\n\n";
+		os << "\n\templ base: " << m_mere->nom() << "\n";
 	}
 
+	if (!membres().est_vide() || !m_mere) {
+		os << "\n";
+	}
+
+	const auto est_chaine_litterale = m_nom_code.nom_kuri() == "NoeudCodeLittéraleChaine";
+
 	POUR (m_membres) {
-		os << "\t" << it.nom.nom_kuri();
+		if (it.type->est_pointeur() && it.type->comme_pointeur()->type_pointe->est_nominal("Lexeme")) {
+			os << "\tchemin_fichier: chaine\n";
+			os << "\tnom_fichier: chaine\n";
+			os << "\tnuméro_ligne: z32\n";
+			os << "\tnuméro_colonne: z32\n";
+			continue;
+		}
+
+		if (it.type->est_pointeur() && it.type->comme_pointeur()->type_pointe->est_nominal("IdentifiantCode")) {
+			os << "\tnom: chaine\n";
+			continue;
+		}
+
+		if (est_chaine_litterale && it.nom.nom_cpp() == "valeur") {
+			os << "\tvaleur: chaine\n";
+			continue;
+		}
+
+		os << "\t" << it.nom;
 
 		if (it.valeur_defaut == "") {
 			os << ": " << *it.type;
@@ -419,13 +480,7 @@ ProteineEnum::ProteineEnum(IdentifiantADN nom)
 void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 {
 	if (pour_entete) {
-		auto type_valeur = "int";
-
-		if (m_nom.nom_cpp() == "GenreNoeud") {
-			type_valeur = "unsigned char";
-		}
-
-		os << "enum class " << m_nom.nom_cpp() << " : " << type_valeur << " {\n";
+		os << "enum class " << m_nom.nom_cpp() << " : " << *m_type << " {\n";
 
 		POUR (m_membres) {
 			os << "\t" << it.nom.nom_cpp() << ",\n";
@@ -477,7 +532,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
 void ProteineEnum::genere_code_kuri(FluxSortieKuri &os)
 {
-	os << m_nom.nom_kuri() << " :: énum z32 {\n";
+	os << m_nom.nom_kuri() << " :: énum " << *m_type << " {\n";
 	POUR (m_membres) {
 		os << "\t" << it.nom.nom_kuri() << "\n";
 	}
@@ -651,15 +706,41 @@ void SyntaxeuseADN::parse_enum()
 			consomme();
 			// À FAIRE : code
 		}
+		else if (apparie("type")) {
+			consomme();
+
+			proteine->type() = parse_type();
+		}
+		else if (apparie("discr")) {
+			consomme();
+			proteine->type_discrimine(lexeme_courant()->chaine);
+			consomme();
+		}
+		else if (apparie("horslignée")) {
+			consomme();
+			proteine->marque_horslignee();
+		}
+		else {
+			consomme();
+			rapporte_erreur("Attribut inconnu pour l'énumération");
+		}
 
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
 			consomme();
 		}
 	}
 
+	if (!proteine->type()) {
+		proteine->type() = m_typeuse.cree_type_nominal("int");
+	}
+
 	while (true) {
 		if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
 			break;
+		}
+
+		if (proteine->est_horslignee()) {
+			rapporte_erreur("Déclaration d'un membre pour une énumération horslignée");
 		}
 
 		auto membre = Membre{};
@@ -686,6 +767,9 @@ void SyntaxeuseADN::parse_struct()
 	}
 
 	auto proteine = cree_proteine<ProteineStruct>(lexeme_courant()->chaine);
+	auto type_proteine = m_typeuse.cree_type_nominal(lexeme_courant()->chaine);
+	type_proteine->est_proteine = proteine;
+
 	consomme();
 
 	if (apparie(GenreLexeme::DOUBLE_POINTS)) {
@@ -716,11 +800,6 @@ void SyntaxeuseADN::parse_struct()
 	while (apparie(GenreLexeme::AROBASE)) {
 		consomme();
 
-		// 'comme' est un mot-clé dans le langage
-		if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !apparie(GenreLexeme::COMME)) {
-			rapporte_erreur("Attendu une chaine de caractère après @");
-		}
-
 		// utilise 'lexeme.chaine' car 'comme' est un mot-clé, il n'y a pas d'identifiant
 		if (apparie("code")) {
 			consomme();
@@ -732,6 +811,12 @@ void SyntaxeuseADN::parse_struct()
 			proteine->mute_nom_code(lexeme_courant()->chaine);
 
 			auto paire = new ProteineStruct(lexeme_courant()->chaine);
+			type_proteine->nom_kuri = lexeme_courant()->chaine;
+
+			if (proteine->mere()) {
+				paire->descend_de(proteine->mere()->paire());
+			}
+
 			proteines_paires.ajoute(paire);
 			proteine->mute_paire(paire);
 
@@ -755,6 +840,39 @@ void SyntaxeuseADN::parse_struct()
 			}
 
 			proteine->mute_nom_genre(lexeme_courant()->chaine);
+
+			auto enum_discriminante = proteine->enum_discriminante();
+
+			if (!enum_discriminante) {
+				rapporte_erreur("Aucune énumération discriminante pour le noeud déclarant un genre");
+			}
+			else {
+				auto membre = Membre();
+				membre.nom = lexeme_courant()->chaine;
+				enum_discriminante->ajoute_membre(membre);
+			}
+
+			consomme();
+		}
+		else if (apparie("discr")) {
+			consomme();
+
+			auto type_enum = lexeme_courant()->chaine;
+
+			POUR (proteines) {
+				if (!it->comme_enum()) {
+					continue;
+				}
+
+				if (it->nom().nom_cpp() == kuri::chaine_statique(type_enum)) {
+					if (it->comme_enum()->type_discrimine() != proteine->nom().nom_cpp()) {
+						rapporte_erreur("L'énumération devant discriminer le noeud n'est pas déclarée comme le discriminant");
+					}
+
+					proteine->mute_enum_discriminante(it->comme_enum());
+				}
+			}
+
 			consomme();
 		}
 		else {

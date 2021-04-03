@@ -211,6 +211,7 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation *unite)
 
 	while (attendue) {
 		if (attendue->etat() == UniteCompilation::Etat::PRETE) {
+			fc << "    " << commentaire << " est prête !\n";
 			break;
 		}
 

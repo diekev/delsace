@@ -174,6 +174,8 @@ struct Type {
 
 	template <typename... TypesChaines>
 	bool est_nominal(TypesChaines... chaines) const;
+
+	const IdentifiantADN &accede_nom() const;
 };
 
 struct TypePointeur final : public Type {
@@ -203,7 +205,7 @@ struct TypePointeur final : public Type {
 struct TypeTableau final : public Type {
     Type *type_pointe = nullptr;
     bool est_compresse = false;
-    bool est_synchone = false;
+    bool est_synchrone = false;
 
     bool est_tableau() const override
     {
@@ -217,7 +219,7 @@ struct TypeTableau final : public Type {
 
     kuri::chaine_statique accesseur() const override
     {
-        return (est_synchone ? "->" : ".");
+        return (est_synchrone ? "->" : ".");
     }
 };
 
@@ -304,7 +306,11 @@ public:
         cree_type_nominal("long", "z64");
         cree_type_nominal("int64_t", "z64");
         cree_type_nominal("octet_t", "octet");
+		cree_type_nominal("r16", "r16");
+		cree_type_nominal("float", "r32");
+		cree_type_nominal("double", "r64");
         cree_type_nominal("bool", "bool");
+        cree_type_nominal("Type", "InfoType");
 		m_type_rien = cree_type_nominal("void", "rien");
     }
 
@@ -331,7 +337,7 @@ public:
     TypeTableau *cree_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
     {
         POUR_TABLEAU_PAGE (types_tableaux) {
-            if (it.type_pointe == type_pointe) {
+            if (it.type_pointe == type_pointe && compresse == it.est_compresse && synchrone == it.est_synchrone) {
                 return &it;
             }
         }
@@ -339,7 +345,7 @@ public:
         auto resultat = types_tableaux.ajoute_element();
         resultat->type_pointe = type_pointe;
         resultat->est_compresse = compresse;
-        resultat->est_synchone = synchrone;
+        resultat->est_synchrone = synchrone;
         return resultat;
     }
 
@@ -351,11 +357,11 @@ public:
     TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
     {
         POUR_TABLEAU_PAGE (types_nominaux) {
-			// Les fichiers ADN doivent utiliser le nom C++
-            if (it.nom_cpp.nom_cpp() == nom_cpp) {
+			// Les fichiers ADN doivent utiliser le nom C++, mais seul le nom_kuri préserve l'accent
+			if (it.nom_cpp.nom_kuri() == nom_cpp) {
                 return &it;
             }
-        }
+		}
 
         auto resultat = types_nominaux.ajoute_element();
         resultat->nom_cpp = nom_cpp;
@@ -431,6 +437,8 @@ class ProteineStruct final : public Proteine {
 	bool m_possede_tableaux = false;
 
 	ProteineStruct *m_paire = nullptr;
+
+	ProteineEnum *m_enum_discriminante = nullptr;
 
 public:
 	ProteineStruct(IdentifiantADN nom);
@@ -556,6 +564,24 @@ public:
 		return m_possede_tableaux;
 	}
 
+	void mute_enum_discriminante(ProteineEnum *enum_discriminante)
+	{
+		m_enum_discriminante = enum_discriminante;
+	}
+
+	ProteineEnum *enum_discriminante()
+	{
+		if (m_enum_discriminante) {
+			return m_enum_discriminante;
+		}
+
+		if (m_mere) {
+			return m_mere->enum_discriminante();
+		}
+
+		return nullptr;
+	}
+
 	void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
 
 	void pour_chaque_copie_extra_recursif(std::function<void(Membre const &)> rappel);
@@ -568,8 +594,16 @@ public:
 class ProteineEnum final : public Proteine {
 	kuri::tableau<Membre> m_membres{};
 
+	Type *m_type = nullptr;
+
+	kuri::chaine_statique m_type_discrimine = "";
+
+	bool m_est_horslignee = false;
+
 public:
 	ProteineEnum(IdentifiantADN nom);
+
+	COPIE_CONSTRUCT(ProteineEnum);
 
 	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
@@ -580,6 +614,31 @@ public:
 	ProteineEnum *comme_enum() override
 	{
 		return this;
+	}
+
+	Type *&type()
+	{
+		return m_type;
+	}
+
+	void marque_horslignee()
+	{
+		m_est_horslignee = true;
+	}
+
+	bool est_horslignee() const
+	{
+		return m_est_horslignee;
+	}
+
+	void type_discrimine(kuri::chaine_statique type_discrimine)
+	{
+		m_type_discrimine = type_discrimine;
+	}
+
+	kuri::chaine_statique type_discrimine() const
+	{
+		return m_type_discrimine;
 	}
 };
 

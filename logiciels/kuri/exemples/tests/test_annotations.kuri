@@ -27,7 +27,7 @@ métaprogramme :: fonc ()
                 continue
             }
 
-            si code.genre == GenreNoeudCode.DECLARATION_ENTETE_FONCTION {
+            si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
                 code_entete := code comme *NoeudCodeEntêteFonction
 
                 si code_entete.annotations {

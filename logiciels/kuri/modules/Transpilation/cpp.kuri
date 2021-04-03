@@ -156,7 +156,7 @@ converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
 
 transpile_code_c :: fonc (code: *NoeudCode)
 {
-    si code.genre == GenreNoeudCode.DECLARATION_CORPS_FONCTION {
+    si code.genre == GenreNoeud.DECLARATION_CORPS_FONCTION {
         code_fonction := code comme *NoeudCodeCorpsFonction
         entête := code_fonction.entête
         si entête.nom == "pgdc" {
@@ -165,7 +165,7 @@ transpile_code_c :: fonc (code: *NoeudCode)
             déloge(code_c)
         }
     }
-    sinon si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {
+    sinon si code.genre == GenreNoeud.DECLARATION_STRUCTURE {
         // type := code.type comme *InfoTypeStructure
 
         // imprime("structure.nom = %\n", type.nom)
@@ -174,7 +174,7 @@ transpile_code_c :: fonc (code: *NoeudCode)
         //     imprime("membre structure : %\n", it.nom)
         // }
     }
-    sinon si code.genre == GenreNoeudCode.DECLARATION_ENUM {
+    sinon si code.genre == GenreNoeud.DECLARATION_ENUM {
         // type := code.type comme *InfoTypeÉnum
 
         // imprime("énum.nom = %\n", type.nom)
