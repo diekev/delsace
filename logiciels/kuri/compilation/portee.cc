@@ -147,25 +147,25 @@ void trouve_declarations_dans_bloc_ou_module(
 	});
 }
 
-bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
+NoeudExpression *bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 {
 	while (bloc->bloc_parent) {
 		if (bloc->appartiens_a_boucle) {
 			auto boucle = bloc->appartiens_a_boucle;
 
 			if (ident_boucle == nullptr) {
-				return true;
+				return boucle;
 			}
 
 			if (boucle->genre == GenreNoeud::INSTRUCTION_POUR && boucle->ident == ident_boucle) {
-				return true;
+				return boucle;
 			}
 		}
 
 		bloc = bloc->bloc_parent;
 	}
 
-	return false;
+	return nullptr;
 }
 
 NoeudExpression *derniere_instruction(NoeudBloc *b)
@@ -179,7 +179,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 	auto di = expressions->a(taille - 1);
 
-	if (di->est_retourne() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+	if (di->est_retourne() || di->est_arrete() || di->est_continue() || di->est_reprends()) {
 		return di;
 	}
 

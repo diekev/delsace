@@ -1470,9 +1470,16 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		case GenreLexeme::DIFFERE:
 		{
 			consomme();
-			auto bloc = analyse_bloc();
-			bloc->est_differe = true;
-			return bloc;
+			auto inst = m_tacheronne.assembleuse->cree_differe(lexeme);
+
+			if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
+				inst->expression = analyse_bloc();
+			}
+			else {
+				inst->expression = analyse_expression({}, GenreLexeme::DIFFERE, GenreLexeme::INCONNU);
+			}
+
+			return inst;
 		}
 		case GenreLexeme::NONSUR:
 		{
@@ -1482,10 +1489,32 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 			return bloc;
 		}
 		case GenreLexeme::ARRETE:
+		{
+			auto noeud = m_tacheronne.assembleuse->cree_arrete(lexeme);
+			consomme();
+
+			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
+				consomme();
+			}
+
+			return noeud;
+		}
 		case GenreLexeme::CONTINUE:
+		{
+			auto noeud = m_tacheronne.assembleuse->cree_continue(lexeme);
+			consomme();
+
+			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+				noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
+				consomme();
+			}
+
+			return noeud;
+		}
 		case GenreLexeme::REPRENDS:
 		{
-			auto noeud = m_tacheronne.assembleuse->cree_controle_boucle(lexeme);
+			auto noeud = m_tacheronne.assembleuse->cree_reprends(lexeme);
 			consomme();
 
 			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {

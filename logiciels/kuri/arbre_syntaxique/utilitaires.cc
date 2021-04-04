@@ -209,7 +209,6 @@ static void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
-		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -219,6 +218,30 @@ static void aplatis_arbre(
 			expr->drapeaux |= drapeau;
 			aplatis_arbre(expr->operande, arbre_aplatis, drapeau);
 			arbre_aplatis.ajoute(expr);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_ARRETE:
+		{
+			auto inst = racine->comme_arrete();
+			inst->drapeaux |= drapeau;
+			aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(inst);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_CONTINUE:
+		{
+			auto inst = racine->comme_continue();
+			inst->drapeaux |= drapeau;
+			aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(inst);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_REPRENDS:
+		{
+			auto inst = racine->comme_reprends();
+			inst->drapeaux |= drapeau;
+			aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(inst);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_CHARGE:
@@ -411,6 +434,12 @@ static void aplatis_arbre(
 			}
 
 			break;
+		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			auto inst = racine->comme_differe();
+			aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(inst);
 		}
 	}
 }
@@ -862,8 +891,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			simplifie(boucle->bloc);
 
 			auto nouvelle_boucle = assem->cree_boucle(noeud->lexeme);
+			nouvelle_boucle->bloc_parent = boucle->bloc_parent;
 
-			auto condition = cree_condition_boucle(boucle, GenreNoeud::INSTRUCTION_SAUFSI);
+			auto condition = cree_condition_boucle(nouvelle_boucle, GenreNoeud::INSTRUCTION_SAUFSI);
 			condition->condition = boucle->condition;
 
 			auto nouveau_bloc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
@@ -894,8 +924,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			simplifie(boucle->bloc);
 
 			auto nouvelle_boucle = assem->cree_boucle(noeud->lexeme);
+			nouvelle_boucle->bloc_parent = boucle->bloc_parent;
 
-			auto condition = cree_condition_boucle(boucle, GenreNoeud::INSTRUCTION_SAUFSI);
+			auto condition = cree_condition_boucle(nouvelle_boucle, GenreNoeud::INSTRUCTION_SAUFSI);
 			condition->condition = boucle->condition;
 
 			auto nouveau_bloc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
@@ -1146,6 +1177,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 			return;
 		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			auto inst = noeud->comme_differe();
+			simplifie(inst->expression);
+			return;
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTE:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
@@ -1161,11 +1198,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
-		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
+		case GenreNoeud::INSTRUCTION_ARRETE:
+		case GenreNoeud::INSTRUCTION_CONTINUE:
+		case GenreNoeud::INSTRUCTION_REPRENDS:
 		{
 			return;
 		}
@@ -1221,6 +1260,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 	auto boucle = assem->cree_boucle(inst->lexeme);
 	boucle->ident = var->ident;
+	boucle->bloc_parent = inst->bloc_parent;
 	boucle->bloc = assem->cree_bloc_seul(inst->lexeme, boucle->bloc_parent);
 	boucle->bloc_sansarret = bloc_sans_arret;
 	boucle->bloc_sinon = bloc_sinon;
@@ -1242,7 +1282,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 	auto bloc_inc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
 
-	auto condition = cree_condition_boucle(inst, GenreNoeud::INSTRUCTION_SI);
+	auto condition = cree_condition_boucle(boucle, GenreNoeud::INSTRUCTION_SI);
 
 	boucle->bloc_pre = bloc_pre;
 	boucle->bloc_inc = bloc_inc;
@@ -1991,6 +2031,8 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
 
 	auto arrete = assem->cree_arrete(&lexeme_arrete);
 	arrete->drapeaux |= EST_IMPLICITE;
+	arrete->boucle_controlee = inst;
+	arrete->bloc_parent = bloc_si_vrai;
 
 	bloc_si_vrai->expressions->ajoute(arrete);
 	condition->bloc_si_vrai = bloc_si_vrai;
@@ -2749,14 +2791,4 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, No
 	}
 
 	return cree_assignation_variable(valeur->lexeme, valeur, inc);
-}
-
-NoeudExpression *AssembleuseArbre::cree_arrete(const Lexeme *lexeme)
-{
-	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
-}
-
-NoeudExpression *AssembleuseArbre::cree_continue(const Lexeme *lexeme)
-{
-	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
 }

@@ -262,7 +262,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const kur
 
 	cree_retour(nullptr, nullptr);
 
-	// crée l'appel de cette fonction et ajoute là au début de la fonction_our
+	// crée l'appel de cette fonction et ajoute là au début de la fonction_pour
 
 	this->fonction_courante = fonction_pour;
 	param_contexte = nullptr;
@@ -516,16 +516,6 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	return accede_index_constants.ajoute_element(type, accede, index);
 }
 
-void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite)
-{
-	insts_continue_arrete.ajoute({ ident, label_continue, label_reprends, label_arrete, label_arrete_implicite });
-}
-
-void ConstructriceRI::depile_controle_boucle()
-{
-	insts_continue_arrete.pop_back();
-}
-
 void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
 	if (noeud->substitution) {
@@ -611,14 +601,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			genere_ri_pour_fonction(corps->entete);
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			noeud->bloc_parent->instructions_differees.ajoute(noeud->comme_differe());
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto noeud_bloc = noeud->comme_bloc();
-
-			if (noeud_bloc->est_differe) {
-				noeud_bloc->bloc_parent->noeuds_differes.ajoute(noeud_bloc);
-				return;
-			}
 
 			POUR (*noeud_bloc->membres.verrou_lecture()) {
 				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -659,13 +649,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto derniere_instruction = fonction_courante->derniere_instruction();
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
-				/* génère le code pour tous les noeuds différés de ce bloc */
-				for (auto i = noeud_bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
-					auto bloc_differe = noeud_bloc->noeuds_differes[i];
-					bloc_differe->est_differe = false;
-					genere_ri_pour_noeud(bloc_differe);
-					bloc_differe->est_differe = true;
-				}
+				/* Génère le code pour toutes les instructions différées de ce bloc. */
+				genere_ri_insts_differees(noeud_bloc, noeud_bloc->bloc_parent);
 			}
 
 			taille_allouee = ancienne_taille_allouee;
@@ -1126,7 +1111,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				valeur_ret = depile_valeur();
 			}
 
-			genere_ri_blocs_differes(noeud->bloc_parent);
+			genere_ri_insts_differees(noeud->bloc_parent, nullptr);
 			cree_retour(noeud, valeur_ret);
 			break;
 		}
@@ -1210,7 +1195,10 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				label_pour_arret = label_apres_boucle;
 			}
 
-			empile_controle_boucle(boucle->ident, label_pour_continue, label_boucle, label_pour_arret, label_pour_arret_implicite);
+			boucle->label_pour_arrete = label_pour_arret;
+			boucle->label_pour_arrete_implicite = label_pour_arret_implicite;
+			boucle->label_pour_continue = label_pour_continue;
+			boucle->label_pour_reprends = label_boucle;
 
 			if (boucle->bloc_pre) {
 				genere_ri_pour_noeud(boucle->bloc_pre);
@@ -1235,10 +1223,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				cree_branche(noeud, label_boucle);
 			}
 
-			/* dépile les controles de suites, afin qu'ils n'interfèrent pas avec
-			 * des controles sensés être pour la boucle parente */
-			depile_controle_boucle();
-
 			if (boucle->bloc_sansarret) {
 				insere_label(label_pour_sansarret);
 				genere_ri_pour_noeud(boucle->bloc_sansarret);
@@ -1254,50 +1238,38 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
+		case GenreNoeud::INSTRUCTION_ARRETE:
 		{
-			auto inst = noeud->comme_controle_boucle();
-			auto label = static_cast<InstructionLabel *>(nullptr);
+			auto inst = noeud->comme_arrete();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
 
-			if (inst->expression == nullptr) {
-				if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-					label = insts_continue_arrete.back().label_continue;
-				}
-				else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
-					label = insts_continue_arrete.back().label_reprends;
-				}
-				else if (inst->possede_drapeau(EST_IMPLICITE)) {
-					label = insts_continue_arrete.back().label_arrete_implicite;
-				}
-				else {
-					label = insts_continue_arrete.back().label_arrete;
-				}
+			if (inst->possede_drapeau(EST_IMPLICITE)) {
+				auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
+				cree_branche(noeud, label);
 			}
 			else {
-				auto ident = inst->expression->ident;
-
-				POUR (insts_continue_arrete) {
-					if (it.ident != ident) {
-						continue;
-					}
-
-					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-						label = it.label_continue;
-					}
-					else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
-						label = it.label_reprends;
-					}
-					else if (inst->possede_drapeau(EST_IMPLICITE)) {
-						label = it.label_arrete_implicite;
-					}
-					else {
-						label = it.label_arrete;
-					}
-
-					break;
-				}
+				auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
+				genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
+				cree_branche(noeud, label);
 			}
 
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_CONTINUE:
+		{
+			auto inst = noeud->comme_continue();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
+			auto label = boucle_controlee->comme_boucle()->label_pour_continue;
+			genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
+			cree_branche(noeud, label);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_REPRENDS:
+		{
+			auto inst = noeud->comme_reprends();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
+			auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
+			genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
 			cree_branche(noeud, label);
 			break;
 		}
@@ -2594,7 +2566,7 @@ void ConstructriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, 
 	empile_valeur(place);
 }
 
-void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
+void ConstructriceRI::genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
@@ -2605,12 +2577,10 @@ void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
 	}
 #endif
 
-	while (bloc != nullptr) {
-		for (auto i = bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
-			auto bloc_differe = bloc->noeuds_differes[i];
-			bloc_differe->est_differe = false;
-			genere_ri_pour_noeud(bloc_differe);
-			bloc_differe->est_differe = true;
+	while (bloc != bloc_final) {
+		for (auto i = bloc->instructions_differees.taille() - 1; i >= 0; --i) {
+			auto instruction_differee = bloc->instructions_differees[i];
+			genere_ri_pour_noeud(instruction_differee->expression);
 		}
 
 		bloc = bloc->bloc_parent;

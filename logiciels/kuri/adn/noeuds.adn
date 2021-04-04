@@ -104,12 +104,37 @@ struct NoeudInstructionCharge : NoeudExpression {
 	NoeudExpression * expression [code enfant]
 }
 
-struct NoeudInstructionControle : NoeudExpression {
-	@genre INSTRUCTION_CONTINUE_ARRETE
-	@comme controle_boucle
-	@code  NoeudCodeContinueArrête
+struct NoeudInstructionArrête : NoeudExpression {
+	@genre INSTRUCTION_ARRÊTE
+	@comme arrête
+	@code  NoeudCodeInstructionArrête
 
-	NoeudExpression * expression [code enfant]
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionContinue : NoeudExpression {
+	@genre INSTRUCTION_CONTINUE
+	@comme continue
+	@code  NoeudCodeInstructionContinue
+
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionReprends : NoeudExpression {
+	@genre INSTRUCTION_REPRENDS
+	@comme reprends
+	@code  NoeudCodeInstructionReprends
+
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {
@@ -484,9 +509,9 @@ struct NoeudPour : NoeudExpression {
 	NoeudBloc *bloc_sansarret [code enfant]
 	NoeudBloc *bloc_sinon [code enfant]
 
-	bool prend_référence
-	bool prend_pointeur
-	GenreLexeme lexeme_op = "GenreLexeme::INFERIEUR"
+	bool prend_référence [copie]
+	bool prend_pointeur [copie]
+	GenreLexeme lexeme_op = .INFERIEUR
 }
 
 struct NoeudBoucle : NoeudExpression {
@@ -509,6 +534,12 @@ struct NoeudBoucle : NoeudExpression {
 	/* blocs venant directement du bloc pour */
 	NoeudBloc *bloc_sansarret
 	NoeudBloc *bloc_sinon
+
+	/* Pour le ciblage des instructions de controle. */
+	InstructionLabel *label_pour_arrete
+	InstructionLabel *label_pour_arrete_implicite
+	InstructionLabel *label_pour_continue
+	InstructionLabel *label_pour_reprends
 }
 
 struct NoeudRépète : NoeudBoucle {
@@ -532,10 +563,8 @@ struct NoeudBloc : NoeudExpression {
 	NoeudExpression *appartiens_a_boucle
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
-	NoeudBloc * [] noeuds_differes
-	bool est_differe  [copie]  // À FAIRE : utilise un noeud spécial, nous pourrons également avoir des expressions au lieu de forcer l'utilisation d'un bloc
+	NoeudInstructionDiffère * [] instructions_différées
 	bool est_nonsur
-	bool est_bloc_fonction
 	bool possede_contexte [copie]
 	int nombre_recherches
 }
@@ -631,4 +660,12 @@ struct NoeudComme : NoeudExpression {
 	NoeudExpression *expression [code enfant]
 	NoeudExpression *expression_type [code enfant]
 	TransformationType transformation
+}
+
+struct NoeudInstructionDiffère : NoeudExpression {
+	@genre INSTRUCTION_DIFFÈRE
+	@comme diffère
+	@code  NoeudCodeDiffère
+
+	NoeudExpression *expression [code enfant]
 }

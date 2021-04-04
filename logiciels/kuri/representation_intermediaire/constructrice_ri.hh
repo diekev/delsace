@@ -29,7 +29,6 @@
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tablet.hh"
-#include "biblinternes/structures/tuples.hh"
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -78,16 +77,6 @@ private:
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 	Atome *contexte = nullptr;
-
-	struct LabelsControlesBoucle {
-		IdentifiantCode *ident = nullptr;
-		InstructionLabel *label_continue = nullptr;
-		InstructionLabel *label_reprends = nullptr;
-		InstructionLabel *label_arrete = nullptr;
-		InstructionLabel *label_arrete_implicite = nullptr;
-	};
-
-	dls::tablet<LabelsControlesBoucle, 12> insts_continue_arrete{};
 
 	bool expression_gauche = true;
 
@@ -173,8 +162,6 @@ public:
 
 private:
 	AtomeFonction *genere_fonction_init_globales_et_appel(const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
-	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite);
-	void depile_controle_boucle();
 
 	void genere_ri_pour_noeud(NoeudExpression *noeud);
 	void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
@@ -189,11 +176,11 @@ private:
 	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 	void genere_ri_pour_condition(NoeudExpression *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
-	void genere_ri_blocs_differes(NoeudBloc *bloc);
+	void genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final);
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 	void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 
-	void transforme_valeur(NoeudExpression *noued, Atome *valeur, const TransformationType &transformation, Atome *place);
+	void transforme_valeur(NoeudExpression *noeud, Atome *valeur, const TransformationType &transformation, Atome *place);
 
 	AtomeConstante *cree_info_type(Type *type);
 	AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);

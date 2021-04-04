@@ -197,3 +197,29 @@ crée_codec_base64_url :: fonc () -> CodecBase64
     codec.décode = décode_base64
     retourne codec
 }
+
+// -------------------------------------------------------------------
+// Encodage de données séquentielles par différence (delta).
+// https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
+
+encode_différence :: fonc (données: []$T)
+{
+    précédent : T
+
+    pour & données {
+        temp := précédent
+        précédent = it
+
+        it -= temp
+    }
+}
+
+décode_différence :: fonc (données: []$T)
+{
+    précédent : T
+
+    pour & données {
+        it += précédent
+        précédent = it
+    }
+}

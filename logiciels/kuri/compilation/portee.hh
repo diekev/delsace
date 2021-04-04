@@ -55,6 +55,6 @@ void trouve_declarations_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier);
 
-bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle);
+NoeudExpression *bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle);
 
 NoeudExpression *derniere_instruction(NoeudBloc *b);
