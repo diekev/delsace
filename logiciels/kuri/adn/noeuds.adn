@@ -555,8 +555,7 @@ struct NoeudBloc : NoeudExpression {
 	NoeudExpression *appartiens_a_boucle
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
-	NoeudBloc * [] noeuds_differes
-	bool est_differe  [copie]  // À FAIRE : utilise un noeud spécial, nous pourrons également avoir des expressions au lieu de forcer l'utilisation d'un bloc
+	NoeudInstructionDiffère * [] instructions_différées
 	bool est_nonsur
 	bool est_bloc_fonction
 	bool possede_contexte [copie]
@@ -654,4 +653,12 @@ struct NoeudComme : NoeudExpression {
 	NoeudExpression *expression [code enfant]
 	NoeudExpression *expression_type [code enfant]
 	TransformationType transformation
+}
+
+struct NoeudInstructionDiffère : NoeudExpression {
+	@genre INSTRUCTION_DIFFÈRE
+	@comme diffère
+	@code  NoeudCodeDiffère
+
+	NoeudExpression *expression [code enfant]
 }

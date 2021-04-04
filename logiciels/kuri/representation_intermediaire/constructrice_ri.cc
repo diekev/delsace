@@ -601,14 +601,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			genere_ri_pour_fonction(corps->entete);
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			noeud->bloc_parent->instructions_differees.ajoute(noeud->comme_differe());
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto noeud_bloc = noeud->comme_bloc();
-
-			if (noeud_bloc->est_differe) {
-				noeud_bloc->bloc_parent->noeuds_differes.ajoute(noeud_bloc);
-				return;
-			}
 
 			POUR (*noeud_bloc->membres.verrou_lecture()) {
 				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -649,13 +649,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto derniere_instruction = fonction_courante->derniere_instruction();
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
-				/* génère le code pour tous les noeuds différés de ce bloc */
-				for (auto i = noeud_bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
-					auto bloc_differe = noeud_bloc->noeuds_differes[i];
-					bloc_differe->est_differe = false;
-					genere_ri_pour_noeud(bloc_differe);
-					bloc_differe->est_differe = true;
-				}
+				/* Génère le code pour toutes les instructions différées de ce bloc. */
+				genere_ri_insts_differees(noeud_bloc, noeud_bloc->bloc_parent);
 			}
 
 			taille_allouee = ancienne_taille_allouee;
@@ -1116,7 +1111,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				valeur_ret = depile_valeur();
 			}
 
-			genere_ri_blocs_differes(noeud->bloc_parent);
+			genere_ri_insts_differees(noeud->bloc_parent, nullptr);
 			cree_retour(noeud, valeur_ret);
 			break;
 		}
@@ -2568,7 +2563,7 @@ void ConstructriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, 
 	empile_valeur(place);
 }
 
-void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
+void ConstructriceRI::genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
@@ -2579,12 +2574,10 @@ void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
 	}
 #endif
 
-	while (bloc != nullptr) {
-		for (auto i = bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
-			auto bloc_differe = bloc->noeuds_differes[i];
-			bloc_differe->est_differe = false;
-			genere_ri_pour_noeud(bloc_differe);
-			bloc_differe->est_differe = true;
+	while (bloc != bloc_final) {
+		for (auto i = bloc->instructions_differees.taille() - 1; i >= 0; --i) {
+			auto instruction_differee = bloc->instructions_differees[i];
+			genere_ri_pour_noeud(instruction_differee->expression);
 		}
 
 		bloc = bloc->bloc_parent;

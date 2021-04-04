@@ -126,6 +126,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		case GenreNoeud::EXPRESSION_VIRGULE:
 		case GenreNoeud::DECLARATION_MODULE:
 		case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
+		case GenreNoeud::INSTRUCTION_DIFFERE:
 		{
 			break;
 		}

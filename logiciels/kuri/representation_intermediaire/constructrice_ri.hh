@@ -176,7 +176,7 @@ private:
 	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 	void genere_ri_pour_condition(NoeudExpression *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
-	void genere_ri_blocs_differes(NoeudBloc *bloc);
+	void genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final);
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 	void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 

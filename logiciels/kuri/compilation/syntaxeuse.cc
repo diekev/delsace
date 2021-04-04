@@ -1499,9 +1499,16 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		case GenreLexeme::DIFFERE:
 		{
 			consomme();
-			auto bloc = analyse_bloc();
-			bloc->est_differe = true;
-			return bloc;
+			auto inst = m_tacheronne.assembleuse->cree_differe(lexeme);
+
+			if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
+				inst->expression = analyse_bloc();
+			}
+			else {
+				inst->expression = analyse_expression({}, GenreLexeme::DIFFERE, GenreLexeme::INCONNU);
+			}
+
+			return inst;
 		}
 		case GenreLexeme::NONSUR:
 		{

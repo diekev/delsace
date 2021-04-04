@@ -435,6 +435,12 @@ static void aplatis_arbre(
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			auto inst = racine->comme_differe();
+			aplatis_arbre(inst->expression, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(inst);
+		}
 	}
 }
 
@@ -1169,6 +1175,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 				simplifie(it.expression_valeur_defaut);
 			}
 
+			return;
+		}
+		case GenreNoeud::INSTRUCTION_DIFFERE:
+		{
+			auto inst = noeud->comme_differe();
+			simplifie(inst->expression);
 			return;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTE:
