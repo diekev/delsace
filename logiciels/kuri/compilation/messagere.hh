@@ -36,45 +36,47 @@ struct NoeudDeclaration;
 struct UniteCompilation;
 
 struct Messagere {
-private:
-	tableau_page<MessageFichier> messages_fichiers{};
-	tableau_page<MessageModule> messages_modules{};
-	tableau_page<MessageTypageCodeTermine> messages_typage_code{};
-	tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
+  private:
+    tableau_page<MessageFichier> messages_fichiers{};
+    tableau_page<MessageModule> messages_modules{};
+    tableau_page<MessageTypageCodeTermine> messages_typage_code{};
+    tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
 
-	long pic_de_message = 0;
+    long pic_de_message = 0;
 
-	bool interception_commencee = false;
+    bool interception_commencee = false;
 
-	ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
-	UniteCompilation *derniere_unite = nullptr;
+    UniteCompilation *derniere_unite = nullptr;
 
-	struct DonneesMessage {
-		UniteCompilation *unite = nullptr;
-		Message const *message = nullptr;
-	};
+    struct DonneesMessage {
+        UniteCompilation *unite = nullptr;
+        Message const *message = nullptr;
+    };
 
-	dls::file<DonneesMessage> file_message{};
+    dls::file<DonneesMessage> file_message{};
 
-public:
-	void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
-	void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
-	void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
-	void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
-	bool ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl, UniteCompilation *unite);
-	void ajoute_message_phase_compilation(EspaceDeTravail *espace);
+  public:
+    void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
+    void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
+    void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
+    void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
+    bool ajoute_message_typage_code(EspaceDeTravail *espace,
+                                    NoeudDeclaration *noeud_decl,
+                                    UniteCompilation *unite);
+    void ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
-	long memoire_utilisee() const;
+    long memoire_utilisee() const;
 
-	inline bool possede_message() const
-	{
-		return !file_message.est_vide();
-	}
+    inline bool possede_message() const
+    {
+        return !file_message.est_vide();
+    }
 
-	Message const *defile();
+    Message const *defile();
 
-	void commence_interception(EspaceDeTravail *espace);
+    void commence_interception(EspaceDeTravail *espace);
 
-	void termine_interception(EspaceDeTravail *espace);
+    void termine_interception(EspaceDeTravail *espace);
 };

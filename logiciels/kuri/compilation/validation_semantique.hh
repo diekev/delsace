@@ -45,112 +45,140 @@ enum class Genre : int;
 }
 
 enum class ResultatValidation : int {
-	OK,
-	Erreur,
+    OK,
+    Erreur,
 };
 
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
  * mais également éviter de construire les différentes structures de données y utilisées;
- * ces constructions se voyant dans les profils d'exécution, notamment pour les DonneesAssignations. */
+ * ces constructions se voyant dans les profils d'exécution, notamment pour les
+ * DonneesAssignations. */
 struct ContexteValidationDeclaration {
-	struct DeclarationEtReference {
-		NoeudExpression *ref_decl = nullptr;
-		NoeudDeclarationVariable *decl = nullptr;
-	};
+    struct DeclarationEtReference {
+        NoeudExpression *ref_decl = nullptr;
+        NoeudDeclarationVariable *decl = nullptr;
+    };
 
-	/* Les variables déclarées, entre les virgules, si quelqu'une. */
-	dls::tablet<NoeudExpression *, 6> feuilles_variables{};
+    /* Les variables déclarées, entre les virgules, si quelqu'une. */
+    dls::tablet<NoeudExpression *, 6> feuilles_variables{};
 
-	/* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
-	dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
+    /* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
+    dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
 
-	/* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
-	dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
+    /* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
+    dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
 
-	/* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir le résultat de son évaluation. */
-	file_fixe<NoeudExpression *, 6> variables{};
+    /* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir
+     * le résultat de son évaluation. */
+    file_fixe<NoeudExpression *, 6> variables{};
 
-	/* Les données finales pour les assignations, faisant correspondre les expressions aux variables. */
-	dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+    /* Les données finales pour les assignations, faisant correspondre les expressions aux
+     * variables. */
+    dls::tablet<DonneesAssignations, 6> donnees_assignations{};
 
-	/* Données temporaires pour la constructions des donnees_assignations. */
-	DonneesAssignations donnees_temp{};
+    /* Données temporaires pour la constructions des donnees_assignations. */
+    DonneesAssignations donnees_temp{};
 };
 
 struct ContexteValidationCode {
-	Compilatrice &m_compilatrice;
-	Tacheronne &m_tacheronne;
-	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
-	Type *union_ou_structure_courante = nullptr;
+    Compilatrice &m_compilatrice;
+    Tacheronne &m_tacheronne;
+    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+    Type *union_ou_structure_courante = nullptr;
 
-	/* Les données des dépendances d'un noeud syntaxique. */
-	DonneesDependance donnees_dependance{};
+    /* Les données des dépendances d'un noeud syntaxique. */
+    DonneesDependance donnees_dependance{};
 
-	UniteCompilation *unite = nullptr;
-	EspaceDeTravail *espace = nullptr;
+    UniteCompilation *unite = nullptr;
+    EspaceDeTravail *espace = nullptr;
 
-	using paire_union_membre = std::pair<kuri::chaine_statique, kuri::chaine_statique>;
-	kuri::tableau<paire_union_membre> membres_actifs{};
+    using paire_union_membre = std::pair<kuri::chaine_statique, kuri::chaine_statique>;
+    kuri::tableau<paire_union_membre> membres_actifs{};
 
-	double temps_chargement = 0.0;
+    double temps_chargement = 0.0;
 
-	ContexteValidationCode(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &unite);
+    ContexteValidationCode(Compilatrice &compilatrice,
+                           Tacheronne &tacheronne,
+                           UniteCompilation &unite);
 
-	COPIE_CONSTRUCT(ContexteValidationCode);
+    COPIE_CONSTRUCT(ContexteValidationCode);
 
-	void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
+    void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
 
-	void termine_fonction();
+    void termine_fonction();
 
-	/* gestion des membres actifs des unions :
-	 * cas à considérer :
-	 * -- les portées des variables
-	 * -- les unions dans les structures (accès par '.')
-	 */
-	kuri::chaine_statique trouve_membre_actif(kuri::chaine_statique const &nom_union);
+    /* gestion des membres actifs des unions :
+     * cas à considérer :
+     * -- les portées des variables
+     * -- les unions dans les structures (accès par '.')
+     */
+    kuri::chaine_statique trouve_membre_actif(kuri::chaine_statique const &nom_union);
 
-	void renseigne_membre_actif(kuri::chaine_statique const &nom_union, kuri::chaine_statique const &nom_membre);
+    void renseigne_membre_actif(kuri::chaine_statique const &nom_union,
+                                kuri::chaine_statique const &nom_membre);
 
-	ResultatValidation valide_semantique_noeud(NoeudExpression *);
-	ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
+    ResultatValidation valide_semantique_noeud(NoeudExpression *);
+    ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-	ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
-	ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
-	ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
+    ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
+    ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
-	template<int N>
-	ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
-	ResultatValidation valide_enum(NoeudEnum *);
+    template <int N>
+    ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
+    ResultatValidation valide_enum(NoeudEnum *);
 
-	ResultatValidation valide_structure(NoeudStruct *);
-	ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
-	ResultatValidation valide_assignation(NoeudAssignation *inst);
-	ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
-	ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
-	ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
-	ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr, NoeudBloc *bloc_recherche);
+    ResultatValidation valide_structure(NoeudStruct *);
+    ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+    ResultatValidation valide_assignation(NoeudAssignation *inst);
+    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
+                                            kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
+    ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
+    ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
+    ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
+                                                    NoeudBloc *bloc_recherche);
 
-	template <typename TypeControleBoucle>
-	ResultatValidation valide_controle_boucle(TypeControleBoucle *inst);
+    template <typename TypeControleBoucle>
+    ResultatValidation valide_controle_boucle(TypeControleBoucle *inst);
 
-	ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+    ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
-	void rapporte_erreur(const char *message, NoeudExpression *noeud);
-	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
-	void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
-	void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec);
-	void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
-	void rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
-	void rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
-	void rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces);
-	void rapporte_erreur_membre_inconnu(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre, TypeCompose *type);
-	void rapporte_erreur_membre_inactif(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre);
-	void rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
-	void rapporte_erreur_fonction_inconnue(NoeudExpression *b, dls::tablet<DonneesCandidate, 10> const &candidates);
-	void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc, NoeudExpression const *decl_fonc, NoeudExpression const *decl_appel);
+    void rapporte_erreur(const char *message, NoeudExpression *noeud);
+    void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
+    void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
+    void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl,
+                                               NoeudDeclaration *decl_prec);
+    void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
+    void rapporte_erreur_assignation_type_differents(const Type *type_gauche,
+                                                     const Type *type_droite,
+                                                     NoeudExpression *noeud);
+    void rapporte_erreur_type_operation(const Type *type_gauche,
+                                        const Type *type_droite,
+                                        NoeudExpression *noeud);
+    void rapporte_erreur_acces_hors_limites(NoeudExpression *b,
+                                            TypeTableauFixe *type_tableau,
+                                            long index_acces);
+    void rapporte_erreur_membre_inconnu(NoeudExpression *acces,
+                                        NoeudExpression *structure,
+                                        NoeudExpression *membre,
+                                        TypeCompose *type);
+    void rapporte_erreur_membre_inactif(NoeudExpression *acces,
+                                        NoeudExpression *structure,
+                                        NoeudExpression *membre);
+    void rapporte_erreur_valeur_manquante_discr(
+        NoeudExpression *expression,
+        const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
+    void rapporte_erreur_fonction_inconnue(NoeudExpression *b,
+                                           dls::tablet<DonneesCandidate, 10> const &candidates);
+    void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc,
+                                         NoeudExpression const *decl_fonc,
+                                         NoeudExpression const *decl_appel);
 
-	ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
-	ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
+    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
+    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression,
+                                               TransformationType const &transformation);
 
-	MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme);
+    MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
+                                                  NoeudBloc *bloc_parent,
+                                                  const Lexeme *lexeme);
 };

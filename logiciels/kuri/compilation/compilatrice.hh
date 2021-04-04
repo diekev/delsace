@@ -40,116 +40,126 @@ struct OptionsDeCompilation;
 struct Statistiques;
 
 struct Compilatrice {
-	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
+    dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
-	dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
+    dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 
-	dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
+    dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
 
-	dls::outils::Synchrone<Messagere> messagere{};
+    dls::outils::Synchrone<Messagere> messagere{};
 
-	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
-	bool importe_kuri = true;
-	bool m_possede_erreur = false;
-	erreur::Genre m_code_erreur{};
-	bool active_tests = false;
+    /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
+     */
+    bool importe_kuri = true;
+    bool m_possede_erreur = false;
+    erreur::Genre m_code_erreur{};
+    bool active_tests = false;
 
-	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
+    template <typename T>
+    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-	tableau_synchrone<kuri::chaine> bibliotheques_dynamiques{};
+    tableau_synchrone<kuri::chaine> bibliotheques_dynamiques{};
 
-	tableau_synchrone<kuri::chaine> bibliotheques_statiques{};
+    tableau_synchrone<kuri::chaine> bibliotheques_statiques{};
 
-	tableau_synchrone<dls::vue_chaine_compacte> chemins{};
+    tableau_synchrone<dls::vue_chaine_compacte> chemins{};
 
-	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
-	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
+    /* définitions passées au compilateur C pour modifier les fichiers d'entête */
+    tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
-	tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
+    tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
 
-	tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
-	EspaceDeTravail *espace_de_travail_defaut = nullptr;
+    tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
+    EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
-	kuri::chaine racine_kuri{};
+    kuri::chaine racine_kuri{};
 
-	dls::outils::Synchrone<SystemeModule> sys_module{};
+    dls::outils::Synchrone<SystemeModule> sys_module{};
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Compilatrice();
+    Compilatrice();
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	/* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
-	 * compilation. */
-	Compilatrice(const Compilatrice &) = delete;
-	Compilatrice &operator=(const Compilatrice &) = delete;
+    /* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
+     * compilation. */
+    Compilatrice(const Compilatrice &) = delete;
+    Compilatrice &operator=(const Compilatrice &) = delete;
 
-	~Compilatrice();
+    ~Compilatrice();
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	/**
-	 * Charge le module dont le nom est spécifié.
-	 *
-	 * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
-	 * dans le dossier du module racine.
-	 *
-	 * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
-	 * du module, sauf pour le module racine.
-	 *
-	 * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
-	 * pour tenir compte de la progression de la compilation. Si un nom de module ne
-	 * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
-	 * exception est lancée.
-	 *
-	 * Les Lexeme doivent être celles du nom du module et sont utilisées
-	 * pour les erreurs lancées.
-	 *
-	 * Le paramètre est_racine ne doit être vrai que pour le module racine.
-	 */
-	Module *importe_module(EspaceDeTravail *espace, kuri::chaine const &nom, NoeudExpression const *site);
+    /**
+     * Charge le module dont le nom est spécifié.
+     *
+     * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
+     * dans le dossier du module racine.
+     *
+     * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
+     * du module, sauf pour le module racine.
+     *
+     * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
+     * pour tenir compte de la progression de la compilation. Si un nom de module ne
+     * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
+     * exception est lancée.
+     *
+     * Les Lexeme doivent être celles du nom du module et sont utilisées
+     * pour les erreurs lancées.
+     *
+     * Le paramètre est_racine ne doit être vrai que pour le module racine.
+     */
+    Module *importe_module(EspaceDeTravail *espace,
+                           kuri::chaine const &nom,
+                           NoeudExpression const *site);
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, kuri::chaine const &chemin, Module *module, NoeudExpression const *site);
+    void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+                                         kuri::chaine const &chemin,
+                                         Module *module,
+                                         NoeudExpression const *site);
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options, kuri::chaine const &nom);
+    EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
+                                                  kuri::chaine const &nom);
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	ContexteLexage contexte_lexage();
+    ContexteLexage contexte_lexage();
 
-	long memoire_utilisee() const;
+    long memoire_utilisee() const;
 
-	void rassemble_statistiques(Statistiques &stats) const;
+    void rassemble_statistiques(Statistiques &stats) const;
 
-	void rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre);
+    void rapporte_erreur(EspaceDeTravail const *espace,
+                         kuri::chaine_statique message,
+                         erreur::Genre genre);
 
-	bool possede_erreur() const
-	{
-		return m_possede_erreur;
-	}
+    bool possede_erreur() const
+    {
+        return m_possede_erreur;
+    }
 
-	bool possede_erreur(EspaceDeTravail const *espace) const;
+    bool possede_erreur(EspaceDeTravail const *espace) const;
 
-	erreur::Genre code_erreur() const
-	{
-		return m_code_erreur;
-	}
+    erreur::Genre code_erreur() const
+    {
+        return m_code_erreur;
+    }
 
-public:
-	OptionsDeCompilation *options_compilation();
-	void ajourne_options_compilation(OptionsDeCompilation *options);
-	void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-	void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
-	void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-	const Message *attend_message();
-	EspaceDeTravail *espace_defaut_compilation();
-	kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne, const NoeudExpression *site);
+  public:
+    OptionsDeCompilation *options_compilation();
+    void ajourne_options_compilation(OptionsDeCompilation *options);
+    void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+    void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
+    void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+    const Message *attend_message();
+    EspaceDeTravail *espace_defaut_compilation();
+    kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
+                                             const NoeudExpression *site);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

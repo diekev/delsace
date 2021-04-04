@@ -20,8 +20,8 @@
 
 #include <stdlib.h>
 
-#include "vector.h"
 #include "vec234.h"
+#include "vector.h"
 
 /**
  * @file   texture-atlas.h
@@ -61,16 +61,14 @@
  * @{
  */
 
-
 /**
  * A texture atlas is used to pack several small regions into a single texture.
  */
-typedef struct texture_atlas_t
-{
+typedef struct texture_atlas_t {
     /**
      * Allocated nodes
      */
-    vector_t * nodes;
+    vector_t *nodes;
 
     /**
      *  Width (in pixels) of the underlying texture
@@ -100,11 +98,9 @@ typedef struct texture_atlas_t
     /**
      * Atlas data
      */
-    unsigned char * data;
+    unsigned char *data;
 
 } texture_atlas_t;
-
-
 
 /**
  * Creates a new empty texture atlas.
@@ -115,11 +111,7 @@ typedef struct texture_atlas_t
  * @return          a new empty texture atlas.
  *
  */
-  texture_atlas_t *
-  texture_atlas_new( const size_t width,
-                     const size_t height,
-                     const size_t depth );
-
+texture_atlas_t *texture_atlas_new(const size_t width, const size_t height, const size_t depth);
 
 /**
  *  Deletes a texture atlas.
@@ -127,9 +119,7 @@ typedef struct texture_atlas_t
  *  @param self a texture atlas structure
  *
  */
-  void
-  texture_atlas_delete( texture_atlas_t * self );
-
+void texture_atlas_delete(texture_atlas_t *self);
 
 /**
  *  Allocate a new region in the atlas.
@@ -140,11 +130,7 @@ typedef struct texture_atlas_t
  *  @return       Coordinates of the allocated region
  *
  */
-  ivec4
-  texture_atlas_get_region( texture_atlas_t * self,
-                            const size_t width,
-                            const size_t height );
-
+ivec4 texture_atlas_get_region(texture_atlas_t *self, const size_t width, const size_t height);
 
 /**
  *  Upload data to the specified atlas region.
@@ -158,23 +144,20 @@ typedef struct texture_atlas_t
  *  @param stride stride of the data
  *
  */
-  void
-  texture_atlas_set_region( texture_atlas_t * self,
-                            const size_t x,
-                            const size_t y,
-                            const size_t width,
-                            const size_t height,
-                            const unsigned char *data,
-                            const size_t stride );
+void texture_atlas_set_region(texture_atlas_t *self,
+                              const size_t x,
+                              const size_t y,
+                              const size_t width,
+                              const size_t height,
+                              const unsigned char *data,
+                              const size_t stride);
 
 /**
  *  Remove all allocated regions from the atlas.
  *
  *  @param self   a texture atlas structure
  */
-  void
-  texture_atlas_clear( texture_atlas_t * self );
-
+void texture_atlas_clear(texture_atlas_t *self);
 
 /** @} */
 

@@ -54,8 +54,8 @@ struct EntetePropriete;
 struct IProprieteComposee;
 
 struct ChaineKuri {
-	const char *pointeur;
-	long taille;
+    const char *pointeur;
+    long taille;
 };
 
 /* interface pour IArchive */
@@ -109,5 +109,4 @@ ISchemaMateriau *ABC_schema_materiau(IMateriau *object);
 ISchemaPoints *ABC_schema_points(IPoints *object);
 ISchemaSubdivision *ABC_schema_subdivision(ISubdivision *object);
 ISchemaXform *ABC_schema_xform(IXform *object);
-
 }

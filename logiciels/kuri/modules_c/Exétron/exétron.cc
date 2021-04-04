@@ -25,150 +25,147 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <thread>
 #include <system_error>
+#include <thread>
 
 extern "C" {
 
 struct FileExecution {
-	std::function<void(void*)> rappel_;
-	void *argument_;
-	std::thread thread;
-	bool fut_joint_ = false;
-	bool termine_ = false;
+    std::function<void(void *)> rappel_;
+    void *argument_;
+    std::thread thread;
+    bool fut_joint_ = false;
+    bool termine_ = false;
 
-	FileExecution(std::function<void(void*)> rappel, void *arg)
-		: rappel_(rappel)
-		, argument_(arg)
-		, thread(&FileExecution::lance, this)
-	{
-	}
+    FileExecution(std::function<void(void *)> rappel, void *arg)
+        : rappel_(rappel), argument_(arg), thread(&FileExecution::lance, this)
+    {
+    }
 
-	FileExecution(FileExecution const&) = delete;
-	FileExecution &operator=(FileExecution const&) = delete;
+    FileExecution(FileExecution const &) = delete;
+    FileExecution &operator=(FileExecution const &) = delete;
 
-	~FileExecution()
-	{
-		if (!fut_joint_) {
-			joins();
-		}
-	}
+    ~FileExecution()
+    {
+        if (!fut_joint_) {
+            joins();
+        }
+    }
 
-	static void lance(void *arg)
-	{
-		auto moi = static_cast<FileExecution *>(arg);
-		moi->rappel_(moi->argument_);
-		moi->termine_ = true;
-	}
+    static void lance(void *arg)
+    {
+        auto moi = static_cast<FileExecution *>(arg);
+        moi->rappel_(moi->argument_);
+        moi->termine_ = true;
+    }
 
-	void annule()
-	{
-		thread.~thread();
-	}
+    void annule()
+    {
+        thread.~thread();
+    }
 
-	void detache()
-	{
-		thread.detach();
-	}
+    void detache()
+    {
+        thread.detach();
+    }
 
-	bool joins()
-	{
-		fut_joint_ = true;
+    bool joins()
+    {
+        fut_joint_ = true;
 
-		try {
-			thread.join();
-			termine_ = true;
-			return true;
-		}
-		catch (const std::system_error &) {
-			termine_ = true;
-			return false;
-		}
-	}
+        try {
+            thread.join();
+            termine_ = true;
+            return true;
+        }
+        catch (const std::system_error &) {
+            termine_ = true;
+            return false;
+        }
+    }
 
-	bool termine() const
-	{
-		return termine_;
-	}
+    bool termine() const
+    {
+        return termine_;
+    }
 };
 
 unsigned int EXETRON_nombre_fils_materiel()
 {
-	return std::thread::hardware_concurrency();
+    return std::thread::hardware_concurrency();
 }
 
-void *EXETRON_cree_fil(void(*rappel)(void*), void *argument)
+void *EXETRON_cree_fil(void (*rappel)(void *), void *argument)
 {
-	return new FileExecution(rappel, argument);
+    return new FileExecution(rappel, argument);
 }
 
 /* À FAIRE : ajout d'une durée minimum à attendre avant d'annuler si le fil ne fut pas joint. */
 bool EXETRON_joins_fil(void *ptr_fil)
 {
-	auto fil = static_cast<FileExecution *>(ptr_fil);
-	return fil->joins();
+    auto fil = static_cast<FileExecution *>(ptr_fil);
+    return fil->joins();
 }
 
 void EXETRON_detache_fil(void *ptr_fil)
 {
-	auto fil = static_cast<FileExecution *>(ptr_fil);
-	fil->detache();
+    auto fil = static_cast<FileExecution *>(ptr_fil);
+    fil->detache();
 }
 
 void EXETRON_detruit_fil(void *ptr_fil)
 {
-	auto fil = static_cast<FileExecution *>(ptr_fil);
-	delete fil;
+    auto fil = static_cast<FileExecution *>(ptr_fil);
+    delete fil;
 }
 
 using Mutex = std::mutex;
 
 Mutex *EXETRON_cree_mutex()
 {
-	return new Mutex;
+    return new Mutex;
 }
 
 void EXETRON_verrouille_mutex(Mutex *mutex)
 {
-	mutex->lock();
+    mutex->lock();
 }
 
 void EXETRON_deverrouille_mutex(Mutex *mutex)
 {
-	mutex->unlock();
+    mutex->unlock();
 }
 
 void EXETRON_detruit_mutex(Mutex *mutex)
 {
-	delete mutex;
+    delete mutex;
 }
 
 using VariableCondition = std::condition_variable;
 
 VariableCondition *EXETRON_cree_variable_condition()
 {
-	return new VariableCondition;
+    return new VariableCondition;
 }
 
 void EXETRON_variable_condition_notifie_tous(VariableCondition *condition_variable)
 {
-	condition_variable->notify_all();
+    condition_variable->notify_all();
 }
 
 void EXETRON_variable_condition_notifie_un(VariableCondition *condition_variable)
 {
-	condition_variable->notify_one();
+    condition_variable->notify_one();
 }
 
 void EXETRON_variable_condition_attend(VariableCondition *condition_variable, Mutex *mutex)
 {
-	std::unique_lock l(*mutex);
-	condition_variable->wait(l);
+    std::unique_lock l(*mutex);
+    condition_variable->wait(l);
 }
 
 void EXETRON_detruit_variable_condition(VariableCondition *mutex)
 {
-	delete mutex;
+    delete mutex;
 }
-
 }

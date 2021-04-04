@@ -33,14 +33,14 @@
 
 static Instruction *derniere_instruction(AtomeFonction *atome)
 {
-	auto &instructions = atome->instructions;
+    auto &instructions = atome->instructions;
 
-	if (instructions.taille() == 0) {
-		return nullptr;
-	}
+    if (instructions.taille() == 0) {
+        return nullptr;
+    }
 
-	auto index = instructions.taille() - 1;
-	return instructions[index];
+    auto index = instructions.taille() - 1;
+    return instructions[index];
 }
 
 /* Performes différentes analyses de la RI. Ces analyses nous servent à valider
@@ -55,22 +55,24 @@ static Instruction *derniere_instruction(AtomeFonction *atome)
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
-	auto decl = atome->decl;
-	auto type = decl->type->comme_fonction();
+    auto decl = atome->decl;
+    auto type = decl->type->comme_fonction();
 
-	if (!type->type_sortie->est_rien()) {
-		auto di = derniere_instruction(atome);
+    if (!type->type_sortie->est_rien()) {
+        auto di = derniere_instruction(atome);
 
-		if (!di || !di->est_retour()) {
-			if (di) {
-				std::cerr << "La dernière instruction est ";
-				imprime_instruction(di, std::cerr);
-				imprime_fonction(atome, std::cerr);
-			}
-			else {
-				std::cerr << "La dernière instruction est nulle !\n";
-			}
-			rapporte_erreur(&espace, const_cast<NoeudDeclarationEnteteFonction *>(decl), "Instruction de retour manquante");
-		}
-	}
+        if (!di || !di->est_retour()) {
+            if (di) {
+                std::cerr << "La dernière instruction est ";
+                imprime_instruction(di, std::cerr);
+                imprime_fonction(atome, std::cerr);
+            }
+            else {
+                std::cerr << "La dernière instruction est nulle !\n";
+            }
+            rapporte_erreur(&espace,
+                            const_cast<NoeudDeclarationEnteteFonction *>(decl),
+                            "Instruction de retour manquante");
+        }
+    }
 }

@@ -32,12 +32,12 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#	define CHRONO_TYPAGE(entree_stats, nom) \
-	dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) { \
-		entree_stats.fusionne_entree({ nom, temps }); \
-	})
+#    define CHRONO_TYPAGE(entree_stats, nom)                                                      \
+        dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) {      \
+            entree_stats.fusionne_entree({nom, temps});                                           \
+        })
 #else
-#	define CHRONO_TYPAGE(entree_stats, nom)
+#    define CHRONO_TYPAGE(entree_stats, nom)
 #endif
 
 #if defined __cpp_concepts && __cpp_concepts >= 201507
@@ -47,7 +47,7 @@ concept TypeEntreesStats = requires(T a, T b)
     a += b;
 };
 #else
-#   define TypeEntreesStats typename
+#    define TypeEntreesStats typename
 #endif
 
 struct EntreeNombreMemoire {
@@ -55,7 +55,7 @@ struct EntreeNombreMemoire {
     long compte = 0;
     long memoire = 0;
 
-    EntreeNombreMemoire &operator += (EntreeNombreMemoire const &autre)
+    EntreeNombreMemoire &operator+=(EntreeNombreMemoire const &autre)
     {
         compte += autre.compte;
         memoire += autre.memoire;
@@ -64,14 +64,14 @@ struct EntreeNombreMemoire {
 };
 
 struct EntreeTaille {
-	kuri::chaine nom = "";
-	long taille = 0;
+    kuri::chaine nom = "";
+    long taille = 0;
 
-	EntreeTaille &operator += (EntreeTaille const &autre)
-	{
-		taille = std::max(taille, autre.taille);
-		return *this;
-	}
+    EntreeTaille &operator+=(EntreeTaille const &autre)
+    {
+        taille = std::max(taille, autre.taille);
+        return *this;
+    }
 };
 
 struct EntreeFichier {
@@ -85,7 +85,7 @@ struct EntreeFichier {
     double temps_chargement = 0.0;
     double temps_tampon = 0.0;
 
-    EntreeFichier &operator += (EntreeFichier const &autre)
+    EntreeFichier &operator+=(EntreeFichier const &autre)
     {
         memoire_lexemes += autre.memoire_lexemes;
         nombre_lignes += autre.nombre_lignes;
@@ -100,25 +100,25 @@ struct EntreeFichier {
 };
 
 struct EntreeTemps {
-	const char *nom{};
-	double temps = 0.0;
+    const char *nom{};
+    double temps = 0.0;
 
-	EntreeTemps &operator += (EntreeTemps const &autre)
-	{
-		temps += autre.temps;
-		return *this;
-	}
+    EntreeTemps &operator+=(EntreeTemps const &autre)
+    {
+        temps += autre.temps;
+        return *this;
+    }
 };
 
 template <TypeEntreesStats T>
 struct EntreesStats {
-	kuri::chaine nom{};
-	kuri::tableau<T, int> entrees{};
+    kuri::chaine nom{};
+    kuri::tableau<T, int> entrees{};
     T totaux{};
 
-	EntreesStats(kuri::chaine const &nom_)
-		: nom(nom_)
-	{}
+    EntreesStats(kuri::chaine const &nom_) : nom(nom_)
+    {
+    }
 
     void ajoute_entree(T const &entree)
     {
@@ -171,31 +171,29 @@ struct Statistiques {
     double temps_chargement = 0.0;
     double temps_tampons = 0.0;
 
-	StatistiquesFichiers stats_fichiers{"Fichiers"};
-	StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
-	StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
-	StatistiquesTypes stats_types{"Types"};
-	StatistiquesOperateurs stats_operateurs{"Opérateurs"};
-	StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
-	StatistiquesMessage stats_messages{"Messages"};
-	StatistiquesRI stats_ri{"Représentation Intermédiaire"};
-	StatistiquesTableaux stats_tableaux{"Tableaux"};
+    StatistiquesFichiers stats_fichiers{"Fichiers"};
+    StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
+    StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
+    StatistiquesTypes stats_types{"Types"};
+    StatistiquesOperateurs stats_operateurs{"Opérateurs"};
+    StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
+    StatistiquesMessage stats_messages{"Messages"};
+    StatistiquesRI stats_ri{"Représentation Intermédiaire"};
+    StatistiquesTableaux stats_tableaux{"Tableaux"};
 };
 
 struct StatistiquesTypage {
-	EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables"};
-	EntreesStats<EntreeTemps> validation_appel{"Appels"};
-	EntreesStats<EntreeTemps> ref_decl{"Références Déclarations"};
-	EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire"};
-	EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire"};
-	EntreesStats<EntreeTemps> fonctions{"Fonctions"};
-	EntreesStats<EntreeTemps> enumerations{"Énumérations"};
-	EntreesStats<EntreeTemps> structures{"Structures"};
-	EntreesStats<EntreeTemps> assignations{"Assignations"};
+    EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables"};
+    EntreesStats<EntreeTemps> validation_appel{"Appels"};
+    EntreesStats<EntreeTemps> ref_decl{"Références Déclarations"};
+    EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire"};
+    EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire"};
+    EntreesStats<EntreeTemps> fonctions{"Fonctions"};
+    EntreesStats<EntreeTemps> enumerations{"Énumérations"};
+    EntreesStats<EntreeTemps> structures{"Structures"};
+    EntreesStats<EntreeTemps> assignations{"Assignations"};
 };
 
-void imprime_stats(
-		Statistiques const &stats,
-		dls::chrono::compte_seconde debut_compilation);
+void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
 
 void imprime_stats_detaillee(Statistiques &stats);

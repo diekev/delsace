@@ -32,235 +32,243 @@
 
 #include "parsage/lexeuse.hh"
 
-#include "espace_de_travail.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "ipa.hh"
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice()
-	: ordonnanceuse(this)
+Compilatrice::Compilatrice() : ordonnanceuse(this)
 {
-	this->bibliotheques_dynamiques->ajoute("pthread");
-	this->definitions->ajoute("_REENTRANT");
+    this->bibliotheques_dynamiques->ajoute("pthread");
+    this->definitions->ajoute("_REENTRANT");
 
-	initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
+    initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 }
 
 Compilatrice::~Compilatrice()
 {
-	POUR ((*espaces_de_travail.verrou_ecriture())) {
-		memoire::deloge("EspaceDeTravail", it);
-	}
+    POUR ((*espaces_de_travail.verrou_ecriture())) {
+        memoire::deloge("EspaceDeTravail", it);
+    }
 }
 
-Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine &nom, NoeudExpression const *site)
+Module *Compilatrice::importe_module(EspaceDeTravail *espace,
+                                     const kuri::chaine &nom,
+                                     NoeudExpression const *site)
 {
-	auto chemin = dls::chaine(nom.pointeur(), nom.taille());
+    auto chemin = dls::chaine(nom.pointeur(), nom.taille());
 
-	if (!std::filesystem::exists(chemin.c_str())) {
-		/* essaie dans la racine kuri */
-		chemin = dls::chaine(racine_kuri.pointeur(), racine_kuri.taille()) + "/modules/" + chemin;
+    if (!std::filesystem::exists(chemin.c_str())) {
+        /* essaie dans la racine kuri */
+        chemin = dls::chaine(racine_kuri.pointeur(), racine_kuri.taille()) + "/modules/" + chemin;
 
-		if (!std::filesystem::exists(chemin.c_str())) {
-			erreur::lance_erreur(
-						"Impossible de trouver le dossier correspondant au module",
-						*espace,
-						site,
-						erreur::Genre::MODULE_INCONNU);
-		}
-	}
+        if (!std::filesystem::exists(chemin.c_str())) {
+            erreur::lance_erreur("Impossible de trouver le dossier correspondant au module",
+                                 *espace,
+                                 site,
+                                 erreur::Genre::MODULE_INCONNU);
+        }
+    }
 
-	if (!std::filesystem::is_directory(chemin.c_str())) {
-		erreur::lance_erreur(
-					"Le nom du module ne pointe pas vers un dossier",
-					*espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
+    if (!std::filesystem::is_directory(chemin.c_str())) {
+        erreur::lance_erreur("Le nom du module ne pointe pas vers un dossier",
+                             *espace,
+                             site,
+                             erreur::Genre::MODULE_INCONNU);
+    }
 
-	/* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
-	auto chemin_absolu = std::filesystem::canonical(std::filesystem::absolute(chemin.c_str()));
-	auto nom_dossier = chemin_absolu.filename();
+    /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
+    auto chemin_absolu = std::filesystem::canonical(std::filesystem::absolute(chemin.c_str()));
+    auto nom_dossier = chemin_absolu.filename();
 
-	// @concurrence critique
-	auto module = espace->trouve_ou_cree_module(sys_module, table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()), chemin_absolu.c_str());
+    // @concurrence critique
+    auto module = espace->trouve_ou_cree_module(
+        sys_module,
+        table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()),
+        chemin_absolu.c_str());
 
-	if (module->importe) {
-		return module;
-	}
+    if (module->importe) {
+        return module;
+    }
 
-	module->importe = true;
+    module->importe = true;
 
-	messagere->ajoute_message_module_ouvert(espace, module);
+    messagere->ajoute_message_module_ouvert(espace, module);
 
-	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
-		auto chemin_entree = entree.path();
+    for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
+        auto chemin_entree = entree.path();
 
-		if (!std::filesystem::is_regular_file(chemin_entree)) {
-			continue;
-		}
+        if (!std::filesystem::is_regular_file(chemin_entree)) {
+            continue;
+        }
 
-		if (chemin_entree.extension() != ".kuri") {
-			continue;
-		}
+        if (chemin_entree.extension() != ".kuri") {
+            continue;
+        }
 
-		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
+        auto resultat = espace->trouve_ou_cree_fichier(
+            sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
 
-		if (resultat.est<FichierNeuf>()) {
-			ordonnanceuse->cree_tache_pour_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
-		}
-	}
+        if (resultat.est<FichierNeuf>()) {
+            ordonnanceuse->cree_tache_pour_chargement(espace,
+                                                      resultat.resultat<FichierNeuf>().fichier);
+        }
+    }
 
-	if (module->nom() == ID::Kuri) {
-		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "constantes", "constantes.kuri", false);
+    if (module->nom() == ID::Kuri) {
+        auto resultat = espace->trouve_ou_cree_fichier(
+            sys_module, module, "constantes", "constantes.kuri", false);
 
-		if (resultat.est<FichierNeuf>()) {
-			auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
-			if (!donnees_fichier->fut_charge) {
-				const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
-				donnees_fichier->charge_tampon(lng::tampon_source(source));
-			}
+        if (resultat.est<FichierNeuf>()) {
+            auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
+            if (!donnees_fichier->fut_charge) {
+                const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
+                donnees_fichier->charge_tampon(lng::tampon_source(source));
+            }
 
-			ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
-		}
-	}
+            ordonnanceuse->cree_tache_pour_lexage(espace,
+                                                  resultat.resultat<FichierNeuf>().fichier);
+        }
+    }
 
-	messagere->ajoute_message_module_ferme(espace, module);
+    messagere->ajoute_message_module_ferme(espace, module);
 
-	return module;
+    return module;
 }
 
 /* ************************************************************************** */
 
-void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const kuri::chaine &nom, Module *module, NoeudExpression const *site)
+void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+                                                   const kuri::chaine &nom,
+                                                   Module *module,
+                                                   NoeudExpression const *site)
 {
-	auto chemin = dls::chaine(module->chemin()) + dls::chaine(nom) + ".kuri";
+    auto chemin = dls::chaine(module->chemin()) + dls::chaine(nom) + ".kuri";
 
-	if (!std::filesystem::exists(chemin.c_str())) {
-		erreur::lance_erreur(
-					"Impossible de trouver le fichier correspondant au module",
-					*espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
+    if (!std::filesystem::exists(chemin.c_str())) {
+        erreur::lance_erreur("Impossible de trouver le fichier correspondant au module",
+                             *espace,
+                             site,
+                             erreur::Genre::MODULE_INCONNU);
+    }
 
-	if (!std::filesystem::is_regular_file(chemin.c_str())) {
-		erreur::lance_erreur(
-					"Le nom du fichier ne pointe pas vers un fichier régulier",
-					*espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
+    if (!std::filesystem::is_regular_file(chemin.c_str())) {
+        erreur::lance_erreur("Le nom du fichier ne pointe pas vers un fichier régulier",
+                             *espace,
+                             site,
+                             erreur::Genre::MODULE_INCONNU);
+    }
 
-	/* trouve le chemin absolu du fichier */
-	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+    /* trouve le chemin absolu du fichier */
+    auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
+    auto resultat = espace->trouve_ou_cree_fichier(
+        sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
-	if (resultat.est<FichierNeuf>()) {
-		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
-	}
+    if (resultat.est<FichierNeuf>()) {
+        ordonnanceuse->cree_tache_pour_chargement(espace,
+                                                  resultat.resultat<FichierNeuf>().fichier);
+    }
 }
 
 /* ************************************************************************** */
 
 long Compilatrice::memoire_utilisee() const
 {
-	auto memoire = taille_de(Compilatrice);
+    auto memoire = taille_de(Compilatrice);
 
-	memoire += bibliotheques_dynamiques->taille() * taille_de(kuri::chaine);
-	POUR (*bibliotheques_dynamiques.verrou_lecture()) {
-		memoire += it.taille();
-	}
+    memoire += bibliotheques_dynamiques->taille() * taille_de(kuri::chaine);
+    POUR (*bibliotheques_dynamiques.verrou_lecture()) {
+        memoire += it.taille();
+    }
 
-	memoire += bibliotheques_statiques->taille() * taille_de(kuri::chaine);
-	POUR (*bibliotheques_statiques.verrou_lecture()) {
-		memoire += it.taille();
-	}
+    memoire += bibliotheques_statiques->taille() * taille_de(kuri::chaine);
+    POUR (*bibliotheques_statiques.verrou_lecture()) {
+        memoire += it.taille();
+    }
 
-	memoire += chemins->taille() * taille_de(dls::vue_chaine_compacte);
-	memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
+    memoire += chemins->taille() * taille_de(dls::vue_chaine_compacte);
+    memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
 
-	memoire += ordonnanceuse->memoire_utilisee();
-	memoire += table_identifiants->memoire_utilisee();
+    memoire += ordonnanceuse->memoire_utilisee();
+    memoire += table_identifiants->memoire_utilisee();
 
-	memoire += gerante_chaine->memoire_utilisee();
+    memoire += gerante_chaine->memoire_utilisee();
 
-	POUR ((*espaces_de_travail.verrou_lecture())) {
-		memoire += it->memoire_utilisee();
-	}
+    POUR ((*espaces_de_travail.verrou_lecture())) {
+        memoire += it->memoire_utilisee();
+    }
 
-	memoire += messagere->memoire_utilisee();
+    memoire += messagere->memoire_utilisee();
 
-	memoire += sys_module->memoire_utilisee();
+    memoire += sys_module->memoire_utilisee();
 
-	return memoire;
+    return memoire;
 }
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-	stats.memoire_compilatrice = memoire_utilisee();
+    stats.memoire_compilatrice = memoire_utilisee();
 
-	POUR ((*espaces_de_travail.verrou_lecture())) {
-		it->rassemble_statistiques(stats);
-	}
+    POUR ((*espaces_de_travail.verrou_lecture())) {
+        it->rassemble_statistiques(stats);
+    }
 
-	stats.nombre_identifiants = table_identifiants->taille();
+    stats.nombre_identifiants = table_identifiants->taille();
 
-	sys_module->rassemble_stats(stats);
+    sys_module->rassemble_stats(stats);
 }
 
-void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine_statique message, erreur::Genre genre)
+void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
+                                   kuri::chaine_statique message,
+                                   erreur::Genre genre)
 {
-	if (espace) {
-		// Toutes les erreurs ne transitent pas forcément par EspaceDeTravail
-		// (comme les erreurs de syntaxage ou de lexage).
-		espace->possede_erreur = true;
-	}
+    if (espace) {
+        // Toutes les erreurs ne transitent pas forcément par EspaceDeTravail
+        // (comme les erreurs de syntaxage ou de lexage).
+        espace->possede_erreur = true;
+    }
 
-	if (espace && espace->options.continue_si_erreur) {
-		ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
-	}
-	else {
-		ordonnanceuse->supprime_toutes_les_taches();
-		m_possede_erreur = true;
-		m_code_erreur = genre;
-	}
+    if (espace && espace->options.continue_si_erreur) {
+        ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
+    }
+    else {
+        ordonnanceuse->supprime_toutes_les_taches();
+        m_possede_erreur = true;
+        m_code_erreur = genre;
+    }
 
-	std::cerr << message << '\n';
+    std::cerr << message << '\n';
 }
 
 bool Compilatrice::possede_erreur(const EspaceDeTravail *espace) const
 {
-	return espace->possede_erreur;
+    return espace->possede_erreur;
 }
 
 /* ************************************************************************** */
 
-EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options, const kuri::chaine &nom)
+EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options,
+                                                            const kuri::chaine &nom)
 {
-	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options);
-	espace->nom = nom;
+    auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options);
+    espace->nom = nom;
 
-	espaces_de_travail->ajoute(espace);
+    espaces_de_travail->ajoute(espace);
 
-	espace->module_kuri = importe_module(espace, "Kuri", {});
+    espace->module_kuri = importe_module(espace, "Kuri", {});
 
-	return espace;
+    return espace;
 }
 
 ContexteLexage Compilatrice::contexte_lexage()
 {
-	auto rappel_erreur = [this](kuri::chaine message) {
-		this->rapporte_erreur(nullptr, message, erreur::Genre::LEXAGE);
-	};
+    auto rappel_erreur = [this](kuri::chaine message) {
+        this->rapporte_erreur(nullptr, message, erreur::Genre::LEXAGE);
+    };
 
-	return {
-		gerante_chaine,
-		table_identifiants,
-		rappel_erreur
-	};
+    return {gerante_chaine, table_identifiants, rappel_erreur};
 }
 
 // -----------------------------------------------------------------------------
@@ -271,122 +279,122 @@ ContexteLexage Compilatrice::contexte_lexage()
 
 OptionsDeCompilation *Compilatrice::options_compilation()
 {
-	return &espace_de_travail_defaut->options;
+    return &espace_de_travail_defaut->options;
 }
 
 void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
 {
-	espace_de_travail_defaut->options = *options;
+    espace_de_travail_defaut->options = *options;
 }
 
 void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
-	auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
-	ajoute_chaine_au_module(espace, module, c);
+    auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
+    ajoute_chaine_au_module(espace, module, c);
 }
 
-void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c)
+void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
+                                           Module *module,
+                                           kuri::chaine_statique c)
 {
-	auto chaine = dls::chaine(c.pointeur(), c.taille());
+    auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-	chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
+    chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
 
-	auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "métaprogramme", "", importe_kuri);
+    auto resultat = espace->trouve_ou_cree_fichier(
+        sys_module, module, "métaprogramme", "", importe_kuri);
 
-	if (resultat.est<FichierNeuf>()) {
-		auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
-		if (!donnees_fichier->fut_charge) {
-			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
-		}
-		ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
-	}
+    if (resultat.est<FichierNeuf>()) {
+        auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
+        if (!donnees_fichier->fut_charge) {
+            donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
+        }
+        ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+    }
 }
 
 void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
-	auto vue = dls::chaine(c.pointeur(), c.taille());
-	auto chemin = std::filesystem::current_path() / vue.c_str();
+    auto vue = dls::chaine(c.pointeur(), c.taille());
+    auto chemin = std::filesystem::current_path() / vue.c_str();
 
-	if (!std::filesystem::exists(chemin)) {
-		espace->rapporte_erreur_sans_site(enchaine("Le fichier ", chemin, " n'existe pas !"));
-		return;
-	}
+    if (!std::filesystem::exists(chemin)) {
+        espace->rapporte_erreur_sans_site(enchaine("Le fichier ", chemin, " n'existe pas !"));
+        return;
+    }
 
-	auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
-	ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
+    auto module = espace->trouve_ou_cree_module(sys_module, ID::chaine_vide, "");
+    ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
 }
 
 Message const *Compilatrice::attend_message()
 {
-	if (!messagere->possede_message()) {
-		return nullptr;
-	}
+    if (!messagere->possede_message()) {
+        return nullptr;
+    }
 
-	return messagere->defile();
+    return messagere->defile();
 }
 
 EspaceDeTravail *Compilatrice::espace_defaut_compilation()
 {
-	return espace_de_travail_defaut;
+    return espace_de_travail_defaut;
 }
 
-static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme, int> const &lexemes)
+static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(
+    kuri::tableau<Lexeme, int> const &lexemes)
 {
-	auto resultat = kuri::tableau<kuri::Lexeme>();
-	resultat.reserve(lexemes.taille());
+    auto resultat = kuri::tableau<kuri::Lexeme>();
+    resultat.reserve(lexemes.taille());
 
-	POUR (lexemes) {
-		resultat.ajoute({ static_cast<int>(it.genre), it.chaine });
-	}
+    POUR (lexemes) {
+        resultat.ajoute({static_cast<int>(it.genre), it.chaine});
+    }
 
-	return resultat;
+    return resultat;
 }
 
-kuri::tableau<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
+kuri::tableau<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne,
+                                                       NoeudExpression const *site)
 {
-	auto espace = espace_de_travail_defaut;
-	auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
+    auto espace = espace_de_travail_defaut;
+    auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
 
-	if (!std::filesystem::exists(chemin.c_str())) {
-		erreur::lance_erreur(
-					"Impossible de trouver le fichier correspondant au chemin",
-					*espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
+    if (!std::filesystem::exists(chemin.c_str())) {
+        erreur::lance_erreur("Impossible de trouver le fichier correspondant au chemin",
+                             *espace,
+                             site,
+                             erreur::Genre::MODULE_INCONNU);
+    }
 
-	if (!std::filesystem::is_regular_file(chemin.c_str())) {
-		erreur::lance_erreur(
-					"Le nom du fichier ne pointe pas vers un fichier régulier",
-					*espace,
-					site,
-					erreur::Genre::MODULE_INCONNU);
-	}
+    if (!std::filesystem::is_regular_file(chemin.c_str())) {
+        erreur::lance_erreur("Le nom du fichier ne pointe pas vers un fichier régulier",
+                             *espace,
+                             site,
+                             erreur::Genre::MODULE_INCONNU);
+    }
 
-	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+    auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto module = espace->module(ID::chaine_vide);
+    auto module = espace->module(ID::chaine_vide);
 
-	auto resultat = espace->trouve_ou_cree_fichier(
-				sys_module,
-				module,
-				chemin_absolu.stem().c_str(),
-				chemin_absolu.c_str(),
-				importe_kuri);
+    auto resultat = espace->trouve_ou_cree_fichier(
+        sys_module, module, chemin_absolu.stem().c_str(), chemin_absolu.c_str(), importe_kuri);
 
-	if (resultat.est<FichierExistant>()) {
-		auto donnees_fichier = resultat.resultat<FichierExistant>().fichier->donnees_constantes;
-		return converti_tableau_lexemes(donnees_fichier->lexemes);
-	}
+    if (resultat.est<FichierExistant>()) {
+        auto donnees_fichier = resultat.resultat<FichierExistant>().fichier->donnees_constantes;
+        return converti_tableau_lexemes(donnees_fichier->lexemes);
+    }
 
-	auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
-	auto tampon = charge_contenu_fichier(chemin);
-	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+    auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier->donnees_constantes;
+    auto tampon = charge_contenu_fichier(chemin);
+    donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-	auto lexeuse = Lexeuse(contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
-	lexeuse.performe_lexage();
+    auto lexeuse = Lexeuse(
+        contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+    lexeuse.performe_lexage();
 
-	return converti_tableau_lexemes(donnees_fichier->lexemes);
+    return converti_tableau_lexemes(donnees_fichier->lexemes);
 }
 
 /* ************************************************************************** */
@@ -394,19 +402,19 @@ kuri::tableau<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique che
 // fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
 int fonction_test_variadique_externe(int sentinel, ...)
 {
-	va_list ap;
-	va_start(ap, sentinel);
+    va_list ap;
+    va_start(ap, sentinel);
 
-	int i = 0;
-	for (;; ++i) {
-		int t = va_arg(ap, int);
+    int i = 0;
+    for (;; ++i) {
+        int t = va_arg(ap, int);
 
-		if (t == sentinel) {
-			break;
-		}
-	}
+        if (t == sentinel) {
+            break;
+        }
+    }
 
-	va_end(ap);
+    va_end(ap);
 
-	return i;
+    return i;
 }

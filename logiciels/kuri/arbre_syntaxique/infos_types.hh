@@ -35,93 +35,93 @@
  */
 
 enum class GenreInfoType : int {
-	ENTIER,
-	REEL,
-	BOOLEEN,
-	CHAINE,
-	POINTEUR,
-	STRUCTURE,
-	FONCTION,
-	TABLEAU,
-	EINI,
-	RIEN,
-	ENUM,
-	OCTET,
-	TYPE_DE_DONNEES,
-	UNION,
+    ENTIER,
+    REEL,
+    BOOLEEN,
+    CHAINE,
+    POINTEUR,
+    STRUCTURE,
+    FONCTION,
+    TABLEAU,
+    EINI,
+    RIEN,
+    ENUM,
+    OCTET,
+    TYPE_DE_DONNEES,
+    UNION,
 };
 
 struct InfoType {
-	GenreInfoType genre{};
-	uint taille_en_octet = 0;
+    GenreInfoType genre{};
+    uint taille_en_octet = 0;
 };
 
 struct InfoTypeEntier : public InfoType {
-	bool est_signe = false;
+    bool est_signe = false;
 };
 
 struct InfoTypePointeur : public InfoType {
-	InfoType *type_pointe = nullptr;
-	bool est_reference = false;
+    InfoType *type_pointe = nullptr;
+    bool est_reference = false;
 };
 
 struct InfoTypeTableau : public InfoType {
-	InfoType *type_pointe = nullptr;
-	bool est_tableau_fixe = false;
-	int taille_fixe = 0;
+    InfoType *type_pointe = nullptr;
+    bool est_tableau_fixe = false;
+    int taille_fixe = 0;
 };
 
 struct InfoTypeMembreStructure {
-	// Les Drapeaux sont définis dans TypeCompose::Membre
+    // Les Drapeaux sont définis dans TypeCompose::Membre
 
-	kuri::chaine_statique nom{};
-	InfoType *info = nullptr;
-	long decalage = 0;  // décalage en octets dans la structure
-	int drapeaux = 0;
+    kuri::chaine_statique nom{};
+    InfoType *info = nullptr;
+    long decalage = 0;  // décalage en octets dans la structure
+    int drapeaux = 0;
 };
 
 struct InfoTypeStructure : public InfoType {
-	kuri::chaine_statique nom{};
-	kuri::tableau<InfoTypeMembreStructure *> membres{};
+    kuri::chaine_statique nom{};
+    kuri::tableau<InfoTypeMembreStructure *> membres{};
 };
 
 struct InfoTypeUnion : public InfoType {
-	kuri::chaine_statique nom{};
-	kuri::tableau<InfoTypeMembreStructure *> membres{};
-	InfoType *type_le_plus_grand = nullptr;
-	long decalage_index = 0;
-	bool est_sure = false;
+    kuri::chaine_statique nom{};
+    kuri::tableau<InfoTypeMembreStructure *> membres{};
+    InfoType *type_le_plus_grand = nullptr;
+    long decalage_index = 0;
+    bool est_sure = false;
 };
 
 struct InfoTypeFonction : public InfoType {
-	kuri::tableau<InfoType *> types_entrees{};
-	kuri::tableau<InfoType *> types_sorties{};
-	bool est_coroutine = false;
+    kuri::tableau<InfoType *> types_entrees{};
+    kuri::tableau<InfoType *> types_sorties{};
+    bool est_coroutine = false;
 };
 
 struct InfoTypeEnum : public InfoType {
-	kuri::chaine_statique nom{};
-	kuri::tableau<int> valeurs{}; // À FAIRE typage selon énum
-	kuri::tableau<kuri::chaine_statique> noms{};
-	bool est_drapeau = false;
+    kuri::chaine_statique nom{};
+    kuri::tableau<int> valeurs{};  // À FAIRE typage selon énum
+    kuri::tableau<kuri::chaine_statique> noms{};
+    bool est_drapeau = false;
 };
 
 struct InfoTypeOpaque : public InfoType {
-	kuri::chaine_statique nom{};
-	InfoType *type_opacifie = nullptr;
+    kuri::chaine_statique nom{};
+    InfoType *type_opacifie = nullptr;
 };
 
 struct AllocatriceInfosType {
-	tableau_page<InfoType> infos_types{};
-	tableau_page<InfoTypeEntier> infos_types_entiers{};
-	tableau_page<InfoTypeEnum> infos_types_enums{};
-	tableau_page<InfoTypeFonction> infos_types_fonctions{};
-	tableau_page<InfoTypeMembreStructure> infos_types_membres_structures{};
-	tableau_page<InfoTypePointeur> infos_types_pointeurs{};
-	tableau_page<InfoTypeStructure> infos_types_structures{};
-	tableau_page<InfoTypeTableau> infos_types_tableaux{};
-	tableau_page<InfoTypeUnion> infos_types_unions{};
-	tableau_page<InfoTypeOpaque> infos_types_opaques{};
+    tableau_page<InfoType> infos_types{};
+    tableau_page<InfoTypeEntier> infos_types_entiers{};
+    tableau_page<InfoTypeEnum> infos_types_enums{};
+    tableau_page<InfoTypeFonction> infos_types_fonctions{};
+    tableau_page<InfoTypeMembreStructure> infos_types_membres_structures{};
+    tableau_page<InfoTypePointeur> infos_types_pointeurs{};
+    tableau_page<InfoTypeStructure> infos_types_structures{};
+    tableau_page<InfoTypeTableau> infos_types_tableaux{};
+    tableau_page<InfoTypeUnion> infos_types_unions{};
+    tableau_page<InfoTypeOpaque> infos_types_opaques{};
 
-	long memoire_utilisee() const;
+    long memoire_utilisee() const;
 };

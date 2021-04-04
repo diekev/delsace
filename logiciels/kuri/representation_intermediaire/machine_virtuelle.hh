@@ -38,50 +38,51 @@ struct Statistiques;
 struct TypeFonction;
 
 struct GestionnaireBibliotheques {
-	struct BibliothequePartagee {
-		dls::systeme_fichier::shared_library bib{};
-		kuri::chaine chemin{};
-	};
+    struct BibliothequePartagee {
+        dls::systeme_fichier::shared_library bib{};
+        kuri::chaine chemin{};
+    };
 
-	using type_fonction = void(*)();
+    using type_fonction = void (*)();
 
-private:
-	kuri::tableau<BibliothequePartagee> bibliotheques{};
-	dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
+  private:
+    kuri::tableau<BibliothequePartagee> bibliotheques{};
+    dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
 
-public:
-	void ajoute_bibliotheque(kuri::chaine const &chemin);
-	void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
-	type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
+  public:
+    void ajoute_bibliotheque(kuri::chaine const &chemin);
+    void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
+    type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
 
-	long memoire_utilisee() const;
+    long memoire_utilisee() const;
 };
 
 struct FrameAppel {
-	AtomeFonction *fonction = nullptr;
-	NoeudExpression *site = nullptr;
-	octet_t *pointeur = nullptr;
-	octet_t *pointeur_pile = nullptr;
+    AtomeFonction *fonction = nullptr;
+    NoeudExpression *site = nullptr;
+    octet_t *pointeur = nullptr;
+    octet_t *pointeur_pile = nullptr;
 };
 
 enum {
-	DONNEES_CONSTANTES,
-	DONNEES_GLOBALES,
+    DONNEES_CONSTANTES,
+    DONNEES_GLOBALES,
 };
 
 enum {
-	ADRESSE_CONSTANTE,
-	ADRESSE_GLOBALE,
+    ADRESSE_CONSTANTE,
+    ADRESSE_GLOBALE,
 };
 
-// Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales dans les constantes ou les globales.
-// Par exemple, les pointeurs des infos types des membres des structures sont écris dans un tableau constant, et le pointeur du tableau
-// constant doit être écris dans la zone mémoire ou se trouve le tableaeu de membre de l'InfoTypeStructure.
+// Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
+// dans les constantes ou les globales. Par exemple, les pointeurs des infos types des membres des
+// structures sont écris dans un tableau constant, et le pointeur du tableau constant doit être
+// écris dans la zone mémoire ou se trouve le tableaeu de membre de l'InfoTypeStructure.
 struct PatchDonneesConstantes {
-	int ou;
-	int quoi;
-	int decalage_ou;
-	int decalage_quoi;
+    int ou;
+    int quoi;
+    int decalage_ou;
+    int decalage_quoi;
 };
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
@@ -89,20 +90,20 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 struct DonneesExecution {
-	kuri::tableau<unsigned char, int> donnees_globales{};
-	kuri::tableau<unsigned char, int> donnees_constantes{};
+    kuri::tableau<unsigned char, int> donnees_globales{};
+    kuri::tableau<unsigned char, int> donnees_constantes{};
 
-	octet_t *pile = nullptr;
-	octet_t *pointeur_pile = nullptr;
+    octet_t *pile = nullptr;
+    octet_t *pointeur_pile = nullptr;
 
-	FrameAppel frames[TAILLE_FRAMES_APPEL];
-	int profondeur_appel = 0;
+    FrameAppel frames[TAILLE_FRAMES_APPEL];
+    int profondeur_appel = 0;
 
-	int ajoute_globale(Type *type, IdentifiantCode *ident);
+    int ajoute_globale(Type *type, IdentifiantCode *ident);
 };
 
 struct MachineVirtuelle {
-private:
+  private:
     enum class ResultatInterpretation : int {
         OK,
         ERREUR,
@@ -111,92 +112,99 @@ private:
         PASSE_AU_SUIVANT,
     };
 
-	Compilatrice &compilatrice;
+    Compilatrice &compilatrice;
 
-	tableau_page<DonneesExecution> donnees_execution{};
+    tableau_page<DonneesExecution> donnees_execution{};
 
-	kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
-	kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
+    kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
+    kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
 
-	bool m_metaprogrammes_termines_lu = false;
+    bool m_metaprogrammes_termines_lu = false;
 
-	/* données pour l'exécution de chaque métaprogramme */
-	octet_t *pile = nullptr;
-	octet_t *pointeur_pile = nullptr;
+    /* données pour l'exécution de chaque métaprogramme */
+    octet_t *pile = nullptr;
+    octet_t *pointeur_pile = nullptr;
 
-	unsigned char *ptr_donnees_constantes = nullptr;
-	unsigned char *ptr_donnees_globales = nullptr;
+    unsigned char *ptr_donnees_constantes = nullptr;
+    unsigned char *ptr_donnees_globales = nullptr;
 
-	FrameAppel *frames = nullptr;
-	int profondeur_appel = 0;
+    FrameAppel *frames = nullptr;
+    int profondeur_appel = 0;
 
-	int nombre_de_metaprogrammes_executes = 0;
-	double temps_execution_metaprogammes = 0;
+    int nombre_de_metaprogrammes_executes = 0;
+    double temps_execution_metaprogammes = 0;
 
-	MetaProgramme *m_metaprogramme = nullptr;
+    MetaProgramme *m_metaprogramme = nullptr;
 
-public:
-	GestionnaireBibliotheques gestionnaire_bibliotheques{};
+  public:
+    GestionnaireBibliotheques gestionnaire_bibliotheques{};
 
-	kuri::tableau<Globale, int> globales{};
-	kuri::tableau<unsigned char, int> donnees_globales{};
-	kuri::tableau<unsigned char, int> donnees_constantes{};
-	kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
+    kuri::tableau<Globale, int> globales{};
+    kuri::tableau<unsigned char, int> donnees_globales{};
+    kuri::tableau<unsigned char, int> donnees_constantes{};
+    kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
 
-	bool stop = false;
+    bool stop = false;
 
-	MachineVirtuelle(Compilatrice &compilatrice_);
-	~MachineVirtuelle();
+    MachineVirtuelle(Compilatrice &compilatrice_);
+    ~MachineVirtuelle();
 
-	COPIE_CONSTRUCT(MachineVirtuelle);
+    COPIE_CONSTRUCT(MachineVirtuelle);
 
-	typedef void (*fonction_symbole)();
+    typedef void (*fonction_symbole)();
 
-	fonction_symbole trouve_symbole(IdentifiantCode *symbole);
+    fonction_symbole trouve_symbole(IdentifiantCode *symbole);
 
-	int ajoute_globale(Type *type, IdentifiantCode *ident);
+    int ajoute_globale(Type *type, IdentifiantCode *ident);
 
-	void ajoute_metaprogramme(MetaProgramme *metaprogramme);
+    void ajoute_metaprogramme(MetaProgramme *metaprogramme);
 
-	void execute_metaprogrammes_courants();
+    void execute_metaprogrammes_courants();
 
-	kuri::tableau<MetaProgramme *, int> const &metaprogrammes_termines()
-	{
-		m_metaprogrammes_termines_lu = true;
-		return m_metaprogrammes_termines;
-	}
+    kuri::tableau<MetaProgramme *, int> const &metaprogrammes_termines()
+    {
+        m_metaprogrammes_termines_lu = true;
+        return m_metaprogrammes_termines;
+    }
 
-	DonneesExecution *loge_donnees_execution();
-	void deloge_donnees_execution(DonneesExecution *&donnees);
+    DonneesExecution *loge_donnees_execution();
+    void deloge_donnees_execution(DonneesExecution *&donnees);
 
-	bool terminee() const
-	{
-		return m_metaprogrammes.est_vide();
-	}
+    bool terminee() const
+    {
+        return m_metaprogrammes.est_vide();
+    }
 
-	void rassemble_statistiques(Statistiques &stats);
+    void rassemble_statistiques(Statistiques &stats);
 
-private:
-	template <typename T>
-	void empile(NoeudExpression *site, T valeur);
+  private:
+    template <typename T>
+    void empile(NoeudExpression *site, T valeur);
 
-	template <typename T>
-	T depile(NoeudExpression *site);
+    template <typename T>
+    T depile(NoeudExpression *site);
 
-	void depile(NoeudExpression *site, long n);
+    void depile(NoeudExpression *site, long n);
 
-	bool appel(AtomeFonction *fonction, NoeudExpression *site);
+    bool appel(AtomeFonction *fonction, NoeudExpression *site);
 
-	bool appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame, NoeudExpression *site);
-	void appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel, NoeudExpression *site, ResultatInterpretation &resultat);
+    bool appel_fonction_interne(AtomeFonction *ptr_fonction,
+                                int taille_argument,
+                                FrameAppel *&frame,
+                                NoeudExpression *site);
+    void appel_fonction_externe(AtomeFonction *ptr_fonction,
+                                int taille_argument,
+                                InstructionAppel *inst_appel,
+                                NoeudExpression *site,
+                                ResultatInterpretation &resultat);
 
-	void empile_constante(NoeudExpression *site, FrameAppel *frame);
+    void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
-	void installe_metaprogramme(MetaProgramme *metaprogramme);
+    void installe_metaprogramme(MetaProgramme *metaprogramme);
 
-	void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
+    void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
 
-	ResultatInterpretation execute_instructions();
+    ResultatInterpretation execute_instructions();
 
-	void imprime_trace_appel(NoeudExpression *site);
+    void imprime_trace_appel(NoeudExpression *site);
 };

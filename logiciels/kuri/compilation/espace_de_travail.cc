@@ -29,8 +29,8 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/instructions.hh"
 #include "representation_intermediaire/impression.hh"
+#include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "coulisse.hh"
@@ -41,132 +41,140 @@
 #include "statistiques/statistiques.hh"
 
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts)
-	: options(opts)
-	, typeuse(graphe_dependance, this->operateurs)
-	, m_compilatrice(compilatrice)
+    : options(opts), typeuse(graphe_dependance, this->operateurs), m_compilatrice(compilatrice)
 {
-	auto ops = operateurs.verrou_ecriture();
-	enregistre_operateurs_basiques(*this, *ops);
+    auto ops = operateurs.verrou_ecriture();
+    enregistre_operateurs_basiques(*this, *ops);
 
-	if (options.coulisse == TypeCoulisse::C) {
-		coulisse = memoire::loge<CoulisseC>("CoulisseC");
-	}
-	else if (options.coulisse == TypeCoulisse::LLVM) {
-		coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
-	}
-	else if (options.coulisse == TypeCoulisse::ASM) {
-		coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
-	}
-	else {
-		assert(false);
-	}
+    if (options.coulisse == TypeCoulisse::C) {
+        coulisse = memoire::loge<CoulisseC>("CoulisseC");
+    }
+    else if (options.coulisse == TypeCoulisse::LLVM) {
+        coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+    }
+    else if (options.coulisse == TypeCoulisse::ASM) {
+        coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
+    }
+    else {
+        assert(false);
+    }
 }
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-	if (options.coulisse == TypeCoulisse::C) {
-		auto c = dynamic_cast<CoulisseC *>(coulisse);
-		memoire::deloge("CoulisseC", c);
-		coulisse = nullptr;
-	}
-	else if (options.coulisse == TypeCoulisse::LLVM) {
-		auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-		memoire::deloge("CoulisseLLVM", c);
-		coulisse = nullptr;
-	}
-	else if (options.coulisse == TypeCoulisse::ASM) {
-		auto c = dynamic_cast<CoulisseASM *>(coulisse);
-		memoire::deloge("CoulisseASM", c);
-		coulisse = nullptr;
-	}
+    if (options.coulisse == TypeCoulisse::C) {
+        auto c = dynamic_cast<CoulisseC *>(coulisse);
+        memoire::deloge("CoulisseC", c);
+        coulisse = nullptr;
+    }
+    else if (options.coulisse == TypeCoulisse::LLVM) {
+        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
+        memoire::deloge("CoulisseLLVM", c);
+        coulisse = nullptr;
+    }
+    else if (options.coulisse == TypeCoulisse::ASM) {
+        auto c = dynamic_cast<CoulisseASM *>(coulisse);
+        memoire::deloge("CoulisseASM", c);
+        coulisse = nullptr;
+    }
 }
 
-Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, kuri::chaine_statique chemin)
+Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
+                                               IdentifiantCode *nom_module,
+                                               kuri::chaine_statique chemin)
 {
-	auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
+    auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
 
-	auto modules_ = modules.verrou_ecriture();
+    auto modules_ = modules.verrou_ecriture();
 
-	POUR_TABLEAU_PAGE ((*modules_)) {
-		if (it.donnees_constantes == donnees_module) {
-			return &it;
-		}
-	}
+    POUR_TABLEAU_PAGE ((*modules_)) {
+        if (it.donnees_constantes == donnees_module) {
+            return &it;
+        }
+    }
 
-	return modules_->ajoute_element(donnees_module);
+    return modules_->ajoute_element(donnees_module);
 }
 
 Module *EspaceDeTravail::module(const IdentifiantCode *nom_module) const
 {
-	auto modules_ = modules.verrou_lecture();
-	POUR_TABLEAU_PAGE ((*modules_)) {
-		if (it.nom() == nom_module) {
-			return const_cast<Module *>(&it);
-		}
-	}
+    auto modules_ = modules.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*modules_)) {
+        if (it.nom() == nom_module) {
+            return const_cast<Module *>(&it);
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
-ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, kuri::chaine_statique nom_fichier, kuri::chaine_statique chemin, bool importe_kuri)
+ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(
+    dls::outils::Synchrone<SystemeModule> &sys_module,
+    Module *module,
+    kuri::chaine_statique nom_fichier,
+    kuri::chaine_statique chemin,
+    bool importe_kuri)
 {
-	auto donnees_fichier = sys_module->trouve_ou_cree_fichier(nom_fichier, chemin);
+    auto donnees_fichier = sys_module->trouve_ou_cree_fichier(nom_fichier, chemin);
 
-	auto fichiers_ = fichiers.verrou_ecriture();
+    auto fichiers_ = fichiers.verrou_ecriture();
 
-	/* fait de la place la table */
-	table_fichiers.redimensionne(donnees_fichier->id + 1, nullptr);
+    /* fait de la place la table */
+    table_fichiers.redimensionne(donnees_fichier->id + 1, nullptr);
 
-	if (table_fichiers[donnees_fichier->id] != nullptr) {
-		return FichierExistant(*table_fichiers[donnees_fichier->id]);
-	}
+    if (table_fichiers[donnees_fichier->id] != nullptr) {
+        return FichierExistant(*table_fichiers[donnees_fichier->id]);
+    }
 
-	auto fichier = fichiers_->ajoute_element(donnees_fichier);
+    auto fichier = fichiers_->ajoute_element(donnees_fichier);
 
-	if (importe_kuri && module->nom() != ID::Kuri) {
-		assert(module_kuri);
-		fichier->modules_importes.insere(module_kuri);
-	}
+    if (importe_kuri && module->nom() != ID::Kuri) {
+        assert(module_kuri);
+        fichier->modules_importes.insere(module_kuri);
+    }
 
-	fichier->module = module;
-	module->fichiers.ajoute(fichier);
+    fichier->module = module;
+    module->fichiers.ajoute(fichier);
 
-	table_fichiers[donnees_fichier->id] = fichier;
+    table_fichiers[donnees_fichier->id] = fichier;
 
-	return FichierNeuf(*fichier);
+    return FichierNeuf(*fichier);
 }
 
 Fichier *EspaceDeTravail::fichier(long index) const
 {
-	auto fichiers_ = fichiers.verrou_lecture();
-	return table_fichiers[index];
+    auto fichiers_ = fichiers.verrou_lecture();
+    return table_fichiers[index];
 }
 
 Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
 {
-	auto fichiers_ = fichiers.verrou_lecture();
+    auto fichiers_ = fichiers.verrou_lecture();
 
-	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (dls::vue_chaine_compacte(it.chemin()) == chemin) {
-			return const_cast<Fichier *>(&it);
-		}
-	}
+    POUR_TABLEAU_PAGE ((*fichiers_)) {
+        if (dls::vue_chaine_compacte(it.chemin()) == chemin) {
+            return const_cast<Fichier *>(&it);
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
+AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme,
+                                              const kuri::chaine &nom_fichier)
 {
-	std::unique_lock lock(mutex_atomes_fonctions);
-	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
-	return atome_fonc;
+    std::unique_lock lock(mutex_atomes_fonctions);
+    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
+    return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fonction, kuri::tableau<Atome *, int> &&params)
+AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme,
+                                              const kuri::chaine &nom_fonction,
+                                              kuri::tableau<Atome *, int> &&params)
 {
-	std::unique_lock lock(mutex_atomes_fonctions);
-	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
-	return atome_fonc;
+    std::unique_lock lock(mutex_atomes_fonctions);
+    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
+    return atome_fonc;
 }
 
 /* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
@@ -174,382 +182,404 @@ AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const kuri::
  * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
  * créer en préparation de la génération de la RI de son corps.
  */
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction *decl)
+AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice,
+                                                          NoeudDeclarationEnteteFonction *decl)
 {
-	std::unique_lock lock(mutex_atomes_fonctions);
+    std::unique_lock lock(mutex_atomes_fonctions);
 
-	if (decl->atome) {
-		return static_cast<AtomeFonction *>(decl->atome);
-	}
+    if (decl->atome) {
+        return static_cast<AtomeFonction *>(decl->atome);
+    }
 
-	SAUVEGARDE_ETAT(constructrice.fonction_courante);
+    SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
-	auto params = kuri::tableau<Atome *, int>();
-	params.reserve(decl->params.taille());
+    auto params = kuri::tableau<Atome *, int>();
+    params.reserve(decl->params.taille());
 
-	if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
-		auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
-		params.ajoute(atome);
-	}
+    if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
+        auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
+        params.ajoute(atome);
+    }
 
-	for (auto i = 0; i < decl->params.taille(); ++i) {
-		auto param = decl->parametre_entree(i);
-		auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
-		param->atome = atome;
-		params.ajoute(atome);
-	}
+    for (auto i = 0; i < decl->params.taille(); ++i) {
+        auto param = decl->parametre_entree(i);
+        auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
+        param->atome = atome;
+        params.ajoute(atome);
+    }
 
-	/* Pour les sorties multiples, les valeurs de sorties sont des accès de
-	 * membres du tuple, ainsi nous n'avons pas à compliquer la génération de
-	 * code ou sa simplification.
-	 */
+    /* Pour les sorties multiples, les valeurs de sorties sont des accès de
+     * membres du tuple, ainsi nous n'avons pas à compliquer la génération de
+     * code ou sa simplification.
+     */
 
-	auto param_sortie = decl->param_sortie;
-	auto atome_param_sortie = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
-	param_sortie->atome = atome_param_sortie;
+    auto param_sortie = decl->param_sortie;
+    auto atome_param_sortie = constructrice.cree_allocation(
+        decl, param_sortie->type, param_sortie->ident);
+    param_sortie->atome = atome_param_sortie;
 
-	if (decl->params_sorties.taille() > 1) {
-		auto index_membre = 0;
-		POUR (decl->params_sorties) {
-			it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(it, atome_param_sortie, index_membre++, true);
-		}
-	}
+    if (decl->params_sorties.taille() > 1) {
+        auto index_membre = 0;
+        POUR (decl->params_sorties) {
+            it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(
+                it, atome_param_sortie, index_membre++, true);
+        }
+    }
 
-	auto atome_fonc = fonctions.ajoute_element(decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
-	atome_fonc->type = normalise_type(typeuse, decl->type);
-	atome_fonc->est_externe = decl->est_externe;
-	atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
-	atome_fonc->decl = decl;
-	atome_fonc->param_sortie = atome_param_sortie;
-	atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
+    auto atome_fonc = fonctions.ajoute_element(
+        decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
+    atome_fonc->type = normalise_type(typeuse, decl->type);
+    atome_fonc->est_externe = decl->est_externe;
+    atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
+    atome_fonc->decl = decl;
+    atome_fonc->param_sortie = atome_param_sortie;
+    atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
 
-	decl->atome = atome_fonc;
+    decl->atome = atome_fonc;
 
-	return atome_fonc;
+    return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type)
+AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice,
+                                                               Type *type)
 {
-	std::unique_lock lock(mutex_atomes_fonctions);
+    std::unique_lock lock(mutex_atomes_fonctions);
 
-	if (type->fonction_init) {
-		return type->fonction_init;
-	}
+    if (type->fonction_init) {
+        return type->fonction_init;
+    }
 
-	auto nom_fonction = enchaine("initialise_", type);
+    auto nom_fonction = enchaine("initialise_", type);
 
-	SAUVEGARDE_ETAT(constructrice.fonction_courante);
+    SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
-	auto types_entrees = dls::tablet<Type *, 6>(1);
-	types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
+    auto types_entrees = dls::tablet<Type *, 6>(1);
+    types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
 
-	auto type_sortie = typeuse[TypeBase::RIEN];
+    auto type_sortie = typeuse[TypeBase::RIEN];
 
-	auto params = kuri::tableau<Atome *, int>(1);
-	params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
+    auto params = kuri::tableau<Atome *, int>(1);
+    params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
 
-	auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
+    auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
 
-	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-	atome_fonc->type = typeuse.type_fonction(types_entrees, type_sortie, false);
-	atome_fonc->param_sortie = param_sortie;
-	atome_fonc->enligne = true;
-	atome_fonc->sanstrace = true;
+    auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
+    atome_fonc->type = typeuse.type_fonction(types_entrees, type_sortie, false);
+    atome_fonc->param_sortie = param_sortie;
+    atome_fonc->enligne = true;
+    atome_fonc->sanstrace = true;
 
-	type->fonction_init = atome_fonc;
+    type->fonction_init = atome_fonc;
 
-	return atome_fonc;
+    return atome_fonc;
 }
 
-AtomeGlobale *EspaceDeTravail::cree_globale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante)
+AtomeGlobale *EspaceDeTravail::cree_globale(Type *type,
+                                            AtomeConstante *initialisateur,
+                                            bool est_externe,
+                                            bool est_constante)
 {
-	return globales.ajoute_element(typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
+    return globales.ajoute_element(
+        typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
 }
 
 void EspaceDeTravail::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
 {
-	auto table = table_globales.verrou_ecriture();
-	table->insere({ decl, atome });
+    auto table = table_globales.verrou_ecriture();
+    table->insere({decl, atome});
 }
 
 AtomeGlobale *EspaceDeTravail::trouve_globale(NoeudDeclaration *decl)
 {
-	auto table = table_globales.verrou_lecture();
-	auto iter = table->trouve(decl);
+    auto table = table_globales.verrou_lecture();
+    auto iter = table->trouve(decl);
 
-	if (iter != table->fin()) {
-		return iter->second;
-	}
+    if (iter != table->fin()) {
+        return iter->second;
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
 {
-	auto table = table_globales.verrou_ecriture();
-	auto iter = table->trouve(decl);
+    auto table = table_globales.verrou_ecriture();
+    auto iter = table->trouve(decl);
 
-	if (iter != table->fin()) {
-		return iter->second;
-	}
+    if (iter != table->fin()) {
+        return iter->second;
+    }
 
-	auto atome = cree_globale(decl->type, nullptr, false, false);
-	table->insere({ decl, atome });
+    auto atome = cree_globale(decl->type, nullptr, false, false);
+    table->insere({decl, atome});
 
-	return atome;
+    return atome;
 }
 
 long EspaceDeTravail::memoire_utilisee() const
 {
-	auto memoire = 0l;
+    auto memoire = 0l;
 
-	memoire += modules->memoire_utilisee();
-	memoire += fichiers->memoire_utilisee();
+    memoire += modules->memoire_utilisee();
+    memoire += fichiers->memoire_utilisee();
 
-	auto modules_ = modules.verrou_lecture();
-	POUR_TABLEAU_PAGE ((*modules_)) {
-		memoire += it.fichiers.taille() * taille_de(Fichier *);
-	}
+    auto modules_ = modules.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*modules_)) {
+        memoire += it.fichiers.taille() * taille_de(Fichier *);
+    }
 
-	auto fichiers_ = fichiers.verrou_lecture();
-	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		// les autres membres sont gérés dans rassemble_statistiques()
-		if (!it.modules_importes.est_stocke_dans_classe()) {
-			memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
-		}
-	}
+    auto fichiers_ = fichiers.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*fichiers_)) {
+        // les autres membres sont gérés dans rassemble_statistiques()
+        if (!it.modules_importes.est_stocke_dans_classe()) {
+            memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
+        }
+    }
 
-	return memoire;
+    return memoire;
 }
 
 void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
-	operateurs->rassemble_statistiques(stats);
-	graphe_dependance->rassemble_statistiques(stats);
-	typeuse.rassemble_statistiques(stats);
+    operateurs->rassemble_statistiques(stats);
+    graphe_dependance->rassemble_statistiques(stats);
+    typeuse.rassemble_statistiques(stats);
 
-	auto &stats_fichiers = stats.stats_fichiers;
-	auto fichiers_ = fichiers.verrou_lecture();
-	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		auto entree = EntreeFichier();
-		entree.nom = it.nom();
-		entree.temps_parsage = it.temps_analyse;
+    auto &stats_fichiers = stats.stats_fichiers;
+    auto fichiers_ = fichiers.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*fichiers_)) {
+        auto entree = EntreeFichier();
+        entree.nom = it.nom();
+        entree.temps_parsage = it.temps_analyse;
 
-		stats_fichiers.fusionne_entree(entree);
-	}
+        stats_fichiers.fusionne_entree(entree);
+    }
 
-	auto &stats_ri = stats.stats_ri;
+    auto &stats_ri = stats.stats_ri;
 
-	auto memoire_fonctions = fonctions.memoire_utilisee();
-	memoire_fonctions += fonctions.memoire_utilisee();
-	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
-	{
-		memoire_fonctions += it.params_entrees.taille_memoire();
-		memoire_fonctions += it.chunk.capacite;
-		memoire_fonctions += it.chunk.locales.taille_memoire();
-		memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
-	});
+    auto memoire_fonctions = fonctions.memoire_utilisee();
+    memoire_fonctions += fonctions.memoire_utilisee();
+    pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
+        memoire_fonctions += it.params_entrees.taille_memoire();
+        memoire_fonctions += it.chunk.capacite;
+        memoire_fonctions += it.chunk.locales.taille_memoire();
+        memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
+    });
 
-	stats_ri.fusionne_entree({ "fonctions", fonctions.taille(), memoire_fonctions });
-	stats_ri.fusionne_entree({ "globales", globales.taille(), globales.memoire_utilisee() });
+    stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
+    stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});
 }
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 {
-	return metaprogrammes->ajoute_element();
+    return metaprogrammes->ajoute_element();
 }
 
 void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-	nombre_taches_chargement += 1;
+    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
+    nombre_taches_chargement += 1;
 }
 
 void EspaceDeTravail::tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-	nombre_taches_lexage += 1;
+    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
+    nombre_taches_lexage += 1;
 }
 
 void EspaceDeTravail::tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-	nombre_taches_parsage += 1;
+    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
+    nombre_taches_parsage += 1;
 }
 
 void EspaceDeTravail::tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	if (phase > PhaseCompilation::PARSAGE_TERMINE) {
-		change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
-	}
+    if (phase > PhaseCompilation::PARSAGE_TERMINE) {
+        change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
+    }
 
-	nombre_taches_typage += 1;
+    nombre_taches_typage += 1;
 }
 
 void EspaceDeTravail::tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	if (phase > PhaseCompilation::TYPAGE_TERMINE) {
-		change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
-	}
+    if (phase > PhaseCompilation::TYPAGE_TERMINE) {
+        change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
+    }
 
-	nombre_taches_ri += 1;
+    nombre_taches_ri += 1;
 }
 
-void EspaceDeTravail::tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> &/*messagere*/)
+void EspaceDeTravail::tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
-	nombre_taches_optimisation += 1;
+    nombre_taches_optimisation += 1;
 }
 
-void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &/*messagere*/)
+void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
-	nombre_taches_execution += 1;
+    nombre_taches_execution += 1;
 }
 
-void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier)
+void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere,
+                                                Fichier *fichier)
 {
-	messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
+    messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
 
-	/* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
-	tache_lexage_ajoutee(messagere);
+    /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
+    tache_lexage_ajoutee(messagere);
 
-	nombre_taches_chargement -= 1;
+    nombre_taches_chargement -= 1;
 }
 
 void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	/* Une fois que nous lexer quelque chose, il faut le parser. */
-	tache_parsage_ajoutee(messagere);
-	nombre_taches_lexage -= 1;
+    /* Une fois que nous lexer quelque chose, il faut le parser. */
+    tache_parsage_ajoutee(messagere);
+    nombre_taches_lexage -= 1;
 }
 
 void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	nombre_taches_parsage -= 1;
+    nombre_taches_parsage -= 1;
 
-	if (parsage_termine()) {
-		change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
-	}
+    if (parsage_termine()) {
+        change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
+    }
 }
 
 void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	nombre_taches_typage -= 1;
+    nombre_taches_typage -= 1;
 
-	if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
-		change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
-	}
+    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
+        change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
+    }
 }
 
 void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	nombre_taches_ri -= 1;
+    nombre_taches_ri -= 1;
 
-	if (optimisations) {
-		tache_optimisation_ajoutee(messagere);
-	}
+    if (optimisations) {
+        tache_optimisation_ajoutee(messagere);
+    }
 
-	if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
-		change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
-	}
+    if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
+        phase == PhaseCompilation::TYPAGE_TERMINE) {
+        change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+    }
 }
 
 void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	nombre_taches_optimisation -= 1;
+    nombre_taches_optimisation -= 1;
 
-	if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
-		change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
-	}
+    if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
+        phase == PhaseCompilation::TYPAGE_TERMINE) {
+        change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+    }
 }
 
-void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> &/*messagere*/)
+void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
-	nombre_taches_execution -= 1;
+    nombre_taches_execution -= 1;
 }
 
 void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	change_de_phase(messagere, PhaseCompilation::APRES_GENERATION_OBJET);
+    change_de_phase(messagere, PhaseCompilation::APRES_GENERATION_OBJET);
 }
 
-void EspaceDeTravail::tache_liaison_executable_terminee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::tache_liaison_executable_terminee(
+    dls::outils::Synchrone<Messagere> &messagere)
 {
-	change_de_phase(messagere, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
+    change_de_phase(messagere, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
 }
 
 bool EspaceDeTravail::peut_generer_code_final() const
 {
-	if (phase != PhaseCompilation::GENERATION_CODE_TERMINEE) {
-		return false;
-	}
+    if (phase != PhaseCompilation::GENERATION_CODE_TERMINEE) {
+        return false;
+    }
 
-	if (nombre_taches_execution == 0) {
-		return true;
-	}
+    if (nombre_taches_execution == 0) {
+        return true;
+    }
 
-	if (nombre_taches_execution == 1 && metaprogramme) {
-		return true;
-	}
+    if (nombre_taches_execution == 1 && metaprogramme) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 bool EspaceDeTravail::parsage_termine() const
 {
-	return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 && nombre_taches_parsage == 0;
+    return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 &&
+           nombre_taches_parsage == 0;
 }
 
-void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase)
+void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+                                      PhaseCompilation nouvelle_phase)
 {
-	phase = nouvelle_phase;
-	messagere->ajoute_message_phase_compilation(this);
+    phase = nouvelle_phase;
+    messagere->ajoute_message_phase_compilation(this);
 }
 
 PhaseCompilation EspaceDeTravail::phase_courante() const
 {
-	return phase;
+    return phase;
 }
 
-void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const
+void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
+                                             kuri::chaine_statique message) const
 {
-	std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
+    std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
 }
 
-void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier, int ligne, kuri::chaine const &message) const
+void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
+                                             int ligne,
+                                             kuri::chaine const &message) const
 {
-	const Fichier *f = this->fichier({ chemin_fichier.pointeur(), chemin_fichier.taille() });
-	std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
+    const Fichier *f = this->fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
+    std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site, kuri::chaine_statique message, erreur::Genre genre) const
+Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
+                                        kuri::chaine_statique message,
+                                        erreur::Genre genre) const
 {
-	possede_erreur = true;
+    possede_erreur = true;
 
-	if (!site) {
-		return rapporte_erreur_sans_site(message, genre);
-	}
+    if (!site) {
+        return rapporte_erreur_sans_site(message, genre);
+    }
 
-	return ::rapporte_erreur(this, site, message, genre);
+    return ::rapporte_erreur(this, site, message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier, int ligne, kuri::chaine const &message) const
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier,
+                                        int ligne,
+                                        kuri::chaine const &message) const
 {
-	possede_erreur = true;
-	return ::rapporte_erreur(this, fichier, ligne, message);
+    possede_erreur = true;
+    return ::rapporte_erreur(this, fichier, ligne, message);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message, erreur::Genre genre) const
+Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
+                                                  erreur::Genre genre) const
 {
-	possede_erreur = true;
-	return ::rapporte_erreur_sans_site(this, message, genre);
+    possede_erreur = true;
+    return ::rapporte_erreur_sans_site(this, message, genre);
 }
 
 void EspaceDeTravail::imprime_programme() const
 {
-	std::ofstream os;
-	os.open("/tmp/ri_programme.kr");
+    std::ofstream os;
+    os.open("/tmp/ri_programme.kr");
 
-	POUR_TABLEAU_PAGE(fonctions) {
-		imprime_fonction(&it, os);
-	}
+    POUR_TABLEAU_PAGE (fonctions) {
+        imprime_fonction(&it, os);
+    }
 }

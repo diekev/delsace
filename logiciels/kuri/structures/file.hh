@@ -1,9 +1,9 @@
 template <typename T>
 struct file {
-private:
+  private:
     tableau<T> donnees{};
 
-public:
+  public:
     void enfile(T &&valeur)
     {
         donnees.ajoute(std::move(valeur));
@@ -44,7 +44,7 @@ public:
         return taille() == 0;
     }
 
-private:
+  private:
     void comprime()
     {
         if (curseur <= (donnees.taille() / 2)) {

@@ -33,4 +33,5 @@ kuri::chaine broye_nom_simple(kuri::chaine_statique const &nom);
 
 kuri::chaine const &nom_broye_type(Type *type);
 
-kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl, kuri::chaine const &nom_module);
+kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
+                                kuri::chaine const &nom_module);

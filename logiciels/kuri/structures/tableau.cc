@@ -23,4 +23,3 @@
  */
 
 #include "tableau.hh"
-

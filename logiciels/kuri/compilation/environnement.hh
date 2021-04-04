@@ -30,4 +30,5 @@ enum class ArchitectureCible : int;
 
 void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri);
 
-void compile_objet_r16(std::filesystem::path const &chemin_racine_kuri, ArchitectureCible architecture_cible);
+void compile_objet_r16(std::filesystem::path const &chemin_racine_kuri,
+                       ArchitectureCible architecture_cible);

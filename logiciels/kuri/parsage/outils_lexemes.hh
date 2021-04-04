@@ -28,9 +28,9 @@ enum class GenreLexeme : unsigned int;
 struct Lexeme;
 
 struct PositionLexeme {
-	long index_ligne = 0;
-	long numero_ligne = 0;
-	long pos = 0;
+    long index_ligne = 0;
+    long numero_ligne = 0;
+    long pos = 0;
 };
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);

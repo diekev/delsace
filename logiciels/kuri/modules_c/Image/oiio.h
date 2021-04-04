@@ -1,5 +1,5 @@
-// utilisation d'une entête pour ajouter un niveau d'indirection car GCC ne supprime undef avec le pragam
-// donc nous utilisons pragma GCC system_header
+// utilisation d'une entête pour ajouter un niveau d'indirection car GCC ne supprime undef avec le
+// pragam donc nous utilisons pragma GCC system_header
 // https://stackoverflow.com/questions/38831058/wundef-is-not-being-ignored-with-pragma-in-g
 
 #pragma GCC diagnostic push

@@ -33,50 +33,44 @@ struct NoeudExpression;
 /* ************************************************************************** */
 
 enum class TypeExpression : char {
-	INVALIDE,
-	ENTIER,
-	REEL,
+    INVALIDE,
+    ENTIER,
+    REEL,
 };
 
 struct ValeurExpression {
-	union {
-		long entier = 0;
-		double reel;
-		bool condition;
-	};
+    union {
+        long entier = 0;
+        double reel;
+        bool condition;
+    };
 
-	TypeExpression type{};
+    TypeExpression type{};
 
-	ValeurExpression() = default;
+    ValeurExpression() = default;
 
-	ValeurExpression(long e)
-		: entier(e)
-		, type(TypeExpression::ENTIER)
-	{}
+    ValeurExpression(long e) : entier(e), type(TypeExpression::ENTIER)
+    {
+    }
 
-	ValeurExpression(double r)
-		: reel(r)
-		, type(TypeExpression::REEL)
-	{}
+    ValeurExpression(double r) : reel(r), type(TypeExpression::REEL)
+    {
+    }
 
-	ValeurExpression(bool c)
-		: condition(c)
-		, type(TypeExpression::ENTIER)
-	{}
+    ValeurExpression(bool c) : condition(c), type(TypeExpression::ENTIER)
+    {
+    }
 };
 
 struct ResultatExpression {
-	ValeurExpression valeur{};
-	bool est_errone = true;
-	NoeudExpression *noeud_erreur = nullptr;
-	const char *message_erreur = nullptr;
+    ValeurExpression valeur{};
+    bool est_errone = true;
+    NoeudExpression *noeud_erreur = nullptr;
+    const char *message_erreur = nullptr;
 
-	ResultatExpression() = default;
+    ResultatExpression() = default;
 
-	COPIE_CONSTRUCT(ResultatExpression);
+    COPIE_CONSTRUCT(ResultatExpression);
 };
 
-ResultatExpression evalue_expression(
-		EspaceDeTravail *espace,
-		NoeudBloc *bloc,
-		NoeudExpression *b);
+ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, NoeudExpression *b);
