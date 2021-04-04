@@ -1249,6 +1249,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 			else {
 				auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
+				genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
 				cree_branche(noeud, label);
 			}
 
@@ -1259,6 +1260,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_continue();
 			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
 			auto label = boucle_controlee->comme_boucle()->label_pour_continue;
+			genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
 			cree_branche(noeud, label);
 			break;
 		}
@@ -1267,6 +1269,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_reprends();
 			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
 			auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
+			genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
 			cree_branche(noeud, label);
 			break;
 		}
