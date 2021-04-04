@@ -180,7 +180,7 @@ private:
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 	void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 
-	void transforme_valeur(NoeudExpression *noued, Atome *valeur, const TransformationType &transformation, Atome *place);
+	void transforme_valeur(NoeudExpression *noeud, Atome *valeur, const TransformationType &transformation, Atome *place);
 
 	AtomeConstante *cree_info_type(Type *type);
 	AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
