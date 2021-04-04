@@ -516,16 +516,6 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	return accede_index_constants.ajoute_element(type, accede, index);
 }
 
-void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite)
-{
-	insts_continue_arrete.ajoute({ ident, label_continue, label_reprends, label_arrete, label_arrete_implicite });
-}
-
-void ConstructriceRI::depile_controle_boucle()
-{
-	insts_continue_arrete.pop_back();
-}
-
 void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
 	if (noeud->substitution) {
@@ -1210,7 +1200,10 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				label_pour_arret = label_apres_boucle;
 			}
 
-			empile_controle_boucle(boucle->ident, label_pour_continue, label_boucle, label_pour_arret, label_pour_arret_implicite);
+			boucle->label_pour_arrete = label_pour_arret;
+			boucle->label_pour_arrete_implicite = label_pour_arret_implicite;
+			boucle->label_pour_continue = label_pour_continue;
+			boucle->label_pour_reprends = label_boucle;
 
 			if (boucle->bloc_pre) {
 				genere_ri_pour_noeud(boucle->bloc_pre);
@@ -1235,10 +1228,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				cree_branche(noeud, label_boucle);
 			}
 
-			/* dépile les controles de suites, afin qu'ils n'interfèrent pas avec
-			 * des controles sensés être pour la boucle parente */
-			depile_controle_boucle();
-
 			if (boucle->bloc_sansarret) {
 				insere_label(label_pour_sansarret);
 				genere_ri_pour_noeud(boucle->bloc_sansarret);
@@ -1254,50 +1243,35 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
+		case GenreNoeud::INSTRUCTION_ARRETE:
 		{
-			auto inst = noeud->comme_controle_boucle();
-			auto label = static_cast<InstructionLabel *>(nullptr);
+			auto inst = noeud->comme_arrete();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
 
-			if (inst->expression == nullptr) {
-				if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-					label = insts_continue_arrete.back().label_continue;
-				}
-				else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
-					label = insts_continue_arrete.back().label_reprends;
-				}
-				else if (inst->possede_drapeau(EST_IMPLICITE)) {
-					label = insts_continue_arrete.back().label_arrete_implicite;
-				}
-				else {
-					label = insts_continue_arrete.back().label_arrete;
-				}
+			if (inst->possede_drapeau(EST_IMPLICITE)) {
+				auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
+				cree_branche(noeud, label);
 			}
 			else {
-				auto ident = inst->expression->ident;
-
-				POUR (insts_continue_arrete) {
-					if (it.ident != ident) {
-						continue;
-					}
-
-					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-						label = it.label_continue;
-					}
-					else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
-						label = it.label_reprends;
-					}
-					else if (inst->possede_drapeau(EST_IMPLICITE)) {
-						label = it.label_arrete_implicite;
-					}
-					else {
-						label = it.label_arrete;
-					}
-
-					break;
-				}
+				auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
+				cree_branche(noeud, label);
 			}
 
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_CONTINUE:
+		{
+			auto inst = noeud->comme_continue();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
+			auto label = boucle_controlee->comme_boucle()->label_pour_continue;
+			cree_branche(noeud, label);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_REPRENDS:
+		{
+			auto inst = noeud->comme_reprends();
+			auto boucle_controlee = inst->boucle_controlee->substitution ? inst->boucle_controlee->substitution : inst->boucle_controlee;
+			auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
 			cree_branche(noeud, label);
 			break;
 		}

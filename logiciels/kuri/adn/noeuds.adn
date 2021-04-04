@@ -104,12 +104,37 @@ struct NoeudInstructionCharge : NoeudExpression {
 	NoeudExpression * expression [code enfant]
 }
 
-struct NoeudInstructionControle : NoeudExpression {
-	@genre INSTRUCTION_CONTINUE_ARRETE
-	@comme controle_boucle
-	@code  NoeudCodeContinueArrête
+struct NoeudInstructionArrête : NoeudExpression {
+	@genre INSTRUCTION_ARRÊTE
+	@comme arrête
+	@code  NoeudCodeInstructionArrête
 
-	NoeudExpression * expression [code enfant]
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionContinue : NoeudExpression {
+	@genre INSTRUCTION_CONTINUE
+	@comme continue
+	@code  NoeudCodeInstructionContinue
+
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
+}
+
+struct NoeudInstructionReprends : NoeudExpression {
+	@genre INSTRUCTION_REPRENDS
+	@comme reprends
+	@code  NoeudCodeInstructionReprends
+
+	NoeudExpression *expression [code enfant]
+
+	/* La boucle qui est controlée par cette instruction. */
+	NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {
@@ -501,6 +526,12 @@ struct NoeudBoucle : NoeudExpression {
 	/* blocs venant directement du bloc pour */
 	NoeudBloc *bloc_sansarret
 	NoeudBloc *bloc_sinon
+
+	/* Pour le ciblage des instructions de controle. */
+	InstructionLabel *label_pour_arrete
+	InstructionLabel *label_pour_arrete_implicite
+	InstructionLabel *label_pour_continue
+	InstructionLabel *label_pour_reprends
 }
 
 struct NoeudRépète : NoeudBoucle {

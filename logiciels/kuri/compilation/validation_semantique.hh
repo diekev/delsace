@@ -129,6 +129,10 @@ struct ContexteValidationCode {
 	ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
 	ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
 	ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr, NoeudBloc *bloc_recherche);
+
+	template <typename TypeControleBoucle>
+	ResultatValidation valide_controle_boucle(TypeControleBoucle *inst);
+
 	ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);

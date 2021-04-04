@@ -43,8 +43,6 @@
 - pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
 - déplace NoeudExpression::unite dans NoeudDeclaration, NoeudExecution ?
 - utilisation d'un ramasse miette pour les métaprogrammes ?
-- stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
--- instructions continue/arrête/reprends devront définir sur quelles boucles elles opèrent : => ajout d'un noeud syntaxique
 - trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels

@@ -1273,34 +1273,17 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
+		case GenreNoeud::INSTRUCTION_ARRETE:
 		{
-			auto inst = noeud->comme_controle_boucle();
-			auto chaine_var = inst->expression == nullptr ? nullptr : inst->expression->ident;
-			auto ok = bloc_est_dans_boucle(noeud->bloc_parent, chaine_var);
-
-			if (ok == false) {
-				if (chaine_var == nullptr) {
-					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-						rapporte_erreur("'continue' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
-						return ResultatValidation::Erreur;
-					}
-					else if (inst->lexeme->genre == GenreLexeme::ARRETE) {
-						rapporte_erreur("'arrête' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
-						return ResultatValidation::Erreur;
-					}
-					else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
-						rapporte_erreur("'reprends' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
-						return ResultatValidation::Erreur;
-					}
-					return ResultatValidation::Erreur;
-				}
-
-				rapporte_erreur("Variable inconnue", inst->expression, erreur::Genre::VARIABLE_INCONNUE);
-				return ResultatValidation::Erreur;
-			}
-
-			break;
+			return valide_controle_boucle(noeud->comme_arrete());
+		}
+		case GenreNoeud::INSTRUCTION_CONTINUE:
+		{
+			return valide_controle_boucle(noeud->comme_continue());
+		}
+		case GenreNoeud::INSTRUCTION_REPRENDS:
+		{
+			return valide_controle_boucle(noeud->comme_reprends());
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
@@ -1942,8 +1925,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 				auto di = derniere_instruction(inst->bloc);
 
-				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
-					rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter", inst);
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_ARRETE, GenreNoeud::INSTRUCTION_CONTINUE, GenreNoeud::INSTRUCTION_REPRENDS)) {
+					rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans une boucle, la continuer, l'arrêter, ou la reprendre", inst);
 					return ResultatValidation::Erreur;
 				}
 			}
@@ -4118,6 +4101,26 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 		inst->donnees_exprs.ajoute(std::move(it));
 	}
 
+	return ResultatValidation::OK;
+}
+
+template <typename TypeControleBoucle>
+ResultatValidation ContexteValidationCode::valide_controle_boucle(TypeControleBoucle *inst)
+{
+	auto chaine_var = inst->expression == nullptr ? nullptr : inst->expression->ident;
+	auto boucle = bloc_est_dans_boucle(inst->bloc_parent, chaine_var);
+
+	if (!boucle) {
+		if (!chaine_var) {
+			espace->rapporte_erreur(inst, "« continue » en dehors d'une boucle", erreur::Genre::CONTROLE_INVALIDE);
+			return ResultatValidation::Erreur;
+		}
+
+		espace->rapporte_erreur(inst->expression, "La variable ne réfère à aucune boucle", erreur::Genre::VARIABLE_INCONNUE);
+		return ResultatValidation::Erreur;
+	}
+
+	inst->boucle_controlee = boucle;
 	return ResultatValidation::OK;
 }
 

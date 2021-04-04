@@ -1196,8 +1196,6 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme, OperateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
 	NoeudExpressionMembre *cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
 	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
-	NoeudExpression *cree_arrete(const Lexeme *lexeme);
-	NoeudExpression *cree_continue(const Lexeme *lexeme);
 	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeCompose *type);
 )";
 
