@@ -27,18 +27,18 @@
 extern "C" {
 
 enum ResultatOperation {
-	OK,
-	IMAGE_INEXISTANTE,
-	TYPE_IMAGE_NON_SUPPORTE,
+    OK,
+    IMAGE_INEXISTANTE,
+    TYPE_IMAGE_NON_SUPPORTE,
 };
 
 struct Image {
-	float *donnees;
-	long taille_donnees;
+    float *donnees;
+    long taille_donnees;
 
-	int largeur;
-	int hauteur;
-	int nombre_composants;
+    int largeur;
+    int hauteur;
+    int nombre_composants;
 };
 
 ResultatOperation IMG_ouvre_image(const char *chemin, Image *image);
@@ -47,6 +47,6 @@ ResultatOperation IMG_ecris_image(const char *chemin, Image *image);
 
 void IMG_detruit_image(Image *image);
 
-void IMG_calcul_empreinte_floue(const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat);
-
+void IMG_calcul_empreinte_floue(
+    const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat);
 }

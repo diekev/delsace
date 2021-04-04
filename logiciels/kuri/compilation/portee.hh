@@ -39,21 +39,18 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl);
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud);
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(
-		NoeudBloc *bloc,
-		IdentifiantCode *ident,
-		Fichier *fichier);
+NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
+                                             IdentifiantCode *ident,
+                                             Fichier *fichier);
 
-void trouve_declarations_dans_bloc(
-		dls::tablet<NoeudDeclaration *, 10> &declarations,
-		NoeudBloc *bloc,
-		IdentifiantCode *ident);
+void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarations,
+                                   NoeudBloc *bloc,
+                                   IdentifiantCode *ident);
 
-void trouve_declarations_dans_bloc_ou_module(
-		dls::tablet<NoeudDeclaration *, 10> &declarations,
-		NoeudBloc *bloc,
-		IdentifiantCode *ident,
-		Fichier *fichier);
+void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+                                             NoeudBloc *bloc,
+                                             IdentifiantCode *ident,
+                                             Fichier *fichier);
 
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle);
 

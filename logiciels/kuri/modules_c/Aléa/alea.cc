@@ -29,48 +29,47 @@
 extern "C" {
 
 struct GNA {
-	std::mt19937 mt;
+    std::mt19937 mt;
 };
 
 GNA *ALEA_cree_gna(unsigned graine)
 {
-	auto gna = static_cast<GNA *>(malloc(sizeof(GNA)));
-	gna->mt = std::mt19937(graine);
-	return gna;
+    auto gna = static_cast<GNA *>(malloc(sizeof(GNA)));
+    gna->mt = std::mt19937(graine);
+    return gna;
 }
 
 void ALEA_reseme_gna(GNA *gna, unsigned graine)
 {
-	gna->mt.seed(graine);
+    gna->mt.seed(graine);
 }
 
 void ALEA_detruit_gna(GNA *gna)
 {
-	free(gna);
+    free(gna);
 }
 
 float ALEA_uniforme_r32(GNA *gna, float min, float max)
 {
-	auto dist = std::uniform_real_distribution<float>(min, max);
-	return dist(gna->mt);
+    auto dist = std::uniform_real_distribution<float>(min, max);
+    return dist(gna->mt);
 }
 
 double ALEA_uniforme_r64(GNA *gna, double min, double max)
 {
-	auto dist = std::uniform_real_distribution<double>(min, max);
-	return dist(gna->mt);
+    auto dist = std::uniform_real_distribution<double>(min, max);
+    return dist(gna->mt);
 }
 
 float ALEA_normale_r32(GNA *gna, float moyenne, float ecart)
 {
-	auto dist = std::normal_distribution<float>(moyenne, ecart);
-	return dist(gna->mt);
+    auto dist = std::normal_distribution<float>(moyenne, ecart);
+    return dist(gna->mt);
 }
 
 double ALEA_normale_r64(GNA *gna, double moyenne, double ecart)
 {
-	auto dist = std::normal_distribution<double>(moyenne, ecart);
-	return dist(gna->mt);
+    auto dist = std::normal_distribution<double>(moyenne, ecart);
+    return dist(gna->mt);
 }
-
 }

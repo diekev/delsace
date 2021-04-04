@@ -47,16 +47,14 @@
  * @{
  */
 
-
 /**
  * Simple structure that describes text properties.
  */
-typedef struct markup_t
-{
+typedef struct markup_t {
     /**
      * A font family name such as "normal", "sans", "serif" or "monospace".
      */
-    char * family;
+    char *family;
 
     /**
      * Font size.
@@ -136,15 +134,14 @@ typedef struct markup_t
     /**
      * Pointer on the corresponding font (family/size/bold/italic)
      */
-    texture_font_t * font;
+    texture_font_t *font;
 
 } markup_t;
 
 /**
-  * Default markup
-  */
+ * Default markup
+ */
 extern markup_t default_markup;
-
 
 /** @} */
 

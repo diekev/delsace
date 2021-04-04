@@ -31,15 +31,15 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "broyage.hh"
-#include "espace_de_travail.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "typage.hh"
 
 static constexpr const char *RSP = "rsp";
 
 struct GeneratriceCodeASM {
-	dls::dico<Atome const *, kuri::chaine> table_valeurs{};
-	dls::dico<Atome const *, kuri::chaine> table_globales{};
+    dls::dico<Atome const *, kuri::chaine> table_valeurs{};
+    dls::dico<Atome const *, kuri::chaine> table_globales{};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -48,24 +48,28 @@ struct GeneratriceCodeASM {
     // index pour les rendre uniques
     int index_chaine = 0;
 
-	int taille_allouee = 0;
+    int taille_allouee = 0;
 
     GeneratriceCodeASM(EspaceDeTravail &espace);
 
     COPIE_CONSTRUCT(GeneratriceCodeASM);
 
-	kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
+    kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void genere_code(tableau_page<AtomeGlobale> const &globales, kuri::tableau<AtomeFonction *> const &fonctions, Enchaineuse &os);
+    void genere_code(tableau_page<AtomeGlobale> const &globales,
+                     kuri::tableau<AtomeFonction *> const &fonctions,
+                     Enchaineuse &os);
 };
 
-GeneratriceCodeASM::GeneratriceCodeASM(EspaceDeTravail &espace)
-    : m_espace(espace)
-{}
+GeneratriceCodeASM::GeneratriceCodeASM(EspaceDeTravail &espace) : m_espace(espace)
+{
+}
 
-kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
+kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
+                                                        Enchaineuse &os,
+                                                        bool pour_globale)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
@@ -117,15 +121,15 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome, Enchaineus
                         }
                         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                         {
-							return enchaine(valeur_const->valeur.valeur_entiere);
+                            return enchaine(valeur_const->valeur.valeur_entiere);
                         }
                         case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
                         {
-							return enchaine(valeur_const->valeur.valeur_booleenne);
+                            return enchaine(valeur_const->valeur.valeur_booleenne);
                         }
                         case AtomeValeurConstante::Valeur::Genre::CARACTERE:
                         {
-							return enchaine(valeur_const->valeur.valeur_entiere);
+                            return enchaine(valeur_const->valeur.valeur_entiere);
                         }
                         case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
                         {
@@ -171,20 +175,20 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::ALLOCATION:
         {
-			/* il faut faire de la place sur la pile
-			 * @Incomplet : vérifie l'alignement.
-			 * @Incomplet : fusionne plusieurs telles instructions.
-			 * @Incomplet : assigne l'adresse à l'atome */
-			auto type_pointeur = inst->type->comme_pointeur();
-			taille_allouee += static_cast<int>(type_pointeur->type_pointe->taille_octet);
-			os << "  sub " << RSP << ' ' << type_pointeur->type_pointe->taille_octet << '\n';
+            /* il faut faire de la place sur la pile
+             * @Incomplet : vérifie l'alignement.
+             * @Incomplet : fusionne plusieurs telles instructions.
+             * @Incomplet : assigne l'adresse à l'atome */
+            auto type_pointeur = inst->type->comme_pointeur();
+            taille_allouee += static_cast<int>(type_pointeur->type_pointe->taille_octet);
+            os << "  sub " << RSP << ' ' << type_pointeur->type_pointe->taille_octet << '\n';
             break;
         }
         case Instruction::Genre::APPEL:
         {
             auto appel = inst->comme_appel();
 
-			/* @Incomplet: chargement des paramètres dans les registres */
+            /* @Incomplet: chargement des paramètres dans les registres */
             POUR (appel->args) {
                 genere_code_pour_atome(it, os, false);
             }
@@ -207,14 +211,14 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::CHARGE_MEMOIRE:
         {
-			/* @Incomplet: charge depuis où? */
-			os << "  mov \n";
+            /* @Incomplet: charge depuis où? */
+            os << "  mov \n";
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
         {
-			/* @Incomplet: met où? */
-			os << "  mov \n";
+            /* @Incomplet: met où? */
+            os << "  mov \n";
             break;
         }
         case Instruction::Genre::LABEL:
@@ -225,13 +229,13 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::OPERATION_UNAIRE:
         {
-			auto inst_un = inst->comme_op_unaire();
+            auto inst_un = inst->comme_op_unaire();
 
             switch (inst_un->op) {
                 case OperateurUnaire::Genre::Positif:
                 {
-					genere_code_pour_atome(inst_un->valeur, os, false);
-					break;
+                    genere_code_pour_atome(inst_un->valeur, os, false);
+                    break;
                 }
                 case OperateurUnaire::Genre::Invalide:
                 {
@@ -259,33 +263,33 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::OPERATION_BINAIRE:
         {
-			auto inst_bin = inst->comme_op_binaire();
+            auto inst_bin = inst->comme_op_binaire();
 
-			/* @Incomplet: charge dans les registres */
+            /* @Incomplet: charge dans les registres */
             switch (inst_bin->op) {
                 case OperateurBinaire::Genre::Addition:
                 case OperateurBinaire::Genre::Addition_Reel:
                 {
-					os << "  add \n";
+                    os << "  add \n";
                     break;
                 }
                 case OperateurBinaire::Genre::Soustraction:
                 case OperateurBinaire::Genre::Soustraction_Reel:
                 {
-					os << "  sub \n";
+                    os << "  sub \n";
                     break;
                 }
                 case OperateurBinaire::Genre::Multiplication:
                 case OperateurBinaire::Genre::Multiplication_Reel:
                 {
-					os << "  mul \n";
+                    os << "  mul \n";
                     break;
                 }
                 case OperateurBinaire::Genre::Division_Naturel:
                 case OperateurBinaire::Genre::Division_Relatif:
                 case OperateurBinaire::Genre::Division_Reel:
                 {
-					os << "  div \n";
+                    os << "  div \n";
                     break;
                 }
                 case OperateurBinaire::Genre::Reste_Naturel:
@@ -348,10 +352,10 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
                 {
                     break;
                 }
-				case OperateurBinaire::Genre::Indexage:
-				{
-					break;
-				}
+                case OperateurBinaire::Genre::Indexage:
+                {
+                    break;
+                }
                 case OperateurBinaire::Genre::Invalide:
                 {
                     break;
@@ -362,65 +366,67 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
         }
         case Instruction::Genre::RETOUR:
         {
-			auto inst_retour = inst->comme_retour();
+            auto inst_retour = inst->comme_retour();
 
-			/* @Incomplet: restore la pile */
-			os << "  add " << RSP << ' ' << taille_allouee << '\n';
+            /* @Incomplet: restore la pile */
+            os << "  add " << RSP << ' ' << taille_allouee << '\n';
 
-			os << "  ret ";
+            os << "  ret ";
 
-			if (inst_retour->valeur != nullptr) {
-				os << genere_code_pour_atome(inst_retour->valeur, os, false);
+            if (inst_retour->valeur != nullptr) {
+                os << genere_code_pour_atome(inst_retour->valeur, os, false);
             }
 
-			os << "\n";
+            os << "\n";
             break;
         }
         case Instruction::Genre::ACCEDE_INDEX:
         {
-			/* @Incomplet: [ptr + décalage] */
+            /* @Incomplet: [ptr + décalage] */
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
         {
-			/* @Incomplet: [ptr + décalage] */
+            /* @Incomplet: [ptr + décalage] */
             break;
         }
         case Instruction::Genre::TRANSTYPE:
         {
-			/* @Incomplet: les types de transtypage */
+            /* @Incomplet: les types de transtypage */
             break;
         }
     }
 }
 
-void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales, const kuri::tableau<AtomeFonction *> &fonctions, Enchaineuse &os)
+void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
+                                     const kuri::tableau<AtomeFonction *> &fonctions,
+                                     Enchaineuse &os)
 {
     // prédéclare les globales pour éviter les problèmes de références cycliques
-//    POUR_TABLEAU_PAGE (globales) {
-//        auto valeur_globale = &it;
+    //    POUR_TABLEAU_PAGE (globales) {
+    //        auto valeur_globale = &it;
 
-//        if (!valeur_globale->est_constante) {
-//            continue;
-//        }
+    //        if (!valeur_globale->est_constante) {
+    //            continue;
+    //        }
 
-//        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+    //        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
-//        os << "static const " << nom_broye_type(type) << ' ';
+    //        os << "static const " << nom_broye_type(type) << ' ';
 
-//        if (valeur_globale->ident) {
-//            auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
-//            os << nom_globale;
-//            table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
-//        }
-//        else {
-//            auto nom_globale = "globale" + dls::vers_chaine(valeur_globale);
-//            os << nom_globale;
-//            table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
-//        }
+    //        if (valeur_globale->ident) {
+    //            auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
+    //            os << nom_globale;
+    //            table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+    //        }
+    //        else {
+    //            auto nom_globale = "globale" + dls::vers_chaine(valeur_globale);
+    //            os << nom_globale;
+    //            table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+    //        }
 
-//        os << ";\n";
-//   }
+    //        os << ";\n";
+    //   }
 
     os << "section .text\n";
 
@@ -441,8 +447,8 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
     }
 
     // définis ensuite les globales
-//    POUR_TABLEAU_PAGE (globales) {
-//    }
+    //    POUR_TABLEAU_PAGE (globales) {
+    //    }
 
     // définis enfin les fonction
     POUR (fonctions) {
@@ -454,30 +460,30 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
             continue;
         }
 
-//        if (!it->sanstrace) {
-//            os << "INITIALISE_TRACE_APPEL(\"";
+        //        if (!it->sanstrace) {
+        //            os << "INITIALISE_TRACE_APPEL(\"";
 
-//            if (it->lexeme != nullptr) {
-//                auto fichier = m_espace.fichier(it->lexeme->fichier);
-//                os << it->lexeme->chaine << "\", "
-//                   << it->lexeme->chaine.taille() << ", \""
-//                   << fichier->nom << ".kuri\", "
-//                   << fichier->nom.taille() + 5 << ", ";
-//            }
-//            else {
-//                os << it->nom << "\", "
-//                   << it->nom.taille() << ", "
-//                   << "\"???\", 3, ";
-//            }
+        //            if (it->lexeme != nullptr) {
+        //                auto fichier = m_espace.fichier(it->lexeme->fichier);
+        //                os << it->lexeme->chaine << "\", "
+        //                   << it->lexeme->chaine.taille() << ", \""
+        //                   << fichier->nom << ".kuri\", "
+        //                   << fichier->nom.taille() + 5 << ", ";
+        //            }
+        //            else {
+        //                os << it->nom << "\", "
+        //                   << it->nom.taille() << ", "
+        //                   << "\"???\", 3, ";
+        //            }
 
-//            os << it->nom << ");\n";
-//        }
+        //            os << it->nom << ");\n";
+        //        }
 
         os << it->nom << ":\n";
         m_fonction_courante = it;
-		taille_allouee = 0;
+        taille_allouee = 0;
 
-		auto numero_inst = it->params_entrees.taille();
+        auto numero_inst = it->params_entrees.taille();
 
         for (auto inst : it->instructions) {
             inst->numero = numero_inst++;
@@ -489,41 +495,44 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
     }
 }
 
-bool CoulisseASM::cree_fichier_objet(Compilatrice &/*compilatrice*/, EspaceDeTravail &espace, ConstructriceRI &constructrice_ri)
+bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
+                                     EspaceDeTravail &espace,
+                                     ConstructriceRI &constructrice_ri)
 {
-	std::ostream &fichier_sortie = std::cerr;
-	Enchaineuse enchaineuse;
+    std::ostream &fichier_sortie = std::cerr;
+    Enchaineuse enchaineuse;
 
-	espace.typeuse.construit_table_types();
+    espace.typeuse.construit_table_types();
 
-	if (espace.fonction_principale == nullptr) {
-		erreur::fonction_principale_manquante(espace);
-	}
+    if (espace.fonction_principale == nullptr) {
+        erreur::fonction_principale_manquante(espace);
+    }
 
-	auto fonction_principale = espace.fonction_principale->noeud_dependance;
+    auto fonction_principale = espace.fonction_principale->noeud_dependance;
 
-	//genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+    // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
-	//genere_code_pour_types(compilatrice, graphe, enchaineuse);
+    // genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
-	dls::ensemble<AtomeFonction *> utilises;
-	kuri::tableau<AtomeFonction *> fonctions;
-	auto &graphe = espace.graphe_dependance;
-	graphe->rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
+    dls::ensemble<AtomeFonction *> utilises;
+    kuri::tableau<AtomeFonction *> fonctions;
+    auto &graphe = espace.graphe_dependance;
+    graphe->rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
 
-	// génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme et principale
-	auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-	fonctions.ajoute(atome_principale);
+    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
+    // et principale
+    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
+    fonctions.ajoute(atome_principale);
 
-	auto generatrice = GeneratriceCodeASM(espace);
-	generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+    auto generatrice = GeneratriceCodeASM(espace);
+    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
-	enchaineuse.imprime_dans_flux(fichier_sortie);
+    enchaineuse.imprime_dans_flux(fichier_sortie);
 
-	return true;
+    return true;
 }
 
-bool CoulisseASM::cree_executable(Compilatrice &/*compilatrice*/, EspaceDeTravail &/*espace*/)
+bool CoulisseASM::cree_executable(Compilatrice & /*compilatrice*/, EspaceDeTravail & /*espace*/)
 {
-	return false;
+    return false;
 }

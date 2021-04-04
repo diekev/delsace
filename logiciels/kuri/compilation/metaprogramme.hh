@@ -32,28 +32,28 @@ struct NoeudStruct;
 struct UniteCompilation;
 
 struct MetaProgramme {
-	enum class ResultatExecution : int {
-		NON_INITIALISE,
-		ERREUR,
-		SUCCES,
-	};
+    enum class ResultatExecution : int {
+        NON_INITIALISE,
+        ERREUR,
+        SUCCES,
+    };
 
-	/* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
-	NoeudDirectiveExecute *directive = nullptr;
+    /* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
+    NoeudDirectiveExecute *directive = nullptr;
 
-	/* non-nuls pour les corps-textes */
-	NoeudBloc *corps_texte = nullptr;
-	NoeudDeclarationEnteteFonction *corps_texte_pour_fonction = nullptr;
-	NoeudStruct *corps_texte_pour_structure = nullptr;
+    /* non-nuls pour les corps-textes */
+    NoeudBloc *corps_texte = nullptr;
+    NoeudDeclarationEnteteFonction *corps_texte_pour_fonction = nullptr;
+    NoeudStruct *corps_texte_pour_structure = nullptr;
 
-	/* la fonction qui sera exécutée */
-	NoeudDeclarationEnteteFonction *fonction = nullptr;
+    /* la fonction qui sera exécutée */
+    NoeudDeclarationEnteteFonction *fonction = nullptr;
 
-	UniteCompilation *unite = nullptr;
+    UniteCompilation *unite = nullptr;
 
-	bool fut_execute = false;
+    bool fut_execute = false;
 
-	ResultatExecution resultat{};
+    ResultatExecution resultat{};
 
-	DonneesExecution *donnees_execution = nullptr;
+    DonneesExecution *donnees_execution = nullptr;
 };

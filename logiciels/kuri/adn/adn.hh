@@ -35,87 +35,85 @@
 #include "outils.hh"
 
 struct FluxSortieKuri {
-private:
-	std::ostream &m_os;
+  private:
+    std::ostream &m_os;
 
-	template <typename T>
-	friend FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur);
+    template <typename T>
+    friend FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur);
 
-public:
-	FluxSortieKuri(std::ostream &os)
-		: m_os(os)
-	{}
+  public:
+    FluxSortieKuri(std::ostream &os) : m_os(os)
+    {
+    }
 
-	operator std::ostream&()
-	{
-		return m_os;
-	}
+    operator std::ostream &()
+    {
+        return m_os;
+    }
 };
 
 template <typename T>
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur)
 {
-	flux.m_os << valeur;
-	return flux;
+    flux.m_os << valeur;
+    return flux;
 }
 
 struct FluxSortieCPP {
-private:
-	std::ostream &m_os;
+  private:
+    std::ostream &m_os;
 
-	template <typename T>
-	friend FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur);
+    template <typename T>
+    friend FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur);
 
-public:
-	FluxSortieCPP(std::ostream &os)
-		: m_os(os)
-	{}
+  public:
+    FluxSortieCPP(std::ostream &os) : m_os(os)
+    {
+    }
 
-	operator std::ostream&()
-	{
-		return m_os;
-	}
+    operator std::ostream &()
+    {
+        return m_os;
+    }
 };
 
 template <typename T>
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur)
 {
-	flux.m_os << valeur;
-	return flux;
+    flux.m_os << valeur;
+    return flux;
 }
 
 struct IdentifiantADN {
-private:
-	kuri::chaine_statique nom = "";
-	kuri::chaine nom_sans_accent = "";
+  private:
+    kuri::chaine_statique nom = "";
+    kuri::chaine nom_sans_accent = "";
 
-public:
-	IdentifiantADN() = default;
+  public:
+    IdentifiantADN() = default;
 
-	IdentifiantADN(dls::vue_chaine_compacte n)
-		: nom(n)
-		, nom_sans_accent(supprime_accents(nom))
-	{}
+    IdentifiantADN(dls::vue_chaine_compacte n) : nom(n), nom_sans_accent(supprime_accents(nom))
+    {
+    }
 
-	IdentifiantADN(kuri::chaine_statique n)
-		: nom(n)
-		, nom_sans_accent(supprime_accents(nom))
-	{}
+    IdentifiantADN(kuri::chaine_statique n) : nom(n), nom_sans_accent(supprime_accents(nom))
+    {
+    }
 
-	kuri::chaine_statique nom_cpp() const
-	{
-		return nom_sans_accent;
-	}
+    kuri::chaine_statique nom_cpp() const
+    {
+        return nom_sans_accent;
+    }
 
-	kuri::chaine_statique nom_kuri() const
-	{
-		return nom;
-	}
+    kuri::chaine_statique nom_kuri() const
+    {
+        return nom;
+    }
 
-	bool est_nul() const
-	{
-		return nom == "";
-	}
+    bool est_nul() const
+    {
+        return nom == "";
+    }
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
@@ -128,7 +126,7 @@ struct TypePointeur;
 struct TypeTableau;
 
 struct Type {
-	bool est_const = false;
+    bool est_const = false;
 
     virtual ~Type() = default;
 
@@ -167,15 +165,15 @@ struct Type {
         return "";
     }
 
-	virtual kuri::chaine_statique valeur_defaut() const
-	{
-		return "{}";
-	}
+    virtual kuri::chaine_statique valeur_defaut() const
+    {
+        return "{}";
+    }
 
-	template <typename... TypesChaines>
-	bool est_nominal(TypesChaines... chaines) const;
+    template <typename... TypesChaines>
+    bool est_nominal(TypesChaines... chaines) const;
 
-	const IdentifiantADN &accede_nom() const;
+    const IdentifiantADN &accede_nom() const;
 };
 
 struct TypePointeur final : public Type {
@@ -196,10 +194,10 @@ struct TypePointeur final : public Type {
         return "->";
     }
 
-	virtual kuri::chaine_statique valeur_defaut() const
-	{
-		return "nullptr";
-	}
+    virtual kuri::chaine_statique valeur_defaut() const
+    {
+        return "nullptr";
+    }
 };
 
 struct TypeTableau final : public Type {
@@ -245,46 +243,46 @@ struct TypeNominal final : public Type {
         return ".";
     }
 
-	virtual kuri::chaine_statique valeur_defaut() const
-	{
-		if (nom_cpp.nom_cpp() == "bool") {
-			return "false";
-		}
+    virtual kuri::chaine_statique valeur_defaut() const
+    {
+        if (nom_cpp.nom_cpp() == "bool") {
+            return "false";
+        }
 
-		// chaine et chaine_statique
-		if (nom_kuri.nom_cpp() == "chaine") {
-			return R"("")";
-		}
+        // chaine et chaine_statique
+        if (nom_kuri.nom_cpp() == "chaine") {
+            return R"("")";
+        }
 
-		if (nom_kuri.nom_cpp() == "rien") {
-			return "";
-		}
+        if (nom_kuri.nom_cpp() == "rien") {
+            return "";
+        }
 
-		return "{}";
-	}
+        return "{}";
+    }
 };
 
 // Déclare ceci après TypeNominal
 template <typename... TypesChaines>
 bool Type::est_nominal(TypesChaines... chaines) const
 {
-	if (!est_nominal()) {
-		return false;
-	}
+    if (!est_nominal()) {
+        return false;
+    }
 
-	const auto type_nominal = comme_nominal();
-	return ((type_nominal->nom_cpp.nom_cpp() == chaines) || ...);
+    const auto type_nominal = comme_nominal();
+    return ((type_nominal->nom_cpp.nom_cpp() == chaines) || ...);
 }
 
 struct Typeuse {
-private:
+  private:
     tableau_page<TypePointeur> types_pointeurs{};
     tableau_page<TypeTableau> types_tableaux{};
     tableau_page<TypeNominal> types_nominaux{};
 
-	Type *m_type_rien = nullptr;
+    Type *m_type_rien = nullptr;
 
-public:
+  public:
     Typeuse()
     {
         cree_type_nominal("chaine", "chaine");
@@ -306,20 +304,20 @@ public:
         cree_type_nominal("long", "z64");
         cree_type_nominal("int64_t", "z64");
         cree_type_nominal("octet_t", "octet");
-		cree_type_nominal("r16", "r16");
-		cree_type_nominal("float", "r32");
-		cree_type_nominal("double", "r64");
+        cree_type_nominal("r16", "r16");
+        cree_type_nominal("float", "r32");
+        cree_type_nominal("double", "r64");
         cree_type_nominal("bool", "bool");
         cree_type_nominal("Type", "InfoType");
-		m_type_rien = cree_type_nominal("void", "rien");
+        m_type_rien = cree_type_nominal("void", "rien");
     }
 
-	COPIE_CONSTRUCT(Typeuse);
+    COPIE_CONSTRUCT(Typeuse);
 
-	Type *type_rien()
-	{
-		return m_type_rien;
-	}
+    Type *type_rien()
+    {
+        return m_type_rien;
+    }
 
     TypePointeur *cree_type_pointeur(Type *type_pointe)
     {
@@ -337,7 +335,8 @@ public:
     TypeTableau *cree_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
     {
         POUR_TABLEAU_PAGE (types_tableaux) {
-            if (it.type_pointe == type_pointe && compresse == it.est_compresse && synchrone == it.est_synchrone) {
+            if (it.type_pointe == type_pointe && compresse == it.est_compresse &&
+                synchrone == it.est_synchrone) {
                 return &it;
             }
         }
@@ -357,11 +356,12 @@ public:
     TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
     {
         POUR_TABLEAU_PAGE (types_nominaux) {
-			// Les fichiers ADN doivent utiliser le nom C++, mais seul le nom_kuri préserve l'accent
-			if (it.nom_cpp.nom_kuri() == nom_cpp) {
+            // Les fichiers ADN doivent utiliser le nom C++, mais seul le nom_kuri préserve
+            // l'accent
+            if (it.nom_cpp.nom_kuri() == nom_cpp) {
                 return &it;
             }
-		}
+        }
 
         auto resultat = types_nominaux.ajoute_element();
         resultat->nom_cpp = nom_cpp;
@@ -375,332 +375,332 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type);
 FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type);
 
 struct Membre {
-	IdentifiantADN nom{};
-	Type *type = nullptr;
+    IdentifiantADN nom{};
+    Type *type = nullptr;
 
-	bool est_code = false;
-	bool est_enfant = false;
-	bool est_a_copier = false;
+    bool est_code = false;
+    bool est_enfant = false;
+    bool est_a_copier = false;
 
-	bool valeur_defaut_est_acces = false;
-	kuri::chaine_statique valeur_defaut = "";
+    bool valeur_defaut_est_acces = false;
+    kuri::chaine_statique valeur_defaut = "";
 };
 
 class ProteineEnum;
 class ProteineStruct;
 
 class Proteine {
-protected:
-	IdentifiantADN m_nom{};
+  protected:
+    IdentifiantADN m_nom{};
 
-public:
-	Proteine(IdentifiantADN nom);
+  public:
+    Proteine(IdentifiantADN nom);
 
-	virtual ~Proteine() = default;
-	virtual void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) = 0;
-	virtual void genere_code_kuri(FluxSortieKuri &os) = 0;
+    virtual ~Proteine() = default;
+    virtual void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) = 0;
+    virtual void genere_code_kuri(FluxSortieKuri &os) = 0;
 
-	virtual bool est_fonction() const
-	{
-		return false;
-	}
+    virtual bool est_fonction() const
+    {
+        return false;
+    }
 
-	const IdentifiantADN &nom() const
-	{
-		return m_nom;
-	}
+    const IdentifiantADN &nom() const
+    {
+        return m_nom;
+    }
 
-	virtual ProteineEnum *comme_enum()
-	{
-		return nullptr;
-	}
+    virtual ProteineEnum *comme_enum()
+    {
+        return nullptr;
+    }
 
-	virtual ProteineStruct *comme_struct()
-	{
-		return nullptr;
-	}
+    virtual ProteineStruct *comme_struct()
+    {
+        return nullptr;
+    }
 };
 
 class ProteineStruct final : public Proteine {
-	kuri::tableau<Membre> m_membres{};
+    kuri::tableau<Membre> m_membres{};
 
-	ProteineStruct *m_mere = nullptr;
+    ProteineStruct *m_mere = nullptr;
 
-	IdentifiantADN m_nom_code{};
-	IdentifiantADN m_nom_genre{};
-	IdentifiantADN m_nom_comme{};
+    IdentifiantADN m_nom_code{};
+    IdentifiantADN m_nom_genre{};
+    IdentifiantADN m_nom_comme{};
 
-	kuri::tableau<ProteineStruct *> m_proteines_derivees{};
+    kuri::tableau<ProteineStruct *> m_proteines_derivees{};
 
-	bool m_possede_enfant = false;
-	bool m_possede_membre_a_copier = false;
-	bool m_possede_tableaux = false;
+    bool m_possede_enfant = false;
+    bool m_possede_membre_a_copier = false;
+    bool m_possede_tableaux = false;
 
-	ProteineStruct *m_paire = nullptr;
+    ProteineStruct *m_paire = nullptr;
 
-	ProteineEnum *m_enum_discriminante = nullptr;
+    ProteineEnum *m_enum_discriminante = nullptr;
 
-public:
-	ProteineStruct(IdentifiantADN nom);
+  public:
+    ProteineStruct(IdentifiantADN nom);
 
-	ProteineStruct(ProteineStruct const &) = default;
-	ProteineStruct &operator=(ProteineStruct const &) = default;
+    ProteineStruct(ProteineStruct const &) = default;
+    ProteineStruct &operator=(ProteineStruct const &) = default;
 
-	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_cpp_apres_declaration(FluxSortieCPP &os);
+    void genere_code_cpp_apres_declaration(FluxSortieCPP &os);
 
-	void genere_code_kuri(FluxSortieKuri &os) override;
+    void genere_code_kuri(FluxSortieKuri &os) override;
 
-	void ajoute_membre(Membre const membre);
+    void ajoute_membre(Membre const membre);
 
-	void descend_de(ProteineStruct *proteine)
-	{
-		m_mere = proteine;
-		m_possede_tableaux |= m_mere->m_possede_tableaux;
-		m_possede_enfant |= m_mere->m_possede_enfant;
-		m_possede_membre_a_copier |= m_mere->m_possede_membre_a_copier;
-		m_mere->m_proteines_derivees.ajoute(this);
-	}
+    void descend_de(ProteineStruct *proteine)
+    {
+        m_mere = proteine;
+        m_possede_tableaux |= m_mere->m_possede_tableaux;
+        m_possede_enfant |= m_mere->m_possede_enfant;
+        m_possede_membre_a_copier |= m_mere->m_possede_membre_a_copier;
+        m_mere->m_proteines_derivees.ajoute(this);
+    }
 
-	ProteineStruct *comme_struct() override
-	{
-		return this;
-	}
+    ProteineStruct *comme_struct() override
+    {
+        return this;
+    }
 
-	ProteineStruct *mere() const
-	{
-		return m_mere;
-	}
+    ProteineStruct *mere() const
+    {
+        return m_mere;
+    }
 
-	void mute_paire(ProteineStruct *paire)
-	{
-		m_paire = paire;
-		m_paire->m_paire = this;
-		m_paire->m_nom_genre = m_nom_genre;
-		m_paire->m_nom_comme = m_nom_comme;
-	}
+    void mute_paire(ProteineStruct *paire)
+    {
+        m_paire = paire;
+        m_paire->m_paire = this;
+        m_paire->m_nom_genre = m_nom_genre;
+        m_paire->m_nom_comme = m_nom_comme;
+    }
 
-	ProteineStruct *paire() const
-	{
-		return m_paire;
-	}
+    ProteineStruct *paire() const
+    {
+        return m_paire;
+    }
 
-	void mute_nom_comme(dls::vue_chaine_compacte chaine)
-	{
-		m_nom_comme = chaine;
+    void mute_nom_comme(dls::vue_chaine_compacte chaine)
+    {
+        m_nom_comme = chaine;
 
-		if (m_paire) {
-			m_paire->m_nom_comme = m_nom_comme;
-		}
-	}
+        if (m_paire) {
+            m_paire->m_nom_comme = m_nom_comme;
+        }
+    }
 
-	void mute_nom_code(dls::vue_chaine_compacte chaine)
-	{
-		m_nom_code = chaine;
-	}
+    void mute_nom_code(dls::vue_chaine_compacte chaine)
+    {
+        m_nom_code = chaine;
+    }
 
-	void mute_nom_genre(dls::vue_chaine_compacte chaine)
-	{
-		m_nom_genre = chaine;
+    void mute_nom_genre(dls::vue_chaine_compacte chaine)
+    {
+        m_nom_genre = chaine;
 
-		if (m_paire) {
-			m_paire->m_nom_genre = m_nom_genre;
-		}
-	}
+        if (m_paire) {
+            m_paire->m_nom_genre = m_nom_genre;
+        }
+    }
 
-	const IdentifiantADN &accede_nom_comme() const
-	{
-		return m_nom_comme;
-	}
+    const IdentifiantADN &accede_nom_comme() const
+    {
+        return m_nom_comme;
+    }
 
-	const IdentifiantADN &accede_nom_code() const
-	{
-		return m_nom_code;
-	}
+    const IdentifiantADN &accede_nom_code() const
+    {
+        return m_nom_code;
+    }
 
-	const IdentifiantADN &accede_nom_genre() const
-	{
-		return m_nom_genre;
-	}
+    const IdentifiantADN &accede_nom_genre() const
+    {
+        return m_nom_genre;
+    }
 
-	bool est_classe_de_base() const
-	{
-		return !m_proteines_derivees.est_vide();
-	}
+    bool est_classe_de_base() const
+    {
+        return !m_proteines_derivees.est_vide();
+    }
 
-	bool est_racine_hierarchie() const
-	{
-		return est_classe_de_base() && m_mere == nullptr;
-	}
+    bool est_racine_hierarchie() const
+    {
+        return est_classe_de_base() && m_mere == nullptr;
+    }
 
-	bool est_racine_soushierachie() const
-	{
-		return est_classe_de_base() && m_mere != nullptr;
-	}
+    bool est_racine_soushierachie() const
+    {
+        return est_classe_de_base() && m_mere != nullptr;
+    }
 
-	bool possede_enfants() const
-	{
-		return m_possede_enfant;
-	}
+    bool possede_enfants() const
+    {
+        return m_possede_enfant;
+    }
 
-	bool possede_membre_a_copier() const
-	{
-		return m_possede_membre_a_copier;
-	}
+    bool possede_membre_a_copier() const
+    {
+        return m_possede_membre_a_copier;
+    }
 
-	const kuri::tableau<ProteineStruct *> &derivees() const
-	{
-		return m_proteines_derivees;
-	}
+    const kuri::tableau<ProteineStruct *> &derivees() const
+    {
+        return m_proteines_derivees;
+    }
 
-	const kuri::tableau<Membre> &membres() const
-	{
-		return m_membres;
-	}
+    const kuri::tableau<Membre> &membres() const
+    {
+        return m_membres;
+    }
 
-	bool possede_tableau() const
-	{
-		return m_possede_tableaux;
-	}
+    bool possede_tableau() const
+    {
+        return m_possede_tableaux;
+    }
 
-	void mute_enum_discriminante(ProteineEnum *enum_discriminante)
-	{
-		m_enum_discriminante = enum_discriminante;
-	}
+    void mute_enum_discriminante(ProteineEnum *enum_discriminante)
+    {
+        m_enum_discriminante = enum_discriminante;
+    }
 
-	ProteineEnum *enum_discriminante()
-	{
-		if (m_enum_discriminante) {
-			return m_enum_discriminante;
-		}
+    ProteineEnum *enum_discriminante()
+    {
+        if (m_enum_discriminante) {
+            return m_enum_discriminante;
+        }
 
-		if (m_mere) {
-			return m_mere->enum_discriminante();
-		}
+        if (m_mere) {
+            return m_mere->enum_discriminante();
+        }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
+    void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
 
-	void pour_chaque_copie_extra_recursif(std::function<void(Membre const &)> rappel);
+    void pour_chaque_copie_extra_recursif(std::function<void(Membre const &)> rappel);
 
-	void pour_chaque_enfant_recursif(std::function<void (const Membre &)> rappel);
+    void pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel);
 
-	void pour_chaque_derivee_recursif(std::function<void (const ProteineStruct &)> rappel);
+    void pour_chaque_derivee_recursif(std::function<void(const ProteineStruct &)> rappel);
 };
 
 class ProteineEnum final : public Proteine {
-	kuri::tableau<Membre> m_membres{};
+    kuri::tableau<Membre> m_membres{};
 
-	Type *m_type = nullptr;
+    Type *m_type = nullptr;
 
-	kuri::chaine_statique m_type_discrimine = "";
+    kuri::chaine_statique m_type_discrimine = "";
 
-	bool m_est_horslignee = false;
+    bool m_est_horslignee = false;
 
-public:
-	ProteineEnum(IdentifiantADN nom);
+  public:
+    ProteineEnum(IdentifiantADN nom);
 
-	COPIE_CONSTRUCT(ProteineEnum);
+    COPIE_CONSTRUCT(ProteineEnum);
 
-	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_kuri(FluxSortieKuri &os) override;
+    void genere_code_kuri(FluxSortieKuri &os) override;
 
-	void ajoute_membre(Membre const membre);
+    void ajoute_membre(Membre const membre);
 
-	ProteineEnum *comme_enum() override
-	{
-		return this;
-	}
+    ProteineEnum *comme_enum() override
+    {
+        return this;
+    }
 
-	Type *&type()
-	{
-		return m_type;
-	}
+    Type *&type()
+    {
+        return m_type;
+    }
 
-	void marque_horslignee()
-	{
-		m_est_horslignee = true;
-	}
+    void marque_horslignee()
+    {
+        m_est_horslignee = true;
+    }
 
-	bool est_horslignee() const
-	{
-		return m_est_horslignee;
-	}
+    bool est_horslignee() const
+    {
+        return m_est_horslignee;
+    }
 
-	void type_discrimine(kuri::chaine_statique type_discrimine)
-	{
-		m_type_discrimine = type_discrimine;
-	}
+    void type_discrimine(kuri::chaine_statique type_discrimine)
+    {
+        m_type_discrimine = type_discrimine;
+    }
 
-	kuri::chaine_statique type_discrimine() const
-	{
-		return m_type_discrimine;
-	}
+    kuri::chaine_statique type_discrimine() const
+    {
+        return m_type_discrimine;
+    }
 };
 
 struct Parametre {
-	IdentifiantADN nom{};
-	Type *type = nullptr;
+    IdentifiantADN nom{};
+    Type *type = nullptr;
 };
 
 class ProteineFonction final : public Proteine {
-	kuri::tableau<Parametre> m_parametres{};
-	Type *m_type_sortie = nullptr;
+    kuri::tableau<Parametre> m_parametres{};
+    Type *m_type_sortie = nullptr;
 
-public:
-	ProteineFonction(IdentifiantADN nom);
+  public:
+    ProteineFonction(IdentifiantADN nom);
 
-	COPIE_CONSTRUCT(ProteineFonction);
+    COPIE_CONSTRUCT(ProteineFonction);
 
-	void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
+    void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
-	void genere_code_kuri(FluxSortieKuri &os) override;
+    void genere_code_kuri(FluxSortieKuri &os) override;
 
-	Type* &type_sortie()
-	{
-		return m_type_sortie;
-	}
+    Type *&type_sortie()
+    {
+        return m_type_sortie;
+    }
 
-	void ajoute_parametre(Parametre const parametre);
+    void ajoute_parametre(Parametre const parametre);
 
-	bool est_fonction() const override
-	{
-		return true;
-	}
+    bool est_fonction() const override
+    {
+        return true;
+    }
 };
 
 struct SyntaxeuseADN : public BaseSyntaxeuse {
-	kuri::tableau<Proteine *> proteines{};
-	kuri::tableau<Proteine *> proteines_paires{};
+    kuri::tableau<Proteine *> proteines{};
+    kuri::tableau<Proteine *> proteines_paires{};
 
-	Typeuse m_typeuse{};
+    Typeuse m_typeuse{};
 
-	SyntaxeuseADN(Fichier *fichier);
+    SyntaxeuseADN(Fichier *fichier);
 
-	~SyntaxeuseADN() override;
+    ~SyntaxeuseADN() override;
 
-	template <typename T>
-	T *cree_proteine(IdentifiantADN nom)
-	{
-		auto proteine = new T(nom);
-		proteines.ajoute(proteine);
-		return proteine;
-	}
+    template <typename T>
+    T *cree_proteine(IdentifiantADN nom)
+    {
+        auto proteine = new T(nom);
+        proteines.ajoute(proteine);
+        return proteine;
+    }
 
-private:
-	void analyse_une_chose() override;
+  private:
+    void analyse_une_chose() override;
 
-	void parse_fonction();
+    void parse_fonction();
 
-	void parse_enum();
+    void parse_enum();
 
-	void parse_struct();
+    void parse_struct();
 
-	Type *parse_type();
+    Type *parse_type();
 
-	void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
+    void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 };

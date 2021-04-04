@@ -40,101 +40,101 @@ struct NoeudExpressionReference;
 struct NoeudExpression;
 struct Type;
 
-#define ENUMERE_ETATS_UNITE \
-	ENUMERE_ETAT_UNITE_EX(PRETE) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
+#define ENUMERE_ETATS_UNITE                                                                       \
+    ENUMERE_ETAT_UNITE_EX(PRETE)                                                                  \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE)                                                        \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION)                                                 \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI)                                              \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE)                                                     \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR)                                                   \
+    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
 
 struct UniteCompilation {
-	enum class Etat {
+    enum class Etat {
 #define ENUMERE_ETAT_UNITE_EX(etat) etat,
-		ENUMERE_ETATS_UNITE
+        ENUMERE_ETATS_UNITE
 #undef ENUMERE_ETAT_UNITE_EX
-	};
+    };
 
-	explicit UniteCompilation(EspaceDeTravail *esp)
-		: espace(esp)
-	{}
+    explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
+    {
+    }
 
-	UniteCompilation *depend_sur = nullptr;
+    UniteCompilation *depend_sur = nullptr;
 
-	Etat etat_{};
-	Etat etat_original{};
-	EspaceDeTravail *espace = nullptr;
-	Fichier *fichier = nullptr;
-	NoeudExpression *noeud = nullptr;
-	NoeudExpression *operateur_attendu = nullptr;
-	MetaProgramme *metaprogramme = nullptr;
-	MetaProgramme *metaprogramme_attendu = nullptr;
-	int index_courant = 0;
-	int index_precedent = 0;
-	bool message_recu = false;
+    Etat etat_{};
+    Etat etat_original{};
+    EspaceDeTravail *espace = nullptr;
+    Fichier *fichier = nullptr;
+    NoeudExpression *noeud = nullptr;
+    NoeudExpression *operateur_attendu = nullptr;
+    MetaProgramme *metaprogramme = nullptr;
+    MetaProgramme *metaprogramme_attendu = nullptr;
+    int index_courant = 0;
+    int index_precedent = 0;
+    bool message_recu = false;
 
-	int cycle = 0;
+    int cycle = 0;
 
-	// pour les dépendances
-	Type *type_attendu = nullptr;
-	NoeudDeclaration *declaration_attendue = nullptr;
-	NoeudExpressionReference const *symbole_attendu = nullptr;
-	const char *fonction_interface_attendue = nullptr;
+    // pour les dépendances
+    Type *type_attendu = nullptr;
+    NoeudDeclaration *declaration_attendue = nullptr;
+    NoeudExpressionReference const *symbole_attendu = nullptr;
+    const char *fonction_interface_attendue = nullptr;
 
-	Etat etat() const
-	{
-		return etat_;
-	}
+    Etat etat() const
+    {
+        return etat_;
+    }
 
-	inline void restaure_etat_original()
-	{
-		this->etat_ = this->etat_original;
-	}
+    inline void restaure_etat_original()
+    {
+        this->etat_ = this->etat_original;
+    }
 
-	inline void attend_sur_type(Type *type)
-	{
-		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
-		this->type_attendu = type;
-		assert(type != noeud->type);
-	}
+    inline void attend_sur_type(Type *type)
+    {
+        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
+        this->type_attendu = type;
+        assert(type != noeud->type);
+    }
 
-	inline void attend_sur_interface_kuri(const char *nom_fonction)
-	{
-		this->fonction_interface_attendue = nom_fonction;
-		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
-	}
+    inline void attend_sur_interface_kuri(const char *nom_fonction)
+    {
+        this->fonction_interface_attendue = nom_fonction;
+        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
+    }
 
-	inline void attend_sur_declaration(NoeudDeclaration *decl)
-	{
-		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
-		this->declaration_attendue = decl;
-		assert(decl != noeud);
-	}
+    inline void attend_sur_declaration(NoeudDeclaration *decl)
+    {
+        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
+        this->declaration_attendue = decl;
+        assert(decl != noeud);
+    }
 
-	inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
-	{
-		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
-		this->symbole_attendu = symbole;
-	}
+    inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
+    {
+        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
+        this->symbole_attendu = symbole;
+    }
 
-	inline void attend_sur_operateur(NoeudExpression *expr)
-	{
-		this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
-		this->operateur_attendu = expr;
-	}
+    inline void attend_sur_operateur(NoeudExpression *expr)
+    {
+        this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
+        this->operateur_attendu = expr;
+    }
 
-	inline void attend_sur_metaprogramme(MetaProgramme *metaprogramme_attendu_)
-	{
-		this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
-		this->metaprogramme_attendu = metaprogramme_attendu_;
-	}
+    inline void attend_sur_metaprogramme(MetaProgramme *metaprogramme_attendu_)
+    {
+        this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
+        this->metaprogramme_attendu = metaprogramme_attendu_;
+    }
 
-	bool est_bloquee() const;
+    bool est_bloquee() const;
 
-	kuri::chaine commentaire() const;
+    kuri::chaine commentaire() const;
 
-	UniteCompilation *unite_attendue() const;
+    UniteCompilation *unite_attendue() const;
 };
 
 const char *chaine_etat_unite(UniteCompilation::Etat etat);

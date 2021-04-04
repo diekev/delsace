@@ -45,98 +45,98 @@ struct TypeFonction;
 struct TypePointeur;
 
 enum class IndiceTypeOp {
-	ENTIER_NATUREL,
-	ENTIER_RELATIF,
-	REEL,
+    ENTIER_NATUREL,
+    ENTIER_RELATIF,
+    REEL,
 };
 
-#define ENUMERE_OPERATEURS_UNAIRE \
-	ENUMERE_GENRE_OPUNAIRE_EX(Invalide) \
-	ENUMERE_GENRE_OPUNAIRE_EX(Positif) \
-	ENUMERE_GENRE_OPUNAIRE_EX(Complement) \
-	ENUMERE_GENRE_OPUNAIRE_EX(Non_Logique) \
-	ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire) \
-	ENUMERE_GENRE_OPUNAIRE_EX(Prise_Adresse)
+#define ENUMERE_OPERATEURS_UNAIRE                                                                 \
+    ENUMERE_GENRE_OPUNAIRE_EX(Invalide)                                                           \
+    ENUMERE_GENRE_OPUNAIRE_EX(Positif)                                                            \
+    ENUMERE_GENRE_OPUNAIRE_EX(Complement)                                                         \
+    ENUMERE_GENRE_OPUNAIRE_EX(Non_Logique)                                                        \
+    ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire)                                                        \
+    ENUMERE_GENRE_OPUNAIRE_EX(Prise_Adresse)
 
 struct OperateurUnaire {
-	enum class Genre : char {
+    enum class Genre : char {
 #define ENUMERE_GENRE_OPUNAIRE_EX(genre) genre,
-		ENUMERE_OPERATEURS_UNAIRE
+        ENUMERE_OPERATEURS_UNAIRE
 #undef ENUMERE_GENRE_OPUNAIRE_EX
-	};
+    };
 
-	Type *type_operande = nullptr;
-	Type *type_resultat = nullptr;
+    Type *type_operande = nullptr;
+    Type *type_resultat = nullptr;
 
-	NoeudDeclarationEnteteFonction *decl = nullptr;
+    NoeudDeclarationEnteteFonction *decl = nullptr;
 
-	Genre genre{};
-	bool est_basique = true;
+    Genre genre{};
+    bool est_basique = true;
 };
 
 const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
 
-#define ENUMERE_OPERATEURS_BINAIRE \
-	ENUMERE_GENRE_OPBINAIRE_EX(Invalide) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Addition) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Addition_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Soustraction) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Soustraction_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Multiplication) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Multiplication_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Division_Naturel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Division_Relatif) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Division_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Reste_Naturel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Reste_Relatif) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Nat) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Nat) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Nat) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Nat) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Et_Binaire) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Binaire) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Indexage)
+#define ENUMERE_OPERATEURS_BINAIRE                                                                \
+    ENUMERE_GENRE_OPBINAIRE_EX(Invalide)                                                          \
+    ENUMERE_GENRE_OPBINAIRE_EX(Addition)                                                          \
+    ENUMERE_GENRE_OPBINAIRE_EX(Addition_Reel)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction)                                                      \
+    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction_Reel)                                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication)                                                    \
+    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication_Reel)                                               \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Naturel)                                                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Relatif)                                                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Reel)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Naturel)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Relatif)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal)                                                         \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal)                                                       \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf)                                                          \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup)                                                          \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Nat)                                                      \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Nat)                                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Nat)                                                      \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Nat)                                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal_Reel)                                                    \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal_Reel)                                                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Reel)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Reel)                                                \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Reel)                                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Reel)                                                \
+    ENUMERE_GENRE_OPBINAIRE_EX(Et_Binaire)                                                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Binaire)                                                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif)                                                       \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche)                                                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm)                                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique)                                                \
+    ENUMERE_GENRE_OPBINAIRE_EX(Indexage)
 
 struct OperateurBinaire {
-	enum class Genre : char {
+    enum class Genre : char {
 #define ENUMERE_GENRE_OPBINAIRE_EX(genre) genre,
-		ENUMERE_OPERATEURS_BINAIRE
+        ENUMERE_OPERATEURS_BINAIRE
 #undef ENUMERE_GENRE_OPBINAIRE_EX
-	};
+    };
 
-	Type *type1{};
-	Type *type2{};
-	Type *type_resultat{};
+    Type *type1{};
+    Type *type2{};
+    Type *type_resultat{};
 
-	NoeudDeclarationEnteteFonction *decl = nullptr;
+    NoeudDeclarationEnteteFonction *decl = nullptr;
 
-	Genre genre{};
+    Genre genre{};
 
-	/* vrai si l'on peut sainement inverser les paramètres,
-	 * vrai pour : +, *, !=, == */
-	bool est_commutatif = false;
+    /* vrai si l'on peut sainement inverser les paramètres,
+     * vrai pour : +, *, !=, == */
+    bool est_commutatif = false;
 
-	/* faux pour les opérateurs définis par l'utilisateur */
-	bool est_basique = true;
+    /* faux pour les opérateurs définis par l'utilisateur */
+    bool est_basique = true;
 
-	/* vrai pour les opérateurs d'arithmétiques de pointeurs */
-	bool est_arithmetique_pointeur = false;
+    /* vrai pour les opérateurs d'arithmétiques de pointeurs */
+    bool est_arithmetique_pointeur = false;
 };
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
@@ -146,77 +146,87 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
  * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
  * de l'opérande à gauche. */
 struct TableOperateurs {
-	using type_conteneur = kuri::tableau_compresse<OperateurBinaire *, char>;
+    using type_conteneur = kuri::tableau_compresse<OperateurBinaire *, char>;
 
-private:
-	kuri::tableau<type_conteneur, int> operateurs_{};
+  private:
+    kuri::tableau<type_conteneur, int> operateurs_{};
 
-public:
-	void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
+  public:
+    void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
 
-	type_conteneur const &operateurs(GenreLexeme lexeme);
+    type_conteneur const &operateurs(GenreLexeme lexeme);
 };
 
-// À FAIRE : considère synchroniser les conteneurs des opérateurs au lieu de la structure, il faudra sans doute revoir l'interface afin de ne pas avoir à trop prendre de verrous
+// À FAIRE : considère synchroniser les conteneurs des opérateurs au lieu de la structure, il
+// faudra sans doute revoir l'interface afin de ne pas avoir à trop prendre de verrous
 struct Operateurs {
-	using type_conteneur_binaire = tableau_page<OperateurBinaire>;
-	using type_conteneur_unaire = tableau_page<OperateurUnaire>;
+    using type_conteneur_binaire = tableau_page<OperateurBinaire>;
+    using type_conteneur_unaire = tableau_page<OperateurUnaire>;
 
-	kuri::tableau<type_conteneur_binaire> operateurs_binaires{};
-	kuri::tableau<type_conteneur_unaire> operateurs_unaires{};
+    kuri::tableau<type_conteneur_binaire> operateurs_binaires{};
+    kuri::tableau<type_conteneur_unaire> operateurs_unaires{};
 
-	OperateurBinaire *op_comp_egal_types = nullptr;
-	OperateurBinaire *op_comp_diff_types = nullptr;
+    OperateurBinaire *op_comp_egal_types = nullptr;
+    OperateurBinaire *op_comp_diff_types = nullptr;
 
-	Operateurs();
-	~Operateurs();
+    Operateurs();
+    ~Operateurs();
 
-	COPIE_CONSTRUCT(Operateurs);
+    COPIE_CONSTRUCT(Operateurs);
 
-	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
+    type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
-	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);
-	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
+    OperateurBinaire *ajoute_basique(GenreLexeme id,
+                                     Type *type,
+                                     Type *type_resultat,
+                                     IndiceTypeOp indice_type);
+    OperateurBinaire *ajoute_basique(
+        GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
 
-	OperateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
+    OperateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 
-	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
+    void ajoute_perso(GenreLexeme id,
+                      Type *type1,
+                      Type *type2,
+                      Type *type_resultat,
+                      NoeudDeclarationEnteteFonction *decl);
 
-	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
+    void ajoute_perso_unaire(GenreLexeme id,
+                             Type *type,
+                             Type *type_resultat,
+                             NoeudDeclarationEnteteFonction *decl);
 
-	void ajoute_operateur_basique_enum(const Typeuse &typeuse, TypeEnum *type);
+    void ajoute_operateur_basique_enum(const Typeuse &typeuse, TypeEnum *type);
 
-	void ajoute_operateurs_basiques_pointeur(Typeuse const &typeuse, TypePointeur *type);
+    void ajoute_operateurs_basiques_pointeur(Typeuse const &typeuse, TypePointeur *type);
 
-	void ajoute_operateurs_basiques_fonction(Typeuse const &typeuse, TypeFonction *type);
+    void ajoute_operateurs_basiques_fonction(Typeuse const &typeuse, TypeFonction *type);
 
-	void rassemble_statistiques(Statistiques &stats) const;
+    void rassemble_statistiques(Statistiques &stats) const;
 };
 
-OperateurUnaire const *cherche_operateur_unaire(
-		Operateurs const &operateurs,
-		Type *type1,
-		GenreLexeme type_op);
+OperateurUnaire const *cherche_operateur_unaire(Operateurs const &operateurs,
+                                                Type *type1,
+                                                GenreLexeme type_op);
 
 void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs);
 
 struct OperateurCandidat {
-	OperateurBinaire const *op = nullptr;
-	TransformationType transformation_type1{};
-	TransformationType transformation_type2{};
-	double poids = 0.0;
+    OperateurBinaire const *op = nullptr;
+    TransformationType transformation_type1{};
+    TransformationType transformation_type2{};
+    double poids = 0.0;
     bool permute_operandes = false;
 
-	OperateurCandidat() = default;
+    OperateurCandidat() = default;
 
-	COPIE_CONSTRUCT(OperateurCandidat);
-	POINTEUR_NUL(OperateurCandidat)
+    COPIE_CONSTRUCT(OperateurCandidat);
+    POINTEUR_NUL(OperateurCandidat)
 };
 
-bool cherche_candidats_operateurs(
-		EspaceDeTravail &espace,
-		ContexteValidationCode &contexte,
-		Type *type1,
-		Type *type2,
-		GenreLexeme type_op,
-		dls::tablet<OperateurCandidat, 10> &candidats);
+bool cherche_candidats_operateurs(EspaceDeTravail &espace,
+                                  ContexteValidationCode &contexte,
+                                  Type *type1,
+                                  Type *type2,
+                                  GenreLexeme type_op,
+                                  dls::tablet<OperateurCandidat, 10> &candidats);

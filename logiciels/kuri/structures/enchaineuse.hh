@@ -29,84 +29,84 @@
 #include "structures/chaine_statique.hh"
 
 struct Enchaineuse {
-	static constexpr auto TAILLE_TAMPON = 16 * 1024;
+    static constexpr auto TAILLE_TAMPON = 16 * 1024;
 
-	struct Tampon {
-		char donnees[TAILLE_TAMPON];
-		int occupe = 0;
-		Tampon *suivant = nullptr;
-	};
+    struct Tampon {
+        char donnees[TAILLE_TAMPON];
+        int occupe = 0;
+        Tampon *suivant = nullptr;
+    };
 
-	Tampon m_tampon_base{};
-	Tampon *tampon_courant = nullptr;
+    Tampon m_tampon_base{};
+    Tampon *tampon_courant = nullptr;
 
-	Enchaineuse();
+    Enchaineuse();
 
-	Enchaineuse(Enchaineuse const &) = delete;
-	Enchaineuse &operator=(Enchaineuse const &) = delete;
+    Enchaineuse(Enchaineuse const &) = delete;
+    Enchaineuse &operator=(Enchaineuse const &) = delete;
 
-	~Enchaineuse();
+    ~Enchaineuse();
 
-	void ajoute(kuri::chaine_statique const &chn);
+    void ajoute(kuri::chaine_statique const &chn);
 
-	void ajoute_inverse(const kuri::chaine_statique &chn);
+    void ajoute_inverse(const kuri::chaine_statique &chn);
 
-	void ajoute(const char *c_str, long N);
+    void ajoute(const char *c_str, long N);
 
-	void pousse_caractere(char c);
+    void pousse_caractere(char c);
 
-	void imprime_dans_flux(std::ostream &flux);
+    void imprime_dans_flux(std::ostream &flux);
 
-	void ajoute_tampon();
+    void ajoute_tampon();
 
-	int nombre_tampons() const;
+    int nombre_tampons() const;
 
-	int nombre_tampons_alloues() const;
+    int nombre_tampons_alloues() const;
 
-	long taille_chaine() const;
+    long taille_chaine() const;
 
-	kuri::chaine chaine() const;
+    kuri::chaine chaine() const;
 
-	void permute(Enchaineuse &autre);
+    void permute(Enchaineuse &autre);
 };
 
 template <typename T>
-Enchaineuse &operator << (Enchaineuse &enchaineuse, T const &valeur)
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, T const &valeur)
 {
-	dls::flux_chaine flux;
-	flux << valeur;
+    dls::flux_chaine flux;
+    flux << valeur;
 
-	for (auto c : flux.chn()) {
-		enchaineuse.pousse_caractere(c);
-	}
+    for (auto c : flux.chn()) {
+        enchaineuse.pousse_caractere(c);
+    }
 
-	return enchaineuse;
+    return enchaineuse;
 }
 
 template <>
-inline Enchaineuse &operator << (Enchaineuse &enchaineuse, char const &valeur)
+inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, char const &valeur)
 {
-	enchaineuse.pousse_caractere(valeur);
-	return enchaineuse;
+    enchaineuse.pousse_caractere(valeur);
+    return enchaineuse;
 }
 
 template <size_t N>
-Enchaineuse &operator << (Enchaineuse &enchaineuse, const char (&c)[N])
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char (&c)[N])
 {
-	enchaineuse.ajoute(c, static_cast<long>(N));
-	return enchaineuse;
+    enchaineuse.ajoute(c, static_cast<long>(N));
+    return enchaineuse;
 }
 
-Enchaineuse &operator << (Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
 
-Enchaineuse &operator << (Enchaineuse &enchaineuse, kuri::chaine const &chn);
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
 
-Enchaineuse &operator << (Enchaineuse &enchaineuse, const char *chn);
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 
 template <typename... Ts>
 kuri::chaine enchaine(Ts &&... ts)
 {
-	Enchaineuse enchaineuse;
-	((enchaineuse << ts), ...);
-	return enchaineuse.chaine();
+    Enchaineuse enchaineuse;
+    ((enchaineuse << ts), ...);
+    return enchaineuse.chaine();
 }

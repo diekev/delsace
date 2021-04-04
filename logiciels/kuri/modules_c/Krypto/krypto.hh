@@ -41,9 +41,18 @@ HACHEUSE *KRYPTO_HACHEUSE_cree_sha256();
 HACHEUSE *KRYPTO_HACHEUSE_cree_md5();
 HACHEUSE *KRYPTO_HACHEUSE_cree_crc32();
 
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_md5(const void* key, unsigned long numKeyBytes, const void *data, unsigned long numDataBytes);
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha1(const void* key, unsigned long numKeyBytes, const void *data, unsigned long numDataBytes);
-HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void* key, unsigned long numKeyBytes, const void *data, unsigned long numDataBytes);
+HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_md5(const void *key,
+                                        unsigned long numKeyBytes,
+                                        const void *data,
+                                        unsigned long numDataBytes);
+HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha1(const void *key,
+                                         unsigned long numKeyBytes,
+                                         const void *data,
+                                         unsigned long numDataBytes);
+HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
+                                           unsigned long numKeyBytes,
+                                           const void *data,
+                                           unsigned long numDataBytes);
 
 void KRYPTO_HACHEUSE_detruit(HACHEUSE *poignee);
 void KRYPTO_HACHEUSE_ajourne(HACHEUSE *poignee, const void *data, unsigned long numDataBytes);
@@ -52,7 +61,10 @@ void KRYPTO_HACHEUSE_condensat_hex(HACHEUSE *poignee, char *sortie);
 int KRYPTO_HACHEUSE_taille_condensat(HACHEUSE *poignee);
 int KRYPTO_HACHEUSE_taille_bloc(HACHEUSE *poignee);
 
-int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a, unsigned long taille_a, const unsigned char *b, unsigned long taille_b);
+int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
+                                      unsigned long taille_a,
+                                      const unsigned char *b,
+                                      unsigned long taille_b);
 
 #ifdef __cplusplus
 }

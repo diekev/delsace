@@ -46,115 +46,115 @@ struct Type;
 enum class ResultatValidation : int;
 
 struct IdentifiantEtExpression {
-	IdentifiantCode *ident;
-	NoeudExpression *expr_ident;
-	NoeudExpression *expr;
+    IdentifiantCode *ident;
+    NoeudExpression *expr_ident;
+    NoeudExpression *expr;
 };
 
 enum {
-	AUCUNE_RAISON,
+    AUCUNE_RAISON,
 
-	EXPRESSION_MANQUANTE_POUR_UNION,
-	MANQUE_NOM_APRES_VARIADIC,
-	ARGUMENTS_MANQUANTS,
-	MECOMPTAGE_ARGS,
-	MENOMMAGE_ARG,
-	METYPAGE_ARG,
-	NOMMAGE_ARG_POINTEUR_FONCTION,
-	RENOMMAGE_ARG,
-	TROP_D_EXPRESSION_POUR_UNION,
-	TYPE_N_EST_PAS_FONCTION,
-	CONTEXTE_MANQUANT,
-	EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
-	MULTIPLE_EXPANSIONS_VARIADIQUES,
-	EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
-	ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
-	IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE,
+    EXPRESSION_MANQUANTE_POUR_UNION,
+    MANQUE_NOM_APRES_VARIADIC,
+    ARGUMENTS_MANQUANTS,
+    MECOMPTAGE_ARGS,
+    MENOMMAGE_ARG,
+    METYPAGE_ARG,
+    NOMMAGE_ARG_POINTEUR_FONCTION,
+    RENOMMAGE_ARG,
+    TROP_D_EXPRESSION_POUR_UNION,
+    TYPE_N_EST_PAS_FONCTION,
+    CONTEXTE_MANQUANT,
+    EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
+    MULTIPLE_EXPANSIONS_VARIADIQUES,
+    EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
+    ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
+    IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE,
 };
 
 enum {
-	NOTE_INVALIDE,
-	CANDIDATE_EST_APPEL_FONCTION,
-	CANDIDATE_EST_CUISSON_FONCTION,
-	CANDIDATE_EST_APPEL_POINTEUR,
-	CANDIDATE_EST_INITIALISATION_STRUCTURE,
-	CANDIDATE_EST_TYPE_POLYMORPHIQUE,
-	CANDIDATE_EST_APPEL_INIT_DE,
-	CANDIDATE_EST_INITIALISATION_OPAQUE,
-	CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
+    NOTE_INVALIDE,
+    CANDIDATE_EST_APPEL_FONCTION,
+    CANDIDATE_EST_CUISSON_FONCTION,
+    CANDIDATE_EST_APPEL_POINTEUR,
+    CANDIDATE_EST_INITIALISATION_STRUCTURE,
+    CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+    CANDIDATE_EST_APPEL_INIT_DE,
+    CANDIDATE_EST_INITIALISATION_OPAQUE,
+    CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
 };
 
 struct DonneesCandidate {
-	int raison = AUCUNE_RAISON;
-	double poids_args = 0.0;
-	kuri::chaine_statique nom_arg{};
+    int raison = AUCUNE_RAISON;
+    double poids_args = 0.0;
+    kuri::chaine_statique nom_arg{};
 
-	/* Ce que nous avons à gauche */
-	int note = NOTE_INVALIDE;
+    /* Ce que nous avons à gauche */
+    int note = NOTE_INVALIDE;
 
-	bool requiers_contexte = true;
-	REMBOURRE(3);
+    bool requiers_contexte = true;
+    REMBOURRE(3);
 
-	/* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de fonctions) */
-	Type *type = nullptr;
+    /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
+     * fonctions) */
+    Type *type = nullptr;
 
-	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	dls::tablet<NoeudExpression *, 10> exprs{};
-	dls::tablet<IdentifiantCode *, 10> arguments_manquants{};
-	Type *type_attendu{};
-	Type *type_obtenu{};
-	NoeudExpression const *noeud_erreur = nullptr;
-	NoeudDeclaration *noeud_decl = nullptr;
-	kuri::tableau<TransformationType, int> transformations{};
-	kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
+    /* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
+    dls::tablet<NoeudExpression *, 10> exprs{};
+    dls::tablet<IdentifiantCode *, 10> arguments_manquants{};
+    Type *type_attendu{};
+    Type *type_obtenu{};
+    NoeudExpression const *noeud_erreur = nullptr;
+    NoeudDeclaration *noeud_decl = nullptr;
+    kuri::tableau<TransformationType, int> transformations{};
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
 
-	IdentifiantCode *ident_poly_manquant = nullptr;
+    IdentifiantCode *ident_poly_manquant = nullptr;
 
-	POINTEUR_NUL(DonneesCandidate)
+    POINTEUR_NUL(DonneesCandidate)
 
-	DonneesCandidate() = default;
+    DonneesCandidate() = default;
 
-	DonneesCandidate(DonneesCandidate const &) = default;
+    DonneesCandidate(DonneesCandidate const &) = default;
 
-	DonneesCandidate(DonneesCandidate &&autre)
-	{
-		this->permute(autre);
-	}
+    DonneesCandidate(DonneesCandidate &&autre)
+    {
+        this->permute(autre);
+    }
 
-	DonneesCandidate &operator=(DonneesCandidate const &) = default;
+    DonneesCandidate &operator=(DonneesCandidate const &) = default;
 
-	DonneesCandidate &operator=(DonneesCandidate &&autre)
-	{
-		this->permute(autre);
-		return *this;
-	}
+    DonneesCandidate &operator=(DonneesCandidate &&autre)
+    {
+        this->permute(autre);
+        return *this;
+    }
 
-	void permute(DonneesCandidate &autre)
-	{
-		if (this == &autre) {
-			return;
-		}
+    void permute(DonneesCandidate &autre)
+    {
+        if (this == &autre) {
+            return;
+        }
 
-		std::swap(raison, autre.raison);
-		std::swap(poids_args, autre.poids_args);
-		std::swap(nom_arg, autre.nom_arg);
-		std::swap(note, autre.note);
-		std::swap(requiers_contexte, autre.requiers_contexte);
-		std::swap(type, autre.type);
-		std::swap(type_attendu, autre.type_attendu);
-		std::swap(type_obtenu, autre.type_obtenu);
-		std::swap(noeud_erreur, autre.noeud_erreur);
-		std::swap(noeud_decl, autre.noeud_decl);
-		std::swap(ident_poly_manquant, autre.ident_poly_manquant);
-		exprs.permute(autre.exprs);
-		arguments_manquants.permute(autre.arguments_manquants);
-		transformations.permute(autre.transformations);
-		items_monomorphisation.permute(autre.items_monomorphisation);
-	}
+        std::swap(raison, autre.raison);
+        std::swap(poids_args, autre.poids_args);
+        std::swap(nom_arg, autre.nom_arg);
+        std::swap(note, autre.note);
+        std::swap(requiers_contexte, autre.requiers_contexte);
+        std::swap(type, autre.type);
+        std::swap(type_attendu, autre.type_attendu);
+        std::swap(type_obtenu, autre.type_obtenu);
+        std::swap(noeud_erreur, autre.noeud_erreur);
+        std::swap(noeud_decl, autre.noeud_decl);
+        std::swap(ident_poly_manquant, autre.ident_poly_manquant);
+        exprs.permute(autre.exprs);
+        arguments_manquants.permute(autre.arguments_manquants);
+        transformations.permute(autre.transformations);
+        items_monomorphisation.permute(autre.items_monomorphisation);
+    }
 };
 
-ResultatValidation valide_appel_fonction(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		ContexteValidationCode &contexte_validation,
-		NoeudExpressionAppel *expr);
+ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
+                                         EspaceDeTravail &espace,
+                                         ContexteValidationCode &contexte_validation,
+                                         NoeudExpressionAppel *expr);

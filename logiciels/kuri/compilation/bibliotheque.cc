@@ -29,195 +29,206 @@
 
 static bool fichier_existe(kuri::chaine const &chemin)
 {
-	const auto std_string = std::string(chemin.pointeur(), static_cast<size_t>(chemin.taille()));
-	const auto std_path = std::filesystem::path(std_string);
+    const auto std_string = std::string(chemin.pointeur(), static_cast<size_t>(chemin.taille()));
+    const auto std_path = std::filesystem::path(std_string);
 
-	if (std::filesystem::exists(std_path)) {
-		return true;
-	}
+    if (std::filesystem::exists(std_path)) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 bool Symbole::charge(EspaceDeTravail *espace, NoeudExpression const *site)
 {
-	if (etat_recherche == EtatRechercheSymbole::TROUVE) {
-		return true;
-	}
+    if (etat_recherche == EtatRechercheSymbole::TROUVE) {
+        return true;
+    }
 
-	if (bibliotheque->etat_recherche != EtatRechercheBibliotheque::TROUVEE) {
-		if (!bibliotheque->charge(espace)) {
-			return false;
-		}
-	}
+    if (bibliotheque->etat_recherche != EtatRechercheBibliotheque::TROUVEE) {
+        if (!bibliotheque->charge(espace)) {
+            return false;
+        }
+    }
 
-	try {
-		auto ptr_symbole = bibliotheque->bib(dls::chaine(nom.pointeur(), nom.taille()));
-		this->ptr_fonction = reinterpret_cast<Symbole::type_fonction>(ptr_symbole.ptr());
-		etat_recherche = EtatRechercheSymbole::TROUVE;
-	}
-	catch (...) {
-		espace->rapporte_erreur(site, "Impossible de trouver un symbole !")
-				.ajoute_message("La bibliothèque « ", bibliotheque->ident->nom, " » ne possède pas le symbole « ", nom, " » !\n");
-		etat_recherche = EtatRechercheSymbole::INTROUVE;
-		return false;
-	}
+    try {
+        auto ptr_symbole = bibliotheque->bib(dls::chaine(nom.pointeur(), nom.taille()));
+        this->ptr_fonction = reinterpret_cast<Symbole::type_fonction>(ptr_symbole.ptr());
+        etat_recherche = EtatRechercheSymbole::TROUVE;
+    }
+    catch (...) {
+        espace->rapporte_erreur(site, "Impossible de trouver un symbole !")
+            .ajoute_message("La bibliothèque « ",
+                            bibliotheque->ident->nom,
+                            " » ne possède pas le symbole « ",
+                            nom,
+                            " » !\n");
+        etat_recherche = EtatRechercheSymbole::INTROUVE;
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 Symbole *Bibliotheque::cree_symbole(kuri::chaine_statique nom_symbole)
 {
-	POUR_TABLEAU_PAGE (symboles) {
-		if (it.nom == nom_symbole) {
-			return &it;
-		}
-	}
+    POUR_TABLEAU_PAGE (symboles) {
+        if (it.nom == nom_symbole) {
+            return &it;
+        }
+    }
 
-	auto symbole = symboles.ajoute_element();
-	symbole->nom = nom_symbole;
-	symbole->bibliotheque = this;
-	return symbole;
+    auto symbole = symboles.ajoute_element();
+    symbole->nom = nom_symbole;
+    symbole->bibliotheque = this;
+    return symbole;
 }
 
 bool Bibliotheque::charge(EspaceDeTravail *espace)
 {
-	if (etat_recherche == EtatRechercheBibliotheque::TROUVEE) {
-		return true;
-	}
+    if (etat_recherche == EtatRechercheBibliotheque::TROUVEE) {
+        return true;
+    }
 
-	if (chemin_dynamique == "") {
-		espace->rapporte_erreur(site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
-				.ajoute_message("La bibliothèque « ", ident->nom, " » n'a pas de version dynamique !\n");
-		return false;
-	}
+    if (chemin_dynamique == "") {
+        espace
+            ->rapporte_erreur(
+                site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
+            .ajoute_message(
+                "La bibliothèque « ", ident->nom, " » n'a pas de version dynamique !\n");
+        return false;
+    }
 
-	try {
-		this->bib = dls::systeme_fichier::shared_library(dls::chaine(chemin_dynamique).c_str());
-		etat_recherche = EtatRechercheBibliotheque::TROUVEE;
-	}
-	catch (...) {
-		espace->rapporte_erreur(site, "Impossible de charger la bibliothèque !\n");
-		etat_recherche = EtatRechercheBibliotheque::INTROUVEE;
-		return false;
-	}
+    try {
+        this->bib = dls::systeme_fichier::shared_library(dls::chaine(chemin_dynamique).c_str());
+        etat_recherche = EtatRechercheBibliotheque::TROUVEE;
+    }
+    catch (...) {
+        espace->rapporte_erreur(site, "Impossible de charger la bibliothèque !\n");
+        etat_recherche = EtatRechercheBibliotheque::INTROUVEE;
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *ident)
 {
-	POUR_TABLEAU_PAGE (bibliotheques) {
-		if (it.ident == ident) {
-			return &it;
-		}
-	}
+    POUR_TABLEAU_PAGE (bibliotheques) {
+        if (it.ident == ident) {
+            return &it;
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_ou_cree_bibliotheque(IdentifiantCode *ident)
 {
-	return cree_bibliotheque(nullptr, ident, "");
+    return cree_bibliotheque(nullptr, ident, "");
 }
 
 Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site)
 {
-	return cree_bibliotheque(site, site->ident, "");
+    return cree_bibliotheque(site, site->ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident, kuri::chaine_statique nom)
+Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site,
+                                                           IdentifiantCode *ident,
+                                                           kuri::chaine_statique nom)
 {
-	auto bibliotheque = trouve_bibliotheque(ident);
+    auto bibliotheque = trouve_bibliotheque(ident);
 
-	if (bibliotheque) {
-		if (nom != "" && bibliotheque->etat_recherche == EtatRechercheBibliotheque::NON_RECHERCHEE) {
-			bibliotheque->site = site;
-			bibliotheque->ident = ident;
-			bibliotheque->nom = nom;
-			resoud_chemins_bibliotheque(site, bibliotheque);
-		}
+    if (bibliotheque) {
+        if (nom != "" &&
+            bibliotheque->etat_recherche == EtatRechercheBibliotheque::NON_RECHERCHEE) {
+            bibliotheque->site = site;
+            bibliotheque->ident = ident;
+            bibliotheque->nom = nom;
+            resoud_chemins_bibliotheque(site, bibliotheque);
+        }
 
-		return bibliotheque;
-	}
+        return bibliotheque;
+    }
 
-	bibliotheque = bibliotheques.ajoute_element();
+    bibliotheque = bibliotheques.ajoute_element();
 
-	if (nom != "") {
-		bibliotheque->nom = nom;
-		resoud_chemins_bibliotheque(site, bibliotheque);
-	}
+    if (nom != "") {
+        bibliotheque->nom = nom;
+        resoud_chemins_bibliotheque(site, bibliotheque);
+    }
 
-	bibliotheque->site = site;
-	bibliotheque->ident = ident;
-	return bibliotheque;
+    bibliotheque->site = site;
+    bibliotheque->ident = ident;
+    return bibliotheque;
 }
 
-void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque)
+void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *site,
+                                                            Bibliotheque *bibliotheque)
 {
-	// regarde soit dans le module courant, soit dans le chemin système
-	// chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
-	//                  /lib/i386-linux-gnu/ pour 32-bit
+    // regarde soit dans le module courant, soit dans le chemin système
+    // chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
+    //                  /lib/i386-linux-gnu/ pour 32-bit
 
-	dls::tablet<kuri::chaine_statique, 2> dossiers;
-	dossiers.ajoute("/lib/x86_64-linux-gnu/");
-	dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
-	// pour les tables r16...
-	dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
+    dls::tablet<kuri::chaine_statique, 2> dossiers;
+    dossiers.ajoute("/lib/x86_64-linux-gnu/");
+    dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
+    // pour les tables r16...
+    dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
 
-	if (site) {
-		const auto fichier = espace.fichier(site->lexeme->fichier);
-		const auto module = fichier->module;
-		dossiers.ajoute(module->nom()->nom);
-	}
+    if (site) {
+        const auto fichier = espace.fichier(site->lexeme->fichier);
+        const auto module = fichier->module;
+        dossiers.ajoute(module->nom()->nom);
+    }
 
-	// essaye de déterminer le chemin
-	// pour un fichier statique :
-	// /chemin/de/base/libnom.a
-	// pour un fichier dynamique :
-	// /chemin/de/base/libnom.so
+    // essaye de déterminer le chemin
+    // pour un fichier statique :
+    // /chemin/de/base/libnom.a
+    // pour un fichier dynamique :
+    // /chemin/de/base/libnom.so
 
-	const auto nom_statique = enchaine("lib", bibliotheque->nom, ".a");
-	const auto nom_dynamique = enchaine("lib", bibliotheque->nom, ".so");
+    const auto nom_statique = enchaine("lib", bibliotheque->nom, ".a");
+    const auto nom_dynamique = enchaine("lib", bibliotheque->nom, ".so");
 
-	kuri::chaine chemin_statique;
-	kuri::chaine chemin_dynamique;
+    kuri::chaine chemin_statique;
+    kuri::chaine chemin_dynamique;
 
-	auto chemin_statique_trouve = false;
-	auto chemin_dynamique_trouve = false;
+    auto chemin_statique_trouve = false;
+    auto chemin_dynamique_trouve = false;
 
-	POUR (dossiers) {
-		if (!chemin_statique_trouve) {
-			const auto chemin_statique_test = enchaine(it, nom_statique);
-			if (fichier_existe(chemin_statique_test)) {
-				chemin_statique_trouve = true;
-				chemin_statique = chemin_statique_test;
-			}
-		}
+    POUR (dossiers) {
+        if (!chemin_statique_trouve) {
+            const auto chemin_statique_test = enchaine(it, nom_statique);
+            if (fichier_existe(chemin_statique_test)) {
+                chemin_statique_trouve = true;
+                chemin_statique = chemin_statique_test;
+            }
+        }
 
-		if (!chemin_dynamique_trouve) {
-			const auto chemin_dynamique_test = enchaine(it, nom_dynamique);
-			if (fichier_existe(chemin_dynamique_test)) {
-				chemin_dynamique_trouve = true;
-				chemin_dynamique = chemin_dynamique_test;
-			}
-		}
-	}
+        if (!chemin_dynamique_trouve) {
+            const auto chemin_dynamique_test = enchaine(it, nom_dynamique);
+            if (fichier_existe(chemin_dynamique_test)) {
+                chemin_dynamique_trouve = true;
+                chemin_dynamique = chemin_dynamique_test;
+            }
+        }
+    }
 
-	if (!chemin_statique_trouve && !chemin_dynamique_trouve) {
-		espace.rapporte_erreur(site, "Impossible de résoudre le chemin vers une bibliothèque")
-				.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n");
-		return;
-	}
+    if (!chemin_statique_trouve && !chemin_dynamique_trouve) {
+        espace.rapporte_erreur(site, "Impossible de résoudre le chemin vers une bibliothèque")
+            .ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n");
+        return;
+    }
 
-	std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
-	std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
-	std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
-	bibliotheque->chemin_statique = chemin_statique;
-	bibliotheque->chemin_dynamique = chemin_dynamique;
+    std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
+    std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
+    std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
+    bibliotheque->chemin_statique = chemin_statique;
+    bibliotheque->chemin_dynamique = chemin_dynamique;
 }
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
 {
-	// À FAIRE
+    // À FAIRE
 }

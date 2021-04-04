@@ -50,7 +50,7 @@
 
 void lance_tacheronne(Tacheronne *tacheronne)
 {
-	tacheronne->gere_tache();
+    tacheronne->gere_tache();
 }
 
 #if 0
@@ -88,199 +88,209 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 
 int main(int argc, char *argv[])
 {
-	std::ios::sync_with_stdio(false);
+    std::ios::sync_with_stdio(false);
 
-	if (argc < 2) {
-		std::cerr << "Utilisation : " << argv[0] << " FICHIER [--tests]\n";
-		return 1;
-	}
+    if (argc < 2) {
+        std::cerr << "Utilisation : " << argv[0] << " FICHIER [--tests]\n";
+        return 1;
+    }
 
-	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
+    auto const &chemin_racine_kuri = getenv("RACINE_KURI");
 
-	if (chemin_racine_kuri == nullptr) {
-		std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
-		std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement 'RACINE_KURI' soit définie !\n";
-		return 1;
-	}
+    if (chemin_racine_kuri == nullptr) {
+        std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
+        std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement "
+                     "'RACINE_KURI' soit définie !\n";
+        return 1;
+    }
 
-	auto const chemin_fichier = argv[1];
+    auto const chemin_fichier = argv[1];
 
-	if (!std::filesystem::exists(chemin_fichier)) {
-		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
-		return 1;
-	}
+    if (!std::filesystem::exists(chemin_fichier)) {
+        std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
+        return 1;
+    }
 
-	std::ostream &os = std::cout;
+    std::ostream &os = std::cout;
 
-	auto debut_compilation   = dls::chrono::compte_seconde();
-	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
+    auto debut_compilation = dls::chrono::compte_seconde();
+    auto debut_nettoyage = dls::chrono::compte_seconde(false);
 
-	precompile_objet_r16(chemin_racine_kuri);
+    precompile_objet_r16(chemin_racine_kuri);
 
-	auto stats = Statistiques();
-	auto compilatrice = Compilatrice{};
+    auto stats = Statistiques();
+    auto compilatrice = Compilatrice{};
 
-	if (argc == 3) {
-		if (strcmp(argv[2], "--tests") == 0) {
-			compilatrice.active_tests = true;
-		}
-	}
+    if (argc == 3) {
+        if (strcmp(argv[2], "--tests") == 0) {
+            compilatrice.active_tests = true;
+        }
+    }
 
-	{
-		/* enregistre le dossier d'origine */
-		auto dossier_origine = std::filesystem::current_path();
+    {
+        /* enregistre le dossier d'origine */
+        auto dossier_origine = std::filesystem::current_path();
 
-		auto chemin = std::filesystem::path(chemin_fichier);
+        auto chemin = std::filesystem::path(chemin_fichier);
 
-		if (chemin.is_relative()) {
-			chemin = std::filesystem::absolute(chemin);
-		}
+        if (chemin.is_relative()) {
+            chemin = std::filesystem::absolute(chemin);
+        }
 
-		auto nom_fichier = chemin.stem();
+        auto nom_fichier = chemin.stem();
 
-		compilatrice.racine_kuri = chemin_racine_kuri;
+        compilatrice.racine_kuri = chemin_racine_kuri;
 
-		/* Charge d'abord le module basique. */
-		auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
-		compilatrice.espace_de_travail_defaut = espace_defaut;
+        /* Charge d'abord le module basique. */
+        auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
+        compilatrice.espace_de_travail_defaut = espace_defaut;
 
-		auto dossier = chemin.parent_path();
-		std::filesystem::current_path(dossier);
+        auto dossier = chemin.parent_path();
+        std::filesystem::current_path(dossier);
 
-		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
+        os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
+           << std::endl;
 
-		auto module = espace_defaut->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, dossier.c_str());
-		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
+        auto module = espace_defaut->trouve_ou_cree_module(
+            compilatrice.sys_module, ID::chaine_vide, dossier.c_str());
+        compilatrice.ajoute_fichier_a_la_compilation(
+            espace_defaut, nom_fichier.c_str(), module, {});
 
 #ifdef AVEC_THREADS
-		auto nombre_tacheronnes = std::thread::hardware_concurrency();
+        auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
-		kuri::tableau<Tacheronne *> tacheronnes;
-		tacheronnes.reserve(nombre_tacheronnes);
+        kuri::tableau<Tacheronne *> tacheronnes;
+        tacheronnes.reserve(nombre_tacheronnes);
 
-		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
-			tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
-		}
+        for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+            tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+        }
 
-		// pour le moment, une seule tacheronne peut exécuter du code
-		tacheronnes[0]->drapeaux  =  DrapeauxTacheronne::PEUT_EXECUTER;
-		tacheronnes[1]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+        // pour le moment, une seule tacheronne peut exécuter du code
+        tacheronnes[0]->drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
+        tacheronnes[1]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
 
-		for (auto i = 2u; i < nombre_tacheronnes; ++i) {
-			tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
-		}
+        for (auto i = 2u; i < nombre_tacheronnes; ++i) {
+            tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
+        }
 
-		auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER;
+        auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER;
 
-		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
-			tacheronnes[i]->drapeaux |= drapeaux;
-		}
+        for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+            tacheronnes[i]->drapeaux |= drapeaux;
+        }
 
-		kuri::tableau<std::thread *> threads;
-		threads.reserve(nombre_tacheronnes);
+        kuri::tableau<std::thread *> threads;
+        threads.reserve(nombre_tacheronnes);
 
-		POUR (tacheronnes) {
-			threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
-		}
+        POUR (tacheronnes) {
+            threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+        }
 
-		POUR (threads) {
-			it->join();
-			memoire::deloge("std::thread", it);
-		}
+        POUR (threads) {
+            it->join();
+            memoire::deloge("std::thread", it);
+        }
 #else
-		auto tacheronne = Tacheronne(compilatrice);
-		auto tacheronne_mp = Tacheronne(compilatrice);
+        auto tacheronne = Tacheronne(compilatrice);
+        auto tacheronne_mp = Tacheronne(compilatrice);
 
-		tacheronne.drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
-		tacheronne_mp.drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
+        tacheronne.drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+        tacheronne_mp.drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
 
-		lance_tacheronne(&tacheronne);
-		lance_tacheronne(&tacheronne_mp);
+        lance_tacheronne(&tacheronne);
+        lance_tacheronne(&tacheronne_mp);
 #endif
 
-		if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
-			auto fichier_chaines = std::ofstream(".chaines_ajoutées");
+        if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
+            auto fichier_chaines = std::ofstream(".chaines_ajoutées");
 
-			auto d = hui_systeme();
+            auto d = hui_systeme();
 
-			fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
-							<< " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
+            fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
+                            << " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
 
-			POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
-				fichier_chaines << it;
-				fichier_chaines << '\n';
-			}
-		}
+            POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
+                fichier_chaines << it;
+                fichier_chaines << '\n';
+            }
+        }
 
-		/* restore le dossier d'origine */
-		std::filesystem::current_path(dossier_origine);
+        /* restore le dossier d'origine */
+        std::filesystem::current_path(dossier_origine);
 
-		if (!compilatrice.possede_erreur() && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
-			POUR (tacheronnes) {
-				stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
-				stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, it->temps_fichier_objet);
-				stats.temps_generation_code = std::max(stats.temps_generation_code, it->temps_generation_code);
-				stats.temps_ri = std::max(stats.temps_ri, it->constructrice_ri.temps_generation);
-				stats.temps_lexage = std::max(stats.temps_lexage, it->temps_lexage);
-				stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
-				stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
-				stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
-				stats.temps_chargement = std::max(stats.temps_chargement, it->temps_chargement);
-				stats.temps_tampons = std::max(stats.temps_tampons, it->temps_tampons);
+        if (!compilatrice.possede_erreur() &&
+            compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+            POUR (tacheronnes) {
+                stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
+                stats.temps_fichier_objet = std::max(stats.temps_fichier_objet,
+                                                     it->temps_fichier_objet);
+                stats.temps_generation_code = std::max(stats.temps_generation_code,
+                                                       it->temps_generation_code);
+                stats.temps_ri = std::max(stats.temps_ri, it->constructrice_ri.temps_generation);
+                stats.temps_lexage = std::max(stats.temps_lexage, it->temps_lexage);
+                stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
+                stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
+                stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
+                stats.temps_chargement = std::max(stats.temps_chargement, it->temps_chargement);
+                stats.temps_tampons = std::max(stats.temps_tampons, it->temps_tampons);
 
-				it->constructrice_ri.rassemble_statistiques(stats);
-				it->allocatrice_noeud.rassemble_statistiques(stats);
+                it->constructrice_ri.rassemble_statistiques(stats);
+                it->allocatrice_noeud.rassemble_statistiques(stats);
 
-				it->mv.rassemble_statistiques(stats);
+                it->mv.rassemble_statistiques(stats);
 
-				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
+                // std::cerr << "tâcheronne " << it->id << " a dormis pendant " <<
+                // it->temps_passe_a_dormir << "ms\n";
 
 #ifdef STATISTIQUES_DETAILLEES
-				auto imprime_stats = [](const EntreesStats<EntreeTemps> &entrees) {
-					std::cerr << entrees.nom << " :\n";
-					for (auto &entree : entrees.entrees) {
-						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
-					}
-				};
-				if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
-					imprime_stats(it->stats_typage.validation_decl);
-					imprime_stats(it->stats_typage.validation_appel);
-					imprime_stats(it->stats_typage.ref_decl);
-					imprime_stats(it->stats_typage.operateurs_unaire);
-					imprime_stats(it->stats_typage.operateurs_binaire);
-					imprime_stats(it->stats_typage.fonctions);
-					imprime_stats(it->stats_typage.enumerations);
-					imprime_stats(it->stats_typage.structures);
-					imprime_stats(it->stats_typage.assignations);
-				}
+                auto imprime_stats = [](const EntreesStats<EntreeTemps> &entrees) {
+                    std::cerr << entrees.nom << " :\n";
+                    for (auto &entree : entrees.entrees) {
+                        std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
+                    }
+                };
+                if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) ==
+                    DrapeauxTacheronne::PEUT_TYPER) {
+                    imprime_stats(it->stats_typage.validation_decl);
+                    imprime_stats(it->stats_typage.validation_appel);
+                    imprime_stats(it->stats_typage.ref_decl);
+                    imprime_stats(it->stats_typage.operateurs_unaire);
+                    imprime_stats(it->stats_typage.operateurs_binaire);
+                    imprime_stats(it->stats_typage.fonctions);
+                    imprime_stats(it->stats_typage.enumerations);
+                    imprime_stats(it->stats_typage.structures);
+                    imprime_stats(it->stats_typage.assignations);
+                }
 #endif
-			}
+            }
 
-			compilatrice.rassemble_statistiques(stats);
+            compilatrice.rassemble_statistiques(stats);
 
-			stats.memoire_ri = stats.stats_ri.totaux.memoire;
-		}
+            stats.memoire_ri = stats.stats_ri.totaux.memoire;
+        }
 
-		POUR (tacheronnes) {
-			memoire::deloge("Tacheronne", it);
-		}
+        POUR (tacheronnes) {
+            memoire::deloge("Tacheronne", it);
+        }
 
-		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = dls::chrono::compte_seconde();
-	}
+        os << "Nettoyage..." << std::endl;
+        debut_nettoyage = dls::chrono::compte_seconde();
+    }
 
-	stats.temps_nettoyage = debut_nettoyage.temps();
+    stats.temps_nettoyage = debut_nettoyage.temps();
 
-	if (!compilatrice.possede_erreur() && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
-		imprime_stats(stats, debut_compilation);
+    if (!compilatrice.possede_erreur() &&
+        compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+        imprime_stats(stats, debut_compilation);
 #ifdef STATISTIQUES_DETAILLEES
-		imprime_stats_detaillee(stats);
+        imprime_stats_detaillee(stats);
 #endif
-	}
+    }
 
 #ifdef AVEC_LLVM
-	issitialise_llvm();
+    issitialise_llvm();
 #endif
 
-	return static_cast<int>(compilatrice.code_erreur());
+    return static_cast<int>(compilatrice.code_erreur());
 }

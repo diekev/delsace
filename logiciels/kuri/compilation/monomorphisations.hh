@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/tuples.hh"
 #include "biblinternes/moultfilage/synchrone.hh"
+#include "biblinternes/structures/tuples.hh"
 
 #include "arbre_syntaxique/expression.hh"
 
@@ -35,114 +35,115 @@ struct IdentifiantCode;
 struct Type;
 
 struct ItemMonomorphisation {
-	IdentifiantCode *ident = nullptr;
-	Type *type = nullptr;
-	ValeurExpression valeur{};
-	bool est_type = false;
+    IdentifiantCode *ident = nullptr;
+    Type *type = nullptr;
+    ValeurExpression valeur{};
+    bool est_type = false;
 
-	bool operator == (ItemMonomorphisation const &autre) const
-	{
-		if (ident != autre.ident) {
-			return false;
-		}
+    bool operator==(ItemMonomorphisation const &autre) const
+    {
+        if (ident != autre.ident) {
+            return false;
+        }
 
-		if (type != autre.type) {
-			return false;
-		}
+        if (type != autre.type) {
+            return false;
+        }
 
-		if (est_type != autre.est_type) {
-			return false;
-		}
+        if (est_type != autre.est_type) {
+            return false;
+        }
 
-		if (!est_type) {
-			if (valeur.type != autre.valeur.type) {
-				return false;
-			}
+        if (!est_type) {
+            if (valeur.type != autre.valeur.type) {
+                return false;
+            }
 
-			if (valeur.entier != autre.valeur.entier) {
-				return false;
-			}
-		}
+            if (valeur.entier != autre.valeur.entier) {
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	bool operator != (ItemMonomorphisation const &autre) const
-	{
-		return !(*this == autre);
-	}
+    bool operator!=(ItemMonomorphisation const &autre) const
+    {
+        return !(*this == autre);
+    }
 };
 
 template <typename TypeNoeud>
 struct Monomorphisations {
-private:
-	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
+  private:
+    template <typename T>
+    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-	using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
-	tableau_synchrone<dls::paire<tableau_items, TypeNoeud *>> monomorphisations{};
+    using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
+    tableau_synchrone<dls::paire<tableau_items, TypeNoeud *>> monomorphisations{};
 
-public:
-	TypeNoeud *trouve_monomorphisation(tableau_items const &items) const
-	{
-		auto monomorphisations_ = monomorphisations.verrou_lecture();
+  public:
+    TypeNoeud *trouve_monomorphisation(tableau_items const &items) const
+    {
+        auto monomorphisations_ = monomorphisations.verrou_lecture();
 
-		POUR (*monomorphisations_) {
-			if (it.premier.taille() != items.taille()) {
-				continue;
-			}
+        POUR (*monomorphisations_) {
+            if (it.premier.taille() != items.taille()) {
+                continue;
+            }
 
-			auto trouve = true;
+            auto trouve = true;
 
-			for (auto i = 0; i < items.taille(); ++i) {
-				if (it.premier[i] != items[i]) {
-					trouve = false;
-					break;
-				}
-			}
+            for (auto i = 0; i < items.taille(); ++i) {
+                if (it.premier[i] != items[i]) {
+                    trouve = false;
+                    break;
+                }
+            }
 
-			if (!trouve) {
-				continue;
-			}
+            if (!trouve) {
+                continue;
+            }
 
-			return it.second;
-		}
+            return it.second;
+        }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	void ajoute(tableau_items const &items, TypeNoeud *noeud)
-	{
-		monomorphisations->ajoute({ items, noeud });
-	}
+    void ajoute(tableau_items const &items, TypeNoeud *noeud)
+    {
+        monomorphisations->ajoute({items, noeud});
+    }
 
-	long memoire_utilisee() const
-	{
-		long memoire = 0;
-		memoire += monomorphisations->taille() * (taille_de(TypeNoeud *) + taille_de(tableau_items));
+    long memoire_utilisee() const
+    {
+        long memoire = 0;
+        memoire += monomorphisations->taille() *
+                   (taille_de(TypeNoeud *) + taille_de(tableau_items));
 
-		POUR (*monomorphisations.verrou_lecture()) {
-			memoire += it.premier.taille() * (taille_de(ItemMonomorphisation));
-		}
+        POUR (*monomorphisations.verrou_lecture()) {
+            memoire += it.premier.taille() * (taille_de(ItemMonomorphisation));
+        }
 
-		return memoire;
-	}
+        return memoire;
+    }
 
-	int taille() const
-	{
-		return monomorphisations->taille();
-	}
+    int taille() const
+    {
+        return monomorphisations->taille();
+    }
 
-	int nombre_items_max() const
-	{
-		int n = 0;
+    int nombre_items_max() const
+    {
+        int n = 0;
 
-		POUR (*monomorphisations.verrou_lecture()) {
-			if (it.premier.taille() > 0) {
-				n = it.premier.taille();
-			}
-		}
+        POUR (*monomorphisations.verrou_lecture()) {
+            if (it.premier.taille() > 0) {
+                n = it.premier.taille();
+            }
+        }
 
-		return n;
-	}
+        return n;
+    }
 };

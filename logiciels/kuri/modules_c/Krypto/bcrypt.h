@@ -14,7 +14,7 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
-#define BCRYPT_HASHSIZE	(64)
+#define BCRYPT_HASHSIZE (64)
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,8 +45,9 @@ int bcrypt_gensalt(int workfactor, char salt[BCRYPT_HASHSIZE]);
  * The return value is zero if the password could be hashed and nonzero
  * otherwise.
  */
-int bcrypt_hashpw(const char *passwd, const char salt[BCRYPT_HASHSIZE],
-		  char hash[BCRYPT_HASHSIZE]);
+int bcrypt_hashpw(const char *passwd,
+                  const char salt[BCRYPT_HASHSIZE],
+                  char hash[BCRYPT_HASHSIZE]);
 
 /*
  * This function expects a password and a hash to verify the password against.

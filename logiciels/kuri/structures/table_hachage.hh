@@ -32,26 +32,26 @@ namespace kuri {
 
 template <typename Cle, typename Valeur>
 struct table_hachage {
-private:
-	kuri::tableau<Cle, int> cles{};
-	kuri::tableau<Valeur, int> valeurs{};
-	kuri::tableau<char, int> occupes{};
-	kuri::tableau<size_t, int> empreintes{};
+  private:
+    kuri::tableau<Cle, int> cles{};
+    kuri::tableau<Valeur, int> valeurs{};
+    kuri::tableau<char, int> occupes{};
+    kuri::tableau<size_t, int> empreintes{};
 
     long capacite = 0;
     long nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
 
-public:
+  public:
     void alloue(long taille)
     {
         capacite = taille;
 
-		cles.redimensionne(static_cast<int>(taille));
-		valeurs.redimensionne(static_cast<int>(taille));
-		occupes.redimensionne(static_cast<int>(taille));
-		empreintes.redimensionne(static_cast<int>(taille));
+        cles.redimensionne(static_cast<int>(taille));
+        valeurs.redimensionne(static_cast<int>(taille));
+        occupes.redimensionne(static_cast<int>(taille));
+        empreintes.redimensionne(static_cast<int>(taille));
 
         POUR (occupes) {
             it = 0;
@@ -75,30 +75,30 @@ public:
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
             if (vieilles_occupes[i]) {
-				insere(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
+                insere(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
             }
         }
     }
 
     void insere(Cle const &cle, Valeur const &valeur)
     {
-		auto empreinte = std::hash<Cle>()(cle);
-		auto index = trouve_index_innoccupe(cle, empreinte);
+        auto empreinte = std::hash<Cle>()(cle);
+        auto index = trouve_index_innoccupe(cle, empreinte);
         occupes[index] = 1;
         empreintes[index] = empreinte;
         cles[index] = cle;
         valeurs[index] = valeur;
     }
 
-	void insere(Cle &&cle, Valeur &&valeur)
-	{
-		auto empreinte = std::hash<Cle>()(cle);
-		auto index = trouve_index_innoccupe(cle, empreinte);
-		occupes[index] = 1;
-		empreintes[index] = empreinte;
-		cles[index] = std::move(cle);
-		valeurs[index] = std::move(valeur);
-	}
+    void insere(Cle &&cle, Valeur &&valeur)
+    {
+        auto empreinte = std::hash<Cle>()(cle);
+        auto index = trouve_index_innoccupe(cle, empreinte);
+        occupes[index] = 1;
+        empreintes[index] = empreinte;
+        cles[index] = std::move(cle);
+        valeurs[index] = std::move(valeur);
+    }
 
     Valeur trouve(Cle const &cle, bool &trouve)
     {
@@ -114,17 +114,17 @@ public:
         return valeurs[index];
     }
 
-	Valeur valeur_ou(Cle const &cle, Valeur defaut)
-	{
-		auto trouvee = false;
-		auto valeur = trouve(cle, trouvee);
+    Valeur valeur_ou(Cle const &cle, Valeur defaut)
+    {
+        auto trouvee = false;
+        auto valeur = trouve(cle, trouvee);
 
-		if (!trouvee) {
-			return defaut;
-		}
+        if (!trouvee) {
+            return defaut;
+        }
 
-		return valeur;
-	}
+        return valeur;
+    }
 
     bool possed(Cle const &cle)
     {
@@ -133,13 +133,13 @@ public:
         return index != -1;
     }
 
-	int trouve_index(Cle const &cle, size_t empreinte)
+    int trouve_index(Cle const &cle, size_t empreinte)
     {
         if (capacite == 0) {
             return -1;
         }
 
-		auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
 
         while (occupes[index]) {
             if (empreintes[index] == empreinte) {
@@ -163,41 +163,41 @@ public:
         return nombre_elements;
     }
 
-	void efface()
-	{
-		occupes.efface();
-		empreintes.efface();
-		cles.efface();
-		valeurs.efface();
-		capacite = 0;
-		nombre_elements = 0;
-	}
+    void efface()
+    {
+        occupes.efface();
+        empreintes.efface();
+        cles.efface();
+        valeurs.efface();
+        capacite = 0;
+        nombre_elements = 0;
+    }
 
-private:
-	int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
-	{
-		auto index = trouve_index(cle, empreinte);
+  private:
+    int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
+    {
+        auto index = trouve_index(cle, empreinte);
 
-		if (index == -1) {
-			if (nombre_elements * 2 >= capacite) {
-				agrandis();
-			}
+        if (index == -1) {
+            if (nombre_elements * 2 >= capacite) {
+                agrandis();
+            }
 
-			index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+            index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
 
-			while (occupes[index]) {
-				index += 1;
+            while (occupes[index]) {
+                index += 1;
 
-				if (index >= capacite) {
-					index = 0;
-				}
-			}
+                if (index >= capacite) {
+                    index = 0;
+                }
+            }
 
-			nombre_elements += 1;
-		}
+            nombre_elements += 1;
+        }
 
-		return index;
-	}
+        return index;
+    }
 };
 
-}
+}  // namespace kuri

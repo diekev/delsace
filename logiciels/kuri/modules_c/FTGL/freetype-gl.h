@@ -8,9 +8,9 @@
 
 /* Mandatory */
 #include "opengl.h"
-#include "vec234.h"
-#include "vector.h"
 #include "texture-atlas.h"
 #include "texture-font.h"
+#include "vec234.h"
+#include "vector.h"
 
 #endif /* FREETYPE_GL_H */

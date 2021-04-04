@@ -35,124 +35,129 @@
 struct Fichier;
 
 struct BaseSyntaxeuse {
-protected:
-	/* Pour les messages d'erreurs. */
-	struct DonneesEtatSyntaxage {
-		Lexeme *lexeme = nullptr;
-		kuri::chaine_statique message{};
-	};
+  protected:
+    /* Pour les messages d'erreurs. */
+    struct DonneesEtatSyntaxage {
+        Lexeme *lexeme = nullptr;
+        kuri::chaine_statique message{};
+    };
 
-	kuri::tableau<Lexeme, int> &m_lexemes;
-	Fichier *m_fichier = nullptr;
-	Lexeme *m_lexeme_courant = nullptr;
-	int m_position = 0;
-	bool m_possede_erreur = false;
-	char _pad[3];
+    kuri::tableau<Lexeme, int> &m_lexemes;
+    Fichier *m_fichier = nullptr;
+    Lexeme *m_lexeme_courant = nullptr;
+    int m_position = 0;
+    bool m_possede_erreur = false;
+    char _pad[3];
 
-	dls::chrono::metre_seconde m_chrono_analyse{};
+    dls::chrono::metre_seconde m_chrono_analyse{};
 
-	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
+    dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
-public:
-	BaseSyntaxeuse(Fichier *fichier);
+  public:
+    BaseSyntaxeuse(Fichier *fichier);
 
-	COPIE_CONSTRUCT(BaseSyntaxeuse);
+    COPIE_CONSTRUCT(BaseSyntaxeuse);
 
-	virtual ~BaseSyntaxeuse() = default;
+    virtual ~BaseSyntaxeuse() = default;
 
-	void analyse();
+    void analyse();
 
-	bool possede_erreur() const
-	{
-		return m_possede_erreur;
-	}
+    bool possede_erreur() const
+    {
+        return m_possede_erreur;
+    }
 
-protected:
-	// Interface pour les classes dérivées.
+  protected:
+    // Interface pour les classes dérivées.
 
-	// Cette fonction sera appelée à chaque itération de la boucle principale
-	// tant qu'il reste des léxèmes ou qu'il n'y a aucune erreur.
-	virtual void analyse_une_chose() = 0;
+    // Cette fonction sera appelée à chaque itération de la boucle principale
+    // tant qu'il reste des léxèmes ou qu'il n'y a aucune erreur.
+    virtual void analyse_une_chose() = 0;
 
-	// Cette fonction optionnelle sera appelée avant de commencer la boucle principale.
-	virtual void quand_commence() {}
+    // Cette fonction optionnelle sera appelée avant de commencer la boucle principale.
+    virtual void quand_commence()
+    {
+    }
 
-	// Cette fonction optionnelle sera appelée à la fin de la boucle principale, ou s'il
-	// n'a pas de lexèmes dans la source
-	virtual void quand_termine() {}
+    // Cette fonction optionnelle sera appelée à la fin de la boucle principale, ou s'il
+    // n'a pas de lexèmes dans la source
+    virtual void quand_termine()
+    {
+    }
 
-	// Cette fonction est appelée quand une erreur est rapportée via rapporte_erreur
-	virtual void gere_erreur_rapportee(kuri::chaine const &message_erreur) = 0;
+    // Cette fonction est appelée quand une erreur est rapportée via rapporte_erreur
+    virtual void gere_erreur_rapportee(kuri::chaine const &message_erreur) = 0;
 
-	// Interface pour la consommation et l'appariement de lexèmes
+    // Interface pour la consommation et l'appariement de lexèmes
 
-	inline void consomme()
-	{
-		m_position += 1;
+    inline void consomme()
+    {
+        m_position += 1;
 
-		if (!fini()) {
-			m_lexeme_courant += 1;
-		}
-	}
+        if (!fini()) {
+            m_lexeme_courant += 1;
+        }
+    }
 
-	inline void consomme(GenreLexeme genre_lexeme, kuri::chaine_statique message)
-	{
-		if (m_lexemes[m_position].genre != genre_lexeme) {
-			rapporte_erreur(message);
-			return;
-		}
+    inline void consomme(GenreLexeme genre_lexeme, kuri::chaine_statique message)
+    {
+        if (m_lexemes[m_position].genre != genre_lexeme) {
+            rapporte_erreur(message);
+            return;
+        }
 
-		return consomme();
-	}
+        return consomme();
+    }
 
-	inline void recule()
-	{
-		m_position -= 1;
+    inline void recule()
+    {
+        m_position -= 1;
 
-		if (m_position >= 0) {
-			m_lexeme_courant = &m_lexemes[m_position];
-		}
-	}
+        if (m_position >= 0) {
+            m_lexeme_courant = &m_lexemes[m_position];
+        }
+    }
 
-	inline Lexeme *lexeme_courant()
-	{
-		return m_lexeme_courant;
-	}
+    inline Lexeme *lexeme_courant()
+    {
+        return m_lexeme_courant;
+    }
 
-	inline Lexeme const *lexeme_courant() const
-	{
-		return m_lexeme_courant;
-	}
+    inline Lexeme const *lexeme_courant() const
+    {
+        return m_lexeme_courant;
+    }
 
-	inline bool fini() const
-	{
-		return m_position >= m_lexemes.taille();
-	}
+    inline bool fini() const
+    {
+        return m_position >= m_lexemes.taille();
+    }
 
-	inline bool apparie(GenreLexeme genre_lexeme) const
-	{
-		return m_lexeme_courant->genre == genre_lexeme;
-	}
+    inline bool apparie(GenreLexeme genre_lexeme) const
+    {
+        return m_lexeme_courant->genre == genre_lexeme;
+    }
 
-	inline bool apparie(kuri::chaine_statique chaine) const
-	{
-		const auto chaine_lexeme = m_lexeme_courant->chaine;
-		const auto chaine_statique_lexeme = kuri::chaine_statique{ chaine_lexeme.pointeur(), chaine_lexeme.taille() };
-		return chaine_statique_lexeme == chaine;
-	}
+    inline bool apparie(kuri::chaine_statique chaine) const
+    {
+        const auto chaine_lexeme = m_lexeme_courant->chaine;
+        const auto chaine_statique_lexeme = kuri::chaine_statique{chaine_lexeme.pointeur(),
+                                                                  chaine_lexeme.taille()};
+        return chaine_statique_lexeme == chaine;
+    }
 
-	inline bool apparie(IdentifiantCode *ident) const
-	{
-		return m_lexeme_courant->ident == ident;
-	}
+    inline bool apparie(IdentifiantCode *ident) const
+    {
+        return m_lexeme_courant->ident == ident;
+    }
 
-	// Interface pour la gestion d'erreurs
+    // Interface pour la gestion d'erreurs
 
-	void empile_etat(kuri::chaine_statique message, Lexeme *lexeme);
+    void empile_etat(kuri::chaine_statique message, Lexeme *lexeme);
 
-	void depile_etat();
+    void depile_etat();
 
-	kuri::chaine cree_message_erreur(kuri::chaine_statique message);
+    kuri::chaine cree_message_erreur(kuri::chaine_statique message);
 
-	void rapporte_erreur(kuri::chaine_statique message);
+    void rapporte_erreur(kuri::chaine_statique message);
 };

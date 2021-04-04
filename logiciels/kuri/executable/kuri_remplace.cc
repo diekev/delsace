@@ -32,8 +32,8 @@
 #include "compilation/erreur.h"
 
 #include "parsage/lexeuse.hh"
-#include "parsage/outils_lexemes.hh"
 #include "parsage/modules.hh"
+#include "parsage/outils_lexemes.hh"
 
 #include "options.hh"
 
@@ -44,205 +44,206 @@
  */
 
 struct Configuration {
-	kuri::tableau<dls::chaine> dossiers{};
-	kuri::tableau<dls::chaine> fichiers{};
+    kuri::tableau<dls::chaine> dossiers{};
+    kuri::tableau<dls::chaine> fichiers{};
 
-	using paire = std::pair<dls::chaine, dls::chaine>;
+    using paire = std::pair<dls::chaine, dls::chaine>;
 
-	kuri::tableau<paire> mots_cles{};
+    kuri::tableau<paire> mots_cles{};
 };
 
-static void analyse_liste_chemin(
-		tori::ObjetTableau *tableau,
-		kuri::tableau<dls::chaine> &chaines)
+static void analyse_liste_chemin(tori::ObjetTableau *tableau, kuri::tableau<dls::chaine> &chaines)
 {
-	for (auto objet : tableau->valeur) {
-		if (objet->type != tori::type_objet::CHAINE) {
-			std::cerr << "liste : l'objet n'est pas une chaine !\n";
-			continue;
-		}
+    for (auto objet : tableau->valeur) {
+        if (objet->type != tori::type_objet::CHAINE) {
+            std::cerr << "liste : l'objet n'est pas une chaine !\n";
+            continue;
+        }
 
-		auto obj_chaine = extrait_chaine(objet.get());
-		chaines.ajoute(obj_chaine->valeur);
-	}
+        auto obj_chaine = extrait_chaine(objet.get());
+        chaines.ajoute(obj_chaine->valeur);
+    }
 }
 
 static Configuration analyse_configuration(const char *chemin)
 {
-	auto config = Configuration{};
-	auto obj = json::compile_script(chemin);
+    auto config = Configuration{};
+    auto obj = json::compile_script(chemin);
 
-	if (obj == nullptr) {
-		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
-		return config;
-	}
+    if (obj == nullptr) {
+        std::cerr << "La compilation du script a renvoyé un objet nul !\n";
+        return config;
+    }
 
-	if (obj->type != tori::type_objet::DICTIONNAIRE) {
-		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
-		return config;
-	}
+    if (obj->type != tori::type_objet::DICTIONNAIRE) {
+        std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
+        return config;
+    }
 
-	auto dico = tori::extrait_dictionnaire(obj.get());
+    auto dico = tori::extrait_dictionnaire(obj.get());
 
-	auto obj_fichiers = cherche_tableau(dico, "fichiers");
+    auto obj_fichiers = cherche_tableau(dico, "fichiers");
 
-	if (obj_fichiers != nullptr) {
-		analyse_liste_chemin(obj_fichiers, config.fichiers);
-	}
+    if (obj_fichiers != nullptr) {
+        analyse_liste_chemin(obj_fichiers, config.fichiers);
+    }
 
-	auto obj_dossiers = cherche_tableau(dico, "dossiers");
+    auto obj_dossiers = cherche_tableau(dico, "dossiers");
 
-	if (obj_dossiers != nullptr) {
-		analyse_liste_chemin(obj_dossiers, config.dossiers);
-	}
+    if (obj_dossiers != nullptr) {
+        analyse_liste_chemin(obj_dossiers, config.dossiers);
+    }
 
-	auto obj_change = cherche_dico(dico, "change");
+    auto obj_change = cherche_dico(dico, "change");
 
-	if (obj_change != nullptr) {
-		auto obj_mots_cles = cherche_dico(obj_change, "mots-clés");
+    if (obj_change != nullptr) {
+        auto obj_mots_cles = cherche_dico(obj_change, "mots-clés");
 
-		if (obj_mots_cles == nullptr) {
-			return config;
-		}
+        if (obj_mots_cles == nullptr) {
+            return config;
+        }
 
-		for (auto objet : obj_mots_cles->valeur) {
-			auto const &nom_objet = objet.first;
+        for (auto objet : obj_mots_cles->valeur) {
+            auto const &nom_objet = objet.first;
 
-			if (objet.second->type != tori::type_objet::CHAINE) {
-				std::cerr << "mots-clés : la valeur l'objet '" << nom_objet << "' n'est pas une chaine !\n";
-				continue;
-			}
+            if (objet.second->type != tori::type_objet::CHAINE) {
+                std::cerr << "mots-clés : la valeur l'objet '" << nom_objet
+                          << "' n'est pas une chaine !\n";
+                continue;
+            }
 
-			auto obj_chaine = extrait_chaine(objet.second.get());
-			config.mots_cles.ajoute({ nom_objet, obj_chaine->valeur });
+            auto obj_chaine = extrait_chaine(objet.second.get());
+            config.mots_cles.ajoute({nom_objet, obj_chaine->valeur});
 
-			//std::cerr << "Remplacement de '" << nom_objet << "' par '" << obj_chaine->valeur << "'\n";
-		}
-	}
+            // std::cerr << "Remplacement de '" << nom_objet << "' par '" << obj_chaine->valeur <<
+            // "'\n";
+        }
+    }
 
-	return config;
+    return config;
 }
 
-static void reecris_fichier(
-		std::filesystem::path &chemin,
-		Configuration const &config)
+static void reecris_fichier(std::filesystem::path &chemin, Configuration const &config)
 {
-	std::cerr << "Réécriture du fichier " << chemin << "\n";
+    std::cerr << "Réécriture du fichier " << chemin << "\n";
 
-	{
-		if (chemin.is_relative()) {
-			chemin = std::filesystem::absolute(chemin);
-		}
+    {
+        if (chemin.is_relative()) {
+            chemin = std::filesystem::absolute(chemin);
+        }
 
-		auto compilatrice = Compilatrice{};
-		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
-		auto tampon = charge_contenu_fichier(chemin.c_str());
-		donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+        auto compilatrice = Compilatrice{};
+        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+        auto tampon = charge_contenu_fichier(chemin.c_str());
+        donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-		auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
-		lexeuse.performe_lexage();
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(),
+                               donnees_fichier,
+                               INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+        lexeuse.performe_lexage();
 
-		auto os = std::ofstream(chemin);
+        auto os = std::ofstream(chemin);
 
-		for (auto const &lexeme : donnees_fichier->lexemes) {
-			if (!est_mot_cle(lexeme.genre)) {
-				os << lexeme.chaine;
-				continue;
-			}
+        for (auto const &lexeme : donnees_fichier->lexemes) {
+            if (!est_mot_cle(lexeme.genre)) {
+                os << lexeme.chaine;
+                continue;
+            }
 
-			auto trouve = false;
+            auto trouve = false;
 
-			for (auto const &paire : config.mots_cles) {
-				if (paire.first != dls::chaine(lexeme.chaine)) {
-					continue;
-				}
+            for (auto const &paire : config.mots_cles) {
+                if (paire.first != dls::chaine(lexeme.chaine)) {
+                    continue;
+                }
 
-				os << paire.second;
-				trouve = true;
+                os << paire.second;
+                trouve = true;
 
-				break;
-			}
+                break;
+            }
 
-			if (!trouve) {
-				os << lexeme.chaine;
-			}
-		}
-	}
+            if (!trouve) {
+                os << lexeme.chaine;
+            }
+        }
+    }
 }
 
 int main(int argc, char **argv)
 {
-	std::ios::sync_with_stdio(false);
+    std::ios::sync_with_stdio(false);
 
-	if (argc < 2) {
-		std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
-		return 1;
-	}
+    if (argc < 2) {
+        std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
+        return 1;
+    }
 
-	auto config = analyse_configuration(argv[1]);
+    auto config = analyse_configuration(argv[1]);
 
-	if (config.dossiers.est_vide() && config.fichiers.est_vide()) {
-		std::cerr << "Aucun fichier ni dossier précisé dans le fichier de configuration !\n";
-		return 1;
-	}
+    if (config.dossiers.est_vide() && config.fichiers.est_vide()) {
+        std::cerr << "Aucun fichier ni dossier précisé dans le fichier de configuration !\n";
+        return 1;
+    }
 
-	if (config.mots_cles.est_vide()) {
-		std::cerr << "Aucun mot-clé précisé !\n";
-		return 1;
-	}
+    if (config.mots_cles.est_vide()) {
+        std::cerr << "Aucun mot-clé précisé !\n";
+        return 1;
+    }
 
-	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
+    auto const &chemin_racine_kuri = getenv("RACINE_KURI");
 
-	if (chemin_racine_kuri == nullptr) {
-		std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
-		std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement 'RACINE_KURI' soit définie !\n";
-		return 1;
-	}
+    if (chemin_racine_kuri == nullptr) {
+        std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
+        std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement "
+                     "'RACINE_KURI' soit définie !\n";
+        return 1;
+    }
 
-	for (auto const &chemin_dossier : config.dossiers) {
-		auto chemin = std::filesystem::path(chemin_dossier.c_str());
+    for (auto const &chemin_dossier : config.dossiers) {
+        auto chemin = std::filesystem::path(chemin_dossier.c_str());
 
-		if (!std::filesystem::exists(chemin)) {
-			std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
-			continue;
-		}
+        if (!std::filesystem::exists(chemin)) {
+            std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
+            continue;
+        }
 
-		if (!std::filesystem::is_directory(chemin)) {
-			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un dossier !\n";
-			continue;
-		}
+        if (!std::filesystem::is_directory(chemin)) {
+            std::cerr << "Le chemin " << chemin << " ne pointe pas vers un dossier !\n";
+            continue;
+        }
 
-		for (auto donnees : std::filesystem::recursive_directory_iterator(chemin)) {
-			chemin = donnees.path();
+        for (auto donnees : std::filesystem::recursive_directory_iterator(chemin)) {
+            chemin = donnees.path();
 
-			if (chemin.extension() != ".kuri") {
-				continue;
-			}
+            if (chemin.extension() != ".kuri") {
+                continue;
+            }
 
-			reecris_fichier(chemin, config);
-		}
-	}
+            reecris_fichier(chemin, config);
+        }
+    }
 
-	for (auto const &chemin_fichier : config.fichiers) {
-		auto chemin = std::filesystem::path(chemin_fichier.c_str());
+    for (auto const &chemin_fichier : config.fichiers) {
+        auto chemin = std::filesystem::path(chemin_fichier.c_str());
 
-		if (!std::filesystem::exists(chemin)) {
-			std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
-			continue;
-		}
+        if (!std::filesystem::exists(chemin)) {
+            std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
+            continue;
+        }
 
-		if (!std::filesystem::is_regular_file(chemin)) {
-			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier !\n";
-			continue;
-		}
+        if (!std::filesystem::is_regular_file(chemin)) {
+            std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier !\n";
+            continue;
+        }
 
-		if (chemin.extension() != ".kuri") {
-			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier kuri !\n";
-			continue;
-		}
+        if (chemin.extension() != ".kuri") {
+            std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier kuri !\n";
+            continue;
+        }
 
-		reecris_fichier(chemin, config);
-	}
+        reecris_fichier(chemin, config);
+    }
 
-	return 0;
+    return 0;
 }

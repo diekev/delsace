@@ -38,15 +38,15 @@ struct NoeudExpression;
 struct Statistiques;
 
 //// pour Alembic
-//lib_abc :: #bibliothèque ""
-//lib_abc_kuri :: #bibliothèque ""
+// lib_abc :: #bibliothèque ""
+// lib_abc_kuri :: #bibliothèque ""
 
 //#dépendance_bibliothèque lib_abc_kuri lib_abc
 
 //#externe libc
 //#externe lib_pthread
 
-//directive #externe : argument définissant la bibliothèque où trouver le symbole
+// directive #externe : argument définissant la bibliothèque où trouver le symbole
 //- libc :: #bibiliothèque_externe "c"
 //- write :: fonc (...) -> z32 #externe libc
 
@@ -54,86 +54,90 @@ struct Statistiques;
 
 // -- ajout d'un identifiant après "#externe" pour les fonctions
 // -- ajout d'une chaine possible après l'identifiant suscité pour définir le nom du symbole
-// -- ajout de Symbole *symbole à NoeudDeclarationEnteteFonction pour définir le symbole dans la bibliothèque
+// -- ajout de Symbole *symbole à NoeudDeclarationEnteteFonction pour définir le symbole dans la
+// bibliothèque
 // -- ajout d'un noeud syntaxique ?
 
 enum class EtatRechercheSymbole : unsigned char {
-	NON_RECHERCHE,
-	TROUVE,
-	INTROUVE,
-	SURECRIS,
+    NON_RECHERCHE,
+    TROUVE,
+    INTROUVE,
+    SURECRIS,
 };
 
 struct Symbole {
-	using type_fonction = void(*)();
+    using type_fonction = void (*)();
 
-	Bibliotheque *bibliotheque = nullptr;
-	kuri::chaine nom = "";
-	EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
+    Bibliotheque *bibliotheque = nullptr;
+    kuri::chaine nom = "";
+    EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
 
-	type_fonction ptr_fonction = nullptr;
+    type_fonction ptr_fonction = nullptr;
 
-	bool charge(EspaceDeTravail *espace, NoeudExpression const *site);
+    bool charge(EspaceDeTravail *espace, NoeudExpression const *site);
 
-	void surecris_pointeur(type_fonction pointeur)
-	{
-		ptr_fonction = pointeur;
-		/* puisque nous remplaçons certaines fonctions de la bibliothèque C pour les
-		 * métaprogrammes, il nous faut se souvenir de ceci afin que lorsque nous
-		 * aurons un lieur, le lieur charge le bon symbole de la bibliothèque */
-		etat_recherche = EtatRechercheSymbole::SURECRIS;
-	}
+    void surecris_pointeur(type_fonction pointeur)
+    {
+        ptr_fonction = pointeur;
+        /* puisque nous remplaçons certaines fonctions de la bibliothèque C pour les
+         * métaprogrammes, il nous faut se souvenir de ceci afin que lorsque nous
+         * aurons un lieur, le lieur charge le bon symbole de la bibliothèque */
+        etat_recherche = EtatRechercheSymbole::SURECRIS;
+    }
 };
 
 enum class EtatRechercheBibliotheque : unsigned char {
-	NON_RECHERCHEE,
-	TROUVEE,
-	INTROUVEE,
+    NON_RECHERCHEE,
+    TROUVEE,
+    INTROUVEE,
 };
 
 struct Bibliotheque {
-	/* l'identifiant qui sera utilisé après les directives #externe, défini via ident :: #bibliothèque "nom" */
-	IdentifiantCode *ident = nullptr;
+    /* l'identifiant qui sera utilisé après les directives #externe, défini via ident ::
+     * #bibliothèque "nom" */
+    IdentifiantCode *ident = nullptr;
 
-	kuri::chaine_statique nom = "";
+    kuri::chaine_statique nom = "";
 
-	NoeudExpression *site = nullptr;
-	dls::systeme_fichier::shared_library bib{};
+    NoeudExpression *site = nullptr;
+    dls::systeme_fichier::shared_library bib{};
 
-	EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
+    EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
 
-	/* Le chemin pour une bibliothèque statique (*.a sur Linux). */
-	kuri::chaine chemin_statique = "";
+    /* Le chemin pour une bibliothèque statique (*.a sur Linux). */
+    kuri::chaine chemin_statique = "";
 
-	/* Le chemin pour la version dynamique (*.so sur Linux). */
-	kuri::chaine chemin_dynamique = "";
+    /* Le chemin pour la version dynamique (*.so sur Linux). */
+    kuri::chaine chemin_dynamique = "";
 
-	kuri::tableau_compresse<Bibliotheque *, int> dependances{};
-	tableau_page<Symbole> symboles{};
+    kuri::tableau_compresse<Bibliotheque *, int> dependances{};
+    tableau_page<Symbole> symboles{};
 
-	Symbole *cree_symbole(kuri::chaine_statique nom_symbole);
+    Symbole *cree_symbole(kuri::chaine_statique nom_symbole);
 
-	bool charge(EspaceDeTravail *espace);
+    bool charge(EspaceDeTravail *espace);
 };
 
 struct GestionnaireBibliotheques {
-	EspaceDeTravail &espace;
-	tableau_page<Bibliotheque> bibliotheques{};
+    EspaceDeTravail &espace;
+    tableau_page<Bibliotheque> bibliotheques{};
 
-	GestionnaireBibliotheques(EspaceDeTravail &espace_)
-		: espace(espace_)
-	{}
+    GestionnaireBibliotheques(EspaceDeTravail &espace_) : espace(espace_)
+    {
+    }
 
-	Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
+    Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
-	Bibliotheque *trouve_ou_cree_bibliotheque(IdentifiantCode *ident);
+    Bibliotheque *trouve_ou_cree_bibliotheque(IdentifiantCode *ident);
 
-	Bibliotheque *cree_bibliotheque(NoeudExpression *site);
+    Bibliotheque *cree_bibliotheque(NoeudExpression *site);
 
-	Bibliotheque *cree_bibliotheque(NoeudExpression *site, IdentifiantCode *ident, kuri::chaine_statique nom);
+    Bibliotheque *cree_bibliotheque(NoeudExpression *site,
+                                    IdentifiantCode *ident,
+                                    kuri::chaine_statique nom);
 
-	void rassemble_statistiques(Statistiques &stats) const;
+    void rassemble_statistiques(Statistiques &stats) const;
 
-private:
-	void resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque);
+  private:
+    void resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque);
 };

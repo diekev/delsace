@@ -26,21 +26,21 @@
 
 #include "oiio.h"
 
-#include <string.h>
-#include <math.h>
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <math.h>
 #include <stdexcept>
+#include <string.h>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #if 0
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#    ifndef M_PI
+#        define M_PI 3.14159265358979323846
+#    endif
 
 static float *multiplyBasisFunction(int xComponent, int yComponent, int width, int height, uint8_t *rgb, size_t bytesPerRow);
 static char *encode_int(int value, int length, char *destination);
@@ -173,45 +173,41 @@ static char *encode_int(int value, int length, char *destination) {
 #else
 
 namespace blurhash {
-struct Image
-{
-	size_t width, height;
-	std::vector<unsigned char> image; // pixels rgb
+struct Image {
+    size_t width, height;
+    std::vector<unsigned char> image;  // pixels rgb
 };
 
 // Decode a blurhash to an image with size width*height
-Image
-decode(std::string blurhash, size_t width, size_t height, size_t bytesPerPixel = 3);
+Image decode(std::string blurhash, size_t width, size_t height, size_t bytesPerPixel = 3);
 
 // Encode an image of rgb pixels (without padding) with size width*height into a blurhash with x*y
 // components
-std::string
-encode(unsigned char *image, size_t width, size_t height, int x, int y);
-}
+std::string encode(unsigned char *image, size_t width, size_t height, int x, int y);
+}  // namespace blurhash
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#    ifndef M_PI
+#        define M_PI 3.14159265358979323846
+#    endif
 
-#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest.h>
-#endif
+#    ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#        include <doctest.h>
+#    endif
 
-//using namespace std::literals;
+// using namespace std::literals;
 
 namespace {
 constexpr std::array<char, 84> int_to_b83{
-	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"};
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"};
 
-std::string
-leftPad(std::string str, size_t len)
+std::string leftPad(std::string str, size_t len)
 {
-	if (str.size() >= len)
-		return str;
-	return str.insert(0, len - str.size(), '0');
+    if (str.size() >= len)
+        return str;
+    return str.insert(0, len - str.size(), '0');
 }
 
-//constexpr std::array<int, 255> b83_to_int = []() constexpr
+// constexpr std::array<int, 255> b83_to_int = []() constexpr
 //{
 //		std::array<int, 255> a{};
 
@@ -226,38 +222,35 @@ leftPad(std::string str, size_t len)
 //}
 //();
 
-std::string
-encode83(int value)
+std::string encode83(int value)
 {
-	std::string buffer;
+    std::string buffer;
 
-	do {
-		buffer += int_to_b83[static_cast<size_t>(value % 83)];
-	} while ((value = value / 83));
+    do {
+        buffer += int_to_b83[static_cast<size_t>(value % 83)];
+    } while ((value = value / 83));
 
-	std::reverse(buffer.begin(), buffer.end());
-	return buffer;
+    std::reverse(buffer.begin(), buffer.end());
+    return buffer;
 }
 
-struct Components
-{
-	int x, y;
+struct Components {
+    int x, y;
 };
 
-int
-packComponents(const Components &c)
+int packComponents(const Components &c)
 {
-	return (c.x - 1) + (c.y - 1) * 9;
+    return (c.x - 1) + (c.y - 1) * 9;
 }
 
-//Components
-//unpackComponents(int c)
+// Components
+// unpackComponents(int c)
 //{
 //	return {c % 9 + 1, c / 9 + 1};
 //}
 
-//int
-//decode83(std::string value)
+// int
+// decode83(std::string value)
 //{
 //		int temp = 0;
 
@@ -270,14 +263,14 @@ packComponents(const Components &c)
 //		return temp;
 //}
 
-//float
-//decodeMaxAC(int quantizedMaxAC)
+// float
+// decodeMaxAC(int quantizedMaxAC)
 //{
 //		return (quantizedMaxAC + 1) / 166.;
 //}
 
-//float
-//decodeMaxAC(const std::string &maxAC)
+// float
+// decodeMaxAC(const std::string &maxAC)
 //{
 //		assert(maxAC.size() == 1);
 //		return decodeMaxAC(decode83(maxAC));
@@ -285,71 +278,73 @@ packComponents(const Components &c)
 
 int encodeMaxAC(float maxAC)
 {
-	return std::max(0, std::min(82, static_cast<int>(maxAC * 166.0f - 0.5f)));
+    return std::max(0, std::min(82, static_cast<int>(maxAC * 166.0f - 0.5f)));
 }
 
 float srgbToLinear(int value)
 {
-	auto srgbToLinearF = [](float x) {
-		if (x <= 0.0f)
-			return 0.0f;
-		else if (x >= 1.0f)
-			return 1.0f;
-		else if (x < 0.04045f)
-			return x / 12.92f;
-		else
-			return std::pow((x + 0.055f) / 1.055f, 2.4f);
-	};
+    auto srgbToLinearF = [](float x) {
+        if (x <= 0.0f)
+            return 0.0f;
+        else if (x >= 1.0f)
+            return 1.0f;
+        else if (x < 0.04045f)
+            return x / 12.92f;
+        else
+            return std::pow((x + 0.055f) / 1.055f, 2.4f);
+    };
 
-	return srgbToLinearF(static_cast<float>(value) / 255.0f);
+    return srgbToLinearF(static_cast<float>(value) / 255.0f);
 }
 
 int linearToSrgb(float value)
 {
-	auto linearToSrgbF = [](float x) -> float {
-		if (x <= 0.0f)
-			return 0.0f;
-		else if (x >= 1.0f)
-			return 1.0f;
-		else if (x < 0.0031308f)
-			return x * 12.92f;
-		else
-			return std::pow(x, 1.0f / 2.4f) * 1.055f - 0.055f;
-	};
+    auto linearToSrgbF = [](float x) -> float {
+        if (x <= 0.0f)
+            return 0.0f;
+        else if (x >= 1.0f)
+            return 1.0f;
+        else if (x < 0.0031308f)
+            return x * 12.92f;
+        else
+            return std::pow(x, 1.0f / 2.4f) * 1.055f - 0.055f;
+    };
 
-	return int(linearToSrgbF(value) * 255.0f + 0.5f);
+    return int(linearToSrgbF(value) * 255.0f + 0.5f);
 }
 
-struct Color
-{
-	float r, g, b;
+struct Color {
+    float r, g, b;
 
-	Color &operator*=(float scale)
-	{
-		r *= scale;
-		g *= scale;
-		b *= scale;
-		return *this;
-	}
-	friend Color operator*(Color lhs, float rhs) { return (lhs *= rhs); }
-	Color &operator/=(float scale)
-	{
-		r /= scale;
-		g /= scale;
-		b /= scale;
-		return *this;
-	}
-	Color &operator+=(const Color &rhs)
-	{
-		r += rhs.r;
-		g += rhs.g;
-		b += rhs.b;
-		return *this;
-	}
+    Color &operator*=(float scale)
+    {
+        r *= scale;
+        g *= scale;
+        b *= scale;
+        return *this;
+    }
+    friend Color operator*(Color lhs, float rhs)
+    {
+        return (lhs *= rhs);
+    }
+    Color &operator/=(float scale)
+    {
+        r /= scale;
+        g /= scale;
+        b /= scale;
+        return *this;
+    }
+    Color &operator+=(const Color &rhs)
+    {
+        r += rhs.r;
+        g += rhs.g;
+        b += rhs.b;
+        return *this;
+    }
 };
 
-//Color
-//decodeDC(int value)
+// Color
+// decodeDC(int value)
 //{
 //		const int intR = value >> 16;
 //		const int intG = (value >> 8) & 255;
@@ -357,8 +352,8 @@ struct Color
 //		return {srgbToLinear(intR), srgbToLinear(intG), srgbToLinear(intB)};
 //}
 
-//Color
-//decodeDC(std::string value)
+// Color
+// decodeDC(std::string value)
 //{
 //		assert(value.size() == 4);
 //		return decodeDC(decode83(value));
@@ -366,27 +361,27 @@ struct Color
 
 int encodeDC(const Color &c)
 {
-	return (linearToSrgb(c.r) << 16) + (linearToSrgb(c.g) << 8) + linearToSrgb(c.b);
+    return (linearToSrgb(c.r) << 16) + (linearToSrgb(c.g) << 8) + linearToSrgb(c.b);
 }
 
 float signPow(float value, float exp)
 {
-	return std::copysign(std::pow(std::abs(value), exp), value);
+    return std::copysign(std::pow(std::abs(value), exp), value);
 }
 
 int encodeAC(const Color &c, float maximumValue)
 {
-	auto quantR =
-			int(std::max(0.0f, std::min(18.0f, std::floor(signPow(c.r / maximumValue, 0.5f) * 9 + 9.5f))));
-	auto quantG =
-			int(std::max(0.0f, std::min(18.0f, std::floor(signPow(c.g / maximumValue, 0.5f) * 9 + 9.5f))));
-	auto quantB =
-			int(std::max(0.0f, std::min(18.0f, std::floor(signPow(c.b / maximumValue, 0.5f) * 9 + 9.5f))));
+    auto quantR = int(
+        std::max(0.0f, std::min(18.0f, std::floor(signPow(c.r / maximumValue, 0.5f) * 9 + 9.5f))));
+    auto quantG = int(
+        std::max(0.0f, std::min(18.0f, std::floor(signPow(c.g / maximumValue, 0.5f) * 9 + 9.5f))));
+    auto quantB = int(
+        std::max(0.0f, std::min(18.0f, std::floor(signPow(c.b / maximumValue, 0.5f) * 9 + 9.5f))));
 
-	return quantR * 19 * 19 + quantG * 19 + quantB;
+    return quantR * 19 * 19 + quantG * 19 + quantB;
 }
 
-//Color decodeAC(int value, float maximumValue)
+// Color decodeAC(int value, float maximumValue)
 //{
 //	auto quantR = value / (19 * 19);
 //	auto quantG = (value / 19) % 19;
@@ -397,36 +392,36 @@ int encodeAC(const Color &c, float maximumValue)
 //				signPow((float(quantB) - 9) / 9, 2) * maximumValue};
 //}
 
-//Color
-//decodeAC(std::string value, float maximumValue)
+// Color
+// decodeAC(std::string value, float maximumValue)
 //{
 //		return decodeAC(decode83(value), maximumValue);
 //}
 
-Color
-multiplyBasisFunction(Components components, int width, int height, unsigned char *pixels)
+Color multiplyBasisFunction(Components components, int width, int height, unsigned char *pixels)
 {
-	Color c{};
-	float normalisation = (components.x == 0 && components.y == 0) ? 1 : 2;
+    Color c{};
+    float normalisation = (components.x == 0 && components.y == 0) ? 1 : 2;
 
-	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++) {
-			float basis = static_cast<float>(std::cos(M_PI * components.x * x / double(width)) * std::cos(M_PI * components.y * y / double(height)));
-			c.r += basis * srgbToLinear(pixels[3 * x + 0 + y * width * 3]);
-			c.g += basis * srgbToLinear(pixels[3 * x + 1 + y * width * 3]);
-			c.b += basis * srgbToLinear(pixels[3 * x + 2 + y * width * 3]);
-		}
-	}
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            float basis = static_cast<float>(std::cos(M_PI * components.x * x / double(width)) *
+                                             std::cos(M_PI * components.y * y / double(height)));
+            c.r += basis * srgbToLinear(pixels[3 * x + 0 + y * width * 3]);
+            c.g += basis * srgbToLinear(pixels[3 * x + 1 + y * width * 3]);
+            c.b += basis * srgbToLinear(pixels[3 * x + 2 + y * width * 3]);
+        }
+    }
 
-	float scale = normalisation / static_cast<float>(width * height);
-	c *= scale;
-	return c;
+    float scale = normalisation / static_cast<float>(width * height);
+    c *= scale;
+    return c;
 }
-}
+}  // namespace
 
 namespace blurhash {
-//Image
-//decode(std::string blurhash, size_t width, size_t height, size_t bytesPerPixel)
+// Image
+// decode(std::string blurhash, size_t width, size_t height, size_t bytesPerPixel)
 //{
 //		Image i{};
 
@@ -483,157 +478,164 @@ namespace blurhash {
 //		return i;
 //}
 
-std::string
-encode(unsigned char *image, size_t width, size_t height, int components_x, int components_y)
+std::string encode(
+    unsigned char *image, size_t width, size_t height, int components_x, int components_y)
 {
-	if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
-			components_y > 9 || !image)
-		return "";
+    if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
+        components_y > 9 || !image)
+        return "";
 
-	std::vector<Color> factors;
-	factors.reserve(static_cast<size_t>(components_x * components_y));
-	for (int y = 0; y < components_y; y++) {
-		for (int x = 0; x < components_x; x++) {
-			factors.push_back(multiplyBasisFunction({x, y}, static_cast<int>(width), static_cast<int>(height), image));
-		}
-	}
+    std::vector<Color> factors;
+    factors.reserve(static_cast<size_t>(components_x * components_y));
+    for (int y = 0; y < components_y; y++) {
+        for (int x = 0; x < components_x; x++) {
+            factors.push_back(multiplyBasisFunction(
+                {x, y}, static_cast<int>(width), static_cast<int>(height), image));
+        }
+    }
 
-	assert(factors.size() > 0);
+    assert(factors.size() > 0);
 
-	auto dc = factors.front();
-	factors.erase(factors.begin());
+    auto dc = factors.front();
+    factors.erase(factors.begin());
 
-	std::string h;
+    std::string h;
 
-	h += leftPad(encode83(packComponents({components_x, components_y})), 1);
+    h += leftPad(encode83(packComponents({components_x, components_y})), 1);
 
-	float maximumValue;
-	if (!factors.empty()) {
-		float actualMaximumValue = 0;
-		for (auto ac : factors) {
-			actualMaximumValue = std::max({
-											  std::abs(ac.r),
-											  std::abs(ac.g),
-											  std::abs(ac.b),
-											  actualMaximumValue,
-										  });
-		}
+    float maximumValue;
+    if (!factors.empty()) {
+        float actualMaximumValue = 0;
+        for (auto ac : factors) {
+            actualMaximumValue = std::max({
+                std::abs(ac.r),
+                std::abs(ac.g),
+                std::abs(ac.b),
+                actualMaximumValue,
+            });
+        }
 
-		int quantisedMaximumValue = encodeMaxAC(actualMaximumValue);
-		maximumValue              = (static_cast<float>(quantisedMaximumValue + 1)) / 166;
-		h += leftPad(encode83(quantisedMaximumValue), 1);
-	} else {
-		maximumValue = 1;
-		h += leftPad(encode83(0), 1);
-	}
+        int quantisedMaximumValue = encodeMaxAC(actualMaximumValue);
+        maximumValue = (static_cast<float>(quantisedMaximumValue + 1)) / 166;
+        h += leftPad(encode83(quantisedMaximumValue), 1);
+    }
+    else {
+        maximumValue = 1;
+        h += leftPad(encode83(0), 1);
+    }
 
-	h += leftPad(encode83(encodeDC(dc)), 4);
+    h += leftPad(encode83(encodeDC(dc)), 4);
 
-	for (auto ac : factors)
-		h += leftPad(encode83(encodeAC(ac, maximumValue)), 2);
+    for (auto ac : factors)
+        h += leftPad(encode83(encodeAC(ac, maximumValue)), 2);
 
-	return h;
+    return h;
 }
-} // https://github.com/Nheko-Reborn/blurhash
+}  // namespace blurhash
 #endif
 
 extern "C" {
 
 ResultatOperation IMG_ouvre_image(const char *chemin, Image *image)
 {
-	auto input = OIIO::ImageInput::open(chemin);
+    auto input = OIIO::ImageInput::open(chemin);
 
-	if (input == nullptr) {
-		return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
-	}
+    if (input == nullptr) {
+        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
+    }
 
-	const auto &spec = input->spec();
-	int xres = spec.width;
-	int yres = spec.height;
-	int channels = spec.nchannels;
+    const auto &spec = input->spec();
+    int xres = spec.width;
+    int yres = spec.height;
+    int channels = spec.nchannels;
 
-	image->donnees = new float[xres * yres * channels];
-	image->taille_donnees = xres * yres * channels;
-	image->largeur = xres;
-	image->hauteur = yres;
-	image->nombre_composants = channels;
+    image->donnees = new float[xres * yres * channels];
+    image->taille_donnees = xres * yres * channels;
+    image->largeur = xres;
+    image->hauteur = yres;
+    image->nombre_composants = channels;
 
-	if (!input->read_image(image->donnees)) {
-		input->close();
-		OIIO::ImageInput::destroy(input);
-		return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
-	}
+    if (!input->read_image(image->donnees)) {
+        input->close();
+        OIIO::ImageInput::destroy(input);
+        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
+    }
 
-	input->close();
-	OIIO::ImageInput::destroy(input);
+    input->close();
+    OIIO::ImageInput::destroy(input);
 
-	return ResultatOperation::OK;
+    return ResultatOperation::OK;
 }
 
 ResultatOperation IMG_ecris_image(const char *chemin, Image *image)
 {
-	auto out = OIIO::ImageOutput::create(chemin);
+    auto out = OIIO::ImageOutput::create(chemin);
 
-	if (out == nullptr) {
-		return ResultatOperation::IMAGE_INEXISTANTE;
-	}
+    if (out == nullptr) {
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
 
-	auto spec = OIIO::ImageSpec(image->largeur, image->hauteur, image->nombre_composants, OIIO::TypeDesc::FLOAT);
-	out->open(chemin, spec);
+    auto spec = OIIO::ImageSpec(
+        image->largeur, image->hauteur, image->nombre_composants, OIIO::TypeDesc::FLOAT);
+    out->open(chemin, spec);
 
-	if (!out->write_image(OIIO::TypeDesc::FLOAT, image->donnees)) {
-		out->close();
-		OIIO::ImageOutput::destroy(out);
-		return ResultatOperation::IMAGE_INEXISTANTE;
-	}
+    if (!out->write_image(OIIO::TypeDesc::FLOAT, image->donnees)) {
+        out->close();
+        OIIO::ImageOutput::destroy(out);
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
 
-	out->close();
-	OIIO::ImageOutput::destroy(out);
+    out->close();
+    OIIO::ImageOutput::destroy(out);
 
-	return ResultatOperation::OK;
+    return ResultatOperation::OK;
 }
 
 void IMG_detruit_image(Image *image)
 {
-	delete [] image->donnees;
-	image->donnees = nullptr;
-	image->taille_donnees = 0;
-	image->largeur = 0;
-	image->hauteur = 0;
-	image->nombre_composants = 0;
+    delete[] image->donnees;
+    image->donnees = nullptr;
+    image->taille_donnees = 0;
+    image->largeur = 0;
+    image->hauteur = 0;
+    image->nombre_composants = 0;
 }
 
-void IMG_calcul_empreinte_floue(const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat)
+void IMG_calcul_empreinte_floue(
+    const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat)
 {
-	auto input = OIIO::ImageInput::open(chemin);
+    auto input = OIIO::ImageInput::open(chemin);
 
-	if (input == nullptr) {
-		return;
-	}
+    if (input == nullptr) {
+        return;
+    }
 
-	const auto &spec = input->spec();
-	int xres = spec.width;
-	int yres = spec.height;
-	int channels = spec.nchannels;
+    const auto &spec = input->spec();
+    int xres = spec.width;
+    int yres = spec.height;
+    int channels = spec.nchannels;
 
-	std::vector<uint8_t> donnees(static_cast<size_t>(xres * yres * channels));
+    std::vector<uint8_t> donnees(static_cast<size_t>(xres * yres * channels));
 
-	if (!input->read_image(OIIO::TypeDesc::UINT8, donnees.data())) {
-		input->close();
-		OIIO::ImageInput::destroy(input);
-		return;
-	}
+    if (!input->read_image(OIIO::TypeDesc::UINT8, donnees.data())) {
+        input->close();
+        OIIO::ImageInput::destroy(input);
+        return;
+    }
 
-	auto res = blurhash::encode(donnees.data(), static_cast<size_t>(xres), static_cast<size_t>(yres), composant_x, composant_y);
+    auto res = blurhash::encode(donnees.data(),
+                                static_cast<size_t>(xres),
+                                static_cast<size_t>(yres),
+                                composant_x,
+                                composant_y);
 
-	for (auto c : res) {
-		*resultat++ = c;
-	}
+    for (auto c : res) {
+        *resultat++ = c;
+    }
 
-	*taille_resultat = static_cast<long>(res.size());
+    *taille_resultat = static_cast<long>(res.size());
 
-	input->close();
-	OIIO::ImageInput::destroy(input);
+    input->close();
+    OIIO::ImageInput::destroy(input);
 }
-
 }

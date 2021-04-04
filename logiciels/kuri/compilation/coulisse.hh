@@ -29,13 +29,15 @@ struct ConstructriceRI;
 struct EspaceDeTravail;
 
 struct Coulisse {
-	double temps_generation_code = 0.0;
-	double temps_fichier_objet = 0.0;
-	double temps_executable = 0.0;
+    double temps_generation_code = 0.0;
+    double temps_fichier_objet = 0.0;
+    double temps_executable = 0.0;
 
-	virtual ~Coulisse() = default;
+    virtual ~Coulisse() = default;
 
-	virtual bool cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &espace, ConstructriceRI &constructrice_ri) = 0;
+    virtual bool cree_fichier_objet(Compilatrice &compilatrice,
+                                    EspaceDeTravail &espace,
+                                    ConstructriceRI &constructrice_ri) = 0;
 
-	virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
+    virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
 };
