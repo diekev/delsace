@@ -2032,6 +2032,7 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
 	auto arrete = assem->cree_arrete(&lexeme_arrete);
 	arrete->drapeaux |= EST_IMPLICITE;
 	arrete->boucle_controlee = inst;
+	arrete->bloc_parent = bloc_si_vrai;
 
 	bloc_si_vrai->expressions->ajoute(arrete);
 	condition->bloc_si_vrai = bloc_si_vrai;
