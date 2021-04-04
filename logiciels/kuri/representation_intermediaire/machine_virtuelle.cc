@@ -685,6 +685,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
+        auto espace = depile<EspaceDeTravail *>(site);
+        auto fichier = espace->fichier(site->lexeme->fichier);
+        auto module = fichier->module;
+        empile(site, module);
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 
