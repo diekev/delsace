@@ -503,7 +503,7 @@ struct NoeudPour : NoeudExpression {
 
 	bool prend_référence [copie]
 	bool prend_pointeur [copie]
-	GenreLexeme lexeme_op = "GenreLexeme::INFERIEUR"
+	GenreLexeme lexeme_op = .INFERIEUR
 }
 
 struct NoeudBoucle : NoeudExpression {
