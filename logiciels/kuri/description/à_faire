@@ -417,6 +417,10 @@ voir le système de type de zig, notamment pour les bitfields
 - z6 pour un entier relatif sur 6-bits
 etc..
 
+révision des transtypages :
+    - instruction comme -> convertis les bits, les types doivent avoir la même taille en octet
+    - instruction vers -> convertis le type, les types doivent être parenté, ou la conversion valide selon les règles du langage
+
 // --------------------------- Discriminations
 
 discr sur union anonyme
