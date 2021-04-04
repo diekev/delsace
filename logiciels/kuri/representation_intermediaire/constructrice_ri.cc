@@ -262,7 +262,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const kur
 
 	cree_retour(nullptr, nullptr);
 
-	// crée l'appel de cette fonction et ajoute là au début de la fonction_our
+	// crée l'appel de cette fonction et ajoute là au début de la fonction_pour
 
 	this->fonction_courante = fonction_pour;
 	param_contexte = nullptr;
