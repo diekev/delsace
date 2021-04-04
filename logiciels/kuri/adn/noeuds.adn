@@ -501,8 +501,8 @@ struct NoeudPour : NoeudExpression {
 	NoeudBloc *bloc_sansarret [code enfant]
 	NoeudBloc *bloc_sinon [code enfant]
 
-	bool prend_référence
-	bool prend_pointeur
+	bool prend_référence [copie]
+	bool prend_pointeur [copie]
 	GenreLexeme lexeme_op = "GenreLexeme::INFERIEUR"
 }
 
