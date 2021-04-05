@@ -2630,7 +2630,8 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
         }
     }
 
-    if (decl->est_externe && decl->ident && decl->ident->nom != "__principale") {
+    // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
+    if (decl->est_externe && decl->ident && decl->ident->nom != "__principale" && !decl->possede_drapeau(COMPILATRICE)) {
         auto bibliotheque = espace->gestionnaire_bibliotheques->trouve_bibliotheque(
             decl->ident_bibliotheque);
 
