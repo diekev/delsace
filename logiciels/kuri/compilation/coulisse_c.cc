@@ -1455,9 +1455,27 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
     }
 }
 
+static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibliotheques,
+                                             dls::ensemble<Bibliotheque *> &utilisees,
+                                             Bibliotheque *bibliotheque)
+{
+    if (utilisees.trouve(bibliotheque) != utilisees.fin()) {
+        return;
+    }
+
+    bibliotheques.ajoute(bibliotheque);
+
+    utilisees.insere(bibliotheque);
+
+    POUR (bibliotheque->dependances.plage()) {
+        rassemble_bibliotheques_utilisee(bibliotheques, utilisees, it);
+    }
+}
+
 static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
+                                                     kuri::tableau<Bibliotheque *> &bibliotheques,
                                                      std::ostream &fichier_sortie)
 {
     Enchaineuse enchaineuse;
@@ -1494,6 +1512,13 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
     atome_fonc->nombre_utilisations = 1;
     atome_fonc->nom = "main";
+
+    dls::ensemble<Bibliotheque *> bibliotheques_utilisees;
+    POUR (fonctions) {
+        if (it->decl && it->decl->est_externe && it->decl->symbole) {
+            rassemble_bibliotheques_utilisee(bibliotheques, bibliotheques_utilisees, it->decl->symbole->bibliotheque);
+        }
+    }
 
     auto generatrice = GeneratriceCodeC(espace);
     generatrice.genere_code(espace.globales, fonctions, enchaineuse);
@@ -1548,11 +1573,12 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 static void genere_code_C(Compilatrice &compilatrice,
                           ConstructriceRI &constructrice_ri,
                           EspaceDeTravail &espace,
+                          kuri::tableau<Bibliotheque *> &bibliotheques,
                           std::ostream &fichier_sortie)
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
         genere_code_C_depuis_fonction_principale(
-            compilatrice, constructrice_ri, espace, fichier_sortie);
+            compilatrice, constructrice_ri, espace, bibliotheques, fichier_sortie);
     }
     else {
         genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
@@ -1645,12 +1671,14 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
                                    EspaceDeTravail &espace,
                                    ConstructriceRI &constructrice_ri)
 {
+    m_bibliotheques.efface();
+
     std::ofstream of;
     of.open("/tmp/compilation_kuri.c");
 
     std::cout << "Génération du code..." << std::endl;
     auto debut_generation_code = dls::chrono::compte_seconde();
-    genere_code_C(compilatrice, constructrice_ri, espace, of);
+    genere_code_C(compilatrice, constructrice_ri, espace, m_bibliotheques, of);
     temps_generation_code = debut_generation_code.temps();
 
     of.close();
@@ -1696,7 +1724,18 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
         enchaineuse << chm;
     }
 
-    // À FAIRE(bibliothèques)
+    POUR (m_bibliotheques) {
+        if (it->nom == "r16") {
+            continue;
+        }
+
+        if (it->chemin_dynamique != "") {
+            enchaineuse << " -l" << it->nom;
+        }
+        else {
+            enchaineuse << " -L" << it->chemin_statique;
+        }
+    }
 
     if (espace.options.architecture == ArchitectureCible::X86) {
         enchaineuse << " -m32 ";

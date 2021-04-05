@@ -42,7 +42,8 @@ static bool fichier_existe(kuri::chaine const &chemin)
 
 bool Symbole::charge(EspaceDeTravail *espace, NoeudExpression const *site)
 {
-    if (etat_recherche == EtatRechercheSymbole::TROUVE) {
+    // À FAIRE(bibliothèque) : surécris n'est que pour les l'exécution dans la MV
+    if (etat_recherche == EtatRechercheSymbole::TROUVE || etat_recherche == EtatRechercheSymbole::SURECRIS) {
         return true;
     }
 
@@ -96,7 +97,7 @@ bool Bibliotheque::charge(EspaceDeTravail *espace)
             ->rapporte_erreur(
                 site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
             .ajoute_message(
-                "La bibliothèque « ", ident->nom, " » n'a pas de version dynamique !\n");
+                "La bibliothèque « ", nom, " » n'a pas de version dynamique !\n");
         return false;
     }
 
@@ -104,8 +105,14 @@ bool Bibliotheque::charge(EspaceDeTravail *espace)
         this->bib = dls::systeme_fichier::shared_library(dls::chaine(chemin_dynamique).c_str());
         etat_recherche = EtatRechercheBibliotheque::TROUVEE;
     }
+    catch (std::filesystem::filesystem_error const &e) {
+        espace->rapporte_erreur(site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"))
+            .ajoute_message("Message d'erreur : ", e.what());
+        etat_recherche = EtatRechercheBibliotheque::INTROUVEE;
+        return false;
+    }
     catch (...) {
-        espace->rapporte_erreur(site, "Impossible de charger la bibliothèque !\n");
+        espace->rapporte_erreur(site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
         etat_recherche = EtatRechercheBibliotheque::INTROUVEE;
         return false;
     }

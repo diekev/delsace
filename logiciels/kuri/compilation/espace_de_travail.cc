@@ -63,6 +63,27 @@ static void notre_free(void *ptr)
     free(ptr);
 }
 
+// À FAIRE
+static float vers_r32(uint16_t f)
+{
+    return 0;
+}
+
+static uint16_t depuis_r32(float f)
+{
+    return 0;
+}
+
+static double vers_r64(uint16_t f)
+{
+    return 0;
+}
+
+static uint16_t depuis_r64(double f)
+{
+    return 0;
+}
+
 /* ************************************************************************** */
 
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
@@ -93,6 +114,9 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     auto libc = gestionnaire_bibliotheques->cree_bibliotheque(
         nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
 
+    // À FAIRE(bibliothèques) : libc.so est un script de liaison...
+    libc->chemin_dynamique = "/lib/x86_64-linux-gnu/libc.so.6";
+
     auto malloc_ = libc->cree_symbole("malloc");
     malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
 
@@ -103,8 +127,13 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
 
     /* La bibliothèque r16. */
-    gestionnaire_bibliotheques->cree_bibliotheque(nullptr,
+    auto bibr16 = gestionnaire_bibliotheques->cree_bibliotheque(nullptr,
                                                   table_idents->identifiant_pour_chaine("libr16"), "r16");
+
+    bibr16->cree_symbole("DLS_vers_r32")->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r32));
+    bibr16->cree_symbole("DLS_depuis_r32")->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
+    bibr16->cree_symbole("DLS_vers_r64")->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r64));
+    bibr16->cree_symbole("DLS_depuis_r64")->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
 
     /* La bibliothèque pthread. */
     gestionnaire_bibliotheques->cree_bibliotheque(
