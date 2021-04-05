@@ -3,8 +3,8 @@ importe OpenSSL // MySQL dépends d'OpenSSL
 
 // À FAIRE : trouve quel symbole est dans quel bibliothèqe...
 
-libmysqlclient :: #bibliothèque "/opt/lib/mysql/lib/libmysqlclient.a"
-libmysqlservices :: #bibliothèque "/opt/lib/mysql/lib/libmysqlservices.a"
+libmysqlclient :: #bibliothèque "mysqlclient"
+libmysqlservices :: #bibliothèque "mysqlservices"
 
 libdl :: #bibliothèque "dl"
 

@@ -171,7 +171,11 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
     // chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
     //                  /lib/i386-linux-gnu/ pour 32-bit
 
-    dls::tablet<kuri::chaine_statique, 2> dossiers;
+    // À FAIRE(bibliothèques) : chemins pour 32-bits
+    // À FAIRE(bibliothèques) : stocke les chemins des bibliothèques dans les modules
+    //                          pour éviter de créer une chaine à chaque fois
+    // À FAIRE(bibliothèques) : utilise kuri::chaine_statique une fois que les chemins sont dans les modules
+    dls::tablet<kuri::chaine, 4> dossiers;
     dossiers.ajoute("/lib/x86_64-linux-gnu/");
     dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
     // pour les tables r16...
@@ -180,7 +184,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
     if (site) {
         const auto fichier = espace.fichier(site->lexeme->fichier);
         const auto module = fichier->module;
-        dossiers.ajoute(module->nom()->nom);
+        dossiers.ajoute(enchaine(module->chemin(), "/lib/x86_64-linux-gnu/"));
     }
 
     // essaye de déterminer le chemin
@@ -199,6 +203,10 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
     auto chemin_dynamique_trouve = false;
 
     POUR (dossiers) {
+        if (chemin_dynamique_trouve && chemin_statique_trouve) {
+            break;
+        }
+
         if (!chemin_statique_trouve) {
             const auto chemin_statique_test = enchaine(it, nom_statique);
             if (fichier_existe(chemin_statique_test)) {
@@ -222,9 +230,12 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
         return;
     }
 
+#if 0
     std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
     std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
     std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
+#endif
+
     bibliotheque->chemin_statique = chemin_statique;
     bibliotheque->chemin_dynamique = chemin_dynamique;
 }
