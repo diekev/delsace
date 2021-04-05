@@ -1083,6 +1083,21 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
                 return noeud;
             }
+            else if (directive == ID::dependance_bibliotheque) {
+                auto noeud = m_tacheronne.assembleuse->cree_dependance_bibliotheque(lexeme);
+                noeud->ident_bibliotheque_dependante = lexeme_courant()->ident;
+                consomme(GenreLexeme::CHAINE_CARACTERE, "Attendue une chaine de caractère pour définir la bibliothèque dépendante");
+                noeud->ident_bibliotheque_dependue = lexeme_courant()->ident;
+                consomme(GenreLexeme::CHAINE_CARACTERE, "Attendue une chaine de caractère pour définir la bibliothèque dépendue");
+
+                auto espace = m_unite->espace;
+                auto &gestionnaire_bibliotheques = espace->gestionnaire_bibliotheques;
+                auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(noeud->ident_bibliotheque_dependante);
+                auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(noeud->ident_bibliotheque_dependue);
+                bib_dependante->dependances.ajoute(bib_dependue);
+
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */

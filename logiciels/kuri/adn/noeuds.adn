@@ -677,3 +677,12 @@ struct NoeudInstructionDiffère : NoeudExpression {
 
 	NoeudExpression *expression [code enfant]
 }
+
+struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
+	@genre DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE
+	@comme dépendance_bibliothèque
+	@code  NoeudCodeDépendanceBibliothèque
+
+	IdentifiantCode *ident_bibliothèque_dépendante
+	IdentifiantCode *ident_bibliothèque_dépendue
+}

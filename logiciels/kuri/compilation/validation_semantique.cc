@@ -133,6 +133,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::INSTRUCTION_DIFFERE:
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         {
             break;
         }
