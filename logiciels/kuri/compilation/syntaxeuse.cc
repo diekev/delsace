@@ -670,8 +670,7 @@ void Syntaxeuse::analyse_une_chose()
                 noeud->drapeaux |= EST_GLOBALE;
 
                 if (noeud->est_declaration_variable()) {
-                    auto decl_var = noeud->comme_declaration_variable();
-                    noeud->bloc_parent->membres->ajoute(decl_var);
+                    noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
                     m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
                 }
             }
@@ -1035,15 +1034,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             consomme();
 
-            if (directive == ID::bibliotheque) {
-                auto chaine_bib = lexeme_courant()->chaine;
-                consomme(GenreLexeme::CHAINE_LITTERALE,
-                         "Attendu une chaine littérale après la directive");
-                auto ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
-                    chaine_bib);
-                m_unite->espace->gestionnaire_bibliotheques->cree_bibliotheque(nullptr, ident);
-            }
-            else if (directive == ID::def) {
+            if (directive == ID::def) {
                 auto chaine = lexeme_courant()->chaine;
                 consomme(GenreLexeme::CHAINE_LITTERALE,
                          "Attendu une chaine littérale après la directive");
@@ -1296,6 +1287,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     consomme();
 
                     auto directive = lexeme_courant()->ident;
+
+                    if (directive == ID::bibliotheque) {
+                        consomme();
+                        auto chaine_bib = lexeme_courant()->chaine;
+                        consomme(GenreLexeme::CHAINE_LITTERALE,
+                                "Attendu une chaine littérale après la directive");
+                        auto noeud = m_tacheronne.assembleuse->cree_declaration_bibliotheque(lexeme);
+                        noeud->ident = gauche->ident;
+                        noeud->bibliotheque = m_unite->espace->gestionnaire_bibliotheques->cree_bibliotheque(noeud, gauche->ident, chaine_bib);
+                        return noeud;
+                    }
 
                     if (directive == ID::opaque) {
                         m_est_declaration_type_opaque = true;
@@ -2366,7 +2368,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 consomme();
 
                 if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    lance_erreur("attendu une chaine de caractère après #externe");
+                    rapporte_erreur("attendu une chaine de caractère après #externe");
                 }
 
                 noeud->ident_bibliotheque = lexeme_courant()->ident;
@@ -2378,6 +2380,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 else {
                     noeud->nom_symbole = noeud->ident->nom;
                 }
+            }
+            else if (ident_directive == ID::principale) {
+                if (noeud->ident->nom != "__principale") {
+                    rapporte_erreur("#principale utilisée sur une fonction n'étant pas la fonction __principale");
+                }
+
+                noeud->drapeaux |= EST_EXTERNE;
+                noeud->est_externe = true;
             }
             else if (ident_directive == ID::sanstrace) {
                 noeud->drapeaux |= FORCE_SANSTRACE;

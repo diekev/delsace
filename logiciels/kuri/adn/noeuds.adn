@@ -226,6 +226,14 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
 	Atome *atome
 }
 
+struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
+	@comme déclaration_bibliothèque
+	@code  NoeudCodeDéclarationBibliothèque
+	@genre DÉCLARATION_BIBLIOTHÈQUE
+
+	Bibliothèque *bibliothèque
+}
+
 struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
 	@genre DÉCLARATION_VARIABLE
 	@comme déclaration_variable

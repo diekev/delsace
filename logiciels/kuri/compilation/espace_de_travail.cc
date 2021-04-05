@@ -66,10 +66,10 @@ static void notre_free(void *ptr)
 /* ************************************************************************** */
 
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
-                                 OptionsCompilation opts,
+                                 OptionsDeCompilation opts,
                                  kuri::chaine nom_)
     : nom(nom_), options(opts), typeuse(graphe_dependance, this->operateurs),
-      m_compilatrice(compilatrice), gestionnaire_bibliotheques(GestionnaireBibliotheques(*this))
+     gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), m_compilatrice(compilatrice)
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
@@ -91,7 +91,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
     /* La bibliothèque C. */
     auto libc = gestionnaire_bibliotheques->cree_bibliotheque(
-        nullptr, table_idents->identifiant_pour_chaine("c"));
+        nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
 
     auto malloc_ = libc->cree_symbole("malloc");
     malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
@@ -104,11 +104,11 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
     /* La bibliothèque r16. */
     gestionnaire_bibliotheques->cree_bibliotheque(nullptr,
-                                                  table_idents->identifiant_pour_chaine("r16"));
+                                                  table_idents->identifiant_pour_chaine("libr16"), "r16");
 
     /* La bibliothèque pthread. */
     gestionnaire_bibliotheques->cree_bibliotheque(
-        nullptr, table_idents->identifiant_pour_chaine("pthread"));
+        nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
 }
 
 EspaceDeTravail::~EspaceDeTravail()

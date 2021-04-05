@@ -27,36 +27,15 @@
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
+#include "parsage/identifiant.hh"
+
 #include "structures/chaine.hh"
 #include "structures/tableau_compresse.hh"
-
-#include "identifiant.hh"
 
 struct Bibliotheque;
 struct EspaceDeTravail;
 struct NoeudExpression;
 struct Statistiques;
-
-//// pour Alembic
-// lib_abc :: #bibliothèque ""
-// lib_abc_kuri :: #bibliothèque ""
-
-//#dépendance_bibliothèque lib_abc_kuri lib_abc
-
-//#externe libc
-//#externe lib_pthread
-
-// directive #externe : argument définissant la bibliothèque où trouver le symbole
-//- libc :: #bibiliothèque_externe "c"
-//- write :: fonc (...) -> z32 #externe libc
-
-//    // pour le réusinage des bibliothèques
-
-// -- ajout d'un identifiant après "#externe" pour les fonctions
-// -- ajout d'une chaine possible après l'identifiant suscité pour définir le nom du symbole
-// -- ajout de Symbole *symbole à NoeudDeclarationEnteteFonction pour définir le symbole dans la
-// bibliothèque
-// -- ajout d'un noeud syntaxique ?
 
 enum class EtatRechercheSymbole : unsigned char {
     NON_RECHERCHE,

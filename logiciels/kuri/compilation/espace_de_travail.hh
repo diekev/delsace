@@ -146,7 +146,7 @@ struct EspaceDeTravail {
 
     Compilatrice &m_compilatrice;
 
-    EspaceDeTravail(Compilatrice &compilatrice, OptionsCompilation opts, kuri::chaine nom_);
+    EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 
     COPIE_CONSTRUCT(EspaceDeTravail);
 

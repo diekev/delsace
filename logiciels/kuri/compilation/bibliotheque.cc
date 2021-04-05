@@ -24,7 +24,8 @@
 
 #include "bibliotheque.hh"
 
-#include "arbre_syntaxique.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "espace_de_travail.hh"
 
 static bool fichier_existe(kuri::chaine const &chemin)

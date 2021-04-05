@@ -178,6 +178,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             break;
         }
+        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
+        {
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
+            break;
+        }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
         {
             auto decl = noeud->comme_entete_fonction();
@@ -2624,7 +2629,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
         }
     }
 
-    if (decl->est_externe) {
+    if (decl->est_externe && decl->ident && decl->ident->nom != "__principale") {
         auto bibliotheque = espace->gestionnaire_bibliotheques->trouve_bibliotheque(
             decl->ident_bibliotheque);
 
