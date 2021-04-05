@@ -1060,13 +1060,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
                 return noeud;
             }
-            else if (directive == ID::chemin) {
-                auto chaine = lexeme_courant()->chaine;
-                consomme(GenreLexeme::CHAINE_LITTERALE,
-                         "Attendu une chaine littérale après la directive");
-
-                m_compilatrice.chemins->ajoute(chaine);
-            }
             else if (directive == ID::nulctx) {
                 lexeme = lexeme_courant();
                 auto noeud_fonc = analyse_declaration_fonction(lexeme);

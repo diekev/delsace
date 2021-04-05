@@ -58,8 +58,6 @@ struct Compilatrice {
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-    tableau_synchrone<dls::vue_chaine_compacte> chemins{};
-
     /* définitions passées au compilateur C pour modifier les fichiers d'entête */
     tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 

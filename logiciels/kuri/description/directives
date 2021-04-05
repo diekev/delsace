@@ -7,7 +7,6 @@ Directives pour le compilateur
 #opaque                 crée un type depuis un autre, le nouveau type sera héritera des propriétés du type source, mais sera strictement typé (si Entier :: #opaque z32, alors z32 ne peut se faire passer pour Entier)
 #bibliothèque_statique  indique le chemin d'une bibliothèque statique pour lier le programme final (.a sur GNU/Linux)
 #bibliothèque_dynamique indique le chemin d'une bibliothèque dynamique pour lier le programme final (.so sur GNU/Linux)
-#chemin                 indique un chemin où chercher les bibliothèques ou autres fichiers
 #compilatrice           indique qu'une fonction est définie par la compilatrice, ne peut être que dans le module Kuri ou Compilatrice
 #def                    indique une définition de macro pour la coulisse C
 #enligne                indique qu'une fonction doit être considérée pour l'enlignage

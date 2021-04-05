@@ -1,7 +1,7 @@
 importe GlibC // pour ChaineC
 importe OpenSSL // MySQL dépends d'OpenSSL
 
-// À FAIRE : trouve quel symbole est dans quel bibliothèqe...
+// À FAIRE : trouve quel symbole est dans quelle bibliothèque...
 
 libmysqlclient :: #bibliothèque "mysqlclient"
 libmysqlservices :: #bibliothèque "mysqlservices"
@@ -15,8 +15,6 @@ libdl :: #bibliothèque "dl"
 #dépendance_bibliothèque libmysqlservices libdl
 
 #dépendance_bibliothèque libmysqlclient libmysqlservices
-
-#chemin "/opt/lib/mysql/lib/private/"
 
 // Column types for MySQL
 enum_field_types :: énum n32 {

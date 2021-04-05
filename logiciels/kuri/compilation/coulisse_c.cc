@@ -1650,11 +1650,6 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << " -D" << def;
     }
 
-    for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-        enchaineuse << " -L";
-        enchaineuse << chm;
-    }
-
     if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
         enchaineuse << " -o ";
         enchaineuse << ops.nom_sortie;
@@ -1719,10 +1714,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
         enchaineuse << " /tmp/r16_tables_x64.o ";
     }
 
-    for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-        enchaineuse << " -L";
-        enchaineuse << chm;
-    }
+    // À FAIRE(bibliothèques): -L pour définir les chemins
 
     POUR (m_bibliotheques) {
         if (it->nom == "r16") {

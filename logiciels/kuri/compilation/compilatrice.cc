@@ -177,7 +177,6 @@ long Compilatrice::memoire_utilisee() const
 {
     auto memoire = taille_de(Compilatrice);
 
-    memoire += chemins->taille() * taille_de(dls::vue_chaine_compacte);
     memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
 
     memoire += ordonnanceuse->memoire_utilisee();
