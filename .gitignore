@@ -4,6 +4,7 @@
 a.out
 test.db
 *.a
+*.so
 config.json
 
 logiciels/kuri/modules/Aléa/*.h
