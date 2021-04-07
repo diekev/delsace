@@ -199,6 +199,163 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 }
 
 // -------------------------------------------------------------------
+
+est_caractère_réservé_url :: fonc (c: z8) -> bool
+{
+    chn := "&$+,/:;=?@"
+
+    pour chn {
+        si it == c {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_caractère_nonsûr_url :: fonc (c: z8) -> bool
+{
+    chn := " \"<>#%{}|\\^~[]`"
+
+    pour chn {
+        si it == c {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+encode_format_url :: fonc (texte: chaine) -> chaine
+{
+    résultat : chaine
+
+    caractères_hex___ := "0123456789abcdef"
+
+    pour texte {
+        si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
+            chaine_ajoute(*résultat, '%')
+            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) / 16)])
+            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) % 16)])
+        }
+        sinon {
+            chaine_ajoute(*résultat, it)
+        }
+    }
+
+    retourne résultat
+}
+
+résoud_échappement_url :: fonc (chn: chaine) -> chaine
+{
+    nchn : chaine
+
+    i := 0
+
+    tantque i < chn.taille {
+        si chn[i] == '%' {
+            i += 1
+
+            si i + 2 >= chn.taille {
+                arrête
+            }
+
+            c := chn[i]
+
+            v : z8
+
+            si 'a' <= c <= 'f' {
+                v = (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v = (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v = (c - '0')
+            }
+
+            i += 1
+            c = chn[i]
+
+            v *= 16
+
+            si 'a' <= c <= 'f' {
+                v += (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v += (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v += (c - '0')
+            }
+
+            chaine_ajoute(*nchn, v)
+            i += 1
+        }
+        sinon {
+            chaine_ajoute(*nchn, chn[i])
+            i += 1
+        }
+    }
+
+    retourne nchn
+}
+
+résoud_échappement_url_localement :: fonc (chn: chaine)
+{
+    index_d_insertion := 0
+    index_courant := 0
+
+    tantque index_courant < chn.taille {
+        si chn[index_courant] == '%' {
+            index_courant += 1
+
+            si index_courant + 2 >= chn.taille {
+                arrête
+            }
+
+            c := chn[index_courant]
+
+            v : z8
+
+            si 'a' <= c <= 'f' {
+                v = (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v = (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v = (c - '0')
+            }
+
+            index_courant += 1
+            c = chn[index_courant]
+
+            v *= 16
+
+            si 'a' <= c <= 'f' {
+                v += (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v += (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v += (c - '0')
+            }
+
+            chn[index_d_insertion] = v
+            index_courant += 1
+            index_d_insertion += 1
+        }
+        sinon {
+            chn[index_d_insertion] = chn[index_courant]
+            index_courant += 1
+            index_d_insertion += 1
+        }
+    }
+}
+
+// -------------------------------------------------------------------
 // Encodage de données séquentielles par différence (delta).
 // https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
 

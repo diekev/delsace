@@ -10,6 +10,7 @@
  * possède un champs « video » de valeur « IuK93dq3 » et un champs « temps » de valeur « 137 ».
  */
 
+importe CodecDonnées
 importe Compilatrice
 importe Fondation
 importe Introspection
