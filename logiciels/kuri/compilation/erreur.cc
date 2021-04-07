@@ -188,10 +188,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     e.ajoute_message("\tRequiers ", type_struct->membres.taille(), " arguments\n");
                 }
                 else {
-                    auto type_fonc = dc.type->comme_fonction();
-                    e.ajoute_message("\tRequiers ",
-                                     type_fonc->types_entrees.taille() - dc.requiers_contexte,
-                                     " arguments\n");
+                    if (dc.type) {
+                        auto type_fonc = dc.type->comme_fonction();
+                        e.ajoute_message("\tRequiers ",
+                                        type_fonc->types_entrees.taille() - dc.requiers_contexte,
+                                        " arguments\n");
+                    }
                 }
 
                 e.ajoute_message("\tObtenu ", noeud_appel->parametres.taille(), " arguments\n");
