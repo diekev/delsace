@@ -160,7 +160,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
         }
 
         valeur := sous_chaine_jusque_index(parseuse, pos)
-        valeur = résoud_échappement_url(valeur)
+        résoud_échappement_url_localement(valeur)
 
         positionne(parseuse, pos + 1)
 

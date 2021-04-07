@@ -458,6 +458,60 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
     retourne nchn
 }
 
+résoud_échappement_url_localement :: fonc (chn: chaine)
+{
+    index_d_insertion := 0
+    index_courant := 0
+
+    tantque index_courant < chn.taille {
+        si chn[index_courant] == '%' {
+            index_courant += 1
+
+            si index_courant + 2 >= chn.taille {
+                arrête
+            }
+
+            c := chn[index_courant]
+
+            v : z8
+
+            si 'a' <= c <= 'f' {
+                v = (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v = (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v = (c - '0')
+            }
+
+            index_courant += 1
+            c = chn[index_courant]
+
+            v *= 16
+
+            si 'a' <= c <= 'f' {
+                v += (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v += (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v += (c - '0')
+            }
+
+            chn[index_d_insertion] = v
+            index_courant += 1
+            index_d_insertion += 1
+        }
+        sinon {
+            chn[index_d_insertion] = chn[index_courant]
+            index_courant += 1
+            index_d_insertion += 1
+        }
+    }
+}
+
 /* Crée un chemin URL avec des paramètres provenant d'une structure :
  *
  * /mon/chemin/?membre1=valeur1&membre2=valeur2
