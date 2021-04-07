@@ -11,7 +11,7 @@ importe Numérique
 
 ErreurParsageIP :: erreur {
     NombreÉlémentsIncorrect
-    CaracètreInvalide
+    CaractèreInvalide
 }
 
 AdresseIPv4 :: #opaque [4]n8
@@ -136,7 +136,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
         ipv6[index_it] = tente parse_hexadécimal_n16(it) piège err {
             // À FAIRE : erreur pour les dépassements de limites
-            retourne ErreurParsageIP.CaracètreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide
         }
     }
 
@@ -350,7 +350,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
     // x * 256 ^ 3 + y * 256 ^ 2 + z ^ 256 + w
     si morceaux.taille == 1 {
         valeur := tente extrait_n32(chn) piège err {
-            retourne ErreurParsageIP.CaracètreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide
         }
 
         données : [4]n8
@@ -378,7 +378,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
     pour morceaux {
         valeur := tente extrait_n8(it) piège err {
             // À FAIRE : erreur spéciale en cas de dépassement de la taille du nombre
-            retourne ErreurParsageIP.CaracètreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide
         }
 
         données[index_it] = valeur
@@ -480,7 +480,7 @@ test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := Po
             NombreÉlémentsIncorrect {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux")
             }
-            CaracètreInvalide {
+            CaractèreInvalide {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux")
             }
         }
@@ -518,7 +518,7 @@ test_parsage_ipv4_impl :: fonc (chn_donnée: chaine, chn_attendue: chaine, pos :
             NombreÉlémentsIncorrect {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 n'a pas le nombre correcte de morceaux")
             }
-            CaracètreInvalide {
+            CaractèreInvalide {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 contient des caractères non-décimaux")
 
             }
@@ -577,7 +577,7 @@ test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := Positi
             NombreÉlémentsIncorrect {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux")
             }
-            CaracètreInvalide {
+            CaractèreInvalide {
                 compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux")
             }
         }
