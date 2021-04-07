@@ -1,5 +1,6 @@
 importe Aléa
 importe Alembic
+importe Alphabet
 importe Algorithmes
 // importe Allocatrices // non-terminé
 importe AnalyseStatique
