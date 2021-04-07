@@ -149,6 +149,10 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
 
         positionne(parseuse, pos + 1)
 
+        si fini(parseuse) {
+            retourne RésultatParsage.TexteMalformé, données, résultat
+        }
+
         pos = trouve_prochain(parseuse, '&')
 
         si pos <= 0 {
