@@ -4,6 +4,7 @@
 // https://www.netmeister.org/blog/email.html // adresses
 
 importe Aléa
+importe Alphabet
 importe CodecDonnées
 importe Fondation
 importe GlibC
@@ -86,6 +87,36 @@ parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
     copie_mem(src = courriel, dst = tampon, taille = tampon.taille)
     retourne vrai
 }
+
+// -----------------------------------------------------
+
+génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet) -> AdresseCourriel
+{
+    // À FAIRE: forward path @domaine1@domaine2:nom_utilisateur@domaine_final
+    nom := chaine_aléatoire(gna, alphabet, 1, 256)
+    // À FAIRE: domaine aléatoire: domaine valide, IPv4, ou IPv6
+    hôte := chaine_aléatoire(gna, alphabet, 1, 64)
+    adresse := enchaine(nom, "@", hôte)
+
+    courriel : AdresseCourriel = ---
+    courriel.chn = adresse
+    courriel.nom = nom
+    courriel.hôte = adresse
+    retourne courriel
+}
+
+rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+{
+    alphabet := crée_alphabet_ascii_courriel()
+    diffère détruit_alphabet(alphabet)
+
+    adresse := génère_adresse_courriel_aléatoire(génératrice.gna, alphabet)
+
+    ptr := mémoire(valeur.pointeur comme **AdresseCourriel)
+    mémoire(ptr) = adresse
+}
+
+// -----------------------------------------------------
 
 Courriel :: struct {
     expéditeur: AdresseCourriel

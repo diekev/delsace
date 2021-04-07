@@ -1,5 +1,9 @@
 // Interface pour le module C Aléa
 
+importe Alphabet
+importe Fondation
+importe Introspection
+
 #bibliothèque_statique "libmodule_c_alea.a"
 #bibliothèque_dynamique "m"
 
@@ -48,4 +52,89 @@ normale :: fonc (gna: *GNA, moyenne: r32, écart: r32) -> r32
 normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 {
     retourne ALEA_normale_r64(gna, moyenne, écart)
+}
+
+// ------------------------------------------------------
+
+// À FAIRE: #portée_fichier
+// À FAIRE: système pour ajouter dans init_execution_kuri, termine_execution_kuri
+fonctions_génération_données_aléatoires : []FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+
+ajoute_fonction_génération_données_aléatoires :: fonc (info: *InfoType, fonction: fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+{
+    ajoute_fonction(*fonctions_génération_données_aléatoires, info, fonction)
+}
+
+trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+{
+    retourne trouve_fonction_pour_type(fonctions_génération_données_aléatoires, info)
+}
+
+// ------------------------------------------------------
+
+GénératriceDonnéesAléatoire :: struct {
+    gna: *GNA
+    taille_min_chaine := 1
+    taille_max_chaine := 32
+}
+
+génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAléatoire, $T: type_de_données) -> T
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    résultat : T
+
+    info := info_de(T)
+
+    pour info.membres {
+        fonction_parsage := trouve_fonction_génération_données_aléatoires(it.id)
+
+        saufsi fonction_parsage {
+            continue
+        }
+
+        tampon : []octet
+        tampon.pointeur = (*résultat comme *z8 + it.décalage)
+        tampon.taille = it.id.taille_en_octet comme z64
+
+        // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
+        fonction_parsage.fonction(génératrice, tampon)
+    }
+
+    retourne résultat
+}
+
+// ------------------------------------------------------
+
+chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: z32, taille_max: z32) -> chaine
+{
+    nombre_de_caractères := alphabet.taille_alphabet()
+
+    min_r32 := 0.0
+    max_r32 := (nombre_de_caractères - 1) comme r32
+
+    taille := gna.uniforme(taille_min comme r32, taille_max comme r32) comme z32
+
+    résultat : chaine
+
+    pour i dans 0 ... taille - 1 {
+        index_r32 := gna.uniforme(min_r32, max_r32)
+        index_z32 := index_r32 comme z32
+        caractère := alphabet.caractère_pour_index(index_z32)
+
+        chaine_ajoute(*résultat, caractère)
+    }
+
+    retourne résultat
+}
+
+génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+{
+    alphabet := crée_alphabet_ascii_pour_nom()
+    diffère détruit_alphabet(alphabet)
+
+    résultat := chaine_aléatoire(génératrice.gna, alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine)
+
+    ptr := mémoire(valeur.pointeur comme **chaine)
+    mémoire(ptr) = résultat
 }

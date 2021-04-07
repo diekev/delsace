@@ -725,3 +725,30 @@ parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
 
     retourne faux
 }
+
+// À FAIRE: considère utiliser des tables de recherches, en se basant sur la table de type
+// À FAIRE: contrainte que T est une fonction
+FonctionInstrospection :: struct ($T: type_de_données) {
+    info: *InfoType
+    fonction : T
+}
+
+ajoute_fonction :: fonc (fonctions: *[]FonctionInstrospection($T), info: *InfoType, fonction: T)
+{
+    f : FonctionInstrospection(T)
+    f.info = info
+    f.fonction = fonction
+
+    tableau_ajoute(fonctions, f)
+}
+
+trouve_fonction_pour_type :: fonc (fonctions: []FonctionInstrospection($T), info: *InfoType) -> *FonctionInstrospection(T)
+{
+    pour * fonctions {
+        si it.info == info {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
