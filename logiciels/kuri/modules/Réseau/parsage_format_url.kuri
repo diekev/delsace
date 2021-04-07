@@ -109,7 +109,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
     #assert info_de(T).id == id_info.STRUCTURE
 
     parseuse.curseur = 0
-    parseuse.chn = résoud_échappement_url(texte)
+    parseuse.chn = texte
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
@@ -156,6 +156,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
         }
 
         valeur := sous_chaine_jusque_index(parseuse, pos)
+        valeur = résoud_échappement_url(valeur)
 
         positionne(parseuse, pos + 1)
 
