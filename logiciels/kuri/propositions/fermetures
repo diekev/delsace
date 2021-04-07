@@ -1,0 +1,40 @@
+
+// syntaxe fermeture:
+ => [...captures...](...paramètres...) -> ...résultats... { }
+
+ // une structure
+ struct ParamètresPourFermeture {
+     ...captures...
+     ptr_fonction (...paramètres...) -> ...résultats... { }
+ }
+
+ // appels
+
+ nous devons pouvoir appeler comme une fonction normale
+
+ ma_fermeture :=  (a) => z32 {
+     retourne x + a
+ }
+
+ ma_fermeture(...)
+
+ devient
+
+ appel_fermeture(fermeture, ...)
+
+ femeture.ptr_fonc(...fermeture.captures..., ...)
+
+
+ crée des fonctions d'invocation pour chaque femeture ?
+
+    FermetureXXX *ma_fermeture = __exécution_alloc_fermeture(taille_de_la_structure);
+    ma_fermeture->captures = ...
+    ma_fermeture->fonction = ptr_fonction
+
+    variable = (type_fonction *)(ma_femeture);
+
+    ma_fermeture->invoque(ma_fermeture)
+
+    http://www-cs-students.stanford.edu/~blynn/files/lexic.pdf
+    https://web.mst.edu/~nmjxv3/articles/lambdas.html
+
