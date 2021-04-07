@@ -215,6 +215,24 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
+tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bool
+#corps_texte {
+    info := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour info.membres {
+        ajoute_au_tampon(*enchaineuse, "si !données.", it.nom, "{\n")
+        ajoute_au_tampon(*enchaineuse, "retourne faux\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 /*
 InformationConnexion :: struct {
     courriel: chaine
