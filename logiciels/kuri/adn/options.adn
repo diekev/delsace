@@ -38,7 +38,7 @@
 struct OptionsDeCompilation {
     @code OptionsDeCompilation
 
-    chaine nom_sortie = "a.out"
+    chaine_statique nom_sortie = "a.out"
 
 	TypeCoulisse coulisse = .C
 	RésultatCompilation résultat = .EXÉCUTABLE
