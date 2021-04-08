@@ -1,0 +1,15 @@
+Entête :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
+{
+    pour * entête dans entêtes {
+        si entête.nom == clé {
+            retourne entête
+        }
+    }
+
+    retourne nul
+}
