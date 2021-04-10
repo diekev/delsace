@@ -32,6 +32,17 @@ possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 
 entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 {
+    pour * message.entêtes {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
+{
     pour message.entêtes {
         si it.nom == nom {
             retourne vrai
@@ -39,6 +50,17 @@ entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
     }
 
     retourne faux
+}
+
+entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
+{
+    pour * message.entêtes {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
 }
 
 ajoute_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
