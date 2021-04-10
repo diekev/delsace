@@ -129,12 +129,22 @@ est_année_bissextile :: fonc (année: z64) -> bool
 hui_système :: fonc () -> Date
 {
     inst := maintenant_système();
+    retourne date_depuis_secondes(inst.seconde)
+}
 
-    seconde := inst.seconde % 60
-    minutes := (inst.seconde / 60) % 60
-    heures  := (inst.seconde / 3600) % 24
+date_depuis_millisecondes :: fonc (millisecondes: z64) -> Date
+{
+    secondes := millisecondes / 1000
+    retourne date_depuis_secondes(secondes)
+}
 
-    années := (inst.seconde / secondes_par_an())
+date_depuis_secondes :: fonc (secondes: z64) -> Date
+{
+    seconde := secondes % 60
+    minutes := (secondes / 60) % 60
+    heures  := (secondes / 3600) % 24
+
+    années := (secondes / secondes_par_an())
 
     jours_par_mois := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
@@ -142,7 +152,7 @@ hui_système :: fonc () -> Date
         jours_par_mois[1] = 29
     }
 
-    secondes_mois := (inst.seconde - (années * secondes_par_an()))
+    secondes_mois := (secondes - (années * secondes_par_an()))
     secondes_écoulées_mois := 0
     mois := 0
 
@@ -156,10 +166,10 @@ hui_système :: fonc () -> Date
         mois += 1
     }
 
-    jours := (inst.seconde - (années * secondes_par_an()) - (secondes_écoulées_mois)) / (24 * 60 * 60)
+    jours := (secondes - (années * secondes_par_an()) - (secondes_écoulées_mois)) / (24 * 60 * 60)
 
     // On soustrait 3 car Epoch UTC commence un jeudi (4ème jour, index 3)
-    jour_semaine := ((inst.seconde / (3600 * 24)) - 3) % 7
+    jour_semaine := ((secondes / (3600 * 24)) - 3) % 7
 
     date : Date
     date.jour = jours comme z32
