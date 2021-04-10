@@ -219,7 +219,27 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
         }
 
         si consomme(*parseuse, "Max-Age") {
-            // À FAIRE
+            si !consomme(*parseuse, '=') {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            pos_courante := parseuse.curseur
+
+            pos := trouve_prochain(*parseuse, ';')
+
+            si pos <= 0 {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            si !consomme_nombre(*parseuse, (pos - pos_courante) comme z32) {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            positionne(*parseuse, pos + 1)
+            résultat.age_maximum = parseuse.nombre
             continue
         }
 
