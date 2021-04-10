@@ -747,6 +747,7 @@ static auto apparie_appel_init_de(NoeudExpression *expr,
 
     if (type_pointeur != args[0].expr->type) {
         resultat.raison = METYPAGE_ARG;
+        resultat.noeud_erreur = args[0].expr;
         resultat.type_attendu = type_pointeur;
         resultat.type_obtenu = args[0].expr->type;
         return;
