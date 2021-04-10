@@ -794,6 +794,11 @@ ParseuseChaine :: struct {
     nombre: z32
 }
 
+chaine_restante :: fonc (parseuse: *ParseuseChaine) -> chaine
+{
+    retourne parseuse.sous_chaine_jusque_index(parseuse.chn.taille)
+}
+
 apparie :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
 {
     chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
