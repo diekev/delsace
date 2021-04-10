@@ -1,0 +1,335 @@
+/*
+    Bibliothèque de réseautage TCP.
+
+    La bibliothèque fonctionne de manière asynchrone où une boucle d'évènements
+    dispatche les connexions entrante ou sortante.
+
+    Il n'est pour l'instant possible que de créer des clients.
+
+ */
+
+importe Fondation
+importe GlibC
+importe POSIX
+importe SysFichier
+importe Réseau
+
+TypePrise :: énum {
+    SEMI_PRISE
+    PRISE
+}
+
+Prise :: struct {
+    contexte_ : *Contexte
+    fichier: Fichier
+    type : TypePrise
+
+    // pour placer dans les listes de prises spéciales (prises fermées...)
+    suivante : *Prise
+    précédente : *Prise
+
+    // la taille de la prise avec les données utilisateurs
+    taille_mémoire: z64
+    info_utilisateur: *InfoType
+}
+
+données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées
+{
+    si prise.taille_mémoire == 0 {
+        retourne nul
+    }
+
+    si prise.info_utilisateur != info_de(TypeDonnées) {
+        retourne nul
+    }
+
+    retourne (prise + 1) comme *TypeDonnées
+}
+
+est_fermée :: fonc (prise: *Prise) -> bool
+{
+    retourne prise.précédente == (prise.contexte_ comme *Prise)
+}
+
+ferme :: fonc (prise: *Prise)
+{
+    ferme_prise(prise, vrai)
+}
+
+ferme_connexion_en_cours :: fonc (prise: *Prise)
+{
+    ferme_prise(prise, faux)
+}
+
+ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
+{
+    enlève_prise(prise.contexte_.boucle_prises, prise)
+
+    _ := ferme(*prise.fichier)
+
+    prise.suivante = prise.contexte_.boucle_prises.prises_fermées
+    prise.contexte_.boucle_prises.prises_fermées = prise
+
+    // marque la prise comme fermée
+    prise.précédente = (prise.contexte_ comme *Prise)
+
+    si émets_quand_fermeture {
+        prise.contexte_.quand_fermeture(prise)
+    }
+}
+
+Contexte :: struct {
+    boucle_prises : *Boucle
+
+    /* rappels */
+    quand_ouverture : fonc (*Prise)(rien)
+    quand_lecture : fonc (*Prise)(rien)
+    quand_écriture : fonc (*Prise)(rien)
+    quand_fermeture : fonc (*Prise)(rien)
+    quand_timeout : fonc (*Prise)(rien)
+    quand_fin : fonc (*Prise)(rien)
+    quand_erreur_connexion : fonc (*Prise)(rien)
+
+    taille_mémoire : z64
+    info_utilisateur : *InfoType
+}
+
+données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_données) -> *TypeDonnées
+{
+    si contexte_.taille_mémoire == 0 {
+        retourne nul
+    }
+
+    si contexte_.info_utilisateur != info_de(TypeDonnées) {
+        retourne nul
+    }
+
+    retourne (contexte_ + 1) comme *TypeDonnées
+}
+
+crée_contexte :: fonc (boucle_prises: *Boucle, $TypeDonnées: type_de_données) -> *Contexte
+{
+    taille_à_loger := (taille_de(Contexte) + taille_de(TypeDonnées)) comme z64
+    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(Contexte), PositionCodeSource())
+
+    contexte_ := mém_contexte_ comme *Contexte
+    init_de(Contexte)(contexte_)
+
+    contexte_.boucle_prises = boucle_prises
+
+    contexte_.taille_mémoire = taille_à_loger
+    contexte_.info_utilisateur = info_de(TypeDonnées)
+
+    retourne contexte_
+}
+
+crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: type_de_données) -> *Prise
+{
+    saufsi contexte_ {
+        retourne nul
+    }
+
+    // imprime("crée_prise_connexion\n")
+
+    fichier := tente ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri)) piège err {
+        imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
+        retourne nul
+    }
+
+    taille_à_loger := (taille_de(Prise) + taille_de(TypeDonnées)) comme z64
+    mém_prise := loge_mémoire(taille_à_loger, info_de(Prise), PositionCodeSource())
+
+    prise := mém_prise comme *Prise
+    init_de(Prise)(prise)
+
+    prise.fichier = fichier
+    prise.type = TypePrise.SEMI_PRISE
+    prise.contexte_ = contexte_
+    prise.taille_mémoire = taille_à_loger
+    prise.info_utilisateur = info_de(TypeDonnées)
+
+    // À FAIRE: évènements pris en charge
+    si !ajoute_prise(contexte_.boucle_prises, prise) {
+        déloge(prise)
+        retourne nul
+    }
+
+    retourne prise
+}
+
+ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise) -> bool
+{
+    // imprime("ajoute une prise.\n")
+    ev: epoll_event
+    ev.events = EPOLL_EVENTS.EPOLLOUT | EPOLL_EVENTS.EPOLLET
+    ev.data.ptr = prise
+
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc, *ev) == -1) {
+        imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: EPOLL_EVENTS)
+{
+    // imprime("change_évènement.\n")
+    ev: epoll_event
+    ev.events = évènement | EPOLL_EVENTS.EPOLLET
+    ev.data.ptr = prise
+
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc, *ev) == -1) {
+        imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
+        retourne
+    }
+}
+
+enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
+{
+    // imprime("enlève_prise.\n")
+    ev: epoll_event
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc, *ev) == -1) {
+        imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
+        retourne
+    }
+}
+
+Boucle :: struct {
+    MAX_EVENTS :: 1024
+    évènements: [MAX_EVENTS]epoll_event
+    fd: z32
+
+    prises_fermées: *Prise
+
+    stop := faux
+}
+
+crée_boucle :: fonc () -> *Boucle
+{
+    fd := epoll_create1(0)
+
+    si fd == -1 {
+        imprime("[epoll_create1] impossible de créer l'epoll !\n")
+        retourne nul
+    }
+
+    boucle_prises := loge(Boucle)
+    boucle_prises.fd = fd;
+
+    // imprime("boucle créée !\n")
+
+    // À FAIRE: us_internal_loop_data_init, timer
+
+    retourne boucle_prises
+}
+
+lance :: fonc (boucle_prises: *Boucle)
+{
+    // us_loop_integrate(loop);
+
+    // tantque boucle_prises.num_fds
+    tantque !boucle_prises.stop {
+        /* Emit pre callback */
+        //us_internal_loop_pre(loop);
+
+        // imprime("attente sur une évènement !\n")
+        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1);
+
+        si (nfds == -1) {
+            imprime("[epoll_wait] erreur !\n")
+            // perror("epoll_wait");
+            // exit(EXIT_FAILURE);
+            retourne
+        }
+
+        évènements_prêts : []epoll_event
+        évènements_prêts.pointeur = *boucle_prises.évènements[0]
+        évènements_prêts.taille = nfds
+
+        pour évènements_prêts {
+            prise := it.data.ptr comme *Prise
+
+            si !prise {
+                continue
+            }
+
+            // À FAIRE: traduit vers nos types
+            évènements := it.events;
+            erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP))
+
+            // events &= us_poll_events(poll);
+
+            // À FAIRE : conditions pour les énumérations
+            si évènements != 0 comme EPOLL_EVENTS || erreurs != 0 comme EPOLL_EVENTS {
+                dispatch_évènement(prise, évènements, erreurs)
+            }
+        }
+
+        /* Emit post callback */
+        // À FAIRE: ici nous avons les timers...
+        // us_internal_loop_post(loop);
+    }
+}
+
+dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs: EPOLL_EVENTS)
+{
+    //imprime("dispatch_évènement: % % %\n", prise.type, évènements, erreurs)
+
+    discr prise.type {
+        SEMI_PRISE {
+            si erreurs != 0 comme EPOLL_EVENTS {
+                prise.contexte_.quand_erreur_connexion(prise)
+                prise.ferme_connexion_en_cours()
+            }
+            sinon {
+                // /* All sockets poll for readable */
+                // us_poll_change(p, s->context->loop, LIBUS_SOCKET_READABLE);
+
+                // /* We always use nodelay */
+                // bsd_socket_nodelay(us_poll_fd(p), 1);
+
+                // /* We are now a proper socket */
+                // us_internal_poll_set_type(p, POLL_TYPE_SOCKET);
+
+                // /* If we used a connection timeout we have to reset it here */
+                // us_socket_timeout(0, s, 0);
+
+                // s->context->on_open(s, 1, 0, 0);
+                change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
+
+                prise.type = TypePrise.PRISE
+
+                prise.contexte_.quand_ouverture(prise)
+
+            }
+        }
+        PRISE {
+            si erreurs != 0 comme EPOLL_EVENTS {
+                prise.ferme()
+                retourne
+            }
+
+            si (évènements & EPOLL_EVENTS.EPOLLOUT) != 0 comme EPOLL_EVENTS {
+                // À FAIRE: last write failed
+
+                prise.contexte_.quand_écriture(prise)
+                // À FAIRE: fermetures
+
+                // le serveur a demandé la fermeture de la connexion
+                si prise.est_fermée() {
+                    retourne
+                }
+
+                change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
+            }
+
+            si (évènements & EPOLL_EVENTS.EPOLLIN) != 0 comme EPOLL_EVENTS {
+                prise.contexte_.quand_lecture(prise)
+
+                //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)
+                // À FAIRE: fermeture si nous n'arrivons pas à lire
+            }
+        }
+    }
+}
