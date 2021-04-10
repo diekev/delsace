@@ -1788,7 +1788,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     decl_expr->lexeme = expr_paire->lexeme;
                     decl_expr->bloc_parent = bloc_paire;
                     decl_expr->drapeaux |= EMPLOYE;
-                    decl_expr->type = expr_paire->type;
+                    decl_expr->type = decl_var->type;
+                    // À FAIRE: il semblerait que l'absence de ceci ajout une tache de typage
+                    decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
                     // À FAIRE(emploi): mise en place des informations d'emploi
 
                     bloc_paire->membres->ajoute(decl_expr);
@@ -2316,19 +2318,20 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             expression_membre->genre_valeur = GenreValeur::DROITE;
         }
         else if (type->genre == GenreType::UNION) {
-            auto noeud_struct = type->comme_union()->decl;
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
 
+            VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
+            donnees_dependance.fonctions_utilisees.insere(
+                espace->interface_kuri->decl_panique_membre_union);
+
+#if 0
+            auto noeud_struct = type->comme_union()->decl;
             if (!noeud_struct->est_nonsure) {
                 if ((expression_membre->drapeaux & DROITE_ASSIGNATION) == 0) {
                     renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
                 }
                 else {
                     auto membre_actif = trouve_membre_actif(structure->ident->nom);
-
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
-                    donnees_dependance.fonctions_utilisees.insere(
-                        espace->interface_kuri->decl_panique_membre_union);
 
                     /* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu
                      */
@@ -2343,6 +2346,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                     }
                 }
             }
+#endif
         }
 
         return ResultatValidation::OK;

@@ -1197,6 +1197,12 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     if (noeud->est_declaration() && !pour_metaprogramme) {
         constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
         noeud->drapeaux |= RI_FUT_GENEREE;
+
+        if (noeud->type == nullptr) {
+            unite->espace->rapporte_erreur(noeud, "Erreur interne: type nul sur une déclaration après la génération de RI");
+            return true;
+        }
+
         noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
     }
     else if (pour_metaprogramme) {
