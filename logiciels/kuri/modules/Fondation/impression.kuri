@@ -769,6 +769,122 @@ imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 
 // --------------------------
 
+imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
+{
+    discr info.id {
+	    ENTIER {
+		    info_arg := info comme *InfoTypeEntier
+
+            si info_arg.est_signé {
+			    si info_arg.taille_en_octet == 1 {
+				    ajoute_au_tampon(enchaineuse, "z8")
+				}
+				sinon si info_arg.taille_en_octet == 2 {
+				    ajoute_au_tampon(enchaineuse, "z16")
+				}
+				sinon si info_arg.taille_en_octet == 4 {
+				    ajoute_au_tampon(enchaineuse, "z32")
+				}
+				sinon si info_arg.taille_en_octet == 8 {
+				    ajoute_au_tampon(enchaineuse, "z64")
+				}
+			}
+			sinon {
+			    si info_arg.taille_en_octet == 1 {
+				    ajoute_au_tampon(enchaineuse, "n8")
+				}
+				sinon si info_arg.taille_en_octet == 2 {
+				    ajoute_au_tampon(enchaineuse, "n16")
+				}
+				sinon si info_arg.taille_en_octet == 4 {
+				    ajoute_au_tampon(enchaineuse, "n32")
+				}
+				sinon si info_arg.taille_en_octet == 8 {
+				    ajoute_au_tampon(enchaineuse, "n64")
+				}
+			}
+		}
+		RÉEL {
+            si info.taille_en_octet == 2 {
+			    ajoute_au_tampon(enchaineuse, "r16")
+			}
+			sinon si info.taille_en_octet == 4 {
+			    ajoute_au_tampon(enchaineuse, "r32")
+			}
+			sinon si info.taille_en_octet == 8 {
+			    ajoute_au_tampon(enchaineuse, "r64")
+			}
+		}
+		BOOLÉEN {
+			ajoute_au_tampon(enchaineuse, "bool")
+		}
+		CHAINE {
+			ajoute_au_tampon(enchaineuse, "chaine")
+		}
+		STRUCTURE {
+		    info_arg := info comme *InfoTypeStructure
+			ajoute_au_tampon(enchaineuse, info_arg.nom)
+		}
+		POINTEUR {
+		    info_arg := info comme *InfoTypePointeur
+
+		    si info_arg.est_référence {
+			    ajoute_au_tampon(enchaineuse, "&")
+		    }
+		    sinon {
+			    ajoute_au_tampon(enchaineuse, "*")
+		    }
+
+			imprime_type(enchaineuse, info_arg.type_pointé)
+		}
+		FONCTION {
+		    // À FAIRE : types paramètres
+			ajoute_au_tampon(enchaineuse, "fonction()")
+		}
+		EINI {
+			ajoute_au_tampon(enchaineuse, "eini")
+		}
+		RIEN {
+			ajoute_au_tampon(enchaineuse, "rien")
+		}
+		OCTET {
+			ajoute_au_tampon(enchaineuse, "octet")
+		}
+		UNION {
+		    info_arg := info comme *InfoTypeStructure
+			ajoute_au_tampon(enchaineuse, info_arg.nom)
+		}
+		TYPE_DE_DONNÉES {
+			// À FAIRE : imprime le type
+			ajoute_au_tampon(enchaineuse, "type_de_données")
+		}
+		TABLEAU {
+		    info_arg := info comme *InfoTypeTableau
+			ajoute_au_tampon(enchaineuse, "[]")
+			imprime_type(enchaineuse, info_arg.type_pointé)
+		}
+		ÉNUM {
+		    info_arg := info comme *InfoTypeÉnum
+			ajoute_au_tampon(enchaineuse, info_arg.nom)
+		}
+		OPAQUE {
+			info_arg := info comme *InfoTypeOpaque
+			ajoute_au_tampon(enchaineuse, info_arg.nom)
+		}
+	}
+}
+
+// --------------------------
+
+chaine_pour_type :: fonc (info: *InfoType) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+    imprime_type(*enchaineuse, info)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 {
     si expr {
