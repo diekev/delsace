@@ -122,6 +122,10 @@ parse_message_serveuse :: fonc (texte: chaine) -> MessageServeuseHTTP
     parseuse := ParseuseChaine(prépare_message_pour_parseuse(texte))
     message: MessageServeuseHTTP
 
+    si (fini(*parseuse)) {
+        retourne message
+    }
+
     // parse la ligne METHODE CHEMIN VERSION
 
     //imprime("texte: %\n", parseuse.chn)
