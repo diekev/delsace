@@ -1538,6 +1538,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 alloc = cree_allocation(noeud, type_struct, nullptr);
 
                 POUR (expr->parametres_resolus) {
+                    const auto &membre = type_struct->membres[index_membre];
+
+                    if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+                        index_membre += 1;
+                        continue;
+                    }
+
                     auto valeur = static_cast<Atome *>(nullptr);
 
                     if (it != nullptr) {
