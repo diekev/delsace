@@ -455,6 +455,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
                                                                 type_de_donnees;
 
+                if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                    unite->attend_sur_type(type_connu);
+                    return ResultatValidation::Erreur;
+                }
+
                 auto taille_tableau = 0l;
 
                 if (expression_taille) {
