@@ -633,6 +633,18 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
                                    kuri::tableau<IdentifiantEtExpression> const &args,
                                    DonneesCandidate &resultat)
 {
+    // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme membre
+    //    membre :: fonc()(rien)
+    // au lieu de
+    //    membre : fonc()(rien)
+    // il faudra un système plus robuste
+    if (!type->est_fonction()) {
+        resultat.noeud_erreur = b;
+        resultat.type = type;
+        resultat.raison = TYPE_N_EST_PAS_FONCTION;
+        return false;
+    }
+
     POUR (args) {
         if (it.ident == nullptr) {
             continue;
