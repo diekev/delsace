@@ -16,7 +16,7 @@ MessageClienteHTTP :: struct {
 MessageServeuseHTTP :: struct {
     empl base: MessageHTTP
 
-    //status: HTTP.Status
+    status: z32
 }
 
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
@@ -142,6 +142,8 @@ parse_message_serveuse :: fonc (texte: chaine) -> MessageServeuseHTTP
     si !consomme_nombre(*parseuse, 3) {
         retourne message
     }
+
+    message.status = parseuse.nombre
 
     //imprime("status: %\n", parseuse.nombre)
 
