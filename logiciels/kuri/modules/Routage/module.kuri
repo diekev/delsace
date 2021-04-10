@@ -265,6 +265,14 @@ ajoute_cookie :: fonc (résultat: &RésultatRequête, cookie: Cookie)
 
 détruit_résultat :: fonc (résultat: &RésultatRequête)
 {
+    pour résultat.cookies {
+        détruit_cookie(it)
+    }
+
+    pour résultat.entêtes {
+        détruit_entête(it)
+    }
+
     déloge(résultat.cookies)
     déloge(résultat.contenu)
     déloge(résultat.entêtes)

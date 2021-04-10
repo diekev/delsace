@@ -69,6 +69,12 @@ crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
     retourne cookie
 }
 
+détruit_cookie :: fonc (cookie: &Cookie)
+{
+    déloge(cookie.nom)
+    déloge(cookie.valeur)
+}
+
 crée_cookie_session :: fonc (nom: chaine, valeur: chaine, est_sécurisé: bool) -> Cookie
 {
     cookie : Cookie

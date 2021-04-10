@@ -3,6 +3,11 @@ Entête :: struct {
     valeur: chaine
 }
 
+détruit_entête :: fonc (entête: &Entête)
+{
+
+}
+
 cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
 {
     pour * entête dans entêtes {
