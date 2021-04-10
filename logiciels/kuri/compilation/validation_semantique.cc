@@ -3781,7 +3781,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (align_type == 0) {
-            rapporte_erreur("impossible de définir l'alignement du type", enfant);
+            unite->espace->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
+                .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
             return ResultatValidation::Erreur;
         }
 
