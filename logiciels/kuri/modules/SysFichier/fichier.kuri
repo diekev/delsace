@@ -380,6 +380,30 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
     retourne système_lis(fichier.desc, tampon.pointeur, tampon.taille)
 }
 
+RésultatLectureN64 :: union {
+    e : ErreurFichier
+    r : n64
+}
+
+lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
+{
+    si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
+        retourne ErreurFichier.Inconnue
+    }
+
+    tampon : n64
+
+    octets_lus := tente système_lis(fichier.desc, *tampon comme *z8, 8) piège err {
+        retourne err
+    }
+
+    si octets_lus != 8 {
+        retourne ErreurFichier.Inconnue
+    }
+
+    retourne tampon
+}
+
 CaractèreOuErreurFichier :: union {
     c: z8
     e: ErreurFichier
