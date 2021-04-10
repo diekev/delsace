@@ -2406,6 +2406,11 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
         auto dernier_est_variadic = false;
 
         for (auto i = 0; i < decl->params.taille(); ++i) {
+            if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
+                unite->espace->rapporte_erreur(decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
+                return ResultatValidation::Erreur;
+            }
+
             auto param = decl->parametre_entree(i);
             auto variable = param->valeur;
             auto expression = param->expression;
