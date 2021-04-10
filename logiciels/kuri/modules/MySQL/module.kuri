@@ -116,7 +116,9 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	mot_de_passe := crée_chaine_c_temp(pilote.config.mot_de_passe)
 	base_de_données := crée_chaine_c_temp(pilote.config.base_de_données)
 
-	c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, 0);
+	CLIENT_MULTI_STATEMENTS : n64 : 0x00010000
+	CLIENT_MULTI_RESULTS : n64 : 0x00020000
+	c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS);
 
 	si (c == nul) {
 		e := mysql_error(*mysql)
@@ -147,51 +149,107 @@ détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
 	mysql_free_result(curseur.résultat)
 }
 
-// À FAIRE : erreur
-exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurRésultat
+RésultatRequête :: struct {
+	curseurs: []CurseurRésultat
+}
+
+ajoute_curseur :: fonc (résultat: &RésultatRequête, curseur: CurseurRésultat)
+{
+	tableau_ajoute(*résultat.curseurs, curseur)
+}
+
+// Nous faisons ceci pour avoir une synchronisation entre le nombre d'instructions
+// dans une requête et le contenu du résultat
+ajoute_curseur_vide :: fonc (résultat: &RésultatRequête)
 {
 	curseur : CurseurRésultat
+	ajoute_curseur(résultat, curseur)
+}
 
+détruit_résultat :: fonc (résultat : &RésultatRequête) -> rien
+{
+	pour * résultat.curseurs {
+		détruit_curseur(it)
+	}
+
+	déloge(résultat.curseurs)
+}
+
+ErreurCurseur :: erreur {
+	XXX
+}
+
+CurseurOuErreur :: union {
+	e: ErreurCurseur
+	c: RésultatRequête
+}
+
+exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurOuErreur
+{
 	requête := crée_chaine_c_temp(chaine_requête)
 	succès := mysql_query(*connexion.mysql, requête)
 
 	imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête)
 
 	si succès != 0 {
-		e := mysql_error(*connexion.mysql)
-
-		si (e comme *z8) != nul {
-			chn := convertis_chaine_c(e)
-			imprime_log("[MySQL]", "Une erreur est survenue lors de la requête : % !\n", chn)
-		}
-
-		retourne curseur
+		log_erreur(*connexion.mysql, "Une erreur est survenue lors de la requête")
+		retourne ErreurCurseur.XXX
 	}
 
-	résultat := mysql_store_result(*connexion.mysql)
+	résultat : RésultatRequête
 
-	si résultat == nul {
-		/* ces types de requête ne retournent aucune donnée */
-		saufsi commence_par(chaine_requête, "INSERT", "UPDATE") {
-			e := mysql_error(*connexion.mysql)
+	// Trouve tous les résultats de la requête.
+	// Nous utilisons une boucle répète...tantque pour tenir compte de la possibilité
+	// d'avoir des requêtes multiples.
+	status := 0
+	répète {
+		/* vérifie si l'instruction courante retourna des données */
+  		résultat_mysql := mysql_store_result(*connexion.mysql)
 
-			si (e comme *z8) != nul {
-				chn := convertis_chaine_c(e)
-				imprime_log("[MySQL]", "Une erreur est survenue lors du stockage du résultat : % !\n", chn)
+		si résultat_mysql {
+			curseur : CurseurRésultat
+			curseur.résultat = résultat_mysql
+			curseur.nombre_colonne = mysql_num_fields(résultat_mysql)
+			curseur.nombre_résultat = mysql_num_rows(résultat_mysql)
+
+			résultat.ajoute_curseur(curseur)
+		}
+		sinon {
+			si mysql_field_count(*connexion.mysql) == 0 {
+				// mysql_affected_rows(*connexion.mysql)
+				résultat.ajoute_curseur_vide()
+			}
+			sinon {
+				log_erreur(*connexion.mysql, "Impossible de récupérer l'ensemble de résultat")
+				détruit_résultat(résultat)
+				retourne ErreurCurseur.XXX
 			}
 		}
 
-		retourne curseur
+		/* plus de résultats ? -1 = non, >0 = erreur, 0 = oui */
+		status = mysql_next_result(*connexion.mysql)
+
+		si status > 0 {
+			log_erreur(*connexion.mysql, "Impossible d'exécuter l'instruction")
+			détruit_résultat(résultat)
+			retourne ErreurCurseur.XXX
+		}
+	} tantque status == 0
+
+	retourne résultat
+}
+
+log_erreur :: fonc (mysql: *MYSQL, message: chaine)
+{
+	e := mysql_error(mysql)
+
+	si (e comme *z8) != nul {
+		chn := convertis_chaine_c(e)
+		imprime_log("[MySQL]", "% : % !\n", message, chn)
 	}
-
-	nombre_résultat := mysql_num_rows(résultat)
-	nombre_champs := mysql_num_fields(résultat);
-
-	curseur.résultat = résultat
-	curseur.nombre_colonne = nombre_champs
-	curseur.nombre_résultat = nombre_résultat
-
-	retourne curseur
+	sinon {
+		imprime_log("[MySQL]", "% !\n", message)
+	}
 }
 
 ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
