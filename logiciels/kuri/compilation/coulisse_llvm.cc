@@ -787,8 +787,20 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         }
                         case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                         {
-                            // À FAIRE(tableau fixe)
-                            return nullptr;
+                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+
+                            std::vector<llvm::Constant *> valeurs;
+                            valeurs.reserve(static_cast<size_t>(taille_tableau));
+
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                auto valeur = genere_code_pour_atome(pointeur_tableau[i], pour_globale);
+                                valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
+                            }
+
+                            auto resultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
+                            // dbg() << "TABLEAU_FIXE : " << *resultat;
+                            return resultat;
                         }
                         case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
                         {
