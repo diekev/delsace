@@ -58,7 +58,94 @@
 #include "espace_de_travail.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
+
+// Inclus cela à la fin car DIFFERE interfère avec le lexème...
+#include "biblinternes/outils/garde_portee.h"
+
+/* ************************************************************************** */
+
+struct Indentation {
+    int v = 0;
+
+    void incremente()
+    {
+        v += 1;
+    }
+
+    void decremente()
+    {
+        v -= 1;
+    }
+};
+
+static Indentation __indente_globale;
+
+void indente()
+{
+    __indente_globale.incremente();
+}
+
+void desindente()
+{
+    __indente_globale.decremente();
+}
+
+struct LogDebug {
+    std::ostream &os = std::cerr;
+
+    LogDebug()
+    {
+        for (auto i = 0; i < __indente_globale.v; ++i) {
+            os << ' ' << ' ';
+        }
+    }
+
+    ~LogDebug()
+    {
+        os << "\n";
+    }
+};
+
+LogDebug dbg()
+{
+    return {};
+}
+
+template <typename T>
+const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
+{
+    log_debug.os << valeur;
+    return log_debug;
+}
+
+static const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
+{
+    for (auto i = 0; i < indentation.v; ++i) {
+        log_debug.os << ' ';
+    }
+
+    return log_debug;
+}
+
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
+{
+    llvm::errs() << llvm_value;
+    return log_debug;
+}
+
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constant &llvm_value)
+{
+    llvm::errs() << llvm_value;
+    return log_debug;
+}
+
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::GlobalVariable &llvm_value)
+{
+    llvm::errs() << llvm_value;
+    return log_debug;
+}
 
 /* ************************************************************************** */
 
@@ -531,9 +618,18 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *ty
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
 {
+    const int indentation_courante = __indente_globale.v;
+    indente();
+    DIFFERE {
+        __indente_globale.v = indentation_courante;
+    };
+
+    // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
+
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
         {
+            // dbg() << "FONCTION";
             auto atome_fonc = static_cast<AtomeFonction const *>(atome);
             return m_module->getFunction(vers_std_string(atome_fonc->nom));
         }
@@ -548,24 +644,32 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
 
                     if (valeur_globale->ident) {
-                        return table_globales[valeur_globale];
+                        auto valeur_ = table_globales[valeur_globale];
+                        // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
+                        return valeur_;
                     }
 
-                    return table_valeurs[valeur_globale];
+                    auto valeur_ = table_valeurs[valeur_globale];
+                    // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
+                    return valeur_;
                 }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
                     auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
-                    return llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
+                    auto valeur_ = llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
                                                           type_llvm);
+                    // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
+                    return valeur_;
                 }
                 case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
                 {
+                    // dbg() << "À FAIRE: OP_UNAIRE_CONSTANTE !\n";
                     break;
                 }
                 case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
                 {
+                    // dbg() << "À FAIRE: OP_BINAIRE_CONSTANTE !\n";
                     break;
                 }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
@@ -593,11 +697,14 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
                     assert(type_llvm);
 
+                    // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
+
                     return llvm::ConstantExpr::getGetElementPtr(
                         type_llvm, llvm::cast<llvm::Constant>(accede), index_array);
                 }
                 case AtomeConstante::Genre::VALEUR:
                 {
+                    // dbg() << "VALEUR";
                     auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
 
                     switch (valeur_const->valeur.genre) {
@@ -658,8 +765,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                                     valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
                                 }
                                 else {
-                                    std::cerr << "Génère code pour le membre "
-                                              << type->membres[i].nom->nom << '\n';
+                                    // dbg() << "Génère code pour le membre " << type->membres[i].nom->nom;
                                     valeur = llvm::cast<llvm::Constant>(genere_code_pour_atome(
                                         tableau_valeur[index_membre], pour_globale));
                                 }
@@ -690,7 +796,9 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                                     pointeur_donnnees[i]);
                             }
 
-                            return llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+                            auto valeur_ =  llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+                            // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
+                            return valeur_;
                         }
                     }
                 }
@@ -705,7 +813,9 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
         }
         case Atome::Genre::GLOBALE:
         {
-            return table_globales[atome];
+            auto valeur = table_globales[atome];
+            // dbg() << "GLOBALE: " << *valeur;
+            return valeur;
         }
     }
 
@@ -714,6 +824,14 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
 void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 {
+    const int indentation_courante = __indente_globale.v;
+    indente();
+    DIFFERE {
+        __indente_globale.v = indentation_courante;
+    };
+
+    // dbg() << __func__;
+
     switch (inst->genre) {
         case Instruction::Genre::INVALIDE:
         {
@@ -1082,6 +1200,8 @@ void GeneratriceCodeLLVM::genere_code()
     m_espace.typeuse.construit_table_types();
 
     POUR_TABLEAU_PAGE (m_espace.globales) {
+        __indente_globale.v = 0;
+        // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = &it;
 
         auto type = valeur_globale->type->comme_pointeur()->type_pointe;
@@ -1108,8 +1228,8 @@ void GeneratriceCodeLLVM::genere_code()
     }
 
     POUR_TABLEAU_PAGE (m_espace.globales) {
-        std::cerr << "génère code pour globale " << it.ident << ' ' << chaine_type(it.type)
-                  << '\n';
+        __indente_globale.v = 0;
+        // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = &it;
 
         if (valeur_globale->initialisateur) {
@@ -1142,7 +1262,7 @@ void GeneratriceCodeLLVM::genere_code()
             continue;
         }
 
-        // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+        // dbg() << "Génère code pour : " << atome_fonc->nom;
 
         auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
 
