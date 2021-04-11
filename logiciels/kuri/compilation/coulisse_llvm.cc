@@ -1341,6 +1341,18 @@ void GeneratriceCodeLLVM::genere_code()
         //			os << atome_fonc->nom << ");\n";
         //		}
 
+        /* crée une variable local pour la valeur de sortie */
+        auto type_fonction = atome_fonc->type->comme_fonction();
+        if (!type_fonction->type_sortie->est_rien()) {
+            auto param = atome_fonc->param_sortie;
+            auto type_pointeur = param->type->comme_pointeur();
+            auto type_pointe = type_pointeur->type_pointe;
+            auto type_llvm = converti_type_llvm(type_pointe);
+            auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
+            alloca->setAlignment(type_pointeur->type_pointe->alignement);
+            table_valeurs[param] = alloca;
+        }
+
         for (auto inst : atome_fonc->instructions) {
             if (inst->genre == Instruction::Genre::LABEL) {
                 auto bloc = table_blocs[inst->comme_label()];
