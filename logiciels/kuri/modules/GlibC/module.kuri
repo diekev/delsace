@@ -81,6 +81,14 @@ timespec :: struct #externe {
     tv_nsec : z64
 }
 
+timespec_depuis_ms :: fonc (ms: z64) -> timespec
+{
+    ts : timespec = ---
+    ts.tv_sec = ms / 1_000
+    ts.tv_nsec = (ms % 1_000) * 1_000_000
+    retourne ts
+}
+
 //###############################################################################
 
 open :: fonc (chemin : ChaineC, drapeaux : z32, args : ...) -> z32 #externe
@@ -514,3 +522,22 @@ epoll_ctl :: fonc (epfd: z32, op: EPOLL_CTL_OP, fd: z32, event: *epoll_event) ->
 
 epoll_wait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32) -> z32 #externe
 epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32, sigmask: *sigset_t) -> z32 #externe
+
+TFD_CLOEXEC:: 0o02000000
+TFD_NONBLOCK :: 0o00004000
+
+TFD_TIMER_ABSTIME :: 1 << 0
+TFD_TIMER_CANCEL_ON_SET :: 1 << 1
+
+itimerspec :: struct #externe {
+    /* interval du chronomètre */
+    it_interval: timespec
+    /* expiration du chronomètre */
+    it_value: timespec
+}
+
+timerfd_create :: fonc (clockid: z32, flags: z32) -> z32 #externe
+
+timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value: *itimerspec) -> z32 #externe
+
+timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe

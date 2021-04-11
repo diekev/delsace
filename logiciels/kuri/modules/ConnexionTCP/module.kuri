@@ -15,6 +15,7 @@ importe SysFichier
 importe Réseau
 
 TypePrise :: énum {
+    RAPPEL
     SEMI_PRISE
     PRISE
 }
@@ -148,8 +149,7 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: t
     prise.taille_mémoire = taille_à_loger
     prise.info_utilisateur = info_de(TypeDonnées)
 
-    // À FAIRE: évènements pris en charge
-    si !ajoute_prise(contexte_.boucle_prises, prise) {
+    si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
         déloge(prise)
         retourne nul
     }
@@ -157,11 +157,56 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: t
     retourne prise
 }
 
-ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise) -> bool
+crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc(*Contexte)(rien))
+{
+    saufsi ctx {
+        retourne
+    }
+
+    fd := timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK)
+
+    si fd < 0 {
+        // imprime("Impossible de créer le fd pour le chronomètre !\n")
+        retourne
+    }
+
+    nouvelle_valeur : itimerspec = ---
+    nouvelle_valeur.it_interval = timespec_depuis_ms(interval)
+    nouvelle_valeur.it_value = timespec_depuis_ms(commence_dans)
+
+    si timerfd_settime(fd, 0, *nouvelle_valeur, nul) == -1 {
+        // imprime("Impossible de mettre en place timerfd_settime !\n")
+        retourne
+    }
+
+    fichier := Fichier(fd)
+
+    taille_à_loger := (taille_de(Prise) + taille_de(fonc(*Contexte)(rien))) comme z64
+    mém_prise := loge_mémoire(taille_à_loger, info_de(Prise), PositionCodeSource())
+
+    prise := mém_prise comme *Prise
+    init_de(Prise)(prise)
+    prise.fichier = fichier
+    prise.type = TypePrise.RAPPEL
+    prise.contexte_ = ctx
+    prise.taille_mémoire = taille_à_loger
+    prise.info_utilisateur = info_de(fonc(*Contexte)(rien))
+
+    ptr_fonc := prise.données_utilisateur(fonc(*Contexte)(rien))
+    mémoire(ptr_fonc) = rappel
+
+    si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
+        // imprime("Impossible d'ajouter la prise !\n")
+        déloge(prise)
+        retourne
+    }
+}
+
+ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL_EVENTS) -> bool
 {
     // imprime("ajoute une prise.\n")
     ev: epoll_event
-    ev.events = EPOLL_EVENTS.EPOLLOUT | EPOLL_EVENTS.EPOLLET
+    ev.events = évènements | EPOLL_EVENTS.EPOLLET
     ev.data.ptr = prise
 
     si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc, *ev) == -1) {
@@ -274,9 +319,19 @@ lance :: fonc (boucle_prises: *Boucle)
 
 dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs: EPOLL_EVENTS)
 {
-    //imprime("dispatch_évènement: % % %\n", prise.type, évènements, erreurs)
+    // imprime("dispatch_évènement: % % %\n", prise.type, évènements, erreurs)
 
     discr prise.type {
+        RAPPEL {
+            ptr_rappel := prise.données_utilisateur(fonc(*Contexte)(rien))
+            rappel := mémoire(ptr_rappel)
+            rappel(prise.contexte_)
+
+            // il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement
+            _ := tente lis_tout(*prise.fichier) piège err {
+                retourne
+            }
+        }
         SEMI_PRISE {
             si erreurs != 0 comme EPOLL_EVENTS {
                 prise.contexte_.quand_erreur_connexion(prise)
