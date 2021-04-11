@@ -9,8 +9,7 @@ DOSSIERS=("exemples/applications/BDD" \
           "exemples/applications/Eliza" \
           "exemples/applications/Jeu" \
           "exemples/applications/MoteurRendu" \
-          "exemples/applications/NASA" \
-          "exemples/applications/Site")
+          "exemples/applications/NASA")
 
 for dossier in ${DOSSIERS[@]}; do
     cd "$DOSSIER_COURANT/$dossier"
