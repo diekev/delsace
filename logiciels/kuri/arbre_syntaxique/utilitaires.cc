@@ -1556,7 +1556,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			auto iter_enf = expr_appel->params.begin();
 
 			POUR (decl_fonc->params) {
-				auto nom_broye = broye_nom_simple(it->ident->nom);
+				auto nom_broye = broye_nom_simple(it->ident);
 				constructrice << nom_etat << '.' << nom_broye << " = ";
 				constructrice << (*iter_enf)->chaine_calculee();
 				constructrice << ";\n";
@@ -1833,7 +1833,7 @@ void Simplificatrice::simplifie_coroutine(NoeudDeclarationEnteteFonction *corout
 	}
 
 	POUR (decl->params) {
-		auto nom_broye = broye_nom_simple(it->ident->nom);
+		auto nom_broye = broye_nom_simple(it->ident);
 		constructrice.declare_variable(it->type, nom_broye, "");
 	}
 
@@ -1847,7 +1847,7 @@ void Simplificatrice::simplifie_coroutine(NoeudDeclarationEnteteFonction *corout
 
 	/* déclare les paramètres. */
 	POUR (decl->params) {
-		auto nom_broye = broye_nom_simple(it->ident->nom);
+		auto nom_broye = broye_nom_simple(it->ident);
 		constructrice.declare_variable(it->type, nom_broye, "__etat->" + nom_broye);
 	}
 

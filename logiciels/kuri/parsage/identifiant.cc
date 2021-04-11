@@ -76,6 +76,11 @@ long TableIdentifiant::memoire_utilisee() const
     memoire += table.taille() *
                (taille_de(dls::vue_chaine_compacte) + taille_de(IdentifiantCode *));
     memoire += enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON;
+
+    POUR_TABLEAU_PAGE (identifiants) {
+        memoire += it.nom_broye.taille();
+    }
+
     return memoire;
 }
 

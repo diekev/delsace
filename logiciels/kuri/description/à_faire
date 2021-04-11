@@ -35,7 +35,6 @@
 
 - supprime chaine::ajoute, en faveur de l'enchaineuse
 - structures: ajout d'un pointeur vers une Allocatrice
-- cache les nom broyés pour les IdentifiantsCode
 - chaine: ajoute de TypeIndex
 - ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)

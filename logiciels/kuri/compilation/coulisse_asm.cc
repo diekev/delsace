@@ -415,9 +415,9 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
     //        os << "static const " << nom_broye_type(type) << ' ';
 
     //        if (valeur_globale->ident) {
-    //            auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
+    //            auto nom_globale = broye_nom_simple(valeur_globale->ident);
     //            os << nom_globale;
-    //            table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+    //            table_globales[valeur_globale] = "&" + nom_globale;
     //        }
     //        else {
     //            auto nom_globale = "globale" + dls::vers_chaine(valeur_globale);

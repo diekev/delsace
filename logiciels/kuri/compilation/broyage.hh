@@ -26,6 +26,7 @@
 
 #include "structures/chaine.hh"
 
+struct IdentifiantCode;
 struct NoeudDeclarationEnteteFonction;
 struct Type;
 
@@ -35,3 +36,5 @@ kuri::chaine const &nom_broye_type(Type *type);
 
 kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
                                 kuri::chaine const &nom_module);
+
+kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident);
