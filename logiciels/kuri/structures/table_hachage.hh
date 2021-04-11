@@ -126,9 +126,9 @@ struct table_hachage {
         return valeur;
     }
 
-    bool possed(Cle const &cle)
+    bool possede(Cle const &cle)
     {
-        auto empreinte = calcule_empreinte(cle);
+        auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index(cle, empreinte);
         return index != -1;
     }
