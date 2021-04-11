@@ -387,3 +387,51 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         }
     }
 }
+
+// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
+// utile pour les développements.
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+{
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_lecture :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_écriture :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_fermeture :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_timeout :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_fin :: fonc (prise: *Prise)
+    {
+    }
+
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise)
+    {
+    }
+
+    ctx := crée_contexte(boucle_évènements, rien)
+    ctx.quand_ouverture = rappel_vide_quand_ouverture
+    ctx.quand_lecture = rappel_vide_quand_lecture
+    ctx.quand_écriture = rappel_vide_quand_écriture
+    ctx.quand_fermeture = rappel_vide_quand_fermeture
+    ctx.quand_timeout = rappel_vide_quand_timeout
+    ctx.quand_fin = rappel_vide_quand_fin
+    ctx.quand_erreur_connexion = rappel_vide_quand_erreur_connexion
+    retourne ctx
+}
+
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle) -> *Contexte
+{
+    retourne crée_contexte_vide(boucle_évènements, rien)
+}
