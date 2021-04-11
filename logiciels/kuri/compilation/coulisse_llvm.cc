@@ -683,17 +683,24 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     if (acces->accede->est_globale()) {
                         auto globale = static_cast<AtomeGlobale *>(acces->accede);
 
-                        auto init = genere_code_pour_atome(globale, pour_globale);
+                        auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
                         assert(init);
                         auto globale_llvm = table_globales[globale];
+
+                        accede = init;
 
                         globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
                     }
 
+#if 0
                     auto index_array = std::vector<llvm::Value *>(2);
                     index_array[0] = llvm::ConstantInt::get(
                         llvm::Type::getInt32Ty(m_contexte_llvm), 0);
                     index_array[1] = index;
+#else
+                    auto index_array = std::vector<llvm::Value *>(1);
+                    index_array[0] = index;
+#endif
 
                     assert(type_llvm);
 
