@@ -100,7 +100,7 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	mysql : MYSQL
 	handler := mysql_init(*mysql)
 
-	_ := mysql_set_character_set(*mysql, "utf8".pointeur)
+	_ := mysql_set_character_set(*mysql, crée_chaine_c_temp("utf8"))
 
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {

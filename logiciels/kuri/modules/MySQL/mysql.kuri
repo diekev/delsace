@@ -968,7 +968,7 @@ mysql_warning_count :: fonc (mysql : *MYSQL) -> n32 #externe
 mysql_info :: fonc (mysql : *MYSQL) -> *z8 #externe
 mysql_thread_id :: fonc (mysql : *MYSQL) -> n64 #externe
 mysql_character_set_name :: fonc (mysql : *MYSQL) -> *z8 #externe
-mysql_set_character_set :: fonc (mysql : *MYSQL, csname : *z8) -> z32 #externe
+mysql_set_character_set :: fonc (mysql : *MYSQL, csname : ChaineC) -> z32 #externe
 mysql_init :: fonc (mysql : *MYSQL) -> *MYSQL #externe
 mysql_ssl_set :: fonc (mysql : *MYSQL, key : *z8, cert : *z8, ca : *z8, capath : *z8, cipher : *z8) -> bool #externe
 mysql_get_ssl_cipher :: fonc (mysql : *MYSQL) -> *z8 #externe
