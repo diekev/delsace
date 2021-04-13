@@ -128,13 +128,17 @@ chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: 
     retourne résultat
 }
 
-génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire) -> chaine
 {
     alphabet := crée_alphabet_ascii_pour_nom()
     diffère détruit_alphabet(alphabet)
-
     résultat := chaine_aléatoire(génératrice.gna, alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine)
+    retourne résultat
+}
 
+rappel_génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+{
+    résultat := génère_chaine_aléatoire(génératrice)
     ptr := mémoire(valeur.pointeur comme **chaine)
     mémoire(ptr) = résultat
 }

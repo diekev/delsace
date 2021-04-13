@@ -106,13 +106,16 @@ génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alp
     retourne courriel
 }
 
-rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire) -> AdresseCourriel
 {
     alphabet := crée_alphabet_ascii_courriel()
     diffère détruit_alphabet(alphabet)
+    retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet)
+}
 
-    adresse := génère_adresse_courriel_aléatoire(génératrice.gna, alphabet)
-
+rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+{
+    adresse := génère_adresse_courriel_aléatoire(génératrice)
     ptr := mémoire(valeur.pointeur comme **AdresseCourriel)
     mémoire(ptr) = adresse
 }
