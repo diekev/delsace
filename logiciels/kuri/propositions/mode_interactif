@@ -173,3 +173,104 @@ UniteCompilation {
 
 
     messagere->envoie_message(ID::ordonnanceuse, message);
+
+BoiteAuLettre {
+    liste<Messages> messages;
+
+    bool est_vide() const
+    {
+        return messages.est_vide();
+    }
+
+    void depose_message(badge<Messagere>, Message)
+    {
+        lock();
+        messages.ajoute(message);
+    }
+};
+
+Messagere {
+    void enregistre_boite_au_lettre(adresse, BoiteAuLettre *)
+    {
+        boite_au_lettre
+    }
+
+    void envoie_message(ou, quoi);
+
+    void message_recu()
+    {
+        // ajoute le message dans la liste libre
+    }
+};
+
+struct Message {
+    genre
+    donnees
+}
+
+MessageLog {
+    severite::normal
+    severtie::erreur
+
+    texte
+}
+
+Logueuse {
+    void gere_tache()
+    {
+        si !boite_au_lettre.est_vide() {
+            prend_message()
+        }
+    }
+}
+
+Typeuse->ajoute_message(type_pointeur_pour)
+
+void prepare_unite_pour_etape_suivante()
+{
+    if (etape_suivante == GenerationRI) {
+        // trouve tous les types alloués, et envoie des messages à la Typeuse pour préparer les types
+    }
+}
+
+// qui reçoie des messages
+
+- les métaprogrammes
+- la machine virtuelle
+- l'ordonnanceuse de tâches
+- la logueuse
+- la compilatrice
+- le système de débogage
+- le programmeur
+- la typeuse
+- les espaces de travail
+- le gestionnaire de code
+
+// chaque tacheronne aurait une typeuse locale
+// cette typeuse créer des types lieutenants
+// les types lieutenants seront à remplacer par les vrais types
+// utilisation d'une liste libre pour rassembler les lieutenants une fois remplacés
+TypeuseLocale {
+    Typeuse *
+    AllocatriceType
+    type_pointeur(Unite, Type, Recevant)
+}
+
+Messages :
+    création_type
+        - quel genre (pointeur, référence, tableau)
+        - quel type pointé
+        - pour quelle unité
+
+    log
+    débogage
+    erreur
+    typage_terminé
+    métaprogramme_disponible
+    phase_de_compilation
+    typage_code_requis
+    interface_kuri_requise
+
+    Message::creation_type(GenreType, pour_type, unité)
+    Message::log(ou, chaine)
+    Message::erreur(espace, chaine)
