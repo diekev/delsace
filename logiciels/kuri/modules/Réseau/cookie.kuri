@@ -152,7 +152,40 @@ chaine_cookie_pour_entête_http :: fonc (cookie: Cookie) -> chaine
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
     imprime_cookie_pour_entête_http(*enchaineuse, cookie)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+imprime_cookie_client :: fonc (enchaineuse: *Enchaineuse, cookies: []Cookie, ajoute_nouvelle_ligne: bool)
+{
+    saufsi cookies {
+        retourne
+    }
+
+    ajoute_au_tampon(enchaineuse, "Cookie:");
+
+    virgule := " "
+    pour cookies {
+        ajoute_au_tampon(enchaineuse, virgule, it.nom, "=", it.valeur)
+        virgule = "; "
+    }
+
+    si ajoute_nouvelle_ligne {
+        ajoute_au_tampon(enchaineuse, "\r\n")
+    }
+}
+
+chaine_cookie_pour_entête_client :: fonc (cookies: []Cookie, ajoute_nouvelle_ligne: bool) -> chaine
+{
+    saufsi cookies {
+        retourne ""
+    }
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+    imprime_cookie_client(*enchaineuse, cookies, ajoute_nouvelle_ligne)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
