@@ -106,6 +106,39 @@ données_cgi :: fonc () -> DonnéesCGI
     retourne données
 }
 
+détruit_données_cgi :: fonc (données_cgi: &DonnéesCGI)
+{
+    déloge(données_cgi.racine_serveur)
+    déloge(données_cgi.cookie)
+    déloge(données_cgi.hôte)
+    déloge(données_cgi.référant)
+    déloge(données_cgi.agent_utilisateur)
+    déloge(données_cgi.https)
+    déloge(données_cgi.chemin)
+    déloge(données_cgi.chaine_requête)
+    déloge(données_cgi.adresse_client)
+    déloge(données_cgi.hôte_client)
+    déloge(données_cgi.port_client)
+    déloge(données_cgi.utilisateur_client)
+    déloge(données_cgi.méthode)
+    déloge(données_cgi.uri)
+    déloge(données_cgi.nom_fichier_script)
+    déloge(données_cgi.nom_script)
+    déloge(données_cgi.administrateur_serveur)
+    déloge(données_cgi.nom_serveur)
+    déloge(données_cgi.port_serveur)
+    déloge(données_cgi.logiciel_serveur)
+    déloge(données_cgi.info_chemin)
+    déloge(données_cgi.chemin_traduit)
+    déloge(données_cgi.protocol_serveur)
+    déloge(données_cgi.type_authentification)
+    déloge(données_cgi.type_contenu)
+    déloge(données_cgi.taille_contenu)
+    déloge(données_cgi.interface_gateway)
+    déloge(données_cgi.http_accept)
+    déloge(données_cgi.http_accept_language)
+}
+
 ServeuseCGI :: struct ($T: type_de_données) {
     routeuse : Routeuse(T = T)
     intergiciel : fonc(*Requête, *T)(RésultatRequête)
@@ -151,6 +184,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 {
     // accepte_connexion
     données := données_cgi()
+    diffère détruit_données_cgi(données)
 
     // prépare les données de la requête
     uri_normalisé := résoud_échappement_url(données.uri)
