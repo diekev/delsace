@@ -210,18 +210,33 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
                     ajoute_au_tampon(*enchaineuse, date.année)
                 }
                 'M' {
+                    si (date.mois + 1) < 10 {
+                        ajoute_au_tampon(*enchaineuse, '0')
+                    }
                     ajoute_au_tampon(*enchaineuse, date.mois + 1)
                 }
                 'J' {
-                    ajoute_au_tampon(*enchaineuse, date.jour)
+                    si (date.jour + 1) < 10 {
+                        ajoute_au_tampon(*enchaineuse, '0')
+                    }
+                    ajoute_au_tampon(*enchaineuse, date.jour + 1)
                 }
                 'h' {
+                    si (date.heure) < 10 {
+                        ajoute_au_tampon(*enchaineuse, '0')
+                    }
                     ajoute_au_tampon(*enchaineuse, date.heure)
                 }
                 'm' {
+                    si (date.minute) < 10 {
+                        ajoute_au_tampon(*enchaineuse, '0')
+                    }
                     ajoute_au_tampon(*enchaineuse, date.minute)
                 }
                 's' {
+                    si (date.seconde) < 10 {
+                        ajoute_au_tampon(*enchaineuse, '0')
+                    }
                     ajoute_au_tampon(*enchaineuse, date.seconde)
                 }
                 sinon {
