@@ -5,6 +5,7 @@ importe POSIX
 importe Réseau
 importe Routage
 importe SysFichier
+importe Temps
 
 /*
 DOCUMENT_ROOT	The root directory of your server
@@ -182,6 +183,8 @@ ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_g
 
 lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 {
+    début := maintenant_précis().millisecondes()
+
     // accepte_connexion
     données := données_cgi()
     diffère détruit_données_cgi(données)
@@ -239,6 +242,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     // résoud la requête
     résultat := apparie_route(*serveuse.routeuse, *requête)
 
+    imprime_log("[CGI]", "temps requête : %\n", maintenant_précis().millisecondes() - début)
     // envoie la réponse au client
     crée_réponse(résultat)
 }
