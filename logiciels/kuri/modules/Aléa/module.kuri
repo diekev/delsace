@@ -142,3 +142,36 @@ rappel_génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnées
     ptr := mémoire(valeur.pointeur comme **chaine)
     mémoire(ptr) = résultat
 }
+/*
+
+SérieAléatoire :: struct {
+    état: n32
+}
+
+graine_aléatoire :: fonc (graine: n32) -> SérieAléatoire
+{
+
+}
+
+aléatoire :: fonc (série: &SérieAléatoire, min: $T, max: T)
+{
+
+}
+
+aléatoire_suivant :: fonc (série: &SérieAléatoire)
+{
+
+}
+
+aléatoire_unilatéral :: fonc () // entre 0.0 et 1.0
+aléatoire_bilatéral :: fonc () // entre -1.0 et 1.0
+
+entropie := graine_aléatoire(1234)
+
+entropie.aléatoire_suivant()
+
+entropie.aléatoire_entre(z32, 0, 1)
+
+entropie.énum_aléatoire(TypeEnum)
+
+ */
