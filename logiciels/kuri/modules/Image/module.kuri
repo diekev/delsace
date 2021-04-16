@@ -66,6 +66,11 @@ IMG_ouvre_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
 
 IMG_ecris_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
 
+écris_image :: fonc (chemin: chaine, image: ImageIO)
+{
+    _ := IMG_ecris_image(crée_chaine_c_temp(chemin), *image)
+}
+
 IMG_detruit_image :: fonc (image: *ImageIO) #externe
 
 IMG_calcul_empreinte_floue :: fonc (chemin: ChaineC, composants_x: z32, composants_y: z32, résultat: *z8, taille_résultat: *z64) #externe
