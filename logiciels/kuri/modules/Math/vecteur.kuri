@@ -44,6 +44,17 @@ produit_vectoriel :: fonc (u: *Vec3, v: *Vec3) -> Vec3
     retourne résultat
 }
 
+produit_en_croix :: fonc (u: Vec3, v: Vec3) -> Vec3
+{
+    résultat : Vec3
+
+    résultat.x = u.y * v.z - u.z * v.y
+    résultat.y = u.z * v.x - u.x * v.z
+    résultat.z = u.x * v.y - u.y * v.x
+
+    retourne résultat
+}
+
 longueur :: fonc (u: Vec3) -> r32
 {
     retourne u.x * u.x + u.y * u.y + u.z * u.z
@@ -243,6 +254,12 @@ normalise :: fonc (v: *Vec3) -> Vec3
     résultat := mémoire(v)
     l := longueur(résultat)
     retourne résultat / l
+}
+
+normalise :: fonc (v: Vec3) -> Vec3
+{
+    l := longueur(v)
+    retourne v / l
 }
 
 vec_depuis_nor :: fonc (n: Norm3) -> Vec3
