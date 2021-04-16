@@ -46,19 +46,16 @@ produit_vectoriel :: fonc (u: *Vec3, v: *Vec3) -> Vec3
 
 produit_en_croix :: fonc (u: Vec3, v: Vec3) -> Vec3
 {
-    résultat : Vec3
-
+    résultat : Vec3 = ---
     résultat.x = u.y * v.z - u.z * v.y
     résultat.y = u.z * v.x - u.x * v.z
     résultat.z = u.x * v.y - u.y * v.x
-
     retourne résultat
 }
 
 longueur :: fonc (u: Vec3) -> r32
 {
-    retourne u.x * u.x + u.y * u.y + u.z * u.z
-    //retourne sqrt(u.x * u.x + u.y * u.y + u.z * u.z)
+    retourne racine_carrée(u.x * u.x + u.y * u.y + u.z * u.z)
 }
 
 longueur_carrée :: fonc (u: Vec3) -> r32

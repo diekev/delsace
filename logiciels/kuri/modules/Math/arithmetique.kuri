@@ -91,8 +91,15 @@ racine :: fonc (a: $T, index: T) -> T
 }
 
 // calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
+racine_carrée :: fonc (n: r32) -> r32
+{
+    retourne racine_carrée(n comme r64) comme r32
+}
+
 racine_carrée :: fonc (n: r64) -> r64
 {
+    retourne sqrt(n)
+    /*
     si n == 0.0 {
         retourne 0.0
     }
@@ -131,6 +138,7 @@ racine_carrée :: fonc (n: r64) -> r64
     }
 
     retourne (limite_basse + limite_haute) * 0.5
+    */
 }
 
 racine_cubique :: fonc (n: r64) -> r64
