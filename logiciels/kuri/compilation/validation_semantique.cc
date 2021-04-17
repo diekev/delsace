@@ -4690,10 +4690,23 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(
         }
     }
 
+    auto tfm = transformation;
+
+    if (transformation.type == TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE) {
+        auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
+        noeud_comme->type = espace->typeuse.type_reference_pour(expression->type);
+        noeud_comme->expression = expression;
+        noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
+        noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+
+        expression = noeud_comme;
+        tfm.type = TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+    }
+
     auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
     noeud_comme->type = type_cible;
     noeud_comme->expression = expression;
-    noeud_comme->transformation = transformation;
+    noeud_comme->transformation = tfm;
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
     expression = noeud_comme;

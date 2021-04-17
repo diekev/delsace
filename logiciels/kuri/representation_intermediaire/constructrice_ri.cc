@@ -1779,6 +1779,11 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         {
             break;
         }
+        case TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE:
+        {
+            assert_rappel(false, [&](){ std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n"; });
+            break;
+        }
         case TypeTransformation::INUTILE:
         {
             if (valeur->est_chargeable) {

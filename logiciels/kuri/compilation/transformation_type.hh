@@ -53,7 +53,8 @@ struct ContexteValidationCode;
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_REEL)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(REEL_VERS_ENTIER)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_POINTEUR)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(POINTEUR_VERS_ENTIER)
+    ENUMERE_TYPE_TRANSFORMATION_EX(POINTEUR_VERS_ENTIER)                                          \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_REFERENCE_VERS_TYPE_CIBLE)
 
 enum class TypeTransformation {
 #define ENUMERE_TYPE_TRANSFORMATION_EX(type) type,
