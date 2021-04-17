@@ -4646,19 +4646,20 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpressi
         return ResultatValidation::Erreur;
     }
 
-    return transtype_si_necessaire(expression, transformation);
+    transtype_si_necessaire(expression, transformation);
+    return ResultatValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::transtype_si_necessaire(
+void ContexteValidationCode::transtype_si_necessaire(
     NoeudExpression *&expression, TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
-        return ResultatValidation::OK;
+        return;
     }
 
     if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
         expression->type = transformation.type_cible;
-        return ResultatValidation::OK;
+        return;
     }
 
     auto type_cible = transformation.type_cible;
@@ -4710,6 +4711,4 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
     expression = noeud_comme;
-
-    return ResultatValidation::OK;
 }

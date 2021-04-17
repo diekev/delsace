@@ -175,8 +175,7 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_appel);
 
     ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
-    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression,
-                                               TransformationType const &transformation);
+    void transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
 
     MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
