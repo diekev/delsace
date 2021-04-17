@@ -192,18 +192,18 @@ min :: fonc(a : $T, b : T) -> T #enligne
 	//retourne si a < b { a } sinon { b }
 }
 
-/*
-min :: fonc(args : ...$T) -> T
+min :: fonc (val: $T, vals: ...T) -> T
 {
-	vmin := args[0]
+    résultat := val
 
-	pour v, index dans 1 ... args.taille - 1 {
-		vmin = min(vmin, v)
-	}
+    pour vals {
+        si it < résultat {
+            résultat = it
+        }
+    }
 
-	retourne vmin
+    retourne résultat
 }
-*/
 
 max :: fonc(a : $T, b : T) -> T #enligne
 {
@@ -211,18 +211,18 @@ max :: fonc(a : $T, b : T) -> T #enligne
 	//retourne si a > b { a } sinon { b }
 }
 
-/*
-max :: fonc(args : ...$T) -> T
+max :: fonc (val: $T, vals: ...T) -> T
 {
-	vmax := args[0]
+    résultat := val
 
-	pour v, index dans 1 ... args.taille - 1 {
-		vmax = max(vmin, v)
-	}
+    pour vals {
+        si it > résultat {
+            résultat = it
+        }
+    }
 
-	retourne vmax
+    retourne résultat
 }
-*/
 
 restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
 {
