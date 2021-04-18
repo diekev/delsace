@@ -94,6 +94,25 @@ Contexte :: struct {
 
     taille_mémoire : z64
     info_utilisateur : *InfoType
+
+    /* serveuse : optionnel */
+    serveuse_: *rien
+    info_serveuse : *InfoType
+}
+
+mute_serveuse :: fonc (contexte_: *Contexte, serveuse: *$T)
+{
+    contexte_.serveuse_ = serveuse
+    contexte_.info_serveuse = info_de(T)
+}
+
+accède_serveuse :: fonc (contexte_: *Contexte, $T: type_de_données) -> *T
+{
+    si info_de(T) != contexte_.info_serveuse {
+        retourne nul
+    }
+
+    retourne contexte_.serveuse_ comme *T
 }
 
 données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_données) -> *TypeDonnées
