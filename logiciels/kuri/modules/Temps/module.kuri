@@ -305,6 +305,14 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
     retourne résultat
 }
 
+// À FAIRE : ceci est pour HTML
+parse_date_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
+{
+    date := parse_date(chn, "AAAA-MM-JJ")
+    copie_mem(src = date, dst = tampon, taille = tampon.taille)
+    retourne vrai
+}
+
 // ---------------------------------------------------
 // Tests
 
