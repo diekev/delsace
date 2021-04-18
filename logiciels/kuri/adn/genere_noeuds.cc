@@ -52,9 +52,12 @@ static const char *copie_extra_declaration_variable = R"(
 			   auto nvirgule = copie->valeur->comme_virgule();
 
 			   auto index = 0;
-			   POUR (virgule->expressions) {
-				   auto it_orig = nvirgule->expressions[index]->comme_reference_declaration();
-				   it->comme_reference_declaration()->declaration_referee = copie_noeud(assem, it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
+			   POUR (nvirgule->expressions) {
+				   auto it_orig = virgule->expressions[index]->comme_reference_declaration();
+                   if (it_orig->declaration_referee) {
+				       it->comme_reference_declaration()->declaration_referee = copie_noeud(assem, it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
+                   }
+                   index += 1;
 			   }
 			})";
 
