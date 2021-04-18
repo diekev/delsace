@@ -301,7 +301,7 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
     retourne nchn
 }
 
-résoud_échappement_url_localement :: fonc (chn: chaine)
+résoud_échappement_url_localement :: fonc (chn: &chaine)
 {
     index_d_insertion := 0
     index_courant := 0
@@ -353,6 +353,8 @@ résoud_échappement_url_localement :: fonc (chn: chaine)
             index_d_insertion += 1
         }
     }
+
+    chn.taille = index_d_insertion
 }
 
 // -------------------------------------------------------------------
