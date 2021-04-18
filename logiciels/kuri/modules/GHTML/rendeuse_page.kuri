@@ -223,7 +223,7 @@ rappel_ajoute_fichier :: fonc (chemin: CheminFichier, rendeuse_page: *RendeusePa
     // À FAIRE : chemin absolu
     chemin_fichier := enchaine(rendeuse_page.dossier, chemin.chn)
 
-    ajoute_fichier(*rendeuse_page.catalogue, nom, chemin_fichier)
+    ajoute_fichier(*rendeuse_page.catalogue, copie_chaine(nom), copie_chaine(chemin_fichier))
 }
 
 initialise_depuis_dossier :: fonc (rendeuse_page: *RendeusePage, chemin: CheminFichier)
