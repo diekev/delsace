@@ -48,14 +48,14 @@ AdresseTCP :: struct {
     port: n16
 }
 
-ServeuseTCP :: struct ($T: type_de_données) {
+ServeuseTCP :: struct {
     boucle_évènements: *Boucle
     ctx: *Contexte
     adresse_ip: AdresseIPv4
     port: n16
 }
 
-crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> ServeuseTCP(T)
+crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> ServeuseTCP
 {
     serveuse: ServeuseTCP(T)
 
@@ -78,48 +78,48 @@ crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32,
     retourne serveuse
 }
 
-détruit_serveuse :: fonc (serveuse: &ServeuseTCP($T))
+détruit_serveuse :: fonc (serveuse: *ServeuseTCP)
 {
     détruit_boucle(serveuse.boucle_évènements)
     détruit_contexte(serveuse.ctx)
 }
 
-lance :: fonc (serveuse: &ServeuseTCP($T))
+lance :: fonc (serveuse: *ServeuseTCP)
 {
     serveuse.boucle_évènements.lance()
 }
 
-rappel_quand_ouverture :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_ouverture = rappel
 }
 
-rappel_quand_lecture :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_lecture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_lecture = rappel
 }
 
-rappel_quand_écriture :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_écriture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_écriture = rappel
 }
 
-rappel_quand_fermeture :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_fermeture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_fermeture = rappel
 }
 
-rappel_quand_timeout :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_timeout :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_timeout = rappel
 }
 
-rappel_quand_fin :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_fin :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_fin = rappel
 }
 
-rappel_quand_erreur_connexion :: fonc (serveuse: &ServeuseTCP($T), rappel: fonc(*Prise)(rien))
+rappel_quand_erreur_connexion :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
     serveuse.ctx.quand_erreur_connexion = rappel
 }
