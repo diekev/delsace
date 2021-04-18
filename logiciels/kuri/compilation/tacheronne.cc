@@ -1176,6 +1176,12 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 return false;
             }
 
+            // À FAIRE: nous avons un problème de concurrence critique apparement vis-à-vis de l'exécution des
+            // métaprogrammes et du typage de code, je ne sais pas encore la cause du problème, mais pour le
+            // moment, afin de pouvoir développer sereinement dans le langage, j'ajoute cette ligne pour ralentir
+            // le thread en attendant que la MachineVirtuelle finisse son travail (!?)
+            std::cerr << "Ralentis la compilation....\n";
+
             unite->restaure_etat_original();
             return gere_unite_pour_typage(unite);
         }
