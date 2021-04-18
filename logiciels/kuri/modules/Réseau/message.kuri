@@ -1,3 +1,4 @@
+importe CodecDonnées
 importe Fondation
 
 MessageHTTP :: struct {
@@ -13,10 +14,32 @@ MessageClienteHTTP :: struct {
     requête: chaine
 }
 
+ContenuHTTP :: struct {
+    type: chaine
+    contenu: chaine
+}
+
+contenu_html :: fonc (html: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("text/html;charset=utf-8", html)
+}
+
+crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuHTTP) -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.contenu = contenu.contenu
+    ajoute_entête(*message, "Content-Type", contenu.type)
+    message.code_état = code_état
+
+    retourne message
+}
+
 MessageServeuseHTTP :: struct {
     empl base: MessageHTTP
 
     status: z32
+    code_état: CodeÉtatHTTP
 }
 
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
@@ -108,8 +131,10 @@ parse_message_cliente :: fonc (texte: chaine) -> MessageClienteHTTP
     positionne(*parseuse, pos_nouvelle_ligne + 1)
 
     message.version = version
-    message.méthode = méthode
-    message.requête = chemin
+    message.méthode = méthodes[index]
+    message.requête = requête
+
+    résoud_échappement_url_localement(message.requête)
 
     // parse le reste du message
     parse_message(*parseuse, *message)
