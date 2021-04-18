@@ -46,6 +46,10 @@
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
 - ajout des bugs à la liste des tests de compilation, tests de régressions pour les bugs
+- ajout d'une fonction visite_noeud :
+    -- pour rassembler les dépendances à la fin de la validation de typage
+    -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
+    -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
 
 // -----------------------------------
 // Fonctionnalités diverses
