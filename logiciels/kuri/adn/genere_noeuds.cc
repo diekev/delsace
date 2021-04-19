@@ -181,6 +181,7 @@ struct GeneratriceCodeCPP {
         os << "\t}\n";
         os << "};\n\n";
         os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine);\n\n";
+        os << "void visite_noeud(NoeudExpression const *racine, std::function<void(NoeudExpression const *)> const &rappel);\n\n";
     }
 
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
@@ -197,6 +198,7 @@ struct GeneratriceCodeCPP {
 
         genere_impression_arbre_syntaxique(os);
         genere_calcul_etendue_noeud(os);
+        genere_visite_noeud(os);
         genere_copie_noeud(os);
     }
 
@@ -328,6 +330,50 @@ struct GeneratriceCodeCPP {
 
         os << "\t}\n";
         os << "\treturn etendue;\n";
+        os << "}\n";
+    }
+
+    void genere_visite_noeud(FluxSortieCPP &os)
+    {
+        os << "void visite_noeud(NoeudExpression const *racine, std::function<void(NoeudExpression const *)> const &rappel)\n";
+        os << "{\n";
+        os << "\tif (!racine) {\n";
+        os << "\t\treturn;\n";
+        os << "\t}\n";
+        os << "\trappel(racine);\n";
+        os << "\tswitch (racine->genre) {\n";
+
+        POUR (proteines_struct) {
+            if (it->accede_nom_genre().est_nul()) {
+                continue;
+            }
+
+            os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
+            os << "\t\t{\n";
+
+            genere_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
+                if (membre.type->est_tableau()) {
+                    const auto type_tableau = membre.type->comme_tableau();
+                    if (type_tableau->est_synchrone) {
+                        os << "\t\t\tPOUR ((*racine_typee->" << membre.nom
+                           << ".verrou_lecture())) {\n";
+                    }
+                    else {
+                        os << "\t\t\tPOUR (racine_typee->" << membre.nom << ") {\n";
+                    }
+                    os << "\t\t\t\tvisite_noeud(it, rappel);\n";
+                    os << "\t\t\t}\n";
+                }
+                else {
+                    os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom << ", rappel);\n";
+                }
+            });
+
+            os << "\t\t\tbreak;\n";
+            os << "\t\t}\n";
+        }
+
+        os << "\t}\n";
         os << "}\n";
     }
 
