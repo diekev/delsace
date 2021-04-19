@@ -47,6 +47,9 @@
   - problème avec l'enlignage : il semblerait que les pointeurs ne soit pas correctement « enlignés
   » pour les accès de membres
   - change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
+
+  À FAIRE(analyse) :
+  - membre actifs des unions
  */
 
 static bool log_actif = false;

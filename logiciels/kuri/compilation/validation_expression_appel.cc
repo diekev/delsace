@@ -633,6 +633,18 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
                                    kuri::tableau<IdentifiantEtExpression> const &args,
                                    DonneesCandidate &resultat)
 {
+    // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme membre
+    //    membre :: fonc()(rien)
+    // au lieu de
+    //    membre : fonc()(rien)
+    // il faudra un système plus robuste
+    if (!type->est_fonction()) {
+        resultat.noeud_erreur = b;
+        resultat.type = type;
+        resultat.raison = TYPE_N_EST_PAS_FONCTION;
+        return false;
+    }
+
     POUR (args) {
         if (it.ident == nullptr) {
             continue;
@@ -735,6 +747,7 @@ static auto apparie_appel_init_de(NoeudExpression *expr,
 
     if (type_pointeur != args[0].expr->type) {
         resultat.raison = METYPAGE_ARG;
+        resultat.noeud_erreur = args[0].expr;
         resultat.type_attendu = type_pointeur;
         resultat.type_obtenu = args[0].expr->type;
         return;
@@ -1332,6 +1345,11 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
     auto apparieuse_params = ApparieuseParams(resultat);
 
     POUR (type_compose->membres) {
+        if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+            apparieuse_params.ajoute_param(nullptr, nullptr, false);
+            continue;
+        }
+
         apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false);
     }
 

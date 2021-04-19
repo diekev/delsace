@@ -25,8 +25,6 @@ importe SysFichier
 importe Temps
 importe ServeuseTCP
 
-charge "entete_http"
-
 /*
     serveuse: ServeuseHTTP(Site)
     serveuse.écoute_sur("localhost", 5000)
@@ -78,27 +76,25 @@ quand_connexion_http :: fonc (serveuse_tcp: &ServeuseTCP($T), cliente: ClienteTC
     }
 
     // parse la requête HTTP
-    analyseuse : AnalyseuseRequête
-    analyseuse.requête = données_requête
+    message := parse_message_cliente(données_requête)
 
-    ligne_requête := analyse_ligne_requête(*analyseuse)
-
-    entêtes := analyse_entêtes(*analyseuse)
-    diffère { détruit_entêtes(*entêtes); }
-
-    contenu_requête := analyse_contenu(*analyseuse)
-
-    uri := tente parse_uri_depuis_chemin_requête(ligne_requête.chemin) piège err {
+    uri := tente parse_uri_depuis_chemin_requête(message.requête) piège err {
         // @erreur
         retourne
     }
 
+    si message.possède_entête("Host") {
+        uri.hôte = message.entête("Host").valeur
+    }
+
     requête : Requête
     requête.uri = uri
-    // À FAIRE : parse cookies
-    // requête.cookies = cookies
-    requête.méthode = ligne_requête.méthode
+    requête.méthode = message.méthode
     requête.adresse_ip = cliente.adresse
+
+    si message.possède_entête("Cookie") {
+        requête.cookies = parse_cookie_client(message.entête("Cookie").valeur)
+    }
 
     si serveuse.intergiciel {
         résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)

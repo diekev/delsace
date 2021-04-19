@@ -129,12 +129,6 @@ void membre_inconnu(EspaceDeTravail const &espace,
                     NoeudExpression *membre,
                     TypeCompose *type);
 
-void membre_inactif(EspaceDeTravail const &espace,
-                    ContexteValidationCode &contexte,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre);
-
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression *expression,
                             const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);

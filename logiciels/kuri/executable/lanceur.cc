@@ -86,6 +86,15 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 }
 #endif
 
+static void imprime_fichiers_utilises(std::ostream &os, EspaceDeTravail *espace)
+{
+    auto fichiers = espace->fichiers.verrou_ecriture();
+
+    POUR_TABLEAU_PAGE ((*fichiers)) {
+        os << it.chemin() << "\n";
+    }
+}
+
 int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
@@ -121,9 +130,20 @@ int main(int argc, char *argv[])
     auto stats = Statistiques();
     auto compilatrice = Compilatrice{};
 
-    if (argc == 3) {
-        if (strcmp(argv[2], "--tests") == 0) {
-            compilatrice.active_tests = true;
+    const char *nom_fichier_utilises = nullptr;
+
+    if (argc > 2) {
+        for (int i = 2; i < argc; ++i) {
+            if (strcmp(argv[i], "--tests") == 0) {
+                compilatrice.active_tests = true;
+            }
+            else if (strcmp(argv[i], "--emets_fichiers_utilises") == 0) {
+                ++i;
+                nom_fichier_utilises = argv[i];
+            }
+            else {
+
+            }
         }
     }
 
@@ -218,6 +238,14 @@ int main(int argc, char *argv[])
 
         /* restore le dossier d'origine */
         std::filesystem::current_path(dossier_origine);
+
+        if (!compilatrice.possede_erreur() && nom_fichier_utilises) {
+            std::ofstream fichier_fichiers_utilises(nom_fichier_utilises);
+
+            POUR (*compilatrice.espaces_de_travail.verrou_lecture()) {
+                imprime_fichiers_utilises(fichier_fichiers_utilises, it);
+            }
+        }
 
         if (!compilatrice.possede_erreur() &&
             compilatrice.espace_de_travail_defaut->options.emets_metriques) {

@@ -97,31 +97,6 @@ void ContexteValidationCode::termine_fonction()
     fonction_courante = nullptr;
 }
 
-kuri::chaine_statique ContexteValidationCode::trouve_membre_actif(
-    const kuri::chaine_statique &nom_union)
-{
-    for (auto const &paire : membres_actifs) {
-        if (paire.first == nom_union) {
-            return paire.second;
-        }
-    }
-
-    return "";
-}
-
-void ContexteValidationCode::renseigne_membre_actif(const kuri::chaine_statique &nom_union,
-                                                    const kuri::chaine_statique &nom_membre)
-{
-    for (auto &paire : membres_actifs) {
-        if (paire.first == nom_union) {
-            paire.second = nom_membre;
-            return;
-        }
-    }
-
-    membres_actifs.ajoute({nom_union, nom_membre});
-}
-
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -460,6 +435,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto type_de_donnees = type2->comme_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
                                                                 type_de_donnees;
+
+                if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                    unite->attend_sur_type(type_connu);
+                    return ResultatValidation::Erreur;
+                }
 
                 auto taille_tableau = 0l;
 
@@ -1769,8 +1749,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return ResultatValidation::Erreur;
                     }
 
-                    renseigne_membre_actif(expression->ident->nom, nom_membre);
-
                     auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expr_paire->ident);
 
                     /* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est
@@ -1789,7 +1767,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     decl_expr->lexeme = expr_paire->lexeme;
                     decl_expr->bloc_parent = bloc_paire;
                     decl_expr->drapeaux |= EMPLOYE;
-                    decl_expr->type = expr_paire->type;
+                    decl_expr->type = decl_var->type;
+                    // À FAIRE: il semblerait que l'absence de ceci ajout une tache de typage
+                    decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
                     // À FAIRE(emploi): mise en place des informations d'emploi
 
                     bloc_paire->membres->ajoute(decl_expr);
@@ -2317,33 +2297,11 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             expression_membre->genre_valeur = GenreValeur::DROITE;
         }
         else if (type->genre == GenreType::UNION) {
-            auto noeud_struct = type->comme_union()->decl;
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
 
-            if (!noeud_struct->est_nonsure) {
-                if ((expression_membre->drapeaux & DROITE_ASSIGNATION) == 0) {
-                    renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
-                }
-                else {
-                    auto membre_actif = trouve_membre_actif(structure->ident->nom);
-
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
-                    donnees_dependance.fonctions_utilisees.insere(
-                        espace->interface_kuri->decl_panique_membre_union);
-
-                    /* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu
-                     */
-                    if (membre_actif != "") {
-                        if (membre_actif != membre->ident->nom) {
-                            rapporte_erreur_membre_inactif(expression_membre, structure, membre);
-                            return ResultatValidation::Erreur;
-                        }
-
-                        /* nous savons que nous avons le bon membre actif */
-                        expression_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    }
-                }
-            }
+            VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
+            donnees_dependance.fonctions_utilisees.insere(
+                espace->interface_kuri->decl_panique_membre_union);
         }
 
         return ResultatValidation::OK;
@@ -2407,6 +2365,11 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
         auto dernier_est_variadic = false;
 
         for (auto i = 0; i < decl->params.taille(); ++i) {
+            if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
+                unite->espace->rapporte_erreur(decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
+                return ResultatValidation::Erreur;
+            }
+
             auto param = decl->parametre_entree(i);
             auto variable = param->valeur;
             auto expression = param->expression;
@@ -3794,7 +3757,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (align_type == 0) {
-            rapporte_erreur("impossible de définir l'alignement du type", enfant);
+            unite->espace->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
+                .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
             return ResultatValidation::Erreur;
         }
 
@@ -4615,13 +4579,6 @@ void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudExpression *acc
     erreur::membre_inconnu(*espace, acces, structure, membre, type);
 }
 
-void ContexteValidationCode::rapporte_erreur_membre_inactif(NoeudExpression *acces,
-                                                            NoeudExpression *structure,
-                                                            NoeudExpression *membre)
-{
-    erreur::membre_inactif(*espace, *this, acces, structure, membre);
-}
-
 void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(
     NoeudExpression *expression, dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
@@ -4654,19 +4611,20 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpressi
         return ResultatValidation::Erreur;
     }
 
-    return transtype_si_necessaire(expression, transformation);
+    transtype_si_necessaire(expression, transformation);
+    return ResultatValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::transtype_si_necessaire(
+void ContexteValidationCode::transtype_si_necessaire(
     NoeudExpression *&expression, TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
-        return ResultatValidation::OK;
+        return;
     }
 
     if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
         expression->type = transformation.type_cible;
-        return ResultatValidation::OK;
+        return;
     }
 
     auto type_cible = transformation.type_cible;
@@ -4698,13 +4656,24 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(
         }
     }
 
+    auto tfm = transformation;
+
+    if (transformation.type == TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE) {
+        auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
+        noeud_comme->type = espace->typeuse.type_reference_pour(expression->type);
+        noeud_comme->expression = expression;
+        noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
+        noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+
+        expression = noeud_comme;
+        tfm.type = TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+    }
+
     auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
     noeud_comme->type = type_cible;
     noeud_comme->expression = expression;
-    noeud_comme->transformation = transformation;
+    noeud_comme->transformation = tfm;
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
     expression = noeud_comme;
-
-    return ResultatValidation::OK;
 }

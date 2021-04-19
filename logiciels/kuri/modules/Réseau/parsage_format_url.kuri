@@ -10,6 +10,7 @@
  * possède un champs « video » de valeur « IuK93dq3 » et un champs « temps » de valeur « 137 ».
  */
 
+importe CodecDonnées
 importe Compilatrice
 importe Fondation
 importe Introspection
@@ -109,7 +110,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
     #assert info_de(T).id == id_info.STRUCTURE
 
     parseuse.curseur = 0
-    parseuse.chn = résoud_échappement_url(texte)
+    parseuse.chn = texte
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
@@ -149,6 +150,10 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
 
         positionne(parseuse, pos + 1)
 
+        si fini(parseuse) {
+            retourne RésultatParsage.TexteMalformé, données, résultat
+        }
+
         pos = trouve_prochain(parseuse, '&')
 
         si pos <= 0 {
@@ -156,6 +161,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
         }
 
         valeur := sous_chaine_jusque_index(parseuse, pos)
+        résoud_échappement_url_localement(valeur)
 
         positionne(parseuse, pos + 1)
 
@@ -206,6 +212,24 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
         ajoute_au_tampon(*enchaineuse, it.nom)
         ajoute_au_tampon(*enchaineuse, ":= faux\n")
     }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bool
+#corps_texte {
+    info := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour info.membres {
+        ajoute_au_tampon(*enchaineuse, "si !données.", it.nom, "{\n")
+        ajoute_au_tampon(*enchaineuse, "retourne faux\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

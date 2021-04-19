@@ -212,23 +212,6 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
     retourne résultat
 }
 
-// À FAIRE : déduplique avec la structure dans ServeuseHTTP
-Entête :: struct {
-    nom: chaine
-    valeur: chaine
-}
-
-cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
-{
-    pour * entête dans entêtes {
-        si entête.nom == clé {
-            retourne entête
-        }
-    }
-
-    retourne nul
-}
-
 // Les données de la requête
 Requête :: struct {
     uri : URI
@@ -282,6 +265,14 @@ ajoute_cookie :: fonc (résultat: &RésultatRequête, cookie: Cookie)
 
 détruit_résultat :: fonc (résultat: &RésultatRequête)
 {
+    pour résultat.cookies {
+        détruit_cookie(it)
+    }
+
+    pour résultat.entêtes {
+        détruit_entête(it)
+    }
+
     déloge(résultat.cookies)
     déloge(résultat.contenu)
     déloge(résultat.entêtes)

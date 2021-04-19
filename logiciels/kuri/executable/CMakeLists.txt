@@ -87,6 +87,20 @@ install(
 
 ################################################################################
 
+add_executable(demon_kuri
+	demon.cc
+)
+
+target_include_directories(demon_kuri PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(demon_kuri "${BIBLIOTHEQUES}")
+
+install(
+	TARGETS demon_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 add_executable(test_transformation
 	test_transformation.cc
 )

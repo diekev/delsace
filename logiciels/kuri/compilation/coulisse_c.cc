@@ -346,7 +346,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
                         << ";\n";
         }
         else {
-            enchaineuse << broye_nom_simple(it.nom->nom) << ";\n";
+            enchaineuse << broye_nom_simple(it.nom) << ";\n";
         }
     }
 
@@ -664,7 +664,7 @@ struct GeneratriceCodeC {
                                     virgule_placee = true;
 
                                     resultat << ".";
-                                    resultat << broye_nom_simple(type->membres[i].nom->nom);
+                                    resultat << broye_nom_simple(type->membres[i].nom);
                                     resultat << " = ";
                                     resultat << genere_code_pour_atome(
                                         tableau_valeur[index_membre], os, pour_globale);
@@ -776,7 +776,7 @@ struct GeneratriceCodeC {
                 // portées différentes auront le même nom ici dans la même portée donc nous
                 // ajoutons le numéro de l'instruction de la variable pour les différencier
                 if (inst->ident != nullptr) {
-                    auto nom = enchaine(broye_nom_simple(inst->ident->nom), "_", inst->numero);
+                    auto nom = enchaine(broye_nom_simple(inst->ident), "_", inst->numero);
                     os << ' ' << nom << ";\n";
                     table_valeurs.insere(inst, enchaine("&", nom));
                 }
@@ -1163,7 +1163,7 @@ struct GeneratriceCodeC {
                     valeur_accede = enchaine(valeur_accede, "_", index_membre);
                 }
                 else {
-                    valeur_accede = enchaine(valeur_accede, broye_nom_simple(membre.nom->nom));
+                    valeur_accede = enchaine(valeur_accede, broye_nom_simple(membre.nom));
                 }
 
                 table_valeurs.insere(inst_acces, valeur_accede);
@@ -1197,7 +1197,7 @@ struct GeneratriceCodeC {
             os << "static const " << nom_broye_type(type) << ' ';
 
             if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
+                auto nom_globale = broye_nom_simple(valeur_globale->ident);
                 os << nom_globale;
                 table_globales.insere(valeur_globale, enchaine("&", nom_globale));
             }
@@ -1271,7 +1271,7 @@ struct GeneratriceCodeC {
             os << nom_broye_type(type) << ' ';
 
             if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
+                auto nom_globale = broye_nom_simple(valeur_globale->ident);
                 os << nom_globale;
                 table_globales.insere(valeur_globale, enchaine("&", nom_globale));
             }
@@ -1317,7 +1317,7 @@ struct GeneratriceCodeC {
                 os << nom_broye_type(type_pointeur->type_pointe) << ' ';
                 os << broye_nom_simple(param->ident->nom);
 
-                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident->nom)));
+                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
 
                 virgule = ", ";
             }
@@ -1357,7 +1357,7 @@ struct GeneratriceCodeC {
                 os << broye_nom_simple(param->ident->nom);
                 os << ";\n";
 
-                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident->nom)));
+                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
             }
 
             /* Génère le code pour les accès de membres des retours mutliples. */

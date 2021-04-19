@@ -286,3 +286,61 @@ covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> T, z64
 	résultat /= taille comme T
 	retourne résultat, taille
 }
+
+calcule_table_occurences :: fonc (données: []octet) -> [256]z32
+{
+    table_occurence : [256]z32
+
+    pour & table_occurence {
+        it = 0
+    }
+
+    pour données {
+        table_occurence[it comme n8] += 1
+    }
+
+    retourne table_occurence
+}
+
+calcule_entropie_de_shannon :: fonc (données: []octet) -> r32
+{
+    table_occurence := calcule_table_occurences(données)
+
+    entropie := 0.0
+
+    pour table_occurence {
+        si it == 0 {
+            continue
+        }
+
+        Pi := it comme r32 / données.taille comme r32
+        entropie += Pi * log(Pi)
+    }
+
+    retourne -entropie
+}
+
+// https://dridk.me/shannon-entropy.html
+calcule_entropie_de_shannon_croisée :: fonc (données1: []octet, données2: []octet) -> r32
+{
+    table_occurence1 := calcule_table_occurences(données1)
+    table_occurence2 := calcule_table_occurences(données2)
+
+    entropie := 0.0
+
+    pour 0 ... 255 {
+        it1 := table_occurence1[it]
+        it2 := table_occurence2[it]
+
+        si it1 == 0 || it2 == 0 {
+            continue
+        }
+
+        Pi := it1 comme r32 / données1.taille comme r32
+        Qi := it2 comme r32 / données2.taille comme r32
+
+        entropie += Pi * log(Qi)
+    }
+
+    retourne -entropie
+}

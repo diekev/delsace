@@ -65,6 +65,15 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
     return false;
 }
 
+static bool est_type_de_base(Type *type_de, Type *type_vers)
+{
+    if (type_de->est_structure() && type_vers->est_structure()) {
+        return est_type_de_base(type_de->comme_structure(), type_vers->comme_structure());
+    }
+
+    return false;
+}
+
 /* Trouve la transformation nécessaire pour aller d'un type à un autre de
  * manière conditionnelle.
  *
@@ -406,8 +415,24 @@ bool cherche_transformation(EspaceDeTravail &espace,
     }
 
     if (type_vers->genre == GenreType::REFERENCE) {
-        if (type_vers->comme_reference()->type_pointe == type_de) {
+        auto type_pointe = type_vers->comme_reference()->type_pointe;
+
+        if (type_de->est_reference()) {
+            auto type_pointe_de = type_de->comme_reference()->type_pointe;
+
+            if (est_type_de_base(type_pointe_de, type_pointe)) {
+                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+                return false;
+            }
+        }
+
+        if (type_pointe == type_de) {
             transformation = TypeTransformation::PREND_REFERENCE;
+            return false;
+        }
+
+        if (est_type_de_base(type_de, type_pointe)) {
+            transformation = {TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE, type_vers};
             return false;
         }
     }

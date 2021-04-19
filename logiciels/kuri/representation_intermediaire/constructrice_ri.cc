@@ -1540,6 +1540,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 alloc = cree_allocation(noeud, type_struct, nullptr);
 
                 POUR (expr->parametres_resolus) {
+                    const auto &membre = type_struct->membres[index_membre];
+
+                    if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+                        index_membre += 1;
+                        continue;
+                    }
+
                     auto valeur = static_cast<Atome *>(nullptr);
 
                     if (it != nullptr) {
@@ -1772,6 +1779,11 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
         {
+            break;
+        }
+        case TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE:
+        {
+            assert_rappel(false, [&](){ std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n"; });
             break;
         }
         case TypeTransformation::INUTILE:

@@ -188,10 +188,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     e.ajoute_message("\tRequiers ", type_struct->membres.taille(), " arguments\n");
                 }
                 else {
-                    auto type_fonc = dc.type->comme_fonction();
-                    e.ajoute_message("\tRequiers ",
-                                     type_fonc->types_entrees.taille() - dc.requiers_contexte,
-                                     " arguments\n");
+                    if (dc.type) {
+                        auto type_fonc = dc.type->comme_fonction();
+                        e.ajoute_message("\tRequiers ",
+                                        type_fonc->types_entrees.taille() - dc.requiers_contexte,
+                                        " arguments\n");
+                    }
                 }
 
                 e.ajoute_message("\tObtenu ", noeud_appel->parametres.taille(), " arguments\n");
@@ -424,19 +426,6 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
     }
-}
-
-void membre_inactif(EspaceDeTravail const &espace,
-                    ContexteValidationCode &contexte,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre)
-{
-    rapporte_erreur(&espace, acces, "Accès à un membre inactif d'une union", Genre::MEMBRE_INACTIF)
-        .ajoute_message("Le membre « ", membre->ident->nom, " » est inactif dans ce contexte !\n")
-        .ajoute_message("Le membre actif dans ce contexte est « ",
-                        contexte.trouve_membre_actif(structure->ident->nom),
-                        " ».\n");
 }
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
