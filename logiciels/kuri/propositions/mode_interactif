@@ -274,3 +274,65 @@ Messages :
     Message::creation_type(GenreType, pour_type, unité)
     Message::log(ou, chaine)
     Message::erreur(espace, chaine)
+
+
+GestionnaireCode :
+
+- découvre les dépendances des fonctions et variables globales
+    -- à la fin du typage
+    -- note la raison de la dépendances
+
+    struct Dependance {
+        quoi // type, fonction, globale
+        pour // RI, etc.
+    };
+
+    - les données de dépendance devront contenir également les types pour les allocations
+    - idée : crée une tâche pour un travail, avec un identifiant unique, quand la tâche est terminée, libère toutes les noeuds dépendants sur celle-ci
+
+    attend_sur_types
+    attend_sur_symboles
+    attend_sur_fonction
+
+- décide quand envoyer vers l'étape suivante un noeud
+
+- quel est la condition pour arrêter la compilation ?
+    - pour un symbole est indéfini ?
+    - pour une dépendance cyclique ?
+
+
+exemple :
+
+    void lis_message()
+    {
+        si message est typage_terminé {
+            rassemble_dépendances()
+
+            // requiers les types pointeurs pour les allocations dans la RI
+            struct Message {
+                size_t id;
+                dls::tableau<Type *> requiers_types_pointeurs;
+            };
+
+            messagere->envoie(message_pour::typeuse, message, ...);
+        }
+
+        si message est résultat {
+            si message->id == noeud->id {
+                va vers l'étape suivante
+            }
+        }
+    }
+
+class Messagere {
+public:
+
+    void envoie_message(pour, quoi, de_qui)
+    {
+        si pour == gestionnaire_code {
+            gestionnaire_code->recoie_message(quoi, de_qui);
+        }
+    }
+
+private:
+};
