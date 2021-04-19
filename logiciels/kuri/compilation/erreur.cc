@@ -428,19 +428,6 @@ void membre_inconnu(EspaceDeTravail const &espace,
     }
 }
 
-void membre_inactif(EspaceDeTravail const &espace,
-                    ContexteValidationCode &contexte,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre)
-{
-    rapporte_erreur(&espace, acces, "Accès à un membre inactif d'une union", Genre::MEMBRE_INACTIF)
-        .ajoute_message("Le membre « ", membre->ident->nom, " » est inactif dans ce contexte !\n")
-        .ajoute_message("Le membre actif dans ce contexte est « ",
-                        contexte.trouve_membre_actif(structure->ident->nom),
-                        " ».\n");
-}
-
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression *expression,
                             dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)

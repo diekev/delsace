@@ -92,9 +92,6 @@ struct ContexteValidationCode {
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;
 
-    using paire_union_membre = std::pair<kuri::chaine_statique, kuri::chaine_statique>;
-    kuri::tableau<paire_union_membre> membres_actifs{};
-
     double temps_chargement = 0.0;
 
     ContexteValidationCode(Compilatrice &compilatrice,
@@ -106,16 +103,6 @@ struct ContexteValidationCode {
     void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
 
     void termine_fonction();
-
-    /* gestion des membres actifs des unions :
-     * cas à considérer :
-     * -- les portées des variables
-     * -- les unions dans les structures (accès par '.')
-     */
-    kuri::chaine_statique trouve_membre_actif(kuri::chaine_statique const &nom_union);
-
-    void renseigne_membre_actif(kuri::chaine_statique const &nom_union,
-                                kuri::chaine_statique const &nom_membre);
 
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
@@ -162,9 +149,6 @@ struct ContexteValidationCode {
                                         NoeudExpression *structure,
                                         NoeudExpression *membre,
                                         TypeCompose *type);
-    void rapporte_erreur_membre_inactif(NoeudExpression *acces,
-                                        NoeudExpression *structure,
-                                        NoeudExpression *membre);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);

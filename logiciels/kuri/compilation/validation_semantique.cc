@@ -97,31 +97,6 @@ void ContexteValidationCode::termine_fonction()
     fonction_courante = nullptr;
 }
 
-kuri::chaine_statique ContexteValidationCode::trouve_membre_actif(
-    const kuri::chaine_statique &nom_union)
-{
-    for (auto const &paire : membres_actifs) {
-        if (paire.first == nom_union) {
-            return paire.second;
-        }
-    }
-
-    return "";
-}
-
-void ContexteValidationCode::renseigne_membre_actif(const kuri::chaine_statique &nom_union,
-                                                    const kuri::chaine_statique &nom_membre)
-{
-    for (auto &paire : membres_actifs) {
-        if (paire.first == nom_union) {
-            paire.second = nom_membre;
-            return;
-        }
-    }
-
-    membres_actifs.ajoute({nom_union, nom_membre});
-}
-
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -1768,8 +1743,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return ResultatValidation::Erreur;
                     }
 
-                    renseigne_membre_actif(expression->ident->nom, nom_membre);
-
                     auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expr_paire->ident);
 
                     /* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est
@@ -2323,30 +2296,6 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
             donnees_dependance.fonctions_utilisees.insere(
                 espace->interface_kuri->decl_panique_membre_union);
-
-#if 0
-            auto noeud_struct = type->comme_union()->decl;
-            if (!noeud_struct->est_nonsure) {
-                if ((expression_membre->drapeaux & DROITE_ASSIGNATION) == 0) {
-                    renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
-                }
-                else {
-                    auto membre_actif = trouve_membre_actif(structure->ident->nom);
-
-                    /* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu
-                     */
-                    if (membre_actif != "") {
-                        if (membre_actif != membre->ident->nom) {
-                            rapporte_erreur_membre_inactif(expression_membre, structure, membre);
-                            return ResultatValidation::Erreur;
-                        }
-
-                        /* nous savons que nous avons le bon membre actif */
-                        expression_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    }
-                }
-            }
-#endif
         }
 
         return ResultatValidation::OK;
@@ -4605,13 +4554,6 @@ void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudExpression *acc
                                                             TypeCompose *type)
 {
     erreur::membre_inconnu(*espace, acces, structure, membre, type);
-}
-
-void ContexteValidationCode::rapporte_erreur_membre_inactif(NoeudExpression *acces,
-                                                            NoeudExpression *structure,
-                                                            NoeudExpression *membre)
-{
-    erreur::membre_inactif(*espace, *this, acces, structure, membre);
 }
 
 void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(
