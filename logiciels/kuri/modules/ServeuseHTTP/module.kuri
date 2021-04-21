@@ -17,172 +17,225 @@
     - gestion des fichiers statiques
 
  */
-
+importe ConnexionTCP
+importe ServeuseTCP
 importe Fondation
+importe Internet
 importe Réseau
-importe Routage
 importe SysFichier
 importe Temps
-importe ServeuseTCP
 
 /*
-    serveuse: ServeuseHTTP(Site)
-    serveuse.écoute_sur("localhost", 5000)
+    Pour mapper plusieurs port localhost via un proxy
+    https://stackoverflow.com/questions/10729034/can-i-map-a-hostname-and-a-port-with-etc-hosts
+    https://github.com/cristianoliveira/ergo
+    https://askubuntu.com/questions/935859/hosts-file-with-port
+*/
 
-    serveuse.intergiciel = intergiciel;
+TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
-    /* initialise les routes */
-    serveuse.ajoute_route(....)
-
-    serveuse.lance()
- */
-
-ServeuseHTTP :: struct ($T: type_de_données) {
-    empl base: ServeuseTCP(T)
-
-    routeuse: Routeuse(T)
-
-    quand_connexion = #cuisine quand_connexion_http(T = T)
-
-    intergiciel : fonc(*Requête, *T)(RésultatRequête)
+apparie_uri :: fonc (chemin_base: chaine, chemin_donnée: chaine) -> bool
+{
+    retourne chemin_base == chemin_donnée
 }
 
-ajoute_route :: fonc (serveuse: &ServeuseHTTP($T), chemin: chaine, méthode_get: fonc(*Requête, *T)(RésultatRequête), méthode_post: fonc(*Requête, *T)(RésultatRequête))
-{
-    ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post)
+Route :: struct {
+    chemin: chaine
+    rappel: TypeRappelRoute
 }
 
-écoute_sur :: fonc (serveuse: &ServeuseHTTP($T), adresse: AdresseTCP) -> chaine
-{
-    // À FAIRE(langage) : ceci devrait être géré d'une manière ou d'une autre par la monomorphisation
-    retourne écoute_sur(serveuse comme &ServeuseTCP(T), adresse)
+NouvelleRouteuse :: struct {
+    routes_get: []Route
+    routes_post: []Route
 }
 
-lance :: fonc (serveuse: &ServeuseHTTP($T))
+apparie_route :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, méthode: chaine) -> TypeRappelRoute
 {
-    lance(serveuse comme &ServeuseTCP(T))
+    si méthode == "GET" {
+        pour routeuse.routes_get {
+            si apparie_uri(it.chemin, chemin) {
+                retourne it.rappel
+            }
+        }
+
+        retourne nul
+    }
+
+    si méthode == "POST" {
+        pour routeuse.routes_post {
+            si apparie_uri(it.chemin, chemin) {
+                retourne it.rappel
+            }
+        }
+
+        retourne nul
+    }
+
+    retourne nul
 }
 
-quand_connexion_http :: fonc (serveuse_tcp: &ServeuseTCP($T), cliente: ClienteTCP)
+ServeuseHTTP :: struct {
+    empl base: ServeuseTCP.ServeuseTCP
+
+    nom: chaine = "test"
+    routeuse: NouvelleRouteuse
+}
+
+crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
 {
-    serveuse := serveuse_tcp comme &ServeuseHTTP(T)
+    // À FAIRE: déduplique avec ServeuseTCP, requiers d'avoir une manière de déterminer le bon type (ServeuseTCP vs. ServeuseHTTP)
+    serveuse := loge(ServeuseHTTP)
 
-    // À FAIRE : défini si l'on doit fermer la connexion
-    diffère { _ := ferme(*cliente.fichier) }
+    boucle_évènements := crée_boucle()
+    ctx := crée_contexte_vide(boucle_évènements, T)
 
-    // lis le tampon
-    données_requête := tente lis_tout(*cliente.fichier) piège err {
+    ctx.mute_serveuse(serveuse)
+
+    prise := crée_prise_pour_écoute(ctx, adresse_ip, port, connexions_max, TypeDonnéesPrise)
+
+    // À FAIRE erreur
+    si !prise {
+        détruit_serveuse(serveuse)
+        retourne nul
+    }
+
+    serveuse.boucle_évènements = boucle_évènements
+    serveuse.ctx = ctx
+    serveuse.adresse_ip = adresse_ip
+    serveuse.port = port
+
+    serveuse.rappel_quand_ouverture(quand_ouverture)
+    serveuse.rappel_quand_lecture(quand_lecture)
+
+    retourne serveuse
+}
+
+lance :: fonc (serveuse: *ServeuseHTTP)
+{
+    serveuse.boucle_évènements.lance()
+}
+
+détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
+{
+    détruit_boucle(serveuse.boucle_évènements)
+    détruit_contexte(serveuse.ctx)
+    déloge(serveuse)
+}
+
+ajoute_route_get :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
+{
+    route: Route = ---
+    route.chemin = chemin
+    route.rappel = rappel
+
+    tableau_ajoute(*serveuse.routeuse.routes_get, route)
+}
+
+ajoute_route_post :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
+{
+    route: Route = ---
+    route.chemin = chemin
+    route.rappel = rappel
+
+    tableau_ajoute(*serveuse.routeuse.routes_post, route)
+}
+
+quand_ouverture :: fonc (prise: *Prise)
+{
+    quand_lecture(prise)
+}
+
+quand_lecture :: fonc (prise: *Prise)
+{
+    contenu := tente lis_tout(*prise.fichier) piège err {
         retourne
     }
 
-    // parse la requête HTTP
-    message := parse_message_cliente(données_requête)
-
-    uri := tente parse_uri_depuis_chemin_requête(message.requête) piège err {
-        // @erreur
+    si !contenu {
         retourne
     }
 
-    si message.possède_entête("Host") {
-        uri.hôte = message.entête("Host").valeur
+    imprime("reçu :\n%\n", contenu)
+
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+
+    message := parse_message_cliente(contenu)
+
+    rappel_route := apparie_route(serveuse.routeuse, message.requête, message.méthode)
+
+    saufsi rappel_route {
+        _ := écris(*prise.fichier, "HTTP/1.1 404 NOT FOUND\r\n")
+        _ = écris(*prise.fichier, "Server: test\r\n")
+        _ = écris(*prise.fichier, "Connection: close\r\n")
+        _ = écris(*prise.fichier, "\r\n")
+        prise.ferme()
+        retourne
     }
 
-    requête : Requête
-    requête.uri = uri
-    requête.méthode = message.méthode
-    requête.adresse_ip = cliente.adresse
+    // si serveuse.intergiciel {
+    //     serveuse.intergiciel(prise, message)
+    //     // ...
+    // }
 
-    si message.possède_entête("Cookie") {
-        requête.cookies = parse_cookie_client(message.entête("Cookie").valeur)
-    }
+    réponse := rappel_route(prise, message)
 
-    si serveuse.intergiciel {
-        résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
-
-        si résultat.status != CodeÉtatHTTP.OK {
-            crée_réponse(résultat, cliente)
-            retourne
-        }
-
-        // À FAIRE : ceci est pour détecter les cas où nous avons un fichier, ou une icone
-        si résultat.type_contenu {
-            crée_réponse(résultat, cliente)
-            retourne
-        }
-    }
-
-    // résoud la requête
-    // À FAIRE: trouve une meilleure manière de passer cette information
-    serveuse.routeuse.données_serveuse = *serveuse.données
-    résultat := apparie_route(*serveuse.routeuse, *requête)
-
-    // envoie la réponse au client
-    crée_réponse(résultat, cliente)
+    écris_réponse(prise, réponse)
 }
 
-crée_réponse :: fonc (résultat: &RésultatRequête, cliente: &ClienteTCP)
+// Entête: Cache-Control
+// pour supprimer un cache, ajouter max-age=0
+// https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control
+PolitiqueDeCache :: énum {
+    Revalide // no-cache
+    ClientsSeulement // private
+    NeJamaisCacher // no-store
+}
+
+écris_réponse :: fonc (prise: *Prise, message: &MessageServeuseHTTP)
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
+    diffère détruit_tampons(*enchaineuse)
 
-    contenu := résultat.contenu
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
 
-    ajoute_au_tampon(*enchaineuse, "HTTP/1.1 ", chaine_code_état_http(résultat.status), "\r\n")
-    // À FAIRE : paramétrise le nom du serveur
-    ajoute_au_tampon(*enchaineuse, "Server: delsace\r\n")
-    ajoute_au_tampon(*enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
+    ajoute_au_tampon(*enchaineuse, message.version, " ", chaine_code_état_http(message.code_état), "\r\n")
+    ajoute_au_tampon(*enchaineuse, "Server: ", serveuse.nom, "\r\n")
 
-    si résultat.type_contenu {
-        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: %\r\n", résultat.type_contenu)
-    }
-
-    pour résultat.entêtes {
-        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
-    }
-
-    pour résultat.cookies {
-        chn_cookie := chaine_cookie_pour_entête_http(it)
-        imprime_dans_enchaineuse(*enchaineuse, "Set-Cookie: %\r\n", chn_cookie)
-        déloge(chn_cookie)
-    }
-
-/*
-    discr réponse.type_contenu {
-        TEXT_HTML {
-            ajoute_au_tampon(*enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
-        }
-        APPLICATION_JAVASCRIPT {
-            ajoute_au_tampon(*enchaineuse, "Content-Type: application/javascript\r\n")
-            ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
-            ajoute_au_tampon(*enchaineuse, "Cache-Control: public, max-age=31556952, immutable\r\n")
-        }
-        APPLICATION_JSON {
-            ajoute_au_tampon(*enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
-        }
-        sinon {
-            // RÀF
-        }
-    }
-*/
+    date := hui_système()
+    date_http := date_http_depuis_date(date)
 
     ajoute_au_tampon(*enchaineuse, "Date: ")
-    chaine_pour_aujourdhui(*enchaineuse)
+    imprime_date_http(*enchaineuse, date_http)
     ajoute_au_tampon(*enchaineuse, "\r\n")
 
-    // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
-
-    ajoute_au_tampon(*enchaineuse, "Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
-
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, contenu)
-
-    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge(chaine_reponse); }
-
-    tente écris(*cliente.fichier, chaine_reponse) piège err {
-        retourne
+    pour message.entêtes {
+        ajoute_au_tampon(*enchaineuse, it.nom, ": ", it.valeur, "\r\n")
     }
+
+    // Évite le traçage FLoC de Google
+    si !possède_entête(message, "Permissions-Policy") {
+        ajoute_au_tampon(*enchaineuse, "Permissions-Policy: interest-cohort=()\r\n")
+    }
+
+    // Évite le clickjacking
+    // À FAIRE: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Security-Policy
+    // https://www.netsparker.com/blog/web-security/clickjacking-attack-on-facebook-how-tiny-attribute-save-corporation/
+    si !possède_entête(message, "X-Frame-Options") {
+        ajoute_au_tampon(*enchaineuse, "X-Frame-Options: deny\r\n")
+    }
+
+    si message.contenu {
+        ajoute_au_tampon(*enchaineuse, "Content-Length: ", message.contenu.taille, "\r\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+
+    si message.contenu {
+        ajoute_au_tampon(*enchaineuse, message.contenu)
+    }
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, *prise.fichier)
 }
 
 chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
