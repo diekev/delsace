@@ -57,7 +57,11 @@ DonnéesMessage :: struct {
 
     positions_entêtes: []DonnéesEntête
 
+    // si taille fixe
     position_contenu: PositionChaine
+
+    // si chunked
+    contenu : chaine
 }
 
 ajoute_entête :: fonc (données_message: &DonnéesMessage, nom: PositionChaine, valeur: PositionChaine)
@@ -82,6 +86,9 @@ ParseuseHTTP :: struct {
 
     // pour le parsage du contenu
     taille_contenu : z32
+
+    contenu_chunked : bool
+    contenu_fixe : bool
 }
 
 ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
@@ -214,7 +221,19 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
     si parseuse.état_parsage == ÉtatParsage.MESSAGE_TERMINÉ {
         message := parseuse.prépare_message_pour_parsage_contenu()
 
-        si possède_entête(message, "Content-Length") {
+        si possède_entête(message, "Transfer-Encoding") {
+            chn_transfer_encoding := entête(message, "Transfer-Encoding").valeur
+
+            // À FAIRE : il existe des options
+            si chn_transfer_encoding != "chunked" {
+                parseuse.état_parsage = ÉtatParsage.ERREUR
+                retourne
+            }
+
+            parseuse.état_parsage = ÉtatParsage.CORPS_EN_COURS
+            parseuse.contenu_chunked = vrai
+        }
+        sinon si possède_entête(message, "Content-Length") {
             chn_taille_contenu := entête(message, "Content-Length").valeur
 
             taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
@@ -222,6 +241,7 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
                 retourne
             }
 
+            parseuse.contenu_fixe = vrai
             parseuse.taille_contenu = taille_contenu
             parseuse.état_parsage = ÉtatParsage.CORPS_EN_COURS
             parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
@@ -233,14 +253,90 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
     }
 
     si parseuse.état_parsage == ÉtatParsage.CORPS_EN_COURS {
-        // vérifie si chunked, content-length
-        parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.chn.taille comme z32
+        si parseuse.contenu_fixe {
+            parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.chn.taille comme z32
 
-        si taille_position(parseuse.données_message.position_contenu) >= parseuse.taille_contenu {
-            // tronque le contenu
-            // À FAIRE : erreur ?
-            parseuse.données_message.position_contenu.fin = parseuse.données_message.position_contenu.début + parseuse.taille_contenu
+            si taille_position(parseuse.données_message.position_contenu) >= parseuse.taille_contenu {
+                // tronque le contenu
+                // À FAIRE : erreur ?
+                parseuse.données_message.position_contenu.fin = parseuse.données_message.position_contenu.début + parseuse.taille_contenu
+                parseuse.état_parsage = ÉtatParsage.PARSAGE_TERMINÉ
+            }
+        }
+        sinon si parseuse.contenu_chunked {
+            taille := 0
+
+            boucle {
+                pos_courante := parseuse.parseuse_chaine.curseur
+
+                /* ** read chunk-size, chunk-extension (if any) and CRLF ** */
+
+                // À FAIRE: chunk-extension
+
+                // parse la taille du chunk
+                pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n")
+
+                si pos_nouvelle_ligne <= 0 {
+                    retourne
+                }
+
+                valeur := sous_chaine_jusque_index(*parseuse.parseuse_chaine, pos_nouvelle_ligne)
+
+                taille_chunk := tente parse_hexadécimal_z32(valeur) piège err {
+                    parseuse.état_parsage = ÉtatParsage.ERREUR
+                    retourne
+                }
+
+                si taille_chunk == 0 {
+                    arrête
+                }
+
+                positionne(*parseuse.parseuse_chaine, pos_nouvelle_ligne + 2)
+
+                index_fin_chunk := parseuse.parseuse_chaine.curseur + taille_chunk
+
+                si index_fin_chunk >= parseuse.parseuse_chaine.chn.taille {
+                    positionne(*parseuse.parseuse_chaine, pos_courante)
+                    retourne
+                }
+
+                /* ** append chunk-data to entity-body ** */
+                données := sous_chaine_jusque_index(*parseuse.parseuse_chaine, index_fin_chunk)
+
+                positionne(*parseuse.parseuse_chaine, index_fin_chunk)
+
+                si !consomme(*parseuse.parseuse_chaine, "\r\n") {
+                    positionne(*parseuse.parseuse_chaine, pos_courante)
+                    retourne
+                }
+
+                taille += données.taille comme z32
+                chaine_ajoute(*parseuse.données_message.contenu, données)
+            }
+
             parseuse.état_parsage = ÉtatParsage.PARSAGE_TERMINÉ
+
+            // À FAIRE : entêtes "trailing"
+
+            /*
+
+            length := 0
+            read chunk-size, chunk-extension (if any) and CRLF
+            while (chunk-size > 0) {
+                read chunk-data and CRLF
+                append chunk-data to entity-body
+                length := length + chunk-size
+                read chunk-size and CRLF
+            }
+            read entity-header
+            while (entity-header not empty) {
+                append entity-header to existing header fields
+                read entity-header
+            }
+            Content-Length := length
+            Remove "chunked" from Transfer-Encoding
+
+            */
         }
     }
 }
@@ -285,9 +381,31 @@ prépare_message_pour_parsage_contenu :: fonc (parseuse: *ParseuseHTTP) -> Messa
     retourne parseuse.message_en_cours
 }
 
+entier_vers_chaine :: fonc (entier: z64) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, entier)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 finalise_message :: fonc (parseuse: *ParseuseHTTP) -> MessageClienteHTTP
 {
-    parseuse.message_en_cours.contenu = sous_chaine(parseuse.données, parseuse.données_message.position_contenu)
+    message := parseuse.prépare_message_pour_parsage_contenu()
+
+    parseuse.message_en_cours = message
+
+    si parseuse.données_message.contenu {
+        parseuse.message_en_cours.contenu = parseuse.données_message.contenu
+        chn_taille_contenu := entier_vers_chaine(parseuse.message_en_cours.contenu.taille)
+        fusionne_entête(*parseuse.message_en_cours, "Content-Length", chn_taille_contenu)
+    }
+    sinon {
+        parseuse.message_en_cours.contenu = sous_chaine(parseuse.données, parseuse.données_message.position_contenu)
+    }
+
     retourne parseuse.message_en_cours
 }
 
@@ -435,7 +553,7 @@ quand_lecture :: fonc (prise: *Prise)
         retourne
     }
 
-    // imprime("reçu :\n%\n", contenu)
+    imprime("reçu :\n%\n", contenu)
 
     parseuse := prise.accède_données_serveuse(ParseuseHTTP)
     parseuse.ajourne_données(contenu)
