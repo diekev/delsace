@@ -293,6 +293,7 @@ finalise_message :: fonc (parseuse: *ParseuseHTTP) -> MessageClienteHTTP
 
 réinitialise :: fonc (parseuse: *ParseuseHTTP)
 {
+    détruit_message(*parseuse.message_en_cours)
     déloge(parseuse.données)
     déloge(parseuse.données_message.positions_entêtes)
     init_de(ParseuseHTTP)(parseuse)
@@ -439,31 +440,50 @@ quand_lecture :: fonc (prise: *Prise)
     parseuse := prise.accède_données_serveuse(ParseuseHTTP)
     parseuse.ajourne_données(contenu)
 
-    si parseuse.message_est_erroné() {
-        prise.ferme()
-        retourne
-    }
-
     si !parseuse.message_prêt_pour_finalisation() {
         // délai en cas de données partielles
         prise.mute_délai(10)
         retourne
     }
 
-    message := parseuse.finalise_message()
-
     diffère parseuse.réinitialise()
 
+    message : MessageClienteHTTP
+    réponse : MessageServeuseHTTP = ---
+    diffère détruit_message(*réponse)
+
+    si parseuse.message_est_erroné() {
+        réponse = mauvaise_requête()
+    }
+    sinon {
+        message = parseuse.finalise_message()
+        réponse = gère_message(prise, message)
+    }
+
+    ferme_la_connexion := doit_fermer_la_connexion(message, réponse)
+
+    si ferme_la_connexion {
+        fusionne_entête(*réponse, "Connection", "close")
+    }
+
+    écris_réponse(prise, réponse)
+
+    si ferme_la_connexion {
+        prise.ferme()
+    }
+    sinon {
+        // délai en cas de non-lecture
+        prise.mute_délai(10)
+    }
+}
+
+gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+{
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
     rappel_route := apparie_route(serveuse.routeuse, message.requête, message.méthode)
 
     saufsi rappel_route {
-        _ := écris(*prise.fichier, "HTTP/1.1 404 NOT FOUND\r\n")
-        _ = écris(*prise.fichier, "Server: test\r\n")
-        _ = écris(*prise.fichier, "Connection: close\r\n")
-        _ = écris(*prise.fichier, "\r\n")
-        prise.ferme()
-        retourne
+        retourne ressource_non_trouvée()
     }
 
     // si serveuse.intergiciel {
@@ -471,13 +491,50 @@ quand_lecture :: fonc (prise: *Prise)
     //     // ...
     // }
 
-    réponse := rappel_route(prise, message)
+    retourne rappel_route(prise, message)
+}
 
-    écris_réponse(prise, réponse)
-    // délai en cas de non-lecture
-    prise.mute_délai(10)
+doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> bool
+{
+    /* détermine si nous devons fermer la connexion */
+    connection_message := message.entête("Connection")
+    connection_réponse := réponse.entête("Connection")
 
-    // À FAIRE : définis quand fermer la prise
+    cliente_veut_fermer_la_connexion := connection_message && connection_message.valeur == "close"
+    serveuse_veut_fermer_la_connexion := connection_réponse && connection_réponse.valeur == "close"
+
+    cliente_veut_garder_la_connexion := connection_message && connection_message.valeur == "keep-alive"
+    serveuse_veut_garder_la_connexion := connection_réponse && connection_réponse.valeur == "keep-alive"
+
+    doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
+
+    si doit_fermer_la_connexion && !serveuse_veut_fermer_la_connexion {
+        retourne vrai
+    }
+
+    si !cliente_veut_garder_la_connexion && !serveuse_veut_garder_la_connexion {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.NOT_FOUND
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
+}
+
+mauvaise_requête :: fonc () -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.BAD_REQUEST
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
 }
 
 quand_fermeture :: fonc (prise: *Prise)
