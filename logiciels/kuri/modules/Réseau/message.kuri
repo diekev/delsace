@@ -7,6 +7,11 @@ MessageHTTP :: struct {
     contenu: chaine
 }
 
+détruit_message :: fonc (message: *MessageHTTP)
+{
+    déloge(message.entêtes)
+}
+
 MessageClienteHTTP :: struct {
     empl base: MessageHTTP
 
@@ -84,6 +89,18 @@ entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
     }
 
     retourne nul
+}
+
+fusionne_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
+{
+    entête_existant := message.entête(nom)
+
+    si entête_existant {
+        entête_existant.valeur = valeur
+        retourne
+    }
+
+    ajoute_entête(message, nom, valeur)
 }
 
 ajoute_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
