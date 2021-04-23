@@ -890,34 +890,26 @@ positionne :: fonc (parseuse: *ParseuseChaine, position: z64)
 
 trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: z8) -> z64
 {
-    début : z64 = parseuse.curseur
-
-    tantque début < parseuse.chn.taille {
-        si parseuse.chn[début] == c {
-            retourne début
+    pour parseuse.curseur comme z64 ... parseuse.chn.taille - 1 {
+        si parseuse.chn[it] == c {
+            retourne it
         }
-
-        début += 1
     }
 
-    retourne début
+    retourne -1
 }
 
 trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: ...z8) -> z64
 {
-    début : z64 = parseuse.curseur
-
-    tantque début < parseuse.chn.taille {
+    pour début dans parseuse.curseur comme z64 ... parseuse.chn.taille - 1 {
         pour c {
             si parseuse.chn[début] == it {
                 retourne début
             }
         }
-
-        début += 1
     }
 
-    retourne début
+    retourne -1
 }
 
 trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
