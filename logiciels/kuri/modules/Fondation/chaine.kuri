@@ -914,6 +914,10 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: ...z8) -> z64
 
 trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
 {
+    si chn.taille + parseuse.curseur > parseuse.chn.taille {
+        retourne -1
+    }
+
     chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
 
     index := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
