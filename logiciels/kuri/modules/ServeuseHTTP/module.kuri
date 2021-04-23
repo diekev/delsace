@@ -655,6 +655,15 @@ mauvaise_requête :: fonc () -> MessageServeuseHTTP
     retourne message
 }
 
+redirige :: fonc (chemin: chaine) -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.code_état = CodeÉtatHTTP.SEE_OTHER
+    ajoute_entête(*message, "Location", chemin)
+    retourne message
+}
+
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n")
