@@ -5,11 +5,23 @@ MessageHTTP :: struct {
     version: chaine
     entêtes: []Entête
     contenu: chaine
+
+    cookies : []Cookie
 }
 
 détruit_message :: fonc (message: *MessageHTTP)
 {
+    pour message.cookies {
+        détruit_cookie(it)
+    }
+
+    déloge(message.cookies)
     déloge(message.entêtes)
+}
+
+ajoute_cookie :: fonc (message: *MessageHTTP, cookie: Cookie)
+{
+    tableau_ajoute(*message.cookies, cookie)
 }
 
 MessageClienteHTTP :: struct {
@@ -17,6 +29,8 @@ MessageClienteHTTP :: struct {
 
     méthode: chaine
     requête: chaine
+
+    uri: URI
 }
 
 ContenuHTTP :: struct {

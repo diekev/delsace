@@ -395,6 +395,17 @@ finalise_message :: fonc (parseuse: *ParseuseHTTP) -> MessageClienteHTTP
 {
     message := parseuse.prépare_message_pour_parsage_contenu()
 
+    pour message.entêtes {
+        si it.nom == "Cookie" {
+            message.cookies = parse_cookie_client(it.valeur)
+        }
+    }
+
+    message.uri = tente parse_uri_depuis_chemin_requête(message.requête) piège err {
+        parseuse.état_parsage = ÉtatParsage.ERREUR
+        retourne message
+    }
+
     parseuse.message_en_cours = message
 
     si parseuse.données_message.contenu {
@@ -701,6 +712,12 @@ PolitiqueDeCache :: énum {
 
     pour message.entêtes {
         ajoute_au_tampon(*enchaineuse, it.nom, ": ", it.valeur, "\r\n")
+    }
+
+    pour message.cookies {
+        chn_cookie := chaine_cookie_pour_entête_http(it)
+        ajoute_au_tampon(*enchaineuse, "Set-Cookie: ", chn_cookie, "\r\n")
+        déloge(chn_cookie)
     }
 
     // Évite le traçage FLoC de Google
