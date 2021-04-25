@@ -379,8 +379,6 @@ prépare_message_pour_parsage_contenu :: fonc (parseuse: *ParseuseHTTP) -> Messa
         ajoute_entête(*parseuse.message_en_cours, nom, valeur)
     }
 
-    // ATTENTION : ceci modifie la chaine de caractère, nous ne pouvons appeler deux fois de suite cette fonction !
-    résoud_échappement_url_localement(parseuse.message_en_cours.requête)
     retourne parseuse.message_en_cours
 }
 
@@ -396,13 +394,19 @@ entier_vers_chaine :: fonc (entier: z64) -> chaine
 
 finalise_message :: fonc (parseuse: *ParseuseHTTP) -> MessageClienteHTTP
 {
-    message := parseuse.message_en_cours
+    détruit_message(*parseuse.message_en_cours)
+
+    // reprépare le message car nous avons potentiellement ajouter des choses
+    // au tampon du message invalidant alors les pointeurs
+    message := parseuse.prépare_message_pour_parsage_contenu()
 
     pour message.entêtes {
         si it.nom == "Cookie" {
             message.cookies = parse_cookie_client(it.valeur)
         }
     }
+
+    résoud_échappement_url_localement(message.requête)
 
     message.uri = tente parse_uri_depuis_chemin_requête(message.requête) piège err {
         parseuse.état_parsage = ÉtatParsage.ERREUR
