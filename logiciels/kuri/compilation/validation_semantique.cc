@@ -2987,6 +2987,13 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             if (decl->unite == nullptr) {
                 m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
             }
+            // À FAIRE : curseur := curseur.curseurs[0] -> il faut pouvoir déterminer si la référence est
+            // celle de la variable que l'on valide, ceci ne fonctionnera pas pour les déclarations multiples,
+            // ou les types étant référencés dans les expressions de leurs membres
+            if (decl == unite->noeud) {
+                espace->rapporte_erreur(expr, "Utilisation d'une variable dans sa définition !\n");
+                return ResultatValidation::Erreur;
+            }
             unite->attend_sur_declaration(decl);
             return ResultatValidation::Erreur;
         }
