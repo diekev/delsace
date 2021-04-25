@@ -24,6 +24,28 @@ ajoute_cookie :: fonc (message: *MessageHTTP, cookie: Cookie)
     tableau_ajoute(*message.cookies, cookie)
 }
 
+est_type_contenu :: fonc (message: *MessageHTTP, type_contenu: chaine) -> bool
+{
+    entête_type_contenu := entête(message, "Content-Type")
+
+    saufsi entête_type_contenu {
+        retourne faux
+    }
+
+    retourne entête_type_contenu.valeur == type_contenu
+}
+
+valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) -> chaine
+{
+    entête_pour_nom := entête(message, nom)
+
+    saufsi entête_pour_nom {
+        retourne défaut
+    }
+
+    retourne entête_pour_nom.valeur
+}
+
 MessageClienteHTTP :: struct {
     empl base: MessageHTTP
 
@@ -41,6 +63,11 @@ ContenuHTTP :: struct {
 contenu_html :: fonc (html: chaine) -> ContenuHTTP
 {
     retourne ContenuHTTP("text/html;charset=utf-8", html)
+}
+
+contenu_json :: fonc (json: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("application/json;charset=utf-8", json)
 }
 
 crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuHTTP) -> MessageServeuseHTTP
