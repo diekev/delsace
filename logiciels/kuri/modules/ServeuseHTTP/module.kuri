@@ -571,13 +571,20 @@ gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageSe
     rappel_route := apparie_route(serveuse.routeuse, message.requête, message.méthode)
 
     saufsi rappel_route.rappel {
+        si serveuse.rappel_page_non_trouvée {
+            retourne serveuse.rappel_page_non_trouvée(prise, message)
+        }
+
         retourne ressource_non_trouvée()
     }
 
-    // si serveuse.intergiciel {
-    //     serveuse.intergiciel(prise, message)
-    //     // ...
-    // }
+    si serveuse.intergiciel {
+        réponse_intergiciel := serveuse.intergiciel(prise, message)
+
+        si réponse_intergiciel.code_état != CodeÉtatHTTP.OK {
+            retourne réponse_intergiciel
+        }
+    }
 
     retourne rappel_route.rappel(prise, message)
 }
