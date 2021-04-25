@@ -430,11 +430,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
                                                                 type_de_donnees;
 
-                if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                    unite->attend_sur_type(type_connu);
-                    return ResultatValidation::Erreur;
-                }
-
                 auto taille_tableau = 0l;
 
                 if (expression_taille) {
@@ -463,6 +458,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (taille_tableau != 0) {
+                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur via un membre
+                    if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                        unite->attend_sur_type(type_connu);
+                        return ResultatValidation::Erreur;
+                    }
+
                     auto type_tableau = espace->typeuse.type_tableau_fixe(
                         type_connu, static_cast<int>(taille_tableau));
                     expr->type = espace->typeuse.type_type_de_donnees(type_tableau);
