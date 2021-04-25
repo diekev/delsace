@@ -27,6 +27,8 @@ importe ServeuseTCP
 importe SysFichier
 importe Temps
 
+charge "routage"
+
 ÉtatParsage :: énum {
     NON_COMMENCÉ
     MÉTHODE_OBTENUE
@@ -435,48 +437,6 @@ réinitialise :: fonc (parseuse: *ParseuseHTTP)
     https://askubuntu.com/questions/935859/hosts-file-with-port
 */
 
-TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
-
-apparie_uri :: fonc (chemin_base: chaine, chemin_donnée: chaine) -> bool
-{
-    retourne chemin_base == chemin_donnée
-}
-
-Route :: struct {
-    chemin: chaine
-    rappel: TypeRappelRoute
-}
-
-NouvelleRouteuse :: struct {
-    routes_get: []Route
-    routes_post: []Route
-}
-
-apparie_route :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, méthode: chaine) -> TypeRappelRoute
-{
-    si méthode == "GET" {
-        pour routeuse.routes_get {
-            si apparie_uri(it.chemin, chemin) {
-                retourne it.rappel
-            }
-        }
-
-        retourne nul
-    }
-
-    si méthode == "POST" {
-        pour routeuse.routes_post {
-            si apparie_uri(it.chemin, chemin) {
-                retourne it.rappel
-            }
-        }
-
-        retourne nul
-    }
-
-    retourne nul
-}
-
 ServeuseHTTP :: struct {
     empl base: ServeuseTCP.ServeuseTCP
 
@@ -526,6 +486,7 @@ lance :: fonc (serveuse: *ServeuseHTTP)
 
 détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
 {
+    détruit_routeuse(serveuse.routeuse)
     détruit_boucle(serveuse.boucle_évènements)
     détruit_contexte(serveuse.ctx)
     déloge(serveuse)
@@ -533,20 +494,12 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
 
 ajoute_route_get :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
 {
-    route: Route = ---
-    route.chemin = chemin
-    route.rappel = rappel
-
-    tableau_ajoute(*serveuse.routeuse.routes_get, route)
+    ajoute_route(*serveuse.routeuse.routes_get, chemin, rappel)
 }
 
 ajoute_route_post :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
 {
-    route: Route = ---
-    route.chemin = chemin
-    route.rappel = rappel
-
-    tableau_ajoute(*serveuse.routeuse.routes_post, route)
+    ajoute_route(*serveuse.routeuse.routes_get, chemin, rappel)
 }
 
 quand_ouverture :: fonc (prise: *Prise)
@@ -616,7 +569,7 @@ gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageSe
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
     rappel_route := apparie_route(serveuse.routeuse, message.requête, message.méthode)
 
-    saufsi rappel_route {
+    saufsi rappel_route.rappel {
         retourne ressource_non_trouvée()
     }
 
@@ -625,7 +578,7 @@ gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageSe
     //     // ...
     // }
 
-    retourne rappel_route(prise, message)
+    retourne rappel_route.rappel(prise, message)
 }
 
 doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> bool
