@@ -648,33 +648,6 @@ doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &Messa
     retourne faux
 }
 
-ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
-{
-    message : MessageServeuseHTTP
-    message.code_état = CodeÉtatHTTP.NOT_FOUND
-    message.version = "HTTP/1.1"
-    ajoute_entête(*message, "Connection", "close")
-    retourne message
-}
-
-mauvaise_requête :: fonc () -> MessageServeuseHTTP
-{
-    message: MessageServeuseHTTP
-    message.code_état = CodeÉtatHTTP.BAD_REQUEST
-    message.version = "HTTP/1.1"
-    ajoute_entête(*message, "Connection", "close")
-    retourne message
-}
-
-redirige :: fonc (chemin: chaine) -> MessageServeuseHTTP
-{
-    message: MessageServeuseHTTP
-    message.version = "HTTP/1.1"
-    message.code_état = CodeÉtatHTTP.SEE_OTHER
-    ajoute_entête(*message, "Location", chemin)
-    retourne message
-}
-
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n")
@@ -780,4 +753,55 @@ chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
     ajoute_au_tampon(enchaineuse, date.seconde)
 
     ajoute_au_tampon(enchaineuse, " GMT")
+}
+
+/* Réponses basiques */
+
+ok :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.OK
+    message.version = "HTTP/1.1"
+    retourne message
+}
+
+ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.NOT_FOUND
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
+}
+
+mauvaise_requête :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.BAD_REQUEST
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+
+    si contenu {
+        message.contenu = contenu
+        ajoute_entête(*message, "Content-Type", "text/html;charset=utf-8")
+    }
+
+    retourne message
+}
+
+redirige :: fonc (chemin: chaine) -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.code_état = CodeÉtatHTTP.SEE_OTHER
+    ajoute_entête(*message, "Location", chemin)
+    retourne message
+}
+
+erreur_interne :: fonc () -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.code_état = CodeÉtatHTTP.INTERNAL_SERVER_ERROR
+    retourne message
 }
