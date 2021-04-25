@@ -203,7 +203,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_site(dc.noeud_erreur);
                 e.ajoute_message("Argument inconnu");
 
-                if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+                if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
                     auto decl_fonc = decl->comme_entete_fonction();
                     e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
@@ -214,7 +214,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
 
                     e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
                 }
-                else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+                else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
                     auto decl_struct = decl->comme_structure();
 
                     if (decl_struct->est_polymorphe) {
