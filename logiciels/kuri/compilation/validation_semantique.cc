@@ -458,7 +458,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (taille_tableau != 0) {
-                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur via un membre
+                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+                    // via un membre
                     if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
                         unite->attend_sur_type(type_connu);
                         return ResultatValidation::Erreur;
@@ -1144,21 +1145,22 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                             //							df = enfant2->df;
                             //							auto nombre_vars_ret =
-                            //df->idx_types_retours.taille();
+                            // df->idx_types_retours.taille();
 
                             //							if (feuilles.taille() == nombre_vars_ret) {
                             //								requiers_index = false;
                             //								noeud->aide_generation_code =
-                            //GENERE_BOUCLE_COROUTINE;
+                            // GENERE_BOUCLE_COROUTINE;
                             //							}
-                            //							else if (feuilles.taille() == nombre_vars_ret + 1)
-                            //{ 								requiers_index = true; 								noeud->aide_generation_code =
-                            //GENERE_BOUCLE_COROUTINE_INDEX;
+                            //							else if (feuilles.taille() == nombre_vars_ret +
+                            //1) { 								requiers_index = true;
+                            //noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
                             //							}
                             //							else {
                             //								rapporte_erreur(
-                            //											"Mauvais compte d'arguments à
-                            //déployer", 											compilatrice, 											*enfant1->lexeme);
+                            //											"Mauvais compte d'arguments
+                            //à déployer", compilatrice,
+                            // *enfant1->lexeme);
                             //							}
                         }
                     }
@@ -2359,7 +2361,8 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
 
         for (auto i = 0; i < decl->params.taille(); ++i) {
             if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
-                unite->espace->rapporte_erreur(decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
+                unite->espace->rapporte_erreur(
+                    decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
                 return ResultatValidation::Erreur;
             }
 
@@ -2987,9 +2990,10 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             if (decl->unite == nullptr) {
                 m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
             }
-            // À FAIRE : curseur := curseur.curseurs[0] -> il faut pouvoir déterminer si la référence est
-            // celle de la variable que l'on valide, ceci ne fonctionnera pas pour les déclarations multiples,
-            // ou les types étant référencés dans les expressions de leurs membres
+            // À FAIRE : curseur := curseur.curseurs[0] -> il faut pouvoir déterminer si la
+            // référence est celle de la variable que l'on valide, ceci ne fonctionnera pas pour
+            // les déclarations multiples, ou les types étant référencés dans les expressions de
+            // leurs membres
             if (decl == unite->noeud) {
                 espace->rapporte_erreur(expr, "Utilisation d'une variable dans sa définition !\n");
                 return ResultatValidation::Erreur;
@@ -4598,8 +4602,8 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpressi
     return ResultatValidation::OK;
 }
 
-void ContexteValidationCode::transtype_si_necessaire(
-    NoeudExpression *&expression, TransformationType const &transformation)
+void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
+                                                     TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
         return;

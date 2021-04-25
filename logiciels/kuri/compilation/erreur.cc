@@ -191,8 +191,8 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     if (dc.type) {
                         auto type_fonc = dc.type->comme_fonction();
                         e.ajoute_message("\tRequiers ",
-                                        type_fonc->types_entrees.taille() - dc.requiers_contexte,
-                                        " arguments\n");
+                                         type_fonc->types_entrees.taille() - dc.requiers_contexte,
+                                         " arguments\n");
                     }
                 }
 

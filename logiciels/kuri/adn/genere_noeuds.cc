@@ -181,7 +181,8 @@ struct GeneratriceCodeCPP {
         os << "\t}\n";
         os << "};\n\n";
         os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine);\n\n";
-        os << "void visite_noeud(NoeudExpression const *racine, std::function<void(NoeudExpression const *)> const &rappel);\n\n";
+        os << "void visite_noeud(NoeudExpression const *racine, "
+              "std::function<void(NoeudExpression const *)> const &rappel);\n\n";
     }
 
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
@@ -335,7 +336,8 @@ struct GeneratriceCodeCPP {
 
     void genere_visite_noeud(FluxSortieCPP &os)
     {
-        os << "void visite_noeud(NoeudExpression const *racine, std::function<void(NoeudExpression const *)> const &rappel)\n";
+        os << "void visite_noeud(NoeudExpression const *racine, "
+              "std::function<void(NoeudExpression const *)> const &rappel)\n";
         os << "{\n";
         os << "\tif (!racine) {\n";
         os << "\t\treturn;\n";

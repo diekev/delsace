@@ -1899,8 +1899,8 @@ static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blo
             auto utilise = false;
 
             //			log(std::cerr, "Le bloc ", it->label->id, " déclare ",
-            //it->variables_declarees.taille, " variables"); 			log(std::cerr, "Le bloc ",
-            //it->label->id, " utilise ", it->variables_utilisees.taille, " variables");
+            // it->variables_declarees.taille, " variables"); 			log(std::cerr, "Le bloc ",
+            // it->label->id, " utilise ", it->variables_utilisees.taille, " variables");
 
             for (auto var : it->variables_utilisees) {
                 if (var == decl) {
@@ -1911,12 +1911,12 @@ static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blo
 
             if (!utilise) {
                 //	log(std::cerr, "Le bloc ", it->label->id, " n'utilise pas la variable ",
-                //decl->numero);
+                // decl->numero);
 
                 if (decl->blocs_utilisants == 1) {
                     auto autre_bloc = trouve_bloc_utilisant_variable(blocs, it, decl);
                     //	log(std::cerr, "La variable peut être déplacée dans le bloc ",
-                    //autre_bloc->label->id);
+                    // autre_bloc->label->id);
 
                     // supprime alloc du bloc
                     auto index = 0;

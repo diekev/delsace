@@ -141,7 +141,8 @@ static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constan
     return log_debug;
 }
 
-static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::GlobalVariable &llvm_value)
+static const LogDebug &operator<<(const LogDebug &log_debug,
+                                  const llvm::GlobalVariable &llvm_value)
 {
     llvm::errs() << llvm_value;
     return log_debug;
@@ -657,8 +658,8 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
                     auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
-                    auto valeur_ = llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
-                                                          type_llvm);
+                    auto valeur_ = llvm::ConstantExpr::getBitCast(
+                        llvm::cast<llvm::Constant>(valeur), type_llvm);
                     // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
                     return valeur_;
                 }
@@ -772,7 +773,8 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                                     valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
                                 }
                                 else {
-                                    // dbg() << "Génère code pour le membre " << type->membres[i].nom->nom;
+                                    // dbg() << "Génère code pour le membre " <<
+                                    // type->membres[i].nom->nom;
                                     valeur = llvm::cast<llvm::Constant>(genere_code_pour_atome(
                                         tableau_valeur[index_membre], pour_globale));
                                 }
@@ -794,11 +796,13 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                             valeurs.reserve(static_cast<size_t>(taille_tableau));
 
                             for (auto i = 0; i < taille_tableau; ++i) {
-                                auto valeur = genere_code_pour_atome(pointeur_tableau[i], pour_globale);
+                                auto valeur = genere_code_pour_atome(pointeur_tableau[i],
+                                                                     pour_globale);
                                 valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
                             }
 
-                            auto resultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
+                            auto resultat = llvm::ConstantArray::get(
+                                llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
                             // dbg() << "TABLEAU_FIXE : " << *resultat;
                             return resultat;
                         }
@@ -815,7 +819,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                                     pointeur_donnnees[i]);
                             }
 
-                            auto valeur_ =  llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+                            auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
                             // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
                             return valeur_;
                         }
@@ -1326,8 +1330,8 @@ void GeneratriceCodeLLVM::genere_code()
 
         //			if (atome_fonc->lexeme != nullptr) {
         //				auto fichier =
-        //m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier)); 				os <<
-        //atome_fonc->lexeme->chaine << "\", "
+        // m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier)); 				os
+        // << atome_fonc->lexeme->chaine << "\", "
         //				   << atome_fonc->lexeme->chaine.taille() << ", \""
         //				   << fichier->nom << ".kuri\", "
         //				   << fichier->nom.taille() + 5 << ", ";

@@ -1430,8 +1430,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto nouvelle_adresse = adresse + index * taille_donnees;
                 empile(site, nouvelle_adresse);
                 //				std::cerr << "nouvelle_adresse : " << static_cast<void
-                //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : " << index <<
-                //'\n'; 				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
+                //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : " << index
+                //<<
+                //'\n'; 				std::cerr << "taille_donnees   : " << taille_donnees <<
+                //'\n';
                 break;
             }
             default:
