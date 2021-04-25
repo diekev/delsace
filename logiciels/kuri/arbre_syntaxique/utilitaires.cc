@@ -1367,6 +1367,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     switch (inst->aide_generation_code) {
         case GENERE_BOUCLE_PLAGE:
         case GENERE_BOUCLE_PLAGE_INDEX:
+        case GENERE_BOUCLE_PLAGE_IMPLICITE:
+        case GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX:
         {
             /*
 
@@ -1392,13 +1394,32 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
              */
 
-            /* condition */
-            auto expr_plage = expression_iteree->comme_plage();
-            simplifie(expr_plage->debut);
-            simplifie(expr_plage->fin);
+            NoeudExpression *expr_debut = nullptr;
+            NoeudExpression *expr_fin = nullptr;
 
-            auto expr_debut = inverse_boucle ? expr_plage->fin : expr_plage->debut;
-            auto expr_fin = inverse_boucle ? expr_plage->debut : expr_plage->fin;
+            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE || inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
+                simplifie(expression_iteree);
+
+                // 0 ... expr - 1
+                expr_debut = assem->cree_litterale_entier(expression_iteree->lexeme, expression_iteree->type, 0);
+
+                auto valeur_un = assem->cree_litterale_entier(expression_iteree->lexeme, expression_iteree->type, 1);
+                expr_fin = assem->cree_expression_binaire(expression_iteree->lexeme, expression_iteree->type->operateur_sst, expression_iteree, valeur_un);
+            }
+            else {
+                auto expr_plage = expression_iteree->comme_plage();
+                simplifie(expr_plage->debut);
+                simplifie(expr_plage->fin);
+
+                expr_debut = expr_plage->debut;
+                expr_fin = expr_plage->debut;
+            }
+
+            /* condition */
+
+            if (inverse_boucle) {
+                std::swap(expr_debut, expr_fin);
+            }
 
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->expressions->ajoute(init_it);

@@ -1189,6 +1189,16 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return GENERE_BOUCLE_TABLEAU;
                     }
                 }
+                else if (est_type_entier(type)) {
+                    enfant1->type = type;
+
+                    if (requiers_index) {
+                        return GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX;
+                    }
+                    else {
+                        return GENERE_BOUCLE_PLAGE_IMPLICITE;
+                    }
+                }
                 else {
                     espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
                         .ajoute_message("Note : le type de la variable est ")
