@@ -482,6 +482,11 @@ ServeuseHTTP :: struct {
 
     nom: chaine = "test"
     routeuse: NouvelleRouteuse
+
+    intergiciel : TypeRappelRoute
+
+    rappel_méthode_non_autorisée : TypeRappelRoute
+    rappel_page_non_trouvée : TypeRappelRoute
 }
 
 crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
