@@ -1727,8 +1727,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return ResultatValidation::Erreur;
                     }
 
-                    auto nom_membre = expr_paire->ident->nom;
-
                     if (membres_rencontres.possede(expr_paire->ident)) {
                         rapporte_erreur("Redéfinition de l'expression", expr_paire);
                         return ResultatValidation::Erreur;
