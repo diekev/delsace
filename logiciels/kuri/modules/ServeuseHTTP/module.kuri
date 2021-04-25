@@ -779,6 +779,15 @@ ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
     retourne message
 }
 
+méthode_non_autorisée :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.METHOD_NOT_ALLOWED
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
+}
+
 mauvaise_requête :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
 {
     message: MessageServeuseHTTP
