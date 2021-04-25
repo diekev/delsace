@@ -448,8 +448,10 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 	diffère { ferme_connexion(*connexion) }
 
 	/* exécute la requête */
-	curseur := exécute(*connexion, requête)
-	diffère { détruit_curseur(*curseur) }
+	curseur := tente exécute(*connexion, requête) piège err {
+		retourne faux
+	}
+	diffère { détruit_résultat(curseur) }
 
 	retourne vrai
 }
@@ -470,7 +472,11 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 	}
 	diffère { ferme_connexion(*connexion) }
 
-	curseur := exécute(*connexion, requête)
+	curseurs := tente exécute(*connexion, requête) piège err {
+		retourne résultat
+	}
+
+	curseur := curseurs.curseurs[0]
 
 	si (curseur.nombre_colonne comme z64) != colonnes.taille {
 		retourne résultat
