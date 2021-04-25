@@ -435,13 +435,6 @@ réinitialise :: fonc (parseuse: *ParseuseHTTP)
     init_de(ParseuseHTTP)(parseuse)
 }
 
-/*
-    Pour mapper plusieurs port localhost via un proxy
-    https://stackoverflow.com/questions/10729034/can-i-map-a-hostname-and-a-port-with-etc-hosts
-    https://github.com/cristianoliveira/ergo
-    https://askubuntu.com/questions/935859/hosts-file-with-port
-*/
-
 ServeuseHTTP :: struct {
     empl base: ServeuseTCP.ServeuseTCP
 
