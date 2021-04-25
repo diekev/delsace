@@ -805,3 +805,22 @@ erreur_interne :: fonc () -> MessageServeuseHTTP
     message.code_état = CodeÉtatHTTP.INTERNAL_SERVER_ERROR
     retourne message
 }
+
+/* Rendu de page via GHTML */
+
+importe GHTML
+
+rends_page_ex :: fonc (rendeuse_page: *RendeusePage, page: chaine, données_page: eini) -> MessageServeuseHTTP
+{
+    chn := tente rends_page(rendeuse_page, page, données_page) piège err {
+        enchaineuse : Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+
+        ajoute_au_tampon(*enchaineuse, "<p>Erreur lors du rendu de la page</p>")
+        imprime_dans_enchaineuse(*enchaineuse, "<p>%</p>", err)
+
+        retourne crée_message_avec_contenu(CodeÉtatHTTP.INTERNAL_SERVER_ERROR, contenu_html(chaine_depuis_enchaineuse(*enchaineuse)))
+    }
+
+    retourne crée_message_avec_contenu(CodeÉtatHTTP.OK, contenu_html(chn))
+}
