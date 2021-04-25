@@ -1412,7 +1412,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 simplifie(expr_plage->fin);
 
                 expr_debut = expr_plage->debut;
-                expr_fin = expr_plage->debut;
+                expr_fin = expr_plage->fin;
             }
 
             /* condition */
