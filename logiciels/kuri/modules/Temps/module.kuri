@@ -305,6 +305,7 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
         }
     }
 
+    résultat.jour -= 1
     résultat.mois -= 1
 
     retourne résultat
@@ -316,6 +317,28 @@ parse_date_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
     date := parse_date(chn, "AAAA-MM-JJ")
     copie_mem(src = date, dst = tampon, taille = tampon.taille)
     retourne vrai
+}
+
+DateCalendaire :: struct {
+    nom_jour: chaine
+    numéro_jour: z32
+    nom_mois: chaine
+    année: z32
+}
+
+date_calendaire_depuis_date :: fonc (date: Date) -> DateCalendaire
+{
+    résultat : DateCalendaire
+
+    noms_jours := ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
+    noms_mois := ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+    résultat.nom_jour = noms_jours[date.jour_semaine]
+    résultat.numéro_jour = date.jour + 1
+    résultat.nom_mois = noms_mois[date.mois]
+    résultat.année = date.année
+
+    retourne résultat
 }
 
 // ---------------------------------------------------
