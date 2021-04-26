@@ -497,7 +497,7 @@ ajoute_route_get :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeR
 
 ajoute_route_post :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
 {
-    ajoute_route(*serveuse.routeuse.routes_get, chemin, rappel)
+    ajoute_route(*serveuse.routeuse.routes_post, chemin, rappel)
 }
 
 quand_ouverture :: fonc (prise: *Prise)
