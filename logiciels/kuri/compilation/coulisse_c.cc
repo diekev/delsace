@@ -1462,8 +1462,6 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 {
     Enchaineuse enchaineuse;
 
-    espace.typeuse.construit_table_types();
-
     // NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du
     // graphe via la Typeuse -> verrou mort
     auto &graphe = espace.graphe_dependance;
@@ -1489,6 +1487,8 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
     fonctions.ajoute(atome_principale);
 
+    constructrice_ri.cree_table_des_types(&espace);
+
     // fais en sors que point_d_entree_systeme est utilisée, et renomme en « main » pour ne pas
     // avoir à créer une autre fonction
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
@@ -1507,7 +1507,7 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 {
     Enchaineuse enchaineuse;
 
-    espace.typeuse.construit_table_types();
+    // espace.typeuse.construit_table_types();
 
     auto &graphe = espace.graphe_dependance;
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);

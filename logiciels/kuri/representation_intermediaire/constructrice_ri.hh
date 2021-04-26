@@ -107,6 +107,8 @@ struct ConstructriceRI {
         const kuri::tableau<AtomeGlobale *> &globales,
         AtomeFonction *fonction_pour);
 
+    void cree_table_des_types(EspaceDeTravail *espace);
+
     Compilatrice &compilatrice() const
     {
         return m_compilatrice;

@@ -803,7 +803,9 @@ struct Typeuse {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void construit_table_types();
+    long assigne_index_aux_types();
+
+    void pour_chaque_type(std::function<void(Type *)> &&fonction);
 };
 
 /* ************************************************************************** */

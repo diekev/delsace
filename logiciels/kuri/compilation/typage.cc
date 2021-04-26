@@ -1082,7 +1082,7 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 #undef DONNES_ENTREE
 }
 
-void Typeuse::construit_table_types()
+long Typeuse::assigne_index_aux_types()
 {
     /* À FAIRE(table type) : idéalement nous devrions générer une table de type uniquement pour les
      * types utilisés dans le programme final (ignorant les types générés par la constructrice,
@@ -1137,6 +1137,82 @@ void Typeuse::construit_table_types()
     POUR_TABLEAU_PAGE ((*types_tuples.verrou_ecriture())) {
         ASSIGNE_INDEX((&it));
     }
+
+    return static_cast<long>(index_type - 1);
+}
+
+void Typeuse::pour_chaque_type(std::function<void(Type *)> &&fonction)
+{
+    fonction(type_type_de_donnees_);
+    fonction(type_chaine);
+    fonction(type_eini);
+    POUR (*types_simples.verrou_ecriture()) {
+        fonction(it);
+    }
+    POUR_TABLEAU_PAGE ((*types_pointeurs.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_references.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_structures.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_enums.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_tableaux_fixes.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_tableaux_dynamiques.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_fonctions.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_variadiques.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_unions.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    POUR_TABLEAU_PAGE ((*types_opaques.verrou_ecriture())) {
+        if ((it.drapeaux & TYPE_EST_POLYMORPHIQUE) != 0) {
+            continue;
+        }
+        fonction(&it);
+    }
+    // À FAIRE : info type
+    // POUR_TABLEAU_PAGE ((*types_tuples.verrou_ecriture())) {
+    //     fonction(&it);
+    // }
 }
 
 /* ************************************************************************** */

@@ -2884,6 +2884,11 @@ struct IDInfoType {
 
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 {
+    if (!type) {
+        // type nul
+        return nullptr;
+    }
+
     if (type->atome_info_type != nullptr) {
         return type->atome_info_type;
     }
@@ -3710,4 +3715,39 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
                         [&](InstructionAppel const &it) { memoire += it.args.taille_memoire(); });
 
     stats_ri.fusionne_entree({"insts_appel", insts_appel.taille(), memoire});
+}
+
+void ConstructriceRI::cree_table_des_types(EspaceDeTravail *espace)
+{
+    auto &typeuse = espace->typeuse;
+    auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+    auto type = typeuse.type_tableau_dynamique(type_pointeur_info_type);
+
+    kuri::tableau<Type *> types_a_ajouter;
+
+    typeuse.pour_chaque_type([&](Type *type_) {
+        if (type_->est_pointeur() && type_->comme_pointeur()->type_pointe == nullptr) {
+            return;
+        }
+
+        types_a_ajouter.ajoute(type_);
+    });
+
+    kuri::tableau<AtomeConstante *> infos_types;
+    infos_types.redimensionne(types_a_ajouter.taille());
+
+    std::cerr << "Nombre de type : " << types_a_ajouter.taille() << '\n';
+
+    auto index_dans_table_types = 0u;
+
+    POUR (types_a_ajouter) {
+        infos_types[index_dans_table_types] = cree_info_type(it);
+        it->index_dans_table_types = index_dans_table_types;
+        index_dans_table_types += 1;
+    }
+
+    auto initialisateur = cree_tableau_global(type_pointeur_info_type, std::move(infos_types));
+
+    AtomeGlobale *resultat = espace->cree_globale(type, initialisateur, false, false);
+    resultat->ident = ID::table_des_types;
 }

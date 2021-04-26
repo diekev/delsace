@@ -136,7 +136,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_legales, "valeurs_légales")                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_illegales, "valeurs_illégales")                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compacte, "compacte")                                       \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")                                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(table_des_types, "table_des_types")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

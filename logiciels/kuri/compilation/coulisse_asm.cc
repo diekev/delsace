@@ -502,8 +502,6 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
-    espace.typeuse.construit_table_types();
-
     if (espace.fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
     }
@@ -523,6 +521,8 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     // et principale
     auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
     fonctions.ajoute(atome_principale);
+
+    constructrice_ri.cree_table_des_types(&espace);
 
     auto generatrice = GeneratriceCodeASM(espace);
     generatrice.genere_code(espace.globales, fonctions, enchaineuse);
