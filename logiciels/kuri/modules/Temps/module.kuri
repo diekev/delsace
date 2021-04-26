@@ -133,7 +133,7 @@ est_année_bissextile :: fonc (année: z64) -> bool
 
 hui_système :: fonc () -> Date
 {
-    inst := maintenant_système();
+    inst := maintenant_système_précis()
     retourne date_depuis_secondes(inst.seconde)
 }
 
@@ -143,48 +143,42 @@ date_depuis_millisecondes :: fonc (millisecondes: z64) -> Date
     retourne date_depuis_secondes(secondes)
 }
 
+weekday_from_days :: fonc (z: z64) -> n32
+{
+    retourne (si z >= -4 { (z+4) % 7 } sinon { (z+5) % 7 + 6 }) comme n32
+}
+
+// https://stackoverflow.com/questions/7960318/math-to-convert-seconds-since-1970-into-date-and-vice-versa
+// https://howardhinnant.github.io/date_algorithms.html
 date_depuis_secondes :: fonc (secondes: z64) -> Date
 {
+    z := secondes / 86400
+    z += 719468
+    era := (si z >= 0 { z } sinon { z - 146096 }) / 146097
+    doe := (z - era * 146097) comme n32                     // [0, 146096]
+    yoe := (doe - doe/1460 + doe/36524 - doe/146096) / 365  // [0, 399]
+    y := yoe comme z32 + era * 400
+    doy := doe - (365*yoe + yoe/4 - yoe/100)                // [0, 365]
+    mp := (5*doy + 2)/153                                   // [0, 11]
+    d := doy - (153*mp+2)/5 + 1                             // [1, 31]
+    m := mp + si mp < 10 { 3 } sinon { -9 }                 // [1, 12]
+
     seconde := secondes % 60
     minutes := (secondes / 60) % 60
     heures  := (secondes / 3600) % 24
 
-    années := (secondes / secondes_par_an())
+    jours := d - 1
+    mois := (m - 1) comme z32
+    années := y
 
-    jours_par_mois := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-    si est_année_bissextile(années) {
-        jours_par_mois[1] = 29
-    }
-
-    secondes_mois := (secondes - (années * secondes_par_an()))
-    secondes_écoulées_mois := 0
-    mois := 0
-
-    pour j dans jours_par_mois {
-        si secondes_mois < (28 * 24 * 60 * 60) {
-            arrête
-        }
-
-        secondes_écoulées_mois += j * 24 * 60 * 60
-        secondes_mois -= j * 24 * 60 * 60
-        mois += 1
-    }
-
-    jours := (secondes - (années * secondes_par_an()) - (secondes_écoulées_mois)) / (24 * 60 * 60)
-
-    // On soustrait 3 car Epoch UTC commence un jeudi (4ème jour, index 3)
-    jour_semaine := ((secondes / (3600 * 24)) - 3) % 7
-
-    date : Date
+    date : Date = ---
     date.jour = jours comme z32
     date.mois = mois
-    date.année = années comme z32 + 1970
+    date.année = années comme z32
     date.heure = heures comme z32
     date.minute = minutes comme z32
     date.seconde = seconde comme z32
-    date.jour_semaine = jour_semaine comme z32
-
+    date.jour_semaine = weekday_from_days(z - 719468) comme z32
     retourne date
 }
 
