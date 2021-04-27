@@ -147,6 +147,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
         }
 
         nom := sous_chaine_jusque_index(parseuse, pos)
+        résoud_échappement_url_localement(nom)
 
         positionne(parseuse, pos + 1)
 
