@@ -344,14 +344,17 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
             }
 
             chn[index_d_insertion] = v
-            index_courant += 1
-            index_d_insertion += 1
+        }
+        // Google utilise des + pour les espaces, à voir si c'est standard.
+        sinon si chn[index_courant] == '+' {
+            chn[index_d_insertion] = ' '
         }
         sinon {
             chn[index_d_insertion] = chn[index_courant]
-            index_courant += 1
-            index_d_insertion += 1
         }
+
+        index_courant += 1
+        index_d_insertion += 1
     }
 
     chn.taille = index_d_insertion
