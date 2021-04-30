@@ -408,6 +408,15 @@ lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
     retourne tampon
 }
 
+lis_chaine :: fonc (fichier: *Fichier, taille: z64) -> chaine
+{
+    résultat := loge_chaine(taille)
+
+    _ := fichier.lis(résultat)
+
+    retourne résultat
+}
+
 CaractèreOuErreurFichier :: union {
     c: z8
     e: ErreurFichier
