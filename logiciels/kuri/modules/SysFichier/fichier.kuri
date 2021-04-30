@@ -377,7 +377,11 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
         retourne 0 comme ErreurFichier
     }
 
-    retourne système_lis(fichier.desc, tampon.pointeur, tampon.taille)
+    octets_lus := tente système_lis(fichier.desc, tampon.pointeur, tampon.taille) piège err {
+        retourne err
+    }
+
+    retourne 0 comme ErreurFichier
 }
 
 RésultatLectureN64 :: union {
