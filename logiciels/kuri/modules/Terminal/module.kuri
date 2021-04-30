@@ -1,5 +1,43 @@
 // Module d'interface avec le terminal/la console
 
+importe Fondation
+importe SysFichier
+
+// --------------------------------------------
+
+demande_utilisateur :: fonc (message: chaine)
+{
+    imprime("> % : ", message)
+}
+
+lis_réponse_utilisateur :: fonc () -> chaine
+{
+    réponse := entrée_standarde().lis_tout()
+    réponse = recule(réponse, 1)
+    retourne réponse
+}
+
+// Lis Exécute Imprime Boucle
+// Read Execute Print Loop
+LEIB :: struct {
+    chaine_prompt := ">"
+    exécute : fonc(chaine)(chaine)
+}
+
+lance :: fonc (leib: LEIB)
+{
+    boucle {
+        demande_utilisateur(leib.chaine_prompt)
+        entrée := lis_réponse_utilisateur()
+
+        résultat := leib.exécute(entrée)
+
+        imprime("%", résultat)
+    }
+}
+
+// --------------------------------------------
+
 VINTR :: 0
 VQUIT :: 1
 VERASE :: 2
