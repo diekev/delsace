@@ -50,7 +50,7 @@ crée_nombre_infini :: fonc (chn: chaine) -> NombreInfini
 
 chiffre_pour_index :: fonc (n: NombreInfini, index: z64) -> n8
 {
-    si index >= n.chiffres.taille {
+    si index >= n.chiffres.taille || index < 0 {
         retourne 0
     }
 
@@ -356,4 +356,99 @@ opérateur == :: fonc (n0: NombreInfini, n1: n64) -> bool
 opérateur != :: fonc (n0: NombreInfini, n1: n64) -> bool
 {
     retourne !(n0 == n1)
+}
+
+// À FAIRE: p et c doivent être des NombreInfini
+trouve_y :: fonc (p: n32, c: n32) -> n32, n32
+{
+    dernier_x : n32 = 0
+    x := dernier_x
+
+    tantque x <= 9 && (20 * p + x) * x <= c {
+        dernier_x = x
+        x += 1
+    }
+
+    retourne dernier_x, (20 * p + dernier_x) * dernier_x
+}
+
+// https://fr.wikipedia.org/wiki/Extraction_de_racine_carr%C3%A9e
+racine_carrée :: fonc (nombre: NombreInfini) -> NombreInfini
+{
+    nombre := crée_nombre_infini("100")
+    position_virgule := nombre.nombre_de_chiffres()
+
+    index_premier_chiffre := 0
+    si position_virgule % 2 != 0 {
+        index_premier_chiffre = -1
+    }
+
+    racine : NombreInfini
+
+    reste : n32 = 0
+    p : n32
+
+    position_virgule_résultat : z64 = 0
+    virgule_trouvée := faux
+
+    // À FAIRE : détecte récursion, nombre maximal de chiffres
+    tantque reste != 0 || index_premier_chiffre < nombre.nombre_de_chiffres() {
+        n0 := nombre.chiffre_pour_index(index_premier_chiffre)
+        n1 := nombre.chiffre_pour_index(index_premier_chiffre + 1)
+
+        paire_courante := n0 * 10 + n1
+
+        valeur_courante := reste * 100 + paire_courante
+
+        x, y := trouve_y(p, valeur_courante)
+
+        p *= 10
+        p += x
+
+        reste = valeur_courante - y
+
+        tableau_ajoute(*racine.chiffres, x comme n8)
+
+        index_premier_chiffre += 2
+
+        si !virgule_trouvée && index_premier_chiffre >= position_virgule {
+            position_virgule_résultat = racine.nombre_de_chiffres()
+            virgule_trouvée = vrai
+        }
+    }
+}
+
+// https://en.wikipedia.org/wiki/Long_division#Algorithm_for_arbitrary_base
+divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
+{
+    l := m.nombre_de_chiffres()
+    k := n.nombre_de_chiffres()
+
+    q : NombreInfini
+    r : NombreInfini
+
+    si k < l {
+        q = crée_nombre_infini("0")
+        r = n
+    }
+    sinon {
+        q = crée_nombre_infini("0")
+
+        pour l - 1 {
+            tableau_ajoute(*r.chiffres, n.chiffres[it])
+        }
+
+        pour i dans 0 ... k - l {
+            // di = br_(i-1)
+
+            di := 10 * r + n.chiffre_pour_index(i + l - 1)
+            ri := di - m * q.chiffre_pour_index(i)
+            qi := 10 * q + q.chiffre_pour_index(i)
+
+            ri = r
+            qi = q
+        }
+    }
+
+    retourne q
 }
