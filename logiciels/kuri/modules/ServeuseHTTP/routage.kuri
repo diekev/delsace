@@ -253,7 +253,12 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
                 retourne ErreurAppariement.RègleInvalide
             }
             ApparieChaine {
-                // RÀF, nous pourrions avoir une fonction de rappel
+                // RÀF comme vérification, nous pourrions avoir une fonction de rappel
+                données : DonnéesAppariement
+                données.nom = règle.nom_données
+                données.données = it
+
+                tableau_ajoute(*résultat, données)
             }
             ApparieChaineLittérale {
                 si it != règle.chn {
