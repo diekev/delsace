@@ -63,8 +63,8 @@ est_valeur_valide :: fonc (valeur: chaine) -> bool
 crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
 {
     cookie : Cookie
-    cookie.nom = nom
-    cookie.valeur = valeur
+    cookie.nom = copie_chaine(nom)
+    cookie.valeur = copie_chaine(valeur)
 
     retourne cookie
 }
@@ -390,8 +390,8 @@ parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> bool, Cookie
 
     positionne(parseuse, pos + 1)
 
-    cookie.nom = nom
-    cookie.valeur = valeur
+    cookie.nom = copie_chaine(nom)
+    cookie.valeur = copie_chaine(valeur)
 
     retourne vrai, cookie
 }
