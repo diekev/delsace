@@ -1,5 +1,6 @@
 importe CodecDonnées
 importe Fondation
+importe Numérique
 
 MessageHTTP :: struct {
     version: chaine
@@ -302,4 +303,44 @@ prépare_message_pour_parseuse :: fonc (texte: chaine) -> chaine
 
     texte.taille = pointeur_sortie - texte.pointeur
     retourne texte
+}
+
+parse_contenu_message_url_encoded :: fonc (parseuse: *ParseuseFormatURL, message: &MessageClienteHTTP, $T: type_de_données) -> bool, T
+{
+    //  À FAIRE : message.parse_contenu() -> Contenu(type_contenu, chaine) | Rien
+    si !possède_entête(message, "Content-Length") {
+        retourne faux, T()
+    }
+
+    si !possède_entête(message, "Content-Type") {
+        retourne faux, T()
+    }
+
+    chn_taille_contenu := entête(message, "Content-Length").valeur
+
+    taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
+        retourne faux, T()
+    }
+
+    type_contenu := entête(message, "Content-Type").valeur
+
+    si type_contenu != "application/x-www-form-urlencoded" {
+        retourne faux, T()
+    }
+
+    si taille_contenu != message.contenu.taille {
+        retourne faux, T()
+    }
+
+    raison, résultat_parsage, info := parse_texte_format_url(parseuse, message.contenu, T)
+
+    si raison != RésultatParsage.Succès {
+        retourne faux, T()
+    }
+
+    si !tous_les_champs_sont_renseignés(résultat_parsage) {
+        retourne faux, T()
+    }
+
+    retourne vrai, info
 }
