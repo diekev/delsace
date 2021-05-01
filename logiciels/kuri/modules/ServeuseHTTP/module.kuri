@@ -679,6 +679,8 @@ PolitiqueDeCache :: énum {
         ajoute_au_tampon(*enchaineuse, message.contenu)
     }
 
+    // À FAIRE : un mauvaise_requête sans contenu bloque le navigateur
+
     _ := copie_enchaineuse_fichier(*enchaineuse, *prise.fichier)
 }
 
