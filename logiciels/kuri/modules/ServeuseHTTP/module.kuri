@@ -583,6 +583,7 @@ gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageSe
         }
     }
 
+    message.données_appariements = rappel_route.données
     retourne rappel_route.rappel(prise, message)
 }
 
