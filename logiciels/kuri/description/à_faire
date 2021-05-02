@@ -32,6 +32,8 @@
 - compilation infinie si nous utilisons #exécute pour une globale
 - les fonctions surchargées ayant des valeurs polymorphiques collisionnent
 - construction de type impossible pour les opaque (p.e. AdresseIPv4()), le message d'erreur est cryptique
+- les plages implicites des boucles pour de type entier naturel prennent la valeur maximale quand du type si le nombre de boucle = 0
+    pour m {} // si m == 0, alors la plage est de 0 ... m - 1 = 0 ... type.max
 
 // -----------------------------------
 // Architecture/Qualité de code
