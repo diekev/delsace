@@ -1189,8 +1189,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return GENERE_BOUCLE_TABLEAU;
                     }
                 }
-                else if (est_type_entier(type)) {
-                    enfant1->type = type;
+                else if (est_type_entier(type) || type->est_entier_constant()) {
+                    if (type->est_entier_constant()) {
+                        enfant1->type = espace->typeuse[TypeBase::Z32];
+                        type = enfant1->type;
+                    }
+                    else {
+                        enfant1->type = type;
+                    }
 
                     if (requiers_index) {
                         return GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX;
@@ -1212,6 +1218,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (aide_generation_code == -1) {
                 return ResultatValidation::Erreur;
+            }
+
+            /* Le type ne doit plus être un entier_constant après determine_itérande,
+             * donc nous pouvons directement l'assigner à enfant2->type.
+             * Ceci est nécessaire car la simplification du code accède aux opérateurs
+             * selon le type de enfant2. */
+            if (enfant2->type->est_entier_constant()) {
+                assert(!type->est_entier_constant());
+                enfant2->type = type;
             }
 
             /* il faut attendre de vérifier que le type est itérable avant de prendre cette

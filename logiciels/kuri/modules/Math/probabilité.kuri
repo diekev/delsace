@@ -379,7 +379,6 @@ opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
     m := magnitude(p.unité)
 
     //  À FAIRE(langage) si un naturel == 0, alors n - 1 == max et non avons une très longue boucle
-    //  À FAIRE(langage) ne peut pas utiliser une constante pour les itérations
     si m != 0 {
         pour m {
             multiplie_par_dix(*résultat)
