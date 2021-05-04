@@ -78,8 +78,8 @@ détruit_cookie :: fonc (cookie: &Cookie)
 crée_cookie_session :: fonc (nom: chaine, valeur: chaine, est_sécurisé: bool) -> Cookie
 {
     cookie : Cookie
-    cookie.nom = nom
-    cookie.valeur = valeur
+    cookie.nom = copie_chaine(nom)
+    cookie.valeur = copie_chaine(valeur)
     cookie.chemin = "/"
     cookie.http_seulement = vrai
     cookie.est_sécurisé = est_sécurisé
@@ -90,8 +90,8 @@ crée_cookie_session :: fonc (nom: chaine, valeur: chaine, est_sécurisé: bool)
 crée_cookie_sécurisé :: fonc (nom: chaine, valeur: chaine) -> Cookie
 {
     cookie : Cookie
-    cookie.nom = nom
-    cookie.valeur = valeur
+    cookie.nom = copie_chaine(nom)
+    cookie.valeur = copie_chaine(valeur)
     cookie.http_seulement = vrai
     cookie.est_sécurisé = vrai
 
@@ -237,8 +237,8 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
         retourne résultat
     }
 
-    résultat.nom = cookie_nom_valeur.nom
-    résultat.valeur = cookie_nom_valeur.valeur
+    résultat.nom = copie_chaine(cookie_nom_valeur.nom)
+    résultat.valeur = copie_chaine(cookie_nom_valeur.valeur)
 
     tantque !fini(*parseuse) {
         si apparie(*parseuse, ';') {
