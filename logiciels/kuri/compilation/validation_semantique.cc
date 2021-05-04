@@ -1720,12 +1720,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 
-                auto valide_presence_membres = [&membres_rencontres, &decl, this, &expression]() {
+                auto valide_presence_membres = [&membres_rencontres, &type_union, this, &expression]() {
                     auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
-                    POUR (*decl->bloc->membres.verrou_lecture()) {
-                        if (!membres_rencontres.possede(it->ident)) {
-                            valeurs_manquantes.insere(it->lexeme->chaine);
+                    POUR (type_union->membres) {
+                        if (!membres_rencontres.possede(it.nom)) {
+                            valeurs_manquantes.insere(it.nom->nom);
                         }
                     }
 
