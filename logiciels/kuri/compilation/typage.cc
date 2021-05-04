@@ -851,6 +851,10 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     type->nom = decl->lexeme->ident;
     type->decl = decl;
 
+    if (type->decl) {
+        type->nom = decl->lexeme->ident;
+    }
+
     return type;
 }
 
@@ -1479,6 +1483,9 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     type_structure->alignement = this->alignement;
     type_structure->nom = this->nom;
     type_structure->est_anonyme = this->est_anonyme;
+    // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
+    // dans la coulisse pour chaque monomorphisation.
+    type_structure->decl = this->decl;
 }
 
 /* Pour la génération de RI, les types doivent être normalisés afin de se rapprocher de la manière
