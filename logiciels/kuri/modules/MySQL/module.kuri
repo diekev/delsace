@@ -2,6 +2,7 @@ importe Fondation
 importe JSON
 importe GlibC
 importe Introspection
+importe Temps // pour parser les dates
 
 ConfigurationMySQL :: struct {
 	// @note : l'hôte doit être une adresse IP
@@ -517,4 +518,90 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 	}
 
 	retourne résultat
+}
+
+fonctions_parsages_mysql : []FonctionParsage
+
+initialise_mysql :: fonc ()
+{
+    initalise_types_base(*fonctions_parsages_mysql)
+    ajoute_fonction(*fonctions_parsages_mysql, info_de(Date), parse_date_depuis_mysql)
+}
+
+parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Résultat(T)
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    infos := info_de(T)
+    infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
+
+    saufsi infos_membres {
+        retourne faux
+    }
+
+    si ligne_suivante(curseur) == nul {
+        retourne faux
+    }
+
+    valeur : T
+
+	saufsi parse_valeur(curseur, valeur, infos_membres) {
+		retourne faux
+	}
+
+    retourne valeur
+}
+
+parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Résultat([]T)
+{
+	#assert info_de(T).id == id_info.STRUCTURE
+
+    infos := info_de(T)
+    infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
+
+    saufsi infos_membres {
+        retourne faux
+    }
+
+    si ligne_suivante(curseur) == nul {
+        retourne faux
+    }
+
+    liste : []T
+
+	répète {
+		valeur : T
+
+		saufsi parse_valeur(curseur, valeur, infos_membres) {
+			déloge(liste)
+			retourne faux
+		}
+
+		tableau_ajoute(*liste, valeur)
+	} tantque ligne_suivante(curseur) != nul
+
+    retourne liste
+}
+
+parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: []*InfoTypeMembreStructure) -> bool
+{
+    pour infos_membres {
+		membre := it
+        chn := colonne_suivante(curseur)
+
+        fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
+
+        saufsi fonction_de_parsage {
+            retourne faux
+        }
+
+        valeur_membre := eini_depuis_info_membre(valeur, membre)
+        tampon := tampon_pour_eini(valeur_membre)
+
+        saufsi fonction_de_parsage.rappel(chn, tampon) {
+            retourne faux
+        }
+    }
+
+	retourne vrai
 }

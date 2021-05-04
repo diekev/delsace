@@ -313,6 +313,19 @@ parse_date_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
     retourne vrai
 }
 
+// À FAIRE: Date et DateHorodotée ?
+parse_date_depuis_mysql :: fonc (chn: chaine, tampon: []octet) -> bool
+{
+    date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss")
+
+    // À FAIRE: conversion propre
+    date.mois += 1
+    date.jour += 1
+
+    copie_mem(src = date, dst = tampon, taille = taille_de(Date) comme z64)
+    retourne vrai
+}
+
 DateCalendaire :: struct {
     nom_jour: chaine
     numéro_jour: z32
