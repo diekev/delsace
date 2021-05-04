@@ -209,6 +209,10 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
                             << ";\n";
             }
             else {
+                if (type_union->decl && type_union->decl->est_monomorphisation) {
+                    nom_union = enchaine(nom_union, type_union);
+                }
+
                 enchaineuse << "typedef struct " << nom_union << ' ' << nom_broye << ";\n";
             }
 
