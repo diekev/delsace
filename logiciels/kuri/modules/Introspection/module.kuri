@@ -351,6 +351,14 @@ eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreSt
     retourne e
 }
 
+tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
+{
+    tampon : []octet = ---
+    tampon.pointeur = e.pointeur comme *z8
+    tampon.taille = e.info.taille_en_octet comme z64
+    retourne tampon
+}
+
 trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
 {
     saufsi valeur.est_structure() {
