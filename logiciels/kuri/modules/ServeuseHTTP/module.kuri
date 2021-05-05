@@ -445,6 +445,8 @@ ServeuseHTTP :: struct {
 
     rappel_méthode_non_autorisée : TypeRappelRoute
     rappel_page_non_trouvée : TypeRappelRoute
+
+    quand_connexion_http : fonc(*Prise)(rien)
 }
 
 crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
@@ -504,6 +506,12 @@ quand_ouverture :: fonc (prise: *Prise)
 {
     parseuse := loge(ParseuseHTTP)
     prise.mute_données_serveuse(parseuse)
+
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+
+    si serveuse.quand_connexion_http {
+        serveuse.quand_connexion_http(prise)
+    }
 
     quand_lecture(prise)
 }
