@@ -259,12 +259,14 @@ crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFich
     retourne 0 comme ErreurFichier
 }
 
+// À FAIRE : tests
 système_crée_dossier :: fonc (chemin: chaine, mode: z32) -> ErreurFichier
 {
     pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin, '/')
 
     si pos_dossier_parent <= 0 {
-        pos_dossier_parent = chemin.taille
+        // Nous avons un fichier relatif au dossier courant.
+        retourne 0 comme ErreurFichier
     }
 
     chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
