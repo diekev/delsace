@@ -812,6 +812,26 @@ get_fichier_css :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> Message
     retourne réponse
 }
 
+get_image_png :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+{
+    // enlève le premier slash
+    chemin_fichier := avance(message.requête, 1)
+    chm := construit_chemin(chemin_fichier)
+
+    contenu := contenu_fichier_texte(chm)
+
+    saufsi contenu {
+        retourne ressource_non_trouvée()
+    }
+
+    réponse : MessageServeuseHTTP
+    réponse.version = "HTTP/1.1"
+    réponse.code_état = CodeÉtatHTTP.OK
+    réponse.contenu = contenu
+    ajoute_entête(*réponse, "Content-Type", "image/png")
+    retourne réponse
+}
+
 /* Rendu de page via GHTML */
 
 importe GHTML
