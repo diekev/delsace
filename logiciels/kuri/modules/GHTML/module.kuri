@@ -30,6 +30,46 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
     retourne valeur
 }
 
+imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
+{
+    si valeur.info.id == id_info.CHAINE {
+        chn := valeur.comme_chaine()
+
+        pour chn {
+            /* Remplace les caractères sensibles par leurs échappements.
+             * '<', '/', et '>' sont échappés notamment pour éviter les attaques XSS.
+             * '\'' et '"' le sont pour les attributs, mais nous le faisons toujours pour éviter des bugs de logiques.
+             * '&' l'est pour s'assurer que le parseur ne le considère pas comme un caractère de début d'échappement.
+             * Voir https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
+             * pour plus de détails. */
+            si it == '&' {
+                ajoute_au_tampon(enchaineuse, "&amp;")
+            }
+            sinon si it == '<' {
+                ajoute_au_tampon(enchaineuse, "&lt;")
+            }
+            sinon si it == '>' {
+                ajoute_au_tampon(enchaineuse, "&gt;")
+            }
+            sinon si it == '"' {
+                ajoute_au_tampon(enchaineuse, "&quot;")
+            }
+            sinon si it == '\'' {
+                ajoute_au_tampon(enchaineuse, "&#39;")
+            }
+            sinon si it == '/' {
+                ajoute_au_tampon(enchaineuse, "&#x2f;")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, it)
+            }
+        }
+    }
+    sinon {
+        Fondation.imprime_valeur(enchaineuse, valeur, faux)
+    }
+}
+
 génère_page :: fonc(
     données: *DonnéesGénération,
     noeud: *NoeudSyntaxique,
@@ -46,6 +86,9 @@ génère_page :: fonc(
             }
         }
         CHAINE_CARACTÈRE {
+            pour noeud.données.chn {
+            }
+
             ajoute_au_tampon(enchaineuse, noeud.données.chn)
         }
         VARIABLE {
@@ -56,7 +99,7 @@ génère_page :: fonc(
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
-            imprime_valeur(enchaineuse, valeur, faux)
+            imprime_valeur(enchaineuse, valeur)
         }
         POUR {
             propriété := noeud.enfants[1].données.chn
@@ -119,7 +162,7 @@ génère_page :: fonc(
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
-            imprime_valeur(enchaineuse, valeur, faux)
+            imprime_valeur(enchaineuse, valeur)
         }
     }
 
