@@ -437,6 +437,17 @@ fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
     retourne tmp == motif
 }
 
+fini_par :: fonc (ligne: chaine, motifs: ...chaine) -> bool
+{
+    pour motifs {
+        si fini_par(ligne, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
 /*
 remplace :: fonc (ligne: chaine, c: z8) -> chaine
 {
