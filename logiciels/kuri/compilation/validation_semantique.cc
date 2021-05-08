@@ -2800,18 +2800,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if (it.ident) {
             eu_nom = true;
 
-            if (expr->est_appel() &&
-                expr->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-                auto type_fonction =
-                    expr->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
-
-                if (type_fonction->type_sortie->est_tuple()) {
-                    espace->rapporte_erreur(
-                        it.expression,
-                        "Impossible de nommer les variables de retours si l'expression est une "
-                        "fonction retournant plusieurs valeurs");
-                    return ResultatValidation::Erreur;
-                }
+            if (expr->type->est_tuple()) {
+                espace->rapporte_erreur(
+                    it.expression,
+                    "Impossible de nommer les variables de retours si l'expression retourne "
+                    "plusieurs valeurs");
+                return ResultatValidation::Erreur;
             }
 
             for (auto i = 0; i < fonction_courante->params_sorties.taille(); ++i) {
