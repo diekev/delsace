@@ -322,7 +322,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
                 v = (c - 'a') + 10
             }
             sinon si 'A' <= c <= 'F' {
-                v = (c - 'a') + 10
+                v = (c - 'A') + 10
             }
             sinon si '0' <= c <= '9' {
                 v = (c - '0')
@@ -337,7 +337,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
                 v += (c - 'a') + 10
             }
             sinon si 'A' <= c <= 'F' {
-                v += (c - 'a') + 10
+                v += (c - 'A') + 10
             }
             sinon si '0' <= c <= '9' {
                 v += (c - '0')
