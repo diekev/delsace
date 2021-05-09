@@ -310,7 +310,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
         si chn[index_courant] == '%' {
             index_courant += 1
 
-            si index_courant + 2 >= chn.taille {
+            si index_courant + 1 >= chn.taille {
                 arrête
             }
 
