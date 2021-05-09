@@ -1,13 +1,6 @@
 importe Fondation // pour imprime_valeur
 importe Introspection
 
-// À FAIRE: ajout d'un message aux erreurs
-ErreurGénérationPage :: énum z32 {
-    AUCUNE
-    OBJET_NON_ITÉRABLE
-    OBJET_NON_TROUVÉ
-}
-
 DonnéesGénération :: struct {
     valeur : eini
     nom_variable_boucle : chaine
@@ -73,14 +66,14 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 génère_page :: fonc(
     données: *DonnéesGénération,
     noeud: *NoeudSyntaxique,
-    enchaineuse: *Enchaineuse) -> ErreurGénérationPage
+    enchaineuse: *Enchaineuse) -> chaine
 {
     discr noeud.type {
         BLOC {
             pour enfant dans noeud.enfants {
                 erreur_ := génère_page(données, enfant, enchaineuse)
 
-                si erreur_ != ErreurGénérationPage.AUCUNE {
+                si erreur_ {
                     retourne erreur_
                 }
             }
@@ -96,7 +89,7 @@ génère_page :: fonc(
             valeur := trouve_variable(données, variable)
 
             saufsi valeur.est_valide() {
-                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
+                retourne enchaine("Variable « ", variable, " » inconnue !")
             }
 
             imprime_valeur(enchaineuse, valeur)
@@ -106,7 +99,7 @@ génère_page :: fonc(
             valeur := trouve_variable(données, propriété)
 
             saufsi valeur.est_valide() {
-                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
+                retourne enchaine("Impossible de trouver « ", propriété, " » !")
             }
 
             variable := noeud.enfants[0].données.chn
@@ -126,14 +119,13 @@ génère_page :: fonc(
 
                     erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
 
-                    si erreur_ != ErreurGénérationPage.AUCUNE {
+                    si erreur_ {
                         retourne erreur_
                     }
                 }
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "Objet nul n'est pas itérable !")
-                retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
+                retourne enchaine("« ", propriété, " » n'est pas itérable !")
             }
         }
         SI {
@@ -151,7 +143,7 @@ génère_page :: fonc(
 
             erreur_ := génère_page(données, noeud.enfants[idx_enfant], enchaineuse)
 
-            si erreur_ != ErreurGénérationPage.AUCUNE {
+            si erreur_ {
                 retourne erreur_
             }
         }
@@ -159,14 +151,14 @@ génère_page :: fonc(
             valeur := trouve_valeur_pour_expression(données, noeud)
 
             saufsi valeur.est_valide() {
-                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
+                retourne enchaine("Impossible de résoudre l'expression « ", noeud.enfants[0].données.chn, ".", noeud.enfants[1].données.chn, " » !")
             }
 
             imprime_valeur(enchaineuse, valeur)
         }
     }
 
-    retourne ErreurGénérationPage.AUCUNE
+    retourne ""
 } @IgnoreNASA
 
 évalue_condition :: fonc (valeur: eini) -> bool
