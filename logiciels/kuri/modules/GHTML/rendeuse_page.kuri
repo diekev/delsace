@@ -4,9 +4,6 @@ importe SysFichier
 
 charge "catalogue_fichier"
 
-// À FAIRE : erreur si le fichier est inexistant
-// À FAIRE : initialise depuis un dossier
-
 RendeusePage :: struct {
     catalogue : CatalogueFichier
     cache_page : []PageGabarit
@@ -171,11 +168,6 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
 
         remplace_blocs(it, blocs)
     }
-}
-
-ErreurRenduPage :: erreur {
-    PageManquante
-    RenduImpossible
 }
 
 rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> chaine
