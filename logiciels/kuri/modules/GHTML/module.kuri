@@ -85,21 +85,19 @@ génère_page :: fonc(
             ajoute_au_tampon(enchaineuse, noeud.données.chn)
         }
         VARIABLE {
-            variable := noeud.données.chn
-            valeur := trouve_variable(données, variable)
+            valeur := trouve_valeur_pour_expression(données, noeud)
 
             saufsi valeur.est_valide() {
-                retourne enchaine("Variable « ", variable, " » inconnue !")
+                retourne enchaine("Variable « ", noeud.données.chn, " » inconnue !")
             }
 
             imprime_valeur(enchaineuse, valeur)
         }
         POUR {
-            propriété := noeud.enfants[1].données.chn
-            valeur := trouve_variable(données, propriété)
+            valeur := trouve_valeur_pour_expression(données, noeud.enfants[1])
 
             saufsi valeur.est_valide() {
-                retourne enchaine("Impossible de trouver « ", propriété, " » !")
+                retourne enchaine("Impossible de trouver « ", noeud.enfants[1].données.chn, " » !")
             }
 
             variable := noeud.enfants[0].données.chn
@@ -125,7 +123,7 @@ génère_page :: fonc(
                 }
             }
             sinon {
-                retourne enchaine("« ", propriété, " » n'est pas itérable !")
+                retourne enchaine("« ", noeud.enfants[1].données.chn, " » n'est pas itérable !")
             }
         }
         SI {

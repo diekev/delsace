@@ -261,13 +261,8 @@ analyse_si :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 
 	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
 
-	// À FAIRE : apparie_expression
-	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
-		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'si'")
-		retourne
-	}
-
-	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+	expr_variable := syntaxeuse.analyse_expression()
+	syntaxeuse.assembleuse.ajoute_noeud(expr_variable)
 
 	si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 		syntaxeuse.rapporte_erreur("Attendu '%}'")
@@ -288,11 +283,8 @@ analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 
 	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
 
-	// À FAIRE : apparie_expression
-	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
-		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'pour'")
-		retourne
-	}
+	expr_variable := syntaxeuse.analyse_expression()
+	syntaxeuse.assembleuse.ajoute_noeud(expr_variable)
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
@@ -301,13 +293,8 @@ analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 		retourne
 	}
 
-	// À FAIRE : apparie_expression
-	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
-		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'dans'")
-		retourne
-	}
-
-	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+	expr_dans := syntaxeuse.analyse_expression()
+	syntaxeuse.assembleuse.ajoute_noeud(expr_dans)
 
 	si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 		syntaxeuse.rapporte_erreur("Attendu '%}'")
