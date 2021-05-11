@@ -14,6 +14,8 @@ Route :: struct {
     rappel: TypeRappelRoute
 
     règles_routage: []RègleRoutage
+
+    priorité : z32
 }
 
 NouvelleRouteuse :: struct {
@@ -29,6 +31,13 @@ ajoute_route :: fonc (routes: *[]Route, chemin: chaine, rappel: TypeRappelRoute)
 
     route.règles_routage = tente parse_règles(chemin) piège err {
         retourne
+    }
+
+    route.priorité = 0
+    pour route.règles_routage {
+        si it.action != ActionRègleRoutage.ApparieChaineLittérale {
+            route.priorité += 1
+        }
     }
 
     tableau_ajoute(routes, route)
@@ -66,15 +75,22 @@ apparie_route :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, méthode: ch
 
 apparie_route :: fonc (routes: []Route, chemin: chaine) -> DonnéesAppelRoute
 {
+    résultat : DonnéesAppelRoute
+    priorité := 1000
+
     pour routes {
         données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {
             continue
         }
 
-        retourne DonnéesAppelRoute(it.rappel, données)
+        si it.priorité < priorité {
+            priorité = it.priorité
+            résultat.rappel = it.rappel
+            résultat.données = données
+        }
     }
 
-    retourne DonnéesAppelRoute()
+    retourne résultat
 }
 
 divise_url :: fonc (ligne: chaine) -> []chaine
