@@ -588,7 +588,13 @@ struct GeneratriceCodeC {
                             }
                             case AtomeValeurConstante::Valeur::Genre::REELLE:
                             {
-                                return enchaine(valeur_const->valeur.valeur_reelle);
+                                auto type = valeur_const->type;
+
+                                if (type->taille_octet == 4) {
+                                    return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+                                }
+
+                                return enchaine("(double)", valeur_const->valeur.valeur_reelle);
                             }
                             case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                             {

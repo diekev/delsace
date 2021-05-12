@@ -34,7 +34,6 @@
 - construction de type impossible pour les opaque (p.e. AdresseIPv4()), le message d'erreur est cryptique
 - les plages implicites des boucles pour de type entier naturel prennent la valeur maximale quand du type si le nombre de boucle = 0
     pour m {} // si m == 0, alors la plage est de 0 ... m - 1 = 0 ... type.max
-- 1.0 / 10.0 retourne 0.0
 - Couleur.Couleur(1.0, 1.0, 1.0, 1.0) sans importer Couleur crash
 
 // -----------------------------------
