@@ -286,8 +286,6 @@ analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 	expr_variable := syntaxeuse.analyse_expression()
 	syntaxeuse.assembleuse.ajoute_noeud(expr_variable)
 
-	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
-
 	si (!syntaxeuse.consomme(TypeLexème.DANS)) {
 		syntaxeuse.rapporte_erreur("Attendu 'dans'")
 		retourne
