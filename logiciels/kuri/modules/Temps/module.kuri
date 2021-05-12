@@ -383,3 +383,60 @@ importe Compilatrice
     compilatrice_vérifie_égalité(résultat, "6:37:20 22/11/2020")
     déloge(résultat)
 }
+
+// ---------------------------------------------------
+
+Heure :: #opaque z32
+Minute :: #opaque z32
+Seconde :: #opaque z32
+
+vers_heures :: fonc (minutes: Minute) -> Heure
+{
+    retourne Heure(minutes comme z32 / 60)
+}
+
+vers_heures :: fonc (secondes: Seconde) -> Heure
+{
+    retourne vers_heure(vers_minutes(secondes))
+}
+
+vers_minutes :: fonc (secondes: Seconde) -> Minute
+{
+    retourne Minute(secondes comme z32 / 60)
+}
+
+vers_minutes :: fonc (heures: Heure) -> Minute
+{
+    retourne Minute(heures comme z32 * 60)
+}
+
+vers_secondes :: fonc (minutes: Minute) -> Seconde
+{
+    retourne Seconde(minutes comme z32 * 60)
+}
+
+vers_secondes :: fonc (heures: Heure) -> Seconde
+{
+    retourne vers_secondes(vers_minutes(heures))
+}
+
+// https://fr.wikipedia.org/wiki/Ann%C3%A9e_(astronomie)
+
+// L'année civile équivaut à la durée en deux dates dans le même calendrier
+// Pour le calendrier grégorien, une année est de 365.2425 jours, ou un jour = 24 * 84600
+AnnéeCivile :: #opaque z32
+AnnéeSidérale :: #opaque z32
+AnnéeLumière :: #opaque z32
+
+// Une année julienne correspond exactement à 365.25 * 24 heures, ou une 1 heure = 84600 secondes
+AnnéeJulienne :: #opaque z32
+
+vers_heures :: fonc (année: AnnéeJulienne) -> Heure
+{
+    retourne Heure(année comme z32 * 36525 * 24 / 100)
+}
+
+vers_heures :: fonc (année: AnnéeSidérale) -> Heure
+{
+    retourne vers_heures(Seconde(31_558_149 * année comme z32))
+}
