@@ -15,6 +15,12 @@ ceil :: fonc (a: r64) -> r64 #externe
 floor :: fonc (a: r64) -> r64 #externe
 copysign :: fonc (a: r64, b: r64) -> r64 #externe
 log :: fonc (a: r64) -> r64 #externe
+exp :: fonc (a: r64) -> r64 #externe
+
+exp :: fonc (a: r32) -> r32
+{
+    retourne exp(a comme r64) comme r32
+}
 
 log :: fonc (a: r32) -> r32
 {
