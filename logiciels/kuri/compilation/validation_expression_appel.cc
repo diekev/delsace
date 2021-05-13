@@ -1502,13 +1502,15 @@ struct ContexteValidationAppel {
     }
 };
 
+using ListeCandidatesExpressionAppel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
+
 static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
                                          ContexteValidationCode &contexte,
                                          NoeudExpressionAppel *expr,
                                          kuri::tableau<IdentifiantEtExpression> &args,
-                                         ContexteValidationAppel &resultat)
+                                         ListeCandidatesExpressionAppel &resultat)
 {
-    auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
+    auto candidates_appel = ListeCandidatesExpressionAppel();
     if (trouve_candidates_pour_fonction_appelee(
             contexte, espace, expr->expression, candidates_appel)) {
         return true;
@@ -1518,12 +1520,10 @@ static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
         return true;
     }
 
-    auto nouvelles_candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
-
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
             auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
-            auto candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
+            auto candidates = ListeCandidatesExpressionAppel();
             if (trouve_candidates_pour_fonction_appelee(
                     contexte, espace, acces->operande_droite, candidates)) {
                 return true;
@@ -1538,16 +1538,25 @@ static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
             args.pousse_front({nullptr, nullptr, acces->operande_gauche});
 
             for (auto c : candidates) {
-                nouvelles_candidates.ajoute(c);
+                resultat.ajoute(c);
             }
         }
         else {
-            nouvelles_candidates.ajoute(it);
+            resultat.ajoute(it);
         }
     }
 
-    candidates_appel = nouvelles_candidates;
+    return false;
+}
 
+static bool apparies_candidates(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    kuri::tableau<IdentifiantEtExpression> &args,
+    ListeCandidatesExpressionAppel const &candidates_appel,
+    ContexteValidationAppel &resultat)
+{
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
             auto &dc = resultat.ajoute_donnees();
@@ -1792,6 +1801,17 @@ static NoeudStruct *monomorphise_au_besoin(
 
 /* ************************************************************************** */
 
+static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expression)
+{
+    if (expression->est_reference_membre()) {
+        return expression->comme_reference_membre()->membre->comme_reference_declaration();
+    }
+
+    return expression->comme_reference_declaration();
+}
+
+/* ************************************************************************** */
+
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous
 // arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
@@ -1847,7 +1867,17 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     {
         CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
 
-        if (trouve_candidates_pour_appel(espace, contexte, expr, args, ctx)) {
+        ListeCandidatesExpressionAppel candidates;
+
+        if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
+            contexte.unite->attend_sur_symbole(symbole_pour_expression(expr->expression));
+            return ResultatValidation::Erreur;
+        }
+
+        if (apparies_candidates(espace, contexte, expr, args, candidates, ctx)) {
+            // À FAIRE : gestion des erreurs, nous ne pouvons émettre une erreur ici, car nous pourrions
+            // attendre sur quelque chose (symbole, type, ...)
+            //contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
             return ResultatValidation::Erreur;
         }
     }
