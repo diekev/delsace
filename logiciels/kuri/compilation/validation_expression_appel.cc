@@ -1424,6 +1424,15 @@ static auto apparie_construction_opaque(EspaceDeTravail &espace,
                                         kuri::tableau<IdentifiantEtExpression> const &arguments,
                                         DonneesCandidate &resultat)
 {
+    if (arguments.taille() == 0) {
+        // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction par défaut
+        // des types simples afin de pouvoir les utiliser dans la simplification du code
+        resultat.raison = MECOMPTAGE_ARGS;
+        resultat.poids_args = 0.0;
+        resultat.noeud_erreur = expr;
+        return false;
+    }
+
     if (arguments.taille() > 1) {
         resultat.raison = MECOMPTAGE_ARGS;
         resultat.poids_args = 0.0;
