@@ -59,7 +59,7 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
     return os;
 }
 
-static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
+dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
     auto lexeme = expr->lexeme;
     auto fichier = espace.fichier(lexeme->fichier);
