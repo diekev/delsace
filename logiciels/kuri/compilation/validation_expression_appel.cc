@@ -1419,7 +1419,7 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
 
 static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
                                         ContexteValidationCode & /*contexte*/,
-                                        NoeudExpressionAppel const * /*expr*/,
+                                        NoeudExpressionAppel const * expr,
                                         TypeOpaque *type_opaque,
                                         kuri::tableau<IdentifiantEtExpression> const &arguments,
                                         DonneesCandidate &resultat)
@@ -1427,6 +1427,7 @@ static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
     if (arguments.taille() > 1) {
         resultat.raison = MECOMPTAGE_ARGS;
         resultat.poids_args = 0.0;
+        resultat.noeud_erreur = expr;
         return true;
     }
 
@@ -1450,7 +1451,10 @@ static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
 
     if (arguments[0].expr->type != type_opaque->type_opacifie) {
         resultat.raison = METYPAGE_ARG;
+        resultat.noeud_erreur = arguments[0].expr;
         resultat.poids_args = 0.0;
+        resultat.type_attendu = type_opaque->type_opacifie;
+        resultat.type_obtenu = arguments[0].expr->type;
         return true;
     }
 
