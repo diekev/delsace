@@ -1417,8 +1417,8 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
 
 /* ************************************************************************** */
 
-static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
-                                        ContexteValidationCode & /*contexte*/,
+static auto apparie_construction_opaque(EspaceDeTravail &espace,
+                                        ContexteValidationCode &contexte,
                                         NoeudExpressionAppel const * expr,
                                         TypeOpaque *type_opaque,
                                         kuri::tableau<IdentifiantEtExpression> const &arguments,
@@ -1449,7 +1449,17 @@ static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
         return false;
     }
 
-    if (arguments[0].expr->type != type_opaque->type_opacifie) {
+    TransformationType transformation;
+    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace, contexte, type_opaque->type_opacifie, arguments[0].expr->type, arguments[0].expr, transformation);
+
+/*
+    À FAIRE
+    if (erreur_dep) {
+        return true;
+    }
+*/
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         resultat.raison = METYPAGE_ARG;
         resultat.noeud_erreur = arguments[0].expr;
         resultat.poids_args = 0.0;
@@ -1460,8 +1470,9 @@ static auto apparie_construction_opaque(EspaceDeTravail & /*espace*/,
 
     resultat.type = type_opaque;
     resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
-    resultat.poids_args = 1.0;
+    resultat.poids_args = poids_pour_enfant_;
     resultat.exprs.ajoute(arg);
+    resultat.transformations.ajoute(transformation);
     return false;
 }
 
@@ -2187,6 +2198,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
         }
         else {
+            for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
+                contexte.transtype_si_necessaire(expr->parametres_resolus[i],
+                                                candidate->transformations[i]);
+            }
+
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
         }
