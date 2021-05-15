@@ -28,6 +28,7 @@
 
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudExpression;
 struct Type;
 
 struct ContexteValidationCode;
@@ -134,3 +135,18 @@ bool cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
                                              Type *type_de,
                                              Type *type_vers,
                                              TransformationType &transformation);
+
+// Vérifie la compatibilité de deux types pour un opérateur.
+std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
+                                              ContexteValidationCode &contexte,
+                                              Type *type_arg,
+                                              Type *type_enf,
+                                              TransformationType &transformation);
+
+// Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
+std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
+                                              ContexteValidationCode &contexte,
+                                              Type *type_arg,
+                                              Type *type_enf,
+                                              NoeudExpression *enfant,
+                                              TransformationType &transformation);

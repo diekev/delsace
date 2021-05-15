@@ -615,34 +615,6 @@ static auto trouve_candidates_pour_fonction_appelee(
     return false;
 }
 
-static std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
-                                                     ContexteValidationCode &contexte,
-                                                     Type *type_arg,
-                                                     Type *type_enf,
-                                                     NoeudExpression *enfant,
-                                                     TransformationType &transformation)
-{
-    if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
-        return {true, 0.0};
-    }
-
-    if (transformation.type == TypeTransformation::INUTILE) {
-        return {false, 1.0};
-    }
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return {false, 0.0};
-    }
-
-    if (transformation.type == TypeTransformation::PREND_REFERENCE) {
-        return {false, est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0};
-    }
-
-    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
-     * donne un mi-poids à l'argument */
-    return {false, 0.5};
-}
-
 static ResultatAppariement apparie_appel_pointeur(
     NoeudExpressionAppel const *b,
     Type *type,

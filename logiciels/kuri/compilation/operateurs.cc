@@ -689,35 +689,6 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
 }
 
-static std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
-                                                     ContexteValidationCode &contexte,
-                                                     Type *type_arg,
-                                                     Type *type_enf,
-                                                     TransformationType &transformation)
-{
-    if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
-        return {true, 0.0};
-    }
-
-    if (transformation.type == TypeTransformation::INUTILE) {
-        /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
-        if (type_arg->est_pointeur() && type_arg->comme_pointeur()->type_pointe == nullptr &&
-            type_arg != type_enf) {
-            return {false, 0.0};
-        }
-
-        return {false, 1.0};
-    }
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return {false, 0.0};
-    }
-
-    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
-     * donne un mi-poids à l'argument */
-    return {false, 0.5};
-}
-
 bool cherche_candidats_operateurs(EspaceDeTravail &espace,
                                   ContexteValidationCode &contexte,
                                   Type *type1,
