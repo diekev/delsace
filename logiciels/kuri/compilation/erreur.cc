@@ -140,12 +140,12 @@ void lance_erreur_type_operation(const Type *type_gauche,
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *b,
-                                    dls::tablet<DonneesCandidate, 10> const &candidates)
+                                    dls::tablet<ErreurAppariement, 10> const &erreurs)
 {
     auto e = rapporte_erreur(
         &espace, b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
 
-    if (candidates.est_vide()) {
+    if (erreurs.est_vide()) {
         e.ajoute_message("\nFonction inconnue : aucune candidate trouvée\n");
         e.ajoute_message("Vérifiez que la fonction existe bel et bien dans un fichier importé\n");
     }
@@ -154,7 +154,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                          chaine_expression(espace, b->comme_appel()->expression),
                          " » !\n");
 
-        for (auto &dc : candidates) {
+        for (auto &dc : erreurs) {
             auto decl = dc.noeud_decl;
             e.ajoute_message("\nCandidate :");
 
@@ -176,32 +176,13 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
 
             if (dc.raison == MECOMPTAGE_ARGS) {
-                auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
                 e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
-
-                if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-                    auto decl_fonc = decl->comme_entete_fonction();
-                    e.ajoute_message("\tRequiers ", decl_fonc->params.taille(), " arguments\n");
-                }
-                else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-                    auto type_struct =
-                        static_cast<NoeudStruct const *>(decl)->type->comme_structure();
-                    e.ajoute_message("\tRequiers ", type_struct->membres.taille(), " arguments\n");
-                }
-                else {
-                    if (dc.type) {
-                        auto type_fonc = dc.type->comme_fonction();
-                        e.ajoute_message("\tRequiers ",
-                                         type_fonc->types_entrees.taille() - dc.requiers_contexte,
-                                         " arguments\n");
-                    }
-                }
-
-                e.ajoute_message("\tObtenu ", noeud_appel->parametres.taille(), " arguments\n");
+                e.ajoute_message("\tRequiers ", dc.nombre_arguments.nombre_requis, " arguments\n");
+                e.ajoute_message("\tObtenu ", dc.nombre_arguments.nombre_obtenu, " arguments\n");
                 e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
             }
             else if (dc.raison == MENOMMAGE_ARG) {
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("Argument inconnu");
 
                 if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
@@ -239,12 +220,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == RENOMMAGE_ARG) {
                 e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("L'argument a déjà été nommé");
             }
             else if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
                 e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés "
                                  "s'ils sont précédés d'arguments déjà nommés");
             }
@@ -291,14 +272,14 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
             else if (dc.raison == ARGUMENTS_MANQUANTS) {
-                if (dc.arguments_manquants.taille() == 1) {
+                if (dc.arguments_manquants_.taille() == 1) {
                     e.ajoute_message("\tUn argument est manquant :\n");
                 }
                 else {
                     e.ajoute_message("\tPlusieurs arguments sont manquants :\n");
                 }
 
-                for (auto ident : dc.arguments_manquants) {
+                for (auto ident : dc.arguments_manquants_) {
                     e.ajoute_message("\t\t", ident->nom, '\n');
                 }
             }
@@ -309,10 +290,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == METYPAGE_ARG) {
                 e.ajoute_message("\tLe type de l'argument '",
-                                 chaine_expression(espace, dc.noeud_erreur),
+                                 chaine_expression(espace, dc.site_erreur),
                                  "' ne correspond pas à celui requis !\n");
-                e.ajoute_message("\tRequiers : ", chaine_type(dc.type_attendu), '\n');
-                e.ajoute_message("\tObtenu   : ", chaine_type(dc.type_obtenu), '\n');
+                e.ajoute_message(
+                    "\tRequiers : ", chaine_type(dc.type_arguments.type_attendu), '\n');
+                e.ajoute_message(
+                    "\tObtenu   : ", chaine_type(dc.type_arguments.type_obtenu), '\n');
                 e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
             }
         }

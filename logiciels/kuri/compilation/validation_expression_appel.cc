@@ -24,6 +24,8 @@
 
 #include "validation_expression_appel.hh"
 
+#include <variant>
+
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
 
@@ -47,6 +49,8 @@
  * UneAutreStructure n'étant jamais définie.
  */
 
+using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
+
 struct Monomorpheuse {
     using paire_item = dls::paire<IdentifiantCode *, Type *>;
     dls::tablet<paire_item, 6> items{};
@@ -56,6 +60,8 @@ struct Monomorpheuse {
 
     // mise en cache des types structures polymorphiques et de leurs monomorphisations passées
     dls::tablet<paire_type, 6> table_structures{};
+
+    ErreurAppariement erreur{};
 
     void ajoute_item(IdentifiantCode *ident)
     {
@@ -222,6 +228,8 @@ struct Monomorpheuse {
             auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
 
             if (!type) {
+                erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
+                                                                                     ident);
                 return false;
             }
 
@@ -237,6 +245,8 @@ struct Monomorpheuse {
 
         POUR (items) {
             if (it.second == nullptr) {
+                erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
+                                                                                     it.premier);
                 return false;
             }
         }
@@ -383,10 +393,11 @@ struct ApparieuseParams {
     bool m_dernier_argument_est_variadique = false;
     bool m_est_variadique = false;
     int m_index = 0;
-    DonneesCandidate &res;
 
   public:
-    ApparieuseParams(DonneesCandidate &res_) : res(res_)
+    ErreurAppariement erreur{};
+
+    ApparieuseParams()
     {
     }
 
@@ -421,18 +432,14 @@ struct ApparieuseParams {
             }
 
             if (index_param >= m_noms.taille()) {
-                res.raison = MENOMMAGE_ARG;
-                res.nom_arg = ident->nom;
-                res.noeud_erreur = expr_ident;
+                erreur = ErreurAppariement::menommage_arguments(expr_ident, ident);
                 return false;
             }
 
             auto est_parametre_variadique = index_param == m_noms.taille() - 1 && m_est_variadique;
 
             if ((args_rencontres.possede(ident)) && !est_parametre_variadique) {
-                res.raison = RENOMMAGE_ARG;
-                res.nom_arg = ident->nom;
-                res.noeud_erreur = expr_ident;
+                erreur = ErreurAppariement::renommage_argument(expr_ident, ident);
                 return false;
             }
 
@@ -449,8 +456,7 @@ struct ApparieuseParams {
         }
         else {
             if (m_arguments_nommes == true && m_dernier_argument_est_variadique == false) {
-                res.raison = MANQUE_NOM_APRES_VARIADIC;
-                res.noeud_erreur = expr;
+                erreur = ErreurAppariement::nom_manquant_apres_variadique(expr);
                 return false;
             }
 
@@ -468,16 +474,16 @@ struct ApparieuseParams {
         return true;
     }
 
-    bool tous_les_slots_sont_remplis() const
+    bool tous_les_slots_sont_remplis()
     {
         for (auto i = 0; i < m_noms.taille() - m_est_variadique; ++i) {
             if (m_slots[i] == nullptr) {
-                res.arguments_manquants.ajoute(m_noms[i]);
+                erreur.arguments_manquants_.ajoute(m_noms[i]);
             }
         }
 
-        if (!res.arguments_manquants.est_vide()) {
-            res.raison = ARGUMENTS_MANQUANTS;
+        if (!erreur.arguments_manquants_.est_vide()) {
+            erreur.raison = ARGUMENTS_MANQUANTS;
             return false;
         }
 
@@ -637,12 +643,12 @@ static std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
     return {false, 0.5};
 }
 
-static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
-                                   Type *type,
-                                   EspaceDeTravail &espace,
-                                   ContexteValidationCode &contexte,
-                                   kuri::tableau<IdentifiantEtExpression> const &args,
-                                   DonneesCandidate &resultat)
+static ResultatAppariement apparie_appel_pointeur(
+    NoeudExpressionAppel const *b,
+    Type *type,
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    kuri::tableau<IdentifiantEtExpression> const &args)
 {
     // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme membre
     //    membre :: fonc()(rien)
@@ -650,10 +656,7 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
     //    membre : fonc()(rien)
     // il faudra un système plus robuste
     if (!type->est_fonction()) {
-        resultat.noeud_erreur = b;
-        resultat.type = type;
-        resultat.raison = TYPE_N_EST_PAS_FONCTION;
-        return false;
+        return ErreurAppariement::type_non_fonction(b->expression, type);
     }
 
     POUR (args) {
@@ -661,15 +664,13 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
             continue;
         }
 
-        resultat.raison = NOMMAGE_ARG_POINTEUR_FONCTION;
-        resultat.noeud_erreur = it.expr;
-        return false;
+        return ErreurAppariement::nommage_argument_pointeur_fonction(it.expr);
     }
 
     /* vérifie la compatibilité des arguments pour déterminer
      * s'il y aura besoin d'une transformation. */
     auto type_fonction = type->comme_fonction();
-
+    auto requiers_contexte = true;
     auto debut_params = 0;
 
     if (type_fonction->types_entrees.taille() != 0 &&
@@ -677,20 +678,16 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
         debut_params = 1;
 
         if (!b->bloc_parent->possede_contexte) {
-            resultat.noeud_erreur = b;
-            resultat.raison = CONTEXTE_MANQUANT;
-            return false;
+            return ErreurAppariement::contexte_manquant(b);
         }
     }
     else {
-        resultat.requiers_contexte = false;
+        requiers_contexte = false;
     }
 
     if (type_fonction->types_entrees.taille() - debut_params != args.taille()) {
-        resultat.noeud_erreur = b;
-        resultat.type = type;
-        resultat.raison = MECOMPTAGE_ARGS;
-        return false;
+        return ErreurAppariement::mecomptage_arguments(
+            b, type_fonction->types_entrees.taille() - debut_params, args.taille());
     }
 
     auto exprs = dls::tablet<NoeudExpression *, 10>();
@@ -716,18 +713,14 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
             espace, contexte, type_prm, type_enf, arg, transformation);
 
         if (erreur_dep) {
-            return true;
+            return ErreurAppariement::dependance_non_satisfaite(arg);
         }
 
         poids_args *= poids_pour_enfant;
 
         if (poids_args == 0.0) {
-            poids_args = 0.0;
-            resultat.raison = METYPAGE_ARG;
-            resultat.type_attendu = type_dereference_pour(type_prm);
-            resultat.type_obtenu = type_enf;
-            resultat.noeud_erreur = arg;
-            break;
+            return ErreurAppariement::metypage_argument(
+                arg, type_enf, type_dereference_pour(type_prm));
         }
 
         transformations[i - debut_params] = transformation;
@@ -735,84 +728,64 @@ static auto apparie_appel_pointeur(NoeudExpressionAppel const *b,
         exprs.ajoute(arg);
     }
 
-    resultat.note = CANDIDATE_EST_APPEL_POINTEUR;
-    resultat.type = type_fonction;
-    resultat.poids_args = poids_args;
-    resultat.exprs = exprs;
-    resultat.transformations = std::move(transformations);
-
-    return false;
+    auto candidate = CandidateAppariement::appel_pointeur(
+        poids_args, type_fonction, std::move(exprs), std::move(transformations));
+    candidate.requiers_contexte = requiers_contexte;
+    return candidate;
 }
 
-static auto apparie_appel_init_de(NoeudExpression *expr,
-                                  kuri::tableau<IdentifiantEtExpression> const &args,
-                                  DonneesCandidate &resultat)
+static ResultatAppariement apparie_appel_init_de(
+    NoeudExpression *expr, kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() > 1) {
-        resultat.raison = MECOMPTAGE_ARGS;
-        return;
+        return ErreurAppariement::mecomptage_arguments(expr, 1, args.taille());
     }
 
     auto type_fonction = expr->type->comme_fonction();
     auto type_pointeur = type_fonction->types_entrees[1];
 
     if (type_pointeur != args[0].expr->type) {
-        resultat.raison = METYPAGE_ARG;
-        resultat.noeud_erreur = args[0].expr;
-        resultat.type_attendu = type_pointeur;
-        resultat.type_obtenu = args[0].expr->type;
-        return;
+        return ErreurAppariement::metypage_argument(
+            args[0].expr, type_pointeur, args[0].expr->type);
     }
 
-    auto exprs = dls::tablet<NoeudExpression *, 10>();
-    exprs.ajoute(args[0].expr);
+    auto exprs = dls::cree_tablet<NoeudExpression *, 10>(args[0].expr);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = {TypeTransformation::INUTILE};
 
-    resultat.note = CANDIDATE_EST_APPEL_INIT_DE;
-    resultat.type = expr->type;
-    resultat.poids_args = 1.0;
-    resultat.exprs = exprs;
-    resultat.transformations = std::move(transformations);
-    resultat.requiers_contexte = false;
+    return CandidateAppariement::appel_init_de(
+        1.0, expr->type, std::move(exprs), std::move(transformations));
 }
 
 /* ************************************************************************** */
 
-static auto apparie_appel_fonction(EspaceDeTravail &espace,
-                                   ContexteValidationCode &contexte,
-                                   NoeudExpressionAppel *expr,
-                                   NoeudDeclarationEnteteFonction *decl,
-                                   kuri::tableau<IdentifiantEtExpression> const &args,
-                                   DonneesCandidate &res)
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    res.note = CANDIDATE_EST_APPEL_FONCTION;
-    res.noeud_decl = decl;
-    res.type = decl->type;
-
     if (expr->drapeaux & POUR_CUISSON) {
         if (!decl->est_polymorphe) {
-            res.raison = METYPAGE_ARG;
-            return false;
+            return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
         }
 
         // prend les paramètres polymorphiques
         auto bloc_constantes = decl->bloc_constantes;
 
         if (bloc_constantes->membres->taille() != args.taille()) {
-            res.raison = MECOMPTAGE_ARGS;
-            return false;
+            return ErreurAppariement::mecomptage_arguments(
+                expr, bloc_constantes->membres->taille(), args.taille());
         }
 
         auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         POUR (args) {
             if (noms_rencontres.possede(it.ident)) {
-                res.raison = RENOMMAGE_ARG;
-                res.poids_args = 0.0;
-                res.noeud_erreur = it.expr;
-                return false;
+                return ErreurAppariement::renommage_argument(it.expr, it.ident);
             }
 
             noms_rencontres.insere(it.ident);
@@ -827,34 +800,26 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
             }
 
             if (param == nullptr) {
-                res.raison = MENOMMAGE_ARG;
-                res.poids_args = 0.0;
-                res.noeud_erreur = it.expr;
-                res.noeud_decl = decl;
-                return false;
+                return ErreurAppariement::menommage_arguments(it.expr, it.ident);
             }
 
             // À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
             auto type = it.expr->type->comme_type_de_donnees();
-            res.items_monomorphisation.ajoute(
-                {it.ident, type->type_connu, ValeurExpression(), true});
+            items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
         }
 
-        res.note = CANDIDATE_EST_CUISSON_FONCTION;
-        res.poids_args = 1.0;
-        return false;
+        return CandidateAppariement::cuisson_fonction(
+            1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
     }
 
     auto const nombre_args = decl->params.taille();
 
     if (!decl->est_variadique && (args.taille() > nombre_args)) {
-        res.raison = MECOMPTAGE_ARGS;
-        return false;
+        return ErreurAppariement::mecomptage_arguments(expr, nombre_args, args.taille());
     }
 
     if (nombre_args == 0 && args.taille() == 0) {
-        res.poids_args = 1.0;
-        return false;
+        return CandidateAppariement::appel_fonction(1.0, decl, decl->type, {}, {});
     }
 
     /* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles
@@ -864,7 +829,7 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
 
-    auto apparieuse_params = ApparieuseParams(res);
+    auto apparieuse_params = ApparieuseParams();
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -875,13 +840,12 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
 
     POUR (args) {
         if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
-            // l'apparieuse aura déjà ajourné les données pour cette candidate
-            return false;
+            return apparieuse_params.erreur;
         }
     }
 
     if (!apparieuse_params.tous_les_slots_sont_remplis()) {
-        return false;
+        return apparieuse_params.erreur;
     }
 
     auto poids_args = 1.0;
@@ -928,39 +892,19 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
                 if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type)) {
-                    poids_args = 0.0;
-                    res.raison = METYPAGE_ARG;
-                    res.type_attendu = arg->type;
-                    res.type_obtenu = slot->type;
-                    res.noeud_erreur = slot;
-                    return false;
+                    return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
 
             if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
                 if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
-                    poids_args = 0.0;
-                    res.raison = METYPAGE_ARG;
-                    res.type_attendu = arg->type;
-                    res.type_obtenu = slot->type;
-                    res.noeud_erreur = slot;
-                    return false;
+                    return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
         }
 
         if (!monomorpheuse.resoud_polymorphes(espace.typeuse)) {
-            poids_args = 0.0;
-            res.raison = IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE;
-
-            POUR (monomorpheuse.items) {
-                if (it.second == nullptr) {
-                    res.ident_poly_manquant = it.premier;
-                }
-            }
-
-            res.noeud_decl = decl;
-            return false;
+            return monomorpheuse.erreur;
         }
     }
 
@@ -990,13 +934,11 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
 
                 if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
                     if (!fonction_variadique_interne) {
-                        res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
-                        return false;
+                        return ErreurAppariement::expansion_variadique_externe(slot);
                     }
 
                     if (expansion_rencontree) {
-                        res.raison = MULTIPLE_EXPANSIONS_VARIADIQUES;
-                        return false;
+                        return ErreurAppariement::multiple_expansions_variadiques(slot);
                     }
 
                     auto type_deref_enf = type_dereference_pour(type_de_l_expression);
@@ -1005,7 +947,7 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
                         espace, contexte, type_deref, type_deref_enf, slot, transformation);
 
                     if (erreur_dep) {
-                        return true;
+                        return ErreurAppariement::dependance_non_satisfaite(arg);
                     }
 
                     poids_pour_enfant = poids_pour_enfant_;
@@ -1023,7 +965,7 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
                         espace, contexte, type_deref, type_de_l_expression, slot, transformation);
 
                     if (erreur_dep) {
-                        return true;
+                        return ErreurAppariement::dependance_non_satisfaite(arg);
                     }
 
                     poids_pour_enfant = poids_pour_enfant_;
@@ -1038,24 +980,17 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
                 poids_args *= poids_pour_enfant;
 
                 if (poids_args == 0.0) {
-                    poids_args = 0.0;
-                    res.raison = METYPAGE_ARG;
-                    res.type_attendu = type_dereference_pour(type_du_parametre);
-                    res.type_obtenu = type_de_l_expression;
-                    res.noeud_erreur = slot;
-                    break;
+                    return ErreurAppariement::metypage_argument(
+                        slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
                 }
 
                 if (fonction_variadique_interne) {
                     if (expansion_rencontree && nombre_arg_variadiques_rencontres != 0) {
                         if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                            res.raison = EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES;
-                        }
-                        else {
-                            res.raison = ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES;
+                            return ErreurAppariement::expansion_variadique_post_argument(slot);
                         }
 
-                        return false;
+                        return ErreurAppariement::argument_post_expansion_variadique(slot);
                     }
                 }
 
@@ -1064,8 +999,7 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
             else {
                 if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
                     if (!fonction_variadique_interne) {
-                        res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
-                        return false;
+                        return ErreurAppariement::expansion_variadique_externe(slot);
                     }
                 }
 
@@ -1080,7 +1014,7 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
                 espace, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
 
             if (erreur_dep) {
-                return true;
+                return ErreurAppariement::dependance_non_satisfaite(arg);
             }
 
             // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
@@ -1092,12 +1026,8 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
             poids_args *= poids_pour_enfant;
 
             if (poids_args == 0.0) {
-                poids_args = 0.0;
-                res.raison = METYPAGE_ARG;
-                res.type_attendu = type_du_parametre;
-                res.type_obtenu = type_de_l_expression;
-                res.noeud_erreur = slot;
-                break;
+                return ErreurAppariement::metypage_argument(
+                    slot, type_du_parametre, type_de_l_expression);
             }
 
             transformations[i] = transformation;
@@ -1155,7 +1085,11 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
         }
     }
 
-    res.transformations.reserve(static_cast<int>(transformations.taille()));
+    auto exprs = dls::tablet<NoeudExpression *, 10>();
+    exprs.reserve(slots.taille());
+
+    auto transformations_ = kuri::tableau<TransformationType, int>();
+    transformations_.reserve(static_cast<int>(transformations.taille()));
 
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = 0l; i < slots.taille(); ++i) {
@@ -1166,49 +1100,53 @@ static auto apparie_appel_fonction(EspaceDeTravail &espace,
             continue;
         }
 
-        res.exprs.ajoute(slots[i]);
+        exprs.ajoute(slots[i]);
 
         if (i < transformations.taille()) {
-            res.transformations.ajoute(transformations[i]);
+            transformations_.ajoute(transformations[i]);
         }
     }
 
     for (auto i = slots.taille(); i < transformations.taille(); ++i) {
-        res.transformations.ajoute(transformations[i]);
+        transformations_.ajoute(transformations[i]);
     }
 
-    res.poids_args = poids_args;
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
     if (decl->est_polymorphe) {
-        res.items_monomorphisation.reserve(static_cast<int>(monomorpheuse.items.taille()));
+        items_monomorphisation.reserve(static_cast<int>(monomorpheuse.items.taille()));
 
         POUR (monomorpheuse.items) {
-            res.items_monomorphisation.ajoute({it.premier, it.second, ValeurExpression(), true});
+            items_monomorphisation.ajoute({it.premier, it.second, ValeurExpression(), true});
         }
     }
 
-    return false;
+    return CandidateAppariement::appel_fonction(poids_args,
+                                                decl,
+                                                decl->type,
+                                                std::move(exprs),
+                                                std::move(transformations_),
+                                                std::move(items_monomorphisation));
 }
 
 /* ************************************************************************** */
 
-static auto apparie_appel_structure(EspaceDeTravail &espace,
-                                    ContexteValidationCode &contexte,
-                                    NoeudExpressionAppel const *expr,
-                                    NoeudStruct *decl_struct,
-                                    kuri::tableau<IdentifiantEtExpression> const &arguments,
-                                    DonneesCandidate &resultat)
+static ResultatAppariement apparie_appel_structure(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel const *expr,
+    NoeudStruct *decl_struct,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     auto type_compose = decl_struct->type->comme_compose();
 
     if (decl_struct->est_polymorphe) {
         if (expr->parametres.taille() != decl_struct->params_polymorphiques.taille()) {
-            resultat.raison = MECOMPTAGE_ARGS;
-            resultat.poids_args = 0.0;
-            return false;
+            return ErreurAppariement::mecomptage_arguments(
+                expr, decl_struct->params_polymorphiques.taille(), expr->parametres.taille());
         }
 
-        auto apparieuse_params = ApparieuseParams(resultat);
+        auto apparieuse_params = ApparieuseParams();
 
         POUR (decl_struct->params_polymorphiques) {
             apparieuse_params.ajoute_param(it->ident, nullptr, false);
@@ -1218,14 +1156,16 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
             if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
                 // À FAIRE : si ceci est au début de la fonction, nous avons des messages d'erreurs
                 // assez étranges...
-                resultat.noeud_decl = decl_struct;
-                return false;
+                apparieuse_params.erreur.noeud_decl = decl_struct;
+                return apparieuse_params.erreur;
             }
         }
 
         if (!apparieuse_params.tous_les_slots_sont_remplis()) {
-            return false;
+            return apparieuse_params.erreur;
         }
+
+        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         auto index_param = 0;
         POUR (apparieuse_params.slots()) {
@@ -1236,28 +1176,16 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
             if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
                 if (param->type->est_type_de_donnees()) {
                     if (!it->type->est_type_de_donnees()) {
-                        resultat.raison = METYPAGE_ARG;
-                        resultat.poids_args = 0.0;
-                        resultat.type_attendu = param->type;
-                        resultat.type_obtenu = it->type;
-                        resultat.noeud_erreur = it;
-                        resultat.noeud_decl = decl_struct;
-                        return false;
+                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
                     }
 
-                    resultat.items_monomorphisation.ajoute(
+                    items_monomorphisation.ajoute(
                         {param->ident, it->type, ValeurExpression(), true});
                 }
                 else {
                     if (!(it->type == param->type ||
                           (it->type->est_entier_constant() && est_type_entier(param->type)))) {
-                        resultat.raison = METYPAGE_ARG;
-                        resultat.poids_args = 0.0;
-                        resultat.type_attendu = param->type;
-                        resultat.type_obtenu = it->type;
-                        resultat.noeud_erreur = it;
-                        resultat.noeud_decl = decl_struct;
-                        return false;
+                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
                     }
 
                     auto valeur = evalue_expression(&espace, it->bloc_parent, it);
@@ -1266,7 +1194,7 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
                         rapporte_erreur(&espace, it, "La valeur n'est pas constante");
                     }
 
-                    resultat.items_monomorphisation.ajoute(
+                    items_monomorphisation.ajoute(
                         {param->ident, param->type, valeur.valeur, false});
                 }
             }
@@ -1326,34 +1254,30 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
                 }
             }
 
-            resultat.type = espace.typeuse.type_type_de_donnees(type_poly);
-            resultat.note = CANDIDATE_EST_TYPE_POLYMORPHIQUE;
-            resultat.poids_args = 1.0;
-            return false;
+            return CandidateAppariement::type_polymorphique(
+                1.0,
+                espace.typeuse.type_type_de_donnees(type_poly),
+                {},
+                {},
+                std::move(items_monomorphisation));
         }
 
-        resultat.noeud_decl = decl_struct;
-        resultat.note = CANDIDATE_EST_INITIALISATION_STRUCTURE;
-        resultat.poids_args = 1.0;
-        return false;
+        return CandidateAppariement::initialisation_structure(
+            1.0, decl_struct, decl_struct->type, {}, {}, std::move(items_monomorphisation));
     }
 
     if (decl_struct->est_union) {
         if (expr->parametres.taille() > 1) {
-            resultat.raison = TROP_D_EXPRESSION_POUR_UNION;
-            resultat.poids_args = 0.0;
-            return false;
+            return ErreurAppariement::expression_extra_pour_union(expr);
         }
 
         if (expr->parametres.taille() == 0) {
-            resultat.raison = EXPRESSION_MANQUANTE_POUR_UNION;
-            resultat.poids_args = 0.0;
-            return false;
+            return ErreurAppariement::expression_manquante_union(expr);
         }
     }
 
     // À FAIRE : détecte quand nous avons des constantes
-    auto apparieuse_params = ApparieuseParams(resultat);
+    auto apparieuse_params = ApparieuseParams();
 
     POUR (type_compose->membres) {
         if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
@@ -1366,7 +1290,7 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
 
     POUR (arguments) {
         if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
-            return false;
+            return apparieuse_params.erreur;
         }
     }
 
@@ -1387,143 +1311,93 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
             espace, contexte, membre.type, it->type, it, transformation);
 
         if (erreur_dep) {
-            return true;
+            return ErreurAppariement::dependance_non_satisfaite(it);
         }
 
         poids_appariement *= poids_pour_enfant;
 
         if (poids_appariement == 0.0) {
-            resultat.raison = METYPAGE_ARG;
-            resultat.poids_args = 0.0;
-            resultat.noeud_erreur = it;
-            resultat.type_attendu = membre.type;
-            resultat.type_obtenu = it->type;
-            return false;
+            return ErreurAppariement::metypage_argument(it, membre.type, it->type);
         }
 
         transformations[index_membre] = transformation;
         index_membre += 1;
     }
 
-    resultat.type = decl_struct->type;
-    resultat.note = CANDIDATE_EST_INITIALISATION_STRUCTURE;
-    resultat.raison = AUCUNE_RAISON;
-    resultat.poids_args = poids_appariement;
-    resultat.exprs = apparieuse_params.slots();
-    resultat.transformations = std::move(transformations);
-
-    return false;
+    return CandidateAppariement::initialisation_structure(poids_appariement,
+                                                          decl_struct,
+                                                          decl_struct->type,
+                                                          std::move(apparieuse_params.slots()),
+                                                          std::move(transformations));
 }
 
 /* ************************************************************************** */
 
-static auto apparie_construction_opaque(EspaceDeTravail &espace,
-                                        ContexteValidationCode &contexte,
-                                        NoeudExpressionAppel const *expr,
-                                        TypeOpaque *type_opaque,
-                                        kuri::tableau<IdentifiantEtExpression> const &arguments,
-                                        DonneesCandidate &resultat)
+static ResultatAppariement apparie_construction_opaque(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel const *expr,
+    TypeOpaque *type_opaque,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     if (arguments.taille() == 0) {
         // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
         // par défaut des types simples afin de pouvoir les utiliser dans la simplification du code
-        resultat.raison = MECOMPTAGE_ARGS;
-        resultat.poids_args = 0.0;
-        resultat.noeud_erreur = expr;
-        return false;
+        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
     }
 
     if (arguments.taille() > 1) {
-        resultat.raison = MECOMPTAGE_ARGS;
-        resultat.poids_args = 0.0;
-        resultat.noeud_erreur = expr;
-        return true;
+        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
     }
 
     auto arg = arguments[0].expr;
 
     if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         if (arg->type->est_type_de_donnees()) {
-            resultat.type = type_opaque;
-            resultat.note = CANDIDATE_EST_MONOMORPHISATION_OPAQUE;
-            resultat.poids_args = 1.0;
-            resultat.exprs.ajoute(arg);
-            return false;
+            auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+            return CandidateAppariement::monomophisation_opaque(
+                1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
         }
 
-        resultat.type = type_opaque;
-        resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
-        resultat.poids_args = 1.0;
-        resultat.exprs.ajoute(arg);
-        return false;
+        auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+        return CandidateAppariement::initialisation_opaque(
+            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
 
     TransformationType transformation;
-    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace,
-                                                                  contexte,
-                                                                  type_opaque->type_opacifie,
-                                                                  arguments[0].expr->type,
-                                                                  arguments[0].expr,
-                                                                  transformation);
+    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(
+        espace, contexte, type_opaque->type_opacifie, arg->type, arg, transformation);
 
-    /*
-        À FAIRE
-        if (erreur_dep) {
-            return true;
-        }
-    */
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        resultat.raison = METYPAGE_ARG;
-        resultat.noeud_erreur = arguments[0].expr;
-        resultat.poids_args = 0.0;
-        resultat.type_attendu = type_opaque->type_opacifie;
-        resultat.type_obtenu = arguments[0].expr->type;
-        return true;
+    if (erreur_dep) {
+        return ErreurAppariement::dependance_non_satisfaite(expr);
     }
 
-    resultat.type = type_opaque;
-    resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
-    resultat.poids_args = poids_pour_enfant_;
-    resultat.exprs.ajoute(arg);
-    resultat.transformations.ajoute(transformation);
-    return false;
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        return ErreurAppariement::metypage_argument(arg, type_opaque->type_opacifie, arg->type);
+    }
+
+    auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+
+    auto transformations = kuri::tableau<TransformationType, int>(1);
+    transformations[0] = transformation;
+
+    return CandidateAppariement::initialisation_opaque(poids_pour_enfant_,
+                                                       type_opaque->decl,
+                                                       type_opaque,
+                                                       std::move(exprs),
+                                                       std::move(transformations));
 }
 
 /* ************************************************************************** */
 
 struct ContexteValidationAppel {
     kuri::tableau<IdentifiantEtExpression> args{};
-    dls::tablet<DonneesCandidate, 10> candidates{};
-    int nombre_candidates = 0;
-
-    DonneesCandidate &ajoute_donnees()
-    {
-        candidates.redimensionne(candidates.taille() + 1);
-        return candidates[nombre_candidates++];
-    }
+    dls::tablet<ResultatAppariement, 10> resultats{};
 
     void efface()
     {
-        nombre_candidates = 0;
         args.efface();
-
-        POUR (candidates) {
-            it.arguments_manquants.efface();
-            it.exprs.efface();
-            it.transformations.efface();
-            it.items_monomorphisation.efface();
-            it.poids_args = 0.0;
-            it.raison = 0;
-            it.nom_arg = "";
-            it.requiers_contexte = true;
-            it.type = nullptr;
-            it.type_attendu = nullptr;
-            it.type_obtenu = nullptr;
-            it.noeud_erreur = nullptr;
-            it.noeud_decl = nullptr;
-            it.ident_poly_manquant = nullptr;
-        }
+        resultats.efface();
     }
 };
 
@@ -1584,10 +1458,8 @@ static bool apparies_candidates(EspaceDeTravail &espace,
 {
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
-            auto &dc = resultat.ajoute_donnees();
-            if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
-                return true;
-            }
+            resultat.resultats.ajoute(
+                apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1605,10 +1477,8 @@ static bool apparies_candidates(EspaceDeTravail &espace,
                     return true;
                 }
 
-                auto &dc = resultat.ajoute_donnees();
-                if (apparie_appel_structure(espace, contexte, expr, decl_struct, args, dc)) {
-                    return true;
-                }
+                resultat.resultats.ajoute(
+                    apparie_appel_structure(espace, contexte, expr, decl_struct, args));
             }
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
@@ -1618,14 +1488,11 @@ static bool apparies_candidates(EspaceDeTravail &espace,
                     return true;
                 }
 
-                auto &dc = resultat.ajoute_donnees();
-                if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
-                    return true;
-                }
+                resultat.resultats.ajoute(
+                    apparie_appel_fonction(espace, contexte, expr, decl_fonc, args));
             }
             else if (decl->est_declaration_variable()) {
                 auto type = decl->type;
-                auto &dc = resultat.ajoute_donnees();
 
                 if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
                     // @concurrence critique
@@ -1643,68 +1510,55 @@ static bool apparies_candidates(EspaceDeTravail &espace,
                     auto type_connu = type_de_donnees->type_connu;
 
                     if (!type_connu) {
-                        dc.raison = TYPE_N_EST_PAS_FONCTION;
-                        return true;
+                        resultat.resultats.ajoute(
+                            ErreurAppariement::type_non_fonction(expr, type_de_donnees));
                     }
 
                     if (type_connu->est_structure()) {
                         auto type_struct = type_connu->comme_structure();
 
-                        if (apparie_appel_structure(
-                                espace, contexte, expr, type_struct->decl, args, dc)) {
-                            return true;
-                        }
+                        resultat.resultats.ajoute(apparie_appel_structure(
+                            espace, contexte, expr, type_struct->decl, args));
                     }
                     else if (type_connu->est_union()) {
                         auto type_union = type_connu->comme_union();
 
-                        if (apparie_appel_structure(
-                                espace, contexte, expr, type_union->decl, args, dc)) {
-                            return true;
-                        }
+                        resultat.resultats.ajoute(apparie_appel_structure(
+                            espace, contexte, expr, type_union->decl, args));
                     }
                     else if (type_connu->est_opaque()) {
                         auto type_opaque = type_connu->comme_opaque();
 
-                        if (apparie_construction_opaque(
-                                espace, contexte, expr, type_opaque, args, dc)) {
-                            return true;
-                        }
+                        resultat.resultats.ajoute(apparie_construction_opaque(
+                            espace, contexte, expr, type_opaque, args));
                     }
                     else {
-                        dc.raison = TYPE_N_EST_PAS_FONCTION;
-                        return false;
+                        resultat.resultats.ajoute(
+                            ErreurAppariement::type_non_fonction(expr, type_connu));
                     }
                 }
                 else if (type->est_fonction()) {
-                    if (apparie_appel_pointeur(expr, decl->type, espace, contexte, args, dc)) {
-                        return true;
-                    }
+                    resultat.resultats.ajoute(
+                        apparie_appel_pointeur(expr, decl->type, espace, contexte, args));
                 }
                 else if (type->est_opaque()) {
                     auto type_opaque = type->comme_opaque();
 
-                    if (apparie_construction_opaque(
-                            espace, contexte, expr, type_opaque, args, dc)) {
-                        return true;
-                    }
+                    resultat.resultats.ajoute(
+                        apparie_construction_opaque(espace, contexte, expr, type_opaque, args));
                 }
                 else {
-                    dc.raison = TYPE_N_EST_PAS_FONCTION;
-                    return false;
+                    resultat.resultats.ajoute(ErreurAppariement::type_non_fonction(expr, type));
                 }
             }
         }
         else if (it.quoi == CANDIDATE_EST_INIT_DE) {
             // ici nous pourrions directement retourner si le type est correcte...
-            auto &dc = resultat.ajoute_donnees();
-            apparie_appel_init_de(it.decl, args, dc);
+            resultat.resultats.ajoute(apparie_appel_init_de(it.decl, args));
         }
         else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            auto &dc = resultat.ajoute_donnees();
-            if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
-                return true;
-            }
+            resultat.resultats.ajoute(
+                apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args));
         }
     }
 
@@ -1907,46 +1761,54 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
 
-    ctx.candidates.redimensionne(ctx.nombre_candidates);
-    auto candidate = DonneesCandidate::nul();
-    auto poids = 0.0;
+    dls::tablet<CandidateAppariement, 10> candidates;
+    dls::tablet<ErreurAppariement, 10> erreurs;
 
-    POUR (ctx.candidates) {
-        if (it.poids_args > poids) {
-            candidate = &it;
-            poids = it.poids_args;
+    POUR (ctx.resultats) {
+        if (std::holds_alternative<ErreurAppariement>(it)) {
+            auto &erreur = std::get<ErreurAppariement>(it);
+
+            if (erreur.raison == ERREUR_DEPENDANCE) {
+                return ResultatValidation::Erreur;
+            }
+
+            erreurs.ajoute(erreur);
+        }
+        else {
+            auto &candidate_test = std::get<CandidateAppariement>(it);
+            candidates.ajoute(candidate_test);
         }
     }
 
-    if (candidate == nullptr) {
-        contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
+    if (candidates.est_vide()) {
+        erreur::lance_erreur_fonction_inconnue(espace, expr, erreurs);
         return ResultatValidation::Erreur;
     }
 
-    POUR (ctx.candidates) {
-        if (&it == candidate) {
-            continue;
+    std::sort(candidates.debut(), candidates.fin(), [](auto &a, auto &b) {
+        return a.poids_args > b.poids_args;
+    });
+
+    if (candidates.taille() > 1 && (candidates[0].poids_args == candidates[1].poids_args)) {
+        auto e = rapporte_erreur(&espace,
+                                 expr,
+                                 "Je ne peux pas déterminer quelle fonction appeler car "
+                                 "plusieurs fonctions correspondent à l'expression d'appel.");
+
+        if (candidates[0].noeud_decl && candidates[1].noeud_decl) {
+            e.ajoute_message("Candidate possible :\n");
+            e.ajoute_site(candidates[0].noeud_decl);
+            e.ajoute_message("Candidate possible :\n");
+            e.ajoute_site(candidates[1].noeud_decl);
+        }
+        else {
+            e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
         }
 
-        if (it.poids_args == poids) {
-            auto e = rapporte_erreur(&espace,
-                                     expr,
-                                     "Je ne peux pas déterminer quelle fonction appeler car "
-                                     "plusieurs fonctions correspondent à l'expression d'appel.");
-
-            if (it.noeud_decl && candidate->noeud_decl) {
-                e.ajoute_message("Candidate possible :\n");
-                e.ajoute_site(it.noeud_decl);
-                e.ajoute_message("Candidate possible :\n");
-                e.ajoute_site(candidate->noeud_decl);
-            }
-            else {
-                e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
-            }
-
-            return ResultatValidation::Erreur;
-        }
+        return ResultatValidation::Erreur;
     }
+
+    auto candidate = &candidates[0];
 
     // ------------
     // copie les données
@@ -1964,7 +1826,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 			std::cerr << "-- nombre d'expressions : " << nombre_exprs << '\n';
 			for (int i = 0; i < tailles.taille(); ++i) {
 				std::cerr << "-- taille " << i << " : " << tailles[i]
-						  << " (" << static_cast<float>(tailles[i]) / static_cast<float>(nombre_exprs) << "%)" << '\n';
+							 << " (" << static_cast<float>(tailles[i]) / static_cast<float>(nombre_exprs) << "%)" << '\n';
 			}
 		}
 
@@ -2124,7 +1986,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->expression = decl_fonction_appelee;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
-        if (candidate->noeud_decl) {
+        if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
             auto decl_struct = candidate->noeud_decl->comme_structure();
 
             auto copie = monomorphise_au_besoin(

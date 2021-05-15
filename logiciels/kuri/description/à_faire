@@ -91,7 +91,6 @@
 
 // --------------------------- Compilatrice
 
-remplace DonneesCandidate::raison par une chaine de caractère
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 

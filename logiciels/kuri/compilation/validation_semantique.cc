@@ -4592,12 +4592,6 @@ void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(
     erreur::valeur_manquante_discr(*espace, expression, valeurs_manquantes);
 }
 
-void ContexteValidationCode::rapporte_erreur_fonction_inconnue(
-    NoeudExpression *b, const dls::tablet<DonneesCandidate, 10> &candidates)
-{
-    erreur::lance_erreur_fonction_inconnue(*espace, b, candidates);
-}
-
 void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl_fonc,
                                                              const NoeudExpression *decl_fonc,
                                                              const NoeudExpression *decl_appel)

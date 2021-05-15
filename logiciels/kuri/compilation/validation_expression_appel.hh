@@ -30,6 +30,8 @@
 #include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 
+#include "parsage/identifiant.hh"
+
 #include "monomorphisations.hh"
 #include "transformation_type.hh"
 
@@ -53,6 +55,10 @@ struct IdentifiantEtExpression {
 
 enum {
     AUCUNE_RAISON,
+
+    // À FAIRE : ceci n'est que pour attendre sur un type lors de la vérification de la
+    // compatibilité entre les types des arguments et ceux des expressions reçues
+    ERREUR_DEPENDANCE,
 
     EXPRESSION_MANQUANTE_POUR_UNION,
     MANQUE_NOM_APRES_VARIADIC,
@@ -84,9 +90,8 @@ enum {
     CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
 };
 
-struct DonneesCandidate {
+struct ErreurAppariement {
     int raison = AUCUNE_RAISON;
-    double poids_args = 0.0;
     kuri::chaine_statique nom_arg{};
 
     /* Ce que nous avons à gauche */
@@ -99,58 +104,320 @@ struct DonneesCandidate {
      * fonctions) */
     Type *type = nullptr;
 
-    /* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-    dls::tablet<NoeudExpression *, 10> exprs{};
-    dls::tablet<IdentifiantCode *, 10> arguments_manquants{};
-    Type *type_attendu{};
-    Type *type_obtenu{};
-    NoeudExpression const *noeud_erreur = nullptr;
+    dls::tablet<IdentifiantCode *, 10> arguments_manquants_{};
+    NoeudExpression const *site_erreur = nullptr;
     NoeudDeclaration *noeud_decl = nullptr;
-    kuri::tableau<TransformationType, int> transformations{};
-    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
 
     IdentifiantCode *ident_poly_manquant = nullptr;
 
-    POINTEUR_NUL(DonneesCandidate)
+    struct NombreArguments {
+        long int nombre_obtenu = 0;
+        long int nombre_requis = 0;
+    } nombre_arguments{};
 
-    DonneesCandidate() = default;
-
-    DonneesCandidate(DonneesCandidate const &) = default;
-
-    DonneesCandidate(DonneesCandidate &&autre)
+    static ErreurAppariement mecomptage_arguments(NoeudExpression const *site,
+                                                  long nombre_requis,
+                                                  long nombre_obtenu)
     {
-        this->permute(autre);
+        auto erreur = cree_erreur(MECOMPTAGE_ARGS, site);
+        erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;
+        erreur.nombre_arguments.nombre_requis = nombre_requis;
+        return erreur;
     }
 
-    DonneesCandidate &operator=(DonneesCandidate const &) = default;
+    struct TypeArgument {
+        Type *type_attendu = nullptr;
+        Type *type_obtenu = nullptr;
+    } type_arguments{};
 
-    DonneesCandidate &operator=(DonneesCandidate &&autre)
+    static ErreurAppariement metypage_argument(NoeudExpression const *site,
+                                               Type *type_attendu,
+                                               Type *type_obtenu)
     {
-        this->permute(autre);
-        return *this;
+        auto erreur = cree_erreur(METYPAGE_ARG, site);
+        erreur.type_arguments.type_attendu = type_attendu;
+        erreur.type_arguments.type_obtenu = type_obtenu;
+        return erreur;
     }
 
-    void permute(DonneesCandidate &autre)
+    static ErreurAppariement definition_type_polymorphique_impossible(NoeudExpression const *site,
+                                                                      IdentifiantCode *ident)
     {
-        if (this == &autre) {
-            return;
-        }
+        auto erreur = cree_erreur(IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE, site);
+        erreur.ident_poly_manquant = ident;
+        return erreur;
+    }
 
-        std::swap(raison, autre.raison);
-        std::swap(poids_args, autre.poids_args);
-        std::swap(nom_arg, autre.nom_arg);
-        std::swap(note, autre.note);
-        std::swap(requiers_contexte, autre.requiers_contexte);
-        std::swap(type, autre.type);
-        std::swap(type_attendu, autre.type_attendu);
-        std::swap(type_obtenu, autre.type_obtenu);
-        std::swap(noeud_erreur, autre.noeud_erreur);
-        std::swap(noeud_decl, autre.noeud_decl);
-        std::swap(ident_poly_manquant, autre.ident_poly_manquant);
-        exprs.permute(autre.exprs);
-        arguments_manquants.permute(autre.arguments_manquants);
-        transformations.permute(autre.transformations);
-        items_monomorphisation.permute(autre.items_monomorphisation);
+    static ErreurAppariement type_non_fonction(NoeudExpression const *site, Type *type)
+    {
+        auto erreur = cree_erreur(TYPE_N_EST_PAS_FONCTION, site);
+        erreur.type = type;
+        return erreur;
+    }
+
+    static ErreurAppariement menommage_arguments(NoeudExpression const *site,
+                                                 IdentifiantCode *ident)
+    {
+        auto erreur = cree_erreur(MENOMMAGE_ARG, site);
+        erreur.nom_arg = ident->nom;
+        return erreur;
+    }
+
+    static ErreurAppariement renommage_argument(NoeudExpression const *site,
+                                                IdentifiantCode *ident)
+    {
+        auto erreur = cree_erreur(RENOMMAGE_ARG, site);
+        erreur.nom_arg = ident->nom;
+        return erreur;
+    }
+
+#define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
+    static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
+    {                                                                                             \
+        return cree_erreur(nom_enum, site);                                                       \
+    }
+
+    CREATION_ERREUR(ERREUR_DEPENDANCE, dependance_non_satisfaite);
+    CREATION_ERREUR(EXPRESSION_MANQUANTE_POUR_UNION, expression_manquante_union);
+    CREATION_ERREUR(MANQUE_NOM_APRES_VARIADIC, nom_manquant_apres_variadique);
+    CREATION_ERREUR(ARGUMENTS_MANQUANTS, arguments_manquants);
+    CREATION_ERREUR(NOMMAGE_ARG_POINTEUR_FONCTION, nommage_argument_pointeur_fonction);
+    CREATION_ERREUR(TROP_D_EXPRESSION_POUR_UNION, expression_extra_pour_union);
+    CREATION_ERREUR(CONTEXTE_MANQUANT, contexte_manquant);
+    CREATION_ERREUR(EXPANSION_VARIADIQUE_FONCTION_EXTERNE, expansion_variadique_externe);
+    CREATION_ERREUR(MULTIPLE_EXPANSIONS_VARIADIQUES, multiple_expansions_variadiques);
+    CREATION_ERREUR(EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
+                    expansion_variadique_post_argument);
+    CREATION_ERREUR(ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
+                    argument_post_expansion_variadique);
+
+#undef CRETION_ERREUR
+
+  private:
+    static ErreurAppariement cree_erreur(int raison, NoeudExpression const *site)
+    {
+        ErreurAppariement erreur;
+        erreur.raison = raison;
+        erreur.site_erreur = site;
+        return erreur;
+    }
+};
+
+struct CandidateAppariement {
+    double poids_args = 0.0;
+    int note = NOTE_INVALIDE;
+
+    bool requiers_contexte = true;
+    REMBOURRE(3);
+    /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
+     * fonctions) */
+    Type *type = nullptr;
+
+    /* les expressions remises dans l'ordre selon les noms. */
+    dls::tablet<NoeudExpression *, 10> exprs{};
+
+    NoeudDeclaration *noeud_decl = nullptr;
+
+    kuri::tableau<TransformationType, int> transformations{};
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
+
+    static CandidateAppariement *nul()
+    {
+        return nullptr;
+    }
+
+    static CandidateAppariement appel_fonction(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_APPEL_FONCTION,
+                              poids,
+                              noeud_decl,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+    static CandidateAppariement appel_fonction(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations,
+        kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    {
+        auto candidate = cree_candidate(CANDIDATE_EST_APPEL_FONCTION,
+                                        poids,
+                                        noeud_decl,
+                                        type,
+                                        std::move(exprs),
+                                        std::move(transformations));
+        candidate.items_monomorphisation = std::move(items_monomorphisation);
+        return candidate;
+    }
+
+    static CandidateAppariement cuisson_fonction(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations,
+        kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    {
+        auto candidate = cree_candidate(CANDIDATE_EST_CUISSON_FONCTION,
+                                        poids,
+                                        noeud_decl,
+                                        type,
+                                        std::move(exprs),
+                                        std::move(transformations));
+        candidate.items_monomorphisation = std::move(items_monomorphisation);
+        return candidate;
+    }
+
+    static CandidateAppariement appel_pointeur(
+        double poids,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_APPEL_POINTEUR,
+                              poids,
+                              nullptr,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+    static CandidateAppariement initialisation_structure(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+                              poids,
+                              noeud_decl,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+    static CandidateAppariement initialisation_structure(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations,
+        kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    {
+        auto candidate = cree_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+                                        poids,
+                                        noeud_decl,
+                                        type,
+                                        std::move(exprs),
+                                        std::move(transformations));
+        candidate.items_monomorphisation = std::move(items_monomorphisation);
+        return candidate;
+    }
+
+    static CandidateAppariement type_polymorphique(
+        double poids,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+                              poids,
+                              nullptr,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+    static CandidateAppariement type_polymorphique(
+        double poids,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations,
+        kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    {
+        auto candidate = cree_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+                                        poids,
+                                        nullptr,
+                                        type,
+                                        std::move(exprs),
+                                        std::move(transformations));
+        candidate.items_monomorphisation = std::move(items_monomorphisation);
+        return candidate;
+    }
+
+    static CandidateAppariement appel_init_de(
+        double poids,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        auto resultat = cree_candidate(CANDIDATE_EST_APPEL_INIT_DE,
+                                       poids,
+                                       nullptr,
+                                       type,
+                                       std::move(exprs),
+                                       std::move(transformations));
+        resultat.requiers_contexte = false;
+        return resultat;
+    }
+
+    static CandidateAppariement initialisation_opaque(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_INITIALISATION_OPAQUE,
+                              poids,
+                              noeud_decl,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+    static CandidateAppariement monomophisation_opaque(
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        return cree_candidate(CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
+                              poids,
+                              noeud_decl,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
+    }
+
+  private:
+    static CandidateAppariement cree_candidate(
+        int note,
+        double poids,
+        NoeudDeclaration *noeud_decl,
+        Type *type,
+        dls::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations)
+    {
+        CandidateAppariement candidate;
+        candidate.note = note;
+        candidate.poids_args = poids;
+        candidate.type = type;
+        candidate.exprs = std::move(exprs);
+        candidate.transformations = std::move(transformations);
+        candidate.noeud_decl = noeud_decl;
+        return candidate;
     }
 };
 

@@ -152,8 +152,6 @@ struct ContexteValidationCode {
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
-    void rapporte_erreur_fonction_inconnue(NoeudExpression *b,
-                                           dls::tablet<DonneesCandidate, 10> const &candidates);
     void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc,
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
