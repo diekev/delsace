@@ -1152,9 +1152,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                             //								noeud->aide_generation_code =
                             // GENERE_BOUCLE_COROUTINE;
                             //							}
-                            //							else if (feuilles.taille() == nombre_vars_ret +
-                            //1) { 								requiers_index = true;
-                            //noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+                            //							else if (feuilles.taille() == nombre_vars_ret
+                            //+ 1) { 								requiers_index = true;
+                            // noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
                             //							}
                             //							else {
                             //								rapporte_erreur(
@@ -1720,22 +1720,23 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 
-                auto valide_presence_membres = [&membres_rencontres, &type_union, this, &expression]() {
-                    auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
+                auto valide_presence_membres =
+                    [&membres_rencontres, &type_union, this, &expression]() {
+                        auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
-                    POUR (type_union->membres) {
-                        if (!membres_rencontres.possede(it.nom)) {
-                            valeurs_manquantes.insere(it.nom->nom);
+                        POUR (type_union->membres) {
+                            if (!membres_rencontres.possede(it.nom)) {
+                                valeurs_manquantes.insere(it.nom->nom);
+                            }
                         }
-                    }
 
-                    if (valeurs_manquantes.taille() != 0) {
-                        rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
-                        return ResultatValidation::Erreur;
-                    }
+                        if (valeurs_manquantes.taille() != 0) {
+                            rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
+                            return ResultatValidation::Erreur;
+                        }
 
-                    return ResultatValidation::OK;
-                };
+                        return ResultatValidation::OK;
+                    };
 
                 noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 

@@ -1419,14 +1419,14 @@ static auto apparie_appel_structure(EspaceDeTravail &espace,
 
 static auto apparie_construction_opaque(EspaceDeTravail &espace,
                                         ContexteValidationCode &contexte,
-                                        NoeudExpressionAppel const * expr,
+                                        NoeudExpressionAppel const *expr,
                                         TypeOpaque *type_opaque,
                                         kuri::tableau<IdentifiantEtExpression> const &arguments,
                                         DonneesCandidate &resultat)
 {
     if (arguments.taille() == 0) {
-        // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction par défaut
-        // des types simples afin de pouvoir les utiliser dans la simplification du code
+        // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
+        // par défaut des types simples afin de pouvoir les utiliser dans la simplification du code
         resultat.raison = MECOMPTAGE_ARGS;
         resultat.poids_args = 0.0;
         resultat.noeud_erreur = expr;
@@ -1459,14 +1459,19 @@ static auto apparie_construction_opaque(EspaceDeTravail &espace,
     }
 
     TransformationType transformation;
-    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace, contexte, type_opaque->type_opacifie, arguments[0].expr->type, arguments[0].expr, transformation);
+    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace,
+                                                                  contexte,
+                                                                  type_opaque->type_opacifie,
+                                                                  arguments[0].expr->type,
+                                                                  arguments[0].expr,
+                                                                  transformation);
 
-/*
-    À FAIRE
-    if (erreur_dep) {
-        return true;
-    }
-*/
+    /*
+        À FAIRE
+        if (erreur_dep) {
+            return true;
+        }
+    */
 
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         resultat.raison = METYPAGE_ARG;
@@ -1522,7 +1527,8 @@ struct ContexteValidationAppel {
     }
 };
 
-using ListeCandidatesExpressionAppel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
+using ListeCandidatesExpressionAppel =
+    dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
 
 static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
                                          ContexteValidationCode &contexte,
@@ -1569,13 +1575,12 @@ static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
     return false;
 }
 
-static bool apparies_candidates(
-    EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
-    kuri::tableau<IdentifiantEtExpression> &args,
-    ListeCandidatesExpressionAppel const &candidates_appel,
-    ContexteValidationAppel &resultat)
+static bool apparies_candidates(EspaceDeTravail &espace,
+                                ContexteValidationCode &contexte,
+                                NoeudExpressionAppel *expr,
+                                kuri::tableau<IdentifiantEtExpression> &args,
+                                ListeCandidatesExpressionAppel const &candidates_appel,
+                                ContexteValidationAppel &resultat)
 {
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
@@ -1895,9 +1900,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         if (apparies_candidates(espace, contexte, expr, args, candidates, ctx)) {
-            // À FAIRE : gestion des erreurs, nous ne pouvons émettre une erreur ici, car nous pourrions
-            // attendre sur quelque chose (symbole, type, ...)
-            //contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
+            // À FAIRE : gestion des erreurs, nous ne pouvons émettre une erreur ici, car nous
+            // pourrions attendre sur quelque chose (symbole, type, ...)
+            // contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
             return ResultatValidation::Erreur;
         }
     }
@@ -2209,7 +2214,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                                candidate->transformations[i]);
+                                                 candidate->transformations[i]);
             }
 
             expr->type = type_opaque;

@@ -1397,14 +1397,20 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             NoeudExpression *expr_debut = nullptr;
             NoeudExpression *expr_fin = nullptr;
 
-            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE || inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
+            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE ||
+                inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
                 simplifie(expression_iteree);
 
                 // 0 ... expr - 1
-                expr_debut = assem->cree_litterale_entier(expression_iteree->lexeme, expression_iteree->type, 0);
+                expr_debut = assem->cree_litterale_entier(
+                    expression_iteree->lexeme, expression_iteree->type, 0);
 
-                auto valeur_un = assem->cree_litterale_entier(expression_iteree->lexeme, expression_iteree->type, 1);
-                expr_fin = assem->cree_expression_binaire(expression_iteree->lexeme, expression_iteree->type->operateur_sst, expression_iteree, valeur_un);
+                auto valeur_un = assem->cree_litterale_entier(
+                    expression_iteree->lexeme, expression_iteree->type, 1);
+                expr_fin = assem->cree_expression_binaire(expression_iteree->lexeme,
+                                                          expression_iteree->type->operateur_sst,
+                                                          expression_iteree,
+                                                          valeur_un);
             }
             else {
                 auto expr_plage = expression_iteree->comme_plage();

@@ -79,7 +79,8 @@ std::ostream &operator<<(std::ostream &os, Genre genre);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 
-dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr);
+dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
+                                           const NoeudExpression *expr);
 
 void lance_erreur(const kuri::chaine &quoi,
                   EspaceDeTravail const &espace,
