@@ -1155,7 +1155,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                             //								noeud->aide_generation_code =
                             // GENERE_BOUCLE_COROUTINE;
                             //							}
-                            //							else if (feuilles.taille() == nombre_vars_ret
+                            //							else if (feuilles.taille() ==
+                            //nombre_vars_ret
                             //+ 1) { 								requiers_index = true;
                             // noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
                             //							}
@@ -2852,8 +2853,8 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) {
-
-        auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, variable->type);
+        auto resultat = cherche_transformation(
+            *espace, *this, type_de_l_expression, variable->type);
 
         if (std::holds_alternative<Attente>(resultat)) {
             unite->marque_attente(std::get<Attente>(resultat));
@@ -4126,7 +4127,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
         }
         else {
-            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, variable->type);
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, variable->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4351,7 +4353,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
-            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4372,7 +4375,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             // déréférence var
             type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
 
-            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, type_de_la_variable);
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, type_de_la_variable);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4390,7 +4394,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else if (expr_est_reference) {
             // déréférence expr
-            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4405,7 +4410,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             }
         }
         else {
-            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));

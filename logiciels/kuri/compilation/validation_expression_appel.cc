@@ -915,7 +915,8 @@ static ResultatAppariement apparie_appel_fonction(
 
                     auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
-                    auto resultat = verifie_compatibilite(espace, contexte, type_deref, type_deref_enf, slot);
+                    auto resultat = verifie_compatibilite(
+                        espace, contexte, type_deref, type_deref_enf, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
                         contexte.unite->marque_attente(std::get<Attente>(resultat));
@@ -935,7 +936,8 @@ static ResultatAppariement apparie_appel_fonction(
                     expansion_rencontree = true;
                 }
                 else {
-                    auto resultat = verifie_compatibilite(espace, contexte, type_deref, type_de_l_expression, slot);
+                    auto resultat = verifie_compatibilite(
+                        espace, contexte, type_deref, type_de_l_expression, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
                         contexte.unite->marque_attente(std::get<Attente>(resultat));
@@ -985,7 +987,8 @@ static ResultatAppariement apparie_appel_fonction(
             nombre_arg_variadiques_rencontres += 1;
         }
         else {
-            auto resultat = verifie_compatibilite(espace, contexte, type_du_parametre, type_de_l_expression, slot);
+            auto resultat = verifie_compatibilite(
+                espace, contexte, type_du_parametre, type_de_l_expression, slot);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 contexte.unite->marque_attente(std::get<Attente>(resultat));
@@ -1294,7 +1297,8 @@ static ResultatAppariement apparie_appel_structure(
 
         poids_appariement *= poids_xform.poids;
 
-        if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE || poids_appariement == 0.0) {
+        if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE ||
+            poids_appariement == 0.0) {
             return ErreurAppariement::metypage_argument(it, membre.type, it->type);
         }
 

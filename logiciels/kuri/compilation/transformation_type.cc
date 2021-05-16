@@ -95,9 +95,9 @@ static bool est_type_de_base(Type *type_de, Type *type_vers)
  */
 template <bool POUR_TRANSTYPAGE>
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                            ContexteValidationCode &contexte,
-                            Type *type_de,
-                            Type *type_vers)
+                                              ContexteValidationCode &contexte,
+                                              Type *type_de,
+                                              Type *type_vers)
 {
     if (type_de == type_vers) {
         return TypeTransformation::INUTILE;
@@ -299,11 +299,13 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 
         POUR (type_union->membres) {
             if (it.type == type_de) {
-                return TransformationType{TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
+                return TransformationType{
+                    TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
             }
 
             if (est_type_entier(it.type) && type_de->genre == GenreType::ENTIER_CONSTANT) {
-                return TransformationType{TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
+                return TransformationType{
+                    TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
             }
 
             index_membre += 1;
@@ -343,7 +345,8 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                         decl_panique_membre_union);
                 }
 
-                return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_membre};
+                return TransformationType{
+                    TypeTransformation::EXTRAIT_UNION, type_vers, index_membre};
             }
 
             index_membre += 1;
@@ -384,7 +387,8 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         }
 
         if (est_type_de_base(type_de, type_pointe)) {
-            return TransformationType{TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE, type_vers};
+            return TransformationType{TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE,
+                                      type_vers};
         }
     }
 
@@ -473,7 +477,8 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 
             if (POUR_TRANSTYPAGE) {
                 if (est_type_de_base(ts_vers, ts_de)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
             }
         }
@@ -504,11 +509,13 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                 auto ts_vers = type_pointe_vers->comme_structure();
 
                 if (est_type_de_base(ts_vers, ts_de)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
 
                 if (est_type_de_base(ts_de, ts_vers)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
             }
         }
@@ -532,7 +539,6 @@ ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &
 {
     return cherche_transformation<true>(espace, contexte, type_de, type_vers);
 }
-
 
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
                                                   ContexteValidationCode &contexte,
@@ -589,7 +595,8 @@ ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
     }
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE) {
-        return PoidsTransformation{transformation, est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0};
+        return PoidsTransformation{transformation,
+                                   est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0};
     }
 
     /* nous savons que nous devons transformer la valeur (par ex. eini), donc
