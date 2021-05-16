@@ -1,33 +1,69 @@
 importe Fondation
-
-// https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/
+importe Introspection
+importe SysFichier
 
 MotDePasse :: struct {
     chn: chaine
 }
 
+/*
+    À PARAMÉTRER
+    - traduction
+    - nom du formulaire
+    - labels
+    - requis ou non
+    - nom du bouton
+    - caché ou non
+    - action, method
+ */
+
 génère_formulaire_depuis_struct :: fonc (valeur: eini) -> rien
 {
-    imprime("<form>\n")
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "<form>\n")
+    ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
+    ajoute_au_tampon(*enchaineuse, "<legend>Mon Formulaire</legend>\n")
 
     info := valeur.info comme *InfoTypeStructure
 
     pour membre dans info.membres {
-        info_membre := membre.id
-
-        imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", membre.nom)
-
-        si info_membre.id == id_info.CHAINE {
-            imprime("<input type='text' name='%'>\n", membre.nom)
-        }
-        sinon si info_membre.id == id_info.STRUCTURE {
-            si info_membre == info_de(MotDePasse) {
-                imprime("<input type='password' name='%'>\n", membre.nom)
-            }
-        }
+        valeur_membre := eini_depuis_info_membre(valeur, membre)
+        ajoute_tag_pour_valeur(*enchaineuse, valeur_membre, membre.nom)
     }
 
-    imprime("</form>\n")
+    ajoute_au_tampon(*enchaineuse, "<input type=submit value='Soumettre'>")
+
+    ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    ajoute_au_tampon(*enchaineuse, "</form>\n")
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
+}
+
+ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: chaine)
+{
+    // imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", membre.nom)
+
+    ajoute_au_tampon(enchaineuse, "<label for='", nom, "'></label>\n")
+    discr valeur.info.id {
+        CHAINE {
+            ajoute_au_tampon(enchaineuse, "<input type='text' name='", nom, "'>\n")
+        }
+        ENTIER {
+            // https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/
+            ajoute_au_tampon(enchaineuse, "<input type='text' name='", nom, "' inputmethod='numeric' pattern='[0-9]* required>\n")
+        }
+        STRUCTURE {
+            si valeur.info == info_de(MotDePasse) {
+                ajoute_au_tampon(enchaineuse, "<input type='password' name=''", nom, "'>\n")
+            }
+        }
+        sinon {
+
+        }
+    }
 }
 
 InformationConnexion :: struct {
@@ -39,7 +75,7 @@ InformationConnexion :: struct {
 
 principale :: fonc () -> z32
 {
-    dyn infos : InformationConnexion
+    infos : InformationConnexion
 
     génère_formulaire_depuis_struct(infos)
 
