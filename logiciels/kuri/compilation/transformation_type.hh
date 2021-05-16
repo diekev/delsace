@@ -26,6 +26,8 @@
 
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
+#include <variant>
+
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
@@ -124,6 +126,27 @@ struct TransformationType {
     }
 };
 
+struct Attente {
+    Type *attend_sur_type = nullptr;
+    const char *attend_sur_interface_kuri = nullptr;
+
+    static Attente sur_type(Type *type)
+    {
+        auto attente = Attente{};
+        attente.attend_sur_type = type;
+        return attente;
+    }
+
+    static Attente sur_interface_kuri(const char *nom_fonction)
+    {
+        auto attente = Attente{};
+        attente.attend_sur_interface_kuri = nom_fonction;
+        return attente;
+    }
+};
+
+using ResultatTransformation = std::variant<TransformationType, Attente>;
+
 bool cherche_transformation(EspaceDeTravail &espace,
                             ContexteValidationCode &contexte,
                             Type *type_de,
@@ -136,17 +159,24 @@ bool cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
                                              Type *type_vers,
                                              TransformationType &transformation);
 
+/* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
+ * poids d'appariement d'un opérateur ou d'une fonction. */
+struct PoidsTransformation {
+    TransformationType transformation;
+    double poids;
+};
+
+using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
+
 // Vérifie la compatibilité de deux types pour un opérateur.
-std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
-                                              Type *type_arg,
-                                              Type *type_enf,
-                                              TransformationType &transformation);
+ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+                                                  ContexteValidationCode &contexte,
+                                                  Type *type_arg,
+                                                  Type *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
-                                              Type *type_arg,
-                                              Type *type_enf,
-                                              NoeudExpression *enfant,
-                                              TransformationType &transformation);
+ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+                                                  ContexteValidationCode &contexte,
+                                                  Type *type_arg,
+                                                  Type *type_enf,
+                                                  NoeudExpression *enfant);

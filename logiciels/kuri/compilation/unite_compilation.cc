@@ -54,6 +54,16 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat)
     return os;
 }
 
+void UniteCompilation::marque_attente(Attente attente)
+{
+    if (attente.attend_sur_type) {
+        attend_sur_type(attente.attend_sur_type);
+    }
+    else if (attente.attend_sur_interface_kuri) {
+        attend_sur_interface_kuri(attente.attend_sur_interface_kuri);
+    }
+}
+
 bool UniteCompilation::est_bloquee() const
 {
     switch (etat()) {

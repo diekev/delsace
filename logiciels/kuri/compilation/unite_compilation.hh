@@ -130,6 +130,8 @@ struct UniteCompilation {
         this->metaprogramme_attendu = metaprogramme_attendu_;
     }
 
+    void marque_attente(Attente attente);
+
     bool est_bloquee() const;
 
     kuri::chaine commentaire() const;

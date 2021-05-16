@@ -29,6 +29,8 @@
 
 #include "espace_de_travail.hh"
 #include "statistiques/statistiques.hh"
+#include "unite_compilation.hh"
+#include "validation_semantique.hh"
 
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme,
                                                             IndiceTypeOp type_operandes)
@@ -712,58 +714,64 @@ bool cherche_candidats_operateurs(EspaceDeTravail &espace,
     }
 
     for (auto const op : op_candidats) {
-        auto seq1 = TransformationType{};
-        auto seq2 = TransformationType{};
+        auto poids1_ou_attente = verifie_compatibilite(espace, contexte, op->type1, type1);
 
-        auto [erreur_dep1,
-              poids1] = verifie_compatibilite(espace, contexte, op->type1, type1, seq1);
-
-        if (erreur_dep1) {
+        if (std::holds_alternative<Attente>(poids1_ou_attente)) {
+            contexte.unite->marque_attente(std::get<Attente>(poids1_ou_attente));
             return true;
         }
 
-        auto [erreur_dep2,
-              poids2] = verifie_compatibilite(espace, contexte, op->type2, type2, seq2);
+        auto poids1 = std::get<PoidsTransformation>(poids1_ou_attente);
 
-        if (erreur_dep2) {
+        auto poids2_ou_attente = verifie_compatibilite(espace, contexte, op->type2, type2);
+
+        if (std::holds_alternative<Attente>(poids2_ou_attente)) {
+            contexte.unite->marque_attente(std::get<Attente>(poids2_ou_attente));
             return true;
         }
 
-        auto poids = poids1 * poids2;
+        auto poids2 = std::get<PoidsTransformation>(poids2_ou_attente);
+
+        auto poids = poids1.poids * poids2.poids;
 
         if (poids != 0.0) {
             auto candidat = OperateurCandidat{};
             candidat.op = op;
             candidat.poids = poids;
-            candidat.transformation_type1 = seq1;
-            candidat.transformation_type2 = seq2;
+            candidat.transformation_type1 = poids1.transformation;
+            candidat.transformation_type2 = poids2.transformation;
 
             candidats.ajoute(candidat);
         }
 
         if (op->est_commutatif && poids != 1.0) {
-            auto [erreur_dep3,
-                  poids3] = verifie_compatibilite(espace, contexte, op->type1, type2, seq2);
+            auto poids3_ou_attente = verifie_compatibilite(espace, contexte, op->type1, type2);
 
-            if (erreur_dep3) {
+            if (std::holds_alternative<Attente>(poids3_ou_attente)) {
+                contexte.unite->marque_attente(std::get<Attente>(poids3_ou_attente));
                 return true;
             }
 
-            auto [erreur_dep4,
-                  poids4] = verifie_compatibilite(espace, contexte, op->type2, type1, seq1);
+            auto poids3 = std::get<PoidsTransformation>(poids3_ou_attente);
 
-            if (erreur_dep4) {
+            auto poids4_ou_attente = verifie_compatibilite(espace, contexte, op->type2, type1);
+
+            if (std::holds_alternative<Attente>(poids4_ou_attente)) {
+                contexte.unite->marque_attente(std::get<Attente>(poids4_ou_attente));
                 return true;
             }
 
-            poids = poids3 * poids4;
+            auto poids4 = std::get<PoidsTransformation>(poids4_ou_attente);
+
+            poids = poids3.poids * poids4.poids;
 
             if (poids != 0.0) {
                 auto candidat = OperateurCandidat{};
                 candidat.op = op;
                 candidat.poids = poids;
-                candidat.transformation_type1 = seq1;
-                candidat.transformation_type2 = seq2;
+                // N'oublions pas de permuter les transformations.
+                candidat.transformation_type1 = poids4.transformation;
+                candidat.transformation_type2 = poids3.transformation;
                 candidat.permute_operandes = true;
 
                 candidats.ajoute(candidat);

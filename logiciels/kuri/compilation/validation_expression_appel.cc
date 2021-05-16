@@ -680,22 +680,22 @@ static ResultatAppariement apparie_appel_pointeur(
             type_prm = type_dereference_pour(type_prm);
         }
 
-        auto transformation = TransformationType();
-        auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(
-            espace, contexte, type_prm, type_enf, arg, transformation);
+        auto resultat = verifie_compatibilite(espace, contexte, type_prm, type_enf, arg);
 
-        if (erreur_dep) {
+        if (std::holds_alternative<Attente>(resultat)) {
+            contexte.unite->marque_attente(std::get<Attente>(resultat));
             return ErreurAppariement::dependance_non_satisfaite(arg);
         }
 
-        poids_args *= poids_pour_enfant;
+        auto poids_xform = std::get<PoidsTransformation>(resultat);
+        poids_args *= poids_xform.poids;
 
         if (poids_args == 0.0) {
             return ErreurAppariement::metypage_argument(
                 arg, type_enf, type_dereference_pour(type_prm));
         }
 
-        transformations[i - debut_params] = transformation;
+        transformations[i - debut_params] = poids_xform.transformation;
 
         exprs.ajoute(arg);
     }
@@ -915,14 +915,16 @@ static ResultatAppariement apparie_appel_fonction(
 
                     auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
-                    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(
-                        espace, contexte, type_deref, type_deref_enf, slot, transformation);
+                    auto resultat = verifie_compatibilite(espace, contexte, type_deref, type_deref_enf, slot);
 
-                    if (erreur_dep) {
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        contexte.unite->marque_attente(std::get<Attente>(resultat));
                         return ErreurAppariement::dependance_non_satisfaite(arg);
                     }
 
-                    poids_pour_enfant = poids_pour_enfant_;
+                    auto poids_xform = std::get<PoidsTransformation>(resultat);
+                    poids_pour_enfant = poids_xform.poids;
+                    transformation = poids_xform.transformation;
 
                     // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
                     // faudra convertir en un tableau dynamique
@@ -933,14 +935,16 @@ static ResultatAppariement apparie_appel_fonction(
                     expansion_rencontree = true;
                 }
                 else {
-                    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(
-                        espace, contexte, type_deref, type_de_l_expression, slot, transformation);
+                    auto resultat = verifie_compatibilite(espace, contexte, type_deref, type_de_l_expression, slot);
 
-                    if (erreur_dep) {
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        contexte.unite->marque_attente(std::get<Attente>(resultat));
                         return ErreurAppariement::dependance_non_satisfaite(arg);
                     }
 
-                    poids_pour_enfant = poids_pour_enfant_;
+                    auto poids_xform = std::get<PoidsTransformation>(resultat);
+                    poids_pour_enfant = poids_xform.poids;
+                    transformation = poids_xform.transformation;
                 }
 
                 // allège les polymorphes pour que les versions déjà monomorphées soient préférées
@@ -981,28 +985,29 @@ static ResultatAppariement apparie_appel_fonction(
             nombre_arg_variadiques_rencontres += 1;
         }
         else {
-            auto transformation = TransformationType();
-            auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(
-                espace, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
+            auto resultat = verifie_compatibilite(espace, contexte, type_du_parametre, type_de_l_expression, slot);
 
-            if (erreur_dep) {
+            if (std::holds_alternative<Attente>(resultat)) {
+                contexte.unite->marque_attente(std::get<Attente>(resultat));
                 return ErreurAppariement::dependance_non_satisfaite(arg);
             }
+
+            auto poids_xform = std::get<PoidsTransformation>(resultat);
 
             // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
             // la selection de la meilleure candidate
             if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                poids_pour_enfant *= 0.95;
+                poids_xform.poids *= 0.95;
             }
 
-            poids_args *= poids_pour_enfant;
+            poids_args *= poids_xform.poids;
 
             if (poids_args == 0.0) {
                 return ErreurAppariement::metypage_argument(
                     slot, type_du_parametre, type_de_l_expression);
             }
 
-            transformations[i] = transformation;
+            transformations[i] = poids_xform.transformation;
         }
     }
 
@@ -1278,21 +1283,22 @@ static ResultatAppariement apparie_appel_structure(
 
         auto &membre = type_compose->membres[index_membre];
 
-        auto transformation = TransformationType{};
-        auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(
-            espace, contexte, membre.type, it->type, it, transformation);
+        auto resultat = verifie_compatibilite(espace, contexte, membre.type, it->type, it);
 
-        if (erreur_dep) {
-            return ErreurAppariement::dependance_non_satisfaite(it);
+        if (std::holds_alternative<Attente>(resultat)) {
+            contexte.unite->marque_attente(std::get<Attente>(resultat));
+            return ErreurAppariement::dependance_non_satisfaite(expr);
         }
 
-        poids_appariement *= poids_pour_enfant;
+        auto poids_xform = std::get<PoidsTransformation>(resultat);
 
-        if (poids_appariement == 0.0) {
+        poids_appariement *= poids_xform.poids;
+
+        if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE || poids_appariement == 0.0) {
             return ErreurAppariement::metypage_argument(it, membre.type, it->type);
         }
 
-        transformations[index_membre] = transformation;
+        transformations[index_membre] = poids_xform.transformation;
         index_membre += 1;
     }
 
@@ -1336,24 +1342,25 @@ static ResultatAppariement apparie_construction_opaque(
             1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
 
-    TransformationType transformation;
-    auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(
-        espace, contexte, type_opaque->type_opacifie, arg->type, arg, transformation);
+    auto resultat = verifie_compatibilite(espace, contexte, type_opaque->type_opacifie, arg->type);
 
-    if (erreur_dep) {
+    if (std::holds_alternative<Attente>(resultat)) {
+        contexte.unite->marque_attente(std::get<Attente>(resultat));
         return ErreurAppariement::dependance_non_satisfaite(expr);
     }
 
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+    auto poids_xform = std::get<PoidsTransformation>(resultat);
+
+    if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE) {
         return ErreurAppariement::metypage_argument(arg, type_opaque->type_opacifie, arg->type);
     }
 
     auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
-    transformations[0] = transformation;
+    transformations[0] = poids_xform.transformation;
 
-    return CandidateAppariement::initialisation_opaque(poids_pour_enfant_,
+    return CandidateAppariement::initialisation_opaque(poids_xform.poids,
                                                        type_opaque->decl,
                                                        type_opaque,
                                                        std::move(exprs),
