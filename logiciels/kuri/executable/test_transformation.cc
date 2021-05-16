@@ -42,11 +42,14 @@ static void verifie_transformation(Compilatrice &compilatrice,
     auto tacheronne = Tacheronne(compilatrice);
 
     auto contexte = ContexteValidationCode(compilatrice, tacheronne, unite);
-    auto transformation = TransformationType();
 
-    if (cherche_transformation(*espace, contexte, type1, type2, transformation)) {
-        // ignore pour le test
+    auto resultat = cherche_transformation(*espace, contexte, type1, type2);
+
+    auto transformation = TransformationType();
+    if (std::holds_alternative<TransformationType>(resultat)) {
+        transformation = std::get<TransformationType>(resultat);
     }
+    // ignore si nous avons une Attente dans le résultat
 
     if (est_possible && transformation.type == TypeTransformation::IMPOSSIBLE) {
         std::cerr << "ERREUR la transformation entre ";

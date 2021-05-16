@@ -724,11 +724,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (assignation_composee) {
                     expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
-                    auto transformation = TransformationType();
-                    if (cherche_transformation(
-                            *espace, *this, expr->type, type1, transformation)) {
+                    auto resultat = cherche_transformation(*espace, *this, expr->type, type1);
+
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        unite->marque_attente(std::get<Attente>(resultat));
                         return ResultatValidation::Erreur;
                     }
+
+                    auto transformation = std::get<TransformationType>(resultat);
 
                     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                         rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
@@ -1298,16 +1301,19 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return ResultatValidation::Erreur;
             }
 
-            auto transformation = TransformationType();
-
             if (enfant->type->est_reference() && !noeud->type->est_reference()) {
                 transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
             }
 
-            if (cherche_transformation_pour_transtypage(
-                    *espace, *this, expr->expression->type, noeud->type, transformation)) {
+            auto resultat = cherche_transformation_pour_transtypage(
+                *espace, *this, expr->expression->type, noeud->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return ResultatValidation::Erreur;
             }
+
+            auto transformation = std::get<TransformationType>(resultat);
 
             if (transformation.type == TypeTransformation::INUTILE) {
                 espace->rapporte_avertissement(expr, "transtypage inutile");
@@ -2846,11 +2852,15 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) {
-        auto transformation = TransformationType();
-        if (cherche_transformation(
-                *espace, *this, type_de_l_expression, variable->type, transformation)) {
+
+        auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, variable->type);
+
+        if (std::holds_alternative<Attente>(resultat)) {
+            unite->marque_attente(std::get<Attente>(resultat));
             return false;
         }
+
+        auto transformation = std::get<TransformationType>(resultat);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(
@@ -4116,12 +4126,14 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
         }
         else {
-            auto transformation = TransformationType();
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, variable->type, transformation)) {
+            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, variable->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            auto transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     variable->type, type_de_l_expression, expression);
@@ -4339,11 +4351,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4357,11 +4372,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             // déréférence var
             type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
 
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, type_de_la_variable, transformation)) {
+            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, type_de_la_variable);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4372,11 +4390,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else if (expr_est_reference) {
             // déréférence expr
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4384,11 +4405,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             }
         }
         else {
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(*espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4602,11 +4626,14 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
 ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
                                                                    Type *type_cible)
 {
-    auto transformation = TransformationType();
-    if (cherche_transformation(*espace, *this, expression->type, type_cible, transformation)) {
+    auto resultat = cherche_transformation(*espace, *this, expression->type, type_cible);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        unite->marque_attente(std::get<Attente>(resultat));
         return ResultatValidation::Erreur;
     }
 
+    auto transformation = std::get<TransformationType>(resultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         rapporte_erreur_assignation_type_differents(type_cible, expression->type, expression);
         return ResultatValidation::Erreur;

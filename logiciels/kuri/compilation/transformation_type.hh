@@ -147,17 +147,15 @@ struct Attente {
 
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
-bool cherche_transformation(EspaceDeTravail &espace,
-                            ContexteValidationCode &contexte,
-                            Type *type_de,
-                            Type *type_vers,
-                            TransformationType &transformation);
+ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
+                                              ContexteValidationCode &contexte,
+                                              Type *type_de,
+                                              Type *type_vers);
 
-bool cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                             ContexteValidationCode &contexte,
-                                             Type *type_de,
-                                             Type *type_vers,
-                                             TransformationType &transformation);
+ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
+                                                               ContexteValidationCode &contexte,
+                                                               Type *type_de,
+                                                               Type *type_vers);
 
 /* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
  * poids d'appariement d'un opérateur ou d'une fonction. */

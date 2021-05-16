@@ -517,38 +517,20 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
     return TypeTransformation::IMPOSSIBLE;
 }
 
-bool cherche_transformation(EspaceDeTravail &espace,
-                            ContexteValidationCode &contexte,
-                            Type *type_de,
-                            Type *type_vers,
-                            TransformationType &transformation)
+ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
+                                              ContexteValidationCode &contexte,
+                                              Type *type_de,
+                                              Type *type_vers)
 {
-    auto resultat = cherche_transformation<false>(espace, contexte, type_de, type_vers);
-
-    if (std::holds_alternative<TransformationType>(resultat)) {
-        transformation = std::get<TransformationType>(resultat);
-        return false;
-    }
-
-    contexte.unite->marque_attente(std::get<Attente>(resultat));
-    return true;
+    return cherche_transformation<false>(espace, contexte, type_de, type_vers);
 }
 
-bool cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                             ContexteValidationCode &contexte,
-                                             Type *type_de,
-                                             Type *type_vers,
-                                             TransformationType &transformation)
+ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
+                                                               ContexteValidationCode &contexte,
+                                                               Type *type_de,
+                                                               Type *type_vers)
 {
-    auto resultat = cherche_transformation<true>(espace, contexte, type_de, type_vers);
-
-    if (std::holds_alternative<TransformationType>(resultat)) {
-        transformation = std::get<TransformationType>(resultat);
-        return false;
-    }
-
-    contexte.unite->marque_attente(std::get<Attente>(resultat));
-    return true;
+    return cherche_transformation<true>(espace, contexte, type_de, type_vers);
 }
 
 
