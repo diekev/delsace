@@ -573,7 +573,9 @@ quand_lecture :: fonc (prise: *Prise)
 gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
-    rappel_route := apparie_route(serveuse.routeuse, message.requête, message.méthode)
+
+    // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
+    rappel_route := apparie_route(serveuse.routeuse, message.uri.chemin, message.méthode)
 
     saufsi rappel_route.rappel {
         si serveuse.rappel_page_non_trouvée {
