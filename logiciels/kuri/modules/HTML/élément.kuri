@@ -46,6 +46,21 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: chaine) -> *Élémen
     retourne élément
 }
 
+est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
+{
+    si noeud.genre != GenreNoeud.Élément {
+        retourne nul
+    }
+
+    élément := noeud comme *Élément
+
+    si élément.texte == type {
+        retourne élément
+    }
+
+    retourne nul
+}
+
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
     discr élément.texte {
