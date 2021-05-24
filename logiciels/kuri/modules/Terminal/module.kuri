@@ -7,7 +7,12 @@ importe SysFichier
 
 demande_utilisateur :: fonc (message: chaine)
 {
-    imprime("> % : ", message)
+    si message {
+        imprime("> % : ", message)
+    }
+    sinon {
+        imprime("> ")
+    }
 }
 
 lis_réponse_utilisateur :: fonc () -> chaine
@@ -20,7 +25,7 @@ lis_réponse_utilisateur :: fonc () -> chaine
 // Lis Exécute Imprime Boucle
 // Read Execute Print Loop
 LEIB :: struct {
-    chaine_prompt := ">"
+    chaine_prompt : chaine
     exécute : fonc(chaine)(chaine)
 }
 
