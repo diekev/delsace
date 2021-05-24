@@ -232,3 +232,15 @@ initialise_depuis_dossier :: fonc (rendeuse_page: *RendeusePage, chemin: CheminF
     rendeuse_page.dossier = chemin.chn
     pour_chaque_chemin(chemin, rendeuse_page, rappel_ajoute_fichier)
 }
+
+ajoute_page_pour_formulaire :: fonc (rendeuse_page: *RendeusePage, nom_court: chaine, $T: type_de_données, nom_formulaire: chaine, méthode: chaine, cible: chaine)
+{
+    fichier : FichierTexte
+    fichier.nom_court = nom_court
+    fichier.succès = vrai
+
+    valeur : T
+    fichier.données = génère_formulaire_depuis_struct(valeur, nom_formulaire, méthode, cible)
+
+    tableau_ajoute(*rendeuse_page.catalogue.fichiers, fichier)
+}
