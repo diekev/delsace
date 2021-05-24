@@ -132,6 +132,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 espace, kuri::chaine(lexeme->chaine), inst->expression);
             temps_chargement += temps.temps();
 
+            if (!module) {
+                return ResultatValidation::Erreur;
+            }
+
             // @concurrence critique
             if (fichier->importe_module(module->nom())) {
                 espace->rapporte_avertissement(inst, "Importation superflux du module");

@@ -68,6 +68,8 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                  *espace,
                                  site,
                                  erreur::Genre::MODULE_INCONNU);
+
+            return nullptr;
         }
     }
 
@@ -76,6 +78,8 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                              *espace,
                              site,
                              erreur::Genre::MODULE_INCONNU);
+
+        return nullptr;
     }
 
     /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
