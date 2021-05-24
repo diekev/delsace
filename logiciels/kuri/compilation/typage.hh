@@ -452,6 +452,8 @@ struct TypeStructure final : public TypeCompose {
 
     NoeudStruct *decl = nullptr;
 
+    TypeUnion *union_originelle = nullptr;
+
     bool deja_genere = false;
     bool est_anonyme = false;
 

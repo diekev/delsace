@@ -1486,6 +1486,9 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
     // dans la coulisse pour chaque monomorphisation.
     type_structure->decl = this->decl;
+    type_structure->union_originelle = this;
+
+    typeuse.graphe_->connecte_type_type(this, type_structure);
 }
 
 /* Pour la génération de RI, les types doivent être normalisés afin de se rapprocher de la manière
