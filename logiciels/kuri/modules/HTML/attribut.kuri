@@ -2,3 +2,12 @@ Attribut :: struct {
     nom: chaine
     valeur: chaine
 }
+
+chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := "") -> chaine
+{
+    si attribut {
+        retourne attribut.valeur
+    }
+
+    retourne défaut
+}
