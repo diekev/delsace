@@ -91,6 +91,8 @@ ParseuseHTTP :: struct {
 
     contenu_chunked : bool
     contenu_fixe : bool
+
+    pour_sous_message := faux
 }
 
 ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
@@ -245,6 +247,13 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
 
             parseuse.contenu_fixe = vrai
             parseuse.taille_contenu = taille_contenu
+            parseuse.état_parsage = ÉtatParsage.CORPS_EN_COURS
+            parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
+            parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.curseur
+        }
+        sinon si parseuse.pour_sous_message {
+            parseuse.contenu_fixe = vrai
+            parseuse.taille_contenu = (parseuse.parseuse_chaine.chn.taille - parseuse.parseuse_chaine.curseur) comme z32
             parseuse.état_parsage = ÉtatParsage.CORPS_EN_COURS
             parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
             parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.curseur
