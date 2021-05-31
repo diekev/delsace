@@ -821,8 +821,7 @@ void Tacheronne::gere_tache()
                             *unite->espace,
                             unite->symbole_attendu);
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
                         auto decl = unite->declaration_attendue;
                         auto unite_decl = decl->unite;
                         auto erreur = rapporte_erreur(unite->espace,
@@ -839,8 +838,7 @@ void Tacheronne::gere_tache()
                                 .ajoute_message("\n");
                         }
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
                         auto site = unite->noeud;
 
                         if (site->est_corps_fonction()) {
@@ -861,15 +859,13 @@ void Tacheronne::gere_tache()
                             .ajoute_message(chaine_attentes_recursives(unite))
                             .ajoute_message("\n");
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
                         erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une "
                                              "déclaration attend sur une interface de Kuri",
                                              *unite->espace,
                                              unite->noeud);
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
                         if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
                             auto expression_operation = static_cast<NoeudExpressionBinaire *>(
                                 unite->operateur_attendu);
@@ -912,14 +908,15 @@ void Tacheronne::gere_tache()
                                     "type_retour\n{\n\t...\n}\n");
                         }
                     }
-
-                    rapporte_erreur(unite->espace,
-                                    unite->noeud,
-                                    "Je ne peux pas continuer la compilation car une unité est "
-                                    "bloqué dans un cycle")
-                        .ajoute_message("\nNote : l'unité est dans l'état : ")
-                        .ajoute_message(chaine_attentes_recursives(unite))
-                        .ajoute_message("\n");
+                    else {
+                        rapporte_erreur(unite->espace,
+                                        unite->noeud,
+                                        "Je ne peux pas continuer la compilation car une unité est "
+                                        "bloqué dans un cycle")
+                            .ajoute_message("\nNote : l'unité est dans l'état : ")
+                            .ajoute_message(chaine_attentes_recursives(unite))
+                            .ajoute_message("\n");
+                    }
 
                     break;
                 }
