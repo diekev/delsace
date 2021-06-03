@@ -141,13 +141,8 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatr
 {
 }
 
-void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier)
+void OrdonnanceuseTache::cree_tache_pour_chargement(UniteCompilation *unite)
 {
-    espace->tache_chargement_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->fichier = fichier;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::CHARGE_FICHIER;
@@ -159,14 +154,8 @@ void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fic
 #endif
 }
 
-void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier)
+void OrdonnanceuseTache::cree_tache_pour_lexage(UniteCompilation *unite)
 {
-    assert(fichier->donnees_constantes->fut_charge);
-    espace->tache_lexage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->fichier = fichier;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::LEXE;
@@ -177,14 +166,8 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 #endif
 }
 
-void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier)
+void OrdonnanceuseTache::cree_tache_pour_parsage(UniteCompilation *unite)
 {
-    assert(fichier->donnees_constantes->fut_lexe);
-    espace->tache_parsage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->fichier = fichier;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::PARSE;
@@ -195,15 +178,8 @@ void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichie
 #endif
 }
 
-void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
+void OrdonnanceuseTache::cree_tache_pour_typage(UniteCompilation *unite)
 {
-    espace->tache_typage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->noeud = noeud;
-
-    noeud->unite = unite;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::TYPAGE;
@@ -252,16 +228,8 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
            taches_execution.taille() + taches_message.taille();
 }
 
-void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace,
-                                                       NoeudExpression *noeud)
+void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
 {
-    espace->tache_ri_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->noeud = noeud;
-
-    noeud->unite = unite;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::GENERE_RI;
@@ -273,16 +241,8 @@ void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace,
 #endif
 }
 
-void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace,
-                                                   MetaProgramme *metaprogramme)
+void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
 {
-    espace->tache_execution_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->metaprogramme = metaprogramme;
-
-    metaprogramme->unite = unite;
-
     auto tache = Tache();
     tache.unite = unite;
     tache.genre = GenreTache::EXECUTE;

@@ -149,12 +149,12 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
     OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
 
-    void cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    void cree_tache_pour_chargement(UniteCompilation *unite);
+    void cree_tache_pour_lexage(UniteCompilation *unite);
+    void cree_tache_pour_parsage(UniteCompilation *unite);
+    void cree_tache_pour_typage(UniteCompilation *unite);
+    void cree_tache_pour_generation_ri(UniteCompilation *unite);
+    void cree_tache_pour_execution(UniteCompilation *unite);
 
     Tache tache_suivante(Tache &tache_terminee,
                          bool tache_completee,
