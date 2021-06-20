@@ -31,7 +31,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "transformation_type.hh"  // pour Attente
+#include "attente.hh"
 
 struct EspaceDeTravail;
 struct Fichier;
