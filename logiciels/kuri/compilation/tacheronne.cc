@@ -992,7 +992,15 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 case GenreNoeud::DECLARATION_ENTETE_FONCTION:
                 {
                     auto decl = unite->noeud->comme_entete_fonction();
-                    return contexte.valide_type_fonction(decl) == ResultatValidation::OK;
+                    auto const resultat_validation = contexte.valide_type_fonction(decl);
+                    if (est_erreur(resultat_validation)) {
+                        return false;
+                    }
+                    if (est_attente(resultat_validation)) {
+                        unite->marque_attente(std::get<Attente>(resultat_validation));
+                        return false;
+                    }
+                    return true;
                 }
                 case GenreNoeud::DECLARATION_CORPS_FONCTION:
                 {
@@ -1004,20 +1012,52 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                     }
 
                     if (decl->entete->est_operateur) {
-                        return contexte.valide_operateur(decl) == ResultatValidation::OK;
+                        auto const resultat_validation = contexte.valide_operateur(decl);
+                        if (est_erreur(resultat_validation)) {
+                            return false;
+                        }
+                        if (est_attente(resultat_validation)) {
+                            unite->marque_attente(std::get<Attente>(resultat_validation));
+                            return false;
+                        }
+                        return true;
                     }
 
-                    return contexte.valide_fonction(decl) == ResultatValidation::OK;
+                    auto const resultat_validation = contexte.valide_fonction(decl);
+                    if (est_erreur(resultat_validation)) {
+                        return false;
+                    }
+                    if (est_attente(resultat_validation)) {
+                        unite->marque_attente(std::get<Attente>(resultat_validation));
+                        return false;
+                    }
+                    return true;
                 }
                 case GenreNoeud::DECLARATION_ENUM:
                 {
                     auto decl = static_cast<NoeudEnum *>(unite->noeud);
-                    return contexte.valide_enum(decl) == ResultatValidation::OK;
+                    auto const resultat_validation = contexte.valide_enum(decl);
+                    if (est_erreur(resultat_validation)) {
+                        return false;
+                    }
+                    if (est_attente(resultat_validation)) {
+                        unite->marque_attente(std::get<Attente>(resultat_validation));
+                        return false;
+                    }
+                    return true;
                 }
                 case GenreNoeud::DECLARATION_STRUCTURE:
                 {
                     auto decl = static_cast<NoeudStruct *>(unite->noeud);
-                    return contexte.valide_structure(decl) == ResultatValidation::OK;
+                    auto const resultat_validation = contexte.valide_structure(decl);
+                    if (est_erreur(resultat_validation)) {
+                        return false;
+                    }
+                    if (est_attente(resultat_validation)) {
+                        unite->marque_attente(std::get<Attente>(resultat_validation));
+                        return false;
+                    }
+                    return true;
                 }
                 case GenreNoeud::DECLARATION_VARIABLE:
                 {
@@ -1026,20 +1066,17 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 
                     for (; unite->index_courant < decl->arbre_aplatis.taille();
                          ++unite->index_courant) {
-                        if (contexte.valide_semantique_noeud(
-                                decl->arbre_aplatis[unite->index_courant]) ==
-                            ResultatValidation::Erreur) {
-                            auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
-                            auto noeud_dependance = graphe->cree_noeud_globale(decl);
-                            graphe->ajoute_dependances(*noeud_dependance,
-                                                       contexte.donnees_dependance);
+
+                        auto const resultat_validation = contexte.valide_semantique_noeud(decl->arbre_aplatis[unite->index_courant]);
+                        if (est_erreur(resultat_validation)) {
+                            return false;
+                        }
+
+                        if (est_attente(resultat_validation)) {
+                            unite->marque_attente(std::get<Attente>(resultat_validation));
                             return false;
                         }
                     }
-
-                    auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
-                    auto noeud_dependance = graphe->cree_noeud_globale(decl);
-                    graphe->ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
 
                     return true;
                 }
@@ -1048,14 +1085,18 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                     auto dir = static_cast<NoeudDirectiveExecute *>(unite->noeud);
                     aplatis_arbre(dir);
 
-                    // À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la
-                    // fin
                     for (unite->index_courant = 0;
                          unite->index_courant < dir->arbre_aplatis.taille();
                          ++unite->index_courant) {
-                        if (contexte.valide_semantique_noeud(
-                                dir->arbre_aplatis[unite->index_courant]) ==
-                            ResultatValidation::Erreur) {
+                        auto const resultat_validation = contexte.valide_semantique_noeud(
+                                    dir->arbre_aplatis[unite->index_courant]);
+
+                        if (est_erreur(resultat_validation)) {
+                            return false;
+                        }
+
+                        if (est_attente(resultat_validation)) {
+                            unite->marque_attente(std::get<Attente>(resultat_validation));
                             return false;
                         }
                     }
@@ -1065,11 +1106,14 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 case GenreNoeud::INSTRUCTION_IMPORTE:
                 case GenreNoeud::INSTRUCTION_CHARGE:
                 {
-                    if (contexte.valide_semantique_noeud(unite->noeud) ==
-                        ResultatValidation::Erreur) {
+                    auto const resultat_validation = contexte.valide_semantique_noeud(unite->noeud);
+                    if (est_erreur(resultat_validation)) {
                         return false;
                     }
-
+                    if (est_attente(resultat_validation)) {
+                        unite->marque_attente(std::get<Attente>(resultat_validation));
+                        return false;
+                    }
                     temps_validation -= contexte.temps_chargement;
                     return true;
                 }

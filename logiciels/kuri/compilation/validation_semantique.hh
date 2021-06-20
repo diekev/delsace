@@ -26,10 +26,10 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/file_fixe.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "graphe_dependance.hh"
-#include "validation_expression_appel.hh"
 
 struct Compilatrice;
 struct Lexeme;
@@ -44,10 +44,27 @@ namespace erreur {
 enum class Genre : int;
 }
 
-enum class ResultatValidation : int {
+enum class CodeRetourValidation : int {
     OK,
     Erreur,
 };
+
+using ResultatValidation = std::variant<CodeRetourValidation, Attente>;
+
+inline bool est_attente(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<Attente>(resultat);
+}
+
+inline bool est_erreur(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<CodeRetourValidation>(resultat) && std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::Erreur;
+}
+
+inline bool est_ok(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<CodeRetourValidation>(resultat) && std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::OK;
+}
 
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
  * mais également éviter de construire les différentes structures de données y utilisées;
@@ -126,9 +143,9 @@ struct ContexteValidationCode {
                                                     NoeudBloc *bloc_recherche);
 
     template <typename TypeControleBoucle>
-    ResultatValidation valide_controle_boucle(TypeControleBoucle *inst);
+    CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
 
-    ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+    CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, NoeudExpression *noeud);
     void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);

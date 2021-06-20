@@ -75,6 +75,7 @@ set(SOURCES
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
+  gestionnaire_code.cc
 	graphe_dependance.hh
 	messagere.hh
 	metaprogramme.hh
@@ -98,6 +99,7 @@ set(SOURCES
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc
+  gestionnaire_code.hh
 	graphe_dependance.cc
 	messagere.cc
 	metaprogramme.cc

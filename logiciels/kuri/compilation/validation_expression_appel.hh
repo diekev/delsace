@@ -34,6 +34,7 @@
 
 #include "monomorphisations.hh"
 #include "transformation_type.hh"
+#include "validation_semantique.hh" // pour ResultatValidation
 
 struct Compilatrice;
 struct ContexteValidationCode;
@@ -45,7 +46,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct Type;
 
-enum class ResultatValidation : int;
+enum class CodeRetourValidation : int;
 
 struct IdentifiantEtExpression {
     IdentifiantCode *ident;
@@ -93,6 +94,8 @@ enum {
 struct ErreurAppariement {
     int raison = AUCUNE_RAISON;
     kuri::chaine_statique nom_arg{};
+
+    Attente attente{};
 
     /* Ce que nous avons à gauche */
     int note = NOTE_INVALIDE;
@@ -171,13 +174,20 @@ struct ErreurAppariement {
         return erreur;
     }
 
+    static ErreurAppariement dependance_non_satisfaite(NoeudExpression const *site,
+                                                       Attente attente)
+    {
+        auto erreur = cree_erreur(ERREUR_DEPENDANCE, site);
+        erreur.attente = attente;
+        return erreur;
+    }
+
 #define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
     static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
     {                                                                                             \
         return cree_erreur(nom_enum, site);                                                       \
     }
 
-    CREATION_ERREUR(ERREUR_DEPENDANCE, dependance_non_satisfaite);
     CREATION_ERREUR(EXPRESSION_MANQUANTE_POUR_UNION, expression_manquante_union);
     CREATION_ERREUR(MANQUE_NOM_APRES_VARIADIC, nom_manquant_apres_variadique);
     CREATION_ERREUR(ARGUMENTS_MANQUANTS, arguments_manquants);

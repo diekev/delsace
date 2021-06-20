@@ -30,6 +30,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
+#include "gestionnaire_code.hh"
 #include "messagere.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
@@ -47,6 +48,8 @@ struct Compilatrice {
     dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
 
     dls::outils::Synchrone<Messagere> messagere{};
+
+    dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */

@@ -31,6 +31,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "transformation_type.hh" // pour Attente
+
 struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
@@ -39,6 +41,21 @@ struct NoeudDeclaration;
 struct NoeudExpressionReference;
 struct NoeudExpression;
 struct Type;
+
+#define ENUMERE_RAISON_D_ETRE                                                                     \
+    ENUMERE_RAISON_D_ETRE_EX(AUCUNE)                                                                  \
+    ENUMERE_RAISON_D_ETRE_EX(CHARGEMENT_FICHIER)                                                        \
+    ENUMERE_RAISON_D_ETRE_EX(LEXAGE_FICHIER)                                                 \
+    ENUMERE_RAISON_D_ETRE_EX(PARSAGE_FICHIER)                                              \
+    ENUMERE_RAISON_D_ETRE_EX(TYPAGE)                                                     \
+    ENUMERE_RAISON_D_ETRE_EX(GENERATION_RI)                                                          \
+    ENUMERE_RAISON_D_ETRE_EX(EXECUTION)
+
+enum class RaisonDEtre {
+#define ENUMERE_RAISON_D_ETRE_EX(etat) etat,
+    ENUMERE_RAISON_D_ETRE
+#undef ENUMERE_RAISON_D_ETRE_EX
+};
 
 #define ENUMERE_ETATS_UNITE                                                                       \
     ENUMERE_ETAT_UNITE_EX(PRETE)                                                                  \
@@ -50,6 +67,41 @@ struct Type;
     ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
 
 struct UniteCompilation {
+    // ------------- nouvelle interface
+private:
+    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
+    bool m_prete = true;
+    Attente m_attente = {};
+
+public:
+
+    void mute_attente(Attente attente)
+    {
+        m_attente = attente;
+    }
+
+    void marque_prete()
+    {
+        m_prete = true;
+        m_attente = {};
+    }
+
+    bool est_prete() const
+    {
+        return m_prete;
+    }
+
+    void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
+    {
+        m_raison_d_etre = nouvelle_raison;
+    }
+
+    RaisonDEtre raison_d_etre() const
+    {
+        return m_raison_d_etre;
+    }
+
+    // ------------- ancienne interface
     enum class Etat {
 #define ENUMERE_ETAT_UNITE_EX(etat) etat,
         ENUMERE_ETATS_UNITE

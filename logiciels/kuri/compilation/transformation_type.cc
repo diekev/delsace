@@ -95,7 +95,6 @@ static bool est_type_de_base(Type *type_de, Type *type_vers)
  */
 template <bool POUR_TRANSTYPAGE>
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers)
 {
@@ -243,7 +242,6 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                 return Attente::sur_interface_kuri(nom_fonction);
             }
 
-            contexte.donnees_dependance.fonctions_utilisees.insere(fonction);
             return TransformationType{fonction, type_vers};
         };
 
@@ -335,14 +333,6 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                     if (decl_panique_membre_union == nullptr) {
                         return Attente::sur_interface_kuri("panique_membre_union");
                     }
-
-                    if (decl_panique_membre_union->corps->unite == nullptr) {
-                        contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(
-                            &espace, decl_panique_membre_union->corps);
-                    }
-
-                    contexte.donnees_dependance.fonctions_utilisees.insere(
-                        decl_panique_membre_union);
                 }
 
                 return TransformationType{
@@ -525,11 +515,10 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 }
 
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers)
 {
-    return cherche_transformation<false>(espace, contexte, type_de, type_vers);
+    return cherche_transformation<false>(espace, type_de, type_vers);
 }
 
 ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
@@ -537,15 +526,14 @@ ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &
                                                                Type *type_de,
                                                                Type *type_vers)
 {
-    return cherche_transformation<true>(espace, contexte, type_de, type_vers);
+    return cherche_transformation<true>(espace, type_de, type_vers);
 }
 
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf)
 {
-    auto resultat = cherche_transformation<false>(espace, contexte, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -573,12 +561,11 @@ ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
 }
 
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf,
                                                   NoeudExpression *enfant)
 {
-    auto resultat = cherche_transformation<false>(espace, contexte, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);

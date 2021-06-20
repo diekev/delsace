@@ -616,7 +616,7 @@ void Syntaxeuse::quand_commence()
         recipiente->corps->bloc = analyse_bloc(false);
         recipiente->corps->est_corps_texte = false;
         recipiente->est_metaprogramme = false;
-        m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
+        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, recipiente->corps);
     }
     else if (metaprogramme->corps_texte_pour_structure) {
         auto recipiente = metaprogramme->corps_texte_pour_structure;
@@ -663,7 +663,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
 
         consomme();
     }
@@ -679,7 +679,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
 
         consomme();
     }
@@ -694,7 +694,7 @@ void Syntaxeuse::analyse_une_chose()
                 if (noeud->est_declaration_variable()) {
                     auto decl_var = noeud->comme_declaration_variable();
                     noeud->bloc_parent->membres->ajoute(decl_var);
-                    m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
                 }
             }
 
@@ -1094,7 +1094,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 }
 
                 if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
-                    m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
                 }
 
                 return noeud;
@@ -2429,7 +2429,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
 
         if (noeud->est_externe) {
             consomme(GenreLexeme::POINT_VIRGULE,
@@ -2472,7 +2472,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
             if (doit_etre_type) {
-                m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
+                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_corps);
             }
         }
     }
@@ -2635,7 +2635,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         consomme();
     }
 
-    m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
 
     auto noeud_corps = noeud->corps;
     auto ancien_est_dans_fonction = est_dans_fonction;
@@ -2855,7 +2855,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
 
     if (cree_tache) {
-        m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_decl);
+        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_decl);
     }
 
     if (noeud_decl->bloc_constantes) {

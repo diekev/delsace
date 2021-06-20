@@ -38,7 +38,7 @@
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice() : ordonnanceuse(this)
+Compilatrice::Compilatrice() : ordonnanceuse(this), gestionnaire_code(this)
 {
     this->bibliotheques_dynamiques->ajoute("pthread");
     this->definitions->ajoute("_REENTRANT");
@@ -115,7 +115,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
             sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
 
         if (resultat.est<FichierNeuf>()) {
-            ordonnanceuse->cree_tache_pour_chargement(espace,
+            gestionnaire_code->requiers_chargement(espace,
                                                       resultat.resultat<FichierNeuf>().fichier);
         }
     }
@@ -131,7 +131,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
 
-            ordonnanceuse->cree_tache_pour_lexage(espace,
+            gestionnaire_code->requiers_lexage(espace,
                                                   resultat.resultat<FichierNeuf>().fichier);
         }
     }
@@ -171,7 +171,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
     if (resultat.est<FichierNeuf>()) {
-        ordonnanceuse->cree_tache_pour_chargement(espace,
+        gestionnaire_code->requiers_chargement(espace,
                                                   resultat.resultat<FichierNeuf>().fichier);
     }
 }
@@ -313,7 +313,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
         if (!donnees_fichier->fut_charge) {
             donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
         }
-        ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+        gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
     }
 }
 
