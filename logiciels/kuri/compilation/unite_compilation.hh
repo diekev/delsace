@@ -31,7 +31,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "transformation_type.hh" // pour Attente
+#include "transformation_type.hh"  // pour Attente
 
 struct EspaceDeTravail;
 struct Fichier;
@@ -43,12 +43,12 @@ struct NoeudExpression;
 struct Type;
 
 #define ENUMERE_RAISON_D_ETRE                                                                     \
-    ENUMERE_RAISON_D_ETRE_EX(AUCUNE)                                                                  \
-    ENUMERE_RAISON_D_ETRE_EX(CHARGEMENT_FICHIER)                                                        \
-    ENUMERE_RAISON_D_ETRE_EX(LEXAGE_FICHIER)                                                 \
-    ENUMERE_RAISON_D_ETRE_EX(PARSAGE_FICHIER)                                              \
-    ENUMERE_RAISON_D_ETRE_EX(TYPAGE)                                                     \
-    ENUMERE_RAISON_D_ETRE_EX(GENERATION_RI)                                                          \
+    ENUMERE_RAISON_D_ETRE_EX(AUCUNE)                                                              \
+    ENUMERE_RAISON_D_ETRE_EX(CHARGEMENT_FICHIER)                                                  \
+    ENUMERE_RAISON_D_ETRE_EX(LEXAGE_FICHIER)                                                      \
+    ENUMERE_RAISON_D_ETRE_EX(PARSAGE_FICHIER)                                                     \
+    ENUMERE_RAISON_D_ETRE_EX(TYPAGE)                                                              \
+    ENUMERE_RAISON_D_ETRE_EX(GENERATION_RI)                                                       \
     ENUMERE_RAISON_D_ETRE_EX(EXECUTION)
 
 enum class RaisonDEtre {
@@ -68,13 +68,12 @@ enum class RaisonDEtre {
 
 struct UniteCompilation {
     // ------------- nouvelle interface
-private:
+  private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
     Attente m_attente = {};
 
-public:
-
+  public:
     void mute_attente(Attente attente)
     {
         m_attente = attente;

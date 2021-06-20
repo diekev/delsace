@@ -186,7 +186,7 @@ struct Attente {
      * attendre. */
     bool est_valide() const
     {
-        void *const * pointeurs = reinterpret_cast<void *const *>(&this->attend_sur_type);
+        void *const *pointeurs = reinterpret_cast<void *const *>(&this->attend_sur_type);
 
         for (auto i = 0u; i < sizeof(Attente) / sizeof(void *); ++i) {
             if (pointeurs[i] != nullptr) {

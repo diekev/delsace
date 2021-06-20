@@ -34,7 +34,7 @@
 
 #include "monomorphisations.hh"
 #include "transformation_type.hh"
-#include "validation_semantique.hh" // pour ResultatValidation
+#include "validation_semantique.hh"  // pour ResultatValidation
 
 struct Compilatrice;
 struct ContexteValidationCode;

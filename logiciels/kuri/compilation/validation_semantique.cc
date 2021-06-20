@@ -49,7 +49,7 @@ using dls::outils::possede_drapeau;
 
 #define VERIFIE_INTERFACE_KURI_CHARGEE(nom)                                                       \
     if (espace->interface_kuri->decl_##nom == nullptr) {                                          \
-        return Attente::sur_interface_kuri(#nom);                                                        \
+        return Attente::sur_interface_kuri(#nom);                                                 \
     }
 
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
@@ -146,8 +146,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
-            auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille() +
-                                                        requiers_contexte);
+            auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille() + requiers_contexte);
 
             if (requiers_contexte) {
                 types_entrees[0] = espace->typeuse.type_contexte;
@@ -157,7 +156,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 NoeudExpression *type_entree = decl->params[i];
 
                 if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte]) ==
-                        CodeRetourValidation::Erreur) {
+                    CodeRetourValidation::Erreur) {
                     return CodeRetourValidation::Erreur;
                 }
             }
@@ -166,7 +165,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (decl->params_sorties.taille() == 1) {
                 if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
-                        CodeRetourValidation::Erreur) {
+                    CodeRetourValidation::Erreur) {
                     return CodeRetourValidation::Erreur;
                 }
             }
@@ -176,7 +175,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 for (auto &type_declare : decl->params_sorties) {
                     if (resoud_type_final(type_declare, type_sortie) ==
-                            CodeRetourValidation::Erreur) {
+                        CodeRetourValidation::Erreur) {
                         return CodeRetourValidation::Erreur;
                     }
 
@@ -871,7 +870,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     type_index = type_index->comme_enum()->type_donnees;
                 }
 
-                auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite, type_cible);
+                auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite,
+                                                                        type_cible);
                 if (!est_ok(resultat_transtype)) {
                     return resultat_transtype;
                 }
@@ -1382,7 +1382,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
-                auto const resultat_transtype =transtype_si_necessaire(feuilles->expressions[i], type_feuille);
+                auto const resultat_transtype = transtype_si_necessaire(feuilles->expressions[i],
+                                                                        type_feuille);
                 if (!est_ok(resultat_transtype)) {
                     return resultat_transtype;
                 }
@@ -1819,12 +1820,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     auto feuilles = expr_paire->comme_virgule();
 
                     for (auto j = 0; j < feuilles->expressions.taille(); ++j) {
-                        auto resultat_validation = valide_semantique_noeud(feuilles->expressions[j]);
+                        auto resultat_validation = valide_semantique_noeud(
+                            feuilles->expressions[j]);
                         if (!est_ok(resultat_validation)) {
                             return resultat_validation;
                         }
 
-                        auto const resultat_transtype = transtype_si_necessaire(feuilles->expressions[j], expression->type);
+                        auto const resultat_transtype = transtype_si_necessaire(
+                            feuilles->expressions[j], expression->type);
                         if (!est_ok(resultat_transtype)) {
                             return resultat_transtype;
                         }
@@ -3595,7 +3598,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         return CodeRetourValidation::OK;
     };
 
-    auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant, NoeudExpression *expr_valeur) -> ResultatValidation {
+    auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant,
+                                           NoeudExpression *expr_valeur) -> ResultatValidation {
         auto type_membre = enfant->type;
         auto align_type = type_membre->alignement;
 
@@ -4337,7 +4341,7 @@ CodeRetourValidation ContexteValidationCode::valide_controle_boucle(TypeControle
 /* ************************************************************************** */
 
 CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
-                                                             Type *&type_final)
+                                                               Type *&type_final)
 {
     if (expression_type == nullptr) {
         type_final = nullptr;

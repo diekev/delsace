@@ -913,7 +913,8 @@ static ResultatAppariement apparie_appel_fonction(
                         espace, type_deref, type_deref_enf, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
+                        return ErreurAppariement::dependance_non_satisfaite(
+                            arg, std::get<Attente>(resultat));
                     }
 
                     auto poids_xform = std::get<PoidsTransformation>(resultat);
@@ -933,7 +934,8 @@ static ResultatAppariement apparie_appel_fonction(
                         espace, type_deref, type_de_l_expression, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
+                        return ErreurAppariement::dependance_non_satisfaite(
+                            arg, std::get<Attente>(resultat));
                     }
 
                     auto poids_xform = std::get<PoidsTransformation>(resultat);
@@ -983,7 +985,8 @@ static ResultatAppariement apparie_appel_fonction(
                 espace, type_du_parametre, type_de_l_expression, slot);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
+                return ErreurAppariement::dependance_non_satisfaite(arg,
+                                                                    std::get<Attente>(resultat));
             }
 
             auto poids_xform = std::get<PoidsTransformation>(resultat);
@@ -1419,17 +1422,17 @@ static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
     return false;
 }
 
-static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
-                                ContexteValidationCode &contexte,
-                                NoeudExpressionAppel *expr,
-                                kuri::tableau<IdentifiantEtExpression> &args,
-                                ListeCandidatesExpressionAppel const &candidates_appel,
-                                ContexteValidationAppel &resultat)
+static std::optional<Attente> apparies_candidates(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    kuri::tableau<IdentifiantEtExpression> &args,
+    ListeCandidatesExpressionAppel const &candidates_appel,
+    ContexteValidationAppel &resultat)
 {
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
-            resultat.resultats.ajoute(
-                apparie_appel_pointeur(expr, it.decl->type, espace, args));
+            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl->type, espace, args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1474,20 +1477,20 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                     if (type_connu->est_structure()) {
                         auto type_struct = type_connu->comme_structure();
 
-                        resultat.resultats.ajoute(apparie_appel_structure(
-                            espace, expr, type_struct->decl, args));
+                        resultat.resultats.ajoute(
+                            apparie_appel_structure(espace, expr, type_struct->decl, args));
                     }
                     else if (type_connu->est_union()) {
                         auto type_union = type_connu->comme_union();
 
-                        resultat.resultats.ajoute(apparie_appel_structure(
-                            espace, expr, type_union->decl, args));
+                        resultat.resultats.ajoute(
+                            apparie_appel_structure(espace, expr, type_union->decl, args));
                     }
                     else if (type_connu->est_opaque()) {
                         auto type_opaque = type_connu->comme_opaque();
 
-                        resultat.resultats.ajoute(apparie_construction_opaque(
-                            espace, expr, type_opaque, args));
+                        resultat.resultats.ajoute(
+                            apparie_construction_opaque(espace, expr, type_opaque, args));
                     }
                     else {
                         resultat.resultats.ajoute(
@@ -1514,8 +1517,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             resultat.resultats.ajoute(apparie_appel_init_de(it.decl, args));
         }
         else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            resultat.resultats.ajoute(
-                apparie_appel_pointeur(expr, it.decl->type, espace, args));
+            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl->type, espace, args));
         }
     }
 

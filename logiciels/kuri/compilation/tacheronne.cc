@@ -869,10 +869,11 @@ void Tacheronne::gere_tache()
                         }
                     }
                     else {
-                        rapporte_erreur(unite->espace,
-                                        unite->noeud,
-                                        "Je ne peux pas continuer la compilation car une unité est "
-                                        "bloqué dans un cycle")
+                        rapporte_erreur(
+                            unite->espace,
+                            unite->noeud,
+                            "Je ne peux pas continuer la compilation car une unité est "
+                            "bloqué dans un cycle")
                             .ajoute_message("\nNote : l'unité est dans l'état : ")
                             .ajoute_message(chaine_attentes_recursives(unite))
                             .ajoute_message("\n");
@@ -992,7 +993,8 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 return false;
             }
             if (est_attente(resultat)) {
-                compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(resultat));
+                compilatrice.gestionnaire_code->mets_en_attente(unite,
+                                                                std::get<Attente>(resultat));
                 return false;
             }
             /* Pour les imports et chargements. */
@@ -1111,7 +1113,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         auto decl_creation_contexte = unite->espace->interface_kuri->decl_creation_contexte;
         if (decl_creation_contexte->corps->unite == nullptr) {
             compilatrice.gestionnaire_code->requiers_typage(unite->espace,
-                                                               decl_creation_contexte->corps);
+                                                            decl_creation_contexte->corps);
         }
 
         if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {

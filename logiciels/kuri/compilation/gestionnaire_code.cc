@@ -27,8 +27,8 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 
-// À FAIRE(gestion) : retourne des Attentes depuis les fonction d'appariements d'appels ou d'opérateurs
-//                    au lieu de true/false
+// À FAIRE(gestion) : retourne des Attentes depuis les fonction d'appariements d'appels ou
+//                    d'opérateurs au lieu de true/false
 
 // À FAIRE(gestion) : pour les dépendances, il nous faudrait plutôt les substitutions
 
@@ -41,12 +41,21 @@ static void rassemble_dependances(NoeudExpression *racine,
 {
     // À FAIRE(gestion) : pour les déclarations de variables, vérifie que la visite prend en compte
     //                    les expressions multiples
+
     // À FAIRE(gestion) : pour les structures ou unions, vérifie que les connexions sont bonnes
-    //                    entre les types et les ceux des membres (type_compose.membre, type_structure.types_employes)
-    // À FAIRE(gestion) : l'utilisation d'un type_de_données brise le graphe de dépendance (les membres des structures de type structure ou énum sont des types_de_données)
-    // À FAIRE(gestion) : pour les structures ou unions, les membres constants peuvent être des structures ou unions
+    //                    entre les types et les ceux des membres (type_compose.membre,
+    //                    type_structure.types_employes)
+
+    // À FAIRE(gestion) : l'utilisation d'un type_de_données brise le graphe de dépendance (les
+    //                    membres des types structure ou énum sont des types_de_données)
+
+    // À FAIRE(gestion) : pour les structures ou unions, les membres constants peuvent être des
+    //                    structures ou unions
+
     // À FAIRE(gestion) : vérifie la traverse des variables des boucles pour
-    // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.: []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
+
+    // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.:
+    //                    []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
     visite_noeud(racine, [&](NoeudExpression const *noeud) {
         // Note: les fonctions polymorphiques n'ont pas de types.
         if (noeud->type) {
@@ -60,7 +69,8 @@ static void rassemble_dependances(NoeudExpression *racine,
             if (decl->est_declaration_variable() && decl->possede_drapeau(EST_GLOBALE)) {
                 donnees_dependances.globales_utilisees.insere(decl->comme_declaration_variable());
             }
-            else if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
+            else if (decl->est_entete_fonction() &&
+                     !decl->comme_entete_fonction()->est_polymorphe) {
                 auto decl_fonc = decl->comme_entete_fonction();
                 donnees_dependances.fonctions_utilisees.insere(decl_fonc);
             }
@@ -68,7 +78,8 @@ static void rassemble_dependances(NoeudExpression *racine,
         else if (noeud->est_cuisine()) {
             auto cuisine = noeud->comme_cuisine();
             auto expr = cuisine->expression;
-            donnees_dependances.fonctions_utilisees.insere(expr->comme_appel()->expression->comme_entete_fonction());
+            donnees_dependances.fonctions_utilisees.insere(
+                expr->comme_appel()->expression->comme_entete_fonction());
         }
         else if (noeud->est_expression_binaire()) {
             auto expression_binaire = noeud->comme_expression_binaire();
@@ -97,14 +108,16 @@ static void rassemble_dependances(NoeudExpression *racine,
                 case GenreType::TABLEAU_DYNAMIQUE:
                 {
                     assert(interface->decl_panique_tableau);
-                    donnees_dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
+                    donnees_dependances.fonctions_utilisees.insere(
+                        interface->decl_panique_tableau);
                     break;
                 }
                 case GenreType::TABLEAU_FIXE:
                 {
                     assert(interface->decl_panique_tableau);
                     if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                        donnees_dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
+                        donnees_dependances.fonctions_utilisees.insere(
+                            interface->decl_panique_tableau);
                     }
                     break;
                 }
@@ -158,7 +171,8 @@ static void rassemble_dependances(NoeudExpression *racine,
             if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
                 assert(interface->decl_panique_membre_union);
                 // À FAIRE(gestion) : uniquement si l'union est nonsûre.
-                donnees_dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
+                donnees_dependances.fonctions_utilisees.insere(
+                    interface->decl_panique_membre_union);
             }
             else if (comme->transformation.type == TypeTransformation::FONCTION) {
                 assert(comme->transformation.fonction);
@@ -169,7 +183,8 @@ static void rassemble_dependances(NoeudExpression *racine,
             auto appel = noeud->comme_appel();
 
             if (appel->noeud_fonction_appelee) {
-                donnees_dependances.fonctions_utilisees.insere(appel->noeud_fonction_appelee->comme_entete_fonction());
+                donnees_dependances.fonctions_utilisees.insere(
+                    appel->noeud_fonction_appelee->comme_entete_fonction());
             }
         }
         else if (noeud->est_args_variadiques()) {
@@ -183,7 +198,9 @@ static void rassemble_dependances(NoeudExpression *racine,
     });
 }
 
-static void rassemble_dependances(UniteCompilation *unite, GrapheDependance &graphe, GestionnaireCode &gestionnaire)
+static void rassemble_dependances(UniteCompilation *unite,
+                                  GrapheDependance &graphe,
+                                  GestionnaireCode &gestionnaire)
 {
     assert(unite->noeud);
     auto espace = unite->espace;
@@ -206,8 +223,8 @@ static void rassemble_dependances(UniteCompilation *unite, GrapheDependance &gra
         noeud_dependance = graphe.cree_noeud_fonction(corps->entete);
     }
     else if (noeud->est_execute()) {
-        //auto execute = noeud->comme_execute();
-        //noeud_dependance = graphe.cree_noeud_fonction(execute->)
+        // auto execute = noeud->comme_execute();
+        // noeud_dependance = graphe.cree_noeud_fonction(execute->)
         // À FAIRE(gestion) : ajout du métaprogramme au noeud d'exécution
     }
     else if (noeud->est_enum() || noeud->est_structure()) {
@@ -377,7 +394,8 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier);
     assert(unite->fichier->donnees_constantes->fut_charge);
 
-    // À FAIRE(gestion) : si tous les fichiers sont chargés, envoie un message, change l'état de l'espace
+    // À FAIRE(gestion) : si tous les fichiers sont chargés, envoie un message, change l'état de
+    // l'espace
 
     requiers_lexage(unite->espace, unite->fichier);
 }
@@ -386,7 +404,8 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
     // À FAIRE(gestion) : assert(unite->fichier->fut_parse);
-    // À FAIRE(gestion) : si tous les fichiers sont parsés, envoie un message, change l'état de l'espace
+    // À FAIRE(gestion) : si tous les fichiers sont parsés, envoie un message, change l'état de
+    // l'espace
 }
 
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
@@ -394,7 +413,8 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     assert(unite->noeud);
     assert(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE));
 
-    // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace sont typées, envoie un message
+    // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace sont typées,
+    // envoie un message
 
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
@@ -406,7 +426,8 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
     assert(unite->noeud);
     assert(unite->noeud->possede_drapeau(RI_FUT_GENEREE));
 
-    // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace ont eu leurs RI générées, envoie un message
+    // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace ont eu leurs RI
+    // générées, envoie un message
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
@@ -451,7 +472,8 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             }
             case RaisonDEtre::AUCUNE:
             {
-                unite->espace->rapporte_erreur_sans_site("Erreur interne : obtenu une unité sans raison d'être");
+                unite->espace->rapporte_erreur_sans_site(
+                    "Erreur interne : obtenu une unité sans raison d'être");
             }
         }
     }

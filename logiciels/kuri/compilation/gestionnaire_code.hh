@@ -43,7 +43,7 @@ struct FileDAttente {
 
     void ajoute(UniteCompilation *unite)
     {
-      attentes.ajoute({ unite, false });
+        attentes.ajoute({unite, false});
     }
 };
 
@@ -54,11 +54,11 @@ class GestionnaireCode {
 
     Compilatrice *m_compilatrice = nullptr;
 
-public:
+  public:
     GestionnaireCode() = default;
-    GestionnaireCode(Compilatrice *compilatrice)
-        : m_compilatrice(compilatrice)
-    {}
+    GestionnaireCode(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
+    {
+    }
 
     GestionnaireCode(GestionnaireCode const &) = delete;
     GestionnaireCode &operator=(GestionnaireCode const &) = delete;

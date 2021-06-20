@@ -116,7 +116,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
         if (resultat.est<FichierNeuf>()) {
             gestionnaire_code->requiers_chargement(espace,
-                                                      resultat.resultat<FichierNeuf>().fichier);
+                                                   resultat.resultat<FichierNeuf>().fichier);
         }
     }
 
@@ -131,8 +131,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
 
-            gestionnaire_code->requiers_lexage(espace,
-                                                  resultat.resultat<FichierNeuf>().fichier);
+            gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
         }
     }
 
@@ -171,8 +170,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
     if (resultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace,
-                                                  resultat.resultat<FichierNeuf>().fichier);
+        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
     }
 }
 

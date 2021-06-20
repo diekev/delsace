@@ -58,12 +58,14 @@ inline bool est_attente(ResultatValidation const &resultat)
 
 inline bool est_erreur(ResultatValidation const &resultat)
 {
-    return std::holds_alternative<CodeRetourValidation>(resultat) && std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::Erreur;
+    return std::holds_alternative<CodeRetourValidation>(resultat) &&
+           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::Erreur;
 }
 
 inline bool est_ok(ResultatValidation const &resultat)
 {
-    return std::holds_alternative<CodeRetourValidation>(resultat) && std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::OK;
+    return std::holds_alternative<CodeRetourValidation>(resultat) &&
+           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::OK;
 }
 
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
