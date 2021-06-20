@@ -1376,15 +1376,16 @@ struct ContexteValidationAppel {
 using ListeCandidatesExpressionAppel =
     dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
 
-static ResultatValidation trouve_candidates_pour_appel(EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte,
-                                         NoeudExpressionAppel *expr,
-                                         kuri::tableau<IdentifiantEtExpression> &args,
-                                         ListeCandidatesExpressionAppel &resultat)
+static ResultatValidation trouve_candidates_pour_appel(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    kuri::tableau<IdentifiantEtExpression> &args,
+    ListeCandidatesExpressionAppel &resultat)
 {
     auto candidates_appel = ListeCandidatesExpressionAppel();
     auto resultat_validation = trouve_candidates_pour_fonction_appelee(
-                contexte, espace, expr->expression, candidates_appel);
+        contexte, espace, expr->expression, candidates_appel);
     if (!est_ok(resultat_validation)) {
         return resultat_validation;
     }
@@ -1398,7 +1399,7 @@ static ResultatValidation trouve_candidates_pour_appel(EspaceDeTravail &espace,
             auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
             auto candidates = ListeCandidatesExpressionAppel();
             resultat_validation = trouve_candidates_pour_fonction_appelee(
-                        contexte, espace, acces->operande_droite, candidates);
+                contexte, espace, acces->operande_droite, candidates);
             if (!est_ok(resultat_validation)) {
                 return resultat_validation;
             }
@@ -1705,7 +1706,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         ListeCandidatesExpressionAppel candidates;
 
-        auto resultat_validation = trouve_candidates_pour_appel(espace, contexte, expr, args, candidates);
+        auto resultat_validation = trouve_candidates_pour_appel(
+            espace, contexte, expr, args, candidates);
         if (est_attente(resultat_validation)) {
             return std::get<Attente>(resultat_validation);
         }
