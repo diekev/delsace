@@ -133,71 +133,75 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto decl = noeud->comme_entete_fonction();
 
-            if (decl->est_declaration_type) {
-                aplatis_arbre(decl);
-                POUR (decl->arbre_aplatis) {
-                    auto resultat_validation = valide_semantique_noeud(it);
-                    if (!est_ok(resultat_validation)) {
-                        return resultat_validation;
-                    }
-                }
-
-                auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
-                auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille() +
-                                                            requiers_contexte);
-
-                if (requiers_contexte) {
-                    types_entrees[0] = espace->typeuse.type_contexte;
-                }
-
-                for (auto i = 0; i < decl->params.taille(); ++i) {
-                    NoeudExpression *type_entree = decl->params[i];
-
-                    if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte]) ==
-                        CodeRetourValidation::Erreur) {
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-
-                Type *type_sortie = nullptr;
-
-                if (decl->params_sorties.taille() == 1) {
-                    if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
-                        CodeRetourValidation::Erreur) {
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-                else {
-                    dls::tablet<TypeCompose::Membre, 6> membres;
-                    membres.reserve(decl->params_sorties.taille());
-
-                    for (auto &type_declare : decl->params_sorties) {
-                        if (resoud_type_final(type_declare, type_sortie) ==
-                            CodeRetourValidation::Erreur) {
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        // À FAIRE(état validation)
-                        if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(type_sortie);
-                        }
-
-                        membres.ajoute({type_sortie});
-                    }
-
-                    type_sortie = espace->typeuse.cree_tuple(membres);
-                }
-
-                auto type_fonction = espace->typeuse.type_fonction(types_entrees, type_sortie);
-                decl->type = espace->typeuse.type_type_de_donnees(type_fonction);
-                return CodeRetourValidation::OK;
+            if (!decl->est_declaration_type) {
+                return valide_type_fonction(decl);
             }
 
-            break;
+            aplatis_arbre(decl);
+            POUR (decl->arbre_aplatis) {
+                auto resultat_validation = valide_semantique_noeud(it);
+                if (!est_ok(resultat_validation)) {
+                    return resultat_validation;
+                }
+            }
+
+            auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
+            auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille() +
+                                                        requiers_contexte);
+
+            if (requiers_contexte) {
+                types_entrees[0] = espace->typeuse.type_contexte;
+            }
+
+            for (auto i = 0; i < decl->params.taille(); ++i) {
+                NoeudExpression *type_entree = decl->params[i];
+
+                if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte]) ==
+                        CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
+            Type *type_sortie = nullptr;
+
+            if (decl->params_sorties.taille() == 1) {
+                if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
+                        CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+            else {
+                dls::tablet<TypeCompose::Membre, 6> membres;
+                membres.reserve(decl->params_sorties.taille());
+
+                for (auto &type_declare : decl->params_sorties) {
+                    if (resoud_type_final(type_declare, type_sortie) ==
+                            CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
+                    }
+
+                    // À FAIRE(état validation)
+                    if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                        return Attente::sur_type(type_sortie);
+                    }
+
+                    membres.ajoute({type_sortie});
+                }
+
+                type_sortie = espace->typeuse.cree_tuple(membres);
+            }
+
+            auto type_fonction = espace->typeuse.type_fonction(types_entrees, type_sortie);
+            decl->type = espace->typeuse.type_type_de_donnees(type_fonction);
+            return CodeRetourValidation::OK;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             auto decl = noeud->comme_corps_fonction();
+
+            if (!decl->entete->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(decl->entete);
+            }
 
             if (decl->entete->est_operateur) {
                 return valide_operateur(decl);
@@ -220,6 +224,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto noeud_directive = noeud->comme_execute();
+
+            auto resultat = valide_arbre_aplatis(noeud_directive, noeud_directive->arbre_aplatis);
+            if (!est_ok(resultat)) {
+                return resultat;
+            }
 
             // crée une fonction pour l'exécution
             auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(noeud->lexeme);
@@ -319,11 +328,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (fonction_courante) {
                 /* avance l'index car il est inutile de revalider ce noeud */
                 unite->index_courant += 1;
-                unite->attend_sur_metaprogramme(metaprogramme);
                 graphe->cree_noeud_fonction(metaprogramme->fonction);
                 graphe->ajoute_dependances(*metaprogramme->fonction->noeud_dependance,
                                            donnees_dependance);
-                return CodeRetourValidation::Erreur;
+                return Attente::sur_metaprogramme(metaprogramme);
             }
 
             break;
@@ -1214,8 +1222,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 *espace, *this, expr->expression->type, noeud->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return CodeRetourValidation::Erreur;
+                return std::get<Attente>(resultat);
             }
 
             auto transformation = std::get<TransformationType>(resultat);
@@ -3823,6 +3830,13 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         decl->type = type_opaque;
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         return CodeRetourValidation::OK;
+    }
+
+    if (decl->possede_drapeau(EST_GLOBALE)) {
+        auto resultat = valide_arbre_aplatis(decl, decl->arbre_aplatis);
+        if (!est_ok(resultat)) {
+            return resultat;
+        }
     }
 
     auto &ctx = m_tacheronne.contexte_validation_declaration;

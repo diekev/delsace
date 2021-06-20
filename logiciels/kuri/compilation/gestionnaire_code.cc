@@ -229,7 +229,7 @@ static void rassemble_dependances(UniteCompilation *unite, GrapheDependance &gra
     /* Requiers le typage de toutes les déclarations utilisées. */
     dls::pour_chaque_element(donnees_dependances.globales_utilisees, [&](auto &globale) {
         if (!globale->unite) {
-            gestionnaire.requiers_typage(espace, globale);
+            gestionnaire.requiers_typage(espace, const_cast<NoeudExpression *>(globale));
         }
         return dls::DecisionIteration::Continue;
     });

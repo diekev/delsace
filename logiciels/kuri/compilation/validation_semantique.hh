@@ -25,11 +25,11 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/file_fixe.hh"
 #include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
-#include "graphe_dependance.hh"
 
 struct Compilatrice;
 struct Lexeme;
@@ -102,9 +102,6 @@ struct ContexteValidationCode {
     Tacheronne &m_tacheronne;
     NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
     Type *union_ou_structure_courante = nullptr;
-
-    /* Les données des dépendances d'un noeud syntaxique. */
-    DonneesDependance donnees_dependance{};
 
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;

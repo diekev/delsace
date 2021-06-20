@@ -78,6 +78,7 @@ public:
     void mute_attente(Attente attente)
     {
         m_attente = attente;
+        m_prete = false;
     }
 
     void marque_prete()
@@ -168,18 +169,6 @@ public:
     {
         this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
         this->symbole_attendu = symbole;
-    }
-
-    inline void attend_sur_operateur(NoeudExpression *expr)
-    {
-        this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
-        this->operateur_attendu = expr;
-    }
-
-    inline void attend_sur_metaprogramme(MetaProgramme *metaprogramme_attendu_)
-    {
-        this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
-        this->metaprogramme_attendu = metaprogramme_attendu_;
     }
 
     void marque_attente(Attente attente);
