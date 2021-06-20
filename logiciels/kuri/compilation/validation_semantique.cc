@@ -305,17 +305,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             decl_corps->bloc->expressions->ajoute(expr_ret);
 
-            auto graphe = espace->graphe_dependance.verrou_ecriture();
-            auto noeud_dep = graphe->cree_noeud_fonction(decl_entete);
-            /* préserve les données, car il nous les faut également pour la fonction_courante */
-            graphe->ajoute_dependances(
-                *noeud_dep, donnees_dependance, fonction_courante == nullptr);
-
             decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
 
             auto metaprogramme = espace->cree_metaprogramme();
             metaprogramme->directive = noeud_directive;
             metaprogramme->fonction = decl_entete;
+
+            noeud_directive->metaprogramme = metaprogramme;
 
             // À FAIRE(gestion) : nettoye ceci
             m_compilatrice.gestionnaire_code->requiers_execution(espace, metaprogramme);
@@ -327,9 +323,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (fonction_courante) {
                 /* avance l'index car il est inutile de revalider ce noeud */
                 unite->index_courant += 1;
-                graphe->cree_noeud_fonction(metaprogramme->fonction);
-                graphe->ajoute_dependances(*metaprogramme->fonction->noeud_dependance,
-                                           donnees_dependance);
                 return Attente::sur_metaprogramme(metaprogramme);
             }
 
@@ -549,9 +542,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 type1 = enfant_expr->operande_droite->type;
 
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
-                if (cherche_candidats_operateurs(
-                        *espace, *this, type1, type2, type_op, candidats)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat = cherche_candidats_operateurs(
+                            *espace, type1, type2, type_op, candidats);
+                if (resultat.has_value()) {
+                    return resultat.value();
                 }
                 auto meilleur_candidat = OperateurCandidat::nul_const();
                 auto poids = 0.0;
@@ -627,10 +621,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
-                if (cherche_candidats_operateurs(
-                        *espace, *this, type1, type2, type_op, candidats)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat = cherche_candidats_operateurs(
+                            *espace, type1, type2, type_op, candidats);
+                if (resultat.has_value()) {
+                    return resultat.value();
                 }
+
                 auto meilleur_candidat = OperateurCandidat::nul_const();
                 auto poids = 0.0;
 
@@ -824,14 +820,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 default:
                 {
                     auto candidats = dls::tablet<OperateurCandidat, 10>();
-                    if (cherche_candidats_operateurs(*espace,
-                                                     *this,
-                                                     type1,
-                                                     type2,
-                                                     GenreLexeme::CROCHET_OUVRANT,
-                                                     candidats)) {
-                        return CodeRetourValidation::Erreur;
+                    auto resultat = cherche_candidats_operateurs(*espace,
+                                                                 type1,
+                                                                 type2,
+                                                                 GenreLexeme::CROCHET_OUVRANT,
+                                                                 candidats);
+                    if (resultat.has_value()) {
+                        return resultat.value();
                     }
+
                     auto meilleur_candidat = OperateurCandidat::nul_const();
                     auto poids = 0.0;
 
@@ -1774,13 +1771,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
-                if (cherche_candidats_operateurs(*espace,
-                                                 *this,
-                                                 type_pour_la_recherche,
-                                                 type_pour_la_recherche,
-                                                 GenreLexeme::EGALITE,
-                                                 candidats)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat = cherche_candidats_operateurs(*espace,
+                                                             type_pour_la_recherche,
+                                                             type_pour_la_recherche,
+                                                             GenreLexeme::EGALITE,
+                                                             candidats);
+                if (resultat.has_value()) {
+                    return resultat.value();
                 }
 
                 auto meilleur_candidat = OperateurCandidat::nul_const();
@@ -2730,12 +2727,11 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     auto valide_typage_et_ajoute = [this](DonneesAssignations &donnees,
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
-                                          Type *type_de_l_expression) {
+                                          Type *type_de_l_expression) -> ResultatValidation {
         auto resultat = cherche_transformation(*espace, type_de_l_expression, variable->type);
 
         if (std::holds_alternative<Attente>(resultat)) {
-            unite->marque_attente(std::get<Attente>(resultat));
-            return false;
+            return std::get<Attente>(resultat);
         }
 
         auto transformation = std::get<TransformationType>(resultat);
@@ -2743,12 +2739,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(
                 variable->type, type_de_l_expression, expression);
-            return false;
+            return CodeRetourValidation::Erreur;
         }
 
         donnees.variables.ajoute(variable);
         donnees.transformations.ajoute(transformation);
-        return true;
+        return CodeRetourValidation::OK;
     };
 
     dls::tablet<DonneesAssignations, 6> donnees_retour;
@@ -2775,8 +2771,9 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                     break;
                 }
 
-                if (!valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat  = valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type);
+                if (!est_ok(resultat)) {
+                    return resultat;
                 }
             }
         }
@@ -2786,8 +2783,9 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!valide_typage_et_ajoute(donnees, variables.defile(), it, it->type)) {
-                return CodeRetourValidation::Erreur;
+            auto resultat = valide_typage_et_ajoute(donnees, variables.defile(), it, it->type);
+            if (!est_ok(resultat)) {
+                return resultat;
             }
         }
 
@@ -3922,7 +3920,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     auto ajoute_variable = [this, decl](DonneesAssignations &donnees,
                                         NoeudExpression *variable,
                                         NoeudExpression *expression,
-                                        Type *type_de_l_expression) -> bool {
+                                        Type *type_de_l_expression) -> ResultatValidation {
         if (variable->type == nullptr) {
             if (type_de_l_expression->genre == GenreType::ENTIER_CONSTANT) {
                 variable->type = espace->typeuse[TypeBase::Z32];
@@ -3947,15 +3945,14 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             auto resultat = cherche_transformation(*espace, type_de_l_expression, variable->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return false;
+                return std::get<Attente>(resultat);
             }
 
             auto transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     variable->type, type_de_l_expression, expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
 
             donnees.variables.ajoute(variable);
@@ -3967,13 +3964,13 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
             if (res_exec.est_errone) {
                 rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
 
             decl->valeur_expression = res_exec.valeur;
         }
 
-        return true;
+        return CodeRetourValidation::OK;
     };
 
     {
@@ -4019,8 +4016,9 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                         break;
                     }
 
-                    if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
-                        return CodeRetourValidation::Erreur;
+                    auto resultat = ajoute_variable(donnees, variables.defile(), it, membre.type);
+                    if (!est_ok(resultat)){
+                        return resultat;
                     }
                 }
             }
@@ -4032,8 +4030,9 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 return CodeRetourValidation::Erreur;
             }
             else {
-                if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat = ajoute_variable(donnees, variables.defile(), it, it->type);
+                if (!est_ok(resultat)){
+                    return resultat;
                 }
             }
 
@@ -4146,7 +4145,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     auto ajoute_variable = [this](DonneesAssignations &donnees,
                                   NoeudExpression *var,
                                   NoeudExpression *expression,
-                                  Type *type_de_l_expression) -> bool {
+                                  Type *type_de_l_expression) -> ResultatValidation {
         auto type_de_la_variable = var->type;
         auto var_est_reference = type_de_la_variable->est_reference();
         auto expr_est_reference = type_de_l_expression->est_reference();
@@ -4158,12 +4157,12 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 espace->rapporte_erreur(expression,
                                         "L'assignation d'une valeur d'une énum_drapeau doit être "
                                         "une littérale booléenne");
-                return false;
+                return CodeRetourValidation::Erreur;
             }
 
             donnees.variables.ajoute(var);
             donnees.transformations.ajoute(transformation);
-            return true;
+            return CodeRetourValidation::OK;
         }
 
         if (var_est_reference && expr_est_reference) {
@@ -4171,15 +4170,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             auto resultat = cherche_transformation(*espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return false;
+                return std::get<Attente>(resultat);
             }
 
             transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
 
             transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
@@ -4193,15 +4191,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 *espace, type_de_l_expression, type_de_la_variable);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return false;
+                return std::get<Attente>(resultat);
             }
 
             transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
 
             transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
@@ -4211,36 +4208,34 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             auto resultat = cherche_transformation(*espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return false;
+                return std::get<Attente>(resultat);
             }
 
             transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
         }
         else {
             auto resultat = cherche_transformation(*espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
-                unite->marque_attente(std::get<Attente>(resultat));
-                return false;
+                return std::get<Attente>(resultat);
             }
 
             transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
-                return false;
+                return CodeRetourValidation::Erreur;
             }
         }
 
         donnees.variables.ajoute(var);
         donnees.transformations.ajoute(transformation);
-        return true;
+        return CodeRetourValidation::OK;
     };
 
     dls::tablet<DonneesAssignations, 6> donnees_assignations;
@@ -4279,14 +4274,16 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                     break;
                 }
 
-                if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
-                    return CodeRetourValidation::Erreur;
+                auto resultat = ajoute_variable(donnees, variables.defile(), it, membre.type);
+                if (!est_ok(resultat)) {
+                    return resultat;
                 }
             }
         }
         else {
-            if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
-                return CodeRetourValidation::Erreur;
+            auto resultat = ajoute_variable(donnees, variables.defile(), it, it->type);
+            if (!est_ok(resultat)) {
+                return resultat;
             }
         }
 
@@ -4296,9 +4293,10 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     // a, b = c
     auto donnees = &donnees_assignations.back();
     while (!variables.est_vide()) {
-        if (!ajoute_variable(
-                *donnees, variables.defile(), donnees->expression, donnees->expression->type)) {
-            return CodeRetourValidation::Erreur;
+        auto resultat = ajoute_variable(
+                *donnees, variables.defile(), donnees->expression, donnees->expression->type);
+        if (!est_ok(resultat)) {
+            return resultat;
         }
     }
 

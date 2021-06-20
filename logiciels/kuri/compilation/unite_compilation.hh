@@ -144,13 +144,6 @@ struct UniteCompilation {
         this->etat_ = this->etat_original;
     }
 
-    inline void attend_sur_type(Type *type)
-    {
-        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
-        this->type_attendu = type;
-        assert(type != noeud->type);
-    }
-
     inline void attend_sur_interface_kuri(const char *nom_fonction)
     {
         this->fonction_interface_attendue = nom_fonction;
@@ -163,8 +156,6 @@ struct UniteCompilation {
         this->declaration_attendue = decl;
         assert(decl != noeud);
     }
-
-    void marque_attente(Attente attente);
 
     bool est_bloquee() const;
 

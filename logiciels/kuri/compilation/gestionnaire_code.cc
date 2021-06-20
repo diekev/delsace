@@ -219,10 +219,11 @@ static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, Graphe
     }
 
     if (noeud->est_execute()) {
-        // auto execute = noeud->comme_execute();
-        // noeud_dependance = graphe.cree_noeud_fonction(execute->)
-        // À FAIRE(gestion) : ajout du métaprogramme au noeud d'exécution
-        return nullptr;
+        auto execute = noeud->comme_execute();
+        assert(execute->metaprogramme);
+        auto metaprogramme = execute->metaprogramme;
+        assert(metaprogramme->fonction);
+        return graphe.cree_noeud_fonction(metaprogramme->fonction);
     }
 
     if (noeud->est_enum() || noeud->est_structure()) {
