@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/vue_chaine_compacte.hh"
-
+#include <iostream>
 #include <variant>
 
 #include "attente.hh"
@@ -34,8 +33,6 @@ struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct Type;
-
-struct ContexteValidationCode;
 
 #define ENUMERE_TYPES_TRANSFORMATION                                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(INUTILE)                                                       \
@@ -131,12 +128,10 @@ struct TransformationType {
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers);
 
 ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                                               ContexteValidationCode &contexte,
                                                                Type *type_de,
                                                                Type *type_vers);
 

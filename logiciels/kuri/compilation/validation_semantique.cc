@@ -664,7 +664,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (assignation_composee) {
                     expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
-                    auto resultat = cherche_transformation(*espace, *this, expr->type, type1);
+                    auto resultat = cherche_transformation(*espace, expr->type, type1);
 
                     if (std::holds_alternative<Attente>(resultat)) {
                         return std::get<Attente>(resultat);
@@ -1219,7 +1219,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             auto resultat = cherche_transformation_pour_transtypage(
-                *espace, *this, expr->expression->type, noeud->type);
+                *espace, expr->expression->type, noeud->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -2732,7 +2732,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) {
         auto resultat = cherche_transformation(
-            *espace, *this, type_de_l_expression, variable->type);
+            *espace, type_de_l_expression, variable->type);
 
         if (std::holds_alternative<Attente>(resultat)) {
             unite->marque_attente(std::get<Attente>(resultat));
@@ -3946,7 +3946,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
         else {
             auto resultat = cherche_transformation(
-                *espace, *this, type_de_l_expression, variable->type);
+                *espace, type_de_l_expression, variable->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4171,7 +4171,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
             auto resultat = cherche_transformation(
-                *espace, *this, type_de_l_expression, var->type);
+                *espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4193,7 +4193,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
 
             auto resultat = cherche_transformation(
-                *espace, *this, type_de_l_expression, type_de_la_variable);
+                *espace, type_de_l_expression, type_de_la_variable);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4212,7 +4212,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         else if (expr_est_reference) {
             // déréférence expr
             auto resultat = cherche_transformation(
-                *espace, *this, type_de_l_expression, var->type);
+                *espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4228,7 +4228,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else {
             auto resultat = cherche_transformation(
-                *espace, *this, type_de_l_expression, var->type);
+                *espace, type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 unite->marque_attente(std::get<Attente>(resultat));
@@ -4449,7 +4449,7 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
 ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
                                                                    Type *type_cible)
 {
-    auto resultat = cherche_transformation(*espace, *this, expression->type, type_cible);
+    auto resultat = cherche_transformation(*espace, expression->type, type_cible);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);

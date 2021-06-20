@@ -164,12 +164,6 @@ struct UniteCompilation {
         assert(decl != noeud);
     }
 
-    inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
-    {
-        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
-        this->symbole_attendu = symbole;
-    }
-
     void marque_attente(Attente attente);
 
     bool est_bloquee() const;

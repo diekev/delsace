@@ -511,7 +511,7 @@ struct CandidateExpressionAppel {
     NoeudExpression *decl = nullptr;
 };
 
-static auto trouve_candidates_pour_fonction_appelee(
+static ResultatValidation trouve_candidates_pour_fonction_appelee(
     ContexteValidationCode &contexte,
     EspaceDeTravail &espace,
     NoeudExpression *appelee,
@@ -568,8 +568,7 @@ static auto trouve_candidates_pour_fonction_appelee(
                 auto type_struct = type_accede->comme_structure();
 
                 if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                    contexte.unite->attend_sur_type(type_accede);
-                    return true;
+                    return Attente::sur_type(type_accede);
                 }
 
                 auto membre_trouve = false;
@@ -588,7 +587,7 @@ static auto trouve_candidates_pour_fonction_appelee(
                 if (membre_trouve != false) {
                     candidates.ajoute({CANDIDATE_EST_ACCES, acces});
                     acces->index_membre = index_membre;
-                    return false;
+                    return CodeRetourValidation::OK;
                 }
             }
 
@@ -604,11 +603,11 @@ static auto trouve_candidates_pour_fonction_appelee(
         }
         else {
             contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
-            return true;
+            return CodeRetourValidation::Erreur;
         }
     }
 
-    return false;
+    return CodeRetourValidation::OK;
 }
 
 static ResultatAppariement apparie_appel_pointeur(
@@ -1377,35 +1376,35 @@ struct ContexteValidationAppel {
 using ListeCandidatesExpressionAppel =
     dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
 
-static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
+static ResultatValidation trouve_candidates_pour_appel(EspaceDeTravail &espace,
                                          ContexteValidationCode &contexte,
                                          NoeudExpressionAppel *expr,
                                          kuri::tableau<IdentifiantEtExpression> &args,
                                          ListeCandidatesExpressionAppel &resultat)
 {
     auto candidates_appel = ListeCandidatesExpressionAppel();
-    if (trouve_candidates_pour_fonction_appelee(
-            contexte, espace, expr->expression, candidates_appel)) {
-        return true;
+    auto resultat_validation = trouve_candidates_pour_fonction_appelee(
+                contexte, espace, expr->expression, candidates_appel);
+    if (!est_ok(resultat_validation)) {
+        return resultat_validation;
     }
 
     if (candidates_appel.taille() == 0) {
-        return true;
+        return CodeRetourValidation::Erreur;
     }
 
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
             auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
             auto candidates = ListeCandidatesExpressionAppel();
-            if (trouve_candidates_pour_fonction_appelee(
-                    contexte, espace, acces->operande_droite, candidates)) {
-                return true;
+            resultat_validation = trouve_candidates_pour_fonction_appelee(
+                        contexte, espace, acces->operande_droite, candidates);
+            if (!est_ok(resultat_validation)) {
+                return resultat_validation;
             }
 
             if (candidates.taille() == 0) {
-                contexte.unite->attend_sur_symbole(
-                    acces->operande_droite->comme_reference_declaration());
-                return true;
+                return Attente::sur_symbole(acces->operande_droite->comme_reference_declaration());
             }
 
             args.pousse_front({nullptr, nullptr, acces->operande_gauche});
@@ -1419,7 +1418,7 @@ static auto trouve_candidates_pour_appel(EspaceDeTravail &espace,
         }
     }
 
-    return false;
+    return CodeRetourValidation::OK;
 }
 
 static std::optional<Attente> apparies_candidates(
@@ -1632,7 +1631,7 @@ static NoeudStruct *monomorphise_au_besoin(
 
     decl_struct->monomorphisations->ajoute(items_monomorphisation, copie);
 
-    contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
+    contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, copie);
 
     return copie;
 }
@@ -1706,12 +1705,17 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         ListeCandidatesExpressionAppel candidates;
 
-        if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
+        auto resultat_validation = trouve_candidates_pour_appel(espace, contexte, expr, args, candidates);
+        if (est_attente(resultat_validation)) {
+            return std::get<Attente>(resultat_validation);
+        }
+        if (!est_ok(resultat_validation)) {
+            // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans granulariser
+            //           CodeRetourValidation pour différencier d'une erreur lourde ou rattrappable
             return Attente::sur_symbole(symbole_pour_expression(expr->expression));
         }
 
         auto attente_possible = apparies_candidates(espace, contexte, expr, args, candidates, ctx);
-
         if (attente_possible.has_value()) {
             return attente_possible.value();
         }

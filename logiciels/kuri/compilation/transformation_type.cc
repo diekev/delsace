@@ -522,7 +522,6 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 }
 
 ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                                               ContexteValidationCode &contexte,
                                                                Type *type_de,
                                                                Type *type_vers)
 {
