@@ -42,29 +42,20 @@ struct NoeudExpressionReference;
 struct NoeudExpression;
 struct Type;
 
-#define ENUMERE_RAISON_D_ETRE                                                                     \
-    ENUMERE_RAISON_D_ETRE_EX(AUCUNE)                                                              \
-    ENUMERE_RAISON_D_ETRE_EX(CHARGEMENT_FICHIER)                                                  \
-    ENUMERE_RAISON_D_ETRE_EX(LEXAGE_FICHIER)                                                      \
-    ENUMERE_RAISON_D_ETRE_EX(PARSAGE_FICHIER)                                                     \
-    ENUMERE_RAISON_D_ETRE_EX(TYPAGE)                                                              \
-    ENUMERE_RAISON_D_ETRE_EX(GENERATION_RI)                                                       \
-    ENUMERE_RAISON_D_ETRE_EX(EXECUTION)
+#define ENUMERE_RAISON_D_ETRE(O)                                                                  \
+    O(AUCUNE, aucune_raison, "aucune raison")                                                     \
+    O(CHARGEMENT_FICHIER, chargement_fichier, "chargement fichier")                               \
+    O(LEXAGE_FICHIER, lexage_fichier, "lexage fichier")                                           \
+    O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
+    O(TYPAGE, typage, "typage")                                                                   \
+    O(GENERATION_RI, generation_ri, "génération RI")                                              \
+    O(EXECUTION, execution, "exécution")
 
 enum class RaisonDEtre {
-#define ENUMERE_RAISON_D_ETRE_EX(etat) etat,
-    ENUMERE_RAISON_D_ETRE
+#define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,
+    ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
 #undef ENUMERE_RAISON_D_ETRE_EX
 };
-
-#define ENUMERE_ETATS_UNITE                                                                       \
-    ENUMERE_ETAT_UNITE_EX(PRETE)                                                                  \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE)                                                        \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION)                                                 \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI)                                              \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE)                                                     \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR)                                                   \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
 
 struct UniteCompilation {
     // ------------- nouvelle interface
@@ -74,6 +65,10 @@ struct UniteCompilation {
     Attente m_attente = {};
 
   public:
+    explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
+    {
+    }
+
     void mute_attente(Attente attente)
     {
         m_attente = attente;
@@ -106,61 +101,28 @@ struct UniteCompilation {
         return m_attente.attend_sur_symbole && m_attente.attend_sur_symbole->ident == ident;
     }
 
-    // ------------- ancienne interface
-    enum class Etat {
-#define ENUMERE_ETAT_UNITE_EX(etat) etat,
-        ENUMERE_ETATS_UNITE
-#undef ENUMERE_ETAT_UNITE_EX
-    };
-
-    explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
-    {
+#define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
+    inline bool est_pour_##nom() const                                                            \
+    {                                                                                             \
+        return m_raison_d_etre == RaisonDEtre::Genre;                                             \
     }
 
+    ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)
+
+#undef DEFINIS_DISCRIMINATION
+
+    // ------------- ancienne interface
     UniteCompilation *depend_sur = nullptr;
 
-    Etat etat_{};
-    Etat etat_original{};
     EspaceDeTravail *espace = nullptr;
     Fichier *fichier = nullptr;
     NoeudExpression *noeud = nullptr;
-    NoeudExpression *operateur_attendu = nullptr;
     MetaProgramme *metaprogramme = nullptr;
-    MetaProgramme *metaprogramme_attendu = nullptr;
     int index_courant = 0;
     int index_precedent = 0;
     bool message_recu = false;
 
     int cycle = 0;
-
-    // pour les dépendances
-    Type *type_attendu = nullptr;
-    NoeudDeclaration *declaration_attendue = nullptr;
-    NoeudExpressionReference const *symbole_attendu = nullptr;
-    const char *fonction_interface_attendue = nullptr;
-
-    Etat etat() const
-    {
-        return etat_;
-    }
-
-    inline void restaure_etat_original()
-    {
-        this->etat_ = this->etat_original;
-    }
-
-    inline void attend_sur_interface_kuri(const char *nom_fonction)
-    {
-        this->fonction_interface_attendue = nom_fonction;
-        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
-    }
-
-    inline void attend_sur_declaration(NoeudDeclaration *decl)
-    {
-        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
-        this->declaration_attendue = decl;
-        assert(decl != noeud);
-    }
 
     bool est_bloquee() const;
 
