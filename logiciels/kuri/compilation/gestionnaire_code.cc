@@ -35,8 +35,8 @@
 // À FAIRE(gestion) : visite_noeud -> paramètre pour choisir les substitions, valeur de retour pour
 //                    décider si nous devons visiter les enfants ou non
 
-/* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et globales
- * utilisées. */
+/* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
+ * globales utilisées. */
 static void rassemble_dependances(NoeudExpression *racine,
                                   EspaceDeTravail *espace,
                                   DonneesDependance &dependances)
@@ -110,16 +110,14 @@ static void rassemble_dependances(NoeudExpression *racine,
                 case GenreType::TABLEAU_DYNAMIQUE:
                 {
                     assert(interface->decl_panique_tableau);
-                    dependances.fonctions_utilisees.insere(
-                        interface->decl_panique_tableau);
+                    dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
                     break;
                 }
                 case GenreType::TABLEAU_FIXE:
                 {
                     assert(interface->decl_panique_tableau);
                     if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                        dependances.fonctions_utilisees.insere(
-                            interface->decl_panique_tableau);
+                        dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
                     }
                     break;
                 }
@@ -173,8 +171,7 @@ static void rassemble_dependances(NoeudExpression *racine,
             if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
                 assert(interface->decl_panique_membre_union);
                 // À FAIRE(gestion) : uniquement si l'union est nonsûre.
-                dependances.fonctions_utilisees.insere(
-                    interface->decl_panique_membre_union);
+                dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
             }
             else if (comme->transformation.type == TypeTransformation::FONCTION) {
                 assert(comme->transformation.fonction);

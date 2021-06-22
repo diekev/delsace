@@ -543,7 +543,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
                 auto resultat = cherche_candidats_operateurs(
-                            *espace, type1, type2, type_op, candidats);
+                    *espace, type1, type2, type_op, candidats);
                 if (resultat.has_value()) {
                     return resultat.value();
                 }
@@ -622,7 +622,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
                 auto resultat = cherche_candidats_operateurs(
-                            *espace, type1, type2, type_op, candidats);
+                    *espace, type1, type2, type_op, candidats);
                 if (resultat.has_value()) {
                     return resultat.value();
                 }
@@ -820,11 +820,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 default:
                 {
                     auto candidats = dls::tablet<OperateurCandidat, 10>();
-                    auto resultat = cherche_candidats_operateurs(*espace,
-                                                                 type1,
-                                                                 type2,
-                                                                 GenreLexeme::CROCHET_OUVRANT,
-                                                                 candidats);
+                    auto resultat = cherche_candidats_operateurs(
+                        *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
                     if (resultat.has_value()) {
                         return resultat.value();
                     }
@@ -2771,7 +2768,8 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                     break;
                 }
 
-                auto resultat  = valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type);
+                auto resultat = valide_typage_et_ajoute(
+                    donnees, variables.defile(), it, membre.type);
                 if (!est_ok(resultat)) {
                     return resultat;
                 }
@@ -4017,7 +4015,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     }
 
                     auto resultat = ajoute_variable(donnees, variables.defile(), it, membre.type);
-                    if (!est_ok(resultat)){
+                    if (!est_ok(resultat)) {
                         return resultat;
                     }
                 }
@@ -4031,7 +4029,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
             else {
                 auto resultat = ajoute_variable(donnees, variables.defile(), it, it->type);
-                if (!est_ok(resultat)){
+                if (!est_ok(resultat)) {
                     return resultat;
                 }
             }
@@ -4294,7 +4292,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     auto donnees = &donnees_assignations.back();
     while (!variables.est_vide()) {
         auto resultat = ajoute_variable(
-                *donnees, variables.defile(), donnees->expression, donnees->expression->type);
+            *donnees, variables.defile(), donnees->expression, donnees->expression->type);
         if (!est_ok(resultat)) {
             return resultat;
         }

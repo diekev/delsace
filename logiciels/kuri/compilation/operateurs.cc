@@ -691,12 +691,11 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
 }
 
-std::optional<Attente> cherche_candidats_operateurs(
-        EspaceDeTravail &espace,
-        Type *type1,
-        Type *type2,
-        GenreLexeme type_op,
-        dls::tablet<OperateurCandidat, 10> &candidats)
+std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
+                                                    Type *type1,
+                                                    Type *type2,
+                                                    GenreLexeme type_op,
+                                                    dls::tablet<OperateurCandidat, 10> &candidats)
 {
     assert(type1);
     assert(type2);
