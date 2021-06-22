@@ -37,7 +37,9 @@ static constexpr auto CYCLES_MAXIMUM = 10;
 
 const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
 {
-#define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) case RaisonDEtre::Genre: return chaine;
+#define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine)                                              \
+    case RaisonDEtre::Genre:                                                                      \
+        return chaine;
     switch (raison_d_etre) {
         ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
     }

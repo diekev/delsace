@@ -90,6 +90,12 @@ class GestionnaireCode {
 
     void generation_ri_terminee(UniteCompilation *unite);
 
+    void message_recu(Message *message);
+
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);
+    void optimisation_terminee(UniteCompilation *unite);
+
+  private:
+    void marque_unites_dependantes_pretes(UniteCompilation *unite);
 };

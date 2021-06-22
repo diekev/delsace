@@ -47,9 +47,9 @@ using dls::outils::possede_drapeau;
 
 /* ************************************************************************** */
 
-#define VERIFIE_INTERFACE_KURI_CHARGEE(nom)                                                       \
+#define VERIFIE_INTERFACE_KURI_CHARGEE(nom, id)                                                   \
     if (espace->interface_kuri->decl_##nom == nullptr) {                                          \
-        return Attente::sur_interface_kuri(#nom);                                                 \
+        return Attente::sur_interface_kuri(id);                                                   \
     }
 
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
@@ -660,13 +660,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (assignation_composee) {
                     expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
-                    auto resultat = cherche_transformation(*espace, expr->type, type1);
+                    auto resultat_tfm = cherche_transformation(*espace, expr->type, type1);
 
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return std::get<Attente>(resultat);
+                    if (std::holds_alternative<Attente>(resultat_tfm)) {
+                        return std::get<Attente>(resultat_tfm);
                     }
 
-                    auto transformation = std::get<TransformationType>(resultat);
+                    auto transformation = std::get<TransformationType>(resultat_tfm);
 
                     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                         rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
@@ -778,7 +778,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 case GenreType::TABLEAU_DYNAMIQUE:
                 {
                     expr->type = type_dereference_pour(type1);
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau);
+                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau,
+                                                   ID::panique_depassement_limites_tableau);
                     break;
                 }
                 case GenreType::TABLEAU_FIXE:
@@ -801,7 +802,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     }
 
                     if (expr->aide_generation_code != IGNORE_VERIFICATION) {
-                        VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau);
+                        VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau,
+                                                       ID::panique_depassement_limites_tableau);
                     }
 
                     break;
@@ -814,7 +816,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 case GenreType::CHAINE:
                 {
                     expr->type = espace->typeuse[TypeBase::Z8];
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_chaine);
+                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_chaine,
+                                                   ID::panique_depassement_limites_chaine);
                     break;
                 }
                 default:
@@ -2026,7 +2029,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else {
-                VERIFIE_INTERFACE_KURI_CHARGEE(panique_erreur);
+                VERIFIE_INTERFACE_KURI_CHARGEE(panique_erreur, ID::panique_erreur_non_geree);
             }
 
             break;
@@ -2208,7 +2211,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
         else if (type->genre == GenreType::UNION) {
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-            VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
+            VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union, ID::panique_membre_union);
         }
 
         return CodeRetourValidation::OK;

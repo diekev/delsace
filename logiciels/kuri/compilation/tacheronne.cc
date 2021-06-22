@@ -334,91 +334,14 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
         }
         case GenreTache::TYPAGE:
         {
-            // La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans
-            // la file en attendant.
-            if (!tache_completee) {
-                if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
-                    espace->parsage_termine() &&
-                    (unite->index_courant == unite->index_precedent)) {
-                    unite->cycle += 1;
-                }
-
-                if (unite->index_courant > unite->index_precedent) {
-                    unite->cycle = 0;
-                }
-
-                unite->index_precedent = unite->index_courant;
-
-                taches_typage.enfile(tache_terminee);
-                break;
-            }
-
-            auto generation_ri_requise = true;
-            auto noeud = unite->noeud;
-
-            if (noeud->est_entete_fonction()) {
-                auto entete = noeud->comme_entete_fonction();
-                generation_ri_requise = entete->est_externe;
-            }
-            else if (noeud->est_corps_fonction()) {
-                auto entete = noeud->comme_corps_fonction()->entete;
-                generation_ri_requise = (!entete->est_polymorphe || entete->est_monomorphisation);
-            }
-            else if (noeud->est_structure()) {
-                auto structure = noeud->comme_structure();
-                generation_ri_requise = !structure->est_polymorphe;
-            }
-
-            if (generation_ri_requise) {
-                espace->tache_ri_ajoutee(m_compilatrice->messagere);
-                tache_terminee.genre = GenreTache::GENERE_RI;
-                tache_terminee.unite->cycle = 0;
-                taches_generation_ri.enfile(tache_terminee);
-            }
-
-            if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTE) {
-                auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
-                    unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
-
-                if (message_enfile) {
-                    taches_message.enfile(Tache::attend_message(unite));
-                }
-            }
-
-            /* Décrémente ceci après avoir ajouté le message de typage de code
-             * pour éviter de prévenir trop tôt un métaprogramme. */
-            espace->tache_typage_terminee(m_compilatrice->messagere);
-
             break;
         }
         case GenreTache::GENERE_RI:
         {
-            // La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans
-            // la file en attendant. Ici, seules les métaprogrammes peuvent nous revenir.
-            if (!tache_completee) {
-                tache_terminee.unite->cycle += 1;
-                taches_generation_ri.enfile(tache_terminee);
-                break;
-            }
-
-            espace->tache_ri_terminee(m_compilatrice->messagere);
-
-            if (espace->optimisations) {
-                tache_terminee.genre = GenreTache::OPTIMISATION;
-                taches_optimisation.enfile(tache_terminee);
-            }
-
             break;
         }
         case GenreTache::OPTIMISATION:
         {
-            if (!tache_completee) {
-                tache_terminee.unite->cycle += 1;
-                taches_optimisation.enfile(tache_terminee);
-                break;
-            }
-
-            espace->tache_optimisation_terminee(m_compilatrice->messagere);
             break;
         }
         case GenreTache::GENERE_FICHIER_OBJET:
@@ -883,7 +806,7 @@ void Tacheronne::gere_tache()
                 }
 
                 auto debut_validation = dls::chrono::compte_seconde();
-                tache_fut_completee = gere_unite_pour_typage(unite);
+                gere_unite_pour_typage(unite);
                 temps_validation += debut_validation.temps();
                 break;
             }
@@ -982,86 +905,20 @@ static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
     return true;
 }
 
-bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
+void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 {
-    switch (unite->etat()) {
-        case UniteCompilation::Etat::PRETE:
-        {
-            auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
-            auto resultat = contexte.valide_semantique_noeud(unite->noeud);
-            if (est_erreur(resultat)) {
-                return false;
-            }
-            if (est_attente(resultat)) {
-                compilatrice.gestionnaire_code->mets_en_attente(unite,
-                                                                std::get<Attente>(resultat));
-                return false;
-            }
-            /* Pour les imports et chargements. */
-            temps_validation -= contexte.temps_chargement;
-            return true;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_TYPE:
-        {
-            auto type = unite->type_attendu;
-
-            if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-
-                if (type->est_structure()) {
-                    auto decl_struct = type->comme_structure()->decl;
-
-                    if (decl_struct->unite->etat() ==
-                        UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME) {
-                        unite->cycle -= 1;
-                    }
-                }
-
-                return false;
-            }
-
-            unite->restaure_etat_original();
-            unite->type_attendu = nullptr;
-            return gere_unite_pour_typage(unite);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_DECLARATION:
-        {
-            unite->restaure_etat_original();
-            unite->declaration_attendue = nullptr;
-            return gere_unite_pour_typage(unite);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
-        {
-            unite->restaure_etat_original();
-            unite->operateur_attendu = nullptr;
-            return gere_unite_pour_typage(unite);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
-        case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
-        {
-            unite->restaure_etat_original();
-            return gere_unite_pour_typage(unite);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
-        {
-            auto metaprogramme = unite->metaprogramme_attendu;
-
-            if (!metaprogramme->fut_execute) {
-                return false;
-            }
-
-            // À FAIRE: nous avons un problème de concurrence critique apparement vis-à-vis de
-            // l'exécution des métaprogrammes et du typage de code, je ne sais pas encore la cause
-            // du problème, mais pour le moment, afin de pouvoir développer sereinement dans le
-            // langage, j'ajoute cette ligne pour ralentir le thread en attendant que la
-            // MachineVirtuelle finisse son travail (!?)
-            std::cerr << "Ralentis la compilation....\n";
-
-            unite->restaure_etat_original();
-            return gere_unite_pour_typage(unite);
-        }
+    auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
+    auto resultat = contexte.valide_semantique_noeud(unite->noeud);
+    if (est_erreur(resultat)) {
+        return;
     }
-
-    return false;
+    if (est_attente(resultat)) {
+        compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(resultat));
+        return;
+    }
+    /* Pour les imports et chargements. */
+    temps_validation -= contexte.temps_chargement;
+    compilatrice.gestionnaire_code->typage_termine(unite);
 }
 
 bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
@@ -1089,35 +946,46 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     else if (pour_metaprogramme) {
         auto corps = noeud->comme_corps_fonction();
 
-#define ATTEND_SUR_TYPE_SI_NECESSAIRE(type)                                                       \
+#define ATTEND_SUR_TYPE_SI_NECESSAIRE(type, id)                                                   \
     if (type == nullptr) {                                                                        \
+        compilatrice.gestionnaire_code->mets_en_attente(unite, Attente::sur_interface_kuri(id));  \
         return false;                                                                             \
     }                                                                                             \
     if ((type->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {                                            \
-        unite->attend_sur_type(type);                                                             \
+        compilatrice.gestionnaire_code->mets_en_attente(unite, Attente::sur_type(type));          \
         return false;                                                                             \
     }
 
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_contexte);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_base_allocatrice);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_stockage_temporaire);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_trace_appel);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_info_appel_trace_appel);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_info_fonction_trace_appel);
+        auto espace = unite->espace;
+        auto gestionnaire = compilatrice.gestionnaire_code;
 
-        if (unite->espace->interface_kuri->decl_creation_contexte == nullptr) {
-            unite->attend_sur_interface_kuri("creation_contexte");
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_contexte, ID::ContexteProgramme);
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_base_allocatrice, ID::BaseAllocatrice);
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_stockage_temporaire,
+                                      ID::StockageTemporaire);
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_trace_appel, ID::TraceAppel);
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_info_appel_trace_appel,
+                                      ID::InfoAppelTraceAppel);
+        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_info_fonction_trace_appel,
+                                      ID::InfoFonctionTraceAppel);
+
+        auto interface = espace->interface_kuri;
+        if (interface->decl_creation_contexte == nullptr) {
+            gestionnaire->mets_en_attente(unite,
+                                          Attente::sur_interface_kuri(ID::creation_contexte));
             return false;
         }
 
-        auto decl_creation_contexte = unite->espace->interface_kuri->decl_creation_contexte;
+        auto decl_creation_contexte = interface->decl_creation_contexte;
         if (decl_creation_contexte->corps->unite == nullptr) {
-            compilatrice.gestionnaire_code->requiers_typage(unite->espace,
-                                                            decl_creation_contexte->corps);
+            gestionnaire->mets_en_attente(unite,
+                                          Attente::sur_declaration(decl_creation_contexte->corps));
+            return false;
         }
 
         if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {
-            unite->attend_sur_declaration(unite->espace->interface_kuri->decl_creation_contexte);
+            gestionnaire->mets_en_attente(
+                unite, Attente::sur_declaration(interface->decl_creation_contexte));
             return false;
         }
 
@@ -1125,7 +993,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
             return false;
         }
 
-        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, corps->entete);
+        constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, corps->entete);
     }
 
     return true;

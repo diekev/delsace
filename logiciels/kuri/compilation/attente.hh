@@ -34,7 +34,7 @@ struct Type;
 
 struct Attente {
     Type *attend_sur_type = nullptr;
-    const char *attend_sur_interface_kuri = nullptr;
+    IdentifiantCode *attend_sur_interface_kuri = nullptr;
     MetaProgramme *attend_sur_metaprogramme = nullptr;
     NoeudDeclaration *attend_sur_declaration = nullptr;
     NoeudExpressionReference *attend_sur_symbole = nullptr;
@@ -49,7 +49,7 @@ struct Attente {
         return attente;
     }
 
-    static Attente sur_interface_kuri(const char *nom_fonction)
+    static Attente sur_interface_kuri(IdentifiantCode *nom_fonction)
     {
         auto attente = Attente{};
         attente.attend_sur_interface_kuri = nom_fonction;

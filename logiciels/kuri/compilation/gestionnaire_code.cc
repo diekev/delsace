@@ -392,21 +392,9 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
 
     if (attente.attend_sur_type) {
         Type *type = attente.attend_sur_type;
-
-        if (type->est_enum() || type->est_erreur()) {
-            if (static_cast<TypeEnum *>(type)->decl->unite == nullptr) {
-                requiers_typage(espace, static_cast<TypeEnum *>(type)->decl);
-            }
-        }
-        else if (type->est_structure()) {
-            if (type->comme_structure()->decl->unite == nullptr) {
-                requiers_typage(espace, type->comme_structure()->decl);
-            }
-        }
-        else if (type->est_union()) {
-            if (type->comme_union()->decl->unite == nullptr) {
-                requiers_typage(espace, type->comme_union()->decl);
-            }
+        auto decl = decl_pour_type(type);
+        if (decl && decl->unite == nullptr) {
+            requiers_typage(espace, decl);
         }
     }
     else if (attente.attend_sur_declaration) {
@@ -448,10 +436,108 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     // l'espace
 }
 
+#define ENUMERE_FONCTION_INTERFACE(O)                                                             \
+    O(panique)                                                                                    \
+    O(panique_hors_memoire)                                                                       \
+    O(panique_depassement_limites_tableau)                                                        \
+    O(panique_depassement_limites_chaine)                                                         \
+    O(panique_membre_union)                                                                       \
+    O(panique_erreur_non_geree)                                                                   \
+    O(__rappel_panique_defaut)                                                                    \
+    O(DLS_vers_r32)                                                                               \
+    O(DLS_vers_r64)                                                                               \
+    O(DLS_depuis_r32)                                                                             \
+    O(DLS_depuis_r64)
+
+#define ENUMERE_TYPE_INTERFACE(O)                                                                 \
+    O(InfoType)                                                                                   \
+    O(InfoTypeEnum)                                                                               \
+    O(InfoTypeStructure)                                                                          \
+    O(InfoTypeUnion)                                                                              \
+    O(InfoTypeMembreStructure)                                                                    \
+    O(InfoTypeEntier)                                                                             \
+    O(InfoTypeTableau)                                                                            \
+    O(InfoTypePointeur)                                                                           \
+    O(InfoTypeFonction)                                                                           \
+    O(PositionCodeSource)                                                                         \
+    O(InfoFonctionTraceAppel)                                                                     \
+    O(TraceAppel)                                                                                 \
+    O(BaseAllocatrice)                                                                            \
+    O(InfoAppelTraceAppel)                                                                        \
+    O(tockageTemporaire)                                                                          \
+    O(InfoTypeOpaque)
+
+static bool est_identifiant_interface(const IdentifiantCode *ident)
+{
+#define COMPARE_IDENT(ident_interface)                                                            \
+    if (ident == ID::ident_interface) {                                                           \
+        return true;                                                                              \
+    }
+
+    ENUMERE_FONCTION_INTERFACE(COMPARE_IDENT)
+
+#undef COMPARE_IDENT
+    return false;
+}
+
+void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
+{
+    auto noeud = unite->noeud;
+    if (noeud->est_entete_fonction() && est_identifiant_interface(noeud->ident)) {
+        POUR (unites_en_attente.attentes) {
+            auto unite = it.unite;
+            if (unite->attend_sur_interface_kuri(noeud->ident)) {
+                unite->marque_prete();
+            }
+        }
+    }
+
+    if (noeud->est_declaration()) {
+        POUR (unites_en_attente.attentes) {
+            auto unite = it.unite;
+            if (unite->attend_sur_declaration(noeud->comme_declaration())) {
+                unite->marque_prete();
+            }
+        }
+    }
+
+    if (noeud->est_structure() || noeud->est_enum()) {
+        POUR (unites_en_attente.attentes) {
+            auto unite = it.unite;
+            if (unite->attend_sur_type(noeud->type)) {
+                unite->marque_prete();
+            }
+        }
+    }
+}
+
+static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
+{
+    if (noeud->est_entete_fonction()) {
+        auto entete = noeud->comme_entete_fonction();
+        /* La génération de RI n'est que pour les corps des fonctions. */
+        return !entete->est_externe;
+    }
+
+    if (noeud->est_corps_fonction()) {
+        auto entete = noeud->comme_corps_fonction()->entete;
+        return (!entete->est_polymorphe || entete->est_monomorphisation);
+    }
+
+    if (noeud->est_structure()) {
+        auto structure = noeud->comme_structure();
+        return !structure->est_polymorphe;
+    }
+
+    return true;
+}
+
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
     assert(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE));
+
+    auto espace = unite->espace;
 
     // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace sont typées,
     // envoie un message
@@ -459,6 +545,43 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
     rassemble_dependances(unite, *graphe, *this);
+
+    marque_unites_dependantes_pretes(unite);
+
+    auto noeud = unite->noeud;
+    if (noeud_requiers_generation_ri(noeud)) {
+        espace->tache_ri_ajoutee(m_compilatrice->messagere);
+        unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
+    }
+
+    if (!noeud->est_execute()) {
+        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
+            unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
+
+        if (message_enfile) {
+            mets_en_attente(unite, Attente::sur_message(message_enfile));
+        }
+    }
+
+    /* Décrémente ceci après avoir ajouté le message de typage de code
+     * pour éviter de prévenir trop tôt un métaprogramme. */
+    espace->tache_typage_terminee(m_compilatrice->messagere);
+
+#if 0 /* Ancienne logique en cas de non-complétion de la tâche. */
+    if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
+        espace->parsage_termine() &&
+        (unite->index_courant == unite->index_precedent)) {
+        unite->cycle += 1;
+    }
+
+    if (unite->index_courant > unite->index_precedent) {
+        unite->cycle = 0;
+    }
+
+    unite->index_precedent = unite->index_courant;
+
+    taches_typage.enfile(tache_terminee);
+#endif
 }
 
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
@@ -468,6 +591,33 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 
     // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace ont eu leurs RI
     // générées, envoie un message
+
+    /* Marque les unités dépendantes du noeud comme prêtes. */
+    marque_unites_dependantes_pretes(unite);
+
+    auto espace = unite->espace;
+    espace->tache_ri_terminee(m_compilatrice->messagere);
+    if (espace->optimisations) {
+//        tache_terminee.genre = GenreTache::OPTIMISATION;
+//        taches_optimisation.enfile(tache_terminee);
+    }
+}
+
+void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
+{
+    assert(unite->noeud);
+    auto espace = unite->espace;
+    espace->tache_optimisation_terminee(m_compilatrice->messagere);
+}
+
+void GestionnaireCode::message_recu(Message *message)
+{
+    POUR (unites_en_attente.attentes) {
+        auto unite = it.unite;
+        if (unite->attend_sur_message(message)) {
+            unite->marque_prete();
+        }
+    }
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)

@@ -237,7 +237,7 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
         auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
-                                     const char *nom_fonction) -> ResultatTransformation {
+                                     IdentifiantCode *nom_fonction) -> ResultatTransformation {
             if (fonction == nullptr) {
                 return Attente::sur_interface_kuri(nom_fonction);
             }
@@ -248,11 +248,13 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32, "DLS_vers_r32");
+                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32,
+                                         ID::DLS_vers_r32);
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64, "DLS_vers_r64");
+                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64,
+                                         ID::DLS_vers_r64);
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -262,12 +264,12 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
                 return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32,
-                                         "DLS_depuis_r32");
+                                         ID::DLS_depuis_r32);
             }
 
             if (type_de->taille_octet == 8) {
                 return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64,
-                                         "DLS_depuis_r64");
+                                         ID::DLS_depuis_r64);
             }
 
             return TypeTransformation::IMPOSSIBLE;

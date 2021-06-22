@@ -104,6 +104,26 @@ struct UniteCompilation {
         return m_attente.attend_sur_symbole && m_attente.attend_sur_symbole->ident == ident;
     }
 
+    inline bool attend_sur_message(Message *message)
+    {
+        return m_attente.attend_sur_message == message;
+    }
+
+    inline bool attend_sur_declaration(NoeudDeclaration *declaration)
+    {
+        return m_attente.attend_sur_declaration == declaration;
+    }
+
+    inline bool attend_sur_interface_kuri(IdentifiantCode *ident_interface)
+    {
+        return m_attente.attend_sur_interface_kuri == ident_interface;
+    }
+
+    inline bool attend_sur_type(Type *type)
+    {
+        return m_attente.attend_sur_type == type;
+    }
+
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \
