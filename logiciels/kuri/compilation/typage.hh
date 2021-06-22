@@ -141,36 +141,36 @@ enum class TypeBase : char {
     TOTAL,
 };
 
-#define ENUMERE_GENRES_TYPES                                                                      \
-    ENUMERE_GENRE_TYPE_EX(ENTIER_NATUREL)                                                         \
-    ENUMERE_GENRE_TYPE_EX(ENTIER_RELATIF)                                                         \
-    ENUMERE_GENRE_TYPE_EX(ENTIER_CONSTANT)                                                        \
-    ENUMERE_GENRE_TYPE_EX(REEL)                                                                   \
-    ENUMERE_GENRE_TYPE_EX(POINTEUR)                                                               \
-    ENUMERE_GENRE_TYPE_EX(STRUCTURE)                                                              \
-    ENUMERE_GENRE_TYPE_EX(REFERENCE)                                                              \
-    ENUMERE_GENRE_TYPE_EX(TABLEAU_FIXE)                                                           \
-    ENUMERE_GENRE_TYPE_EX(TABLEAU_DYNAMIQUE)                                                      \
-    ENUMERE_GENRE_TYPE_EX(EINI)                                                                   \
-    ENUMERE_GENRE_TYPE_EX(UNION)                                                                  \
-    ENUMERE_GENRE_TYPE_EX(CHAINE)                                                                 \
-    ENUMERE_GENRE_TYPE_EX(FONCTION)                                                               \
-    ENUMERE_GENRE_TYPE_EX(RIEN)                                                                   \
-    ENUMERE_GENRE_TYPE_EX(BOOL)                                                                   \
-    ENUMERE_GENRE_TYPE_EX(OCTET)                                                                  \
-    ENUMERE_GENRE_TYPE_EX(ENUM)                                                                   \
-    ENUMERE_GENRE_TYPE_EX(VARIADIQUE)                                                             \
-    ENUMERE_GENRE_TYPE_EX(ERREUR)                                                                 \
-    /* ENUMERE_GENRE_TYPE_EX(EINI_ERREUR) */                                                      \
-    ENUMERE_GENRE_TYPE_EX(TYPE_DE_DONNEES)                                                        \
-    ENUMERE_GENRE_TYPE_EX(POLYMORPHIQUE)                                                          \
-    ENUMERE_GENRE_TYPE_EX(OPAQUE)                                                                 \
-    ENUMERE_GENRE_TYPE_EX(TUPLE)
+#define ENUMERE_TYPE(O)                                                                           \
+    O(pointeur, POINTEUR, TypePointeur)                                                           \
+    O(structure, STRUCTURE, TypeStructure)                                                        \
+    O(reference, REFERENCE, TypeReference)                                                        \
+    O(tableau_fixe, TABLEAU_FIXE, TypeTableauFixe)                                                \
+    O(tableau_dynamique, TABLEAU_DYNAMIQUE, TypeTableauDynamique)                                 \
+    O(union, UNION, TypeUnion)                                                                    \
+    O(fonction, FONCTION, TypeFonction)                                                           \
+    O(enum, ENUM, TypeEnum)                                                                       \
+    O(erreur, ERREUR, TypeEnum)                                                                   \
+    O(variadique, VARIADIQUE, TypeVariadique)                                                     \
+    O(type_de_donnees, TYPE_DE_DONNEES, TypeTypeDeDonnees)                                        \
+    O(polymorphique, POLYMORPHIQUE, TypePolymorphique)                                            \
+    O(opaque, OPAQUE, TypeOpaque)                                                                 \
+    O(tuple, TUPLE, TypeTuple)                                                                    \
+    O(entier_naturel, ENTIER_NATUREL, Type)                                                       \
+    O(entier_relatif, ENTIER_RELATIF, Type)                                                       \
+    O(entier_constant, ENTIER_CONSTANT, Type)                                                     \
+    O(reel, REEL, Type)                                                                           \
+    O(eini, EINI, TypeCompose)                                                                    \
+    O(chaine, CHAINE, TypeCompose)                                                                \
+    O(rien, RIEN, Type)                                                                           \
+    O(bool, BOOL, Type)                                                                           \
+    O(octet, OCTET, Type)
+/* O(eini_ereur, EINI, TypeCompose) */
 
 enum class GenreType : int {
-#define ENUMERE_GENRE_TYPE_EX(genre) genre,
-    ENUMERE_GENRES_TYPES
-#undef ENUMERE_GENRE_TYPE_EX
+#define ENUMERE_GENRE_TYPE(nom, Genre, TypeRafine) Genre,
+    ENUMERE_TYPE(ENUMERE_GENRE_TYPE)
+#undef ENUMERE_GENRE_TYPE
 };
 
 const char *chaine_genre_type(GenreType genre);
@@ -235,114 +235,26 @@ struct Type {
     static Type *cree_bool();
     static Type *cree_octet();
 
-    inline bool est_bool() const
-    {
-        return genre == GenreType::BOOL;
-    }
-    inline bool est_chaine() const
-    {
-        return genre == GenreType::CHAINE;
-    }
-    inline bool est_eini() const
-    {
-        return genre == GenreType::EINI;
-    }
-    inline bool est_entier_constant() const
-    {
-        return genre == GenreType::ENTIER_CONSTANT;
-    }
-    inline bool est_entier_naturel() const
-    {
-        return genre == GenreType::ENTIER_NATUREL;
-    }
-    inline bool est_entier_relatif() const
-    {
-        return genre == GenreType::ENTIER_RELATIF;
-    }
-    inline bool est_enum() const
-    {
-        return genre == GenreType::ENUM;
-    }
-    inline bool est_erreur() const
-    {
-        return genre == GenreType::ERREUR;
-    }
-    inline bool est_fonction() const
-    {
-        return genre == GenreType::FONCTION;
-    }
-    inline bool est_octet() const
-    {
-        return genre == GenreType::OCTET;
-    }
-    inline bool est_pointeur() const
-    {
-        return genre == GenreType::POINTEUR;
-    }
-    inline bool est_polymorphe() const
-    {
-        return genre == GenreType::POLYMORPHIQUE;
-    }
-    inline bool est_reel() const
-    {
-        return genre == GenreType::REEL;
-    }
-    inline bool est_reference() const
-    {
-        return genre == GenreType::REFERENCE;
-    }
-    inline bool est_rien() const
-    {
-        return genre == GenreType::RIEN;
-    }
-    inline bool est_structure() const
-    {
-        return genre == GenreType::STRUCTURE;
-    }
-    inline bool est_tableau_dynamique() const
-    {
-        return genre == GenreType::TABLEAU_DYNAMIQUE;
-    }
-    inline bool est_tableau_fixe() const
-    {
-        return genre == GenreType::TABLEAU_FIXE;
-    }
-    inline bool est_type_de_donnees() const
-    {
-        return genre == GenreType::TYPE_DE_DONNEES;
-    }
-    inline bool est_union() const
-    {
-        return genre == GenreType::UNION;
-    }
-    inline bool est_variadique() const
-    {
-        return genre == GenreType::VARIADIQUE;
-    }
-    inline bool est_opaque() const
-    {
-        return genre == GenreType::OPAQUE;
-    }
-    inline bool est_tuple() const
-    {
-        return genre == GenreType::TUPLE;
+#define __DEFINIS_DISCRIMINATIONS(nom, Genre, TypeRafine)                                         \
+    inline bool est_##nom() const                                                                 \
+    {                                                                                             \
+        return genre == GenreType::Genre;                                                         \
     }
 
+    ENUMERE_TYPE(__DEFINIS_DISCRIMINATIONS)
+
+#undef __DEFINIS_DISCRIMINATIONS
+
+#define __DECLARE_COMME_TYPE(nom, Genre, TypeRafine)                                              \
+    inline TypeRafine *comme_##nom();                                                             \
+    inline const TypeRafine *comme_##nom() const;
+
+    ENUMERE_TYPE(__DECLARE_COMME_TYPE)
+
+#undef __DECLARE_COMME_TYPE
+
     inline TypeCompose *comme_compose();
-    inline TypeEnum *comme_enum();
-    inline TypeEnum *comme_erreur();
-    inline TypeFonction *comme_fonction();
-    inline TypePointeur *comme_pointeur();
-    inline TypePolymorphique *comme_polymorphique();
-    inline TypeReference *comme_reference();
-    inline TypeStructure *comme_structure();
-    inline TypeTableauDynamique *comme_tableau_dynamique();
-    inline TypeTableauFixe *comme_tableau_fixe();
-    inline TypeTypeDeDonnees *comme_type_de_donnees();
-    inline TypeUnion *comme_union();
-    inline TypeVariadique *comme_variadique();
-    inline TypeOpaque *comme_opaque();
-    inline TypeTuple *comme_tuple();
+    inline const TypeCompose *comme_compose() const;
 };
 
 struct TypePointeur : public Type {
@@ -425,7 +337,7 @@ struct TypeCompose : public Type {
     static TypeCompose *cree_chaine();
 };
 
-inline bool est_type_compose(Type *type)
+inline bool est_type_compose(const Type *type)
 {
     return dls::outils::est_element(type->genre,
                                     GenreType::CHAINE,
@@ -602,17 +514,24 @@ struct TypeTuple : public TypeCompose {
 
 /* ************************************************************************** */
 
-inline TypePointeur *Type::comme_pointeur()
-{
-    assert(genre == GenreType::POINTEUR);
-    return static_cast<TypePointeur *>(this);
-}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
+    inline TypeRafine *Type::comme_##nom()                                                        \
+    {                                                                                             \
+        assert(genre == GenreType::Genre);                                                        \
+        return static_cast<TypeRafine *>(this);                                                   \
+    }                                                                                             \
+    inline const TypeRafine *Type::comme_##nom() const                                            \
+    {                                                                                             \
+        assert(genre == GenreType::Genre);                                                        \
+        return static_cast<const TypeRafine *>(this);                                             \
+    }
 
-inline TypeStructure *Type::comme_structure()
-{
-    assert(genre == GenreType::STRUCTURE);
-    return static_cast<TypeStructure *>(this);
-}
+ENUMERE_TYPE(__DEFINIS_COMME_TYPE)
+
+#undef __DEFINIS_COMME_TYPE
+#pragma GCC diagnostic pop
 
 inline TypeCompose *Type::comme_compose()
 {
@@ -620,76 +539,10 @@ inline TypeCompose *Type::comme_compose()
     return static_cast<TypeCompose *>(this);
 }
 
-inline TypeReference *Type::comme_reference()
+inline const TypeCompose *Type::comme_compose() const
 {
-    assert(genre == GenreType::REFERENCE);
-    return static_cast<TypeReference *>(this);
-}
-
-inline TypeTableauFixe *Type::comme_tableau_fixe()
-{
-    assert(genre == GenreType::TABLEAU_FIXE);
-    return static_cast<TypeTableauFixe *>(this);
-}
-
-inline TypeTableauDynamique *Type::comme_tableau_dynamique()
-{
-    assert(genre == GenreType::TABLEAU_DYNAMIQUE);
-    return static_cast<TypeTableauDynamique *>(this);
-}
-
-inline TypeUnion *Type::comme_union()
-{
-    assert(genre == GenreType::UNION);
-    return static_cast<TypeUnion *>(this);
-}
-
-inline TypeFonction *Type::comme_fonction()
-{
-    assert(genre == GenreType::FONCTION);
-    return static_cast<TypeFonction *>(this);
-}
-
-inline TypeEnum *Type::comme_enum()
-{
-    assert(genre == GenreType::ENUM || genre == GenreType::ERREUR);
-    return static_cast<TypeEnum *>(this);
-}
-
-inline TypeEnum *Type::comme_erreur()
-{
-    assert(genre == GenreType::ERREUR);
-    return static_cast<TypeEnum *>(this);
-}
-
-inline TypeVariadique *Type::comme_variadique()
-{
-    assert(genre == GenreType::VARIADIQUE);
-    return static_cast<TypeVariadique *>(this);
-}
-
-inline TypeTypeDeDonnees *Type::comme_type_de_donnees()
-{
-    assert(genre == GenreType::TYPE_DE_DONNEES);
-    return static_cast<TypeTypeDeDonnees *>(this);
-}
-
-inline TypePolymorphique *Type::comme_polymorphique()
-{
-    assert(genre == GenreType::POLYMORPHIQUE);
-    return static_cast<TypePolymorphique *>(this);
-}
-
-inline TypeOpaque *Type::comme_opaque()
-{
-    assert(genre == GenreType::OPAQUE);
-    return static_cast<TypeOpaque *>(this);
-}
-
-inline TypeTuple *Type::comme_tuple()
-{
-    assert(genre == GenreType::TUPLE);
-    return static_cast<TypeTuple *>(this);
+    assert(est_type_compose(this));
+    return static_cast<const TypeCompose *>(this);
 }
 
 /* ************************************************************************** */
