@@ -57,6 +57,9 @@ enum class RaisonDEtre {
 #undef ENUMERE_RAISON_D_ETRE_EX
 };
 
+const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre);
+std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
+
 struct UniteCompilation {
     // ------------- nouvelle interface
   private:
@@ -112,16 +115,14 @@ struct UniteCompilation {
 #undef DEFINIS_DISCRIMINATION
 
     // ------------- ancienne interface
-    UniteCompilation *depend_sur = nullptr;
-
     EspaceDeTravail *espace = nullptr;
     Fichier *fichier = nullptr;
     NoeudExpression *noeud = nullptr;
     MetaProgramme *metaprogramme = nullptr;
-    int index_courant = 0;
-    int index_precedent = 0;
     bool message_recu = false;
 
+    int index_courant = 0;
+    int index_precedent = 0;
     int cycle = 0;
 
     bool est_bloquee() const;
@@ -130,9 +131,5 @@ struct UniteCompilation {
 
     UniteCompilation *unite_attendue() const;
 };
-
-const char *chaine_etat_unite(UniteCompilation::Etat etat);
-
-std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat);
 
 kuri::chaine chaine_attentes_recursives(UniteCompilation *unite);

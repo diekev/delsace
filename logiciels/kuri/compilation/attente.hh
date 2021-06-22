@@ -25,6 +25,7 @@
 #pragma once
 
 struct IdentifiantCode;
+struct Message;
 struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudExpression;
@@ -38,6 +39,7 @@ struct Attente {
     NoeudDeclaration *attend_sur_declaration = nullptr;
     NoeudExpressionReference *attend_sur_symbole = nullptr;
     NoeudExpression *attend_sur_operateur = nullptr;
+    Message *attend_sur_message = nullptr;
     /* ATTENTION ! Ne pas ajouter autre chose que des pointeurs, ou changer est_valide() ! */
 
     static Attente sur_type(Type *type)
@@ -79,6 +81,13 @@ struct Attente {
     {
         auto attente = Attente{};
         attente.attend_sur_operateur = operateur;
+        return attente;
+    }
+
+    static Attente sur_message(Message *message)
+    {
+        auto attente = Attente{};
+        attente.attend_sur_message = message;
         return attente;
     }
 

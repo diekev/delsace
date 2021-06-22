@@ -35,56 +35,54 @@
 
 static constexpr auto CYCLES_MAXIMUM = 10;
 
-const char *chaine_etat_unite(UniteCompilation::Etat etat)
+const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
 {
-#define ENUMERE_ETAT_UNITE_EX(etat)                                                               \
-    case UniteCompilation::Etat::etat:                                                            \
-        return #etat;
-    switch (etat) {
-        ENUMERE_ETATS_UNITE
+#define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) case RaisonDEtre::Genre: return chaine;
+    switch (raison_d_etre) {
+        ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
     }
-#undef ENUMERE_ETAT_UNITE_EX
-
-    return "erreur";
+#undef ENUMERE_RAISON_D_ETRE_EX
+    return "ceci ne devrait pas arriver";
 }
 
-std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat)
+std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 {
-    os << chaine_etat_unite(etat);
-    return os;
+    return os << chaine_rainson_d_etre(raison_d_etre);
 }
 
 bool UniteCompilation::est_bloquee() const
 {
-    switch (etat()) {
-        case UniteCompilation::Etat::ATTEND_SUR_TYPE:
-        {
-            return false;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_DECLARATION:
-        {
-            return false;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
-        {
-            return cycle > CYCLES_MAXIMUM;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
-        {
-            return cycle > CYCLES_MAXIMUM;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
-        {
-            return false;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
-        {
-            return false;
-        }
-        case UniteCompilation::Etat::PRETE:
-        {
-            return cycle > CYCLES_MAXIMUM;
-        }
+    if (m_attente.attend_sur_type) {
+        return false;
+    }
+
+    if (m_attente.attend_sur_symbole) {
+        /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
+        return cycle > CYCLES_MAXIMUM;
+    }
+
+    if (m_attente.attend_sur_declaration) {
+        /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
+        return false;
+    }
+
+    if (m_attente.attend_sur_operateur) {
+        /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
+        return cycle > CYCLES_MAXIMUM;
+    }
+
+    if (m_attente.attend_sur_metaprogramme) {
+        /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
+        return false;
+    }
+
+    if (m_attente.attend_sur_interface_kuri) {
+        /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
+        return false;
+    }
+
+    if (m_attente.attend_sur_message) {
+        return false;
     }
 
     return false;
@@ -92,104 +90,109 @@ bool UniteCompilation::est_bloquee() const
 
 kuri::chaine UniteCompilation::commentaire() const
 {
-    switch (etat()) {
-        case UniteCompilation::Etat::ATTEND_SUR_TYPE:
-        {
-            return chaine_type(type_attendu);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_DECLARATION:
-        {
-            return declaration_attendue->ident->nom;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
-        {
-            return symbole_attendu->ident->nom;
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
-        {
-            return enchaine("opérateur ", operateur_attendu->lexeme->chaine);
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
-        {
-            auto resultat = Enchaineuse();
-            resultat << "métaprogramme";
-
-            if (metaprogramme_attendu->corps_texte) {
-                resultat << " #corps_texte pour ";
-
-                if (metaprogramme_attendu->corps_texte_pour_fonction) {
-                    resultat << metaprogramme->corps_texte_pour_fonction->ident->nom;
-                }
-                else if (metaprogramme_attendu->corps_texte_pour_structure) {
-                    resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
-                }
-                else {
-                    resultat << " ERREUR COMPILATRICE";
-                }
-            }
-            else {
-                resultat << " " << metaprogramme_attendu;
-            }
-
-            return resultat.chaine();
-        }
-        case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
-        {
-            return fonction_interface_attendue;
-        }
-        case UniteCompilation::Etat::PRETE:
-        {
-            return "prête";
-        }
+    if (m_attente.attend_sur_type) {
+        auto type_attendu = m_attente.attend_sur_type;
+        return chaine_type(type_attendu);
     }
 
-    return "";
+    if (m_attente.attend_sur_symbole) {
+        return m_attente.attend_sur_symbole->ident->nom;
+    }
+
+    if (m_attente.attend_sur_declaration) {
+        return m_attente.attend_sur_declaration->ident->nom;
+    }
+
+    if (m_attente.attend_sur_operateur) {
+        return enchaine("opérateur ", m_attente.attend_sur_operateur->lexeme->chaine);
+    }
+
+    if (m_attente.attend_sur_metaprogramme) {
+        auto metaprogramme_attendu = m_attente.attend_sur_metaprogramme;
+        auto resultat = Enchaineuse();
+        resultat << "métaprogramme";
+
+        if (metaprogramme_attendu->corps_texte) {
+            resultat << " #corps_texte pour ";
+
+            if (metaprogramme_attendu->corps_texte_pour_fonction) {
+                resultat << metaprogramme->corps_texte_pour_fonction->ident->nom;
+            }
+            else if (metaprogramme_attendu->corps_texte_pour_structure) {
+                resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
+            }
+            else {
+                resultat << " ERREUR COMPILATRICE";
+            }
+        }
+        else {
+            resultat << " " << metaprogramme_attendu;
+        }
+
+        return resultat.chaine();
+    }
+
+    if (m_attente.attend_sur_interface_kuri) {
+        return m_attente.attend_sur_interface_kuri;
+    }
+
+    if (m_attente.attend_sur_message) {
+        return "message";
+    }
+
+    return "ERREUR COMPILATRICE";
 }
 
 UniteCompilation *UniteCompilation::unite_attendue() const
 {
-    switch (etat()) {
-        case UniteCompilation::Etat::ATTEND_SUR_TYPE:
-        {
-            if (type_attendu->est_structure()) {
-                auto type_structure = type_attendu->comme_structure();
-                return type_structure->decl->unite;
-            }
-            else if (type_attendu->est_union()) {
-                auto type_union = type_attendu->comme_union();
-                return type_union->decl->unite;
-            }
-            else if (type_attendu->est_enum()) {
-                auto type_enum = type_attendu->comme_enum();
-                return type_enum->decl->unite;
-            }
-            else if (type_attendu->est_erreur()) {
-                auto type_erreur = type_attendu->comme_erreur();
-                return type_erreur->decl->unite;
-            }
-
-            return nullptr;
+    if (m_attente.attend_sur_type) {
+        auto type_attendu = m_attente.attend_sur_type;
+        if (type_attendu->est_structure()) {
+            auto type_structure = type_attendu->comme_structure();
+            return type_structure->decl->unite;
         }
-        case UniteCompilation::Etat::ATTEND_SUR_DECLARATION:
-        {
-            return declaration_attendue->unite;
+        else if (type_attendu->est_union()) {
+            auto type_union = type_attendu->comme_union();
+            return type_union->decl->unite;
         }
-        case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
-        {
-            return nullptr;
+        else if (type_attendu->est_enum()) {
+            auto type_enum = type_attendu->comme_enum();
+            return type_enum->decl->unite;
         }
-        case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
-        {
-            return metaprogramme_attendu->unite;
+        else if (type_attendu->est_erreur()) {
+            auto type_erreur = type_attendu->comme_erreur();
+            return type_erreur->decl->unite;
         }
-        case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
-        case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
-        case UniteCompilation::Etat::PRETE:
-        {
-            return nullptr;
-        }
+        assert(!m_attente.est_valide());
+        return nullptr;
     }
 
+    if (m_attente.attend_sur_symbole) {
+        return nullptr;
+    }
+
+    if (m_attente.attend_sur_declaration) {
+        return m_attente.attend_sur_declaration->unite;
+    }
+
+    if (m_attente.attend_sur_operateur) {
+        return m_attente.attend_sur_declaration->unite;
+    }
+
+    if (m_attente.attend_sur_metaprogramme) {
+        auto metaprogramme_attendu = m_attente.attend_sur_metaprogramme;
+        return metaprogramme_attendu->unite;
+    }
+
+    if (m_attente.attend_sur_interface_kuri) {
+        return nullptr;
+    }
+
+    if (m_attente.attend_sur_message) {
+        return nullptr;
+    }
+
+    assert(!m_attente.est_valide());
     return nullptr;
 }
 
@@ -211,7 +214,7 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation *unite)
     dls::ensemble<UniteCompilation *> unite_visite;
 
     while (attendue) {
-        if (attendue->etat() == UniteCompilation::Etat::PRETE) {
+        if (attendue->est_prete()) {
             fc << "    " << commentaire << " est prête !\n";
             break;
         }
