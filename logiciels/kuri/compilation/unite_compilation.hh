@@ -101,6 +101,11 @@ struct UniteCompilation {
         return m_raison_d_etre;
     }
 
+    inline bool attend_sur_symbole(IdentifiantCode *ident)
+    {
+        return m_attente.attend_sur_symbole && m_attente.attend_sur_symbole->ident == ident;
+    }
+
     // ------------- ancienne interface
     enum class Etat {
 #define ENUMERE_ETAT_UNITE_EX(etat) etat,

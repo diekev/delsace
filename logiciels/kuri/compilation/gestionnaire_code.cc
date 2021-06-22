@@ -234,6 +234,27 @@ static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, Graphe
     return nullptr;
 }
 
+static NoeudDeclaration *decl_pour_type(const Type *type)
+{
+    if (type->est_structure()) {
+        return type->comme_structure()->decl;
+    }
+
+    if (type->est_enum()) {
+        return type->comme_enum()->decl;
+    }
+
+    if (type->est_erreur()) {
+        return type->comme_erreur()->decl;
+    }
+
+    if (type->est_union()) {
+        return type->comme_union()->decl;
+    }
+
+    return nullptr;
+}
+
 /* Requiers le typage de toutes les dépendances. */
 static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             DonneesDependance const &dependances,
@@ -250,20 +271,21 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage de toutes les déclarations utilisées. */
     dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         if (!globale->unite) {
-            gestionnaire.requiers_typage(espace, const_cast<NoeudExpression *>(globale));
+            gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
         return dls::DecisionIteration::Continue;
     });
 
     /* Requiers le typage de tous les types utilisés. */
     dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        if (type->decl && !type->decl->unite) {
+        auto decl = decl_pour_type(type);
+        if (decl && !decl->unite) {
             // Pour les unions anonymes, nous allons directement à la génération de code RI.
             if (type->est_union() && type->comme_union()->est_anonyme) {
-                gestionnaire.requiers_generation_ri(espace, type->decl);
+                gestionnaire.requiers_generation_ri(espace, decl);
             }
             else {
-                gestionnaire.requiers_typage(espace, type->decl);
+                gestionnaire.requiers_typage(espace, decl);
             }
         }
         return dls::DecisionIteration::Continue;
@@ -404,7 +426,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
 void GestionnaireCode::symbole_defini(IdentifiantCode *ident)
 {
     POUR (unites_en_attente.attentes) {
-        if (it.unite->attend_sur_symbole() == ident) {
+        if (it.unite->attend_sur_symbole(ident)) {
             it.unite->marque_prete();
         }
     }
