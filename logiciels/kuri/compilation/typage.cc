@@ -99,13 +99,13 @@ static DonneesTypeCommun donnees_types_communs[] = {
 
 const char *chaine_genre_type(GenreType genre)
 {
-#define ENUMERE_GENRE_TYPE_EX(genre)                                                              \
-    case GenreType::genre:                                                                        \
+#define ENUMERE_GENRE_TYPE_EX(nom, Genre, TypeRafine)                                             \
+    case GenreType::Genre:                                                                        \
     {                                                                                             \
-        return #genre;                                                                            \
+        return #Genre;                                                                            \
     }
     switch (genre) {
-        ENUMERE_GENRES_TYPES
+        ENUMERE_TYPE(ENUMERE_GENRE_TYPE_EX)
     }
 #undef ENUMERE_GENRE_TYPE_EX
 
