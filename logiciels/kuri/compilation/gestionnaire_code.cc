@@ -485,27 +485,27 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     auto noeud = unite->noeud;
     if (noeud->est_entete_fonction() && est_identifiant_interface(noeud->ident)) {
         POUR (unites_en_attente.attentes) {
-            auto unite = it.unite;
-            if (unite->attend_sur_interface_kuri(noeud->ident)) {
-                unite->marque_prete();
+            auto unite_en_attente = it.unite;
+            if (unite_en_attente->attend_sur_interface_kuri(noeud->ident)) {
+                unite_en_attente->marque_prete();
             }
         }
     }
 
     if (noeud->est_declaration()) {
         POUR (unites_en_attente.attentes) {
-            auto unite = it.unite;
-            if (unite->attend_sur_declaration(noeud->comme_declaration())) {
-                unite->marque_prete();
+            auto unite_en_attente = it.unite;
+            if (unite_en_attente->attend_sur_declaration(noeud->comme_declaration())) {
+                unite_en_attente->marque_prete();
             }
         }
     }
 
     if (noeud->est_structure() || noeud->est_enum()) {
         POUR (unites_en_attente.attentes) {
-            auto unite = it.unite;
-            if (unite->attend_sur_type(noeud->type)) {
-                unite->marque_prete();
+            auto unite_en_attente = it.unite;
+            if (unite_en_attente->attend_sur_type(noeud->type)) {
+                unite_en_attente->marque_prete();
             }
         }
     }
@@ -556,7 +556,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     if (!noeud->est_execute()) {
         auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
-            unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
+            unite->espace, static_cast<NoeudDeclaration *>(noeud));
 
         if (message_enfile) {
             mets_en_attente(unite, Attente::sur_message(message_enfile));
@@ -610,7 +610,7 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
     espace->tache_optimisation_terminee(m_compilatrice->messagere);
 }
 
-void GestionnaireCode::message_recu(Message *message)
+void GestionnaireCode::message_recu(Message const *message)
 {
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;

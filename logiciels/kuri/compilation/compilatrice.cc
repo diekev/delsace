@@ -38,7 +38,7 @@
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice() : ordonnanceuse(this), gestionnaire_code(this)
+Compilatrice::Compilatrice() : ordonnanceuse(this), messagere(this), gestionnaire_code(this)
 {
     this->bibliotheques_dynamiques->ajoute("pthread");
     this->definitions->ajoute("_REENTRANT");

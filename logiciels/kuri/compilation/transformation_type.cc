@@ -333,7 +333,7 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                     auto decl_panique_membre_union =
                         espace.interface_kuri->decl_panique_membre_union;
                     if (decl_panique_membre_union == nullptr) {
-                        return Attente::sur_interface_kuri("panique_membre_union");
+                        return Attente::sur_interface_kuri(ID::panique_membre_union);
                     }
                 }
 

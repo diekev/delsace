@@ -465,10 +465,12 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
     }
 
     if (tache_ri && tache_typage) {
-        if (tache_typage->unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
-            taches_generation_ri.taille() > taches_typage.taille()) {
-            return taches_generation_ri.defile();
-        }
+        // À FAIRE(gestion)
+        //        if (tache_typage->unite->etat() ==
+        //        UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
+        //            taches_generation_ri.taille() > taches_typage.taille()) {
+        //            return taches_generation_ri.defile();
+        //        }
 
         return taches_typage.defile();
     }
@@ -697,111 +699,7 @@ void Tacheronne::gere_tache()
 
                 if (unite->est_bloquee()) {
                     mv.stop = true;
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
-                        erreur::lance_erreur(
-                            "Trop de cycles : arrêt de la compilation sur un symbole inconnu",
-                            *unite->espace,
-                            unite->symbole_attendu);
-                    }
-                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
-                        auto decl = unite->declaration_attendue;
-                        auto unite_decl = decl->unite;
-                        auto erreur = rapporte_erreur(unite->espace,
-                                                      unite->declaration_attendue,
-                                                      "Je ne peux pas continuer la compilation "
-                                                      "car une déclaration ne peut être typée.");
-
-                        // À FAIRE : ne devrait pas arriver
-                        if (unite_decl) {
-                            erreur
-                                .ajoute_message(
-                                    "Note : l'unité de compilation est dans cette état :\n")
-                                .ajoute_message(chaine_attentes_recursives(unite))
-                                .ajoute_message("\n");
-                        }
-                    }
-                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
-                        auto site = unite->noeud;
-
-                        if (site->est_corps_fonction()) {
-                            auto corps = site->comme_corps_fonction();
-                            site = corps->arbre_aplatis[unite->index_courant];
-                        }
-
-                        rapporte_erreur(unite->espace,
-                                        site,
-                                        "Je ne peux pas continuer la compilation car je n'arrive "
-                                        "pas à déterminer un type pour l'expression",
-                                        erreur::Genre::TYPE_INCONNU)
-                            .ajoute_message("Note : le type attendu est ")
-                            .ajoute_message(chaine_type(unite->type_attendu))
-                            .ajoute_message("\n")
-                            .ajoute_message(
-                                "Note : l'unité de compilation est dans cette état :\n")
-                            .ajoute_message(chaine_attentes_recursives(unite))
-                            .ajoute_message("\n");
-                    }
-                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
-                        erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une "
-                                             "déclaration attend sur une interface de Kuri",
-                                             *unite->espace,
-                                             unite->noeud);
-                    }
-                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
-                        if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
-                            auto expression_operation = static_cast<NoeudExpressionBinaire *>(
-                                unite->operateur_attendu);
-                            auto type1 = expression_operation->operande_gauche->type;
-                            auto type2 = expression_operation->operande_droite->type;
-                            rapporte_erreur(unite->espace,
-                                            unite->operateur_attendu,
-                                            "Je ne peux pas continuer la compilation car je "
-                                            "n'arrive pas à déterminer quel opérateur appeler.",
-                                            erreur::Genre::TYPE_INCONNU)
-                                .ajoute_message("Le type à gauche de l'opérateur est ")
-                                .ajoute_message(chaine_type(type1))
-                                .ajoute_message("\nLe type à droite de l'opérateur est ")
-                                .ajoute_message(chaine_type(type2))
-                                .ajoute_message(
-                                    "\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
-                                .ajoute_conseil(
-                                    "Si vous voulez performer une opération sur des types "
-                                    "non-communs, vous pouvez définir vos propres opérateurs avec "
-                                    "la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: "
-                                    "type2) -> type_retour\n{\n\t...\n}\n");
-                        }
-                        else {
-                            auto expression_operation = static_cast<NoeudExpressionUnaire *>(
-                                unite->operateur_attendu);
-                            auto type = expression_operation->operande->type;
-                            rapporte_erreur(unite->espace,
-                                            unite->operateur_attendu,
-                                            "Je ne peux pas continuer la compilation car je "
-                                            "n'arrive pas à déterminer quel opérateur appeler.",
-                                            erreur::Genre::TYPE_INCONNU)
-                                .ajoute_message("\nLe type à droite de l'opérateur est ")
-                                .ajoute_message(chaine_type(type))
-                                .ajoute_message(
-                                    "\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
-                                .ajoute_conseil(
-                                    "Si vous voulez performer une opération sur des types "
-                                    "non-communs, vous pouvez définir vos propres opérateurs avec "
-                                    "la syntaxe suivante :\n\nopérateur op :: fonc (a: type) -> "
-                                    "type_retour\n{\n\t...\n}\n");
-                        }
-                    }
-                    else {
-                        rapporte_erreur(
-                            unite->espace,
-                            unite->noeud,
-                            "Je ne peux pas continuer la compilation car une unité est "
-                            "bloqué dans un cycle")
-                            .ajoute_message("\nNote : l'unité est dans l'état : ")
-                            .ajoute_message(chaine_attentes_recursives(unite))
-                            .ajoute_message("\n");
-                    }
-
+                    unite->rapporte_erreur();
                     break;
                 }
 
@@ -957,7 +855,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
         auto espace = unite->espace;
-        auto gestionnaire = compilatrice.gestionnaire_code;
+        auto &gestionnaire = compilatrice.gestionnaire_code;
 
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_contexte, ID::ContexteProgramme);
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_base_allocatrice, ID::BaseAllocatrice);

@@ -30,6 +30,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "espace_de_travail.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
 
@@ -135,7 +136,7 @@ kuri::chaine UniteCompilation::commentaire() const
     }
 
     if (m_attente.attend_sur_interface_kuri) {
-        return m_attente.attend_sur_interface_kuri;
+        return m_attente.attend_sur_interface_kuri->nom;
     }
 
     if (m_attente.attend_sur_message) {
@@ -198,7 +199,105 @@ UniteCompilation *UniteCompilation::unite_attendue() const
     return nullptr;
 }
 
-kuri::chaine chaine_attentes_recursives(UniteCompilation *unite)
+void UniteCompilation::rapporte_erreur() const
+{
+
+    if (m_attente.attend_sur_symbole) {
+        espace->rapporte_erreur(m_attente.attend_sur_symbole,
+                                "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
+    }
+    else if (m_attente.attend_sur_declaration) {
+        auto decl = m_attente.attend_sur_declaration;
+        auto unite_decl = decl->unite;
+        auto erreur = espace->rapporte_erreur(
+            decl,
+            "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
+
+        // À FAIRE : ne devrait pas arriver
+        if (unite_decl) {
+            erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+                .ajoute_message(chaine_attentes_recursives(this))
+                .ajoute_message("\n");
+        }
+    }
+    else if (m_attente.attend_sur_type) {
+        auto site = noeud;
+        if (site->est_corps_fonction()) {
+            auto corps = site->comme_corps_fonction();
+            site = corps->arbre_aplatis[index_courant];
+        }
+
+        espace
+            ->rapporte_erreur(site,
+                              "Je ne peux pas continuer la compilation car je n'arrive "
+                              "pas à déterminer un type pour l'expression",
+                              erreur::Genre::TYPE_INCONNU)
+            .ajoute_message("Note : le type attendu est ")
+            .ajoute_message(chaine_type(m_attente.attend_sur_type))
+            .ajoute_message("\n")
+            .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+            .ajoute_message(chaine_attentes_recursives(this))
+            .ajoute_message("\n");
+    }
+    else if (m_attente.attend_sur_interface_kuri) {
+        espace
+            ->rapporte_erreur(noeud,
+                              "Trop de cycles : arrêt de la compilation car une "
+                              "déclaration attend sur une interface de Kuri")
+            .ajoute_message("Note : l'interface attendue est ",
+                            m_attente.attend_sur_interface_kuri->nom,
+                            "\n");
+    }
+    else if (m_attente.attend_sur_operateur) {
+        auto operateur_attendu = m_attente.attend_sur_operateur;
+        if (operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
+            auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
+            auto type1 = expression_operation->operande_gauche->type;
+            auto type2 = expression_operation->operande_droite->type;
+            espace
+                ->rapporte_erreur(operateur_attendu,
+                                  "Je ne peux pas continuer la compilation car je "
+                                  "n'arrive pas à déterminer quel opérateur appeler.",
+                                  erreur::Genre::TYPE_INCONNU)
+                .ajoute_message("Le type à gauche de l'opérateur est ")
+                .ajoute_message(chaine_type(type1))
+                .ajoute_message("\nLe type à droite de l'opérateur est ")
+                .ajoute_message(chaine_type(type2))
+                .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
+                .ajoute_conseil("Si vous voulez performer une opération sur des types "
+                                "non-communs, vous pouvez définir vos propres opérateurs avec "
+                                "la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: "
+                                "type2) -> type_retour\n{\n\t...\n}\n");
+        }
+        else {
+            auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
+            auto type = expression_operation->operande->type;
+            espace
+                ->rapporte_erreur(operateur_attendu,
+                                  "Je ne peux pas continuer la compilation car je "
+                                  "n'arrive pas à déterminer quel opérateur appeler.",
+                                  erreur::Genre::TYPE_INCONNU)
+                .ajoute_message("\nLe type à droite de l'opérateur est ")
+                .ajoute_message(chaine_type(type))
+                .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
+                .ajoute_conseil("Si vous voulez performer une opération sur des types "
+                                "non-communs, vous pouvez définir vos propres opérateurs avec "
+                                "la syntaxe suivante :\n\nopérateur op :: fonc (a: type) -> "
+                                "type_retour\n{\n\t...\n}\n");
+        }
+    }
+    else {
+        espace
+            ->rapporte_erreur(noeud,
+                              "Je ne peux pas continuer la compilation car une unité est "
+                              "bloqué dans un cycle")
+            .ajoute_message("\nNote : l'unité est dans l'état : ")
+            .ajoute_message(chaine_attentes_recursives(this))
+            .ajoute_message("\n");
+    }
+}
+
+kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
 {
     if (!unite) {
         return "    L'unité est nulle !\n";

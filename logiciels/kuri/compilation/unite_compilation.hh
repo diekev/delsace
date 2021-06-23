@@ -104,7 +104,7 @@ struct UniteCompilation {
         return m_attente.attend_sur_symbole && m_attente.attend_sur_symbole->ident == ident;
     }
 
-    inline bool attend_sur_message(Message *message)
+    inline bool attend_sur_message(Message const *message)
     {
         return m_attente.attend_sur_message == message;
     }
@@ -150,6 +150,8 @@ struct UniteCompilation {
     kuri::chaine commentaire() const;
 
     UniteCompilation *unite_attendue() const;
+
+    void rapporte_erreur() const;
 };
 
-kuri::chaine chaine_attentes_recursives(UniteCompilation *unite);
+kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite);

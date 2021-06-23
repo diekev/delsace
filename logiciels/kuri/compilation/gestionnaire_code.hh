@@ -90,7 +90,7 @@ class GestionnaireCode {
 
     void generation_ri_terminee(UniteCompilation *unite);
 
-    void message_recu(Message *message);
+    void message_recu(Message const *message);
 
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);
