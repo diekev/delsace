@@ -91,6 +91,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             const auto temps = dls::chrono::compte_seconde();
             m_compilatrice.ajoute_fichier_a_la_compilation(
                 espace, lexeme->chaine, fichier->module, inst->expression);
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             temps_chargement += temps.temps();
             break;
         }
@@ -125,6 +126,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud_module->bloc_parent = inst->bloc_parent;
                 noeud_module->bloc_parent->membres->ajoute(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+                noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             }
 
             break;
