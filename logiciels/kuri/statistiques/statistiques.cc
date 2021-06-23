@@ -29,11 +29,11 @@
 
 static inline int ratio(double a, double b)
 {
-  if (b <= 0.0001) {
-    return 0.0;
-  }
+    if (b <= 0.0001) {
+        return 0.0;
+    }
 
-  return static_cast<int>(a / b);
+    return static_cast<int>(a / b);
 }
 
 void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation)
@@ -56,7 +56,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
 
     auto calc_pourcentage = [&](const double &x, const double &total) {
         if (total == 0.0) {
-          return 0.0;
+            return 0.0;
         }
         return (x * 100.0 / total);
     };
@@ -73,7 +73,8 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     auto const nombre_lignes = stats.stats_fichiers.totaux.nombre_lignes;
     auto const lignes_double = static_cast<double>(nombre_lignes);
     auto const debit_lignes = ratio(lignes_double, temps_aggrege);
-    auto const debit_lignes_scene = ratio(lignes_double, (temps_scene - stats.temps_metaprogrammes));
+    auto const debit_lignes_scene = ratio(lignes_double,
+                                          (temps_scene - stats.temps_metaprogrammes));
     auto const debit_lignes_coulisse = ratio(lignes_double, temps_coulisse);
     auto const debit_seconde = ratio(static_cast<double>(memoire_consommee), temps_aggrege);
 

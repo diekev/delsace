@@ -513,13 +513,13 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     }
 
     if (noeud->est_importe()) {
-      auto importe = noeud->comme_importe();
-      POUR (unites_en_attente.attentes) {
-        auto unite_en_attente = it.unite;
-        if (unite_en_attente->attend_sur_symbole(importe->expression->ident)) {
-          unite_en_attente->marque_prete();
+        auto importe = noeud->comme_importe();
+        POUR (unites_en_attente.attentes) {
+            auto unite_en_attente = it.unite;
+            if (unite_en_attente->attend_sur_symbole(importe->expression->ident)) {
+                unite_en_attente->marque_prete();
+            }
         }
-      }
     }
 }
 
@@ -547,7 +547,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
-    assert_rappel(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE), [&]{
+    assert_rappel(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
@@ -560,7 +560,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
     if (unite->noeud->est_declaration()) {
-      rassemble_dependances(unite, *graphe, *this);
+        rassemble_dependances(unite, *graphe, *this);
     }
 
     marque_unites_dependantes_pretes(unite);
