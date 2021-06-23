@@ -622,10 +622,13 @@ void GestionnaireCode::message_recu(Message const *message)
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 {
+    FileDAttente nouvelles_unites;
+
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;
 
         if (!unite->est_prete()) {
+            nouvelles_unites.ajoute(unite);
             continue;
         }
 
@@ -667,4 +670,6 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             }
         }
     }
+
+    unites_en_attente = nouvelles_unites;
 }

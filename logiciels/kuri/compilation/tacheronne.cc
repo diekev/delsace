@@ -260,6 +260,8 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
                                          DrapeauxTacheronne drapeaux,
                                          bool mv_en_execution)
 {
+    m_compilatrice->gestionnaire_code->cree_taches(*this);
+
     auto unite = tache_terminee.unite;
     auto espace = EspaceDeTravail::nul();
 
