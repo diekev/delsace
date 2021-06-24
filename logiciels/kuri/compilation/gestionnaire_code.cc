@@ -622,7 +622,8 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
     auto noeud = unite->noeud;
-    if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) || noeud->est_corps_fonction()) {
+    if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) ||
+        noeud->est_corps_fonction()) {
         rassemble_dependances(unite, *graphe, *this);
     }
 

@@ -3824,7 +3824,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
     /* Nous devons valider l'arbre avant les types opaques, afin que l'expression soit validée. */
-    if (decl->possede_drapeau(EST_GLOBALE) && decl->unite == unite && (unite->index_courant == 0 || unite->index_courant < decl->arbre_aplatis.taille() - 1)) {
+    if (decl->possede_drapeau(EST_GLOBALE) && decl->unite == unite &&
+        (unite->index_courant == 0 || unite->index_courant < decl->arbre_aplatis.taille() - 1)) {
         auto resultat = valide_arbre_aplatis(decl, decl->arbre_aplatis);
         if (!est_ok(resultat)) {
             return resultat;
@@ -3835,7 +3836,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         auto type_opacifie = Type::nul();
 
         if (!decl->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-            if (resoud_type_final(decl->expression, type_opacifie) == CodeRetourValidation::Erreur) {
+            if (resoud_type_final(decl->expression, type_opacifie) ==
+                CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
