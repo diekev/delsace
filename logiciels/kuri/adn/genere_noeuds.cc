@@ -181,8 +181,12 @@ struct GeneratriceCodeCPP {
         os << "\t}\n";
         os << "};\n\n";
         os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine);\n\n";
+        os << "enum class DecisionVisiteNoeud : unsigned char {\n";
+        os << "    CONTINUE,\n";
+        os << "    IGNORE_ENFANTS,\n";
+        os << "};\n\n";
         os << "void visite_noeud(NoeudExpression const *racine, "
-              "std::function<void(NoeudExpression const *)> const &rappel);\n\n";
+              "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel);\n\n";
     }
 
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
@@ -337,12 +341,15 @@ struct GeneratriceCodeCPP {
     void genere_visite_noeud(FluxSortieCPP &os)
     {
         os << "void visite_noeud(NoeudExpression const *racine, "
-              "std::function<void(NoeudExpression const *)> const &rappel)\n";
+              "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel)\n";
         os << "{\n";
         os << "\tif (!racine) {\n";
         os << "\t\treturn;\n";
         os << "\t}\n";
-        os << "\trappel(racine);\n";
+        os << "\tauto decision = rappel(racine);\n";
+        os << "\tif (decision == DecisionVisiteNoeud::IGNORE_ENFANTS) {\n";
+        os << "\t\treturn;\n";
+        os << "\t}\n";
         os << "\tswitch (racine->genre) {\n";
 
         POUR (proteines_struct) {
