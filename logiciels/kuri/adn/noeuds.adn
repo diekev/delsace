@@ -629,7 +629,7 @@ struct NoeudDirectiveExécute : NoeudExpression {
 
 	NoeudExpression * [] arbre_aplatis
 
-    MetaProgramme *métaprogramme
+	MetaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {

@@ -67,7 +67,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-    attente.hh
+	attente.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
@@ -76,7 +76,7 @@ set(SOURCES
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
-    gestionnaire_code.cc
+	gestionnaire_code.cc
 	graphe_dependance.hh
 	messagere.hh
 	metaprogramme.hh
@@ -92,7 +92,7 @@ set(SOURCES
 	validation_expression_appel.hh
 	validation_semantique.hh
 
-    attente.cc
+	attente.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
@@ -101,7 +101,7 @@ set(SOURCES
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc
-    gestionnaire_code.hh
+	gestionnaire_code.hh
 	graphe_dependance.cc
 	messagere.cc
 	metaprogramme.cc
