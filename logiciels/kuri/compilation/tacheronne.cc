@@ -291,47 +291,22 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
         }
         case GenreTache::EXECUTE:
         {
-            if (!tache_completee) {
-                taches_execution.enfile(tache_terminee);
-            }
-
             break;
         }
         case GenreTache::ENVOIE_MESSAGE:
         {
-            if (!tache_completee) {
-                taches_message.enfile(tache_terminee);
-            }
-
             break;
         }
         case GenreTache::CHARGE_FICHIER:
         {
-            if (!tache_completee) {
-                taches_chargement.enfile(tache_terminee);
-                break;
-            }
-
-            espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
-            tache_terminee.genre = GenreTache::LEXE;
-            taches_lexage.enfile(tache_terminee);
             break;
         }
         case GenreTache::LEXE:
         {
-            if (!tache_completee) {
-                taches_lexage.enfile(tache_terminee);
-                break;
-            }
-
-            espace->tache_lexage_terminee(m_compilatrice->messagere);
-            tache_terminee.genre = GenreTache::PARSE;
-            taches_parsage.enfile(tache_terminee);
             break;
         }
         case GenreTache::PARSE:
         {
-            espace->tache_parsage_terminee(m_compilatrice->messagere);
             break;
         }
         case GenreTache::TYPAGE:
@@ -656,6 +631,14 @@ void Tacheronne::gere_tache()
                 }
 
                 tache_fut_completee = donnees->fut_charge;
+
+                if (donnees->fut_charge) {
+                    compilatrice.gestionnaire_code->chargement_fichier_termine(tache.unite);
+                }
+                else {
+                    // À FAIRE(gestion) : mets en attente
+                }
+
                 break;
             }
             case GenreTache::LEXE:
@@ -681,6 +664,14 @@ void Tacheronne::gere_tache()
                 }
 
                 tache_fut_completee = donnees->fut_lexe;
+
+                if (donnees->fut_lexe) {
+                    compilatrice.gestionnaire_code->lexage_fichier_termine(tache.unite);
+                }
+                else {
+                    // À FAIRE(gestion) : mets en attente
+                }
+
                 break;
             }
             case GenreTache::PARSE:
@@ -1121,7 +1112,7 @@ void Tacheronne::execute_metaprogrammes()
 
         mv.deloge_donnees_execution(it->donnees_execution);
 
-        espace->tache_execution_terminee(compilatrice.messagere);
+        compilatrice.gestionnaire_code->execution_terminee(it->unite);
     }
 }
 

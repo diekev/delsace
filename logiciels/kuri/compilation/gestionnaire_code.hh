@@ -84,6 +84,8 @@ class GestionnaireCode {
 
     void chargement_fichier_termine(UniteCompilation *unite);
 
+    void lexage_fichier_termine(UniteCompilation *unite);
+
     void parsage_fichier_termine(UniteCompilation *unite);
 
     void typage_termine(UniteCompilation *unite);
@@ -91,6 +93,8 @@ class GestionnaireCode {
     void generation_ri_terminee(UniteCompilation *unite);
 
     void message_recu(Message const *message);
+
+    void execution_terminee(UniteCompilation *unite);
 
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);

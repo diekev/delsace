@@ -3076,6 +3076,8 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         m_compilatrice.gestionnaire_code->requiers_execution(espace, metaprogramme);
     }
 
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
     termine_fonction();
     return CodeRetourValidation::OK;
 }
@@ -3120,6 +3122,8 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
         return CodeRetourValidation::Erreur;
     }
+
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
     termine_fonction();
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
@@ -3422,7 +3426,9 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
-    auto type_enum = decl->type->comme_enum();
+    /* N'utilisons pas decl->type->comme_enum() car le type peut être « ERREUR », et comme_enum
+     * ne vérifie que si le type est « ENUM ». */
+    auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {
         type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
@@ -3817,11 +3823,21 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
+    /* Nous devons valider l'arbre avant les types opaques, afin que l'expression soit validée. */
+    if (decl->possede_drapeau(EST_GLOBALE) && decl->unite == unite && (unite->index_courant == 0 || unite->index_courant < decl->arbre_aplatis.taille() - 1)) {
+        auto resultat = valide_arbre_aplatis(decl, decl->arbre_aplatis);
+        if (!est_ok(resultat)) {
+            return resultat;
+        }
+    }
+
     if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
         auto type_opacifie = Type::nul();
 
         if (!decl->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-            resoud_type_final(decl->expression, type_opacifie);
+            if (resoud_type_final(decl->expression, type_opacifie) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
 
             if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 return Attente::sur_type(type_opacifie);
@@ -3835,13 +3851,6 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         decl->type = type_opaque;
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         return CodeRetourValidation::OK;
-    }
-
-    if (decl->possede_drapeau(EST_GLOBALE)) {
-        auto resultat = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-        if (!est_ok(resultat)) {
-            return resultat;
-        }
     }
 
     auto &ctx = m_tacheronne.contexte_validation_declaration;

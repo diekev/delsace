@@ -60,16 +60,37 @@ static void rassemble_dependances(NoeudExpression *racine,
 
     // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.:
     //                    []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
-    visite_noeud(racine, [&](NoeudExpression const *noeud) {
+    visite_noeud(racine, [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
         // Note: les fonctions polymorphiques n'ont pas de types.
         if (noeud->type) {
             dependances.types_utilises.insere(noeud->type);
+        }
+
+        if (noeud->est_entete_fonction()) {
+            /* Visite manuellement les enfants des entêtes, car nous irions visiter le corps qui
+             * ne fut pas encore typé. */
+            auto entete = noeud->comme_entete_fonction();
+
+            POUR (entete->params) {
+                rassemble_dependances(it, espace, dependances);
+            }
+
+            POUR (entete->params_sorties) {
+                rassemble_dependances(it, espace, dependances);
+            }
+
+            return DecisionVisiteNoeud::IGNORE_ENFANTS;
         }
 
         if (noeud->est_reference_declaration()) {
             auto ref = noeud->comme_reference_declaration();
 
             auto decl = ref->declaration_referee;
+
+            if (!decl) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
             if (decl->est_declaration_variable() && decl->possede_drapeau(EST_GLOBALE)) {
                 dependances.globales_utilisees.insere(decl->comme_declaration_variable());
             }
@@ -85,14 +106,16 @@ static void rassemble_dependances(NoeudExpression *racine,
             dependances.fonctions_utilisees.insere(
                 expr->comme_appel()->expression->comme_entete_fonction());
         }
-        else if (noeud->est_expression_binaire()) {
-            auto expression_binaire = noeud->comme_expression_binaire();
-            if (!expression_binaire->op->est_basique) {
-                dependances.fonctions_utilisees.insere(expression_binaire->op->decl);
-            }
-        }
         else if (noeud->est_indexage()) {
+            /* Traite les indexages avant les expressions binaires afin de ne pas les traiter comme
+             * tel (est_expression_binaire() retourne vrai pour les indexages). */
+
             auto indexage = noeud->comme_indexage();
+            /* op peut être nul pour les déclaration de type ([]z32) */
+            if (!indexage->op) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
             if (!indexage->op->est_basique) {
                 dependances.fonctions_utilisees.insere(indexage->op->decl);
             }
@@ -133,6 +156,18 @@ static void rassemble_dependances(NoeudExpression *racine,
                 {
                     break;
                 }
+            }
+        }
+        else if (noeud->est_expression_binaire()) {
+            auto expression_binaire = noeud->comme_expression_binaire();
+
+            /* op peut être nul pour les déclaration de type (z32 | r32) */
+            if (!expression_binaire->op) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            if (!expression_binaire->op->est_basique) {
+                dependances.fonctions_utilisees.insere(expression_binaire->op->decl);
             }
         }
         else if (noeud->est_discr()) {
@@ -196,6 +231,8 @@ static void rassemble_dependances(NoeudExpression *racine,
             auto type_tfixe = espace->typeuse.type_tableau_fixe(args->type, taille_tableau);
             dependances.types_utilises.insere(type_tfixe);
         }
+
+        return DecisionVisiteNoeud::CONTINUE;
     });
 }
 
@@ -426,8 +463,22 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     // À FAIRE(gestion) : si tous les fichiers sont chargés, envoie un message, change l'état de
     // l'espace
+    auto espace = unite->espace;
+    espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
 
-    requiers_lexage(unite->espace, unite->fichier);
+    unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
+    unites_en_attente.ajoute(unite);
+}
+
+void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
+{
+    assert(unite->fichier);
+    assert(unite->fichier->donnees_constantes->fut_lexe);
+
+    auto espace = unite->espace;
+    espace->tache_lexage_terminee(m_compilatrice->messagere);
+    unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
+    unites_en_attente.ajoute(unite);
 }
 
 void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
@@ -436,6 +487,8 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     // À FAIRE(gestion) : assert(unite->fichier->fut_parse);
     // À FAIRE(gestion) : si tous les fichiers sont parsés, envoie un message, change l'état de
     // l'espace
+    auto espace = unite->espace;
+    espace->tache_parsage_terminee(m_compilatrice->messagere);
 }
 
 #define ENUMERE_FONCTION_INTERFACE(O)                                                             \
@@ -544,6 +597,13 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     return true;
 }
 
+static void imprime_evenement(UniteCompilation *unite, const char *evenement)
+{
+    std::cerr << evenement << " pour :\n";
+
+    erreur::imprime_site(*unite->espace, unite->noeud);
+}
+
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
@@ -552,6 +612,8 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
 
+    // imprime_evenement(unite, "typage terminé");
+
     auto espace = unite->espace;
 
     // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace sont typées,
@@ -559,25 +621,33 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
-    if (unite->noeud->est_declaration()) {
+    auto noeud = unite->noeud;
+    if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) || noeud->est_corps_fonction()) {
         rassemble_dependances(unite, *graphe, *this);
     }
 
     marque_unites_dependantes_pretes(unite);
 
-    auto noeud = unite->noeud;
+    bool doit_envoyer_en_ri = false;
+
     if (noeud_requiers_generation_ri(noeud)) {
         espace->tache_ri_ajoutee(m_compilatrice->messagere);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
+        doit_envoyer_en_ri = true;
     }
 
     if (!noeud->est_execute()) {
         auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
             unite->espace, static_cast<NoeudDeclaration *>(noeud));
 
-        if (message_enfile) {
+        if (message_enfile && doit_envoyer_en_ri) {
             mets_en_attente(unite, Attente::sur_message(message_enfile));
+            doit_envoyer_en_ri = false;
         }
+    }
+
+    if (doit_envoyer_en_ri) {
+        unites_en_attente.ajoute(unite);
     }
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
@@ -635,6 +705,15 @@ void GestionnaireCode::message_recu(Message const *message)
             unite->marque_prete();
         }
     }
+}
+
+void GestionnaireCode::execution_terminee(UniteCompilation *unite)
+{
+    assert(unite->metaprogramme);
+    assert(unite->metaprogramme->fut_execute);
+    auto espace = unite->espace;
+    espace->tache_execution_terminee(m_compilatrice->messagere);
+    marque_unites_dependantes_pretes(unite);
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
