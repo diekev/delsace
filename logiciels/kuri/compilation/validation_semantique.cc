@@ -867,7 +867,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             else {
                 if (type_index->genre == GenreType::ENUM) {
-                    type_index = type_index->comme_enum()->type_donnees;
+                    type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
                 }
 
                 auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite,
@@ -1706,7 +1706,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-                auto type_enum = type->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type);
                 inst->op = type_enum->operateur_egt;
 
                 auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
@@ -2195,7 +2195,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             if (structure->est_reference_declaration() &&
                 !structure->comme_reference_declaration()->declaration_referee->est_enum() &&
                 !expression_membre->type->est_type_de_donnees()) {
-                if (type->est_enum() && type->comme_enum()->est_drapeau) {
+                if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
                     expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                     if (!membre_est_implicite) {
                         expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
@@ -3426,8 +3426,6 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
-    /* N'utilisons pas decl->type->comme_enum() car le type peut être « ERREUR », et comme_enum
-     * ne vérifie que si le type est « ENUM ». */
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {

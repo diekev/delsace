@@ -268,7 +268,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
 
             if (decl_var->expression == nullptr) {
                 if (decl_var->type->est_enum()) {
-                    auto type_enum = decl_var->type->comme_enum();
+                    auto type_enum = static_cast<TypeEnum *>(decl_var->type);
 
                     POUR (type_enum->membres) {
                         if (it.nom == decl_var->ident) {
@@ -443,7 +443,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
             auto type_accede = ref_membre->accedee->type;
 
             if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
-                auto type_enum = type_accede->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 auto res = ResultatExpression();
                 res.est_errone = false;

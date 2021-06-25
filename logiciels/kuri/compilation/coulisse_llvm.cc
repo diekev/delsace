@@ -572,7 +572,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
             type_llvm = converti_type_llvm(type_enum->type_donnees);
             break;
         }

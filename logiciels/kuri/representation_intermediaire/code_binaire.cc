@@ -750,7 +750,7 @@ ffi_type *converti_type_ffi(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            return converti_type_ffi(type->comme_enum()->type_donnees);
+            return converti_type_ffi(static_cast<TypeEnum *>(type)->type_donnees);
         }
         case GenreType::TYPE_DE_DONNEES:
         {

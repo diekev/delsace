@@ -64,7 +64,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         case GenreType::ERREUR:
         case GenreType::ENUM:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
             auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
 
             enchaineuse << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
