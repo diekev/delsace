@@ -124,7 +124,8 @@ struct UniteCompilation {
 
     inline bool attend_sur_interface_kuri(IdentifiantCode *ident_interface)
     {
-        return m_attente.est<AttenteSurInterfaceKuri>() && m_attente.interface_kuri() == ident_interface;
+        return m_attente.est<AttenteSurInterfaceKuri>() &&
+               m_attente.interface_kuri() == ident_interface;
     }
 
     inline bool attend_sur_type(Type *type)

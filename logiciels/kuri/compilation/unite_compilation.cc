@@ -244,9 +244,8 @@ void UniteCompilation::rapporte_erreur() const
             ->rapporte_erreur(noeud,
                               "Trop de cycles : arrêt de la compilation car une "
                               "déclaration attend sur une interface de Kuri")
-            .ajoute_message("Note : l'interface attendue est ",
-                            m_attente.interface_kuri()->nom,
-                            "\n");
+            .ajoute_message(
+                "Note : l'interface attendue est ", m_attente.interface_kuri()->nom, "\n");
     }
     else if (m_attente.est<AttenteSurOperateur>()) {
         auto operateur_attendu = m_attente.operateur();

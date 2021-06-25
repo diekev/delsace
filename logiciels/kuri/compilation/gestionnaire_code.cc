@@ -30,7 +30,8 @@
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
-static void ajoute_dependances_au_programme(DonneesDependance const &dependances, Programme &programme)
+static void ajoute_dependances_au_programme(DonneesDependance const &dependances,
+                                            Programme &programme)
 {
     /* Ajoute les fonctions. */
     dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {

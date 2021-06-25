@@ -32,8 +32,8 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct Type;
 
-/* Représentation d'un programme. Ceci peut être le programme final tel que généré par la compilation
- * ou bien un métaprogramme. */
+/* Représentation d'un programme. Ceci peut être le programme final tel que généré par la
+ * compilation ou bien un métaprogramme. */
 struct Programme {
   protected:
     kuri::tableau<NoeudDeclarationEnteteFonction *> fonctions{};
@@ -52,11 +52,11 @@ struct Programme {
 
     void ajoute_type(Type *type);
 
-    /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par le
-     * programme ont eu leurs types validés. */
+    /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
+     * le programme ont eu leurs types validés. */
     bool typages_termines() const;
 
-    /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par le
-     * programme ont eu leurs RI générées. */
+    /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
+     * le programme ont eu leurs RI générées. */
     bool ri_generees() const;
 };

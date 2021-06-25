@@ -37,7 +37,7 @@ struct Type;
 
 template <typename T>
 struct AttenteSur {
-   T *valeur;
+    T *valeur;
 };
 
 using AttenteSurType = AttenteSur<Type>;
@@ -48,10 +48,10 @@ using AttenteSurSymbole = AttenteSur<NoeudExpressionReference>;
 using AttenteSurOperateur = AttenteSur<NoeudExpression>;
 using AttenteSurMessage = AttenteSur<Message>;
 
-/* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer son
- * chemin dans la compilation. */
+/* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer
+ * son chemin dans la compilation. */
 struct Attente {
-protected:
+  protected:
     using TypeAttente = std::variant<AttenteSurType,
                                      AttenteSurInterfaceKuri,
                                      AttenteSurMetaProgramme,
@@ -63,11 +63,11 @@ protected:
     TypeAttente attente{};
 
     template <typename T>
-    Attente(AttenteSur<T> attente_sur)
-        : attente(attente_sur)
-    {}
+    Attente(AttenteSur<T> attente_sur) : attente(attente_sur)
+    {
+    }
 
-public:
+  public:
     /* Construction. */
 
     Attente() = default;

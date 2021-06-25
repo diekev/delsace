@@ -134,12 +134,12 @@ struct ContexteValidationCode {
     ResultatValidation valide_structure(NoeudStruct *);
     ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
     ResultatValidation valide_assignation(NoeudAssignation *inst);
-    ResultatValidation valide_arbre_aplatis(
-        NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
+    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
+                                            kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
     ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
     ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
     ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
-                                                      NoeudBloc *bloc_recherche);
+                                                    NoeudBloc *bloc_recherche);
 
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
