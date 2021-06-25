@@ -817,7 +817,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
 
                 // a.DRAPEAU => (a & DRAPEAU) != 0
-                auto type_enum = ref_membre->type->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
                 auto valeur_lit_enum = assem->cree_litterale_entier(
@@ -859,7 +859,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (type_accede->est_enum() || type_accede->est_erreur()) {
-                auto type_enum = type_accede->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 noeud->substitution = assem->cree_litterale_entier(
                     noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
@@ -1170,7 +1170,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                             ref_var->comme_reference_declaration()->declaration_referee);
                         var->substitution = nouvelle_ref;
 
-                        auto type_enum = ref_membre->type->comme_enum();
+                        auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
                         auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
                         if (it.expression->comme_litterale_bool()->valeur) {
@@ -2038,7 +2038,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             comparaison.operande_gauche = expression;
 
             if (N == DISCR_ENUM) {
-                auto valeur = valeur_enum(expression->type->comme_enum(), expr->ident);
+                auto valeur = valeur_enum(static_cast<TypeEnum *>(expression->type), expr->ident);
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
                 comparaison.operande_droite = constante;
@@ -2084,7 +2084,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 #if 0
 	/* génération du code pour l'expression contre laquelle nous testons */
 	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
-		valeur_f = valeur_enum(expression->type->comme_enum(), f->ident);
+  valeur_f = valeur_enum(static_cast<TypeEnum *>(expression->type), f->ident);
 	}
 	else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
 		auto type_union = noeud->expr->type->comme_union();
@@ -2502,7 +2502,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
 
             auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
             info_type->genre = GenreInfoType::ENUM;

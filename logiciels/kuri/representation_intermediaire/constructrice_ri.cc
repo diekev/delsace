@@ -2682,7 +2682,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
             return cree_constante_entiere(type_enum, 0);
         }
         case GenreType::OPAQUE:
@@ -2956,7 +2956,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
 
             auto type_info_type_enum = m_espace->typeuse.type_info_type_enum;
 
