@@ -82,6 +82,7 @@ set(SOURCES
 	metaprogramme.hh
 	monomorphisations.hh
 	operateurs.hh
+    programme.hh
 	portee.hh
 	structures.hh
 	syntaxeuse.hh
@@ -107,6 +108,7 @@ set(SOURCES
 	metaprogramme.cc
 	monomorphisations.cc
 	operateurs.cc
+    programme.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc

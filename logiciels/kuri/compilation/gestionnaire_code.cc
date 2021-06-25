@@ -28,6 +28,28 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "programme.hh"
+
+static void ajoute_dependances_au_programme(DonneesDependance const &dependances, Programme &programme)
+{
+    /* Ajoute les fonctions. */
+    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        programme.ajoute_fonction(fonction);
+        return dls::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les globales. */
+    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        programme.ajoute_globale(globale);
+        return dls::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les types. */
+    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        programme.ajoute_type(type);
+        return dls::DecisionIteration::Continue;
+    });
+}
 
 // À FAIRE(gestion) : retourne des Attentes depuis les fonction d'appariements d'appels ou
 //                    d'opérateurs au lieu de true/false
