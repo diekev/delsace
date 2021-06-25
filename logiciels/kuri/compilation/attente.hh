@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <cassert>
+#include <variant>
+
 struct IdentifiantCode;
 struct Message;
 struct MetaProgramme;
@@ -32,77 +35,134 @@ struct NoeudExpression;
 struct NoeudExpressionReference;
 struct Type;
 
+template <typename T>
+struct AttenteSur {
+   T *valeur;
+};
+
+using AttenteSurType = AttenteSur<Type>;
+using AttenteSurInterfaceKuri = AttenteSur<IdentifiantCode>;
+using AttenteSurMetaProgramme = AttenteSur<MetaProgramme>;
+using AttenteSurDeclaration = AttenteSur<NoeudDeclaration>;
+using AttenteSurSymbole = AttenteSur<NoeudExpressionReference>;
+using AttenteSurOperateur = AttenteSur<NoeudExpression>;
+using AttenteSurMessage = AttenteSur<Message>;
+
+/* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer son
+ * chemin dans la compilation. */
 struct Attente {
-    Type *attend_sur_type = nullptr;
-    IdentifiantCode *attend_sur_interface_kuri = nullptr;
-    MetaProgramme *attend_sur_metaprogramme = nullptr;
-    NoeudDeclaration *attend_sur_declaration = nullptr;
-    NoeudExpressionReference *attend_sur_symbole = nullptr;
-    NoeudExpression *attend_sur_operateur = nullptr;
-    Message *attend_sur_message = nullptr;
-    /* ATTENTION ! Ne pas ajouter autre chose que des pointeurs, ou changer est_valide() ! */
+protected:
+    using TypeAttente = std::variant<AttenteSurType,
+                                     AttenteSurInterfaceKuri,
+                                     AttenteSurMetaProgramme,
+                                     AttenteSurDeclaration,
+                                     AttenteSurSymbole,
+                                     AttenteSurOperateur,
+                                     AttenteSurMessage>;
+
+    TypeAttente attente{};
+
+    template <typename T>
+    Attente(AttenteSur<T> attente_sur)
+        : attente(attente_sur)
+    {}
+
+public:
+    /* Construction. */
+
+    Attente() = default;
 
     static Attente sur_type(Type *type)
     {
-        auto attente = Attente{};
-        attente.attend_sur_type = type;
-        return attente;
+        return AttenteSurType{type};
     }
 
     static Attente sur_interface_kuri(IdentifiantCode *nom_fonction)
     {
-        auto attente = Attente{};
-        attente.attend_sur_interface_kuri = nom_fonction;
-        return attente;
+        return AttenteSurInterfaceKuri{nom_fonction};
     }
 
     static Attente sur_metaprogramme(MetaProgramme *metaprogramme)
     {
-        auto attente = Attente{};
-        attente.attend_sur_metaprogramme = metaprogramme;
-        return attente;
+        return AttenteSurMetaProgramme{metaprogramme};
     }
 
     static Attente sur_declaration(NoeudDeclaration *declaration)
     {
-        auto attente = Attente{};
-        attente.attend_sur_declaration = declaration;
-        return attente;
+        return AttenteSurDeclaration{declaration};
     }
 
     static Attente sur_symbole(NoeudExpressionReference *ident)
     {
-        auto attente = Attente{};
-        attente.attend_sur_symbole = ident;
-        return attente;
+        return AttenteSurSymbole{ident};
     }
 
     static Attente sur_operateur(NoeudExpression *operateur)
     {
-        auto attente = Attente{};
-        attente.attend_sur_operateur = operateur;
-        return attente;
+        return AttenteSurOperateur{operateur};
     }
 
     static Attente sur_message(Message *message)
     {
-        auto attente = Attente{};
-        attente.attend_sur_message = message;
-        return attente;
+        return AttenteSurMessage{message};
     }
+
+    /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
      * attendre. */
     bool est_valide() const
     {
-        void *const *pointeurs = reinterpret_cast<void *const *>(&this->attend_sur_type);
+        return attente.index() != std::variant_npos;
+    }
 
-        for (auto i = 0u; i < sizeof(Attente) / sizeof(void *); ++i) {
-            if (pointeurs[i] != nullptr) {
-                return true;
-            }
-        }
+    template <typename T>
+    bool est() const
+    {
+        return std::holds_alternative<T>(attente);
+    }
 
-        return false;
+    /* Accès. */
+
+    Type *type() const
+    {
+        assert(est<AttenteSurType>());
+        return std::get<AttenteSurType>(attente).valeur;
+    }
+
+    IdentifiantCode *interface_kuri() const
+    {
+        assert(est<AttenteSurInterfaceKuri>());
+        return std::get<AttenteSurInterfaceKuri>(attente).valeur;
+    }
+
+    MetaProgramme *metaprogramme() const
+    {
+        assert(est<AttenteSurMetaProgramme>());
+        return std::get<AttenteSurMetaProgramme>(attente).valeur;
+    }
+
+    NoeudDeclaration *declaration() const
+    {
+        assert(est<AttenteSurDeclaration>());
+        return std::get<AttenteSurDeclaration>(attente).valeur;
+    }
+
+    NoeudExpressionReference *symbole() const
+    {
+        assert(est<AttenteSurSymbole>());
+        return std::get<AttenteSurSymbole>(attente).valeur;
+    }
+
+    NoeudExpression *operateur() const
+    {
+        assert(est<AttenteSurOperateur>());
+        return std::get<AttenteSurOperateur>(attente).valeur;
+    }
+
+    Message *message() const
+    {
+        assert(est<AttenteSurMessage>());
+        return std::get<AttenteSurMessage>(attente).valeur;
     }
 };

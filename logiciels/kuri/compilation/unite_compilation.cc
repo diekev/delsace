@@ -55,36 +55,36 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 
 bool UniteCompilation::est_bloquee() const
 {
-    if (m_attente.attend_sur_type) {
+    if (m_attente.est<AttenteSurType>()) {
         return false;
     }
 
-    if (m_attente.attend_sur_symbole) {
+    if (m_attente.est<AttenteSurSymbole>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
         return cycle > CYCLES_MAXIMUM;
     }
 
-    if (m_attente.attend_sur_declaration) {
+    if (m_attente.est<AttenteSurDeclaration>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
         return false;
     }
 
-    if (m_attente.attend_sur_operateur) {
+    if (m_attente.est<AttenteSurOperateur>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
         return cycle > CYCLES_MAXIMUM;
     }
 
-    if (m_attente.attend_sur_metaprogramme) {
+    if (m_attente.est<AttenteSurMetaProgramme>()) {
         /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
         return false;
     }
 
-    if (m_attente.attend_sur_interface_kuri) {
+    if (m_attente.est<AttenteSurInterfaceKuri>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
         return false;
     }
 
-    if (m_attente.attend_sur_message) {
+    if (m_attente.est<AttenteSurMessage>()) {
         return false;
     }
 
@@ -93,25 +93,25 @@ bool UniteCompilation::est_bloquee() const
 
 kuri::chaine UniteCompilation::commentaire() const
 {
-    if (m_attente.attend_sur_type) {
-        auto type_attendu = m_attente.attend_sur_type;
+    if (m_attente.est<AttenteSurType>()) {
+        auto type_attendu = m_attente.type();
         return chaine_type(type_attendu);
     }
 
-    if (m_attente.attend_sur_symbole) {
-        return m_attente.attend_sur_symbole->ident->nom;
+    if (m_attente.est<AttenteSurSymbole>()) {
+        return m_attente.symbole()->ident->nom;
     }
 
-    if (m_attente.attend_sur_declaration) {
-        return m_attente.attend_sur_declaration->ident->nom;
+    if (m_attente.est<AttenteSurDeclaration>()) {
+        return m_attente.declaration()->ident->nom;
     }
 
-    if (m_attente.attend_sur_operateur) {
-        return enchaine("opérateur ", m_attente.attend_sur_operateur->lexeme->chaine);
+    if (m_attente.est<AttenteSurOperateur>()) {
+        return enchaine("opérateur ", m_attente.operateur()->lexeme->chaine);
     }
 
-    if (m_attente.attend_sur_metaprogramme) {
-        auto metaprogramme_attendu = m_attente.attend_sur_metaprogramme;
+    if (m_attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = m_attente.metaprogramme();
         auto resultat = Enchaineuse();
         resultat << "métaprogramme";
 
@@ -135,11 +135,11 @@ kuri::chaine UniteCompilation::commentaire() const
         return resultat.chaine();
     }
 
-    if (m_attente.attend_sur_interface_kuri) {
-        return m_attente.attend_sur_interface_kuri->nom;
+    if (m_attente.est<AttenteSurInterfaceKuri>()) {
+        return m_attente.interface_kuri()->nom;
     }
 
-    if (m_attente.attend_sur_message) {
+    if (m_attente.est<AttenteSurMessage>()) {
         return "message";
     }
 
@@ -148,8 +148,8 @@ kuri::chaine UniteCompilation::commentaire() const
 
 UniteCompilation *UniteCompilation::unite_attendue() const
 {
-    if (m_attente.attend_sur_type) {
-        auto type_attendu = m_attente.attend_sur_type;
+    if (m_attente.est<AttenteSurType>()) {
+        auto type_attendu = m_attente.type();
         if (type_attendu->est_structure()) {
             auto type_structure = type_attendu->comme_structure();
             return type_structure->decl->unite;
@@ -170,28 +170,28 @@ UniteCompilation *UniteCompilation::unite_attendue() const
         return nullptr;
     }
 
-    if (m_attente.attend_sur_symbole) {
+    if (m_attente.est<AttenteSurSymbole>()) {
         return nullptr;
     }
 
-    if (m_attente.attend_sur_declaration) {
-        return m_attente.attend_sur_declaration->unite;
+    if (m_attente.est<AttenteSurDeclaration>()) {
+        return m_attente.declaration()->unite;
     }
 
-    if (m_attente.attend_sur_operateur) {
-        return m_attente.attend_sur_declaration->unite;
+    if (m_attente.est<AttenteSurOperateur>()) {
+        return m_attente.operateur()->unite;
     }
 
-    if (m_attente.attend_sur_metaprogramme) {
-        auto metaprogramme_attendu = m_attente.attend_sur_metaprogramme;
+    if (m_attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = m_attente.metaprogramme();
         return metaprogramme_attendu->unite;
     }
 
-    if (m_attente.attend_sur_interface_kuri) {
+    if (m_attente.est<AttenteSurInterfaceKuri>()) {
         return nullptr;
     }
 
-    if (m_attente.attend_sur_message) {
+    if (m_attente.est<AttenteSurMessage>()) {
         return nullptr;
     }
 
@@ -202,12 +202,12 @@ UniteCompilation *UniteCompilation::unite_attendue() const
 void UniteCompilation::rapporte_erreur() const
 {
 
-    if (m_attente.attend_sur_symbole) {
-        espace->rapporte_erreur(m_attente.attend_sur_symbole,
+    if (m_attente.est<AttenteSurSymbole>()) {
+        espace->rapporte_erreur(m_attente.symbole(),
                                 "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
     }
-    else if (m_attente.attend_sur_declaration) {
-        auto decl = m_attente.attend_sur_declaration;
+    else if (m_attente.est<AttenteSurDeclaration>()) {
+        auto decl = m_attente.declaration();
         auto unite_decl = decl->unite;
         auto erreur = espace->rapporte_erreur(
             decl,
@@ -220,7 +220,7 @@ void UniteCompilation::rapporte_erreur() const
                 .ajoute_message("\n");
         }
     }
-    else if (m_attente.attend_sur_type) {
+    else if (m_attente.est<AttenteSurType>()) {
         auto site = noeud;
         if (site->est_corps_fonction()) {
             auto corps = site->comme_corps_fonction();
@@ -233,23 +233,23 @@ void UniteCompilation::rapporte_erreur() const
                               "pas à déterminer un type pour l'expression",
                               erreur::Genre::TYPE_INCONNU)
             .ajoute_message("Note : le type attendu est ")
-            .ajoute_message(chaine_type(m_attente.attend_sur_type))
+            .ajoute_message(chaine_type(m_attente.type()))
             .ajoute_message("\n")
             .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
             .ajoute_message(chaine_attentes_recursives(this))
             .ajoute_message("\n");
     }
-    else if (m_attente.attend_sur_interface_kuri) {
+    else if (m_attente.est<AttenteSurInterfaceKuri>()) {
         espace
             ->rapporte_erreur(noeud,
                               "Trop de cycles : arrêt de la compilation car une "
                               "déclaration attend sur une interface de Kuri")
             .ajoute_message("Note : l'interface attendue est ",
-                            m_attente.attend_sur_interface_kuri->nom,
+                            m_attente.interface_kuri()->nom,
                             "\n");
     }
-    else if (m_attente.attend_sur_operateur) {
-        auto operateur_attendu = m_attente.attend_sur_operateur;
+    else if (m_attente.est<AttenteSurOperateur>()) {
+        auto operateur_attendu = m_attente.operateur();
         if (operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
             auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
             auto type1 = expression_operation->operande_gauche->type;

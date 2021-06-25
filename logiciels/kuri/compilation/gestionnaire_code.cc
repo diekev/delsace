@@ -455,15 +455,15 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
     // À FAIRE: vérifie que les types ou déclarations attendues ont une unité de compilation
     auto espace = unite_attendante->espace;
 
-    if (attente.attend_sur_type) {
-        Type *type = attente.attend_sur_type;
+    if (attente.est<AttenteSurType>()) {
+        Type *type = attente.type();
         auto decl = decl_pour_type(type);
         if (decl && decl->unite == nullptr) {
             requiers_typage(espace, decl);
         }
     }
-    else if (attente.attend_sur_declaration) {
-        NoeudDeclaration *decl = attente.attend_sur_declaration;
+    else if (attente.est<AttenteSurDeclaration>()) {
+        NoeudDeclaration *decl = attente.declaration();
         if (decl->unite == nullptr) {
             requiers_typage(espace, decl);
         }

@@ -61,13 +61,21 @@ const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
 struct UniteCompilation {
-    // ------------- nouvelle interface
   private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
     Attente m_attente = {};
 
   public:
+    EspaceDeTravail *espace = nullptr;
+    Fichier *fichier = nullptr;
+    NoeudExpression *noeud = nullptr;
+    MetaProgramme *metaprogramme = nullptr;
+
+    int index_courant = 0;
+    int index_precedent = 0;
+    int cycle = 0;
+
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
     }
@@ -101,27 +109,27 @@ struct UniteCompilation {
 
     inline bool attend_sur_symbole(IdentifiantCode *ident)
     {
-        return m_attente.attend_sur_symbole && m_attente.attend_sur_symbole->ident == ident;
+        return m_attente.est<AttenteSurSymbole>() && m_attente.symbole()->ident == ident;
     }
 
     inline bool attend_sur_message(Message const *message)
     {
-        return m_attente.attend_sur_message == message;
+        return m_attente.est<AttenteSurMessage>() && m_attente.message() == message;
     }
 
     inline bool attend_sur_declaration(NoeudDeclaration *declaration)
     {
-        return m_attente.attend_sur_declaration == declaration;
+        return m_attente.est<AttenteSurDeclaration>() && m_attente.declaration() == declaration;
     }
 
     inline bool attend_sur_interface_kuri(IdentifiantCode *ident_interface)
     {
-        return m_attente.attend_sur_interface_kuri == ident_interface;
+        return m_attente.est<AttenteSurInterfaceKuri>() && m_attente.interface_kuri() == ident_interface;
     }
 
     inline bool attend_sur_type(Type *type)
     {
-        return m_attente.attend_sur_type == type;
+        return m_attente.est<AttenteSurType>() && m_attente.type() == type;
     }
 
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
@@ -133,17 +141,6 @@ struct UniteCompilation {
     ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)
 
 #undef DEFINIS_DISCRIMINATION
-
-    // ------------- ancienne interface
-    EspaceDeTravail *espace = nullptr;
-    Fichier *fichier = nullptr;
-    NoeudExpression *noeud = nullptr;
-    MetaProgramme *metaprogramme = nullptr;
-    bool message_recu = false;
-
-    int index_courant = 0;
-    int index_precedent = 0;
-    int cycle = 0;
 
     bool est_bloquee() const;
 

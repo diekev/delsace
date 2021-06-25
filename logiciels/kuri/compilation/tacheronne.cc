@@ -96,7 +96,6 @@ Tache Tache::attend_message(UniteCompilation *unite_)
     Tache t;
     t.genre = GenreTache::ENVOIE_MESSAGE;
     t.unite = unite_;
-    unite_->message_recu = false;
     return t;
 }
 
@@ -588,7 +587,7 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                tache_fut_completee = tache.unite->message_recu;
+                tache_fut_completee = true;
                 break;
             }
             case GenreTache::DORS:
