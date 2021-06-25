@@ -1326,6 +1326,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             if (type_fonc->types_entrees.est_vide()) {
                 enchaineuse << virgule;
             }
+            enchaineuse << ')';
 
             enchaineuse << '(';
             chaine_type(enchaineuse, type_fonc->type_sortie);

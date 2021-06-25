@@ -341,6 +341,32 @@ static void rassemble_dependances(UniteCompilation *unite,
     DonneesDependance dependances;
     rassemble_dependances(noeud, espace, dependances);
 
+#if 0
+    if (noeud->ident == ID::principale) {
+        std::cerr << "Dépendances de la fonction principale :\n";
+
+        std::cerr << "fonctions :\n";
+        dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+            erreur::imprime_site(*espace, fonction);
+            return dls::DecisionIteration::Continue;
+        });
+
+        std::cerr << "globales :\n";
+        /* Requiers le typage de toutes les déclarations utilisées. */
+        dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+            erreur::imprime_site(*espace, globale);
+            return dls::DecisionIteration::Continue;
+        });
+
+        std::cerr << "types :\n";
+        /* Requiers le typage de tous les types utilisés. */
+        dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+            std::cerr << chaine_type(type) << '\n';
+            return dls::DecisionIteration::Continue;
+        });
+    }
+#endif
+
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
     graphe.ajoute_dependances(*noeud_dependance, dependances);
 
@@ -580,8 +606,11 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 {
     if (noeud->est_entete_fonction()) {
         auto entete = noeud->comme_entete_fonction();
-        /* La génération de RI n'est que pour les corps des fonctions. */
-        return !entete->est_externe;
+        /* La génération de RI pour les fonctions comprend également leurs coprs, or le corps
+         * n'est peut-être pas encore typé. Les fonctions externes n'ayant pas de corps (même si le
+         * pointeur vers le corps est valide), nous devons quand même les envoyer vers la RI afin
+         * que leurs déclarations en RI soient disponibles. */
+        return entete->est_externe;
     }
 
     if (noeud->est_corps_fonction()) {
