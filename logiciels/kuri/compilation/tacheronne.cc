@@ -698,6 +698,7 @@ void Tacheronne::gere_tache()
     temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 }
 
+// À FAIRE(gestion) : remplace ceci par le Programme
 static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 {
     auto visite = dls::ensemblon<NoeudDependance *, 32>();
@@ -785,6 +786,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     else if (pour_metaprogramme) {
         auto corps = noeud->comme_corps_fonction();
 
+        // À FAIRE(gestion) : bouge cela dans le gestionnaire de code
 #define ATTEND_SUR_TYPE_SI_NECESSAIRE(type, id)                                                   \
     if (type == nullptr) {                                                                        \
         compilatrice.gestionnaire_code->mets_en_attente(unite, Attente::sur_interface_kuri(id));  \
