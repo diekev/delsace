@@ -52,6 +52,21 @@ struct Programme {
 
     void ajoute_type(Type *type);
 
+    bool possede(NoeudDeclarationEnteteFonction *fonction) const
+    {
+        return fonctions_utilisees.possede(fonction);
+    }
+
+    bool possede(NoeudDeclarationVariable *globale) const
+    {
+        return globales_utilisees.possede(globale);
+    }
+
+    bool possede(Type *type) const
+    {
+        return types_utilises.possede(type);
+    }
+
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs types validés. */
     bool typages_termines() const;

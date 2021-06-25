@@ -36,6 +36,7 @@
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
+#include "programme.hh"
 #include "syntaxeuse.hh"
 #include "validation_semantique.hh"
 
@@ -413,7 +414,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_optimisation.defile();
     }
 
-    if (!espace->possede_erreur && espace->peut_generer_code_final()) {
+    if (!espace->possede_erreur && espace->programme->ri_generees()) {
         if (espace->options.resultat == ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::COMPILATION_TERMINEE);
@@ -443,6 +444,8 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         if (nombre_de_taches_en_attente() != 0) {
             return Tache::dors(espace);
         }
+
+        return Tache::dors(espace);
     }
 
     compilation_terminee = true;
@@ -523,7 +526,6 @@ void Tacheronne::gere_tache()
 {
     auto temps_debut = dls::chrono::compte_seconde();
     auto tache = Tache::dors(compilatrice.espace_de_travail_defaut);
-    auto tache_fut_completee = true;
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
     while (true) {
@@ -551,7 +553,6 @@ void Tacheronne::gere_tache()
                 else {
                     nombre_dodos += 1;
                     dls::chrono::dors_microsecondes(100 * nombre_dodos);
-                    tache_fut_completee = true;
                     temps_passe_a_dormir += 0.1 * nombre_dodos;
                 }
 
@@ -577,8 +578,6 @@ void Tacheronne::gere_tache()
 
                     donnees->mutex.unlock();
                 }
-
-                tache_fut_completee = donnees->fut_charge;
 
                 if (donnees->fut_charge) {
                     compilatrice.gestionnaire_code->chargement_fichier_termine(tache.unite);
@@ -611,8 +610,6 @@ void Tacheronne::gere_tache()
                     donnees->mutex.unlock();
                 }
 
-                tache_fut_completee = donnees->fut_lexe;
-
                 if (donnees->fut_lexe) {
                     compilatrice.gestionnaire_code->lexage_fichier_termine(tache.unite);
                 }
@@ -630,7 +627,6 @@ void Tacheronne::gere_tache()
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
                 temps_parsage += debut_parsage.temps();
-                tache_fut_completee = true;
                 break;
             }
             case GenreTache::TYPAGE:
@@ -654,7 +650,6 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
-                tache_fut_completee = gere_unite_pour_ri(tache.unite);
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
             }
@@ -662,14 +657,12 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
                 auto debut_generation = dls::chrono::compte_seconde();
-                tache_fut_completee = gere_unite_pour_optimisation(tache.unite);
                 temps_optimisation += debut_generation.temps();
                 break;
             }
             case GenreTache::EXECUTE:
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
-                tache_fut_completee = gere_unite_pour_execution(tache.unite);
                 break;
             }
             case GenreTache::GENERE_FICHIER_OBJET:
@@ -680,7 +673,6 @@ void Tacheronne::gere_tache()
                     compilatrice, *tache.espace, constructrice_ri);
                 temps_generation_code += tache.espace->coulisse->temps_generation_code;
                 temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
-                tache_fut_completee = true;
                 break;
             }
             case GenreTache::LIAISON_EXECUTABLE:
@@ -689,7 +681,6 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 tache.espace->coulisse->cree_executable(compilatrice, *tache.espace);
                 temps_executable += tache.espace->coulisse->temps_executable;
-                tache_fut_completee = true;
                 break;
             }
         }

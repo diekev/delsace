@@ -43,18 +43,21 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
 {
     /* Ajoute les fonctions. */
     dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        programme.ajoute_fonction(fonction);
+        programme.ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction));
+//        std::cerr << "Ajout d'une fonction au programme...\n";
         return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les globales. */
     dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        programme.ajoute_globale(globale);
+        programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
+        std::cerr << "Ajout d'une globale au programme...\n";
         return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les types. */
     dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        std::cerr << "Ajout d'un type au programme...\n";
         programme.ajoute_type(type);
         return dls::DecisionIteration::Continue;
     });
@@ -330,6 +333,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
     dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (!fonction->corps->unite && !fonction->est_externe) {
+//            std::cerr << "Garantie le typage du corps de :\n";
+//            erreur::imprime_site(*espace, fonction);
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
         return dls::DecisionIteration::Continue;
@@ -398,8 +403,32 @@ static void rassemble_dependances(UniteCompilation *unite,
     }
 #endif
 
+    // Ajoute les fonctions et les globales au programme.
+    auto programme = espace->programme;
+    if (noeud->est_entete_fonction()) {
+        if (noeud->ident == ID::principale) {
+            programme->ajoute_fonction(noeud->comme_entete_fonction());
+        }
+
+        if (programme->possede(noeud->comme_entete_fonction())) {
+            ajoute_dependances_au_programme(dependances, *programme);
+        }
+    }
+    else if (noeud->est_corps_fonction()) {
+        auto entete = noeud->comme_corps_fonction()->entete;
+
+        if (programme->possede(entete)) {
+            ajoute_dependances_au_programme(dependances, *programme);
+        }
+    }
+    else if (noeud->est_declaration_variable()) {
+        if (programme->possede(noeud->comme_declaration_variable())) {
+            ajoute_dependances_au_programme(dependances, *programme);
+        }
+    }
+
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
-    graphe.ajoute_dependances(*noeud_dependance, dependances);
+    graphe.ajoute_dependances(*noeud_dependance, dependances, false);
 
     garantie_typage_des_dependances(gestionnaire, dependances, espace);
 }
@@ -659,7 +688,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
 static void imprime_evenement(UniteCompilation *unite, const char *evenement)
 {
-    std::cerr << evenement << " pour :\n";
+    std::cerr << evenement << " pour " << (unite->noeud && unite->noeud->est_entete_fonction() ? "(entete) " : "")
+              << ":\n";
 
     erreur::imprime_site(*unite->espace, unite->noeud);
 }
@@ -708,6 +738,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     if (doit_envoyer_en_ri) {
+        // imprime_evenement(unite, "ri requise");
         unites_en_attente.ajoute(unite);
     }
 

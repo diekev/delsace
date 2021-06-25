@@ -30,7 +30,7 @@
 
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 {
-    if (fonctions_utilisees.possede(fonction)) {
+    if (possede(fonction)) {
         return;
     }
     fonctions.ajoute(fonction);
@@ -39,7 +39,7 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
 {
-    if (globales_utilisees.possede(globale)) {
+    if (possede(globale)) {
         return;
     }
     globales.ajoute(globale);
@@ -48,7 +48,7 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
 
 void Programme::ajoute_type(Type *type)
 {
-    if (types_utilises.possede(type)) {
+    if (possede(type)) {
         return;
     }
     types.ajoute(type);
@@ -59,22 +59,26 @@ bool Programme::typages_termines() const
 {
     POUR (fonctions) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
             return false;
         }
 
         if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            std::cerr << "-- typage non terminé pour corps " << it->lexeme->chaine << '\n';
             return false;
         }
     }
 
     POUR (globales) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
             return false;
         }
     }
 
     POUR (types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            std::cerr << "-- typage non terminé pour " << chaine_type(it) << '\n';
             return false;
         }
     }
@@ -84,23 +88,34 @@ bool Programme::typages_termines() const
 
 bool Programme::ri_generees() const
 {
+    std::cerr << __func__ << '\n';
+    if (!typages_termines()) {
+        std::cerr << "-- typages non terminés !\n";
+        return false;
+    }
+
     POUR (fonctions) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
+            assert(it->unite);
+            std::cerr << "-- ri non générée pour " << it->lexeme->chaine << '\n';
             return false;
         }
     }
+    std::cerr << "-- ri fonctions générées !\n";
 
     POUR (globales) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             return false;
         }
     }
+    std::cerr << "-- ri globales générées !\n";
 
     POUR (types) {
         if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
             return false;
         }
     }
+    std::cerr << "-- ri types générées !\n";
 
     return true;
 }

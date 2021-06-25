@@ -37,6 +37,7 @@
 #include "coulisse_asm.hh"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
+#include "programme.hh"
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
 
@@ -58,6 +59,8 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilatio
     else {
         assert(false);
     }
+
+    programme = memoire::loge<Programme>("Programme");
 }
 
 EspaceDeTravail::~EspaceDeTravail()
@@ -77,6 +80,8 @@ EspaceDeTravail::~EspaceDeTravail()
         memoire::deloge("CoulisseASM", c);
         coulisse = nullptr;
     }
+
+    memoire::deloge("Programme", programme);
 }
 
 Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,

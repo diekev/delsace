@@ -3684,6 +3684,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             type_union->cree_type_structure(espace->typeuse, type_union->decalage_index);
         }
 
+        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
         return CodeRetourValidation::OK;
     }

@@ -43,6 +43,7 @@
 
 struct Coulisse;
 struct ConstructriceRI;
+struct Programme;
 
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes
 struct InterfaceKuri {
@@ -106,6 +107,8 @@ struct EspaceDeTravail {
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
     tableau_page<AtomeFonction> fonctions{};
+
+    Programme *programme = nullptr;
 
     using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
     dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
