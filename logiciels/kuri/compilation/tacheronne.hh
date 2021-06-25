@@ -50,7 +50,6 @@ struct Tacheronne;
     ENUMERE_GENRE_TACHE_EX(EXECUTE)                                                               \
     ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE)                                                    \
     ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET)                                                  \
-    ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE)                                                        \
     ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER)                                                        \
     ENUMERE_GENRE_TACHE_EX(OPTIMISATION)
 
@@ -76,8 +75,6 @@ struct Tache {
     static Tache genere_fichier_objet(EspaceDeTravail *espace_);
 
     static Tache liaison_objet(EspaceDeTravail *espace_);
-
-    static Tache attend_message(UniteCompilation *unite_);
 };
 
 enum class DrapeauxTacheronne : uint32_t {
@@ -157,7 +154,6 @@ struct OrdonnanceuseTache {
     void cree_tache_pour_execution(UniteCompilation *unite);
 
     Tache tache_suivante(Tache &tache_terminee,
-                         bool tache_completee,
                          int id,
                          DrapeauxTacheronne drapeaux,
                          bool mv_en_execution);

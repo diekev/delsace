@@ -91,14 +91,6 @@ Tache Tache::liaison_objet(EspaceDeTravail *espace_)
     return t;
 }
 
-Tache Tache::attend_message(UniteCompilation *unite_)
-{
-    Tache t;
-    t.genre = GenreTache::ENVOIE_MESSAGE;
-    t.unite = unite_;
-    return t;
-}
-
 #undef STATS_PIQUE_TAILLE
 
 #ifdef STATS_PIQUE_TAILLE
@@ -254,7 +246,6 @@ void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
 }
 
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
-                                         bool tache_completee,
                                          int id,
                                          DrapeauxTacheronne drapeaux,
                                          bool mv_en_execution)
@@ -282,41 +273,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
     }
 
     switch (tache_terminee.genre) {
-        case GenreTache::DORS:
-        case GenreTache::COMPILATION_TERMINEE:
-        {
-            // rien à faire, ces tâches-là sont considérées comme à la fin de leurs cycles
-            break;
-        }
-        case GenreTache::EXECUTE:
-        {
-            break;
-        }
-        case GenreTache::ENVOIE_MESSAGE:
-        {
-            break;
-        }
-        case GenreTache::CHARGE_FICHIER:
-        {
-            break;
-        }
-        case GenreTache::LEXE:
-        {
-            break;
-        }
-        case GenreTache::PARSE:
-        {
-            break;
-        }
-        case GenreTache::TYPAGE:
-        {
-            break;
-        }
-        case GenreTache::GENERE_RI:
-        {
-            break;
-        }
-        case GenreTache::OPTIMISATION:
+        default:
         {
             break;
         }
@@ -570,8 +527,7 @@ void Tacheronne::gere_tache()
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
     while (true) {
-        tache = ordonnanceuse->tache_suivante(
-            tache, tache_fut_completee, id, drapeaux, !mv.terminee());
+        tache = ordonnanceuse->tache_suivante(tache, id, drapeaux, !mv.terminee());
 
         if (tache.genre != GenreTache::DORS) {
             nombre_dodos = 0;
@@ -582,13 +538,6 @@ void Tacheronne::gere_tache()
             {
                 temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
                 return;
-            }
-            case GenreTache::ENVOIE_MESSAGE:
-            {
-                assert(dls::outils::possede_drapeau(drapeaux,
-                                                    DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                tache_fut_completee = true;
-                break;
             }
             case GenreTache::DORS:
             {
