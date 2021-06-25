@@ -51,7 +51,7 @@ struct Type;
     O(GENERATION_RI, generation_ri, "génération RI")                                              \
     O(EXECUTION, execution, "exécution")
 
-enum class RaisonDEtre {
+enum class RaisonDEtre : unsigned char {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,
     ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
 #undef ENUMERE_RAISON_D_ETRE_EX
@@ -61,6 +61,10 @@ const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
 struct UniteCompilation {
+    int index_courant = 0;
+    int index_precedent = 0;
+    int cycle = 0;
+
   private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
@@ -71,10 +75,6 @@ struct UniteCompilation {
     Fichier *fichier = nullptr;
     NoeudExpression *noeud = nullptr;
     MetaProgramme *metaprogramme = nullptr;
-
-    int index_courant = 0;
-    int index_precedent = 0;
-    int cycle = 0;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
