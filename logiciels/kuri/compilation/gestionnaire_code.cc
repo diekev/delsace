@@ -30,6 +30,14 @@
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
+// À FAIRE(gestion) : message pour la génération de code machine
+
+// À FAIRE(gestion) : message pour la liaison du programme finale
+
+// À FAIRE(gestion) : message pour l'écriture du fichier objet
+
+// À FAIRE(gestion) : message pour la fin de la compilation
+
 static void ajoute_dependances_au_programme(DonneesDependance const &dependances,
                                             Programme &programme)
 {
