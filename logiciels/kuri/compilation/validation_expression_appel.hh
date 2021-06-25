@@ -45,7 +45,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct Type;
 
-enum class ResultatValidation : int;
+enum class CodeRetourValidation : int;
 
 struct IdentifiantEtExpression {
     IdentifiantCode *ident;
@@ -421,7 +421,7 @@ struct CandidateAppariement {
     }
 };
 
-ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
-                                         EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte_validation,
-                                         NoeudExpressionAppel *expr);
+CodeRetourValidation valide_appel_fonction(Compilatrice &compilatrice,
+                                           EspaceDeTravail &espace,
+                                           ContexteValidationCode &contexte_validation,
+                                           NoeudExpressionAppel *expr);

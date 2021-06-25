@@ -44,7 +44,7 @@ namespace erreur {
 enum class Genre : int;
 }
 
-enum class ResultatValidation : int {
+enum class CodeRetourValidation : int {
     OK,
     Erreur,
 };
@@ -104,31 +104,31 @@ struct ContexteValidationCode {
 
     void termine_fonction();
 
-    ResultatValidation valide_semantique_noeud(NoeudExpression *);
-    ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
+    CodeRetourValidation valide_semantique_noeud(NoeudExpression *);
+    CodeRetourValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-    ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
-    ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
-    ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
+    CodeRetourValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+    CodeRetourValidation valide_fonction(NoeudDeclarationCorpsFonction *);
+    CodeRetourValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
     template <int N>
-    ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
-    ResultatValidation valide_enum(NoeudEnum *);
+    CodeRetourValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
+    CodeRetourValidation valide_enum(NoeudEnum *);
 
-    ResultatValidation valide_structure(NoeudStruct *);
-    ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
-    ResultatValidation valide_assignation(NoeudAssignation *inst);
-    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
-                                            kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
-    ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
-    ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
-    ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
-                                                    NoeudBloc *bloc_recherche);
+    CodeRetourValidation valide_structure(NoeudStruct *);
+    CodeRetourValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+    CodeRetourValidation valide_assignation(NoeudAssignation *inst);
+    CodeRetourValidation valide_arbre_aplatis(
+        NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
+    CodeRetourValidation valide_expression_retour(NoeudRetour *inst_retour);
+    CodeRetourValidation valide_cuisine(NoeudDirectiveCuisine *directive);
+    CodeRetourValidation valide_reference_declaration(NoeudExpressionReference *expr,
+                                                      NoeudBloc *bloc_recherche);
 
     template <typename TypeControleBoucle>
-    ResultatValidation valide_controle_boucle(TypeControleBoucle *inst);
+    CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
 
-    ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+    CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, NoeudExpression *noeud);
     void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
@@ -156,7 +156,7 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
 
-    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
+    CodeRetourValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
     void transtype_si_necessaire(NoeudExpression *&expression,
                                  TransformationType const &transformation);
 

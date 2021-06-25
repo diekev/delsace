@@ -1676,10 +1676,10 @@ static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expres
 
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous
 // arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
-ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
-                                         EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte,
-                                         NoeudExpressionAppel *expr)
+CodeRetourValidation valide_appel_fonction(Compilatrice &compilatrice,
+                                           EspaceDeTravail &espace,
+                                           ContexteValidationCode &contexte,
+                                           NoeudExpressionAppel *expr)
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possede_erreur = true;
@@ -1733,14 +1733,14 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
             contexte.unite->attend_sur_symbole(symbole_pour_expression(expr->expression));
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (apparies_candidates(espace, contexte, expr, args, candidates, ctx)) {
             // À FAIRE : gestion des erreurs, nous ne pouvons émettre une erreur ici, car nous
             // pourrions attendre sur quelque chose (symbole, type, ...)
             // contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -1752,7 +1752,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             auto &erreur = std::get<ErreurAppariement>(it);
 
             if (erreur.raison == ERREUR_DEPENDANCE) {
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             erreurs.ajoute(erreur);
@@ -1765,7 +1765,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
     if (candidates.est_vide()) {
         erreur::lance_erreur_fonction_inconnue(espace, expr, erreurs);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     std::sort(candidates.debut(), candidates.fin(), [](auto &a, auto &b) {
@@ -1788,7 +1788,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
         }
 
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     auto candidate = &candidates[0];
@@ -1844,7 +1844,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
                 if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {
                     contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
@@ -1861,7 +1861,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 contexte.unite->attend_sur_declaration(noeud_decl);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             decl_fonction_appelee = noeud_decl;
@@ -1891,7 +1891,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                     "si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ "
                     "» comme identifiant pour la capturer et l'ignorer :\n")
                 .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         /* met en place les drapeaux sur les enfants */
@@ -1959,7 +1959,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 contexte.unite->attend_sur_declaration(noeud_decl);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             decl_fonction_appelee = noeud_decl;
@@ -1983,7 +1983,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
                 contexte.unite->attend_sur_type(copie->type);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
         else {
@@ -2003,7 +2003,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                 "La valeur de l'expression de construction de structure n'est pas "
                                 "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
                                 "ou l'utiliser comme type ?");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
     }
@@ -2039,7 +2039,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                     "si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ "
                     "» comme identifiant pour la capturer et l'ignorer :\n")
                 .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
@@ -2085,5 +2085,5 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 #endif
 
     assert(expr->type);
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
