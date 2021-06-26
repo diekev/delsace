@@ -34,7 +34,7 @@
 #include "metaprogramme.hh"
 #include "typage.hh"
 
-static constexpr auto CYCLES_MAXIMUM = 10;
+static constexpr auto CYCLES_MAXIMUM = 100;
 
 const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
 {
@@ -360,6 +360,9 @@ void UniteCompilation::marque_prete_si_attente_resolue()
     }
 
     if (m_attente.est<AttenteSurDeclaration>()) {
+        if (m_attente.declaration()->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            marque_prete();
+        }
         return;
     }
 

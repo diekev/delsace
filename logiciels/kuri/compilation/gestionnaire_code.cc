@@ -903,6 +903,8 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 {
     FileDAttente nouvelles_unites;
 
+    std::cerr << unites_en_attente.attentes.taille() << " unités en attente...\n";
+
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;
 
@@ -920,8 +922,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 //                return;
 //            }
 
-            nouvelles_unites.ajoute(unite);
-            continue;
+            // if (!unite->est_bloquee()) {
+                nouvelles_unites.ajoute(unite);
+                continue;
+            //}
         }
 
         switch (unite->raison_d_etre()) {
