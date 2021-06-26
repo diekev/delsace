@@ -74,36 +74,43 @@ struct Attente {
 
     static Attente sur_type(Type *type)
     {
+        assert(type);
         return AttenteSurType{type};
     }
 
     static Attente sur_interface_kuri(IdentifiantCode *nom_fonction)
     {
+        assert(nom_fonction);
         return AttenteSurInterfaceKuri{nom_fonction};
     }
 
     static Attente sur_metaprogramme(MetaProgramme *metaprogramme)
     {
+        assert(metaprogramme);
         return AttenteSurMetaProgramme{metaprogramme};
     }
 
     static Attente sur_declaration(NoeudDeclaration *declaration)
     {
+        assert(declaration);
         return AttenteSurDeclaration{declaration};
     }
 
     static Attente sur_symbole(NoeudExpressionReference *ident)
     {
+        assert(ident);
         return AttenteSurSymbole{ident};
     }
 
     static Attente sur_operateur(NoeudExpression *operateur)
     {
+        assert(operateur);
         return AttenteSurOperateur{operateur};
     }
 
     static Attente sur_message(Message *message)
     {
+        assert(message);
         return AttenteSurMessage{message};
     }
 

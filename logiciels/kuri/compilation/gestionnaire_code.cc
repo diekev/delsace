@@ -51,13 +51,13 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
     /* Ajoute les globales. */
     dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
-        std::cerr << "Ajout d'une globale au programme...\n";
+        // std::cerr << "Ajout d'une globale au programme...\n";
         return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les types. */
     dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        std::cerr << "Ajout d'un type au programme...\n";
+        // std::cerr << "Ajout d'un type au programme...\n";
         programme.ajoute_type(type);
         return dls::DecisionIteration::Continue;
     });
@@ -519,12 +519,14 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
         Type *type = attente.type();
         auto decl = decl_pour_type(type);
         if (decl && decl->unite == nullptr) {
+            // std::cerr << "Requiers le typage de " << chaine_type(type) << '\n';
             requiers_typage(espace, decl);
         }
     }
     else if (attente.est<AttenteSurDeclaration>()) {
         NoeudDeclaration *decl = attente.declaration();
         if (decl->unite == nullptr) {
+            // std::cerr << "Requiers le typage de " << decl->ident->nom << '\n';
             requiers_typage(espace, decl);
         }
     }
@@ -637,6 +639,7 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
         POUR (unites_en_attente.attentes) {
             auto unite_en_attente = it.unite;
             if (unite_en_attente->attend_sur_declaration(noeud->comme_declaration())) {
+                // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
                 unite_en_attente->marque_prete();
             }
         }
@@ -646,6 +649,11 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
         POUR (unites_en_attente.attentes) {
             auto unite_en_attente = it.unite;
             if (unite_en_attente->attend_sur_type(noeud->type)) {
+                unite_en_attente->marque_prete();
+            }
+
+            if (unite_en_attente->attend_sur_declaration(noeud->comme_declaration())) {
+                // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
                 unite_en_attente->marque_prete();
             }
         }
@@ -683,14 +691,27 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
         return !structure->est_polymorphe;
     }
 
-    return true;
+    if (noeud->est_enum()) {
+        return true;
+    }
+
+    return false;
 }
 
 static void imprime_evenement(UniteCompilation *unite, const char *evenement)
 {
-    std::cerr << evenement << " pour " << (unite->noeud && unite->noeud->est_entete_fonction() ? "(entete) " : "")
-              << ":\n";
+    std::cerr << evenement << " pour ";
 
+    auto noeud = unite->noeud;
+    if (noeud) {
+        std::cerr << noeud->genre << ' ';
+
+        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->est_externe) {
+            std::cerr << "(externe) ";
+        }
+
+    }
+    std::cerr << ":\n";
     erreur::imprime_site(*unite->espace, unite->noeud);
 }
 
@@ -727,18 +748,27 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         doit_envoyer_en_ri = true;
     }
 
-    if (!noeud->est_execute()) {
-        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
-            unite->espace, static_cast<NoeudDeclaration *>(noeud));
+//    if (noeud->est_corps_fonction() && noeud->comme_corps_fonction()->entete->ident == ID::principale) {
+//        imprime_evenement(unite, "typage terminé");
 
-        if (message_enfile && doit_envoyer_en_ri) {
-            mets_en_attente(unite, Attente::sur_message(message_enfile));
-            doit_envoyer_en_ri = false;
-        }
-    }
+//        if (doit_envoyer_en_ri) {
+//            imprime_evenement(unite, "ri requise");
+//        }
+//    }
+
+//    if (!noeud->est_execute()) {
+//        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
+//            unite->espace, static_cast<NoeudDeclaration *>(noeud));
+
+//        if (message_enfile && doit_envoyer_en_ri) {
+//            mets_en_attente(unite, Attente::sur_message(message_enfile));
+//            doit_envoyer_en_ri = false;
+//        }
+//    }
 
     if (doit_envoyer_en_ri) {
-        // imprime_evenement(unite, "ri requise");
+        //imprime_evenement(unite, "ri requise");
+        assert(unite->raison_d_etre() == RaisonDEtre::GENERATION_RI);
         unites_en_attente.ajoute(unite);
     }
 
@@ -766,7 +796,10 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
-    assert(unite->noeud->possede_drapeau(RI_FUT_GENEREE));
+    assert_rappel(unite->noeud->possede_drapeau(RI_FUT_GENEREE), [&] {
+        std::cerr << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n";
+        erreur::imprime_site(*unite->espace, unite->noeud);
+    });
 
     // À FAIRE(gestion) : si toutes les unités requérant un typage dans l'espace ont eu leurs RI
     // générées, envoie un message
@@ -816,6 +849,16 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
         auto unite = it.unite;
 
         if (!unite->est_prete()) {
+//             imprime_evenement(unite, "remise dans la liste d'attente");
+//             std::cerr << "-- attent sur    : " << unite->commentaire() << '\n';
+//             std::cerr << "-- raison d'être : " << unite->raison_d_etre() << '\n';
+            unite->cycle += 1;
+
+//            if (unite->cycle > 10) {
+//                unite->rapporte_erreur();
+//                return;
+//            }
+
             nouvelles_unites.ajoute(unite);
             continue;
         }
@@ -843,6 +886,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             }
             case RaisonDEtre::GENERATION_RI:
             {
+                // imprime_evenement(unite, "création d'une tâche de génération de RI");
                 ordonnanceuse.cree_tache_pour_generation_ri(unite);
                 break;
             }

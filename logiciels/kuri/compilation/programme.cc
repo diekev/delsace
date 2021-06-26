@@ -55,30 +55,40 @@ void Programme::ajoute_type(Type *type)
     types_utilises.insere(type);
 }
 
+#undef DEBOGUE_VERIFICATIONS
+
 bool Programme::typages_termines() const
 {
     POUR (fonctions) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+#ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
+#endif
             return false;
         }
 
         if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+#ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour corps " << it->lexeme->chaine << '\n';
+#endif
             return false;
         }
     }
 
     POUR (globales) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+#ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
+#endif
             return false;
         }
     }
 
     POUR (types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
+#ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << chaine_type(it) << '\n';
+#endif
             return false;
         }
     }
@@ -88,34 +98,46 @@ bool Programme::typages_termines() const
 
 bool Programme::ri_generees() const
 {
+#ifdef DEBOGUE_VERIFICATIONS
     std::cerr << __func__ << '\n';
+#endif
     if (!typages_termines()) {
+#ifdef DEBOGUE_VERIFICATIONS
         std::cerr << "-- typages non terminés !\n";
+#endif
         return false;
     }
 
     POUR (fonctions) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             assert(it->unite);
+#ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- ri non générée pour " << it->lexeme->chaine << '\n';
+#endif
             return false;
         }
     }
+#ifdef DEBOGUE_VERIFICATIONS
     std::cerr << "-- ri fonctions générées !\n";
+#endif
 
     POUR (globales) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             return false;
         }
     }
+#ifdef DEBOGUE_VERIFICATIONS
     std::cerr << "-- ri globales générées !\n";
+#endif
 
     POUR (types) {
         if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
             return false;
         }
     }
+#ifdef DEBOGUE_VERIFICATIONS
     std::cerr << "-- ri types générées !\n";
+#endif
 
     return true;
 }

@@ -56,7 +56,7 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 bool UniteCompilation::est_bloquee() const
 {
     if (m_attente.est<AttenteSurType>()) {
-        return false;
+        return cycle > CYCLES_MAXIMUM;
     }
 
     if (m_attente.est<AttenteSurSymbole>()) {
@@ -66,7 +66,7 @@ bool UniteCompilation::est_bloquee() const
 
     if (m_attente.est<AttenteSurDeclaration>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
-        return false;
+        return cycle > CYCLES_MAXIMUM;
     }
 
     if (m_attente.est<AttenteSurOperateur>()) {
@@ -76,16 +76,16 @@ bool UniteCompilation::est_bloquee() const
 
     if (m_attente.est<AttenteSurMetaProgramme>()) {
         /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
-        return false;
+        return cycle > CYCLES_MAXIMUM;
     }
 
     if (m_attente.est<AttenteSurInterfaceKuri>()) {
         /* À FAIRE : vérifie que tous les fichiers ont été chargés, lexés, et parsés. */
-        return false;
+        return cycle > CYCLES_MAXIMUM;
     }
 
     if (m_attente.est<AttenteSurMessage>()) {
-        return false;
+        return cycle > CYCLES_MAXIMUM;
     }
 
     return false;
@@ -150,6 +150,11 @@ UniteCompilation *UniteCompilation::unite_attendue() const
 {
     if (m_attente.est<AttenteSurType>()) {
         auto type_attendu = m_attente.type();
+
+        if (!type_attendu) {
+            return nullptr;
+        }
+
         if (type_attendu->est_structure()) {
             auto type_structure = type_attendu->comme_structure();
             return type_structure->decl->unite;

@@ -84,12 +84,14 @@ struct UniteCompilation {
     {
         m_attente = attente;
         m_prete = false;
+        cycle = 0;
     }
 
     void marque_prete()
     {
         m_prete = true;
         m_attente = {};
+        cycle = 0;
     }
 
     bool est_prete() const

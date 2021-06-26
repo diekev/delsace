@@ -391,10 +391,12 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
     }
 
     if (tache_typage && !tache_ri) {
+        //std::cerr << "Retourne une tâche de typage...\n";
         return taches_typage.defile();
     }
 
     if (tache_ri && !tache_typage) {
+        //std::cerr << "Retourne une tâche de ri...\n";
         return taches_generation_ri.defile();
     }
 
@@ -406,6 +408,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         //            return taches_generation_ri.defile();
         //        }
 
+        //std::cerr << "Retourne une tâche de typage...\n";
         return taches_typage.defile();
     }
 
@@ -650,6 +653,11 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
+
+                if (gere_unite_pour_ri(tache.unite)) {
+                    compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
+                }
+
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
             }
