@@ -554,7 +554,7 @@ static void rassemble_dependances(UniteCompilation *unite,
     auto programme = espace->programme;
     /* Ajoute toutes les racines au programme courant. */
     // À FAIRE(gestion) : noeud->possede_drapeau(EST_RACINE) fait bloquer la compilation.
-    if (noeud->est_entete_fonction() && (noeud->ident == ID::principale)) {
+    if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
         programme->ajoute_fonction(noeud->comme_entete_fonction());
     }
 

@@ -916,6 +916,11 @@ struct GeneratriceCodeC {
                     valeur_ou = table_globales.valeur_ou(ou, "");
                 }
 
+                // À FAIRE(gestion) : débogage temporaire
+                if (valeur_ou == "") {
+                    erreur::imprime_site(m_espace, inst->site);
+                }
+
                 if (valeur_ou[0] == '&') {
                     valeur_ou = valeur_ou.sous_chaine(1);
                 }
@@ -1471,36 +1476,25 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
     }
 }
 
-static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
-                                                     ConstructriceRI &constructrice_ri,
-                                                     EspaceDeTravail &espace,
-                                                     std::ostream &fichier_sortie)
+/* Le programmes sous forme de représentation intermédiaire. */
+struct ProgrammeRepreInter {
+    kuri::tableau<AtomeGlobale *> globales{};
+    kuri::tableau<AtomeFonction *> fonctions{};
+    kuri::tableau<Type *> types{};
+};
+
+static ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace)
 {
-    Enchaineuse enchaineuse;
+    auto resultat = ProgrammeRepreInter{};
 
-    espace.typeuse.construit_table_types();
+    resultat.fonctions.reserve(programme.fonctions().taille() + programme.types().taille());
+    resultat.globales.reserve(programme.globales().taille());
 
-    auto fonction_principale = espace.fonction_principale;
-    if (fonction_principale == nullptr) {
-        erreur::fonction_principale_manquante(espace);
-    }
+    /* Nous pouvons directement copiés les types. */
+    resultat.types = programme.types();
 
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-
-    auto programme = espace.programme;
-
-    std::cerr << "Types dans le programme...\n";
-    POUR (programme->types()) {
-        std::cerr << "-- " << chaine_type(it) << '\n';
-        genere_code_pour_type(it, compilatrice, enchaineuse);
-    }
-
-    kuri::tableau<AtomeGlobale *> globales;
-    kuri::tableau<AtomeFonction *> fonctions;
-
-    std::cerr << "Fonctions dans le programme...\n";
-    POUR (programme->fonctions()) {
-        std::cerr << "-- " << it->ident->nom << '\n';
+    /* Extrait les atomes pour les fonctions. */
+    POUR (programme.fonctions()) {
         assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(espace, it);
@@ -1509,12 +1503,18 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
             std::cerr << "Aucun atome pour:\n";
             erreur::imprime_site(espace, it);
         });
-        fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
+        resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
     }
 
-    std::cerr << "Globales dans le programme...\n";
-    POUR (programme->globales()) {
-        std::cerr << "-- " << it->ident->nom << '\n';
+    /* Extrait les atomes pour les fonctions d'initalisation des types. */
+    POUR (programme.types()) {
+        if (it->fonction_init) {
+            resultat.fonctions.ajoute(it->fonction_init);
+        }
+    }
+
+    /* Extrait les atomes pour les globales. */
+    POUR (programme.globales()) {
         assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(espace, it);
@@ -1525,24 +1525,307 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
             std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
         });
-        globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
+        resultat.globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
     }
+
+    return resultat;
+}
+
+static void imprime_contenu_programme(Programme const &programme, std::ostream &os)
+{
+    os << "Types dans le programme...\n";
+    POUR (programme.types()) {
+        os << "-- " << chaine_type(it) << '\n';
+    }
+    os << "Fonctions dans le programme...\n";
+    POUR (programme.fonctions()) {
+        os << "-- " << it->ident->nom << '\n';
+    }
+    os << "Globales dans le programme...\n";
+    POUR (programme.globales()) {
+        os << "-- " << it->ident->nom << '\n';
+    }
+}
+
+static void visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
+{
+    if (!racine) {
+        return;
+    }
+
+    rappel(racine);
+
+    switch (racine->genre_atome) {
+        case Atome::Genre::CONSTANTE:
+        {
+            auto constante = static_cast<AtomeConstante *>(racine);
+
+            switch (constante->genre) {
+                case AtomeConstante::Genre::GLOBALE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+                {
+                    auto transtype_const = static_cast<TranstypeConstant const *>(constante);
+                    visite_atome(transtype_const->valeur, rappel);
+                    break;
+                }
+                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+                {
+                    auto inst_acces = static_cast<AccedeIndexConstant const *>(constante);
+                    visite_atome(inst_acces->accede, rappel);
+                    visite_atome(inst_acces->index, rappel);
+                    break;
+                }
+                case AtomeConstante::Genre::VALEUR:
+                {
+                    auto valeur_const = static_cast<AtomeValeurConstante const *>(constante);
+
+                    switch (valeur_const->valeur.genre) {
+                        case AtomeValeurConstante::Valeur::Genre::NULLE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TYPE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::REELLE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        {
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+                        {
+                            auto pointeur_tableau =
+                                valeur_const->valeur.valeur_structure.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_structure.taille;
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                visite_atome(pointeur_tableau[i], rappel);
+                            }
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+                        {
+                            auto pointeur_tableau =
+                                valeur_const->valeur.valeur_tableau.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                visite_atome(pointeur_tableau[i], rappel);
+                            }
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            break;
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            auto globale = static_cast<AtomeGlobale *>(racine);
+            visite_atome(globale->initialisateur, rappel);
+            break;
+        }
+        case Atome::Genre::FONCTION:
+        {
+            break;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            auto inst = racine->comme_instruction();
+
+            switch (inst->genre) {
+                case Instruction::Genre::APPEL:
+                {
+                    auto appel = inst->comme_appel();
+
+                    /* appele peut être un pointeur de fonction */
+                    visite_atome(appel->appele, rappel);
+
+                    POUR (appel->args) {
+                        visite_atome(it, rappel);
+                    }
+
+                    break;
+                }
+                case Instruction::Genre::CHARGE_MEMOIRE:
+                {
+                    auto charge = inst->comme_charge();
+                    visite_atome(charge->chargee, rappel);
+                    break;
+                }
+                case Instruction::Genre::STOCKE_MEMOIRE:
+                {
+                    auto stocke = inst->comme_stocke_mem();
+                    visite_atome(stocke->valeur, rappel);
+                    visite_atome(stocke->ou, rappel);
+                    break;
+                }
+                case Instruction::Genre::OPERATION_UNAIRE:
+                {
+                    auto op = inst->comme_op_unaire();
+                    visite_atome(op->valeur, rappel);
+                    break;
+                }
+                case Instruction::Genre::OPERATION_BINAIRE:
+                {
+                    auto op = inst->comme_op_binaire();
+                    visite_atome(op->valeur_droite, rappel);
+                    visite_atome(op->valeur_gauche, rappel);
+                    break;
+                }
+                case Instruction::Genre::ACCEDE_INDEX:
+                {
+                    auto acces = inst->comme_acces_index();
+                    visite_atome(acces->index, rappel);
+                    visite_atome(acces->accede, rappel);
+                    break;
+                }
+                case Instruction::Genre::ACCEDE_MEMBRE:
+                {
+                    auto acces = inst->comme_acces_membre();
+                    visite_atome(acces->index, rappel);
+                    visite_atome(acces->accede, rappel);
+                    break;
+                }
+                case Instruction::Genre::TRANSTYPE:
+                {
+                    auto transtype = inst->comme_transtype();
+                    visite_atome(transtype->valeur, rappel);
+                    break;
+                }
+                case Instruction::Genre::BRANCHE_CONDITION:
+                {
+                    auto branche = inst->comme_branche_cond();
+                    visite_atome(branche->condition, rappel);
+                    break;
+                }
+                case Instruction::Genre::RETOUR:
+                {
+                    auto retour = inst->comme_retour();
+
+                    if (retour->valeur) {
+                        visite_atome(retour->valeur, rappel);
+                    }
+
+                    break;
+                }
+                case Instruction::Genre::ALLOCATION:
+                case Instruction::Genre::INVALIDE:
+                case Instruction::Genre::BRANCHE:
+                case Instruction::Genre::LABEL:
+                {
+                    break;
+                }
+            }
+
+            break;
+        }
+    }
+}
+
+static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
+{
+    dls::ensemble<Atome *> globales_utilisess;
+
+    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en entrée\n";
+
+    POUR (repr_inter.globales) {
+        globales_utilisess.insere(it);
+    }
+
+    POUR (repr_inter.fonctions) {
+        for (auto instruction : it->instructions) {
+            visite_atome(instruction, [&](Atome *atome) {
+                if (atome->genre_atome == Atome::Genre::GLOBALE) {
+                    if (globales_utilisess.possede(atome)) {
+                        return;
+                    }
+
+                    repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
+                    globales_utilisess.insere(atome);
+                }
+            });
+        }
+    }
+
+    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en sortie\n";
+}
+
+static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
+                                                     ConstructriceRI &constructrice_ri,
+                                                     EspaceDeTravail &espace,
+                                                     std::ostream &fichier_sortie)
+{
+
+    espace.typeuse.construit_table_types();
+
+    auto fonction_principale = espace.fonction_principale;
+    if (fonction_principale == nullptr) {
+        erreur::fonction_principale_manquante(espace);
+    }
+
+    auto programme = espace.programme;
+    imprime_contenu_programme(*programme, std::cerr);
+
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = representation_intermediaire_programme(*programme, espace);
+
+    /* Traverse les instructions des fonctions, et rassemble les globales pour les chaines, les
+     * tableaux, et les infos-types. */
+    rassemble_globales_supplementaire(repr_inter_programme);
 
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale
     auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-    fonctions.ajoute(atome_principale);
+    repr_inter_programme.fonctions.ajoute(atome_principale);
 
-    // fais en sors que point_d_entree_systeme est utilisée, et renomme en « main » pour ne pas
-    // avoir à créer une autre fonction
+    /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
+     * qui appelera le point d'entrée. */
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
     atome_fonc->nombre_utilisations = 1;
     atome_fonc->nom = "main";
 
-    fonctions.ajoute(atome_fonc);
+    /* Génération du code. */
+    Enchaineuse enchaineuse;
 
     auto generatrice = GeneratriceCodeC(espace);
-    generatrice.genere_code(globales, fonctions, enchaineuse);
+    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+
+    POUR (repr_inter_programme.types) {
+        genere_code_pour_type(it, compilatrice, enchaineuse);
+    }
+
+    generatrice.genere_code(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 }
