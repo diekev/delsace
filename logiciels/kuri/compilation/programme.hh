@@ -36,14 +36,14 @@ struct Type;
  * compilation ou bien un métaprogramme. */
 struct Programme {
   protected:
-    kuri::tableau<NoeudDeclarationEnteteFonction *> fonctions{};
-    dls::ensemble<NoeudDeclarationEnteteFonction *> fonctions_utilisees{};
+    kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions{};
+    dls::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
 
-    kuri::tableau<NoeudDeclarationVariable *> globales{};
-    dls::ensemble<NoeudDeclarationVariable *> globales_utilisees{};
+    kuri::tableau<NoeudDeclarationVariable *> m_globales{};
+    dls::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
 
-    kuri::tableau<Type *> types{};
-    dls::ensemble<Type *> types_utilises{};
+    kuri::tableau<Type *> m_types{};
+    dls::ensemble<Type *> m_types_utilises{};
 
   public:
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction);
@@ -54,17 +54,32 @@ struct Programme {
 
     bool possede(NoeudDeclarationEnteteFonction *fonction) const
     {
-        return fonctions_utilisees.possede(fonction);
+        return m_fonctions_utilisees.possede(fonction);
     }
 
     bool possede(NoeudDeclarationVariable *globale) const
     {
-        return globales_utilisees.possede(globale);
+        return m_globales_utilisees.possede(globale);
     }
 
     bool possede(Type *type) const
     {
-        return types_utilises.possede(type);
+        return m_types_utilises.possede(type);
+    }
+
+    kuri::tableau<NoeudDeclarationEnteteFonction *> const &fonctions() const
+    {
+        return m_fonctions;
+    }
+
+    kuri::tableau<NoeudDeclarationVariable *> const &globales() const
+    {
+        return m_globales;
+    }
+
+    kuri::tableau<Type *> const &types() const
+    {
+        return m_types;
     }
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par

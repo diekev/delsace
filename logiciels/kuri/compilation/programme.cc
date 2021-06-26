@@ -33,8 +33,8 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     if (possede(fonction)) {
         return;
     }
-    fonctions.ajoute(fonction);
-    fonctions_utilisees.insere(fonction);
+    m_fonctions.ajoute(fonction);
+    m_fonctions_utilisees.insere(fonction);
 }
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
@@ -42,8 +42,8 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     if (possede(globale)) {
         return;
     }
-    globales.ajoute(globale);
-    globales_utilisees.insere(globale);
+    m_globales.ajoute(globale);
+    m_globales_utilisees.insere(globale);
 }
 
 void Programme::ajoute_type(Type *type)
@@ -51,15 +51,15 @@ void Programme::ajoute_type(Type *type)
     if (possede(type)) {
         return;
     }
-    types.ajoute(type);
-    types_utilises.insere(type);
+    m_types.ajoute(type);
+    m_types_utilises.insere(type);
 }
 
 #undef DEBOGUE_VERIFICATIONS
 
 bool Programme::typages_termines() const
 {
-    POUR (fonctions) {
+    POUR (m_fonctions) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 #ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
@@ -75,7 +75,7 @@ bool Programme::typages_termines() const
         }
     }
 
-    POUR (globales) {
+    POUR (m_globales) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 #ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
@@ -84,7 +84,7 @@ bool Programme::typages_termines() const
         }
     }
 
-    POUR (types) {
+    POUR (m_types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
 #ifdef DEBOGUE_VERIFICATIONS
             std::cerr << "-- typage non terminé pour " << chaine_type(it) << '\n';
@@ -108,7 +108,7 @@ bool Programme::ri_generees() const
         return false;
     }
 
-    POUR (fonctions) {
+    POUR (m_fonctions) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             assert(it->unite);
 #ifdef DEBOGUE_VERIFICATIONS
@@ -121,7 +121,7 @@ bool Programme::ri_generees() const
     std::cerr << "-- ri fonctions générées !\n";
 #endif
 
-    POUR (globales) {
+    POUR (m_globales) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             return false;
         }
@@ -130,7 +130,7 @@ bool Programme::ri_generees() const
     std::cerr << "-- ri globales générées !\n";
 #endif
 
-    POUR (types) {
+    POUR (m_types) {
         if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
             return false;
         }
