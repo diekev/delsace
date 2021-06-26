@@ -318,6 +318,9 @@ AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
     auto atome = cree_globale(decl->type, nullptr, false, false);
     table->insere({decl, atome});
 
+    // À FAIRE(gestion) : bouge dans master.
+    decl->comme_declaration_variable()->atome = atome;
+
     return atome;
 }
 
