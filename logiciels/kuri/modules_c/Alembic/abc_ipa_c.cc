@@ -1467,4 +1467,145 @@ void ABC_echant_xform_detruit(IEchantXform *echant)
 {
     detail::ABC_echant_detruit(echant);
 }
+
+/* Nouvelle Interface. */
+
+struct ConvertisseusePolyMesh {
+    void *donnees;
+
+    void (*reserve_points)(void *, size_t);
+    void (*ajoute_un_point)(void *, float, float, float);
+    void (*ajoute_tous_les_points)(void *, const float *, size_t);
+
+    void (*reserve_polygones)(void *, size_t);
+    void (*ajoute_polygone)(void *, size_t, const int *, int);
+    void (*ajoute_tous_les_polygones)(void *, const int *, size_t);
+
+    void (*reserve_coin)(void *, size_t);
+    void (*reserve_coins_polygone)(void *, size_t, int);
+    void (*ajoute_coin_polygone)(void *, size_t, int);
+    void (*ajoute_tous_les_coins)(void *, const int *, size_t);
+};
+
+void convertis_poly_mesh(ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyMesh &polymesh, const double time)
+{
+    auto &schema = polymesh.getSchema();
+
+    auto selector = Abc::ISampleSelector(time);
+
+    AbcGeom::IPolyMeshSchema::Sample sample;
+    schema.get(sample, selector);
+
+    /* Convertis les points. */
+    const auto &points = sample.getPositions();
+    if (convertisseuse->reserve_points) {
+        convertisseuse->reserve_points(convertisseuse->donnees, points->size());
+    }
+
+    if (convertisseuse->ajoute_tous_les_points) {
+        convertisseuse->ajoute_tous_les_points(convertisseuse->donnees, &points->get()->x, points->size());
+    }
+    else if (convertisseuse->ajoute_un_point) {
+        for (size_t i = 0; i < points->size(); ++i) {
+            auto p = points->get()[i];
+            convertisseuse->ajoute_un_point(convertisseuse->donnees, p.x, p.y, p.z);
+        }
+    }
+
+    /* Convertis les polygones. */
+    const auto &face_counts = sample.getFaceCounts();
+    const auto &face_indices = sample.getFaceIndices();
+
+    if (convertisseuse->reserve_polygones) {
+        convertisseuse->reserve_polygones(convertisseuse->donnees, face_counts->size());
+    }
+
+    if (convertisseuse->reserve_coin) {
+        convertisseuse->reserve_coin(convertisseuse->donnees, face_indices->size());
+    }
+
+    if (convertisseuse->ajoute_tous_les_polygones) {
+        convertisseuse->ajoute_tous_les_polygones(convertisseuse->donnees, face_counts->get(), face_counts->size());
+    }
+    else {
+        if (convertisseuse->reserve_coins_polygone) {
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                convertisseuse->reserve_coins_polygone(convertisseuse->donnees, i, face_counts->get()[i]);
+            }
+        }
+
+        if (convertisseuse->ajoute_polygone) {
+            auto decalage_coin = 0;
+
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                auto nombre_de_coins = face_counts->get()[i];
+                auto ptr_coins = &face_indices->get()[decalage_coin];
+                convertisseuse->ajoute_polygone(convertisseuse->donnees, i, ptr_coins, nombre_de_coins);
+                decalage_coin += nombre_de_coins;
+            }
+        }
+    }
+
+    if (convertisseuse->ajoute_tous_les_coins) {
+        convertisseuse->ajoute_tous_les_coins(convertisseuse->donnees, face_indices->get(), face_indices->size());
+    }
+    else {
+        if (convertisseuse->ajoute_coin_polygone) {
+            auto decalage_coin = 0;
+
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                auto nombre_de_coins = face_counts->get()[i];
+                auto ptr_coins = &face_indices->get()[decalage_coin];
+
+                for (int j = 0; j < nombre_de_coins; ++j) {
+                    convertisseuse->ajoute_coin_polygone(convertisseuse->donnees, i, ptr_coins[j]);
+                }
+
+                decalage_coin += nombre_de_coins;
+            }
+        }
+    }
+}
+
+// ABC_cree_hierarchie pour créer des lectrices pour tous les objets.
+// ABC_liste_tous_les_objets
+
+struct ContexteLectureCache {
+    void (*initialise_convertisseuse_polymesh)(ConvertisseusePolyMesh *);
+};
+
+struct ArchiveCache {
+
+};
+
+struct LectriceCache {
+   Abc::IObject iobject;
+
+   void *donnees;
+};
+
+LectriceCache *ABC_cree_lectrice_cache(ArchiveCache *archive, const char *ptr_nom, size_t taille_nom)
+{
+    auto nom = std::string(ptr_nom, taille_nom);
+
+    return nullptr;
+}
+
+void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
+{
+    lectrice->donnees = donnees;
+}
+
+void ABC_lis_objet(ContexteLectureCache *contexte, LectriceCache *lectrice, double temps)
+{
+    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
+        ConvertisseusePolyMesh convertisseuse;
+        convertisseuse.donnees = lectrice->donnees;
+        contexte->initialise_convertisseuse_polymesh(&convertisseuse);
+
+        AbcGeom::IPolyMesh poly_mesh(lectrice->iobject, Abc::kWrapExisting);
+        convertis_poly_mesh(&convertisseuse, poly_mesh, temps);
+    }
+}
+
 }
