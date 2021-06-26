@@ -516,6 +516,12 @@ static void rassemble_dependances(UniteCompilation *unite,
 
     DonneesDependance dependances;
     rassemble_dependances(noeud, espace, dependances);
+
+    /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
+     * relations dans le graphe. */
+    NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
+    graphe.ajoute_dependances(*noeud_dependance, dependances, false);
+
     epends_dependances_types(graphe, dependances);
 
 #if 0
@@ -554,14 +560,18 @@ static void rassemble_dependances(UniteCompilation *unite,
 
     if (doit_ajouter_les_dependances_au_programme(noeud, programme)) {
         ajoute_dependances_au_programme(dependances, *programme);
+
+        /* Crée les unités de typage si nécessaire. */
+        garantie_typage_des_dependances(gestionnaire, dependances, espace);
     }
-
-    /* Ajourne le graphe de dépendances. */
-    NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
-    graphe.ajoute_dependances(*noeud_dependance, dependances, false);
-
-    /* Crée les unités de typage si nécessaire. */
-    garantie_typage_des_dependances(gestionnaire, dependances, espace);
+#if 0
+    else {
+        std::cerr << "Ne doit pas ajouter les dépendances au programme\n";
+        if (noeud->est_corps_fonction()) {
+            erreur::imprime_site(*unite->espace, noeud->comme_corps_fonction()->entete);
+        }
+    }
+#endif
 }
 
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
