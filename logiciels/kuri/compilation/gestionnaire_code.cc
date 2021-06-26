@@ -399,12 +399,9 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
 }
 
 /* Détermine si nous devons ajouter les dépendances du noeud au programme. */
-static bool doit_ajouter_les_dependances_au_programmes(NoeudExpression *noeud, Programme *programme)
+static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Programme *programme)
 {
     if (noeud->est_entete_fonction()) {
-        if (noeud->ident == ID::principale) {
-            programme->ajoute_fonction(noeud->comme_entete_fonction());
-        }
         return programme->possede(noeud->comme_entete_fonction());
     }
 
@@ -464,49 +461,23 @@ static void rassemble_dependances(UniteCompilation *unite,
     }
 #endif
 
-    // Ajoute les fonctions et les globales au programme.
+    /* Ajoute les dépendances au programme si nécessaire. */
     auto programme = espace->programme;
-#if 0
     /* Ajoute toutes les racines au programme courant. */
-    if (noeud->est_entete_fonction() && (noeud->possede_drapeau(EST_RACINE) || noeud->ident == ID::principale)) {
+    // À FAIRE(gestion) : noeud->possede_drapeau(EST_RACINE) fait bloquer la compilation.
+    if (noeud->est_entete_fonction() && (noeud->ident == ID::principale)) {
         programme->ajoute_fonction(noeud->comme_entete_fonction());
     }
-    if (doit_ajouter_les_dependances_au_programmes(noeud, programme)) {
-        std::cerr << "Ajoute les dépendances au programme...\n";
+
+    if (doit_ajouter_les_dependances_au_programme(noeud, programme)) {
         ajoute_dependances_au_programme(dependances, *programme);
     }
-#else
-    if (noeud->est_entete_fonction()) {
-        if (noeud->ident == ID::principale) {
-            programme->ajoute_fonction(noeud->comme_entete_fonction());
-        }
 
-        if (programme->possede(noeud->comme_entete_fonction())) {
-            ajoute_dependances_au_programme(dependances, *programme);
-        }
-    }
-    else if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entete;
-
-        if (programme->possede(entete)) {
-            ajoute_dependances_au_programme(dependances, *programme);
-        }
-    }
-    else if (noeud->est_declaration_variable()) {
-        if (programme->possede(noeud->comme_declaration_variable())) {
-            ajoute_dependances_au_programme(dependances, *programme);
-        }
-    }
-    else if (noeud->est_enum() || noeud->est_structure()) {
-        if (programme->possede(noeud->type)) {
-            ajoute_dependances_au_programme(dependances, *programme);
-        }
-    }
-#endif
-
+    /* Ajourne le graphe de dépendances. */
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
     graphe.ajoute_dependances(*noeud_dependance, dependances, false);
 
+    /* Crée les unités de typage si nécessaire. */
     garantie_typage_des_dependances(gestionnaire, dependances, espace);
 }
 
