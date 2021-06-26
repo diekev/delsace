@@ -26,6 +26,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "parsage/identifiant.hh"
+
 #include "typage.hh"
 
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
@@ -55,14 +57,14 @@ void Programme::ajoute_type(Type *type)
     m_types_utilises.insere(type);
 }
 
-#undef DEBOGUE_VERIFICATIONS
+#define DEBOGUE_VERIFICATIONS
 
 bool Programme::typages_termines() const
 {
     POUR (m_fonctions) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 #ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
+            std::cerr << "-- typage non terminé pour entête " << it->lexeme->chaine << '\n';
 #endif
             return false;
         }
@@ -78,7 +80,7 @@ bool Programme::typages_termines() const
     POUR (m_globales) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 #ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour " << it->lexeme->chaine << '\n';
+            std::cerr << "-- typage non terminé pour globale " << it->lexeme->chaine << '\n';
 #endif
             return false;
         }
@@ -87,7 +89,7 @@ bool Programme::typages_termines() const
     POUR (m_types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
 #ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour " << chaine_type(it) << '\n';
+            std::cerr << "-- typage non terminé pour type " << chaine_type(it) << ", " << it << '\n';
 #endif
             return false;
         }
@@ -112,7 +114,7 @@ bool Programme::ri_generees() const
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
             assert(it->unite);
 #ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- ri non générée pour " << it->lexeme->chaine << '\n';
+            std::cerr << "-- ri non générée pour fonction " << it->lexeme->chaine << '\n';
 #endif
             return false;
         }
@@ -123,6 +125,7 @@ bool Programme::ri_generees() const
 
     POUR (m_globales) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
+            std::cerr << "-- ri non générée pour globale " << it->ident->nom << '\n';
             return false;
         }
     }
@@ -132,6 +135,7 @@ bool Programme::ri_generees() const
 
     POUR (m_types) {
         if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
+            std::cerr << "-- ri non générée pour type " << chaine_type(it) << '\n';
             return false;
         }
     }
