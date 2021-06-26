@@ -57,7 +57,7 @@ void Programme::ajoute_type(Type *type)
     m_types_utilises.insere(type);
 }
 
-#define DEBOGUE_VERIFICATIONS
+#undef DEBOGUE_VERIFICATIONS
 
 bool Programme::typages_termines() const
 {

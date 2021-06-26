@@ -38,6 +38,23 @@
 
 // À FAIRE(gestion) : message pour la fin de la compilation
 
+static bool est_declaration_variable_globale(NoeudExpression const *noeud)
+{
+    if (!noeud->est_declaration_variable()) {
+        return false;
+    }
+
+    if (noeud->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
+        return false;
+    }
+
+    if (noeud->possede_drapeau(EST_CONSTANTE)) {
+        return false;
+    }
+
+    return noeud->possede_drapeau(EST_GLOBALE);
+}
+
 static void ajoute_dependances_au_programme(DonneesDependance const &dependances,
                                             Programme &programme)
 {
@@ -125,7 +142,7 @@ static void rassemble_dependances(NoeudExpression *racine,
                 return DecisionVisiteNoeud::CONTINUE;
             }
 
-            if (decl->est_declaration_variable() && decl->possede_drapeau(EST_GLOBALE)) {
+            if (est_declaration_variable_globale(noeud)) {
                 dependances.globales_utilisees.insere(decl->comme_declaration_variable());
             }
             else if (decl->est_entete_fonction() &&
@@ -274,6 +291,8 @@ static void rassemble_dependances(NoeudExpression *racine,
  * celui-ci. Retourne nul si le noeud n'est pas supposé avoir un noeud de dépendance. */
 static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, GrapheDependance &graphe)
 {
+    /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et les
+     * constantes. */
     if (noeud->est_declaration_variable()) {
         assert(noeud->possede_drapeau(EST_GLOBALE));
         return graphe.cree_noeud_globale(noeud->comme_declaration_variable());
@@ -753,6 +772,14 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
         return true;
     }
 
+    if (est_declaration_variable_globale(noeud)) {
+        return true;
+    }
+
+    if (noeud->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
+        return true;
+    }
+
     return false;
 }
 
@@ -903,7 +930,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 {
     FileDAttente nouvelles_unites;
 
-    std::cerr << unites_en_attente.attentes.taille() << " unités en attente...\n";
+    // std::cerr << unites_en_attente.attentes.taille() << " unités en attente...\n";
 
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;

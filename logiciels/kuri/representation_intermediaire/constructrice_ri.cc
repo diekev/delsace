@@ -3574,6 +3574,8 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
             }
         }
 
+        decl->drapeaux |= RI_FUT_GENEREE;
+
         return;
     }
 
