@@ -364,6 +364,66 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 }
 
+/* Traverse le graphe de dépendances pour chaque type présents dans les dépendances courantes, et
+ * ajoutes les dépedances de ces types aux dépendances.
+ * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
+ * programmes. */
+static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance &dependances)
+{
+    dls::ensemblon<Type *, 16> types_utilises;
+
+    /* Traverse le graphe pour chaque dépendance sur un type. */
+    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        types_utilises.insere(type);
+
+        auto noeud_dependance = graphe.cree_noeud_type(type);
+        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
+            if (relation->est_type()) {
+                types_utilises.insere(relation->type());
+            }
+        });
+
+        return dls::DecisionIteration::Continue;
+    });
+
+    /* Réinitialise le graphe pour les traversées futures. */
+    POUR_TABLEAU_PAGE (graphe.noeuds) {
+        it.fut_visite = false;
+    }
+
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    dls::pour_chaque_element(types_utilises, [&](auto &type) {
+       dependances.types_utilises.insere(type);
+       return dls::DecisionIteration::Continue;
+    });
+}
+
+/* Détermine si nous devons ajouter les dépendances du noeud au programme. */
+static bool doit_ajouter_les_dependances_au_programmes(NoeudExpression *noeud, Programme *programme)
+{
+    if (noeud->est_entete_fonction()) {
+        if (noeud->ident == ID::principale) {
+            programme->ajoute_fonction(noeud->comme_entete_fonction());
+        }
+        return programme->possede(noeud->comme_entete_fonction());
+    }
+
+    if (noeud->est_corps_fonction()) {
+        auto entete = noeud->comme_corps_fonction()->entete;
+        return programme->possede(entete);
+    }
+
+    if (noeud->est_declaration_variable()) {
+        return programme->possede(noeud->comme_declaration_variable());
+    }
+
+    if (noeud->est_structure() || noeud->est_enum()) {
+        return programme->possede(noeud->type);
+    }
+
+    return false;
+}
+
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
 static void rassemble_dependances(UniteCompilation *unite,
@@ -376,6 +436,7 @@ static void rassemble_dependances(UniteCompilation *unite,
 
     DonneesDependance dependances;
     rassemble_dependances(noeud, espace, dependances);
+    epends_dependances_types(graphe, dependances);
 
 #if 0
     if (noeud->ident == ID::principale) {
@@ -405,6 +466,16 @@ static void rassemble_dependances(UniteCompilation *unite,
 
     // Ajoute les fonctions et les globales au programme.
     auto programme = espace->programme;
+#if 0
+    /* Ajoute toutes les racines au programme courant. */
+    if (noeud->est_entete_fonction() && (noeud->possede_drapeau(EST_RACINE) || noeud->ident == ID::principale)) {
+        programme->ajoute_fonction(noeud->comme_entete_fonction());
+    }
+    if (doit_ajouter_les_dependances_au_programmes(noeud, programme)) {
+        std::cerr << "Ajoute les dépendances au programme...\n";
+        ajoute_dependances_au_programme(dependances, *programme);
+    }
+#else
     if (noeud->est_entete_fonction()) {
         if (noeud->ident == ID::principale) {
             programme->ajoute_fonction(noeud->comme_entete_fonction());
@@ -426,6 +497,12 @@ static void rassemble_dependances(UniteCompilation *unite,
             ajoute_dependances_au_programme(dependances, *programme);
         }
     }
+    else if (noeud->est_enum() || noeud->est_structure()) {
+        if (programme->possede(noeud->type)) {
+            ajoute_dependances_au_programme(dependances, *programme);
+        }
+    }
+#endif
 
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
     graphe.ajoute_dependances(*noeud_dependance, dependances, false);
