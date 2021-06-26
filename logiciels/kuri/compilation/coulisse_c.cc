@@ -1501,12 +1501,30 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     std::cerr << "Fonctions dans le programme...\n";
     POUR (programme->fonctions()) {
         std::cerr << "-- " << it->ident->nom << '\n';
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(espace, it);
+        });
+        assert_rappel(it->atome, [&](){
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(espace, it);
+        });
         fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
     }
 
     std::cerr << "Globales dans le programme...\n";
     POUR (programme->globales()) {
         std::cerr << "-- " << it->ident->nom << '\n';
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(espace, it);
+        });
+        assert_rappel(it->atome, [&](){
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(espace, it);
+            std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
+            std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
+        });
         globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
     }
 
