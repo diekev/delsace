@@ -3812,6 +3812,14 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
     }
 
+    POUR (type_compose->membres) {
+        graphe->connecte_type_type(type_compose, it.type);
+    }
+
+    POUR (type_compose->comme_structure()->types_employes) {
+        graphe->connecte_type_type(type_compose, it);
+    }
+
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 

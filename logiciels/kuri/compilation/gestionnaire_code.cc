@@ -906,10 +906,13 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;
 
+        unite->marque_prete_si_attente_resolue();
+
         if (!unite->est_prete()) {
-//             imprime_evenement(unite, "remise dans la liste d'attente");
-//             std::cerr << "-- attent sur    : " << unite->commentaire() << '\n';
-//             std::cerr << "-- raison d'être : " << unite->raison_d_etre() << '\n';
+//            imprime_evenement(unite, "remise dans la liste d'attente");
+//            std::cerr << "-- attent sur    : " << unite->commentaire() << '\n';
+//            std::cerr << "-- raison d'être : " << unite->raison_d_etre() << '\n';
+//            std::cerr << "-- attente récursive : \n" << chaine_attentes_recursives(unite) << '\n';
             unite->cycle += 1;
 
 //            if (unite->cycle > 10) {

@@ -152,6 +152,8 @@ struct UniteCompilation {
     UniteCompilation *unite_attendue() const;
 
     void rapporte_erreur() const;
+
+    void marque_prete_si_attente_resolue();
 };
 
 kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite);

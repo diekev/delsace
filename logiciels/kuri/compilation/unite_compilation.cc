@@ -340,3 +340,42 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
 
     return fc.chaine();
 }
+
+void UniteCompilation::marque_prete_si_attente_resolue()
+{
+    if (est_prete()) {
+        return;
+    }
+
+    if (m_attente.est<AttenteSurType>()) {
+        if ((m_attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0) {
+            marque_prete();
+        }
+        return;
+    }
+
+    if (m_attente.est<AttenteSurSymbole>()) {
+        marque_prete();
+        return;
+    }
+
+    if (m_attente.est<AttenteSurDeclaration>()) {
+        return;
+    }
+
+    if (m_attente.est<AttenteSurOperateur>()) {
+        return;
+    }
+
+    if (m_attente.est<AttenteSurMetaProgramme>()) {
+        return;
+    }
+
+    if (m_attente.est<AttenteSurInterfaceKuri>()) {
+        return;
+    }
+
+    if (m_attente.est<AttenteSurMessage>()) {
+        return;
+    }
+}
