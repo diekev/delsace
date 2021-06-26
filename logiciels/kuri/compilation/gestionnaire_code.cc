@@ -846,7 +846,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
         return true;
     }
 
-    if (est_declaration_variable_globale(noeud)) {
+    if (noeud->possede_drapeau(EST_GLOBALE)) {
         return true;
     }
 
