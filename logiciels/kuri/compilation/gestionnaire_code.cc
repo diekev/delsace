@@ -263,7 +263,7 @@ static void rassemble_dependances(NoeudExpression *racine,
             }
             else if (comme->transformation.type == TypeTransformation::FONCTION) {
                 assert(comme->transformation.fonction);
-                dependances.fonctions_utilisees.insere(comme->transformation.fonction);
+                dependances.fonctions_utilisees.insere(const_cast<NoeudDeclarationEnteteFonction *>(comme->transformation.fonction));
             }
         }
         else if (noeud->est_appel()) {
@@ -390,6 +390,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance &dependances)
 {
     dls::ensemblon<Type *, 16> types_utilises;
+    dls::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
+    dls::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
 
     /* Traverse le graphe pour chaque dépendance sur un type. */
     dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
@@ -410,9 +412,71 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
         it.fut_visite = false;
     }
 
+    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        fonctions_utilisees.insere(fonction);
+        types_utilises.insere(fonction->type);
+
+        auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
+        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
+            if (relation->est_fonction()) {
+                fonctions_utilisees.insere(relation->fonction());
+            }
+            else if (relation->est_globale()) {
+                globales_utilisees.insere(relation->globale());
+            }
+            else if (relation->est_type()) {
+                types_utilises.insere(relation->type());
+            }
+        });
+
+        return dls::DecisionIteration::Continue;
+    });
+
+    /* Réinitialise le graphe pour les traversées futures. */
+    POUR_TABLEAU_PAGE (graphe.noeuds) {
+        it.fut_visite = false;
+    }
+
+    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        globales_utilisees.insere(globale);
+        types_utilises.insere(globale->type);
+
+        auto noeud_dependance = graphe.cree_noeud_globale(globale);
+        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
+            if (relation->est_fonction()) {
+                fonctions_utilisees.insere(relation->fonction());
+            }
+            else if (relation->est_globale()) {
+                globales_utilisees.insere(relation->globale());
+            }
+            else if (relation->est_type()) {
+                types_utilises.insere(relation->type());
+            }
+        });
+
+        return dls::DecisionIteration::Continue;
+    });
+
+    /* Réinitialise le graphe pour les traversées futures. */
+    POUR_TABLEAU_PAGE (graphe.noeuds) {
+        it.fut_visite = false;
+    }
+
     /* Ajoute les nouveaux types aux dépendances courantes. */
     dls::pour_chaque_element(types_utilises, [&](auto &type) {
        dependances.types_utilises.insere(type);
+       return dls::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    dls::pour_chaque_element(fonctions_utilisees, [&](auto &fonction) {
+       dependances.fonctions_utilisees.insere(fonction);
+       return dls::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    dls::pour_chaque_element(globales_utilisees, [&](auto &globale) {
+       dependances.globales_utilisees.insere(globale);
        return dls::DecisionIteration::Continue;
     });
 }

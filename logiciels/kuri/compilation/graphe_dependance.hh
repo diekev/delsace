@@ -142,8 +142,8 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-    dls::ensemblon<NoeudDeclarationEnteteFonction const *, 16> fonctions_utilisees{};
-    dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
+    dls::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
+    dls::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
     dls::ensemblon<Type *, 16> types_utilises{};
 };
 
