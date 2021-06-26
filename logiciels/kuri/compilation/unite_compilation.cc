@@ -95,15 +95,15 @@ kuri::chaine UniteCompilation::commentaire() const
 {
     if (m_attente.est<AttenteSurType>()) {
         auto type_attendu = m_attente.type();
-        return chaine_type(type_attendu);
+        return enchaine("(type) ", chaine_type(type_attendu));
     }
 
     if (m_attente.est<AttenteSurSymbole>()) {
-        return m_attente.symbole()->ident->nom;
+        return enchaine("(symbole) ", m_attente.symbole()->ident->nom);
     }
 
     if (m_attente.est<AttenteSurDeclaration>()) {
-        return m_attente.declaration()->ident->nom;
+        return enchaine("(decl) ", m_attente.declaration()->ident->nom);
     }
 
     if (m_attente.est<AttenteSurOperateur>()) {

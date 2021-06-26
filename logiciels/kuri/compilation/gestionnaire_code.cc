@@ -683,6 +683,16 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
         }
     }
 
+    if (noeud->est_entete_fonction() && noeud->ident) {
+        POUR (unites_en_attente.attentes) {
+            auto unite_en_attente = it.unite;
+            if (unite_en_attente->attend_sur_symbole(noeud->ident)) {
+                // std::cerr << "Marque prête une unité dépendant sur le symbole " << noeud->ident->nom << '\n';
+                unite_en_attente->marque_prete();
+            }
+        }
+    }
+
     if (noeud->est_declaration()) {
         POUR (unites_en_attente.attentes) {
             auto unite_en_attente = it.unite;
