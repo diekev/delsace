@@ -40,6 +40,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "programme.hh"
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
@@ -493,6 +494,7 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse << "typedef unsigned char octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
     enchaineuse << "typedef struct KuriContexteProgramme KsKuriContexteProgramme;\n";
+    enchaineuse << "typedef char ** KPKPKsz8;\n";
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
@@ -1190,13 +1192,13 @@ struct GeneratriceCodeC {
         }
     }
 
-    void genere_code(tableau_page<AtomeGlobale> const &globales,
+    void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
                      Enchaineuse &os)
     {
         // prédéclare les globales pour éviter les problèmes de références cycliques
-        POUR_TABLEAU_PAGE (globales) {
-            auto valeur_globale = &it;
+        POUR (globales) {
+            auto valeur_globale = it;
 
             if (!valeur_globale->est_constante) {
                 continue;
@@ -1260,8 +1262,8 @@ struct GeneratriceCodeC {
         }
 
         // définis ensuite les globales
-        POUR_TABLEAU_PAGE (globales) {
-            auto valeur_globale = &it;
+        POUR (globales) {
+            auto valeur_globale = it;
 
             auto valeur_initialisateur = kuri::chaine();
 
@@ -1390,6 +1392,55 @@ struct GeneratriceCodeC {
     }
 };
 
+static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchaineuse &enchaineuse)
+{
+    if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
+        return;
+    }
+
+    genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+
+    if (type) {
+        if (type->est_structure()) {
+            auto type_struct = type->comme_structure();
+
+            if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                return;
+            }
+
+            for (auto &membre : type_struct->membres) {
+                genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+            }
+
+            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+            genere_declaration_structure(enchaineuse, type_struct, quoi);
+        }
+        else if (type->est_tuple()) {
+            auto type_tuple = type->comme_tuple();
+
+            if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+                return;
+            }
+
+            for (auto &membre : type_tuple->membres) {
+                genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+            }
+
+            auto nom_broye = nom_broye_type(type_tuple);
+
+            enchaineuse << "typedef struct " << nom_broye << " {\n";
+
+            auto index_membre = 0;
+            for (auto &membre : type_tuple->membres) {
+                enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++
+                            << ";\n";
+            }
+
+            enchaineuse << "} " << nom_broye << ";\n";
+        }
+    }
+}
+
 static void genere_code_pour_types(Compilatrice &compilatrice,
                                    dls::outils::Synchrone<GrapheDependance> &graphe_,
                                    Enchaineuse &enchaineuse)
@@ -1411,52 +1462,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
             }
 
             auto type = noeud->type();
-
-            if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
-                return;
-            }
-
-            genere_typedefs_recursifs(compilatrice, type, enchaineuse);
-
-            if (type) {
-                if (type->est_structure()) {
-                    auto type_struct = type->comme_structure();
-
-                    if (type_struct->decl && type_struct->decl->est_polymorphe) {
-                        return;
-                    }
-
-                    for (auto &membre : type_struct->membres) {
-                        genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
-                    }
-
-                    auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-                    genere_declaration_structure(enchaineuse, type_struct, quoi);
-                }
-                else if (type->est_tuple()) {
-                    auto type_tuple = type->comme_tuple();
-
-                    if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                        return;
-                    }
-
-                    for (auto &membre : type_tuple->membres) {
-                        genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
-                    }
-
-                    auto nom_broye = nom_broye_type(type_tuple);
-
-                    enchaineuse << "typedef struct " << nom_broye << " {\n";
-
-                    auto index_membre = 0;
-                    for (auto &membre : type_tuple->membres) {
-                        enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++
-                                    << ";\n";
-                    }
-
-                    enchaineuse << "} " << nom_broye << ";\n";
-                }
-            }
+            genere_code_pour_type(type, compilatrice, enchaineuse);
         });
     }
 
@@ -1474,25 +1480,35 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     espace.typeuse.construit_table_types();
 
-    // NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du
-    // graphe via la Typeuse -> verrou mort
-    auto &graphe = espace.graphe_dependance;
     auto fonction_principale = espace.fonction_principale;
-
     if (fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
     }
 
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
-    genere_code_pour_types(compilatrice, graphe, enchaineuse);
+    auto programme = espace.programme;
 
-    dls::ensemble<AtomeFonction *> utilises;
+    std::cerr << "Types dans le programme...\n";
+    POUR (programme->types()) {
+        std::cerr << "-- " << chaine_type(it) << '\n';
+        genere_code_pour_type(it, compilatrice, enchaineuse);
+    }
+
+    kuri::tableau<AtomeGlobale *> globales;
     kuri::tableau<AtomeFonction *> fonctions;
-    graphe->rassemble_fonctions_utilisees(
-        fonction_principale->noeud_dependance, fonctions, utilises);
-    graphe->rassemble_fonctions_utilisees(
-        espace.fonction_point_d_entree->noeud_dependance, fonctions, utilises);
+
+    std::cerr << "Fonctions dans le programme...\n";
+    POUR (programme->fonctions()) {
+        std::cerr << "-- " << it->ident->nom << '\n';
+        fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
+    }
+
+    std::cerr << "Globales dans le programme...\n";
+    POUR (programme->globales()) {
+        std::cerr << "-- " << it->ident->nom << '\n';
+        globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
+    }
 
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale
@@ -1505,8 +1521,10 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     atome_fonc->nombre_utilisations = 1;
     atome_fonc->nom = "main";
 
+    fonctions.ajoute(atome_fonc);
+
     auto generatrice = GeneratriceCodeC(espace);
-    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+    generatrice.genere_code(globales, fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 }
@@ -1549,8 +1567,8 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         graphe->rassemble_fonctions_utilisees(noeud_dep, fonctions, utilises);
     }
 
-    auto generatrice = GeneratriceCodeC(espace);
-    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+//    auto generatrice = GeneratriceCodeC(espace);
+//    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 }
