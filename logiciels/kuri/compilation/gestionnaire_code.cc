@@ -142,7 +142,7 @@ static void rassemble_dependances(NoeudExpression *racine,
                 return DecisionVisiteNoeud::CONTINUE;
             }
 
-            if (est_declaration_variable_globale(noeud)) {
+            if (est_declaration_variable_globale(decl)) {
                 dependances.globales_utilisees.insere(decl->comme_declaration_variable());
             }
             else if (decl->est_entete_fonction() &&
