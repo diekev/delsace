@@ -24,7 +24,10 @@
 
 #include "alembic.h"
 
+#include <string_view>
+
 #include "abc_ipa_c.h"
+#include "alembic_types.h"
 
 /* Structures non-portées
  * - GeomParams
@@ -37,6 +40,7 @@
 
 namespace Abc = Alembic::Abc;
 namespace AbcGeom = Alembic::AbcGeom;
+namespace AbcCoreFactory = Alembic::AbcCoreFactory;
 
 std::string vers_std_string(ChaineKuri chaine)
 {
@@ -242,7 +246,7 @@ struct InterfacePoignee<ISchemaXform> {
  * objets via des pointeurs partagés, et il nous faut que ces pointeurs restent
  * actifs plus longtemps que les fonctions d'interface. */
 struct CacheObjet {
-  private:
+private:
     std::map<std::string, Abc::IObject> iobjects{};
 
     template <typename T>
@@ -258,7 +262,7 @@ struct CacheObjet {
     type_map<ISubdivision> isubdivision{};
     type_map<IXform> ixforms{};
 
-  public:
+public:
     Abc::IObject ajoute_iobjet(Abc::IObject iobjet)
     {
         auto iter = iobjects.find(iobjet.getFullName());
@@ -279,12 +283,12 @@ struct CacheObjet {
 #define AJOUTE_REQUIERS_TYPE(TypePoignee, map)                                                    \
     void ajoute(TypePoignee *pointeur, InterfacePoignee<TypePoignee>::TypeAlembic abc_geom)       \
     {                                                                                             \
-        map.insert({pointeur, abc_geom});                                                         \
-    }                                                                                             \
+    map.insert({pointeur, abc_geom});                                                         \
+}                                                                                             \
     InterfacePoignee<TypePoignee>::TypeAlembic alembic_geom(TypePoignee *pointeur)                \
     {                                                                                             \
-        return map[pointeur];                                                                     \
-    }
+    return map[pointeur];                                                                     \
+}
 
     AJOUTE_REQUIERS_TYPE(ICamera, icameras)
     AJOUTE_REQUIERS_TYPE(ICourbes, icourbes)
@@ -338,7 +342,7 @@ static auto obtiens_schema(TypePoignee *object)
     using interface = InterfacePoignee<TypePoignee>;
     auto poly_mesh = cache_global.alembic_geom(object);
     return reinterpret_cast<typename interface::TypePoigneeSchema *>(
-        poly_mesh.getProperties().getPtr().get());
+                poly_mesh.getProperties().getPtr().get());
 }
 
 template <typename TypePoignee>
@@ -890,12 +894,12 @@ const EchantillonageTemps *ABC_maillage_echantillonage_temps(ISchemaMaillage *sc
 #if 0
 IV2fGeomParam getUVsParam() const
 {
-	return m_uvsParam;
+    return m_uvsParam;
 }
 
 IN3fGeomParam getNormalsParam() const
 {
-	return m_normalsParam;
+    return m_normalsParam;
 }
 #endif
 
@@ -1094,8 +1098,8 @@ bool ABC_echant_tableau_valide(EchantillonTableau *echant)
 #if 0
 void ABC_echant_type_donnees(EchantillonTableau *echant)
 {
-	auto isample = EchantillonTableau::vers_alembic(echant);
-	return &isample->getDataType();
+    auto isample = EchantillonTableau::vers_alembic(echant);
+    return &isample->getDataType();
 }
 #endif
 
@@ -1468,26 +1472,290 @@ void ABC_echant_xform_detruit(IEchantXform *echant)
     detail::ABC_echant_detruit(echant);
 }
 
+}
+
 /* Nouvelle Interface. */
 
-struct ConvertisseusePolyMesh {
-    void *donnees;
+// --------------------------------------------------------------
+// Contexte pour la gestion de la mémoire.
 
-    void (*reserve_points)(void *, size_t);
-    void (*ajoute_un_point)(void *, float, float, float);
-    void (*ajoute_tous_les_points)(void *, const float *, size_t);
+template <typename T>
+T *loge_objet(ContexteKuri *ctx)
+{
+    void *pointeur = ctx->loge_memoire(ctx, sizeof(T));
+    new (pointeur) T();
+    return static_cast<T *>(pointeur);
+}
 
-    void (*reserve_polygones)(void *, size_t);
-    void (*ajoute_polygone)(void *, size_t, const int *, int);
-    void (*ajoute_tous_les_polygones)(void *, const int *, size_t);
+template <typename T>
+T *reloge_objet(ContexteKuri *ctx, T *objet)
+{
+    void *nouveau_pointeur = ctx->reloge_memoire(ctx, objet, sizeof(T), sizeof(T));
+    return static_cast<T *>(nouveau_pointeur);
+}
 
-    void (*reserve_coin)(void *, size_t);
-    void (*reserve_coins_polygone)(void *, size_t, int);
-    void (*ajoute_coin_polygone)(void *, size_t, int);
-    void (*ajoute_tous_les_coins)(void *, const int *, size_t);
+template <typename T>
+void deloge_objet(ContexteKuri *ctx, T *objet)
+{
+    ctx->deloge_memoire(ctx, objet, sizeof(T));
+}
+
+extern "C" {
+
+// --------------------------------------------------------------
+// Ouverture de l'archive.
+
+static Abc::ErrorHandler::Policy convertis_police_erreur(eAbcPoliceErreur notre_police)
+{
+    switch (notre_police) {
+        case eAbcPoliceErreur::SILENCIEUSE: {
+            return Abc::ErrorHandler::Policy::kQuietNoopPolicy;
+        }
+        case eAbcPoliceErreur::BRUYANTE: {
+            return Abc::ErrorHandler::Policy::kNoisyNoopPolicy;
+        }
+        case eAbcPoliceErreur::LANCE_EXCEPTION: {
+            return Abc::ErrorHandler::Policy::kThrowPolicy;
+        }
+    }
+
+    /* Par défaut et par symétrie avec Alembic, retourne kThrowPolicy en cas de valeur invalide. */
+    return Abc::ErrorHandler::Policy::kThrowPolicy;
+}
+
+static AbcCoreFactory::IFactory::OgawaReadStrategy convertis_strategie_ogawa(
+        eAbcStrategieLectureOgawa notre_strategie)
+{
+    switch (notre_strategie) {
+        case eAbcStrategieLectureOgawa::FLUX_DE_FICHIERS: {
+            return AbcCoreFactory::IFactory::OgawaReadStrategy::kFileStreams;
+        }
+        case eAbcStrategieLectureOgawa::FICHIERS_MAPPES_MEMOIRE: {
+            return AbcCoreFactory::IFactory::OgawaReadStrategy::kMemoryMappedFiles;
+        }
+    }
+
+    /* Par défaut et par symétrie avec Alembic, retourne kMemoryMappedFiles en cas de valeur
+     * invalide. */
+    return AbcCoreFactory::IFactory::OgawaReadStrategy::kMemoryMappedFiles;
+}
+
+struct ArchiveCache {
+    Abc::IArchive iarchive;
 };
 
-void convertis_poly_mesh(ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyMesh &polymesh, const double time)
+static void renseigne_politique_erreur(ContexteOuvertureArchive *ctx, AbcCoreFactory::IFactory &ifactory)
+{
+    if (ctx->police_erreur) {
+        const eAbcPoliceErreur police = ctx->police_erreur(ctx);
+        ifactory.setPolicy(convertis_police_erreur(police));
+    }
+}
+
+static void renseigne_strategie_ogawa(ContexteOuvertureArchive *ctx, AbcCoreFactory::IFactory &ifactory)
+{
+    if (ctx->nombre_de_flux_ogawa_desires) {
+        const int nombre_de_flux = ctx->nombre_de_flux_ogawa_desires(ctx);
+        ifactory.setOgawaNumStreams(static_cast<size_t>(nombre_de_flux));
+    }
+
+    if (ctx->strategie_lecture_ogawa) {
+        const eAbcStrategieLectureOgawa strategie = ctx->strategie_lecture_ogawa(ctx);
+        ifactory.setOgawaReadStrategy(convertis_strategie_ogawa(strategie));
+    }
+}
+
+ArchiveCache *ABC_ouvre_archive_ex(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+{
+    const int nombre_de_chemins = ctx->nombre_de_chemins(ctx);
+
+    if (nombre_de_chemins == 0) {
+        if (ctx->erreur_aucun_chemin) {
+            ctx->erreur_aucun_chemin(ctx);
+        }
+        return nullptr;
+    }
+
+    std::vector<std::string> chemins;
+    for (int i = 0; i < nombre_de_chemins; ++i) {
+        char *pointeur = nullptr;
+        size_t taille = 0;
+
+        ctx->chemin(ctx, i, &pointeur, &taille);
+
+        if (pointeur == nullptr || taille == 0) {
+            continue;
+        }
+
+        chemins.push_back({pointeur, taille});
+    }
+
+    if (chemins.empty()) {
+        if (ctx->erreur_aucun_chemin) {
+            ctx->erreur_aucun_chemin(ctx);
+        }
+        return nullptr;
+    }
+
+    Alembic::AbcCoreFactory::IFactory factory;
+    renseigne_politique_erreur(ctx, factory);
+    renseigne_strategie_ogawa(ctx, factory);
+
+    Abc::IArchive iarchive = factory.getArchive(chemins);
+
+    if (!iarchive.valid()) {
+        if (ctx->erreur_archive_invalide) {
+            ctx->erreur_archive_invalide(ctx);
+        }
+        return nullptr;
+    }
+
+    auto poignee = loge_objet<ArchiveCache>(ctx_kuri);
+    poignee->iarchive = iarchive;
+    return poignee;
+}
+
+// --------------------------------------------------------------
+// Traversé de l'archive.
+
+static void passe_nom_via_contexte(ContexteTraverseArchive *ctx, const std::string &nom)
+{
+    ctx->extrait_nom_courant(ctx, nom.c_str(), nom.size());
+}
+
+static void abc_traverse_hierarchie(
+        ContexteTraverseArchive *ctx,
+        Abc::IObject parent,
+        const Abc::ObjectHeader &header)
+{
+    if (ctx->annule && ctx->annule(ctx)) {
+        return;
+    }
+
+    Abc::IObject next_object;
+
+    if (AbcGeom::IXform::matches(header)) {
+        AbcGeom::IXform xform(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, xform.getFullName());
+        }
+
+        next_object = xform;
+    }
+    else if (AbcGeom::ISubD::matches(header)) {
+        AbcGeom::ISubD subd(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, subd.getFullName());
+        }
+
+        next_object = subd;
+    }
+    else if (AbcGeom::IPolyMesh::matches(header)) {
+        AbcGeom::IPolyMesh mesh(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, mesh.getFullName());
+        }
+
+        next_object = mesh;
+    }
+    else if (AbcGeom::ICurves::matches(header)) {
+        AbcGeom::ICurves curves(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, curves.getFullName());
+        }
+
+        next_object = curves;
+    }
+    else if (AbcGeom::IFaceSet::matches(header)) {
+        // ignore the face set, it will be read along with the data
+    }
+    else if (AbcGeom::IPoints::matches(header)) {
+        AbcGeom::IPoints points(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, points.getFullName());
+        }
+
+        next_object = points;
+    }
+    else if (AbcGeom::INuPatch::matches(header)) {
+        AbcGeom::INuPatch nurbs(parent, header.getName());
+
+        if (ctx->extrait_nom_courant) {
+            passe_nom_via_contexte(ctx, nurbs.getFullName());
+        }
+
+        next_object = nurbs;
+    }
+    else {
+        next_object = parent.getChild(header.getName());
+
+        if (next_object.isInstanceRoot()) {
+            if (ctx->extrait_nom_courant) {
+                passe_nom_via_contexte(ctx, next_object.getFullName());
+            }
+        }
+    }
+
+    if (!next_object.valid()) {
+        return;
+    }
+
+    for (size_t i = 0; i < next_object.getNumChildren(); ++i) {
+        abc_traverse_hierarchie(ctx, next_object, next_object.getChildHeader(i));
+    }
+}
+
+void ABC_traverse_archive(ContexteKuri */*ctx_kuri*/, ArchiveCache *archive, ContexteTraverseArchive *ctx)
+{
+    if (!archive) {
+        return;
+    }
+
+    const auto &top = archive->iarchive.getTop();
+
+    if (!top.valid()) {
+        return;
+    }
+
+    for (size_t i = 0; i < top.getNumChildren(); ++i) {
+        abc_traverse_hierarchie(ctx, top, top.getChildHeader(i));
+    }
+}
+
+// --------------------------------------------------------------
+// Lecture des objets.
+
+static void convertis_subd(ContexteKuri *ctx_kuri, ConvertisseuseSubD *convertisseuse, AbcGeom::ISubD &subd, const double time)
+{
+
+}
+
+static void convertis_points(ContexteKuri *ctx_kuri, ConvertisseusePoints *convertisseuse, AbcGeom::IPoints &points, const double time)
+{
+
+}
+
+static void convertis_courbes(ContexteKuri *ctx_kuri, ConvertisseuseCourbes *convertisseuse, AbcGeom::ICurves &curves, const double time)
+{
+
+}
+
+static void convertis_nurbs(ContexteKuri *ctx_kuri, ConvertisseuseNurbs *convertisseuse, AbcGeom::INuPatch &nurbs, const double time)
+{
+
+}
+
+static void convertis_xform(ContexteKuri *ctx_kuri, ConvertisseuseXform *convertisseuse, AbcGeom::IXform &xform, const double time)
+{
+
+}
+
+void convertis_poly_mesh(ContexteKuri *ctx_kuri, ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyMesh &polymesh, const double time)
 {
     auto &schema = polymesh.getSchema();
 
@@ -1567,28 +1835,99 @@ void convertis_poly_mesh(ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyM
     }
 }
 
-// ABC_cree_hierarchie pour créer des lectrices pour tous les objets.
-// ABC_liste_tous_les_objets
+struct iteratrice_chemin {
+  private:
+    std::string_view chemin{};
+    std::string_view morceau_courant{};
+    size_t pos = 0;
 
-struct ContexteLectureCache {
-    void (*initialise_convertisseuse_polymesh)(ConvertisseusePolyMesh *);
-};
+  public:
+    iteratrice_chemin(const std::string &chemin_complet)
+        : chemin(chemin_complet)
+    {}
 
-struct ArchiveCache {
+    std::string_view suivant()
+    {
+        if (chemin.size() >= pos) {
+            return "";
+        }
 
+        /* Saute le premier slash. */
+        if (chemin[pos] == '/') {
+            pos += 1;
+        }
+
+        auto nouvelle_pos = chemin.find('/', pos);
+        if (nouvelle_pos == std::string::npos) {
+            nouvelle_pos = chemin.size() - 1;
+        }
+
+        morceau_courant = chemin.substr(pos, nouvelle_pos - pos);
+        pos = nouvelle_pos;
+        return morceau_courant;
+    }
+
+    bool fini() const
+    {
+        return pos >= chemin.size();
+    }
 };
 
 struct LectriceCache {
-   Abc::IObject iobject;
+    Abc::IObject iobject;
 
-   void *donnees;
+    void *donnees;
 };
 
-LectriceCache *ABC_cree_lectrice_cache(ArchiveCache *archive, const char *ptr_nom, size_t taille_nom)
+LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri, ArchiveCache *archive, const char *ptr_nom, size_t taille_nom)
 {
-    auto nom = std::string(ptr_nom, taille_nom);
+    if (!archive) {
+        return nullptr;
+    }
 
-    return nullptr;
+    auto &iarchive = archive->iarchive;
+
+    if (!iarchive.valid()) {
+        return nullptr;
+    }
+
+    const auto nom = std::string(ptr_nom, taille_nom);
+
+    if (nom.empty()) {
+        return nullptr;
+    }
+
+    AbcGeom::IObject courant = iarchive.getTop();
+
+    if (!courant.valid()) {
+        return nullptr;
+    }
+
+    auto iteratrice = iteratrice_chemin(nom);
+
+    while (!iteratrice.fini()) {
+        const auto morceau = iteratrice.suivant();
+        auto enfant = courant.getChild(std::string(morceau));
+
+        if (!enfant.valid()) {
+            return nullptr;
+        }
+
+        courant = enfant;
+    }
+
+    if (!courant.valid()) {
+        return nullptr;
+    }
+
+    auto lectrice = loge_objet<LectriceCache>(ctx_kuri);
+    lectrice->iobject = courant;
+    return lectrice;
+}
+
+void ABC_detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice)
+{
+    deloge_objet(ctx_kuri, lectrice);
 }
 
 void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
@@ -1596,16 +1935,103 @@ void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
     lectrice->donnees = donnees;
 }
 
-void ABC_lis_objet(ContexteLectureCache *contexte, LectriceCache *lectrice, double temps)
+void ABC_lis_objet(ContexteKuri *ctx_kuri, ContexteLectureCache *contexte, LectriceCache *lectrice, double temps)
 {
-    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
-        ConvertisseusePolyMesh convertisseuse;
-        convertisseuse.donnees = lectrice->donnees;
-        contexte->initialise_convertisseuse_polymesh(&convertisseuse);
+    if (!lectrice || !lectrice->iobject.valid()) {
+        // contexte->rapporte_erreur(contexte, )
+        return;
+    }
 
-        AbcGeom::IPolyMesh poly_mesh(lectrice->iobject, Abc::kWrapExisting);
-        convertis_poly_mesh(&convertisseuse, poly_mesh, temps);
+    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_polymesh) {
+            ConvertisseusePolyMesh convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_polymesh(&convertisseuse);
+
+            AbcGeom::IPolyMesh poly_mesh(lectrice->iobject, Abc::kWrapExisting);
+            convertis_poly_mesh(ctx_kuri, &convertisseuse, poly_mesh, temps);
+        }
+    }
+    else if (AbcGeom::ISubD::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_subd) {
+            ConvertisseuseSubD convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_subd(&convertisseuse);
+
+            AbcGeom::ISubD subd(lectrice->iobject, Abc::kWrapExisting);
+            convertis_subd(ctx_kuri, &convertisseuse, subd, temps);
+        }
+    }
+    else if (AbcGeom::IPoints::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_points) {
+            ConvertisseusePoints convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_points(&convertisseuse);
+
+            AbcGeom::IPoints points(lectrice->iobject, Abc::kWrapExisting);
+            convertis_points(ctx_kuri, &convertisseuse, points, temps);
+        }
+    }
+    else if (AbcGeom::INuPatch::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_nurbs) {
+            ConvertisseuseNurbs convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_nurbs(&convertisseuse);
+
+            AbcGeom::INuPatch nurbs(lectrice->iobject, Abc::kWrapExisting);
+            convertis_nurbs(ctx_kuri, &convertisseuse, nurbs, temps);
+        }
+    }
+    else if (AbcGeom::ICurves::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_courbes) {
+            ConvertisseuseCourbes convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_courbes(&convertisseuse);
+
+            AbcGeom::ICurves courbes(lectrice->iobject, Abc::kWrapExisting);
+            convertis_courbes(ctx_kuri, &convertisseuse, courbes, temps);
+        }
+    }
+    else if (AbcGeom::IXform::matches(lectrice->iobject.getHeader())) {
+        if (contexte->initialise_convertisseuse_xform) {
+            ConvertisseuseXform convertisseuse;
+            convertisseuse.donnees = lectrice->donnees;
+            contexte->initialise_convertisseuse_xform(&convertisseuse);
+
+            AbcGeom::IXform xform(lectrice->iobject, Abc::kWrapExisting);
+            convertis_xform(ctx_kuri, &convertisseuse, xform, temps);
+        }
+    }
+    else {
+        if (lectrice->iobject.isInstanceRoot()) {
+            /* Que faire pour les instances ? */
+            return;
+        }
     }
 }
-
 }
+
+/*
+
+  ctx_kuri := initialise_contexte_kuri()
+
+  ctx_ouverture := initialise_contexte_ouverture_archive();
+  archive := ABC_ouvre_archive(*ctx_kuri, *ctx_ouverture)
+
+  saufsi archive {
+      retourne;
+  }
+
+  // Traverse l'archive et rassemble tous les noms des objets.
+  ctx_traversé := initialise_contexte_traversé_pour_noms()
+  ABC_traverse_hierarchie(*ctx_kuri, archive, *ctx_traversé)
+
+  lectrice_cache := ABC_crée_lectrice_cache(*ctx_kuri, "/CubeShape/Cube")
+  saufsi lectrice_cache {
+    retourne
+  }
+
+  ctx_lecture := initialise_contexte_lecture()
+  ABC_lis_objet(*ctx_kuri, lectrice_cache, *ctx_lecture)
+
+ */

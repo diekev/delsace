@@ -37,9 +37,11 @@ add_library(${NOM_PROJET} STATIC
 
     abc_ipa_c.h
     alembic.h
+    alembic_api_c.h
+    alembic_types.h
 )
 
-set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
+set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 17)
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 

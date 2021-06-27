@@ -18,5 +18,6 @@
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcCoreFactory/All.h>
 #include <Alembic/AbcGeom/All.h>
+#include <Alembic/AbcCoreLayer/Foundation.h>
 #include <Alembic/AbcMaterial/All.h>
 #pragma GCC diagnostic pop
