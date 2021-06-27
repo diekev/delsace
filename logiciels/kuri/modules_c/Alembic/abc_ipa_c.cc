@@ -1475,6 +1475,37 @@ void ABC_echant_xform_detruit(IEchantXform *echant)
 
 /* Nouvelle Interface. */
 
+/*
+    - [x] Alembic
+    - [ ] OpenColorIO (reprend code de Sergey)
+    - [x] OpenImageIO
+    - [ ] OpenSubDiv (reprend code de Sergey)
+    - [ ] PTex
+
+    - [x] Alembic
+    - [ ] Bullet
+    - [ ] Cycles
+    - [ ] CUDA
+    - [ ] OpenColorIO (reprend code de Sergey)
+    - [ ] OpenCV (ou ffmpeg)
+    - [x] OpenImageIO
+    - [ ] OpenSubDiv (reprend code de Sergey)
+    - [ ] OpenVDB
+    - [ ] OptiX
+    - [ ] OSL (avec Cycles)
+    - [ ] PTex
+    - [ ] USD
+    - [ ] Vulkan
+
+    Pipeline rendu :
+    - charge les objets
+    - construction des tampons
+    - déforme les positions selon les armatures
+    - applique quelconque algorithme de sous-division
+    - applique quelconque déplacement
+    - recalcule les normaux
+ */
+
 // --------------------------------------------------------------
 // Contexte pour la gestion de la mémoire.
 
@@ -1827,6 +1858,71 @@ void ABC_traverse_archive(ContexteKuri * /*ctx_kuri*/,
 // --------------------------------------------------------------
 // Lecture des objets.
 
+static void convertis_polygones_trous(ConvertisseuseSubD *convertisseuse,
+                                      Abc::Int32ArraySamplePtr trous)
+{
+    if (!trous) {
+        return;
+    }
+
+    if (convertisseuse->reserve_trous) {
+        convertisseuse->reserve_trous(convertisseuse->donnees, trous->size());
+    }
+
+    for (size_t i = 0; i < trous->size(); i++) {
+        convertisseuse->marque_polygone_trou(convertisseuse->donnees, trous->get()[i]);
+    }
+}
+
+static void convertis_plis_sommets(ConvertisseuseSubD *convertisseuse,
+                                   Abc::FloatArraySamplePtr sharpnesses,
+                                   Abc::Int32ArraySamplePtr indices)
+{
+    if (!sharpnesses || !indices) {
+        return;
+    }
+
+    if (convertisseuse->reserve_plis_sommets) {
+        convertisseuse->reserve_plis_sommets(convertisseuse->donnees, indices->size());
+    }
+
+    for (size_t i = 0; i < indices->size(); ++i) {
+        const int index = indices->get()[i];
+        const float sharpness = sharpnesses->get()[i];
+
+        convertisseuse->marque_plis_vertex(convertisseuse->donnees, index, sharpness);
+    }
+}
+
+static void convertis_plis_aretes(ConvertisseuseSubD *convertisseuse,
+                                  Abc::FloatArraySamplePtr sharpnesses,
+                                  Abc::Int32ArraySamplePtr /*lengths*/,
+                                  Abc::Int32ArraySamplePtr indices)
+{
+    if (!sharpnesses || !indices) {
+        return;
+    }
+
+    if (convertisseuse->reserve_plis_aretes) {
+        convertisseuse->reserve_plis_aretes(convertisseuse->donnees, indices->size());
+    }
+
+    for (size_t i = 0, s = 0; i < indices->size(); i += 2, s++) {
+        int v1 = (*indices)[i];
+        int v2 = (*indices)[i + 1];
+
+        if (v2 < v1) {
+            /* Il est commun de stocker les arêtes avec le vertex dont l'index est le plus comme
+             * origine. */
+            std::swap(v1, v2);
+        }
+
+        const auto sharpness = (*sharpnesses)[s];
+
+        convertisseuse->marque_plis_aretes(convertisseuse->donnees, v1, v2, sharpness);
+    }
+}
+
 static void convertis_subd(ContexteKuri * /*ctx_kuri*/,
                            ConvertisseuseSubD *convertisseuse,
                            AbcGeom::ISubD &subd,
@@ -1851,10 +1947,32 @@ static void convertis_subd(ContexteKuri * /*ctx_kuri*/,
     const auto &face_indices = sample.getFaceIndices();
     convertis_polygones(convertisseuse, face_counts, face_indices);
 
-    /* À FAIRE : plis vertex */
-    /* À FAIRE : plis arêtes */
-    /* À FAIRE : trous */
-    /* À FAIRE : paramètres */
+    convertis_polygones_trous(convertisseuse, sample.getHoles());
+    convertis_plis_sommets(convertisseuse, sample.getCornerSharpnesses(), sample.getCornerIndices());
+    convertis_plis_aretes(convertisseuse, sample.getCreaseSharpnesses(), sample.getCreaseLengths(), sample.getCreaseIndices());
+
+    /* Paramètres. */
+    auto schema_subdivision = sample.getSubdivisionScheme();
+    convertisseuse->marque_schema_subdivision(convertisseuse->donnees, schema_subdivision.c_str(), schema_subdivision.size());
+    convertisseuse->marque_propagation_coins_face_varying(convertisseuse->donnees, sample.getFaceVaryingPropagateCorners());
+    convertisseuse->marque_interpolation_frontiere_face_varying(convertisseuse->donnees, sample.getFaceVaryingInterpolateBoundary());
+    convertisseuse->marque_interpolation_frontiere(convertisseuse->donnees, sample.getInterpolateBoundary());
+}
+
+static void convertis_index_points(ConvertisseusePoints *convertisseuse,
+                                   AbcGeom::UInt64ArraySamplePtr indices)
+{
+    if (!indices) {
+        return;
+    }
+
+    if (convertisseuse->reserve_index) {
+        convertisseuse->reserve_index(convertisseuse->donnees, indices->size());
+    }
+
+    for (size_t i = 0; i < indices->size(); ++i) {
+        convertisseuse->ajoute_index_point(convertisseuse->donnees, i, indices->get()[i]);
+    }
 }
 
 static void convertis_points(ContexteKuri * /*ctx_kuri*/,
@@ -1875,6 +1993,8 @@ static void convertis_points(ContexteKuri * /*ctx_kuri*/,
     /* Convertis les positions. */
     const auto &positions = sample.getPositions();
     convertis_positions(convertisseuse, positions);
+
+    convertis_index_points(convertisseuse, sample.getIds());
 }
 
 static void convertis_courbes(ContexteKuri * /*ctx_kuri*/,
@@ -1882,6 +2002,17 @@ static void convertis_courbes(ContexteKuri * /*ctx_kuri*/,
                               AbcGeom::ICurves &curves,
                               const double time)
 {
+    auto &schema = curves.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    AbcGeom::ICurvesSchema::Sample sample;
+    schema.get(sample, selector);
+
+    if (!sample.valid()) {
+        return;
+    }
+
+    // À FAIRE
 }
 
 static void convertis_nurbs(ContexteKuri * /*ctx_kuri*/,
@@ -1889,6 +2020,17 @@ static void convertis_nurbs(ContexteKuri * /*ctx_kuri*/,
                             AbcGeom::INuPatch &nurbs,
                             const double time)
 {
+    auto &schema = nurbs.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    AbcGeom::INuPatchSchema::Sample sample;
+    schema.get(sample, selector);
+
+    if (!sample.valid()) {
+        return;
+    }
+
+    // À FAIRE
 }
 
 static void convertis_xform(ContexteKuri * /*ctx_kuri*/,
@@ -1896,6 +2038,13 @@ static void convertis_xform(ContexteKuri * /*ctx_kuri*/,
                             AbcGeom::IXform &xform,
                             const double time)
 {
+    auto &schema = xform.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    AbcGeom::XformSample sample;
+    schema.get(sample, selector);
+
+    // À FAIRE
 }
 
 void convertis_poly_mesh(ContexteKuri * /*ctx_kuri*/,

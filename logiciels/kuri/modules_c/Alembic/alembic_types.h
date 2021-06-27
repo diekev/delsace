@@ -139,6 +139,20 @@ struct ConvertisseuseSubD {
     void (*reserve_coins_polygone)(void *, unsigned long, int);
     void (*ajoute_coin_polygone)(void *, unsigned long, int);
     void (*ajoute_tous_les_coins)(void *, const int *, unsigned long);
+
+    void (*reserve_trous)(void *, unsigned long);
+    void (*marque_polygone_trou)(void *, int);
+
+    void (*reserve_plis_sommets)(void *, unsigned long);
+    void (*marque_plis_vertex)(void *, int, float);
+
+    void (*reserve_plis_aretes)(void *, unsigned long);
+    void (*marque_plis_aretes)(void *, int, int, float);
+
+    void (*marque_schema_subdivision)(void *, const char *, unsigned long);
+    void (*marque_propagation_coins_face_varying)(void *, int);
+    void (*marque_interpolation_frontiere_face_varying)(void *, int);
+    void (*marque_interpolation_frontiere)(void *, int);
 };
 
 struct ConvertisseusePoints {
@@ -147,6 +161,9 @@ struct ConvertisseusePoints {
     void (*reserve_points)(void *, unsigned long);
     void (*ajoute_un_point)(void *, float, float, float);
     void (*ajoute_tous_les_points)(void *, const float *, unsigned long);
+
+    void (*reserve_index)(void*, unsigned long);
+    void (*ajoute_index_point)(void*, unsigned long, unsigned long);
 };
 
 struct ConvertisseuseCourbes {
