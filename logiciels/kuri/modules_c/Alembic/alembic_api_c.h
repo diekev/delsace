@@ -28,7 +28,8 @@
 
 extern "C" {
 
-ArchiveCache *ABC_ouvre_archive_ex(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx);
+ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx);
+void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive);
 
 void ABC_traverse_archive(ContexteKuri *ctx_kuri, ArchiveCache *archive, ContexteTraverseArchive *ctx);
 

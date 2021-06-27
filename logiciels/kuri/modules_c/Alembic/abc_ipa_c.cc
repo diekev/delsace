@@ -1497,6 +1497,9 @@ T *reloge_objet(ContexteKuri *ctx, T *objet)
 template <typename T>
 void deloge_objet(ContexteKuri *ctx, T *objet)
 {
+    if (objet) {
+        objet->~T();
+    }
     ctx->deloge_memoire(ctx, objet, sizeof(T));
 }
 
@@ -1565,7 +1568,7 @@ static void renseigne_strategie_ogawa(ContexteOuvertureArchive *ctx, AbcCoreFact
     }
 }
 
-ArchiveCache *ABC_ouvre_archive_ex(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
 {
     const int nombre_de_chemins = ctx->nombre_de_chemins(ctx);
 
@@ -1613,6 +1616,11 @@ ArchiveCache *ABC_ouvre_archive_ex(ContexteKuri *ctx_kuri, ContexteOuvertureArch
     auto poignee = loge_objet<ArchiveCache>(ctx_kuri);
     poignee->iarchive = iarchive;
     return poignee;
+}
+
+void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
+{
+    deloge_objet(ctx, archive);
 }
 
 // --------------------------------------------------------------
@@ -1848,7 +1856,7 @@ struct iteratrice_chemin {
 
     std::string_view suivant()
     {
-        if (chemin.size() >= pos) {
+        if (fini()) {
             return "";
         }
 
@@ -1859,7 +1867,7 @@ struct iteratrice_chemin {
 
         auto nouvelle_pos = chemin.find('/', pos);
         if (nouvelle_pos == std::string::npos) {
-            nouvelle_pos = chemin.size() - 1;
+            nouvelle_pos = chemin.size();
         }
 
         morceau_courant = chemin.substr(pos, nouvelle_pos - pos);
@@ -1882,24 +1890,28 @@ struct LectriceCache {
 LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri, ArchiveCache *archive, const char *ptr_nom, size_t taille_nom)
 {
     if (!archive) {
+        // std::cerr << "L'archive est nulle !\n";
         return nullptr;
     }
 
     auto &iarchive = archive->iarchive;
 
     if (!iarchive.valid()) {
+        // std::cerr << "L'archive est invalide !\n";
         return nullptr;
     }
 
     const auto nom = std::string(ptr_nom, taille_nom);
 
     if (nom.empty()) {
+        // std::cerr << "Le nom est vide !\n";
         return nullptr;
     }
 
     AbcGeom::IObject courant = iarchive.getTop();
 
     if (!courant.valid()) {
+        // std::cerr << "La racine de l'archvie est invalide !\n";
         return nullptr;
     }
 
@@ -1910,6 +1922,7 @@ LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri, ArchiveCache *arc
         auto enfant = courant.getChild(std::string(morceau));
 
         if (!enfant.valid()) {
+            // std::cerr << "L'enfant est invalide !\n";
             return nullptr;
         }
 
@@ -1917,6 +1930,7 @@ LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri, ArchiveCache *arc
     }
 
     if (!courant.valid()) {
+        // std::cerr << "L'enfant final est invalide !\n";
         return nullptr;
     }
 
@@ -2010,28 +2024,3 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri, ContexteLectureCache *contexte, Lectr
     }
 }
 }
-
-/*
-
-  ctx_kuri := initialise_contexte_kuri()
-
-  ctx_ouverture := initialise_contexte_ouverture_archive();
-  archive := ABC_ouvre_archive(*ctx_kuri, *ctx_ouverture)
-
-  saufsi archive {
-      retourne;
-  }
-
-  // Traverse l'archive et rassemble tous les noms des objets.
-  ctx_traversé := initialise_contexte_traversé_pour_noms()
-  ABC_traverse_hierarchie(*ctx_kuri, archive, *ctx_traversé)
-
-  lectrice_cache := ABC_crée_lectrice_cache(*ctx_kuri, "/CubeShape/Cube")
-  saufsi lectrice_cache {
-    retourne
-  }
-
-  ctx_lecture := initialise_contexte_lecture()
-  ABC_lis_objet(*ctx_kuri, lectrice_cache, *ctx_lecture)
-
- */

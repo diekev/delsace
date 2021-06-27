@@ -29,7 +29,7 @@ extern "C" {
 struct ContexteKuri {
     void *(*loge_memoire)(ContexteKuri *ctx, unsigned long taille);
     void *(*reloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long ancienne_taille, unsigned long nouvelle_taille);
-    void *(*deloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
+    void (*deloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
 };
 
 struct ArchiveCache;

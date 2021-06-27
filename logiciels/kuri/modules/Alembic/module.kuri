@@ -507,9 +507,9 @@ ABC_échantillon_tableau :: fonc (échant: *EchantillonTableau, $T: type_de_donn
 /* Contexte générale pour communiquer entre le langage et les modules C, notamment pour l'allocation
  * de mémoire. */
 ContexteKuri :: struct {
-    loge_memoire : #nulctx fonc (*ContexteKuri, n64 taille)(*rien)
+    loge_memoire : #nulctx fonc (*ContexteKuri, n64)(*rien)
     reloge_memoire : #nulctx fonc (*ContexteKuri, *rien, n64, n64)(*rien)
-    deloge_memoire : #nulctx fonc (*ContexteKuri, *rien, n64)(*rien)
+    deloge_memoire : #nulctx fonc (*ContexteKuri, *rien, n64)(rien)
 }
 
 ArchiveCache :: struct #externe;
@@ -549,7 +549,7 @@ ContexteOuvertureArchive :: struct {
     erreur_archive_invalide : #nulctx fonc (*ContexteOuvertureArchive)(rien)
 
     /* Les données utilisateurs du contexte. */
-    donnees_utilisateurs: *rien
+    donnees_utilisateur: *rien
 }
 
 // --------------------------------------------------------------
@@ -557,10 +557,10 @@ ContexteOuvertureArchive :: struct {
 
 ContexteTraverseArchive :: struct {
     // Extraction du nom de l'objet courant.
-    void (*extrait_nom_courant : #nulctx fonc (ctx: *ContexteTraverseArchive, const char *pointeur, n64 taille);
+    extrait_nom_courant : #nulctx fonc (*ContexteTraverseArchive, *z8, n64)(rien)
 
     // Certaines tâches peuvent prendre du temps, ce rappel sers à annuler l'opération en cours.
-    bool (*annule : #nulctx fonc (ctx: *ContexteTraverseArchive);
+    annule : #nulctx fonc (*ContexteTraverseArchive)(bool)
 
     // Création d'objet pour tous les types.
     // cree_poly_mesh
@@ -653,11 +653,18 @@ ContexteLectureCache :: struct {
 // -----------------------------------------------------
 // Fonctions
 
-ABC_ouvre_archive_ex :: fonc (ctx_kuri: *ContexteKuri, ctx: *ContexteOuvertureArchive) -> *ArchiveCache #externe
+ABC_cree_archive :: fonc (ctx_kuri: *ContexteKuri, ctx: *ContexteOuvertureArchive) -> *ArchiveCache #externe
+ABC_detruit_archive :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache) #externe
 
 ABC_traverse_archive :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache, ctx: *ContexteTraverseArchive) #externe
 
 ABC_cree_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache, ptr_nom: *z8, taille_nom: n64) -> *LectriceCache #externe
+
+ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache, chemin: chaine) -> *LectriceCache
+{
+    retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64)
+}
+
 ABC_detruit_lectrice :: fonc (ctx_kuri: *ContexteKuri, lectrice: *LectriceCache) #externe
 ABC_lectrice_ajourne_donnees :: fonc (lectrice: *LectriceCache, donnees: *rien) #externe
 ABC_lis_objet :: fonc (ctx_kuri: *ContexteKuri, contexte: *ContexteLectureCache, lectrice: *LectriceCache, temps: r64) #externe
