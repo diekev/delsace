@@ -1503,6 +1503,81 @@ void deloge_objet(ContexteKuri *ctx, T *objet)
     ctx->deloge_memoire(ctx, objet, sizeof(T));
 }
 
+// --------------------------------------------------------------
+// Utilitaires.
+
+template <typename Convertisseuse>
+void convertis_positions(Convertisseuse *convertisseuse, AbcGeom::P3fArraySamplePtr positions)
+{
+    if (convertisseuse->reserve_points) {
+        convertisseuse->reserve_points(convertisseuse->donnees, positions->size());
+    }
+
+    if (convertisseuse->ajoute_tous_les_points) {
+        convertisseuse->ajoute_tous_les_points(convertisseuse->donnees, &positions->get()->x, positions->size());
+    }
+    else if (convertisseuse->ajoute_un_point) {
+        for (size_t i = 0; i < positions->size(); ++i) {
+            auto p = positions->get()[i];
+            convertisseuse->ajoute_un_point(convertisseuse->donnees, p.x, p.y, p.z);
+        }
+    }
+}
+
+template <typename Convertisseuse>
+void convertis_polygones(Convertisseuse *convertisseuse, AbcGeom::Int32ArraySamplePtr face_counts, AbcGeom::Int32ArraySamplePtr face_indices)
+{
+    if (convertisseuse->reserve_polygones) {
+        convertisseuse->reserve_polygones(convertisseuse->donnees, face_counts->size());
+    }
+
+    if (convertisseuse->reserve_coin) {
+        convertisseuse->reserve_coin(convertisseuse->donnees, face_indices->size());
+    }
+
+    if (convertisseuse->ajoute_tous_les_polygones) {
+        convertisseuse->ajoute_tous_les_polygones(convertisseuse->donnees, face_counts->get(), face_counts->size());
+    }
+    else {
+        if (convertisseuse->reserve_coins_polygone) {
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                convertisseuse->reserve_coins_polygone(convertisseuse->donnees, i, face_counts->get()[i]);
+            }
+        }
+
+        if (convertisseuse->ajoute_polygone) {
+            auto decalage_coin = 0;
+
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                auto nombre_de_coins = face_counts->get()[i];
+                auto ptr_coins = &face_indices->get()[decalage_coin];
+                convertisseuse->ajoute_polygone(convertisseuse->donnees, i, ptr_coins, nombre_de_coins);
+                decalage_coin += nombre_de_coins;
+            }
+        }
+    }
+
+    if (convertisseuse->ajoute_tous_les_coins) {
+        convertisseuse->ajoute_tous_les_coins(convertisseuse->donnees, face_indices->get(), face_indices->size());
+    }
+    else {
+        if (convertisseuse->ajoute_coin_polygone) {
+            auto decalage_coin = 0;
+
+            for (size_t i = 0; i < face_counts->size(); ++i) {
+                auto nombre_de_coins = face_counts->get()[i];
+                auto ptr_coins = &face_indices->get()[decalage_coin];
+
+                for (int j = 0; j < nombre_de_coins; ++j) {
+                    convertisseuse->ajoute_coin_polygone(convertisseuse->donnees, i, ptr_coins[j]);
+                }
+
+                decalage_coin += nombre_de_coins;
+            }
+        }
+    }
+}
+
 extern "C" {
 
 // --------------------------------------------------------------
@@ -1740,7 +1815,29 @@ void ABC_traverse_archive(ContexteKuri */*ctx_kuri*/, ArchiveCache *archive, Con
 
 static void convertis_subd(ContexteKuri */*ctx_kuri*/, ConvertisseuseSubD *convertisseuse, AbcGeom::ISubD &subd, const double time)
 {
+    auto &schema = subd.getSchema();
+    auto selector = Abc::ISampleSelector(time);
 
+    AbcGeom::ISubDSchema::Sample sample;
+    schema.get(sample, selector);
+
+    if (!sample.valid()) {
+        return;
+    }
+
+    /* Convertis les positions. */
+    const auto &positions = sample.getPositions();
+    convertis_positions(convertisseuse, positions);
+
+    /* Convertis les polygones. */
+    const auto &face_counts = sample.getFaceCounts();
+    const auto &face_indices = sample.getFaceIndices();
+    convertis_polygones(convertisseuse, face_counts, face_indices);
+
+    /* À FAIRE : plis vertex */
+    /* À FAIRE : plis arêtes */
+    /* À FAIRE : trous */
+    /* À FAIRE : paramètres */
 }
 
 static void convertis_points(ContexteKuri */*ctx_kuri*/, ConvertisseusePoints *convertisseuse, AbcGeom::IPoints &points, const double time)
@@ -1755,20 +1852,9 @@ static void convertis_points(ContexteKuri */*ctx_kuri*/, ConvertisseusePoints *c
         return;
     }
 
+    /* Convertis les positions. */
     const auto &positions = sample.getPositions();
-    if (convertisseuse->reserve_points) {
-        convertisseuse->reserve_points(convertisseuse->donnees, positions->size());
-    }
-
-    if (convertisseuse->ajoute_tous_les_points) {
-        convertisseuse->ajoute_tous_les_points(convertisseuse->donnees, &positions->get()->x, positions->size());
-    }
-    else if (convertisseuse->ajoute_un_point) {
-        for (size_t i = 0; i < positions->size(); ++i) {
-            auto p = positions->get()[i];
-            convertisseuse->ajoute_un_point(convertisseuse->donnees, p.x, p.y, p.z);
-        }
-    }
+    convertis_positions(convertisseuse, positions);
 }
 
 static void convertis_courbes(ContexteKuri */*ctx_kuri*/, ConvertisseuseCourbes *convertisseuse, AbcGeom::ICurves &curves, const double time)
@@ -1798,75 +1884,14 @@ void convertis_poly_mesh(ContexteKuri */*ctx_kuri*/, ConvertisseusePolyMesh *con
         return;
     }
 
-    /* Convertis les points. */
-    const auto &points = sample.getPositions();
-    if (convertisseuse->reserve_points) {
-        convertisseuse->reserve_points(convertisseuse->donnees, points->size());
-    }
-
-    if (convertisseuse->ajoute_tous_les_points) {
-        convertisseuse->ajoute_tous_les_points(convertisseuse->donnees, &points->get()->x, points->size());
-    }
-    else if (convertisseuse->ajoute_un_point) {
-        for (size_t i = 0; i < points->size(); ++i) {
-            auto p = points->get()[i];
-            convertisseuse->ajoute_un_point(convertisseuse->donnees, p.x, p.y, p.z);
-        }
-    }
+    /* Convertis les positions. */
+    const auto &positions = sample.getPositions();
+    convertis_positions(convertisseuse, positions);
 
     /* Convertis les polygones. */
     const auto &face_counts = sample.getFaceCounts();
     const auto &face_indices = sample.getFaceIndices();
-
-    if (convertisseuse->reserve_polygones) {
-        convertisseuse->reserve_polygones(convertisseuse->donnees, face_counts->size());
-    }
-
-    if (convertisseuse->reserve_coin) {
-        convertisseuse->reserve_coin(convertisseuse->donnees, face_indices->size());
-    }
-
-    if (convertisseuse->ajoute_tous_les_polygones) {
-        convertisseuse->ajoute_tous_les_polygones(convertisseuse->donnees, face_counts->get(), face_counts->size());
-    }
-    else {
-        if (convertisseuse->reserve_coins_polygone) {
-            for (size_t i = 0; i < face_counts->size(); ++i) {
-                convertisseuse->reserve_coins_polygone(convertisseuse->donnees, i, face_counts->get()[i]);
-            }
-        }
-
-        if (convertisseuse->ajoute_polygone) {
-            auto decalage_coin = 0;
-
-            for (size_t i = 0; i < face_counts->size(); ++i) {
-                auto nombre_de_coins = face_counts->get()[i];
-                auto ptr_coins = &face_indices->get()[decalage_coin];
-                convertisseuse->ajoute_polygone(convertisseuse->donnees, i, ptr_coins, nombre_de_coins);
-                decalage_coin += nombre_de_coins;
-            }
-        }
-    }
-
-    if (convertisseuse->ajoute_tous_les_coins) {
-        convertisseuse->ajoute_tous_les_coins(convertisseuse->donnees, face_indices->get(), face_indices->size());
-    }
-    else {
-        if (convertisseuse->ajoute_coin_polygone) {
-            auto decalage_coin = 0;
-
-            for (size_t i = 0; i < face_counts->size(); ++i) {
-                auto nombre_de_coins = face_counts->get()[i];
-                auto ptr_coins = &face_indices->get()[decalage_coin];
-
-                for (int j = 0; j < nombre_de_coins; ++j) {
-                    convertisseuse->ajoute_coin_polygone(convertisseuse->donnees, i, ptr_coins[j]);
-                }
-
-                decalage_coin += nombre_de_coins;
-            }
-        }
-    }
+    convertis_polygones(convertisseuse, face_counts, face_indices);
 }
 
 struct iteratrice_chemin {
