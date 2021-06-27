@@ -31,11 +31,18 @@ extern "C" {
 ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx);
 void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive);
 
-void ABC_traverse_archive(ContexteKuri *ctx_kuri, ArchiveCache *archive, ContexteTraverseArchive *ctx);
+void ABC_traverse_archive(ContexteKuri *ctx_kuri,
+                          ArchiveCache *archive,
+                          ContexteTraverseArchive *ctx);
 
-LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri, ArchiveCache *archive, const char *ptr_nom, unsigned long taille_nom);
+LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri,
+                                       ArchiveCache *archive,
+                                       const char *ptr_nom,
+                                       unsigned long taille_nom);
 void ABC_detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice);
 void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees);
-void ABC_lis_objet(ContexteKuri *ctx_kuri, ContexteLectureCache *contexte, LectriceCache *lectrice, double temps);
-
+void ABC_lis_objet(ContexteKuri *ctx_kuri,
+                   ContexteLectureCache *contexte,
+                   LectriceCache *lectrice,
+                   double temps);
 }

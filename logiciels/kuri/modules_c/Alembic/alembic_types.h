@@ -28,7 +28,10 @@ extern "C" {
 
 struct ContexteKuri {
     void *(*loge_memoire)(ContexteKuri *ctx, unsigned long taille);
-    void *(*reloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long ancienne_taille, unsigned long nouvelle_taille);
+    void *(*reloge_memoire)(ContexteKuri *ctx,
+                            void *ancien_pointeur,
+                            unsigned long ancienne_taille,
+                            unsigned long nouvelle_taille);
     void (*deloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
 };
 
@@ -77,7 +80,9 @@ struct ContexteOuvertureArchive {
 
 struct ContexteTraverseArchive {
     // Extraction du nom de l'objet courant.
-    void (*extrait_nom_courant)(ContexteTraverseArchive *ctx, const char *pointeur, unsigned long taille);
+    void (*extrait_nom_courant)(ContexteTraverseArchive *ctx,
+                                const char *pointeur,
+                                unsigned long taille);
 
     // Certaines tâches peuvent prendre du temps, ce rappel sers à annuler l'opération en cours.
     bool (*annule)(ContexteTraverseArchive *ctx);
@@ -169,5 +174,4 @@ struct ContexteLectureCache {
 
     void (*initialise_convertisseuse_xform)(ConvertisseuseXform *);
 };
-
 }
