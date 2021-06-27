@@ -1738,39 +1738,65 @@ void ABC_traverse_archive(ContexteKuri */*ctx_kuri*/, ArchiveCache *archive, Con
 // --------------------------------------------------------------
 // Lecture des objets.
 
-static void convertis_subd(ContexteKuri *ctx_kuri, ConvertisseuseSubD *convertisseuse, AbcGeom::ISubD &subd, const double time)
+static void convertis_subd(ContexteKuri */*ctx_kuri*/, ConvertisseuseSubD *convertisseuse, AbcGeom::ISubD &subd, const double time)
 {
 
 }
 
-static void convertis_points(ContexteKuri *ctx_kuri, ConvertisseusePoints *convertisseuse, AbcGeom::IPoints &points, const double time)
+static void convertis_points(ContexteKuri */*ctx_kuri*/, ConvertisseusePoints *convertisseuse, AbcGeom::IPoints &points, const double time)
+{
+    auto &schema = points.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    AbcGeom::IPointsSchema::Sample sample;
+    schema.get(sample, selector);
+
+    if (!sample.valid()) {
+        return;
+    }
+
+    const auto &positions = sample.getPositions();
+    if (convertisseuse->reserve_points) {
+        convertisseuse->reserve_points(convertisseuse->donnees, positions->size());
+    }
+
+    if (convertisseuse->ajoute_tous_les_points) {
+        convertisseuse->ajoute_tous_les_points(convertisseuse->donnees, &positions->get()->x, positions->size());
+    }
+    else if (convertisseuse->ajoute_un_point) {
+        for (size_t i = 0; i < positions->size(); ++i) {
+            auto p = positions->get()[i];
+            convertisseuse->ajoute_un_point(convertisseuse->donnees, p.x, p.y, p.z);
+        }
+    }
+}
+
+static void convertis_courbes(ContexteKuri */*ctx_kuri*/, ConvertisseuseCourbes *convertisseuse, AbcGeom::ICurves &curves, const double time)
 {
 
 }
 
-static void convertis_courbes(ContexteKuri *ctx_kuri, ConvertisseuseCourbes *convertisseuse, AbcGeom::ICurves &curves, const double time)
+static void convertis_nurbs(ContexteKuri */*ctx_kuri*/, ConvertisseuseNurbs *convertisseuse, AbcGeom::INuPatch &nurbs, const double time)
 {
 
 }
 
-static void convertis_nurbs(ContexteKuri *ctx_kuri, ConvertisseuseNurbs *convertisseuse, AbcGeom::INuPatch &nurbs, const double time)
+static void convertis_xform(ContexteKuri */*ctx_kuri*/, ConvertisseuseXform *convertisseuse, AbcGeom::IXform &xform, const double time)
 {
 
 }
 
-static void convertis_xform(ContexteKuri *ctx_kuri, ConvertisseuseXform *convertisseuse, AbcGeom::IXform &xform, const double time)
-{
-
-}
-
-void convertis_poly_mesh(ContexteKuri *ctx_kuri, ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyMesh &polymesh, const double time)
+void convertis_poly_mesh(ContexteKuri */*ctx_kuri*/, ConvertisseusePolyMesh *convertisseuse, AbcGeom::IPolyMesh &polymesh, const double time)
 {
     auto &schema = polymesh.getSchema();
-
     auto selector = Abc::ISampleSelector(time);
 
     AbcGeom::IPolyMeshSchema::Sample sample;
     schema.get(sample, selector);
+
+    if (!sample.valid()) {
+        return;
+    }
 
     /* Convertis les points. */
     const auto &points = sample.getPositions();
