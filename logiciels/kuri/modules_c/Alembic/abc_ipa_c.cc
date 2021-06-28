@@ -24,6 +24,7 @@
 
 #include "alembic.h"
 
+#include <variant>
 #include <string_view>
 
 #include "abc_ipa_c.h"
@@ -1506,6 +1507,30 @@ void ABC_echant_xform_detruit(IEchantXform *echant)
     - recalcule les normaux
  */
 
+// En dehors de l'espace de nom AbcKuri afin de ne pas avoir à transtyper en passant par les
+// fonctions "extern C".
+struct ArchiveCache {
+    Abc::IArchive iarchive;
+};
+
+struct LectriceCache {
+    Abc::IObject iobject;
+
+#if 0
+    std::variant<AbcGeom::IPolyMesh, AbcGeom::ISubD, AbcGeom::ICurves, AbcGeom::IXform> object_;
+
+    template <typename T>
+    bool est_un() const
+    {
+        return std::holds_alternative<T>(object_);
+    }
+#endif
+
+    void *donnees;
+};
+
+namespace AbcKuri {
+
 // --------------------------------------------------------------
 // Contexte pour la gestion de la mémoire.
 
@@ -1615,8 +1640,6 @@ void convertis_polygones(Convertisseuse *convertisseuse,
     }
 }
 
-extern "C" {
-
 // --------------------------------------------------------------
 // Ouverture de l'archive.
 
@@ -1660,10 +1683,6 @@ static AbcCoreFactory::IFactory::OgawaReadStrategy convertis_strategie_ogawa(
     return AbcCoreFactory::IFactory::OgawaReadStrategy::kMemoryMappedFiles;
 }
 
-struct ArchiveCache {
-    Abc::IArchive iarchive;
-};
-
 static void renseigne_politique_erreur(ContexteOuvertureArchive *ctx,
                                        AbcCoreFactory::IFactory &ifactory)
 {
@@ -1687,7 +1706,7 @@ static void renseigne_strategie_ogawa(ContexteOuvertureArchive *ctx,
     }
 }
 
-ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+ArchiveCache *cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
 {
     const int nombre_de_chemins = ctx->nombre_de_chemins(ctx);
 
@@ -1737,7 +1756,7 @@ ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive 
     return poignee;
 }
 
-void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
+void detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
 {
     deloge_objet(ctx, archive);
 }
@@ -1836,7 +1855,7 @@ static void abc_traverse_hierarchie(ContexteTraverseArchive *ctx,
     }
 }
 
-void ABC_traverse_archive(ContexteKuri * /*ctx_kuri*/,
+void traverse_archive(ContexteKuri * /*ctx_kuri*/,
                           ArchiveCache *archive,
                           ContexteTraverseArchive *ctx)
 {
@@ -2110,13 +2129,7 @@ struct iteratrice_chemin {
     }
 };
 
-struct LectriceCache {
-    Abc::IObject iobject;
-
-    void *donnees;
-};
-
-LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri,
+LectriceCache *cree_lectrice_cache(ContexteKuri *ctx_kuri,
                                        ArchiveCache *archive,
                                        const char *ptr_nom,
                                        size_t taille_nom)
@@ -2171,17 +2184,17 @@ LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri,
     return lectrice;
 }
 
-void ABC_detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice)
+void detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice)
 {
     deloge_objet(ctx_kuri, lectrice);
 }
 
-void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
+void lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
 {
     lectrice->donnees = donnees;
 }
 
-void ABC_lis_objet(ContexteKuri *ctx_kuri,
+void lis_objet(ContexteKuri *ctx_kuri,
                    ContexteLectureCache *contexte,
                    LectriceCache *lectrice,
                    double temps)
@@ -2258,4 +2271,147 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri,
         }
     }
 }
+}
+
+extern "C" {
+
+ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+{
+    return AbcKuri::cree_archive(ctx_kuri, ctx);
+}
+
+void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
+{
+    AbcKuri::detruit_archive(ctx, archive);
+}
+
+void ABC_traverse_archive(ContexteKuri *ctx_kuri,
+                          ArchiveCache *archive,
+                          ContexteTraverseArchive *ctx)
+{
+    AbcKuri::traverse_archive(ctx_kuri, archive, ctx);
+}
+
+LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri,
+                                       ArchiveCache *archive,
+                                       const char *ptr_nom,
+                                       size_t taille_nom)
+{
+    return AbcKuri::cree_lectrice_cache(ctx_kuri, archive, ptr_nom, taille_nom);
+}
+
+void ABC_detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice)
+{
+    AbcKuri::detruit_lectrice(ctx_kuri, lectrice);
+}
+
+void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
+{
+    AbcKuri::lectrice_ajourne_donnees(lectrice, donnees);
+}
+
+void ABC_lis_objet(ContexteKuri *ctx_kuri,
+                   ContexteLectureCache *contexte,
+                   LectriceCache *lectrice,
+                   double temps)
+{
+    AbcKuri::lis_objet(ctx_kuri, contexte, lectrice, temps);
+}
+
+// ABC_lis_transformation
+
+/* ABC_lis_attributs
+ * - rappel_lis_tous_les_attributs
+ * - rappel_nombre_attributs_requis
+ * - rappel_nom_attribut_requis_index
+ * - rappel_information_portée
+ * - reserve_attribut_point
+ * - reserve_attribut_polygone
+ * - reserve_attribut_point_polygone
+ *
+ * machine à état pour remplir l'attribut courant ?
+ *
+ * ajoute_bool
+ * ajoute_r32
+ * ajoute_r64
+ * ajoute_z8
+ * ajoute_z16
+ * ajoute_z32
+ * ajoute_z64
+ * ajoute_n8
+ * ajoute_n16
+ * ajoute_n32
+ * ajoute_n64
+ * ajoute_matrice_r64
+ * ajoute_chaine
+ */
+
+// ABC_informations_temporelles_archive
+
+/* ABC_topologie_a_change
+ */
+
+// ABC_est_constant
+
+}
+
+struct ConvertisseuseExportPolyMesh {
+    void *donnnees;
+    size_t (*nombre_de_points)(ConvertisseuseExportPolyMesh *);
+    void (*point_pour_index)(ConvertisseuseExportPolyMesh *, size_t, float *, float *, float *);
+
+    size_t (*nombre_de_polygones)(ConvertisseuseExportPolyMesh *);
+    int (*nombre_de_coins_polygone)(ConvertisseuseExportPolyMesh *, size_t);
+
+    void (*coins_pour_polygone)(ConvertisseuseExportPolyMesh *, size_t, int *);
+};
+
+void ABC_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
+
+    if (nombre_de_points == 0) {
+        return;
+    }
+
+    /* Exporte les positions. */
+    std::vector<Imath::V3f> positions;
+    positions.resize(nombre_de_points);
+
+    for (size_t i = 0; i < nombre_de_points; i++) {
+        Imath::V3f &pos = positions[i];
+        convertisseuse->point_pour_index(convertisseuse, i, &pos.x, &pos.y, &pos.z);
+    }
+
+    /* Exporte les polygones. */
+    const size_t nombre_de_polygones = convertisseuse->nombre_de_polygones(convertisseuse);
+    std::vector<int> face_counts;
+    face_counts.resize(nombre_de_polygones);
+
+    size_t nombre_de_coins = 0;
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        face_counts[i] = convertisseuse->nombre_de_coins_polygone(convertisseuse, i);
+        nombre_de_coins += static_cast<size_t>(face_counts[i]);
+    }
+
+    std::vector<int> face_indices;
+    face_indices.resize(nombre_de_coins);
+
+    size_t decalage = 0;
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        const int face_count = face_counts[i];
+        convertisseuse->coins_pour_polygone(convertisseuse, i, &face_indices[decalage]);
+        decalage += static_cast<size_t>(face_count);
+    }
+
+    /* Exporte vers Alembic */
+    AbcGeom::OPolyMesh o_poly_mesh;
+    auto &schema = o_poly_mesh.getSchema();
+
+    AbcGeom::OPolyMeshSchema::Sample sample;
+    sample.setPositions(positions);
+    sample.setFaceCounts(face_counts);
+    sample.setFaceIndices(face_indices);
+
+    schema.set(sample);
 }

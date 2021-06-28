@@ -67,7 +67,7 @@ struct ContexteOuvertureArchive {
     int (*nombre_de_flux_ogawa_desires)(ContexteOuvertureArchive *ctx);
     eAbcStrategieLectureOgawa (*strategie_lecture_ogawa)(ContexteOuvertureArchive *ctx);
 
-    /* Rappels pour les erreurs, afin de savoir ce qui sait passé. */
+    /* Rappels pour les erreurs, afin de savoir ce qui s'est passé. */
     void (*erreur_aucun_chemin)(ContexteOuvertureArchive *ctx);
     void (*erreur_archive_invalide)(ContexteOuvertureArchive *ctx);
 
@@ -107,75 +107,92 @@ struct ContexteTraverseArchive {
 // --------------------------------------------------------------
 // Lecture des objets.
 
+using TypeRappelReserveMemoire = void(*)(void *, unsigned long);
+using TypeRappelAjouteUnPoint = void(*)(void *, float, float, float);
+using TypeRappelAjouteTousLesPoints = void(*)(void *, const float *, unsigned long);
+using TypeRappelAjoutepolygone = void (*)(void *, unsigned long, const int *, int);
+using TypeRappelAjouteTousLesPolygones = void (*)(void *, const int *, unsigned long);
+using TypeRappelReserveCoinsPolygone = void (*)(void *, unsigned long, int);
+using TypeRappelAjouteCoinPolygone = void (*)(void *, unsigned long, int);
+using TypeRappelAjouteTousLesCoins = void (*)(void *, const int *, unsigned long);
+using TypeRappelMarquePolygoneTrou = void (*)(void *, int);
+using TypeRappelMarquePlisVertex = void (*)(void *, int, float);
+using TypeRappelMarquePlisAretes = void (*)(void *, int, int, float);
+using TypeRappelMarqueSchemaSubdivision = void (*)(void *, const char *, unsigned long);
+using TypeRappelMarquePropagationCoinsFaceVarying = void (*)(void *, int);
+using TypeRappelMarqueInterpolationFrontiereFaceVarying = void (*)(void *, int);
+using TypeRappelMarqueInterpolationFrontiere = void (*)(void *, int);
+using TypeRappelAjouteIndexPoint = void (*)(void*, unsigned long, unsigned long);
+
 struct ConvertisseusePolyMesh {
-    void *donnees;
+    void *donnees = nullptr;
 
-    void (*reserve_points)(void *, unsigned long);
-    void (*ajoute_un_point)(void *, float, float, float);
-    void (*ajoute_tous_les_points)(void *, const float *, unsigned long);
+    TypeRappelReserveMemoire reserve_points = nullptr;
+    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
 
-    void (*reserve_polygones)(void *, unsigned long);
-    void (*ajoute_polygone)(void *, unsigned long, const int *, int);
-    void (*ajoute_tous_les_polygones)(void *, const int *, unsigned long);
+    TypeRappelReserveMemoire reserve_polygones = nullptr;
+    TypeRappelAjoutepolygone ajoute_polygone = nullptr;
+    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones = nullptr;
 
-    void (*reserve_coin)(void *, unsigned long);
-    void (*reserve_coins_polygone)(void *, unsigned long, int);
-    void (*ajoute_coin_polygone)(void *, unsigned long, int);
-    void (*ajoute_tous_les_coins)(void *, const int *, unsigned long);
+    TypeRappelReserveMemoire reserve_coin = nullptr;
+    TypeRappelReserveCoinsPolygone reserve_coins_polygone = nullptr;
+    TypeRappelAjouteCoinPolygone ajoute_coin_polygone = nullptr;
+    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins = nullptr;
 };
 
 struct ConvertisseuseSubD {
-    void *donnees;
+    void *donnees = nullptr;
 
-    void (*reserve_points)(void *, unsigned long);
-    void (*ajoute_un_point)(void *, float, float, float);
-    void (*ajoute_tous_les_points)(void *, const float *, unsigned long);
+    TypeRappelReserveMemoire reserve_points = nullptr;
+    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
 
-    void (*reserve_polygones)(void *, unsigned long);
-    void (*ajoute_polygone)(void *, unsigned long, const int *, int);
-    void (*ajoute_tous_les_polygones)(void *, const int *, unsigned long);
+    TypeRappelReserveMemoire reserve_polygones = nullptr;
+    TypeRappelAjoutepolygone ajoute_polygone = nullptr;
+    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones = nullptr;
 
-    void (*reserve_coin)(void *, unsigned long);
-    void (*reserve_coins_polygone)(void *, unsigned long, int);
-    void (*ajoute_coin_polygone)(void *, unsigned long, int);
-    void (*ajoute_tous_les_coins)(void *, const int *, unsigned long);
+    TypeRappelReserveMemoire reserve_coin = nullptr;
+    TypeRappelReserveCoinsPolygone reserve_coins_polygone = nullptr;
+    TypeRappelAjouteCoinPolygone ajoute_coin_polygone = nullptr;
+    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins = nullptr;
 
-    void (*reserve_trous)(void *, unsigned long);
-    void (*marque_polygone_trou)(void *, int);
+    TypeRappelReserveMemoire reserve_trous = nullptr;
+    TypeRappelMarquePolygoneTrou marque_polygone_trou = nullptr;
 
-    void (*reserve_plis_sommets)(void *, unsigned long);
-    void (*marque_plis_vertex)(void *, int, float);
+    TypeRappelReserveMemoire reserve_plis_sommets = nullptr;
+    TypeRappelMarquePlisVertex marque_plis_vertex = nullptr;
 
-    void (*reserve_plis_aretes)(void *, unsigned long);
-    void (*marque_plis_aretes)(void *, int, int, float);
+    TypeRappelReserveMemoire reserve_plis_aretes = nullptr;
+    TypeRappelMarquePlisAretes marque_plis_aretes = nullptr;
 
-    void (*marque_schema_subdivision)(void *, const char *, unsigned long);
-    void (*marque_propagation_coins_face_varying)(void *, int);
-    void (*marque_interpolation_frontiere_face_varying)(void *, int);
-    void (*marque_interpolation_frontiere)(void *, int);
+    TypeRappelMarqueSchemaSubdivision marque_schema_subdivision = nullptr;
+    TypeRappelMarquePropagationCoinsFaceVarying marque_propagation_coins_face_varying = nullptr;
+    TypeRappelMarqueInterpolationFrontiereFaceVarying marque_interpolation_frontiere_face_varying = nullptr;
+    TypeRappelMarqueInterpolationFrontiere marque_interpolation_frontiere = nullptr;
 };
 
 struct ConvertisseusePoints {
-    void *donnees;
+    void *donnees = nullptr;
 
-    void (*reserve_points)(void *, unsigned long);
-    void (*ajoute_un_point)(void *, float, float, float);
-    void (*ajoute_tous_les_points)(void *, const float *, unsigned long);
+    TypeRappelReserveMemoire reserve_points = nullptr;
+    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
 
-    void (*reserve_index)(void*, unsigned long);
-    void (*ajoute_index_point)(void*, unsigned long, unsigned long);
+    TypeRappelReserveMemoire reserve_index = nullptr;
+    TypeRappelAjouteIndexPoint ajoute_index_point = nullptr;
 };
 
 struct ConvertisseuseCourbes {
-    void *donnees;
+    void *donnees = nullptr;
 };
 
 struct ConvertisseuseNurbs {
-    void *donnees;
+    void *donnees = nullptr;
 };
 
 struct ConvertisseuseXform {
-    void *donnees;
+    void *donnees = nullptr;
 };
 
 struct ContexteLectureCache {
