@@ -42,6 +42,7 @@
 namespace Abc = Alembic::Abc;
 namespace AbcGeom = Alembic::AbcGeom;
 namespace AbcCoreFactory = Alembic::AbcCoreFactory;
+namespace AbcMaterial = Alembic::AbcMaterial;
 
 std::string vers_std_string(ChaineKuri chaine)
 {
@@ -2355,6 +2356,15 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri,
 
 }
 
+typedef struct AbcOptionsExport {
+    /* décide si la hiérarchie doit être préservé */
+    bool exporte_hierarchie = false;
+
+    // À FAIRE : controle des objets exportés (visible, seulement les maillages, etc.)
+
+    // À FAIRE : est-il possible, pour les calques, de n'exporter que les attributs ?
+} AbcOptionsExport;
+
 struct ConvertisseuseExportPolyMesh {
     void *donnnees;
     size_t (*nombre_de_points)(ConvertisseuseExportPolyMesh *);
@@ -2366,7 +2376,346 @@ struct ConvertisseuseExportPolyMesh {
     void (*coins_pour_polygone)(ConvertisseuseExportPolyMesh *, size_t, int *);
 };
 
-void ABC_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse)
+struct EcrivainCache {
+    std::variant<
+    AbcGeom::OCamera,
+    AbcGeom::OCurves,
+    AbcGeom::OFaceSet,
+    AbcGeom::OLight,
+    AbcGeom::ONuPatch,
+    AbcGeom::OPoints,
+    AbcGeom::OPolyMesh,
+    AbcGeom::OSubD,
+    AbcGeom::OXform,
+    AbcMaterial::OMaterial
+    > o_schema_object;
+
+    template <typename T>
+    static EcrivainCache *cree(ContexteKuri *ctx, EcrivainCache *parent, const std::string &nom)
+    {
+        auto ecrivain = AbcKuri::loge_objet<EcrivainCache>(ctx);
+
+        if (parent) {
+            ecrivain->o_schema_object = T(parent->oobject(), nom);
+        }
+        else {
+            ecrivain->o_schema_object = T({}, nom);
+        }
+
+        return ecrivain;
+    }
+
+    static EcrivainCache *cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const std::string &nom)
+    {
+        auto ecrivain = AbcKuri::loge_objet<EcrivainCache>(ctx);
+        // À FAIRE
+        return ecrivain;
+    }
+
+    template <typename T>
+    bool est_un() const
+    {
+        return std::holds_alternative<T>(o_schema_object);
+    }
+
+    template <typename T>
+    T &comme()
+    {
+        return std::get<T>(o_schema_object);
+    }
+
+    AbcGeom::OObject oobject()
+    {
+        if (est_un<AbcGeom::OPolyMesh>()) {
+            return std::get<AbcGeom::OPolyMesh>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OSubD>()) {
+            return std::get<AbcGeom::OSubD>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OPoints>()) {
+            return std::get<AbcGeom::OPoints>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::ONuPatch>()) {
+            return std::get<AbcGeom::ONuPatch>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OCurves>()) {
+            return std::get<AbcGeom::OCurves>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OXform>()) {
+            return std::get<AbcGeom::OXform>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OCamera>()) {
+            return std::get<AbcGeom::OCamera>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OFaceSet>()) {
+            return std::get<AbcGeom::OFaceSet>(o_schema_object);
+        }
+
+        if (est_un<AbcGeom::OLight>()) {
+            return std::get<AbcGeom::OLight>(o_schema_object);
+        }
+
+        if (est_un<AbcMaterial::OMaterial>()) {
+            return std::get<AbcMaterial::OMaterial>(o_schema_object);
+        }
+
+        return {};
+    }
+};
+
+EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *lectrice, EcrivainCache *parent)
+{
+    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OPolyMesh>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::ISubD::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OSubD>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::IPoints::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OPoints>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::INuPatch::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::ONuPatch>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::ICurves::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OCurves>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::IXform::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OXform>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::ICamera::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OCamera>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::IFaceSet::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OFaceSet>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcGeom::ILight::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcGeom::OLight>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    if (AbcMaterial::IMaterial::matches(lectrice->iobject.getHeader())) {
+        return EcrivainCache::cree<AbcMaterial::OMaterial>(ctx, parent, lectrice->iobject.getName());
+    }
+
+    {
+        /* Instance. */
+    }
+
+    return nullptr;
+}
+
+typedef enum eTypeObjetAbc {
+    CAMERA,
+    COURBES,
+    FACE_SET,
+    LUMIERE,
+    MATERIAU,
+    NURBS,
+    POINTS,
+    POLY_MESH,
+    SUBD,
+    XFORM,
+} eTypeObjetAbc;
+
+EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx, EcrivainCache *parent, const char *nom, size_t taille_nom, eTypeObjetAbc type_objet)
+{
+    switch (type_objet) {
+        case eTypeObjetAbc::CAMERA:
+        {
+            return EcrivainCache::cree<AbcGeom::OCamera>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::COURBES:
+        {
+            return EcrivainCache::cree<AbcGeom::OCurves>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::FACE_SET:
+        {
+            return EcrivainCache::cree<AbcGeom::OFaceSet>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::LUMIERE:
+        {
+            return EcrivainCache::cree<AbcGeom::OLight>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::MATERIAU:
+        {
+            return EcrivainCache::cree<AbcMaterial::OMaterial>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::NURBS:
+        {
+            return EcrivainCache::cree<AbcGeom::ONuPatch>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::POINTS:
+        {
+            return EcrivainCache::cree<AbcGeom::OPoints>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::POLY_MESH:
+        {
+            return EcrivainCache::cree<AbcGeom::OPolyMesh>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::SUBD:
+        {
+            return EcrivainCache::cree<AbcGeom::OSubD>(ctx, parent, {nom, taille_nom});
+        }
+        case eTypeObjetAbc::XFORM:
+        {
+            return EcrivainCache::cree<AbcGeom::OXform>(ctx, parent, {nom, taille_nom});
+        }
+    }
+
+    return nullptr;
+}
+
+EcrivainCache *ABC_cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const char *nom, size_t taille_nom)
+{
+    return EcrivainCache::cree_instance(ctx, instance, {nom, taille_nom});
+}
+
+struct ConvertisseuseExportMateriau {
+    void *donnees = nullptr;
+
+    void (*nom_cible)(ConvertisseuseExportMateriau *, const char **, size_t *);
+    void (*type_nuanceur)(ConvertisseuseExportMateriau *, const char **, size_t *);
+    void (*nom_nuanceur)(ConvertisseuseExportMateriau *, const char **, size_t *);
+
+    void (*nom_sortie_graphe)(ConvertisseuseExportMateriau *, const char **, size_t *);
+
+    size_t (*nombre_de_noeuds)(ConvertisseuseExportMateriau *);
+
+    void (*nom_noeud)(ConvertisseuseExportMateriau *, size_t, const char **, size_t *);
+    void (*type_noeud)(ConvertisseuseExportMateriau *, size_t, const char **, size_t *);
+
+    size_t (*nombre_entrees_noeud)(ConvertisseuseExportMateriau *, size_t);
+    void (*nom_entree_noeud)(ConvertisseuseExportMateriau *, size_t, size_t, const char **, size_t *);
+
+    size_t (*nombre_de_connexions)(ConvertisseuseExportMateriau *, size_t, size_t);
+    void (*nom_connexion_entree)(ConvertisseuseExportMateriau *, size_t, size_t, size_t, const char **, size_t *);
+    void (*nom_noeud_connexion)(ConvertisseuseExportMateriau *, size_t, size_t, size_t, const char **, size_t *);
+};
+
+template <typename Objet>
+std::string string_depuis_rappel(Objet *objet, void (*rappel)(Objet *, const char **, size_t *))
+{
+    const char *pointeur = nullptr;
+    size_t taille = 0;
+
+    rappel(objet, &pointeur, &taille);
+
+    if (pointeur == nullptr || taille == 0) {
+        return "";
+    }
+
+    return std::string(pointeur, taille);
+}
+
+template <typename Objet>
+std::string string_depuis_rappel(Objet *objet, size_t index, void (*rappel)(Objet *, size_t, const char **, size_t *))
+{
+    const char *pointeur = nullptr;
+    size_t taille = 0;
+
+    rappel(objet, index, &pointeur, &taille);
+
+    if (pointeur == nullptr || taille == 0) {
+        return "";
+    }
+
+    return std::string(pointeur, taille);
+}
+
+template <typename Objet>
+std::string string_depuis_rappel(Objet *objet, size_t index0, size_t index1, void (*rappel)(Objet *, size_t, size_t, const char **, size_t *))
+{
+    const char *pointeur = nullptr;
+    size_t taille = 0;
+
+    rappel(objet, index0, index1, &pointeur, &taille);
+
+    if (pointeur == nullptr || taille == 0) {
+        return "";
+    }
+
+    return std::string(pointeur, taille);
+}
+
+template <typename Objet>
+std::string string_depuis_rappel(Objet *objet, size_t index0, size_t index1, size_t index2, void (*rappel)(Objet *, size_t, size_t, size_t, const char **, size_t *))
+{
+    if (!rappel) {
+        return "";
+    }
+
+    const char *pointeur = nullptr;
+    size_t taille = 0;
+
+    rappel(objet, index0, index1, index2, &pointeur, &taille);
+
+    if (pointeur == nullptr || taille == 0) {
+        return "";
+    }
+
+    return std::string(pointeur, taille);
+}
+
+void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse, EcrivainCache *ecrivain)
+{
+    auto &omateriau = ecrivain->comme<AbcMaterial::OMaterial>();
+    auto schema = omateriau.getSchema();
+
+    const auto cible = string_depuis_rappel(convertisseuse, convertisseuse->nom_cible);
+    const auto type_nuanceur = string_depuis_rappel(convertisseuse, convertisseuse->type_nuanceur);
+    const auto nom_nuanceur = string_depuis_rappel(convertisseuse, convertisseuse->nom_nuanceur);
+
+    schema.setShader(cible, type_nuanceur, nom_nuanceur);
+
+    /* Crée les noeuds. */
+    const auto nombre_de_noeuds = convertisseuse->nombre_de_noeuds(convertisseuse);
+
+    for (size_t i = 0; i < nombre_de_noeuds; i++) {
+        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
+        const auto type_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->type_noeud);
+        schema.addNetworkNode(nom_noeud, cible, type_noeud);
+    }
+
+    /* Crée les connexions entre les noeuds. */
+    for (size_t i = 0; i < nombre_de_noeuds; i++) {
+        const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
+
+        const auto nombre_entree = convertisseuse->nombre_entrees_noeud(convertisseuse, i);
+
+        for (size_t e = 0; e < nombre_entree; e++) {
+            const auto nom_entree = string_depuis_rappel(convertisseuse, i, e, convertisseuse->nom_entree_noeud);
+
+            const auto nombre_de_connexion = convertisseuse->nombre_de_connexions(convertisseuse, i, e);
+
+            for (size_t c = 0; c < nombre_de_connexion; c++) {
+                const auto nom_noeud_connecte = string_depuis_rappel(convertisseuse, i, e, c, convertisseuse->nom_noeud_connexion);
+                const auto nom_sortie = string_depuis_rappel(convertisseuse, i, e, c, convertisseuse->nom_connexion_entree);
+                schema.setNetworkNodeConnection(nom_noeud, nom_entree, nom_noeud_connecte, nom_sortie);
+            }
+        }
+    }
+
+    schema.setNetworkTerminal(cible, type_nuanceur, string_depuis_rappel(convertisseuse, convertisseuse->nom_sortie_graphe));
+
+    // À FAIRE: paramètre du noeud
+}
+
+void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse, EcrivainCache *ecrivain)
 {
     const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
 
@@ -2405,7 +2754,7 @@ void ABC_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse)
     }
 
     /* Exporte vers Alembic */
-    AbcGeom::OPolyMesh o_poly_mesh;
+    auto &o_poly_mesh = ecrivain->comme<AbcGeom::OPolyMesh>();
     auto &schema = o_poly_mesh.getSchema();
 
     AbcGeom::OPolyMeshSchema::Sample sample;

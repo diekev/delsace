@@ -107,6 +107,8 @@ struct ContexteTraverseArchive {
 // --------------------------------------------------------------
 // Lecture des objets.
 
+// À FAIRE : caméra, light, material, face set
+
 using TypeRappelReserveMemoire = void(*)(void *, unsigned long);
 using TypeRappelAjouteUnPoint = void(*)(void *, float, float, float);
 using TypeRappelAjouteTousLesPoints = void(*)(void *, const float *, unsigned long);
