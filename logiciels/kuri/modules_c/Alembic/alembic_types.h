@@ -58,7 +58,7 @@ struct ContexteOuvertureArchive {
      * données des calques précédents. */
     int (*nombre_de_chemins)(ContexteOuvertureArchive *ctx);
     /* Accède au chemin pour index données. */
-    void (*chemin)(ContexteOuvertureArchive *ctx, int i, char **pointeur, unsigned long *taille);
+    void (*chemin)(ContexteOuvertureArchive *ctx, unsigned long i, const char **pointeur, unsigned long *taille);
 
     /* Pour les erreurs venant d'Alembic. */
     eAbcPoliceErreur (*police_erreur)(ContexteOuvertureArchive *ctx);
@@ -210,4 +210,60 @@ struct ContexteLectureCache {
 
     void (*initialise_convertisseuse_xform)(ConvertisseuseXform *);
 };
+
+typedef enum eTypeObjetAbc {
+    CAMERA,
+    COURBES,
+    FACE_SET,
+    LUMIERE,
+    MATERIAU,
+    NURBS,
+    POINTS,
+    POLY_MESH,
+    SUBD,
+    XFORM,
+} eTypeObjetAbc;
+
+typedef struct AbcOptionsExport {
+    /* décide si la hiérarchie doit être préservé */
+    bool exporte_hierarchie = false;
+
+    // À FAIRE : controle des objets exportés (visible, seulement les maillages, etc.)
+
+    // À FAIRE : est-il possible, pour les calques, de n'exporter que les attributs ?
+} AbcOptionsExport;
+
+struct ConvertisseuseExportPolyMesh {
+    void *donnnees;
+    unsigned long (*nombre_de_points)(ConvertisseuseExportPolyMesh *);
+    void (*point_pour_index)(ConvertisseuseExportPolyMesh *, unsigned long, float *, float *, float *);
+
+    unsigned long (*nombre_de_polygones)(ConvertisseuseExportPolyMesh *);
+    int (*nombre_de_coins_polygone)(ConvertisseuseExportPolyMesh *, unsigned long);
+
+    void (*coins_pour_polygone)(ConvertisseuseExportPolyMesh *, unsigned long, int *);
+};
+
+struct ConvertisseuseExportMateriau {
+    void *donnees = nullptr;
+
+    void (*nom_cible)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*type_nuanceur)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*nom_nuanceur)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+
+    void (*nom_sortie_graphe)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+
+    unsigned long (*nombre_de_noeuds)(ConvertisseuseExportMateriau *);
+
+    void (*nom_noeud)(ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
+    void (*type_noeud)(ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
+
+    unsigned long (*nombre_entrees_noeud)(ConvertisseuseExportMateriau *, unsigned long);
+    void (*nom_entree_noeud)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, const char **, unsigned long *);
+
+    unsigned long (*nombre_de_connexions)(ConvertisseuseExportMateriau *, unsigned long, unsigned long);
+    void (*nom_connexion_entree)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+    void (*nom_noeud_connexion)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+};
+
 }

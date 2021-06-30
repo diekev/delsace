@@ -33,7 +33,17 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_PROJET} STATIC
+    AbcKuri/alembic_archive.cc
+    AbcKuri/alembic_export.cc
+    AbcKuri/alembic_import.cc
+    AbcKuri/utilitaires.cc
+
     abc_ipa_c.cc
+
+    AbcKuri/alembic_archive.hh
+    AbcKuri/alembic_export.hh
+    AbcKuri/alembic_import.hh
+    AbcKuri/utilitaires.hh
 
     abc_ipa_c.h
     alembic.h
