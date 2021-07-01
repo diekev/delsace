@@ -26,8 +26,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+class half;
+typedef half r16;
 #else
 typedef unsigned char bool;
+typedef unsigned short r16;
 #endif
 
 struct ContexteKuri {
@@ -292,6 +295,27 @@ struct ConvertisseuseExportMateriau {
     unsigned long (*nombre_de_connexions)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long);
     void (*nom_connexion_entree)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
     void (*nom_noeud_connexion)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+};
+
+struct ConvertisseuseImportAttributs {
+    bool (*lis_tous_les_attributs)(struct ConvertisseuseImportAttributs *);
+    int (*nombre_attributs_requis)(struct ConvertisseuseImportAttributs *);
+
+    void (*nom_attribut_requis)(struct ConvertisseuseImportAttributs *, unsigned long, const char **, unsigned long *);
+
+    // Ce n'est que pour un seul attribut
+    void (*ajoute_bool)(struct ConvertisseuseImportAttributs *, unsigned long, bool const*, int);
+    void (*ajoute_n8)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned char const*, int);
+    void (*ajoute_n16)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned short const*, int);
+    void (*ajoute_n32)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned int const*, int);
+    void (*ajoute_n64)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned long const*, int);
+    void (*ajoute_z8)(struct ConvertisseuseImportAttributs *, unsigned long, signed char const*, int);
+    void (*ajoute_z16)(struct ConvertisseuseImportAttributs *, unsigned long, short const*, int);
+    void (*ajoute_z32)(struct ConvertisseuseImportAttributs *, unsigned long, int const*, int);
+    void (*ajoute_z64)(struct ConvertisseuseImportAttributs *, unsigned long, long const*, int);
+    void (*ajoute_r16)(struct ConvertisseuseImportAttributs *, unsigned long, r16 const*, int);
+    void (*ajoute_r32)(struct ConvertisseuseImportAttributs *, unsigned long, float const*, int);
+    void (*ajoute_r64)(struct ConvertisseuseImportAttributs *, unsigned long, double const*, int);
 };
 
 #ifdef __cplusplus

@@ -31,6 +31,7 @@ namespace Abc = Alembic::Abc;
 struct ArchiveCache;
 struct ContexteKuri;
 struct ContexteLectureCache;
+struct ConvertisseuseImportAttributs;
 
 struct LectriceCache {
     Abc::IObject iobject;
@@ -68,5 +69,7 @@ void lis_objet(ContexteKuri *ctx_kuri,
                    ContexteLectureCache *contexte,
                    LectriceCache *lectrice,
                    double temps);
+
+void lis_attributs(ContexteKuri *ctx_kuri, LectriceCache *lectrice, ConvertisseuseImportAttributs *convertisseuse, double temps);
 
 }

@@ -544,27 +544,6 @@ void lis_objet(ContexteKuri *ctx_kuri,
     }
 }
 
-struct ConvertisseuseImportAttributs {
-    bool (*lis_tous_les_attributs)(ConvertisseuseImportAttributs *);
-    int (*nombre_attributs_requis)(ConvertisseuseImportAttributs *);
-
-    void (*nom_attribut_requis)(ConvertisseuseImportAttributs *, size_t, const char **, size_t *);
-
-    // Ce n'est que pour un seul attribut
-    void (*ajoute_bool)(ConvertisseuseImportAttributs *, size_t, bool const*, int);
-    void (*ajoute_n8)(ConvertisseuseImportAttributs *, size_t, uint8_t const*, int);
-    void (*ajoute_n16)(ConvertisseuseImportAttributs *, size_t, uint16_t const*, int);
-    void (*ajoute_n32)(ConvertisseuseImportAttributs *, size_t, uint32_t const*, int);
-    void (*ajoute_n64)(ConvertisseuseImportAttributs *, size_t, uint64_t const*, int);
-    void (*ajoute_z8)(ConvertisseuseImportAttributs *, size_t, int8_t const*, int);
-    void (*ajoute_z16)(ConvertisseuseImportAttributs *, size_t, int16_t const*, int);
-    void (*ajoute_z32)(ConvertisseuseImportAttributs *, size_t, int32_t const*, int);
-    void (*ajoute_z64)(ConvertisseuseImportAttributs *, size_t, int64_t const*, int);
-    void (*ajoute_r16)(ConvertisseuseImportAttributs *, size_t, half const*, int);
-    void (*ajoute_r32)(ConvertisseuseImportAttributs *, size_t, float const*, int);
-    void (*ajoute_r64)(ConvertisseuseImportAttributs *, size_t, double const*, int);
-};
-
 /* À FAIRE : ceci prend en compte les propriétés de bases (.P, .N, etc.). */
 static void traverse_propriete_composee(const AbcGeom::ICompoundProperty &prop, std::function<void(const AbcGeom::ICompoundProperty &, const Abc::PropertyHeader &)> rappel)
 {

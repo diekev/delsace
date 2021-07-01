@@ -1612,4 +1612,9 @@ void ABC_ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain)
     AbcKuri::ecris_objet(ctx, ecrivain);
 }
 
+void ABC_lis_attributs(ContexteKuri *ctx_kuri, LectriceCache *lectrice, ConvertisseuseImportAttributs *convertisseuse, double temps)
+{
+    AbcKuri::lis_attributs(ctx_kuri, lectrice, convertisseuse, temps);
+}
+
 }

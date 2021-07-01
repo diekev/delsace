@@ -53,6 +53,8 @@ void ABC_lis_objet(struct ContexteKuri *ctx_kuri,
                    struct LectriceCache *lectrice,
                    double temps);
 
+void ABC_lis_attributs(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice, struct ConvertisseuseImportAttributs *convertisseuse, double temps);
+
 #ifdef __cplusplus
 }
 #endif

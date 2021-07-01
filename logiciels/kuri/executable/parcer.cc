@@ -202,6 +202,8 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
         dls::paire{dls::vue_chaine("short"), dls::vue_chaine("z16")},
         dls::paire{dls::vue_chaine("int"), dls::vue_chaine("z32")},
         dls::paire{dls::vue_chaine("long"), dls::vue_chaine("z64")},
+        // voir autre commentaire dans le fichier, hack pour traduire vers r16
+        dls::paire{dls::vue_chaine("r16"), dls::vue_chaine("r16")},
         dls::paire{dls::vue_chaine("float"), dls::vue_chaine("r32")},
         dls::paire{dls::vue_chaine("double"), dls::vue_chaine("r64")});
 
@@ -215,6 +217,10 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
         }
 
         if (morceau == "const") {
+            continue;
+        }
+
+        if (morceau == "signed") {
             continue;
         }
 
@@ -716,8 +722,186 @@ static auto trouve_decalage(CXToken *tokens,
     return dec;
 }
 
-static auto tokens_typedef(CXCursor cursor, CXTranslationUnit trans_unit, dico_typedefs &dico)
+template <typename T>
+struct TableauStatique {
+    const T *donnees = nullptr;
+    size_t taille = 0;
+
+public:
+    const T &operator[](size_t index)
+    {
+        return donnees[index];
+    }
+
+    bool est_vide() const
+    {
+        return !donnees;
+    }
+
+    T const *begin() const
+    {
+        return donnees;
+    }
+
+    T const *end() const
+    {
+        return donnees + taille;
+    }
+};
+
+static TableauStatique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor cursor)
 {
+    CXSourceRange range = clang_getCursorExtent(cursor);
+    CXToken *tokens = nullptr;
+    unsigned nombre_tokens = 0;
+    clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+    // À FAIRE clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+
+    return { tokens, static_cast<size_t>(nombre_tokens) };
+}
+
+using TypeDonneesType = kuri::tableau<dls::chaine>;
+struct TypedefTypeFonction {
+    dls::chaine nom_typedef = "";
+    TypeDonneesType type_retour{};
+    kuri::tableau<TypeDonneesType> type_parametres{};
+
+    void imprime(std::ostream &os, dico_typedefs const &typedefs)
+    {
+        os << nom_typedef << " :: fonc #nulctx ";
+
+        auto virgule = "(";
+
+        if (type_parametres.est_vide()) {
+            os << virgule;
+        }
+        else {
+            POUR (type_parametres) {
+                os << virgule << converti_type(it, typedefs);
+                virgule = ", ";
+            }
+        }
+
+        os << ")";
+
+        os << "(";
+        os << converti_type(type_retour, typedefs);
+        os << ");\n\n";
+    }
+};
+
+/* Une parseuse pour comprendre les typedefs.
+ * Pour l'instant, ne gère que les typedefs pour les pointeurs de fonctions.
+ */
+struct ParseuseTypedef {
+    CXTranslationUnit m_trans_unit{};
+    TableauStatique<CXToken> m_tokens{};
+
+    std::optional<TypedefTypeFonction> parse()
+    {
+        auto d = m_tokens.begin();
+        auto f = m_tokens.end();
+
+        if (apparie(*d, "typedef")) {
+            d++;
+        }
+
+        return parse_typedef_fonction(d, f);
+    }
+
+    std::optional<TypedefTypeFonction> parse_typedef_fonction(const CXToken *d, const CXToken *f)
+    {
+        auto resultat = TypedefTypeFonction{};
+
+        // d'abord le type de retour
+        while (d != f) {
+            /* Nous avons le début du nom. */
+            if (apparie(*d, "(")) {
+               break;
+            }
+
+            resultat.type_retour.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
+            d++;
+        }
+
+        /* Retourne si à la fin, ou si le type retour est vide. */
+        if (d == f || resultat.type_retour.est_vide()) {
+            return {};
+        }
+
+        // Vérification
+        if (!apparie(*d++, "(")) {
+            return {};
+        }
+
+        if (!apparie(*d++, "*")) {
+            return {};
+        }
+
+        resultat.nom_typedef = converti_chaine(clang_getTokenSpelling(m_trans_unit, *d++));
+
+        if (resultat.nom_typedef == "") {
+            return {};
+        }
+
+        if (!apparie(*d++, ")")) {
+            return {};
+        }
+
+        /* Paramètres. */
+        if (!apparie(*d++, "(")) {
+            return {};
+        }
+
+
+        auto type_courant = TypeDonneesType{};
+
+        while (d != f) {
+            if (apparie(*d, ")")) {
+                if (!type_courant.est_vide()) {
+                    resultat.type_parametres.ajoute(type_courant);
+                }
+                break;
+            }
+
+            if (apparie(*d, ",")) {
+                if (type_courant.est_vide()) {
+                    return {};
+                }
+
+                resultat.type_parametres.ajoute(type_courant);
+                type_courant = TypeDonneesType{};
+                d++;
+                continue;
+            }
+
+            type_courant.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
+            d++;
+        }
+
+        return resultat;
+    }
+
+    bool apparie(CXToken token, const char *chaine)
+    {
+        auto spelling = clang_getTokenSpelling(m_trans_unit, token);
+        return converti_chaine(spelling) == chaine;
+    }
+};
+
+static auto tokens_typedef(CXCursor cursor, CXTranslationUnit trans_unit, dico_typedefs &dico, std::ostream &flux_sortie)
+{
+    auto tokens_ = tokenise(trans_unit, cursor);
+    auto parseuse = ParseuseTypedef{trans_unit, tokens_};
+    auto type_fonction_optionnel = parseuse.parse();
+
+    if (type_fonction_optionnel.has_value()) {
+        auto donnees = type_fonction_optionnel.value();
+        donnees.imprime(flux_sortie, dico);
+        return;
+    }
+
     CXSourceRange range = clang_getCursorExtent(cursor);
     CXToken *tokens = nullptr;
     unsigned nombre_tokens = 0;
@@ -800,7 +984,9 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     for (auto i = 3u; i < nombre_tokens; ++i) {
         auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
         morceaux.ajoute(converti_chaine(spelling));
+        std::cerr << morceaux.derniere();
     }
+    std::cerr << '\n';
 
     dico.insere({nom, morceaux});
 
@@ -960,7 +1146,6 @@ struct Convertisseuse {
                     enfants_filtres.ajoute(enfant);
                 }
 
-                /* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
                 if (!enfants_filtres.est_vide()) {
                     imprime_commentaire(cursor, flux_sortie);
 
@@ -977,6 +1162,13 @@ struct Convertisseuse {
 
                     imprime_tab(flux_sortie);
                     flux_sortie << "}\n\n";
+                }
+                else {
+                    imprime_commentaire(cursor, flux_sortie);
+                    auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                    imprime_tab(flux_sortie);
+                    flux_sortie << nom;
+                    flux_sortie << " :: struct #externe;\n\n";
                 }
 
                 break;
@@ -1089,7 +1281,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_TypedefDecl:
             {
-                tokens_typedef(cursor, trans_unit, typedefs);
+                tokens_typedef(cursor, trans_unit, typedefs, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_TypeAliasDecl:
@@ -2095,6 +2287,11 @@ int main(int argc, char **argv)
     convertisseuse.fichier_entete = fichier_entete;
     convertisseuse.typedefs.insere({"size_t", {"ulong"}});
     convertisseuse.typedefs.insere({"std::size_t", {"ulong"}});
+    /* Hack afin de convertir les types half vers notre langage, ceci empêche d'y ajouter les
+     * typedefs devantêtre utilisés afin de faire compiler le code C puisque ni half ni r16
+     * n'existent en C. */
+    convertisseuse.typedefs.insere({"r16", {"r16"}});
+    convertisseuse.typedefs.insere({"half", {"r16"}});
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());

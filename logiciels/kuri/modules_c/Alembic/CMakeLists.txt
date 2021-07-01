@@ -69,7 +69,7 @@ set(FICHIER_MODULE "")
 add_custom_command(
     OUTPUT nouveau_module.kuri
     COMMAND parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" -o "${CMAKE_CURRENT_SOURCE_DIR}/nouveau_module.kuri"
-    DEPENDS parcer
+    DEPENDS parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" "${CMAKE_CURRENT_SOURCE_DIR}/alembic_types.h"
     COMMENT "Compilation de ${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h"
 )
 list(APPEND FICHIER_MODULE nouveau_module.kuri)
