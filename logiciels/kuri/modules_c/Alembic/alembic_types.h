@@ -197,6 +197,22 @@ struct ConvertisseuseXform {
     void *donnees = nullptr;
 };
 
+struct ConvertisseuseFaceSet {
+    void *donnees = nullptr;
+};
+
+struct ConvertisseuseLumiere {
+    void *donnees = nullptr;
+};
+
+struct ConvertisseuseCamera {
+    void *donnees = nullptr;
+};
+
+struct ConvertisseuseMateriau {
+    void *donnees = nullptr;
+};
+
 struct ContexteLectureCache {
     void (*initialise_convertisseuse_polymesh)(ConvertisseusePolyMesh *);
 
@@ -209,6 +225,14 @@ struct ContexteLectureCache {
     void (*initialise_convertisseuse_nurbs)(ConvertisseuseNurbs *);
 
     void (*initialise_convertisseuse_xform)(ConvertisseuseXform *);
+
+    void (*initialise_convertisseuse_face_set)(ConvertisseuseFaceSet *);
+
+    void (*initialise_convertisseuse_lumiere)(ConvertisseuseLumiere *);
+
+    void (*initialise_convertisseuse_camera)(ConvertisseuseCamera *);
+
+    void (*initialise_convertisseuse_materiau)(ConvertisseuseMateriau *);
 };
 
 typedef enum eTypeObjetAbc {

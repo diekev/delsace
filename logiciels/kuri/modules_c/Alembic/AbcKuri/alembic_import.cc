@@ -183,7 +183,7 @@ static void convertis_plis_aretes(ConvertisseuseSubD *convertisseuse,
     }
 }
 
-static void convertis_subd(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                            ConvertisseuseSubD *convertisseuse,
                            AbcGeom::ISubD &subd,
                            const double time)
@@ -235,7 +235,7 @@ static void convertis_index_points(ConvertisseusePoints *convertisseuse,
     }
 }
 
-static void convertis_points(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                              ConvertisseusePoints *convertisseuse,
                              AbcGeom::IPoints &points,
                              const double time)
@@ -257,7 +257,7 @@ static void convertis_points(ContexteKuri * /*ctx_kuri*/,
     convertis_index_points(convertisseuse, sample.getIds());
 }
 
-static void convertis_courbes(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                               ConvertisseuseCourbes *convertisseuse,
                               AbcGeom::ICurves &curves,
                               const double time)
@@ -275,7 +275,7 @@ static void convertis_courbes(ContexteKuri * /*ctx_kuri*/,
     // À FAIRE
 }
 
-static void convertis_nurbs(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             ConvertisseuseNurbs *convertisseuse,
                             AbcGeom::INuPatch &nurbs,
                             const double time)
@@ -293,7 +293,7 @@ static void convertis_nurbs(ContexteKuri * /*ctx_kuri*/,
     // À FAIRE
 }
 
-static void convertis_xform(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             ConvertisseuseXform *convertisseuse,
                             AbcGeom::IXform &xform,
                             const double time)
@@ -307,7 +307,50 @@ static void convertis_xform(ContexteKuri * /*ctx_kuri*/,
     // À FAIRE
 }
 
-static void convertis_poly_mesh(ContexteKuri * /*ctx_kuri*/,
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
+                            ConvertisseuseFaceSet *convertisseuse,
+                            AbcGeom::IFaceSet &xform,
+                            const double time)
+{
+    auto &schema = xform.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    // À FAIRE
+}
+
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
+                            ConvertisseuseCamera *convertisseuse,
+                            AbcGeom::ICamera &xform,
+                            const double time)
+{
+    auto &schema = xform.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    // À FAIRE
+}
+
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
+                            ConvertisseuseLumiere *convertisseuse,
+                            AbcGeom::ILight &xform,
+                            const double time)
+{
+    auto &schema = xform.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+
+    // À FAIRE
+}
+
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
+                            ConvertisseuseMateriau *convertisseuse,
+                            AbcMaterial::IMaterial &xform,
+                            const double time)
+{
+    auto &schema = xform.getSchema();
+    auto selector = Abc::ISampleSelector(time);
+    // À FAIRE
+}
+
+static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                          ConvertisseusePolyMesh *convertisseuse,
                          AbcGeom::IPolyMesh &polymesh,
                          const double time)
@@ -439,6 +482,21 @@ void lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees)
     lectrice->donnees = donnees;
 }
 
+template <typename TypeObjet, typename Convertisseuse>
+static void convertis_objet_impl(ContexteKuri *ctx_kuri, LectriceCache *lectrice, double temps, void (*rappel_initialisation)(Convertisseuse *))
+{
+    if (!rappel_initialisation) {
+        return;
+    }
+
+    Convertisseuse convertisseuse;
+    convertisseuse.donnees = lectrice->donnees;
+    rappel_initialisation(&convertisseuse);
+
+    auto objet = lectrice->comme<TypeObjet>();
+    convertis_objet(ctx_kuri, &convertisseuse, objet, temps);
+}
+
 void lis_objet(ContexteKuri *ctx_kuri,
                    ContexteLectureCache *contexte,
                    LectriceCache *lectrice,
@@ -449,71 +507,365 @@ void lis_objet(ContexteKuri *ctx_kuri,
         return;
     }
 
-    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_polymesh) {
-            ConvertisseusePolyMesh convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_polymesh(&convertisseuse);
-
-            AbcGeom::IPolyMesh poly_mesh(lectrice->iobject, Abc::kWrapExisting);
-            convertis_poly_mesh(ctx_kuri, &convertisseuse, poly_mesh, temps);
-        }
+    if (lectrice->est_un<AbcGeom::IPolyMesh>()) {
+        convertis_objet_impl<AbcGeom::IPolyMesh>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_polymesh);
     }
-    else if (AbcGeom::ISubD::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_subd) {
-            ConvertisseuseSubD convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_subd(&convertisseuse);
-
-            AbcGeom::ISubD subd(lectrice->iobject, Abc::kWrapExisting);
-            convertis_subd(ctx_kuri, &convertisseuse, subd, temps);
-        }
+    else if (lectrice->est_un<AbcGeom::ISubD>()) {
+        convertis_objet_impl<AbcGeom::ISubD>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_subd);
     }
-    else if (AbcGeom::IPoints::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_points) {
-            ConvertisseusePoints convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_points(&convertisseuse);
-
-            AbcGeom::IPoints points(lectrice->iobject, Abc::kWrapExisting);
-            convertis_points(ctx_kuri, &convertisseuse, points, temps);
-        }
+    else if (lectrice->est_un<AbcGeom::IPoints>()) {
+        convertis_objet_impl<AbcGeom::IPoints>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_points);
     }
-    else if (AbcGeom::INuPatch::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_nurbs) {
-            ConvertisseuseNurbs convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_nurbs(&convertisseuse);
-
-            AbcGeom::INuPatch nurbs(lectrice->iobject, Abc::kWrapExisting);
-            convertis_nurbs(ctx_kuri, &convertisseuse, nurbs, temps);
-        }
+    else if (lectrice->est_un<AbcGeom::INuPatch>()) {
+        convertis_objet_impl<AbcGeom::INuPatch>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_nurbs);
     }
-    else if (AbcGeom::ICurves::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_courbes) {
-            ConvertisseuseCourbes convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_courbes(&convertisseuse);
-
-            AbcGeom::ICurves courbes(lectrice->iobject, Abc::kWrapExisting);
-            convertis_courbes(ctx_kuri, &convertisseuse, courbes, temps);
-        }
+    else if (lectrice->est_un<AbcGeom::ICurves>()) {
+        convertis_objet_impl<AbcGeom::ICurves>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_courbes);
     }
-    else if (AbcGeom::IXform::matches(lectrice->iobject.getHeader())) {
-        if (contexte->initialise_convertisseuse_xform) {
-            ConvertisseuseXform convertisseuse;
-            convertisseuse.donnees = lectrice->donnees;
-            contexte->initialise_convertisseuse_xform(&convertisseuse);
-
-            AbcGeom::IXform xform(lectrice->iobject, Abc::kWrapExisting);
-            convertis_xform(ctx_kuri, &convertisseuse, xform, temps);
-        }
+    else if (lectrice->est_un<AbcGeom::IXform>()) {
+        convertis_objet_impl<AbcGeom::IXform>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_xform);
+    }
+    else if (lectrice->est_un<AbcGeom::ICamera>()) {
+        convertis_objet_impl<AbcGeom::ICamera>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_camera);
+    }
+    else if (lectrice->est_un<AbcGeom::ILight>()) {
+        convertis_objet_impl<AbcGeom::ILight>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_lumiere);
+    }
+    else if (lectrice->est_un<AbcGeom::IFaceSet>()) {
+        convertis_objet_impl<AbcGeom::IFaceSet>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_face_set);
+    }
+    else if (lectrice->est_un<AbcMaterial::IMaterial>()) {
+        convertis_objet_impl<AbcMaterial::IMaterial>(ctx_kuri, lectrice, temps, contexte->initialise_convertisseuse_materiau);
     }
     else {
         if (lectrice->iobject.isInstanceRoot()) {
             /* Que faire pour les instances ? */
+        }
+    }
+}
+
+struct ConvertisseuseImportAttributs {
+    bool (*lis_tous_les_attributs)(ConvertisseuseImportAttributs *);
+    int (*nombre_attributs_requis)(ConvertisseuseImportAttributs *);
+
+    void (*nom_attribut_requis)(ConvertisseuseImportAttributs *, size_t, const char **, size_t *);
+
+    // Ce n'est que pour un seul attribut
+    void (*ajoute_bool)(ConvertisseuseImportAttributs *, size_t, bool const*, int);
+    void (*ajoute_n8)(ConvertisseuseImportAttributs *, size_t, uint8_t const*, int);
+    void (*ajoute_n16)(ConvertisseuseImportAttributs *, size_t, uint16_t const*, int);
+    void (*ajoute_n32)(ConvertisseuseImportAttributs *, size_t, uint32_t const*, int);
+    void (*ajoute_n64)(ConvertisseuseImportAttributs *, size_t, uint64_t const*, int);
+    void (*ajoute_z8)(ConvertisseuseImportAttributs *, size_t, int8_t const*, int);
+    void (*ajoute_z16)(ConvertisseuseImportAttributs *, size_t, int16_t const*, int);
+    void (*ajoute_z32)(ConvertisseuseImportAttributs *, size_t, int32_t const*, int);
+    void (*ajoute_z64)(ConvertisseuseImportAttributs *, size_t, int64_t const*, int);
+    void (*ajoute_r16)(ConvertisseuseImportAttributs *, size_t, half const*, int);
+    void (*ajoute_r32)(ConvertisseuseImportAttributs *, size_t, float const*, int);
+    void (*ajoute_r64)(ConvertisseuseImportAttributs *, size_t, double const*, int);
+};
+
+/* À FAIRE : ceci prend en compte les propriétés de bases (.P, .N, etc.). */
+static void traverse_propriete_composee(const AbcGeom::ICompoundProperty &prop, std::function<void(const AbcGeom::ICompoundProperty &, const Abc::PropertyHeader &)> rappel)
+{
+    if (!prop.valid()) {
+        return;
+    }
+
+    for (size_t i = 0; i < prop.getNumProperties(); i++) {
+        const auto &sous_prop = prop.getPropertyHeader(i);
+
+        if (sous_prop.isArray()) {
+            rappel(prop, sous_prop);
+        }
+        else if (sous_prop.isScalar()) {
+            rappel(prop, sous_prop);
+        }
+        else if (sous_prop.isCompound()) {
+            traverse_propriete_composee(AbcGeom::ICompoundProperty(prop, sous_prop.getName()), rappel);
+        }
+    }
+}
+
+static std::set<std::string> liste_attributs_requis(ConvertisseuseImportAttributs *convertisseuse,
+                                                       const AbcGeom::ICompoundProperty &attributs)
+{
+    std::set<std::string> resultat;
+
+    if (convertisseuse->lis_tous_les_attributs(convertisseuse)) {
+        traverse_propriete_composee(attributs, [&](const auto &/*parent*/, const auto &entete) {
+           resultat.insert(entete.getName());
+        });
+        return resultat;
+    }
+
+    const int nombre_attributs_requis = convertisseuse->nombre_attributs_requis(convertisseuse);
+
+    if (nombre_attributs_requis == 0) {
+        return {};
+    }
+
+    for (int i = 0; i < nombre_attributs_requis; i++) {
+        auto nom_attribut = string_depuis_rappel(convertisseuse, static_cast<size_t>(i), convertisseuse->nom_attribut_requis);
+
+        if (nom_attribut.empty()) {
+            continue;
+        }
+
+        resultat.insert(nom_attribut);
+    }
+
+    return resultat;
+}
+
+enum {
+    SCALAIRE,
+    UV,
+    VECTEUR_2D,
+    VECTEUR_3D,
+    POINT_2D,
+    POINT_3D,
+    BOITE_2D,
+    BOITE_3D,
+    MATRICE_3D,
+    MATRICE_4D,
+    QUATERNION,
+    COULEUR_RVB,
+    COULEUR_RVBA,
+    NORMAL_2D,
+    NORMAL_3D,
+};
+
+enum {
+    BOOL,
+    Z8,
+    Z16,
+    Z32,
+    Z64,
+    N8,
+    N16,
+    N32,
+    N64,
+    R16,
+    R32,
+    R64,
+    CHAINE,
+};
+
+template <typename T>
+struct convertisseuse_valeur;
+
+#define DEFINIS_CONVERTISSEUSE_VALEUR(TYPE_ALEMBIC, TYPE_POINTEUR, TYPE_KURI, DIMENSIONS) \
+    template <> \
+    struct convertisseuse_valeur<TYPE_ALEMBIC> { \
+        static void convertis(ConvertisseuseImportAttributs *convertisseuse, size_t i, const TYPE_ALEMBIC &valeur) \
+        { \
+            convertisseuse->ajoute_##TYPE_KURI(convertisseuse, i, reinterpret_cast<const TYPE_POINTEUR *>(&valeur), 1); \
+        } \
+    }
+
+DEFINIS_CONVERTISSEUSE_VALEUR(bool, bool, bool, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(int8_t, int8_t, z8, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(uint8_t, uint8_t, n8, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(int16_t, int16_t, z16, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(uint16_t, uint16_t, n16, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(int32_t, int32_t, z32, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(uint32_t, uint32_t, n32, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(int64_t, int64_t, z64, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(uint64_t, uint64_t, n64, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(half, half, r16, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(float, float, r32, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(double, double, r64, 1);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V2s, int16_t, z16, 2);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V2i, int32_t, z32, 2);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V2f, float, r32, 2);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V2d, double, r64, 2);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V3s, int16_t, z16, 3);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V3i, int32_t, z32, 3);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V3f, float, r32, 3);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::V3d, double, r64, 3);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box2s, int16_t, z16, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box2i, int32_t, z32, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box2f, float, r32, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box2d, double, r64, 4);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box3s, int16_t, z16, 6);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box3i, int32_t, z32, 6);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box3f, float, r32, 6);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Box3d, double, r64, 6);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::M33f, float, r32, 9);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::M33d, double, r64, 9);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::M44f, float, r32, 16);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::M44d, double, r64, 16);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Quatf, float, r32, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Quatd, double, r64, 4);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3h, half, r16, 3);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3f, float, r32, 3);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3c, uint8_t, n8, 3);
+
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4f, float, r32, 4);
+DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
+
+static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse, const AbcGeom::ICompoundProperty &parent, const Abc::PropertyHeader &entete)
+{
+    if (AbcGeom::IV2fGeomParam::matches(entete) && Alembic::AbcGeom::isUV(entete)) {
+       // const auto &param = AbcGeom::IV2fGeomParam(parent, entete.getName());
+        // Cas spécial pour les UVs.
+        return;
+    }
+
+#define GERE_ATTRIBUT(TYPE_GEOM_PARAM) \
+    if (TYPE_GEOM_PARAM::matches(entete)) { \
+        const auto &param = TYPE_GEOM_PARAM(parent, entete.getName()); \
+        return; \
+    }
+
+    GERE_ATTRIBUT(AbcGeom::IBoolGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IUcharGeomParam)
+    GERE_ATTRIBUT(AbcGeom::ICharGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IUInt16GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IInt16GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IUInt32GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IInt32GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IUInt64GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IInt64GeomParam)
+    GERE_ATTRIBUT(AbcGeom::IHalfGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IFloatGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IDoubleGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IStringGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IWstringGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IV2sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV2iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV2fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV2dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IV3sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV3iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV3fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IV3dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IP2sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP2iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP2fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP2dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IP3sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP3iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP3fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IP3dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IBox2sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox2iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox2fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox2dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IBox3sGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox3iGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox3fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IBox3dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IM33fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IM33dGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IM44fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IM44dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IQuatfGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IQuatdGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IC3hGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IC3fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IC3cGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IC4hGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IC4fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IC4cGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IN2fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IN2dGeomParam)
+
+    GERE_ATTRIBUT(AbcGeom::IN3fGeomParam)
+    GERE_ATTRIBUT(AbcGeom::IN3dGeomParam)
+}
+
+// À FAIRE : ctx.annule
+static void lis_attributs(ContexteKuri */*ctx_kuri*/, ConvertisseuseImportAttributs *convertisseuse, const AbcGeom::ICompoundProperty &attributs, double temps)
+{
+    if (!attributs.valid()) {
+        return;
+    }
+
+    // construit la liste de tous les attributs requis
+    auto requetes = liste_attributs_requis(convertisseuse, attributs);
+
+    // convertis les attributs
+    // -- information_portées
+
+    traverse_propriete_composee(attributs, [&](const auto &parent, const auto &sous_prop) {
+        if (requetes.find(sous_prop.getName()) == requetes.end()) {
             return;
         }
+
+        convertis_attribut(convertisseuse, parent, sous_prop);
+    });
+}
+
+void lis_attributs(ContexteKuri *ctx_kuri, LectriceCache *lectrice, ConvertisseuseImportAttributs *convertisseuse, double temps)
+{
+    if (!lectrice || !lectrice->iobject.valid()) {
+        // contexte->rapporte_erreur(contexte, )
+        return;
+    }
+
+    if (lectrice->est_un<AbcGeom::IPolyMesh>()) {
+        auto poly_mesh = lectrice->comme<AbcGeom::IPolyMesh>();
+        lis_attributs(ctx_kuri, convertisseuse, poly_mesh.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::ISubD>()) {
+        auto subd = lectrice->comme<AbcGeom::ISubD>();
+        lis_attributs(ctx_kuri, convertisseuse, subd.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::IPoints>()) {
+        auto points = lectrice->comme<AbcGeom::IPoints>();
+        lis_attributs(ctx_kuri, convertisseuse, points.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::INuPatch>()) {
+        auto nurbs = lectrice->comme<AbcGeom::INuPatch>();
+        lis_attributs(ctx_kuri, convertisseuse, nurbs.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::ICurves>()) {
+        auto courbes = lectrice->comme<AbcGeom::ICurves>();
+        lis_attributs(ctx_kuri, convertisseuse, courbes.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::IXform>()) {
+        auto xform = lectrice->comme<AbcGeom::IXform>();
+        lis_attributs(ctx_kuri, convertisseuse, xform.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::ICamera>()) {
+        auto camera = lectrice->comme<AbcGeom::ICamera>();
+        lis_attributs(ctx_kuri, convertisseuse, camera.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::ILight>()) {
+        auto lumiere = lectrice->comme<AbcGeom::ILight>();
+        lis_attributs(ctx_kuri, convertisseuse, lumiere.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcGeom::IFaceSet>()) {
+        auto face_set = lectrice->comme<AbcGeom::IFaceSet>();
+        lis_attributs(ctx_kuri, convertisseuse, face_set.getSchema(), temps);
+    }
+    else if (lectrice->est_un<AbcMaterial::IMaterial>()) {
+        auto materiau = lectrice->comme<AbcMaterial::IMaterial>();
+        lis_attributs(ctx_kuri, convertisseuse, materiau.getSchema(), temps);
+    }
+    else {
+        /* Instances ou invalide. */
     }
 }
 

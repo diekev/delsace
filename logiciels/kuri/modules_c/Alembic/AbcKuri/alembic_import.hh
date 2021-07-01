@@ -38,12 +38,18 @@ struct LectriceCache {
 #if 0
     std::variant<AbcGeom::IPolyMesh, AbcGeom::ISubD, AbcGeom::ICurves, AbcGeom::IXform> object_;
 
+#endif
     template <typename T>
     bool est_un() const
     {
-        return std::holds_alternative<T>(object_);
+        return T::matches(iobject.getHeader());
     }
-#endif
+
+    template <typename T>
+    T comme()
+    {
+        return T(iobject, Abc::kWrapExisting);
+    }
 
     void *donnees;
 };
