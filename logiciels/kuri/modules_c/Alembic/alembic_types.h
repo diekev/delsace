@@ -24,15 +24,19 @@
 
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
+#else
+typedef unsigned char bool;
+#endif
 
 struct ContexteKuri {
-    void *(*loge_memoire)(ContexteKuri *ctx, unsigned long taille);
-    void *(*reloge_memoire)(ContexteKuri *ctx,
+    void *(*loge_memoire)(struct ContexteKuri *ctx, unsigned long taille);
+    void *(*reloge_memoire)(struct ContexteKuri *ctx,
                             void *ancien_pointeur,
                             unsigned long ancienne_taille,
                             unsigned long nouvelle_taille);
-    void (*deloge_memoire)(ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
+    void (*deloge_memoire)(struct ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
 };
 
 struct ArchiveCache;
@@ -56,23 +60,23 @@ typedef enum eAbcStrategieLectureOgawa {
 struct ContexteOuvertureArchive {
     /* Le nomrbe de chemins pour l'archive. Chaque chemin représente un calque qui remplacera les
      * données des calques précédents. */
-    int (*nombre_de_chemins)(ContexteOuvertureArchive *ctx);
+    int (*nombre_de_chemins)(struct ContexteOuvertureArchive *ctx);
     /* Accède au chemin pour index données. */
-    void (*chemin)(ContexteOuvertureArchive *ctx, unsigned long i, const char **pointeur, unsigned long *taille);
+    void (*chemin)(struct ContexteOuvertureArchive *ctx, unsigned long i, const char **pointeur, unsigned long *taille);
 
     /* Pour les erreurs venant d'Alembic. */
-    eAbcPoliceErreur (*police_erreur)(ContexteOuvertureArchive *ctx);
+    eAbcPoliceErreur (*police_erreur)(struct ContexteOuvertureArchive *ctx);
 
     /* Pour Ogawa. */
-    int (*nombre_de_flux_ogawa_desires)(ContexteOuvertureArchive *ctx);
-    eAbcStrategieLectureOgawa (*strategie_lecture_ogawa)(ContexteOuvertureArchive *ctx);
+    int (*nombre_de_flux_ogawa_desires)(struct ContexteOuvertureArchive *ctx);
+    eAbcStrategieLectureOgawa (*strategie_lecture_ogawa)(struct ContexteOuvertureArchive *ctx);
 
     /* Rappels pour les erreurs, afin de savoir ce qui s'est passé. */
-    void (*erreur_aucun_chemin)(ContexteOuvertureArchive *ctx);
-    void (*erreur_archive_invalide)(ContexteOuvertureArchive *ctx);
+    void (*erreur_aucun_chemin)(struct ContexteOuvertureArchive *ctx);
+    void (*erreur_archive_invalide)(struct ContexteOuvertureArchive *ctx);
 
     /* Les données utilisateurs du contexte. */
-    void *donnees_utilisateurs = nullptr;
+    void *donnees_utilisateurs;
 };
 
 // --------------------------------------------------------------
@@ -80,12 +84,12 @@ struct ContexteOuvertureArchive {
 
 struct ContexteTraverseArchive {
     // Extraction du nom de l'objet courant.
-    void (*extrait_nom_courant)(ContexteTraverseArchive *ctx,
+    void (*extrait_nom_courant)(struct ContexteTraverseArchive *ctx,
                                 const char *pointeur,
                                 unsigned long taille);
 
     // Certaines tâches peuvent prendre du temps, ce rappel sers à annuler l'opération en cours.
-    bool (*annule)(ContexteTraverseArchive *ctx);
+    bool (*annule)(struct ContexteTraverseArchive *ctx);
 
     // Création d'objet pour tous les types.
     // cree_poly_mesh
@@ -101,7 +105,7 @@ struct ContexteTraverseArchive {
     // Ignore les objets notés comme invisible.
     // ignore_invisible
 
-    void *donnees_utilisateur = nullptr;
+    void *donnees_utilisateur;
 };
 
 // --------------------------------------------------------------
@@ -109,130 +113,130 @@ struct ContexteTraverseArchive {
 
 // À FAIRE : caméra, light, material, face set
 
-using TypeRappelReserveMemoire = void(*)(void *, unsigned long);
-using TypeRappelAjouteUnPoint = void(*)(void *, float, float, float);
-using TypeRappelAjouteTousLesPoints = void(*)(void *, const float *, unsigned long);
-using TypeRappelAjoutepolygone = void (*)(void *, unsigned long, const int *, int);
-using TypeRappelAjouteTousLesPolygones = void (*)(void *, const int *, unsigned long);
-using TypeRappelReserveCoinsPolygone = void (*)(void *, unsigned long, int);
-using TypeRappelAjouteCoinPolygone = void (*)(void *, unsigned long, int);
-using TypeRappelAjouteTousLesCoins = void (*)(void *, const int *, unsigned long);
-using TypeRappelMarquePolygoneTrou = void (*)(void *, int);
-using TypeRappelMarquePlisVertex = void (*)(void *, int, float);
-using TypeRappelMarquePlisAretes = void (*)(void *, int, int, float);
-using TypeRappelMarqueSchemaSubdivision = void (*)(void *, const char *, unsigned long);
-using TypeRappelMarquePropagationCoinsFaceVarying = void (*)(void *, int);
-using TypeRappelMarqueInterpolationFrontiereFaceVarying = void (*)(void *, int);
-using TypeRappelMarqueInterpolationFrontiere = void (*)(void *, int);
-using TypeRappelAjouteIndexPoint = void (*)(void*, unsigned long, unsigned long);
+typedef void(*TypeRappelReserveMemoire)(void *, unsigned long);
+typedef void(*TypeRappelAjouteUnPoint)(void *, float, float, float);
+typedef void(*TypeRappelAjouteTousLesPoints)(void *, const float *, unsigned long);
+typedef void(*TypeRappelAjoutepolygone)(void *, unsigned long, const int *, int);
+typedef void(*TypeRappelAjouteTousLesPolygones)(void *, const int *, unsigned long);
+typedef void(*TypeRappelReserveCoinsPolygone)(void *, unsigned long, int);
+typedef void(*TypeRappelAjouteCoinPolygone)(void *, unsigned long, int);
+typedef void(*TypeRappelAjouteTousLesCoins)(void *, const int *, unsigned long);
+typedef void(*TypeRappelMarquePolygoneTrou)(void *, int);
+typedef void(*TypeRappelMarquePlisVertex)(void *, int, float);
+typedef void(*TypeRappelMarquePlisAretes)(void *, int, int, float);
+typedef void(*TypeRappelMarqueSchemaSubdivision)(void *, const char *, unsigned long);
+typedef void(*TypeRappelMarquePropagationCoinsFaceVarying)(void *, int);
+typedef void(*TypeRappelMarqueInterpolationFrontiereFaceVarying)(void *, int);
+typedef void(*TypeRappelMarqueInterpolationFrontiere)(void *, int);
+typedef void(*TypeRappelAjouteIndexPoint)(void*, unsigned long, unsigned long);
 
 struct ConvertisseusePolyMesh {
-    void *donnees = nullptr;
+    void *donnees;
 
-    TypeRappelReserveMemoire reserve_points = nullptr;
-    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
-    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
+    TypeRappelReserveMemoire reserve_points;
+    TypeRappelAjouteUnPoint ajoute_un_point;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points;
 
-    TypeRappelReserveMemoire reserve_polygones = nullptr;
-    TypeRappelAjoutepolygone ajoute_polygone = nullptr;
-    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones = nullptr;
+    TypeRappelReserveMemoire reserve_polygones;
+    TypeRappelAjoutepolygone ajoute_polygone;
+    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones;
 
-    TypeRappelReserveMemoire reserve_coin = nullptr;
-    TypeRappelReserveCoinsPolygone reserve_coins_polygone = nullptr;
-    TypeRappelAjouteCoinPolygone ajoute_coin_polygone = nullptr;
-    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins = nullptr;
+    TypeRappelReserveMemoire reserve_coin;
+    TypeRappelReserveCoinsPolygone reserve_coins_polygone;
+    TypeRappelAjouteCoinPolygone ajoute_coin_polygone;
+    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins;
 };
 
 struct ConvertisseuseSubD {
-    void *donnees = nullptr;
+    void *donnees;
 
-    TypeRappelReserveMemoire reserve_points = nullptr;
-    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
-    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
+    TypeRappelReserveMemoire reserve_points;
+    TypeRappelAjouteUnPoint ajoute_un_point;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points;
 
-    TypeRappelReserveMemoire reserve_polygones = nullptr;
-    TypeRappelAjoutepolygone ajoute_polygone = nullptr;
-    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones = nullptr;
+    TypeRappelReserveMemoire reserve_polygones;
+    TypeRappelAjoutepolygone ajoute_polygone;
+    TypeRappelAjouteTousLesPolygones ajoute_tous_les_polygones;
 
-    TypeRappelReserveMemoire reserve_coin = nullptr;
-    TypeRappelReserveCoinsPolygone reserve_coins_polygone = nullptr;
-    TypeRappelAjouteCoinPolygone ajoute_coin_polygone = nullptr;
-    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins = nullptr;
+    TypeRappelReserveMemoire reserve_coin;
+    TypeRappelReserveCoinsPolygone reserve_coins_polygone;
+    TypeRappelAjouteCoinPolygone ajoute_coin_polygone;
+    TypeRappelAjouteTousLesCoins ajoute_tous_les_coins;
 
-    TypeRappelReserveMemoire reserve_trous = nullptr;
-    TypeRappelMarquePolygoneTrou marque_polygone_trou = nullptr;
+    TypeRappelReserveMemoire reserve_trous;
+    TypeRappelMarquePolygoneTrou marque_polygone_trou;
 
-    TypeRappelReserveMemoire reserve_plis_sommets = nullptr;
-    TypeRappelMarquePlisVertex marque_plis_vertex = nullptr;
+    TypeRappelReserveMemoire reserve_plis_sommets;
+    TypeRappelMarquePlisVertex marque_plis_vertex;
 
-    TypeRappelReserveMemoire reserve_plis_aretes = nullptr;
-    TypeRappelMarquePlisAretes marque_plis_aretes = nullptr;
+    TypeRappelReserveMemoire reserve_plis_aretes;
+    TypeRappelMarquePlisAretes marque_plis_aretes;
 
-    TypeRappelMarqueSchemaSubdivision marque_schema_subdivision = nullptr;
-    TypeRappelMarquePropagationCoinsFaceVarying marque_propagation_coins_face_varying = nullptr;
-    TypeRappelMarqueInterpolationFrontiereFaceVarying marque_interpolation_frontiere_face_varying = nullptr;
-    TypeRappelMarqueInterpolationFrontiere marque_interpolation_frontiere = nullptr;
+    TypeRappelMarqueSchemaSubdivision marque_schema_subdivision;
+    TypeRappelMarquePropagationCoinsFaceVarying marque_propagation_coins_face_varying;
+    TypeRappelMarqueInterpolationFrontiereFaceVarying marque_interpolation_frontiere_face_varying;
+    TypeRappelMarqueInterpolationFrontiere marque_interpolation_frontiere;
 };
 
 struct ConvertisseusePoints {
-    void *donnees = nullptr;
+    void *donnees;
 
-    TypeRappelReserveMemoire reserve_points = nullptr;
-    TypeRappelAjouteUnPoint ajoute_un_point = nullptr;
-    TypeRappelAjouteTousLesPoints ajoute_tous_les_points = nullptr;
+    TypeRappelReserveMemoire reserve_points;
+    TypeRappelAjouteUnPoint ajoute_un_point;
+    TypeRappelAjouteTousLesPoints ajoute_tous_les_points;
 
-    TypeRappelReserveMemoire reserve_index = nullptr;
-    TypeRappelAjouteIndexPoint ajoute_index_point = nullptr;
+    TypeRappelReserveMemoire reserve_index;
+    TypeRappelAjouteIndexPoint ajoute_index_point;
 };
 
 struct ConvertisseuseCourbes {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseNurbs {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseXform {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseFaceSet {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseLumiere {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseCamera {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ConvertisseuseMateriau {
-    void *donnees = nullptr;
+    void *donnees;
 };
 
 struct ContexteLectureCache {
-    void (*initialise_convertisseuse_polymesh)(ConvertisseusePolyMesh *);
+    void (*initialise_convertisseuse_polymesh)(struct ConvertisseusePolyMesh *);
 
-    void (*initialise_convertisseuse_subd)(ConvertisseuseSubD *);
+    void (*initialise_convertisseuse_subd)(struct ConvertisseuseSubD *);
 
-    void (*initialise_convertisseuse_points)(ConvertisseusePoints *);
+    void (*initialise_convertisseuse_points)(struct ConvertisseusePoints *);
 
-    void (*initialise_convertisseuse_courbes)(ConvertisseuseCourbes *);
+    void (*initialise_convertisseuse_courbes)(struct ConvertisseuseCourbes *);
 
-    void (*initialise_convertisseuse_nurbs)(ConvertisseuseNurbs *);
+    void (*initialise_convertisseuse_nurbs)(struct ConvertisseuseNurbs *);
 
-    void (*initialise_convertisseuse_xform)(ConvertisseuseXform *);
+    void (*initialise_convertisseuse_xform)(struct ConvertisseuseXform *);
 
-    void (*initialise_convertisseuse_face_set)(ConvertisseuseFaceSet *);
+    void (*initialise_convertisseuse_face_set)(struct ConvertisseuseFaceSet *);
 
-    void (*initialise_convertisseuse_lumiere)(ConvertisseuseLumiere *);
+    void (*initialise_convertisseuse_lumiere)(struct ConvertisseuseLumiere *);
 
-    void (*initialise_convertisseuse_camera)(ConvertisseuseCamera *);
+    void (*initialise_convertisseuse_camera)(struct ConvertisseuseCamera *);
 
-    void (*initialise_convertisseuse_materiau)(ConvertisseuseMateriau *);
+    void (*initialise_convertisseuse_materiau)(struct ConvertisseuseMateriau *);
 };
 
 typedef enum eTypeObjetAbc {
@@ -250,7 +254,7 @@ typedef enum eTypeObjetAbc {
 
 typedef struct AbcOptionsExport {
     /* décide si la hiérarchie doit être préservé */
-    bool exporte_hierarchie = false;
+    bool exporte_hierarchie;
 
     // À FAIRE : controle des objets exportés (visible, seulement les maillages, etc.)
 
@@ -259,35 +263,37 @@ typedef struct AbcOptionsExport {
 
 struct ConvertisseuseExportPolyMesh {
     void *donnnees;
-    unsigned long (*nombre_de_points)(ConvertisseuseExportPolyMesh *);
-    void (*point_pour_index)(ConvertisseuseExportPolyMesh *, unsigned long, float *, float *, float *);
+    unsigned long (*nombre_de_points)(struct ConvertisseuseExportPolyMesh *);
+    void (*point_pour_index)(struct ConvertisseuseExportPolyMesh *, unsigned long, float *, float *, float *);
 
-    unsigned long (*nombre_de_polygones)(ConvertisseuseExportPolyMesh *);
-    int (*nombre_de_coins_polygone)(ConvertisseuseExportPolyMesh *, unsigned long);
+    unsigned long (*nombre_de_polygones)(struct ConvertisseuseExportPolyMesh *);
+    int (*nombre_de_coins_polygone)(struct ConvertisseuseExportPolyMesh *, unsigned long);
 
-    void (*coins_pour_polygone)(ConvertisseuseExportPolyMesh *, unsigned long, int *);
+    void (*coins_pour_polygone)(struct ConvertisseuseExportPolyMesh *, unsigned long, int *);
 };
 
 struct ConvertisseuseExportMateriau {
-    void *donnees = nullptr;
+    void *donnees;
 
-    void (*nom_cible)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
-    void (*type_nuanceur)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
-    void (*nom_nuanceur)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*nom_cible)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*type_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*nom_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
 
-    void (*nom_sortie_graphe)(ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*nom_sortie_graphe)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
 
-    unsigned long (*nombre_de_noeuds)(ConvertisseuseExportMateriau *);
+    unsigned long (*nombre_de_noeuds)(struct ConvertisseuseExportMateriau *);
 
-    void (*nom_noeud)(ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
-    void (*type_noeud)(ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
+    void (*nom_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
+    void (*type_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
 
-    unsigned long (*nombre_entrees_noeud)(ConvertisseuseExportMateriau *, unsigned long);
-    void (*nom_entree_noeud)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, const char **, unsigned long *);
+    unsigned long (*nombre_entrees_noeud)(struct ConvertisseuseExportMateriau *, unsigned long);
+    void (*nom_entree_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, const char **, unsigned long *);
 
-    unsigned long (*nombre_de_connexions)(ConvertisseuseExportMateriau *, unsigned long, unsigned long);
-    void (*nom_connexion_entree)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
-    void (*nom_noeud_connexion)(ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+    unsigned long (*nombre_de_connexions)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long);
+    void (*nom_connexion_entree)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+    void (*nom_noeud_connexion)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
 };
 
+#ifdef __cplusplus
 }
+#endif

@@ -879,7 +879,7 @@ struct Convertisseuse {
 
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
     {
-        auto comment = clang_Cursor_getBriefCommentText(cursor);
+        auto comment = clang_Cursor_getRawCommentText(cursor);
         auto c_str = clang_getCString(comment);
 
         if (c_str != nullptr) {
@@ -887,7 +887,7 @@ struct Convertisseuse {
 
             if (chn != "") {
                 imprime_tab(os);
-                os << "// " << chn << '\n';
+                os << chn << '\n';
             }
         }
 
@@ -930,9 +930,10 @@ struct Convertisseuse {
                     auto nom_fichier_c = std::filesystem::path(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
 
-                    if (nom_fichier_c != fichier_source && nom_fichier_c != fichier_entete) {
-                        continue;
-                    }
+                    //  À FAIRE: option pour controler ceci.
+//                    if (nom_fichier_c != fichier_source && nom_fichier_c != fichier_entete) {
+//                        continue;
+//                    }
 
                     convertis(enfant, trans_unit, flux_sortie);
 
@@ -1844,12 +1845,17 @@ struct Convertisseuse {
             flux_sortie << '(';
         }
 
-        flux_sortie << ") -> " << converti_type(cursor, typedefs, true) << '\n';
+        flux_sortie << ") -> " << converti_type(cursor, typedefs, true);
 
         if (est_declaration) {
             /* Nous avons une déclaration */
+            flux_sortie << " #externe";
+            flux_sortie << '\n';
+            flux_sortie << '\n';
             return;
         }
+
+        flux_sortie << '\n';
 
         flux_sortie << "{\n";
 
@@ -1928,19 +1934,81 @@ static auto analyse_configuration(const char *chemin)
     return config;
 }
 
-int main(int argc, char **argv)
+void imprime_ligne(std::string tampon, int ligne, int colonne, int decalage)
+{
+    int ligne_courante = 1;
+    int position_ligne = 0;
+
+    while (ligne_courante != ligne) {
+        if (tampon[position_ligne] == '\n') {
+            ligne_courante += 1;
+        }
+
+        position_ligne += 1;
+    }
+
+    int position_fin_ligne = position_ligne;
+
+    while (ligne_courante != ligne + 1) {
+        if (tampon[position_fin_ligne] == '\n') {
+            ligne_courante += 1;
+        }
+
+        position_fin_ligne += 1;
+    }
+
+    std::cerr << std::string(&tampon[position_ligne], position_fin_ligne - position_ligne);
+}
+
+static std::optional<Configuration> valide_configuration(Configuration config)
+{
+    if (!std::filesystem::exists(config.fichier.c_str())) {
+        std::cerr << "Le fichier \"" << config.fichier << "\" n'existe pas !\n";
+        return {};
+    }
+
+    return config;
+}
+
+static std::optional<Configuration> cree_config_depuis_json(int argc, char **argv)
 {
     if (argc < 2) {
         std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
-        return 1;
+        return {};
     }
 
     auto config = analyse_configuration(argv[1]);
 
     if (config.fichier == "") {
-        return 1;
+        return {};
     }
 
+    return valide_configuration(config);
+}
+
+static std::optional<Configuration> cree_config_pour_metaprogramme(int argc, char **argv)
+{
+    if (argc != 4) {
+        std::cerr << "Utilisation " << argv[0] << " FICHIER_SOURCE -o FICHIER_SORTIE.kuri\n";
+        return {};
+    }
+
+    auto config = Configuration{};
+    config.fichier = argv[1];
+
+    if (std::string(argv[2]) != "-o") {
+        std::cerr << "Utilisation " << argv[0] << " FICHIER_SOURCE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-o' après le nom du fichier d'entrée !\n";
+        return {};
+    }
+
+    config.fichier_sortie = argv[3];
+
+    return valide_configuration(config);
+}
+
+static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration const &config)
+{
     auto args = kuri::tableau<const char *>();
 
     for (auto const &arg : config.args) {
@@ -1952,6 +2020,20 @@ int main(int argc, char **argv)
         args.ajoute(inclusion.c_str());
     }
 
+    return args;
+}
+
+int main(int argc, char **argv)
+{
+    auto config_optionnelle = cree_config_pour_metaprogramme(argc, argv);
+
+    if (!config_optionnelle.has_value()) {
+        return 1;
+    }
+
+    auto config = config_optionnelle.value();
+    auto args = parse_arguments_depuis_config(config);
+
     CXIndex index = clang_createIndex(0, 0);
     CXTranslationUnit unit = clang_parseTranslationUnit(index,
                                                         config.fichier.c_str(),
@@ -1959,7 +2041,7 @@ int main(int argc, char **argv)
                                                         static_cast<int>(args.taille()),
                                                         nullptr,
                                                         0,
-                                                        CXTranslationUnit_None);
+                                                        CXTranslationUnit_None | CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
 
     if (unit == nullptr) {
         std::cerr << "Unable to parse translation unit. Quitting.\n";
@@ -1986,10 +2068,24 @@ int main(int argc, char **argv)
         for (auto i = 0u; i < nombre_diagnostics; ++i) {
             auto diag = clang_getDiagnostic(unit, i);
             std::cerr << clang_getDiagnosticSpelling(diag) << '\n';
+
+            auto loc = clang_getDiagnosticLocation(diag);
+
+
+            CXFile file = clang_getFile(unit, config.fichier.c_str());
+
+            size_t taille = 0;
+            auto tampon = clang_getFileContents(unit, file, &taille);
+
+            uint ligne = 0;
+            uint colonne = 0;
+            uint decalage = 0;
+            clang_getExpansionLocation(loc, &file, &ligne, &colonne, &decalage);
+            imprime_ligne(std::string(tampon, taille), ligne, colonne, decalage);
             clang_disposeDiagnostic(diag);
         }
 
-        exit(-1);
+        //exit(-1);
     }
 
     CXCursor cursor = clang_getTranslationUnitCursor(unit);

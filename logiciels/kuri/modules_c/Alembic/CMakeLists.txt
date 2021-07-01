@@ -61,3 +61,21 @@ install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
 	DESTINATION /opt/bin/kuri/modules/Alembic/)
+
+add_dependencies(${NOM_PROJET} parcer)
+
+set(FICHIER_MODULE "")
+
+add_custom_command(
+    OUTPUT nouveau_module.kuri
+    COMMAND parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" -o "${CMAKE_CURRENT_SOURCE_DIR}/nouveau_module.kuri"
+    DEPENDS parcer
+    COMMENT "Compilation de ${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h"
+)
+list(APPEND FICHIER_MODULE nouveau_module.kuri)
+
+add_custom_target(SOURCE_KURI_MODULE ALL DEPENDS "${FICHIER_MODULE}")
+
+install(
+    FILES "${FICHIER_MODULE}"
+    DESTINATION /opt/bin/kuri/modules/Alembic/)

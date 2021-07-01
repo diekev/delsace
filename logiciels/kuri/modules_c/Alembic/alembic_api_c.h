@@ -26,23 +26,33 @@
 
 #include "alembic_types.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
-ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx);
-void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive);
+/**
+ * \brief Crée une archive pour lire des objets Alembic.
+ *
+ * Si l'archive ne peut être ouverte, retourne nul, et rapporte une erreur via le ctx.
+ */
+struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri, struct ContexteOuvertureArchive *ctx);
+void ABC_detruit_archive(struct ContexteKuri *ctx, struct ArchiveCache *archive);
 
-void ABC_traverse_archive(ContexteKuri *ctx_kuri,
-                          ArchiveCache *archive,
-                          ContexteTraverseArchive *ctx);
+void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
+                          struct ArchiveCache *archive,
+                          struct ContexteTraverseArchive *ctx);
 
-LectriceCache *ABC_cree_lectrice_cache(ContexteKuri *ctx_kuri,
-                                       ArchiveCache *archive,
+struct LectriceCache *ABC_cree_lectrice_cache(struct ContexteKuri *ctx_kuri,
+                                       struct ArchiveCache *archive,
                                        const char *ptr_nom,
                                        unsigned long taille_nom);
-void ABC_detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice);
-void ABC_lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees);
-void ABC_lis_objet(ContexteKuri *ctx_kuri,
-                   ContexteLectureCache *contexte,
-                   LectriceCache *lectrice,
+void ABC_detruit_lectrice(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice);
+void ABC_lectrice_ajourne_donnees(struct LectriceCache *lectrice, void *donnees);
+void ABC_lis_objet(struct ContexteKuri *ctx_kuri,
+                   struct ContexteLectureCache *contexte,
+                   struct LectriceCache *lectrice,
                    double temps);
+
+#ifdef __cplusplus
 }
+#endif
