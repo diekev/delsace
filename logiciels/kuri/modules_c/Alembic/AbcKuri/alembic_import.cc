@@ -240,8 +240,10 @@ static void convertis_index_points(ConvertisseusePoints *convertisseuse,
         convertisseuse->reserve_index(convertisseuse->donnees, indices->size());
     }
 
-    for (size_t i = 0; i < indices->size(); ++i) {
-        convertisseuse->ajoute_index_point(convertisseuse->donnees, i, indices->get()[i]);
+    if (convertisseuse->ajoute_index_point) {
+        for (size_t i = 0; i < indices->size(); ++i) {
+            convertisseuse->ajoute_index_point(convertisseuse->donnees, i, indices->get()[i]);
+        }
     }
 }
 

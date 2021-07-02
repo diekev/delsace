@@ -81,8 +81,8 @@ struct ContexteOuvertureArchive {
     void (*erreur_aucun_chemin)(struct ContexteOuvertureArchive *ctx);
     void (*erreur_archive_invalide)(struct ContexteOuvertureArchive *ctx);
 
-    /* Les données utilisateurs du contexte. */
-    void *donnees_utilisateurs;
+    /* Les données utilisateur du contexte. */
+    void *donnees_utilisateur;
 };
 
 // --------------------------------------------------------------
