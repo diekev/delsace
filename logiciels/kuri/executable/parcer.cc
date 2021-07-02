@@ -1119,9 +1119,10 @@ struct Convertisseuse {
                     clang_disposeString(nom_fichier);
 
                     //  À FAIRE: option pour controler ceci.
-//                    if (nom_fichier_c != fichier_source && nom_fichier_c != fichier_entete) {
-//                        continue;
-//                    }
+                    //                    if (nom_fichier_c != fichier_source && nom_fichier_c !=
+                    //                    fichier_entete) {
+                    //                        continue;
+                    //                    }
 
                     convertis(enfant, trans_unit, flux_sortie);
 
@@ -2279,7 +2280,7 @@ int main(int argc, char **argv)
             clang_disposeDiagnostic(diag);
         }
 
-        //exit(-1);
+        exit(-1);
     }
 
     CXCursor cursor = clang_getTranslationUnitCursor(unit);
