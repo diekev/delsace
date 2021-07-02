@@ -1331,6 +1331,35 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         m_est_declaration_type_opaque = true;
                         consomme();
                     }
+                    else if (directive == ID::nulctx) {
+                        consomme();
+
+                        if (lexeme_courant()->genre != GenreLexeme::FONC) {
+                            rapporte_erreur("Attendu « fonc » après « #nulctx »");
+                            return nullptr;
+                        }
+
+                        //  À FAIRE(syntaxage) : déduplique, ou modifie la grammaire pour les directives
+                        auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
+
+                        // À FAIRE(syntaxaga) : position exacte de l'erreur, en cas de déclaration
+                        // de fonction, nous serions après la fonction
+                        if (!noeud_fonction->est_declaration_type) {
+                            rapporte_erreur("Attendu la déclaration d'un type de fonction.");
+                            return nullptr;
+                        }
+
+                        auto noeud = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
+                        noeud->ident = gauche->ident;
+                        noeud->valeur = gauche;
+                        noeud->expression = noeud_fonction;
+                        noeud->drapeaux |= EST_CONSTANTE;
+                        gauche->drapeaux |= EST_CONSTANTE;
+                        gauche->comme_reference_declaration()->declaration_referee = noeud;
+                        noeud_fonction->drapeaux |= FORCE_NULCTX;
+
+                        return noeud;
+                    }
                     else {
                         m_position = position - 1;
                         consomme();
