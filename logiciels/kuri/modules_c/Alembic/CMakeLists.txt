@@ -67,12 +67,12 @@ add_dependencies(${NOM_PROJET} parcer)
 set(FICHIER_MODULE "")
 
 add_custom_command(
-    OUTPUT nouveau_module.kuri
-    COMMAND parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" -o "${CMAKE_CURRENT_SOURCE_DIR}/nouveau_module.kuri"
+    OUTPUT /tmp/interface.kuri
+    COMMAND parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" -o "/tmp/interface.kuri"
     DEPENDS parcer "${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h" "${CMAKE_CURRENT_SOURCE_DIR}/alembic_types.h"
     COMMENT "Compilation de ${CMAKE_CURRENT_SOURCE_DIR}/alembic_api_c.h"
 )
-list(APPEND FICHIER_MODULE nouveau_module.kuri)
+list(APPEND FICHIER_MODULE /tmp/interface.kuri)
 
 add_custom_target(SOURCE_KURI_MODULE ALL DEPENDS "${FICHIER_MODULE}")
 
