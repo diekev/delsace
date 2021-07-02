@@ -28,6 +28,9 @@
 
 #include "parsage/identifiant.hh"
 
+#include "representation_intermediaire/instructions.hh"
+
+#include "erreur.h"
 #include "typage.hh"
 
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
@@ -144,4 +147,103 @@ bool Programme::ri_generees() const
 #endif
 
     return true;
+}
+
+void imprime_contenu_programme(const Programme &programme, std::ostream &os)
+{
+    os << "Types dans le programme...\n";
+    POUR (programme.types()) {
+        os << "-- " << chaine_type(it) << '\n';
+    }
+    os << "Fonctions dans le programme...\n";
+    POUR (programme.fonctions()) {
+        os << "-- " << it->ident->nom << '\n';
+    }
+    os << "Globales dans le programme...\n";
+    POUR (programme.globales()) {
+        os << "-- " << it->ident->nom << '\n';
+    }
+}
+
+// --------------------------------------------------------
+// RepresentationIntermediaireProgramme
+
+static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
+{
+    dls::ensemble<Atome *> globales_utilisess;
+
+    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en entrée\n";
+
+    POUR (repr_inter.globales) {
+        globales_utilisess.insere(it);
+    }
+
+    POUR (repr_inter.fonctions) {
+        for (auto instruction : it->instructions) {
+            visite_atome(instruction, [&](Atome *atome) {
+                if (atome->genre_atome == Atome::Genre::GLOBALE) {
+                    if (globales_utilisess.possede(atome)) {
+                        return;
+                    }
+
+                    repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
+                    globales_utilisess.insere(atome);
+                }
+            });
+        }
+    }
+
+    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en sortie\n";
+}
+
+ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace)
+{
+    auto resultat = ProgrammeRepreInter{};
+
+    resultat.fonctions.reserve(programme.fonctions().taille() + programme.types().taille());
+    resultat.globales.reserve(programme.globales().taille());
+
+    /* Nous pouvons directement copiés les types. */
+    resultat.types = programme.types();
+
+    /* Extrait les atomes pour les fonctions. */
+    POUR (programme.fonctions()) {
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(espace, it);
+        });
+        assert_rappel(it->atome, [&](){
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(espace, it);
+        });
+        resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
+    }
+
+    /* Extrait les atomes pour les fonctions d'initalisation des types. */
+    POUR (programme.types()) {
+        if (it->fonction_init) {
+            resultat.fonctions.ajoute(it->fonction_init);
+        }
+    }
+
+    /* Extrait les atomes pour les globales. */
+    POUR (programme.globales()) {
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(espace, it);
+        });
+        assert_rappel(it->atome, [&](){
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(espace, it);
+            std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
+            std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
+        });
+        resultat.globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
+    }
+
+    /* Traverse les instructions des fonctions, et rassemble les globales pour les chaines, les
+     * tableaux, et les infos-types. */
+    rassemble_globales_supplementaire(resultat);
+
+    return resultat;
 }

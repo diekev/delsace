@@ -28,6 +28,9 @@
 
 #include "structures/tableau.hh"
 
+struct AtomeGlobale;
+struct AtomeFonction;
+struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct Type;
@@ -90,3 +93,15 @@ struct Programme {
      * le programme ont eu leurs RI générées. */
     bool ri_generees() const;
 };
+
+void imprime_contenu_programme(Programme const &programme, std::ostream &os);
+
+/* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
+ * tous les types utilisées. */
+struct ProgrammeRepreInter {
+    kuri::tableau<AtomeGlobale *> globales{};
+    kuri::tableau<AtomeFonction *> fonctions{};
+    kuri::tableau<Type *> types{};
+};
+
+ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace);

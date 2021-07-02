@@ -860,3 +860,5 @@ COMME_INST(InstructionStockeMem, stocke_mem)
 COMME_INST(InstructionTranstype, transtype)
 
 #undef COMME_INST
+
+void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
