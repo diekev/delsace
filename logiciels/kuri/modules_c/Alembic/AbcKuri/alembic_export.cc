@@ -35,18 +35,17 @@
 using namespace Alembic;
 
 struct EcrivainCache {
-    std::variant<
-    AbcGeom::OCamera,
-    AbcGeom::OCurves,
-    AbcGeom::OFaceSet,
-    AbcGeom::OLight,
-    AbcGeom::ONuPatch,
-    AbcGeom::OPoints,
-    AbcGeom::OPolyMesh,
-    AbcGeom::OSubD,
-    AbcGeom::OXform,
-    AbcMaterial::OMaterial
-    > o_schema_object;
+    std::variant<AbcGeom::OCamera,
+                 AbcGeom::OCurves,
+                 AbcGeom::OFaceSet,
+                 AbcGeom::OLight,
+                 AbcGeom::ONuPatch,
+                 AbcGeom::OPoints,
+                 AbcGeom::OPolyMesh,
+                 AbcGeom::OSubD,
+                 AbcGeom::OXform,
+                 AbcMaterial::OMaterial>
+        o_schema_object;
 
     template <typename T>
     static EcrivainCache *cree(ContexteKuri *ctx, EcrivainCache *parent, const std::string &nom)
@@ -63,7 +62,9 @@ struct EcrivainCache {
         return ecrivain;
     }
 
-    static EcrivainCache *cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const std::string &nom)
+    static EcrivainCache *cree_instance(ContexteKuri *ctx,
+                                        EcrivainCache *instance,
+                                        const std::string &nom)
     {
         auto ecrivain = AbcKuri::loge_objet<EcrivainCache>(ctx);
         // À FAIRE
@@ -128,10 +129,10 @@ struct EcrivainCache {
     }
 };
 
-
 namespace AbcKuri {
 
-static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse, EcrivainCache *ecrivain)
+static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse,
+                                EcrivainCache *ecrivain)
 {
     auto &omateriau = ecrivain->comme<AbcMaterial::OMaterial>();
     auto schema = omateriau.getSchema();
@@ -147,7 +148,8 @@ static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse, Ec
 
     for (size_t i = 0; i < nombre_de_noeuds; i++) {
         const auto nom_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->nom_noeud);
-        const auto type_noeud = string_depuis_rappel(convertisseuse, i, convertisseuse->type_noeud);
+        const auto type_noeud = string_depuis_rappel(
+            convertisseuse, i, convertisseuse->type_noeud);
         schema.addNetworkNode(nom_noeud, cible, type_noeud);
     }
 
@@ -158,24 +160,33 @@ static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse, Ec
         const auto nombre_entree = convertisseuse->nombre_entrees_noeud(convertisseuse, i);
 
         for (size_t e = 0; e < nombre_entree; e++) {
-            const auto nom_entree = string_depuis_rappel(convertisseuse, i, e, convertisseuse->nom_entree_noeud);
+            const auto nom_entree = string_depuis_rappel(
+                convertisseuse, i, e, convertisseuse->nom_entree_noeud);
 
-            const auto nombre_de_connexion = convertisseuse->nombre_de_connexions(convertisseuse, i, e);
+            const auto nombre_de_connexion = convertisseuse->nombre_de_connexions(
+                convertisseuse, i, e);
 
             for (size_t c = 0; c < nombre_de_connexion; c++) {
-                const auto nom_noeud_connecte = string_depuis_rappel(convertisseuse, i, e, c, convertisseuse->nom_noeud_connexion);
-                const auto nom_sortie = string_depuis_rappel(convertisseuse, i, e, c, convertisseuse->nom_connexion_entree);
-                schema.setNetworkNodeConnection(nom_noeud, nom_entree, nom_noeud_connecte, nom_sortie);
+                const auto nom_noeud_connecte = string_depuis_rappel(
+                    convertisseuse, i, e, c, convertisseuse->nom_noeud_connexion);
+                const auto nom_sortie = string_depuis_rappel(
+                    convertisseuse, i, e, c, convertisseuse->nom_connexion_entree);
+                schema.setNetworkNodeConnection(
+                    nom_noeud, nom_entree, nom_noeud_connecte, nom_sortie);
             }
         }
     }
 
-    schema.setNetworkTerminal(cible, type_nuanceur, string_depuis_rappel(convertisseuse, convertisseuse->nom_sortie_graphe));
+    schema.setNetworkTerminal(
+        cible,
+        type_nuanceur,
+        string_depuis_rappel(convertisseuse, convertisseuse->nom_sortie_graphe));
 
     // À FAIRE: paramètre du noeud
 }
 
-static void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse, EcrivainCache *ecrivain)
+static void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse,
+                                 EcrivainCache *ecrivain)
 {
     const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
 
@@ -225,7 +236,9 @@ static void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse, E
     schema.set(sample);
 }
 
-EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *lectrice, EcrivainCache *parent)
+EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                              LectriceCache *lectrice,
+                                              EcrivainCache *parent)
 {
     if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
         return EcrivainCache::cree<AbcGeom::OPolyMesh>(ctx, parent, lectrice->iobject.getName());
@@ -264,7 +277,8 @@ EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *
     }
 
     if (AbcMaterial::IMaterial::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcMaterial::OMaterial>(ctx, parent, lectrice->iobject.getName());
+        return EcrivainCache::cree<AbcMaterial::OMaterial>(
+            ctx, parent, lectrice->iobject.getName());
     }
 
     {
@@ -274,8 +288,11 @@ EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *
     return nullptr;
 }
 
-
-EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx, EcrivainCache *parent, const char *nom, size_t taille_nom, eTypeObjetAbc type_objet)
+EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
+                                   EcrivainCache *parent,
+                                   const char *nom,
+                                   size_t taille_nom,
+                                   eTypeObjetAbc type_objet)
 {
     switch (type_objet) {
         case eTypeObjetAbc::CAMERA:
@@ -323,7 +340,10 @@ EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx, EcrivainCache *parent, con
     return nullptr;
 }
 
-EcrivainCache *cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const char *nom, size_t taille_nom)
+EcrivainCache *cree_instance(ContexteKuri *ctx,
+                             EcrivainCache *instance,
+                             const char *nom,
+                             size_t taille_nom)
 {
     return EcrivainCache::cree_instance(ctx, instance, {nom, taille_nom});
 }
@@ -372,4 +392,4 @@ void ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain)
     }
 }
 
-}
+}  // namespace AbcKuri

@@ -73,7 +73,7 @@ ArchiveCache *cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx
 void detruit_archive(ContexteKuri *ctx, ArchiveCache *archive);
 
 void traverse_archive(ContexteKuri * /*ctx_kuri*/,
-                          ArchiveCache *archive,
-                          ContexteTraverseArchive *ctx);
+                      ArchiveCache *archive,
+                      ContexteTraverseArchive *ctx);
 
-}
+}  // namespace AbcKuri

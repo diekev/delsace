@@ -58,18 +58,21 @@ struct LectriceCache {
 namespace AbcKuri {
 
 LectriceCache *cree_lectrice_cache(ContexteKuri *ctx_kuri,
-                                       ArchiveCache *archive,
-                                       const char *ptr_nom,
-                                       size_t taille_nom);
+                                   ArchiveCache *archive,
+                                   const char *ptr_nom,
+                                   size_t taille_nom);
 void detruit_lectrice(ContexteKuri *ctx_kuri, LectriceCache *lectrice);
 
 void lectrice_ajourne_donnees(LectriceCache *lectrice, void *donnees);
 
 void lis_objet(ContexteKuri *ctx_kuri,
-                   ContexteLectureCache *contexte,
+               ContexteLectureCache *contexte,
+               LectriceCache *lectrice,
+               double temps);
+
+void lis_attributs(ContexteKuri *ctx_kuri,
                    LectriceCache *lectrice,
+                   ConvertisseuseImportAttributs *convertisseuse,
                    double temps);
 
-void lis_attributs(ContexteKuri *ctx_kuri, LectriceCache *lectrice, ConvertisseuseImportAttributs *convertisseuse, double temps);
-
-}
+}  // namespace AbcKuri

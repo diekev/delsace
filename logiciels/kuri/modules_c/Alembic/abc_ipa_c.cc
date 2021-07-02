@@ -24,8 +24,8 @@
 
 #include "alembic.h"
 
-#include <variant>
 #include <string_view>
+#include <variant>
 
 #include "abc_ipa_c.h"
 #include "alembic_types.h"
@@ -1592,17 +1592,26 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri,
 
 // ABC_est_constant
 
-EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *lectrice, EcrivainCache *parent)
+EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                                  LectriceCache *lectrice,
+                                                  EcrivainCache *parent)
 {
     return AbcKuri::cree_ecrivain_cache_depuis_ref(ctx, lectrice, parent);
 }
 
-EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx, EcrivainCache *parent, const char *nom, size_t taille_nom, eTypeObjetAbc type_objet)
+EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx,
+                                       EcrivainCache *parent,
+                                       const char *nom,
+                                       size_t taille_nom,
+                                       eTypeObjetAbc type_objet)
 {
     return AbcKuri::cree_ecrivain_cache(ctx, parent, nom, taille_nom, type_objet);
 }
 
-EcrivainCache *ABC_cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const char *nom, size_t taille_nom)
+EcrivainCache *ABC_cree_instance(ContexteKuri *ctx,
+                                 EcrivainCache *instance,
+                                 const char *nom,
+                                 size_t taille_nom)
 {
     return AbcKuri::cree_instance(ctx, instance, nom, taille_nom);
 }
@@ -1612,9 +1621,11 @@ void ABC_ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain)
     AbcKuri::ecris_objet(ctx, ecrivain);
 }
 
-void ABC_lis_attributs(ContexteKuri *ctx_kuri, LectriceCache *lectrice, ConvertisseuseImportAttributs *convertisseuse, double temps)
+void ABC_lis_attributs(ContexteKuri *ctx_kuri,
+                       LectriceCache *lectrice,
+                       ConvertisseuseImportAttributs *convertisseuse,
+                       double temps)
 {
     AbcKuri::lis_attributs(ctx_kuri, lectrice, convertisseuse, temps);
 }
-
 }

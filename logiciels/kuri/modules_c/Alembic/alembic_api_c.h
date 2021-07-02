@@ -35,7 +35,8 @@ extern "C" {
  *
  * Si l'archive ne peut être ouverte, retourne nul, et rapporte une erreur via le ctx.
  */
-struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri, struct ContexteOuvertureArchive *ctx);
+struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri,
+                                      struct ContexteOuvertureArchive *ctx);
 void ABC_detruit_archive(struct ContexteKuri *ctx, struct ArchiveCache *archive);
 
 void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
@@ -43,9 +44,9 @@ void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
                           struct ContexteTraverseArchive *ctx);
 
 struct LectriceCache *ABC_cree_lectrice_cache(struct ContexteKuri *ctx_kuri,
-                                       struct ArchiveCache *archive,
-                                       const char *ptr_nom,
-                                       unsigned long taille_nom);
+                                              struct ArchiveCache *archive,
+                                              const char *ptr_nom,
+                                              unsigned long taille_nom);
 void ABC_detruit_lectrice(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice);
 void ABC_lectrice_ajourne_donnees(struct LectriceCache *lectrice, void *donnees);
 void ABC_lis_objet(struct ContexteKuri *ctx_kuri,
@@ -53,7 +54,10 @@ void ABC_lis_objet(struct ContexteKuri *ctx_kuri,
                    struct LectriceCache *lectrice,
                    double temps);
 
-void ABC_lis_attributs(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice, struct ConvertisseuseImportAttributs *convertisseuse, double temps);
+void ABC_lis_attributs(struct ContexteKuri *ctx_kuri,
+                       struct LectriceCache *lectrice,
+                       struct ConvertisseuseImportAttributs *convertisseuse,
+                       double temps);
 
 #ifdef __cplusplus
 }

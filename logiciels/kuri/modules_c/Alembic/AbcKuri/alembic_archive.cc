@@ -299,8 +299,8 @@ static void abc_traverse_hierarchie(ContexteTraverseArchive *ctx,
 }
 
 void traverse_archive(ContexteKuri * /*ctx_kuri*/,
-                          ArchiveCache *archive,
-                          ContexteTraverseArchive *ctx)
+                      ArchiveCache *archive,
+                      ContexteTraverseArchive *ctx)
 {
     if (!archive) {
         return;
@@ -321,4 +321,4 @@ void traverse_archive(ContexteKuri * /*ctx_kuri*/,
     }
 }
 
-}
+}  // namespace AbcKuri

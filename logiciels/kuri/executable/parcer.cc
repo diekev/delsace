@@ -727,7 +727,7 @@ struct TableauStatique {
     const T *donnees = nullptr;
     size_t taille = 0;
 
-public:
+  public:
     const T &operator[](size_t index)
     {
         return donnees[index];
@@ -758,7 +758,7 @@ static TableauStatique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor 
 
     // À FAIRE clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 
-    return { tokens, static_cast<size_t>(nombre_tokens) };
+    return {tokens, static_cast<size_t>(nombre_tokens)};
 }
 
 using TypeDonneesType = kuri::tableau<dls::chaine>;
@@ -818,7 +818,7 @@ struct ParseuseTypedef {
         while (d != f) {
             /* Nous avons le début du nom. */
             if (apparie(*d, "(")) {
-               break;
+                break;
             }
 
             resultat.type_retour.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
@@ -853,7 +853,6 @@ struct ParseuseTypedef {
         if (!apparie(*d++, "(")) {
             return {};
         }
-
 
         auto type_courant = TypeDonneesType{};
 
@@ -890,7 +889,10 @@ struct ParseuseTypedef {
     }
 };
 
-static auto tokens_typedef(CXCursor cursor, CXTranslationUnit trans_unit, dico_typedefs &dico, std::ostream &flux_sortie)
+static auto tokens_typedef(CXCursor cursor,
+                           CXTranslationUnit trans_unit,
+                           dico_typedefs &dico,
+                           std::ostream &flux_sortie)
 {
     auto tokens_ = tokenise(trans_unit, cursor);
     auto parseuse = ParseuseTypedef{trans_unit, tokens_};
@@ -2227,13 +2229,14 @@ int main(int argc, char **argv)
     auto args = parse_arguments_depuis_config(config);
 
     CXIndex index = clang_createIndex(0, 0);
-    CXTranslationUnit unit = clang_parseTranslationUnit(index,
-                                                        config.fichier.c_str(),
-                                                        args.donnees(),
-                                                        static_cast<int>(args.taille()),
-                                                        nullptr,
-                                                        0,
-                                                        CXTranslationUnit_None | CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
+    CXTranslationUnit unit = clang_parseTranslationUnit(
+        index,
+        config.fichier.c_str(),
+        args.donnees(),
+        static_cast<int>(args.taille()),
+        nullptr,
+        0,
+        CXTranslationUnit_None | CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
 
     if (unit == nullptr) {
         std::cerr << "Unable to parse translation unit. Quitting.\n";
@@ -2262,7 +2265,6 @@ int main(int argc, char **argv)
             std::cerr << clang_getDiagnosticSpelling(diag) << '\n';
 
             auto loc = clang_getDiagnosticLocation(diag);
-
 
             CXFile file = clang_getFile(unit, config.fichier.c_str());
 

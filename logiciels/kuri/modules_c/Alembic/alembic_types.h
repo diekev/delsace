@@ -65,7 +65,10 @@ struct ContexteOuvertureArchive {
      * données des calques précédents. */
     int (*nombre_de_chemins)(struct ContexteOuvertureArchive *ctx);
     /* Accède au chemin pour index données. */
-    void (*chemin)(struct ContexteOuvertureArchive *ctx, unsigned long i, const char **pointeur, unsigned long *taille);
+    void (*chemin)(struct ContexteOuvertureArchive *ctx,
+                   unsigned long i,
+                   const char **pointeur,
+                   unsigned long *taille);
 
     /* Pour les erreurs venant d'Alembic. */
     eAbcPoliceErreur (*police_erreur)(struct ContexteOuvertureArchive *ctx);
@@ -116,22 +119,22 @@ struct ContexteTraverseArchive {
 
 // À FAIRE : caméra, light, material, face set
 
-typedef void(*TypeRappelReserveMemoire)(void *, unsigned long);
-typedef void(*TypeRappelAjouteUnPoint)(void *, float, float, float);
-typedef void(*TypeRappelAjouteTousLesPoints)(void *, const float *, unsigned long);
-typedef void(*TypeRappelAjoutepolygone)(void *, unsigned long, const int *, int);
-typedef void(*TypeRappelAjouteTousLesPolygones)(void *, const int *, unsigned long);
-typedef void(*TypeRappelReserveCoinsPolygone)(void *, unsigned long, int);
-typedef void(*TypeRappelAjouteCoinPolygone)(void *, unsigned long, int);
-typedef void(*TypeRappelAjouteTousLesCoins)(void *, const int *, unsigned long);
-typedef void(*TypeRappelMarquePolygoneTrou)(void *, int);
-typedef void(*TypeRappelMarquePlisVertex)(void *, int, float);
-typedef void(*TypeRappelMarquePlisAretes)(void *, int, int, float);
-typedef void(*TypeRappelMarqueSchemaSubdivision)(void *, const char *, unsigned long);
-typedef void(*TypeRappelMarquePropagationCoinsFaceVarying)(void *, int);
-typedef void(*TypeRappelMarqueInterpolationFrontiereFaceVarying)(void *, int);
-typedef void(*TypeRappelMarqueInterpolationFrontiere)(void *, int);
-typedef void(*TypeRappelAjouteIndexPoint)(void*, unsigned long, unsigned long);
+typedef void (*TypeRappelReserveMemoire)(void *, unsigned long);
+typedef void (*TypeRappelAjouteUnPoint)(void *, float, float, float);
+typedef void (*TypeRappelAjouteTousLesPoints)(void *, const float *, unsigned long);
+typedef void (*TypeRappelAjoutepolygone)(void *, unsigned long, const int *, int);
+typedef void (*TypeRappelAjouteTousLesPolygones)(void *, const int *, unsigned long);
+typedef void (*TypeRappelReserveCoinsPolygone)(void *, unsigned long, int);
+typedef void (*TypeRappelAjouteCoinPolygone)(void *, unsigned long, int);
+typedef void (*TypeRappelAjouteTousLesCoins)(void *, const int *, unsigned long);
+typedef void (*TypeRappelMarquePolygoneTrou)(void *, int);
+typedef void (*TypeRappelMarquePlisVertex)(void *, int, float);
+typedef void (*TypeRappelMarquePlisAretes)(void *, int, int, float);
+typedef void (*TypeRappelMarqueSchemaSubdivision)(void *, const char *, unsigned long);
+typedef void (*TypeRappelMarquePropagationCoinsFaceVarying)(void *, int);
+typedef void (*TypeRappelMarqueInterpolationFrontiereFaceVarying)(void *, int);
+typedef void (*TypeRappelMarqueInterpolationFrontiere)(void *, int);
+typedef void (*TypeRappelAjouteIndexPoint)(void *, unsigned long, unsigned long);
 
 struct ConvertisseusePolyMesh {
     void *donnees;
@@ -267,7 +270,8 @@ typedef struct AbcOptionsExport {
 struct ConvertisseuseExportPolyMesh {
     void *donnnees;
     unsigned long (*nombre_de_points)(struct ConvertisseuseExportPolyMesh *);
-    void (*point_pour_index)(struct ConvertisseuseExportPolyMesh *, unsigned long, float *, float *, float *);
+    void (*point_pour_index)(
+        struct ConvertisseuseExportPolyMesh *, unsigned long, float *, float *, float *);
 
     unsigned long (*nombre_de_polygones)(struct ConvertisseuseExportPolyMesh *);
     int (*nombre_de_coins_polygone)(struct ConvertisseuseExportPolyMesh *, unsigned long);
@@ -282,19 +286,43 @@ struct ConvertisseuseExportMateriau {
     void (*type_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
     void (*nom_nuanceur)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
 
-    void (*nom_sortie_graphe)(struct ConvertisseuseExportMateriau *, const char **, unsigned long *);
+    void (*nom_sortie_graphe)(struct ConvertisseuseExportMateriau *,
+                              const char **,
+                              unsigned long *);
 
     unsigned long (*nombre_de_noeuds)(struct ConvertisseuseExportMateriau *);
 
-    void (*nom_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
-    void (*type_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, const char **, unsigned long *);
+    void (*nom_noeud)(struct ConvertisseuseExportMateriau *,
+                      unsigned long,
+                      const char **,
+                      unsigned long *);
+    void (*type_noeud)(struct ConvertisseuseExportMateriau *,
+                       unsigned long,
+                       const char **,
+                       unsigned long *);
 
     unsigned long (*nombre_entrees_noeud)(struct ConvertisseuseExportMateriau *, unsigned long);
-    void (*nom_entree_noeud)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, const char **, unsigned long *);
+    void (*nom_entree_noeud)(struct ConvertisseuseExportMateriau *,
+                             unsigned long,
+                             unsigned long,
+                             const char **,
+                             unsigned long *);
 
-    unsigned long (*nombre_de_connexions)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long);
-    void (*nom_connexion_entree)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
-    void (*nom_noeud_connexion)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
+    unsigned long (*nombre_de_connexions)(struct ConvertisseuseExportMateriau *,
+                                          unsigned long,
+                                          unsigned long);
+    void (*nom_connexion_entree)(struct ConvertisseuseExportMateriau *,
+                                 unsigned long,
+                                 unsigned long,
+                                 unsigned long,
+                                 const char **,
+                                 unsigned long *);
+    void (*nom_noeud_connexion)(struct ConvertisseuseExportMateriau *,
+                                unsigned long,
+                                unsigned long,
+                                unsigned long,
+                                const char **,
+                                unsigned long *);
 };
 
 typedef enum eAbcPortee {
@@ -309,26 +337,35 @@ struct ConvertisseuseImportAttributs {
     bool (*lis_tous_les_attributs)(struct ConvertisseuseImportAttributs *);
     int (*nombre_attributs_requis)(struct ConvertisseuseImportAttributs *);
 
-    void (*nom_attribut_requis)(struct ConvertisseuseImportAttributs *, unsigned long, const char **, unsigned long *);
+    void (*nom_attribut_requis)(struct ConvertisseuseImportAttributs *,
+                                unsigned long,
+                                const char **,
+                                unsigned long *);
 
-    void *(*ajoute_attribut)(struct ConvertisseuseImportAttributs *, const char *, unsigned long, eAbcPortee);
+    void *(*ajoute_attribut)(struct ConvertisseuseImportAttributs *,
+                             const char *,
+                             unsigned long,
+                             eAbcPortee);
 
-    void (*information_portee)(struct ConvertisseuseImportAttributs *, int *points, int *primitives, int *points_primitives);
+    void (*information_portee)(struct ConvertisseuseImportAttributs *,
+                               int *points,
+                               int *primitives,
+                               int *points_primitives);
 
     // Ce n'est que pour un seul attribut
-    void (*ajoute_bool)(void *, unsigned long, bool const*, int);
-    void (*ajoute_n8)(void *, unsigned long, unsigned char const*, int);
-    void (*ajoute_n16)(void *, unsigned long, unsigned short const*, int);
-    void (*ajoute_n32)(void *, unsigned long, unsigned int const*, int);
-    void (*ajoute_n64)(void *, unsigned long, unsigned long const*, int);
-    void (*ajoute_z8)(void *, unsigned long, signed char const*, int);
-    void (*ajoute_z16)(void *, unsigned long, short const*, int);
-    void (*ajoute_z32)(void *, unsigned long, int const*, int);
-    void (*ajoute_z64)(void *, unsigned long, long const*, int);
-    void (*ajoute_r16)(void *, unsigned long, r16 const*, int);
-    void (*ajoute_r32)(void *, unsigned long, float const*, int);
-    void (*ajoute_r64)(void *, unsigned long, double const*, int);
-    void (*ajoute_chaine)(void *, unsigned long, char const*, unsigned long);
+    void (*ajoute_bool)(void *, unsigned long, bool const *, int);
+    void (*ajoute_n8)(void *, unsigned long, unsigned char const *, int);
+    void (*ajoute_n16)(void *, unsigned long, unsigned short const *, int);
+    void (*ajoute_n32)(void *, unsigned long, unsigned int const *, int);
+    void (*ajoute_n64)(void *, unsigned long, unsigned long const *, int);
+    void (*ajoute_z8)(void *, unsigned long, signed char const *, int);
+    void (*ajoute_z16)(void *, unsigned long, short const *, int);
+    void (*ajoute_z32)(void *, unsigned long, int const *, int);
+    void (*ajoute_z64)(void *, unsigned long, long const *, int);
+    void (*ajoute_r16)(void *, unsigned long, r16 const *, int);
+    void (*ajoute_r32)(void *, unsigned long, float const *, int);
+    void (*ajoute_r64)(void *, unsigned long, double const *, int);
+    void (*ajoute_chaine)(void *, unsigned long, char const *, unsigned long);
 };
 
 #ifdef __cplusplus

@@ -32,12 +32,21 @@ struct LectriceCache;
 
 namespace AbcKuri {
 
-EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx, LectriceCache *lectrice, EcrivainCache *parent);
+EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                              LectriceCache *lectrice,
+                                              EcrivainCache *parent);
 
-EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx, EcrivainCache *parent, const char *nom, unsigned long taille_nom, eTypeObjetAbc type_objet);
+EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
+                                   EcrivainCache *parent,
+                                   const char *nom,
+                                   unsigned long taille_nom,
+                                   eTypeObjetAbc type_objet);
 
-EcrivainCache *cree_instance(ContexteKuri *ctx, EcrivainCache *instance, const char *nom, unsigned long taille_nom);
+EcrivainCache *cree_instance(ContexteKuri *ctx,
+                             EcrivainCache *instance,
+                             const char *nom,
+                             unsigned long taille_nom);
 
 void ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain);
 
-}
+}  // namespace AbcKuri

@@ -57,7 +57,7 @@ void deloge_objet(ContexteKuri *ctx, T *objet)
     ctx->deloge_memoire(ctx, objet, sizeof(T));
 }
 
-}
+}  // namespace AbcKuri
 
 template <typename Objet>
 std::string string_depuis_rappel(Objet *objet, void (*rappel)(Objet *, const char **, size_t *))
@@ -75,7 +75,9 @@ std::string string_depuis_rappel(Objet *objet, void (*rappel)(Objet *, const cha
 }
 
 template <typename Objet>
-std::string string_depuis_rappel(Objet *objet, size_t index, void (*rappel)(Objet *, size_t, const char **, size_t *))
+std::string string_depuis_rappel(Objet *objet,
+                                 size_t index,
+                                 void (*rappel)(Objet *, size_t, const char **, size_t *))
 {
     const char *pointeur = nullptr;
     size_t taille = 0;
@@ -90,7 +92,10 @@ std::string string_depuis_rappel(Objet *objet, size_t index, void (*rappel)(Obje
 }
 
 template <typename Objet>
-std::string string_depuis_rappel(Objet *objet, size_t index0, size_t index1, void (*rappel)(Objet *, size_t, size_t, const char **, size_t *))
+std::string string_depuis_rappel(Objet *objet,
+                                 size_t index0,
+                                 size_t index1,
+                                 void (*rappel)(Objet *, size_t, size_t, const char **, size_t *))
 {
     const char *pointeur = nullptr;
     size_t taille = 0;
@@ -105,7 +110,12 @@ std::string string_depuis_rappel(Objet *objet, size_t index0, size_t index1, voi
 }
 
 template <typename Objet>
-std::string string_depuis_rappel(Objet *objet, size_t index0, size_t index1, size_t index2, void (*rappel)(Objet *, size_t, size_t, size_t, const char **, size_t *))
+std::string string_depuis_rappel(
+    Objet *objet,
+    size_t index0,
+    size_t index1,
+    size_t index2,
+    void (*rappel)(Objet *, size_t, size_t, size_t, const char **, size_t *))
 {
     if (!rappel) {
         return "";
