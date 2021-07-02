@@ -1335,6 +1335,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         m_position = position - 1;
                         consomme();
                     }
+
+                    break;
                 }
             }
 
