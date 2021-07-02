@@ -168,6 +168,32 @@ void imprime_contenu_programme(const Programme &programme, std::ostream &os)
 // --------------------------------------------------------
 // RepresentationIntermediaireProgramme
 
+void imprime_contenu_programme(const ProgrammeRepreInter &programme, std::ostream &os)
+{
+    os << "Types dans le programme...\n";
+    POUR (programme.types) {
+        os << "-- " << chaine_type(it) << '\n';
+    }
+    os << "Fonctions dans le programme...\n";
+    POUR (programme.fonctions) {
+        if (it->ident) {
+            os << "-- " << it->ident->nom << '\n';
+        }
+        else {
+            os << "-- anonyme de type " << chaine_type(it->type) << '\n';
+        }
+    }
+    os << "Globales dans le programme...\n";
+    POUR (programme.globales) {
+        if (it->ident) {
+            os << "-- " << it->ident->nom << '\n';
+        }
+        else {
+            os << "-- anonyme de type " << chaine_type(it->type) << '\n';
+        }
+    }
+}
+
 static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
 {
     dls::ensemble<Atome *> globales_utilisess;
@@ -194,6 +220,135 @@ static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
     }
 
     std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en sortie\n";
+}
+
+template <typename T>
+static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
+{
+    dls::ensemble<T> resultat;
+
+    POUR (tableau) {
+        resultat.insere(it);
+    }
+
+    return resultat;
+}
+
+struct VisiteuseType {
+    dls::ensemble<Type *> visites{};
+
+    void visite_type(Type *type, std::function<void(Type*)> rappel)
+    {
+        if (!type) {
+            return;
+        }
+
+        if (visites.possede(type)) {
+            return;
+        }
+
+        visites.insere(type);
+        rappel(type);
+
+        if (type->fonction_init) {
+            visite_type(type->fonction_init->type, rappel);
+        }
+
+        switch (type->genre) {
+            case GenreType::EINI:
+            {
+                break;
+            }
+            case GenreType::CHAINE:
+            {
+                break;
+            }
+            case GenreType::RIEN:
+            case GenreType::BOOL:
+            case GenreType::OCTET:
+            case GenreType::ENTIER_CONSTANT:
+            case GenreType::ENTIER_NATUREL:
+            case GenreType::ENTIER_RELATIF:
+            case GenreType::REEL:
+            {
+                break;
+            }
+            case GenreType::REFERENCE:
+            {
+                auto reference = type->comme_pointeur();
+                visite_type(reference->type_pointe, rappel);
+                break;
+            }
+            case GenreType::POINTEUR:
+            {
+                auto pointeur = type->comme_pointeur();
+                visite_type(pointeur->type_pointe, rappel);
+                break;
+            }
+            case GenreType::UNION:
+            {
+                break;
+            }
+            case GenreType::STRUCTURE:
+            {
+                break;
+            }
+            case GenreType::TABLEAU_DYNAMIQUE:
+            {
+                auto tableau = type->comme_tableau_dynamique();
+                visite_type(tableau->type_pointe, rappel);
+                break;
+            }
+            case GenreType::TABLEAU_FIXE:
+            {
+                auto tableau = type->comme_tableau_fixe();
+                visite_type(tableau->type_pointe, rappel);
+                break;
+            }
+            case GenreType::VARIADIQUE:
+            {
+                auto variadique = type->comme_variadique();
+                visite_type(variadique->type_pointe, rappel);
+                break;
+            }
+            case GenreType::FONCTION:
+            {
+                auto fonction = type->comme_fonction();
+                POUR (fonction->types_entrees) {
+                    visite_type(it, rappel);
+                }
+                visite_type(fonction->type_sortie, rappel);
+                break;
+            }
+            case GenreType::ENUM:
+            case GenreType::ERREUR:
+            {
+                break;
+            }
+            case GenreType::TYPE_DE_DONNEES:
+            {
+                break;
+            }
+            case GenreType::POLYMORPHIQUE:
+            {
+                break;
+            }
+            case GenreType::OPAQUE:
+            {
+                break;
+            }
+            case GenreType::TUPLE:
+            {
+                break;
+            }
+        }
+    }
+};
+
+static void visite_type(Type *type, std::function<void(Type*)> rappel)
+{
+    VisiteuseType visiteuse{};
+    visiteuse.visite_type(type, rappel);
 }
 
 ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace)
@@ -244,6 +399,36 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
     /* Traverse les instructions des fonctions, et rassemble les globales pour les chaines, les
      * tableaux, et les infos-types. */
     rassemble_globales_supplementaire(resultat);
+
+    {
+        /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
+         * aurions ajoutées (qui ne sont pas dans le programme initiale). */
+        auto type_utilises = cree_ensemble(resultat.types);
+
+        POUR (resultat.fonctions) {
+            visite_type(it->type, [&](Type *type) {
+                if (type_utilises.possede(type)) {
+                    return;
+                }
+
+                type_utilises.insere(type);
+                resultat.types.ajoute(type);
+            });
+        }
+
+        POUR (resultat.globales) {
+            visite_type(it->type, [&](Type *type) {
+                if (type_utilises.possede(type)) {
+                    return;
+                }
+
+                type_utilises.insere(type);
+                resultat.types.ajoute(type);
+            });
+        }
+    }
+
+    imprime_contenu_programme(resultat, std::cerr);
 
     return resultat;
 }

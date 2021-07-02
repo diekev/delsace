@@ -1490,7 +1490,6 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     }
 
     auto programme = espace.programme;
-    imprime_contenu_programme(*programme, std::cerr);
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme, espace);
