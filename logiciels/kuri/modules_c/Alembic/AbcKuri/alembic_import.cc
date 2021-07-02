@@ -24,6 +24,8 @@
 
 #include "alembic_import.hh"
 
+#include <codecvt>
+
 #include "../alembic_types.h"
 
 #include "alembic_archive.hh"
@@ -634,16 +636,35 @@ enum {
 template <typename T>
 struct convertisseuse_valeur;
 
+template <>
+struct convertisseuse_valeur<std::string> {
+    static void convertis(ConvertisseuseImportAttributs *convertisseuse, void *ptr, size_t i, const std::string &valeur)
+    {
+        convertisseuse->ajoute_chaine(ptr, i, valeur.c_str(), valeur.size());
+    }
+};
+
+template <>
+struct convertisseuse_valeur<std::wstring> {
+    static void convertis(ConvertisseuseImportAttributs *convertisseuse, void *ptr, size_t i, const std::wstring &valeur)
+    {
+        using convert_type = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_type, wchar_t> converter;
+        std::string valeur_convertie = converter.to_bytes(valeur);
+        convertisseuse->ajoute_chaine(ptr, i, valeur_convertie.c_str(), valeur_convertie.size());
+    }
+};
+
 #define DEFINIS_CONVERTISSEUSE_VALEUR(TYPE_ALEMBIC, TYPE_POINTEUR, TYPE_KURI, DIMENSIONS) \
     template <> \
     struct convertisseuse_valeur<TYPE_ALEMBIC> { \
-        static void convertis(ConvertisseuseImportAttributs *convertisseuse, size_t i, const TYPE_ALEMBIC &valeur) \
+        static void convertis(ConvertisseuseImportAttributs *convertisseuse, void *ptr, size_t i, const TYPE_ALEMBIC &valeur) \
         { \
-            convertisseuse->ajoute_##TYPE_KURI(convertisseuse, i, reinterpret_cast<const TYPE_POINTEUR *>(&valeur), 1); \
+            convertisseuse->ajoute_##TYPE_KURI(ptr, i, reinterpret_cast<const TYPE_POINTEUR *>(&valeur), DIMENSIONS); \
         } \
     }
 
-DEFINIS_CONVERTISSEUSE_VALEUR(bool, bool, bool, 1);
+DEFINIS_CONVERTISSEUSE_VALEUR(Alembic::Abc::bool_t, bool, bool, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(int8_t, int8_t, z8, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(uint8_t, uint8_t, n8, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(int16_t, int16_t, z16, 1);
@@ -692,10 +713,127 @@ DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4f, float, r32, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
 
-static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse, const AbcGeom::ICompoundProperty &parent, const Abc::PropertyHeader &entete)
+static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse, AbcGeom::GeometryScope portee_pretendue, AbcGeom::UInt32ArraySamplePtr indices)
+{
+    if (!indices) {
+        return eAbcPortee::AUCUNE;
+    }
+
+    if (!convertisseuse->information_portee) {
+        return eAbcPortee::AUCUNE;
+    }
+
+    const int taille_des_donnees = static_cast<int>(indices->size());
+
+    int nombre_de_points = 0;
+    int nombre_de_primitives = 0;
+    int nombre_de_points_primitives = 0;
+    convertisseuse->information_portee(convertisseuse, &nombre_de_points, &nombre_de_primitives, &nombre_de_points_primitives);
+
+    switch (portee_pretendue) {
+        case AbcGeom::kConstantScope: {
+            if (taille_des_donnees == 1) {
+                return eAbcPortee::OBJECT;
+            }
+            break;
+        }
+        case AbcGeom::kUniformScope: {
+            if (taille_des_donnees == 1) {
+                return eAbcPortee::OBJECT;
+            }
+            break;
+        }
+        case AbcGeom::kVaryingScope: {
+            if (taille_des_donnees == nombre_de_points) {
+                return eAbcPortee::POINT;
+            }
+
+            if (taille_des_donnees == nombre_de_points_primitives) {
+                return eAbcPortee::POINT_PRIMITIVE;
+            }
+            if (taille_des_donnees == nombre_de_primitives) {
+                return eAbcPortee::PRIMITIVE;
+            }
+
+            break;
+        }
+        case AbcGeom::kVertexScope: {
+            if (taille_des_donnees == nombre_de_points) {
+                return eAbcPortee::POINT;
+            }
+
+            break;
+        }
+        case AbcGeom::kFacevaryingScope: {
+            if (taille_des_donnees == nombre_de_points_primitives) {
+                return eAbcPortee::POINT_PRIMITIVE;
+            }
+
+            break;
+        }
+        case AbcGeom::kUnknownScope: {
+            break;
+        }
+    }
+
+    return eAbcPortee::AUCUNE;
+}
+
+template <typename Trait>
+static void gere_attribut(ConvertisseuseImportAttributs *convertisseuse, AbcGeom::ITypedGeomParam<Trait> param, double temps)
+{
+    using TypeEchantillon = typename AbcGeom::ITypedGeomParam<Trait>::Sample;
+    using TypeDeDonnes = typename Trait::value_type;
+    using ConvertisseuseValeur = convertisseuse_valeur<TypeDeDonnes>;
+
+    if (!param.valid()) {
+        return;
+    }
+
+    const auto iss = AbcGeom::ISampleSelector(temps);
+
+    TypeEchantillon sample;
+    param.getIndexed(sample, iss);
+
+    if (!sample.valid()) {
+        return;
+    }
+
+    const auto valeurs = sample.getVals();
+    const auto indices = sample.getIndices();
+
+    if (!valeurs || !indices) {
+        return;
+    }
+
+    const auto portee = determine_portee(convertisseuse, param.getScope(), indices);
+    if (portee == eAbcPortee::AUCUNE) {
+        // À FAIRE : nous pourrions avoir une manière de quand même importer ces données
+        return;
+    }
+
+    //  À FAIRE : passe les informations sur le type de donnée (bool, float, etc. | 1d, 2d, etc).
+    const auto &nom = param.getName();
+    auto ptr_attribut = convertisseuse->ajoute_attribut(convertisseuse, nom.c_str(), nom.size(), portee);
+    if (!ptr_attribut) {
+        return;
+    }
+
+    for (auto i = 0ul; i < indices->size(); ++i) {
+        auto idx = (*indices)[i];
+
+        if (idx >= valeurs->size()) {
+            continue;
+        }
+
+        ConvertisseuseValeur::convertis(convertisseuse, ptr_attribut, i, (*valeurs)[idx]);
+    }
+}
+
+static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse, const AbcGeom::ICompoundProperty &parent, const Abc::PropertyHeader &entete, double temps)
 {
     if (AbcGeom::IV2fGeomParam::matches(entete) && Alembic::AbcGeom::isUV(entete)) {
-       // const auto &param = AbcGeom::IV2fGeomParam(parent, entete.getName());
+       // À FAIRE : const auto &param = AbcGeom::IV2fGeomParam(parent, entete.getName());
         // Cas spécial pour les UVs.
         return;
     }
@@ -703,6 +841,7 @@ static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse, co
 #define GERE_ATTRIBUT(TYPE_GEOM_PARAM) \
     if (TYPE_GEOM_PARAM::matches(entete)) { \
         const auto &param = TYPE_GEOM_PARAM(parent, entete.getName()); \
+        gere_attribut(convertisseuse, param, temps); \
         return; \
     }
 
@@ -772,6 +911,8 @@ static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse, co
 
     GERE_ATTRIBUT(AbcGeom::IN3fGeomParam)
     GERE_ATTRIBUT(AbcGeom::IN3dGeomParam)
+
+#undef GERE_ATTRIBUT
 }
 
 // À FAIRE : ctx.annule
@@ -792,7 +933,7 @@ static void lis_attributs(ContexteKuri */*ctx_kuri*/, ConvertisseuseImportAttrib
             return;
         }
 
-        convertis_attribut(convertisseuse, parent, sous_prop);
+        convertis_attribut(convertisseuse, parent, sous_prop, temps);
     });
 }
 

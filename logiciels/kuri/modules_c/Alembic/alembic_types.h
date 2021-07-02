@@ -297,25 +297,38 @@ struct ConvertisseuseExportMateriau {
     void (*nom_noeud_connexion)(struct ConvertisseuseExportMateriau *, unsigned long, unsigned long, unsigned long, const char **, unsigned long *);
 };
 
+typedef enum eAbcPortee {
+    AUCUNE,
+    POINT,
+    PRIMITIVE,
+    POINT_PRIMITIVE,
+    OBJECT,
+} eAbcPortee;
+
 struct ConvertisseuseImportAttributs {
     bool (*lis_tous_les_attributs)(struct ConvertisseuseImportAttributs *);
     int (*nombre_attributs_requis)(struct ConvertisseuseImportAttributs *);
 
     void (*nom_attribut_requis)(struct ConvertisseuseImportAttributs *, unsigned long, const char **, unsigned long *);
 
+    void *(*ajoute_attribut)(struct ConvertisseuseImportAttributs *, const char *, unsigned long, eAbcPortee);
+
+    void (*information_portee)(struct ConvertisseuseImportAttributs *, int *points, int *primitives, int *points_primitives);
+
     // Ce n'est que pour un seul attribut
-    void (*ajoute_bool)(struct ConvertisseuseImportAttributs *, unsigned long, bool const*, int);
-    void (*ajoute_n8)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned char const*, int);
-    void (*ajoute_n16)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned short const*, int);
-    void (*ajoute_n32)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned int const*, int);
-    void (*ajoute_n64)(struct ConvertisseuseImportAttributs *, unsigned long, unsigned long const*, int);
-    void (*ajoute_z8)(struct ConvertisseuseImportAttributs *, unsigned long, signed char const*, int);
-    void (*ajoute_z16)(struct ConvertisseuseImportAttributs *, unsigned long, short const*, int);
-    void (*ajoute_z32)(struct ConvertisseuseImportAttributs *, unsigned long, int const*, int);
-    void (*ajoute_z64)(struct ConvertisseuseImportAttributs *, unsigned long, long const*, int);
-    void (*ajoute_r16)(struct ConvertisseuseImportAttributs *, unsigned long, r16 const*, int);
-    void (*ajoute_r32)(struct ConvertisseuseImportAttributs *, unsigned long, float const*, int);
-    void (*ajoute_r64)(struct ConvertisseuseImportAttributs *, unsigned long, double const*, int);
+    void (*ajoute_bool)(void *, unsigned long, bool const*, int);
+    void (*ajoute_n8)(void *, unsigned long, unsigned char const*, int);
+    void (*ajoute_n16)(void *, unsigned long, unsigned short const*, int);
+    void (*ajoute_n32)(void *, unsigned long, unsigned int const*, int);
+    void (*ajoute_n64)(void *, unsigned long, unsigned long const*, int);
+    void (*ajoute_z8)(void *, unsigned long, signed char const*, int);
+    void (*ajoute_z16)(void *, unsigned long, short const*, int);
+    void (*ajoute_z32)(void *, unsigned long, int const*, int);
+    void (*ajoute_z64)(void *, unsigned long, long const*, int);
+    void (*ajoute_r16)(void *, unsigned long, r16 const*, int);
+    void (*ajoute_r32)(void *, unsigned long, float const*, int);
+    void (*ajoute_r64)(void *, unsigned long, double const*, int);
+    void (*ajoute_chaine)(void *, unsigned long, char const*, unsigned long);
 };
 
 #ifdef __cplusplus
