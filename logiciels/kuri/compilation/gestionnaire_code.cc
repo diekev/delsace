@@ -38,6 +38,13 @@
 
 // À FAIRE(gestion) : message pour la fin de la compilation
 
+/*
+  À FAIRE(gestion) : pour chaque type :
+- création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
+- création d'une fonction d'initialisation (TACHE_CREATION_FONCTION_INITIALISATION)
+- avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la compilation
+ */
+
 static bool est_declaration_variable_globale(NoeudExpression const *noeud)
 {
     if (!noeud->est_declaration_variable()) {
