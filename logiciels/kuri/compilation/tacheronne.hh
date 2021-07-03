@@ -40,20 +40,20 @@ struct Compilatrice;
 struct MetaProgramme;
 struct Tacheronne;
 
-#define ENUMERE_TACHES_POSSIBLES(O) \
-    O(CHARGER, CHARGEMENT, "chargement", 0) \
-    O(LEXER, LEXAGE, "lexage", 1) \
-    O(PARSER, PARSAGE, "parsage", 2) \
-    O(TYPER, TYPAGE, "typage", 3) \
-    O(GENERER_RI, GENERATION_RI, "génération RI", 4) \
-    O(EXECUTER, EXECUTION, "exécution", 5) \
-    O(OPTIMISER, OPTIMISATION, "optimisation", 6) \
-    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 7) \
+#define ENUMERE_TACHES_POSSIBLES(O)                                                               \
+    O(CHARGER, CHARGEMENT, "chargement", 0)                                                       \
+    O(LEXER, LEXAGE, "lexage", 1)                                                                 \
+    O(PARSER, PARSAGE, "parsage", 2)                                                              \
+    O(TYPER, TYPAGE, "typage", 3)                                                                 \
+    O(GENERER_RI, GENERATION_RI, "génération RI", 4)                                              \
+    O(EXECUTER, EXECUTION, "exécution", 5)                                                        \
+    O(OPTIMISER, OPTIMISATION, "optimisation", 6)                                                 \
+    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 7)                        \
     O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 8)
 
 #define ENUMERE_GENRES_TACHE(O)                                                                   \
     O(DORMIR, DORS, "dormir", 0)                                                                  \
-    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                                                  \
+    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                      \
     ENUMERE_TACHES_POSSIBLES(O)
 
 enum class GenreTache {
@@ -82,8 +82,7 @@ struct Tache {
 
 /* Drapeaux pour les tâches étant dans des files. */
 enum class DrapeauxTacheronne : uint32_t {
-#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX) \
-    PEUT_##VERBE = (1 << INDEX),
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX) PEUT_##VERBE = (1 << INDEX),
 
     ENUMERE_TACHES_POSSIBLES(ENUMERE_CAPACITE)
 
@@ -95,10 +94,9 @@ enum class DrapeauxTacheronne : uint32_t {
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
 
 struct OrdonnanceuseTache {
- public:
+  public:
     enum {
-#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDEX) \
-        FILE_##ACTION,
+#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDEX) FILE_##ACTION,
 
         ENUMERE_TACHES_POSSIBLES(ENUMERE_FILE)
 
@@ -109,7 +107,6 @@ struct OrdonnanceuseTache {
 
   private:
     Compilatrice *m_compilatrice = nullptr;
-
 
     dls::file<Tache> taches[NOMBRE_FILES];
 

@@ -44,8 +44,8 @@
 
 const char *chaine_genre_tache(GenreTache genre)
 {
-#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                                             \
-    case GenreTache::ACTION:                                                                       \
+#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
+    case GenreTache::ACTION:                                                                      \
         return CHAINE;
     switch (genre) {
         ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
@@ -113,7 +113,9 @@ struct PiqueTailleFile {
 static PiqueTailleFile pique_taille;
 #endif
 
-static inline void ajoute_tache(dls::file<Tache> &taches, UniteCompilation *unite, GenreTache genre)
+static inline void ajoute_tache(dls::file<Tache> &taches,
+                                UniteCompilation *unite,
+                                GenreTache genre)
 {
     assert(unite);
     assert(unite->espace);
@@ -254,16 +256,16 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
 
 Tache OrdonnanceuseTache::defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
 {
-	using dls::outils::possede_drapeau;
+    using dls::outils::possede_drapeau;
 
-	for (int i = 0; i < NOMBRE_FILES; ++i) {
-		if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
-			continue;
-		}
+    for (int i = 0; i < NOMBRE_FILES; ++i) {
+        if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
+            continue;
+        }
 
-		if (!taches[i].est_vide()) {
-			return taches[i].defile();
-		}
+        if (!taches[i].est_vide()) {
+            return taches[i].defile();
+        }
     }
 
     if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
