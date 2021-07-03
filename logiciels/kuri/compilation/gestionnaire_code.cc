@@ -70,20 +70,17 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
     /* Ajoute les fonctions. */
     dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         programme.ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction));
-//        std::cerr << "Ajout d'une fonction au programme...\n";
         return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les globales. */
     dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
-        // std::cerr << "Ajout d'une globale au programme...\n";
         return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les types. */
     dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        // std::cerr << "Ajout d'un type au programme...\n";
         programme.ajoute_type(type);
         return dls::DecisionIteration::Continue;
     });
@@ -933,23 +930,25 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         doit_envoyer_en_ri = true;
     }
 
-//    if (noeud->est_corps_fonction() && noeud->comme_corps_fonction()->entete->ident == ID::principale) {
-//        imprime_evenement(unite, "typage terminé");
+#if 0 //  À FAIRE(gestion)
+    if (noeud->est_corps_fonction() && noeud->comme_corps_fonction()->entete->ident == ID::principale) {
+        imprime_evenement(unite, "typage terminé");
 
-//        if (doit_envoyer_en_ri) {
-//            imprime_evenement(unite, "ri requise");
-//        }
-//    }
+        if (doit_envoyer_en_ri) {
+            imprime_evenement(unite, "ri requise");
+        }
+    }
 
-//    if (!noeud->est_execute()) {
-//        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
-//            unite->espace, static_cast<NoeudDeclaration *>(noeud));
+    if (!noeud->est_execute()) {
+        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
+            unite->espace, static_cast<NoeudDeclaration *>(noeud));
 
-//        if (message_enfile && doit_envoyer_en_ri) {
-//            mets_en_attente(unite, Attente::sur_message(message_enfile));
-//            doit_envoyer_en_ri = false;
-//        }
-//    }
+        if (message_enfile && doit_envoyer_en_ri) {
+            mets_en_attente(unite, Attente::sur_message(message_enfile));
+            doit_envoyer_en_ri = false;
+        }
+    }
+#endif
 
     if (doit_envoyer_en_ri) {
         //imprime_evenement(unite, "ri requise");

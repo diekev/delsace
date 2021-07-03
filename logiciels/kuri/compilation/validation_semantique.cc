@@ -3688,7 +3688,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             graphe->connecte_type_type(type_compose, it.type);
         }
 
-        std::cerr << "Termine la validation de l'union : " << chaine_type(decl->type) << ", " << decl->type << "\n";
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
         return CodeRetourValidation::OK;

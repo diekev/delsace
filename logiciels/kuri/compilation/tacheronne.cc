@@ -371,24 +371,21 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
     }
 
     if (tache_typage && !tache_ri) {
-        //std::cerr << "Retourne une tâche de typage...\n";
         return taches_typage.defile();
     }
 
     if (tache_ri && !tache_typage) {
-        //std::cerr << "Retourne une tâche de ri...\n";
         return taches_generation_ri.defile();
     }
 
     if (tache_ri && tache_typage) {
-        // À FAIRE(gestion)
-        //        if (tache_typage->unite->etat() ==
-        //        UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
-        //            taches_generation_ri.taille() > taches_typage.taille()) {
-        //            return taches_generation_ri.defile();
-        //        }
-
-        //std::cerr << "Retourne une tâche de typage...\n";
+#if 0 // À FAIRE(gestion)
+        if (tache_typage->unite->etat() ==
+                UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
+                taches_generation_ri.taille() > taches_typage.taille()) {
+            return taches_generation_ri.defile();
+        }
+#endif
         return taches_typage.defile();
     }
 
@@ -460,8 +457,9 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
     taches_typage.efface();
     taches_generation_ri.efface();
     taches_execution.efface();
-    taches_message.efface();
     taches_optimisation.efface();
+    taches_liaison_programme.efface();
+    taches_generation_code_machine.efface();
 
     for (int i = 0; i < nombre_de_tacheronnes; ++i) {
         taches_chargement.enfile(Tache::compilation_terminee());
@@ -470,8 +468,9 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
         taches_typage.enfile(Tache::compilation_terminee());
         taches_generation_ri.enfile(Tache::compilation_terminee());
         taches_execution.enfile(Tache::compilation_terminee());
-        taches_message.enfile(Tache::compilation_terminee());
         taches_optimisation.enfile(Tache::compilation_terminee());
+        taches_liaison_programme.enfile(Tache::compilation_terminee());
+        taches_generation_code_machine.enfile(Tache::compilation_terminee());
     }
 }
 
@@ -485,8 +484,9 @@ void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTr
     taches_typage.efface_si(predicat);
     taches_generation_ri.efface_si(predicat);
     taches_execution.efface_si(predicat);
-    taches_message.efface_si(predicat);
     taches_optimisation.efface_si(predicat);
+    taches_liaison_programme.efface_si(predicat);
+    taches_generation_code_machine.efface_si(predicat);
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)
