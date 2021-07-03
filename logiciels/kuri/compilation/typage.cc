@@ -682,7 +682,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     return type;
 }
 
-TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
+TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insere_dans_graphe)
 {
     auto types_tableaux_dynamiques_ = types_tableaux_dynamiques.verrou_ecriture();
 
@@ -701,8 +701,12 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 
     auto type = types_tableaux_dynamiques_->ajoute_element(type_pointe, std::move(membres));
 
-    auto graphe = graphe_.verrou_ecriture();
-    graphe->connecte_type_type(type, type_pointe);
+    /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
+     * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
+    if (insere_dans_graphe) {
+        auto graphe = graphe_.verrou_ecriture();
+        graphe->connecte_type_type(type, type_pointe);
+    }
 
     return type;
 }
@@ -731,6 +735,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(type, type_pointe);
         graphe->connecte_type_type(type, tableau_dyn);
+
+        type->type_tableau_dyn = tableau_dyn;
     }
 
     return type;

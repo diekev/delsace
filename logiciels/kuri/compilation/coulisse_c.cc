@@ -439,6 +439,11 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
 
         type_fonc->type_sortie->drapeaux |= TYPEDEF_FUT_GENERE;
     }
+    else if (type->est_variadique()) {
+        if (type->comme_variadique()->type_pointe) {
+            genere_typedefs_recursifs(compilatrice, type->comme_variadique()->type_pointe, enchaineuse);
+        }
+    }
 
     cree_typedef(type, enchaineuse);
     type->drapeaux |= TYPEDEF_FUT_GENERE;
