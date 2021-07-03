@@ -92,18 +92,9 @@ Tache Tache::liaison_objet(EspaceDeTravail *espace_)
     return t;
 }
 
-#undef STATS_PIQUE_TAILLE
-
-#ifdef STATS_PIQUE_TAILLE
+#if 0
 struct PiqueTailleFile {
-    long taches_chargement = 0;
-    long taches_execution = 0;
-    long taches_generation_ri = 0;
-    long taches_lexage = 0;
-    long taches_message = 0;
-    long taches_optimisation = 0;
-    long taches_parsage = 0;
-    long taches_typage = 0;
+    long taches[OrdonnanceuseTache::NOMBRE_FILES];
 
     ~PiqueTailleFile()
     {
@@ -122,12 +113,17 @@ struct PiqueTailleFile {
 static PiqueTailleFile pique_taille;
 #endif
 
-#if 0
-void OrdonnanceuseTache::enfile(Tache tache, int index_file)
+static inline void ajoute_tache(dls::file<Tache> &taches, UniteCompilation *unite, GenreTache genre)
 {
-	taches[index_file].enfile(tache);
+    assert(unite);
+    assert(unite->espace);
+    auto tache = Tache{};
+    tache.unite = unite;
+    tache.espace = unite->espace;
+    tache.genre = genre;
+
+    taches.enfile(tache);
 }
-#endif
 
 OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
 {
@@ -135,51 +131,42 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatr
 
 void OrdonnanceuseTache::cree_tache_pour_chargement(UniteCompilation *unite)
 {
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::CHARGE_FICHIER;
-
-    taches_chargement.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_chargement = std::max(pique_taille.taches_chargement,
-                                              taches_chargement.taille());
-#endif
+    ajoute_tache(taches[FILE_CHARGEMENT], unite, GenreTache::CHARGE_FICHIER);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_lexage(UniteCompilation *unite)
 {
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::LEXE;
-
-    taches_lexage.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_lexage = std::max(pique_taille.taches_lexage, taches_lexage.taille());
-#endif
+    ajoute_tache(taches[FILE_LEXAGE], unite, GenreTache::LEXE);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_parsage(UniteCompilation *unite)
 {
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::PARSE;
-
-    taches_parsage.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_parsage = std::max(pique_taille.taches_parsage, taches_parsage.taille());
-#endif
+    ajoute_tache(taches[FILE_PARSAGE], unite, GenreTache::PARSE);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_typage(UniteCompilation *unite)
 {
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::TYPAGE;
+    ajoute_tache(taches[FILE_TYPAGE], unite, GenreTache::TYPAGE);
+}
 
-    taches_typage.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_typage = std::max(pique_taille.taches_typage, taches_typage.taille());
-#endif
+void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
+{
+    ajoute_tache(taches[FILE_GENERATION_RI], unite, GenreTache::GENERE_RI);
+}
+
+void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
+{
+    ajoute_tache(taches[FILE_EXECUTION], unite, GenreTache::EXECUTE);
+}
+
+void OrdonnanceuseTache::cree_tache_pour_generation_code_machine(UniteCompilation *unite)
+{
+    ajoute_tache(taches[FILE_GENERATION_CODE_MACHINE], unite, GenreTache::GENERE_FICHIER_OBJET);
+}
+
+void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *unite)
+{
+    ajoute_tache(taches[FILE_LIAISON_PROGRAMME], unite, GenreTache::LIAISON_EXECUTABLE);
 }
 
 void OrdonnanceuseTache::renseigne_etat_tacheronne(int id, GenreTache genre_tache)
@@ -215,56 +202,11 @@ bool OrdonnanceuseTache::autre_tacheronne_dans_etat(int id, GenreTache genre_tac
 
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
-    return taches_chargement.taille() + taches_lexage.taille() + taches_parsage.taille() +
-           taches_typage.taille() + taches_generation_ri.taille() + taches_optimisation.taille() +
-           taches_execution.taille() + taches_generation_code_machine.taille() +
-           taches_liaison_programme.taille();
-}
-
-void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
-{
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::GENERE_RI;
-
-    taches_generation_ri.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_generation_ri = std::max(pique_taille.taches_generation_ri,
-                                                 taches_generation_ri.taille());
-#endif
-}
-
-void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
-{
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.genre = GenreTache::EXECUTE;
-
-    taches_execution.enfile(tache);
-#ifdef STATS_PIQUE_TAILLE
-    pique_taille.taches_execution = std::max(pique_taille.taches_execution,
-                                             taches_execution.taille());
-#endif
-}
-
-void OrdonnanceuseTache::cree_tache_pour_generation_code_machine(UniteCompilation *unite)
-{
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.espace = unite->espace;
-    tache.genre = GenreTache::GENERE_FICHIER_OBJET;
-
-    taches_generation_code_machine.enfile(tache);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *unite)
-{
-    auto tache = Tache();
-    tache.unite = unite;
-    tache.espace = unite->espace;
-    tache.genre = GenreTache::LIAISON_EXECUTABLE;
-
-    taches_liaison_programme.enfile(tache);
+    auto resultat = 0l;
+    POUR (taches) {
+        resultat += it.taille();
+    }
+    return resultat;
 }
 
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
@@ -290,7 +232,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
     /* Assigne une nouvelle tâche avant de traiter la dernière, afin d'éviter les
      * problèmes de cycles, par exemple quand une tâche de typage est la seule dans
      * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
-    auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
+    auto nouvelle_tache = defile_une_tache(espace, drapeaux);
 
     if (espace->possede_erreur) {
         return nouvelle_tache;
@@ -310,11 +252,8 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
     return nouvelle_tache;
 }
 
-Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
-                                         int id,
-                                         DrapeauxTacheronne drapeaux)
+Tache OrdonnanceuseTache::defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
 {
-#if 0
 	using dls::outils::possede_drapeau;
 
 	for (int i = 0; i < NOMBRE_FILES; ++i) {
@@ -325,88 +264,6 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
 		if (!taches[i].est_vide()) {
 			return taches[i].defile();
 		}
-	}
-#endif
-
-    /* toute tâcheronne pouvant lexer peut charger */
-    if (!taches_chargement.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
-        return taches_chargement.defile();
-    }
-
-    if (!taches_lexage.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
-        return taches_lexage.defile();
-    }
-
-    if (!taches_parsage.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER))) {
-        return taches_parsage.defile();
-    }
-
-    /* Nous pouvons avoir des dépendances entre le typage et la génération de RI
-     * quand nous exécutons des métaprogrammes #corps_texte : on ne peut typer une
-     * fonction restante tant que le #corps_texte ne fut pas généré, mais nous ne
-     * pouvons générer les #corps_texte tant que toutes les dépendances n'ont pas
-     * eu leurs RI générées. Or, à cause de l'ordre dans lequel nous donnons les
-     * tâches, le typage se fait avant la génération de RI. Donc afin d'éviter
-     * de rester bloqué dans le typage, prenons une tâche de typage et une de RI
-     * et donnons celle de RI si le typage attend sur un métaprogramme.
-     *
-     * Il nous faudra une meilleure manière de gérer ce cas.
-     */
-    auto tache_typage = static_cast<Tache *>(nullptr);
-    auto tache_ri = static_cast<Tache *>(nullptr);
-
-    if (!taches_typage.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER) &&
-         !autre_tacheronne_dans_etat(id, GenreTache::TYPAGE))) {
-        tache_typage = &taches_typage.front();
-    }
-
-    if (!taches_generation_ri.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI) &&
-         !autre_tacheronne_dans_etat(id, GenreTache::GENERE_RI))) {
-        tache_ri = &taches_generation_ri.front();
-    }
-
-    if (tache_typage && !tache_ri) {
-        return taches_typage.defile();
-    }
-
-    if (tache_ri && !tache_typage) {
-        return taches_generation_ri.defile();
-    }
-
-    if (tache_ri && tache_typage) {
-#if 0  // À FAIRE(gestion)
-        if (tache_typage->unite->etat() ==
-                UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
-                taches_generation_ri.taille() > taches_typage.taille()) {
-            return taches_generation_ri.defile();
-        }
-#endif
-        return taches_typage.defile();
-    }
-
-    if (!taches_optimisation.est_vide() &&
-        dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER)) {
-        return taches_optimisation.defile();
-    }
-
-    if (!taches_generation_code_machine.est_vide() &&
-        dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
-        return taches_generation_code_machine.defile();
-    }
-
-    if (!taches_liaison_programme.est_vide() &&
-        dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
-        return taches_liaison_programme.defile();
-    }
-
-    if (!taches_execution.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER))) {
-        return taches_execution.defile();
     }
 
     if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
@@ -434,7 +291,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
 long OrdonnanceuseTache::memoire_utilisee() const
 {
     auto memoire = 0l;
-    memoire += unites.memoire_utilisee();
+    //  À FAIRE: memoire utilisée
     return memoire;
 }
 
@@ -451,42 +308,25 @@ void OrdonnanceuseTache::purge_messages()
 
 void OrdonnanceuseTache::supprime_toutes_les_taches()
 {
-    taches_chargement.efface();
-    taches_lexage.efface();
-    taches_parsage.efface();
-    taches_typage.efface();
-    taches_generation_ri.efface();
-    taches_execution.efface();
-    taches_optimisation.efface();
-    taches_liaison_programme.efface();
-    taches_generation_code_machine.efface();
+    POUR (taches) {
+        it.efface();
+    }
 
+    /* Il faut que toutes les tacheronnes soient notifiées de la fin de la compilation, donc enfile
+     * un nombre égal de tâcheronnes de tâches de fin de compilation. */
     for (int i = 0; i < nombre_de_tacheronnes; ++i) {
-        taches_chargement.enfile(Tache::compilation_terminee());
-        taches_lexage.enfile(Tache::compilation_terminee());
-        taches_parsage.enfile(Tache::compilation_terminee());
-        taches_typage.enfile(Tache::compilation_terminee());
-        taches_generation_ri.enfile(Tache::compilation_terminee());
-        taches_execution.enfile(Tache::compilation_terminee());
-        taches_optimisation.enfile(Tache::compilation_terminee());
-        taches_liaison_programme.enfile(Tache::compilation_terminee());
-        taches_generation_code_machine.enfile(Tache::compilation_terminee());
+        POUR (taches) {
+            it.enfile(Tache::compilation_terminee());
+        }
     }
 }
 
 void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace)
 {
     auto predicat = [&](Tache const &tache) { return tache.espace == espace; };
-
-    taches_chargement.efface_si(predicat);
-    taches_lexage.efface_si(predicat);
-    taches_parsage.efface_si(predicat);
-    taches_typage.efface_si(predicat);
-    taches_generation_ri.efface_si(predicat);
-    taches_execution.efface_si(predicat);
-    taches_optimisation.efface_si(predicat);
-    taches_liaison_programme.efface_si(predicat);
-    taches_generation_code_machine.efface_si(predicat);
+    POUR (taches) {
+        it.efface_si(predicat);
+    }
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)

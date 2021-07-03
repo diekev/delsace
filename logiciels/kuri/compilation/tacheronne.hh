@@ -86,11 +86,9 @@ enum class DrapeauxTacheronne : uint32_t {
     PEUT_TYPER = (1 << 3),
     PEUT_GENERER_RI = (1 << 4),
     PEUT_EXECUTER = (1 << 5),
-    PEUT_ENVOYER_MESSAGE = (1 << 6),
-    PEUT_OPTIMISER = (1 << 7),
-
-    /* drapeaux pour les tâches n'étant pas dans des files */
-    PEUT_GENERER_CODE = (1 << 8),
+    PEUT_OPTIMISER = (1 << 6),
+    PEUT_GENERER_CODE = (1 << 7),
+    PEUT_LIER_PROGRAMME = (1 << 8),
 
     PEUT_TOUT_FAIRE = 0xfffffff,
 };
@@ -98,40 +96,26 @@ enum class DrapeauxTacheronne : uint32_t {
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
 
 struct OrdonnanceuseTache {
-  private:
-    Compilatrice *m_compilatrice = nullptr;
-
-#if 0
-	enum {
-		FILE_CHARGEMENT,
-		FILE_LEXAGE,
-		FILE_PARSAGE,
-		FILE_TYPAGE,
-		FILE_GENERATION_RI,
-		FILE_EXECUTION,
-		FILE_OPTIMISATION,
+ public:
+    enum {
+        FILE_CHARGEMENT,
+        FILE_LEXAGE,
+        FILE_PARSAGE,
+        FILE_TYPAGE,
+        FILE_GENERATION_RI,
+        FILE_EXECUTION,
+        FILE_OPTIMISATION,
         FILE_GENERATION_CODE_MACHINE,
         FILE_LIAISON_PROGRAMME,
 
-		NOMBRE_FILES,
-	};
+        NOMBRE_FILES,
+    };
 
-	dls::file<Tache> taches[NOMBRE_FILES];
+  private:
+    Compilatrice *m_compilatrice = nullptr;
 
-	void enfile(Tache tache, int index_file);
-#else
-    dls::file<Tache> taches_chargement{};
-    dls::file<Tache> taches_lexage{};
-    dls::file<Tache> taches_parsage{};
-    dls::file<Tache> taches_typage{};
-    dls::file<Tache> taches_generation_ri{};
-    dls::file<Tache> taches_execution{};
-    dls::file<Tache> taches_optimisation{};
-    dls::file<Tache> taches_liaison_programme{};
-    dls::file<Tache> taches_generation_code_machine{};
-#endif
 
-    tableau_page<UniteCompilation> unites{};
+    dls::file<Tache> taches[NOMBRE_FILES];
 
     /* utilsé pour définir ce que fait chaque tâcheronne afin de savoir si tout le
      * monde fait quelque : si tout le monde dors, il n'y a plus rien à faire donc
@@ -180,7 +164,7 @@ struct OrdonnanceuseTache {
 
     long nombre_de_taches_en_attente() const;
 
-    Tache tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux);
+    Tache defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {
