@@ -653,7 +653,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
     return resultat;
 }
 
-TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille)
+TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe)
 {
     auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
 
@@ -672,8 +672,12 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille)
 
     auto type = types_tableaux_fixes_->ajoute_element(type_pointe, taille, std::move(membres));
 
-    auto graphe = graphe_.verrou_ecriture();
-    graphe->connecte_type_type(type, type_pointe);
+    /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
+     * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
+    if (insere_dans_graphe) {
+        auto graphe = graphe_.verrou_ecriture();
+        graphe->connecte_type_type(type, type_pointe);
+    }
 
     return type;
 }

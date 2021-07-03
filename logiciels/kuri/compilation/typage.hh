@@ -619,7 +619,7 @@ struct Typeuse {
 
     TypeReference *type_reference_pour(Type *type);
 
-    TypeTableauFixe *type_tableau_fixe(Type *type_pointe, int taille);
+    TypeTableauFixe *type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe = true);
 
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe);
 

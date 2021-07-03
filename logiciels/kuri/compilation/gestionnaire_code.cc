@@ -286,7 +286,7 @@ static void rassemble_dependances(NoeudExpression *racine,
 
             /* Création d'un type tableau fixe, pour la génération de code. */
             auto taille_tableau = args->expressions.taille();
-            auto type_tfixe = espace->typeuse.type_tableau_fixe(args->type, taille_tableau);
+            auto type_tfixe = espace->typeuse.type_tableau_fixe(args->type, taille_tableau, false);
             dependances.types_utilises.insere(type_tfixe);
         }
 
