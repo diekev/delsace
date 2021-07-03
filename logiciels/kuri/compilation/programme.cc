@@ -195,34 +195,6 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme, std::ostrea
     }
 }
 
-static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
-{
-    dls::ensemble<Atome *> globales_utilisess;
-
-    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en entrée\n";
-
-    POUR (repr_inter.globales) {
-        globales_utilisess.insere(it);
-    }
-
-    POUR (repr_inter.fonctions) {
-        for (auto instruction : it->instructions) {
-            visite_atome(instruction, [&](Atome *atome) {
-                if (atome->genre_atome == Atome::Genre::GLOBALE) {
-                    if (globales_utilisess.possede(atome)) {
-                        return;
-                    }
-
-                    repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
-                    globales_utilisess.insere(atome);
-                }
-            });
-        }
-    }
-
-    std::cerr << __func__ << ", " << repr_inter.globales.taille() << " globales en sortie\n";
-}
-
 template <typename T>
 static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
 {
@@ -233,6 +205,28 @@ static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
     }
 
     return resultat;
+}
+
+/* La seule raison d'existence pour cette fonction est de rassembler les globales pour les chaines
+ * et InfoType. */
+static void rassemble_globales_supplementaire(ProgrammeRepreInter &repr_inter)
+{
+    auto globales_utilisess = cree_ensemble(repr_inter.globales);
+
+    POUR (repr_inter.fonctions) {
+        for (auto instruction : it->instructions) {
+            visite_atome(instruction, [&](Atome *atome) {
+                if (atome->genre_atome == Atome::Genre::GLOBALE) {
+                    if (globales_utilisess.possede(static_cast<AtomeGlobale *>(atome))) {
+                        return;
+                    }
+
+                    repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
+                    globales_utilisess.insere(static_cast<AtomeGlobale *>(atome));
+                }
+            });
+        }
+    }
 }
 
 struct VisiteuseType {
