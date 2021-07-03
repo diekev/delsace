@@ -218,7 +218,7 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
     return taches_chargement.taille() + taches_lexage.taille() + taches_parsage.taille() +
            taches_typage.taille() + taches_generation_ri.taille() + taches_optimisation.taille() +
            taches_execution.taille() + taches_generation_code_machine.taille() +
-            taches_liaison_programme.taille();
+           taches_liaison_programme.taille();
 }
 
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
@@ -397,11 +397,13 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_optimisation.defile();
     }
 
-    if (!taches_generation_code_machine.est_vide() && dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
+    if (!taches_generation_code_machine.est_vide() &&
+        dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
         return taches_generation_code_machine.defile();
     }
 
-    if (!taches_liaison_programme.est_vide() && dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
+    if (!taches_liaison_programme.est_vide() &&
+        dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
         return taches_liaison_programme.defile();
     }
 

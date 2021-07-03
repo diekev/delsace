@@ -40,9 +40,11 @@
 
 /*
   À FAIRE(gestion) : pour chaque type :
-- création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
+- création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où
+dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 - création d'une fonction d'initialisation (TACHE_CREATION_FONCTION_INITIALISATION)
-- avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la compilation
+- avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la
+compilation
  */
 
 static bool est_declaration_variable_globale(NoeudExpression const *noeud)
@@ -270,7 +272,8 @@ static void rassemble_dependances(NoeudExpression *racine,
             }
             else if (comme->transformation.type == TypeTransformation::FONCTION) {
                 assert(comme->transformation.fonction);
-                dependances.fonctions_utilisees.insere(const_cast<NoeudDeclarationEnteteFonction *>(comme->transformation.fonction));
+                dependances.fonctions_utilisees.insere(
+                    const_cast<NoeudDeclarationEnteteFonction *>(comme->transformation.fonction));
             }
         }
         else if (noeud->est_appel()) {
@@ -471,20 +474,20 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     dls::pour_chaque_element(types_utilises, [&](auto &type) {
-       dependances.types_utilises.insere(type);
-       return dls::DecisionIteration::Continue;
+        dependances.types_utilises.insere(type);
+        return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     dls::pour_chaque_element(fonctions_utilisees, [&](auto &fonction) {
-       dependances.fonctions_utilisees.insere(fonction);
-       return dls::DecisionIteration::Continue;
+        dependances.fonctions_utilisees.insere(fonction);
+        return dls::DecisionIteration::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     dls::pour_chaque_element(globales_utilisees, [&](auto &globale) {
-       dependances.globales_utilisees.insere(globale);
-       return dls::DecisionIteration::Continue;
+        dependances.globales_utilisees.insere(globale);
+        return dls::DecisionIteration::Continue;
     });
 }
 
@@ -655,7 +658,8 @@ void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme
     unites_en_attente.ajoute(unite);
 }
 
-void GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace, Programme *programme)
+void GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
+                                                        Programme *programme)
 {
     auto unite = unites.ajoute_element(espace);
     unite->mute_raison_d_etre(RaisonDEtre::GENERATION_CODE_MACHINE);
@@ -891,7 +895,6 @@ static void imprime_evenement(UniteCompilation *unite, const char *evenement)
         if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->est_externe) {
             std::cerr << "(externe) ";
         }
-
     }
     std::cerr << ":\n";
     erreur::imprime_site(*unite->espace, unite->noeud);
@@ -996,7 +999,8 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 //        taches_optimisation.enfile(tache_terminee);
     }
 
-    if (!espace->possede_erreur && espace->programme->ri_generees() && espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
+    if (!espace->possede_erreur && espace->programme->ri_generees() &&
+        espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
         if (espace->options.resultat == ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::COMPILATION_TERMINEE);
@@ -1047,8 +1051,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
         requiers_liaison_executable(espace, unite->programme);
     }
     else {
-        espace->change_de_phase(m_compilatrice->messagere,
-                                PhaseCompilation::COMPILATION_TERMINEE);
+        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
     }
 }
 
@@ -1057,8 +1060,7 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     assert(unite->programme);
     auto espace = unite->espace;
     espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
-    espace->change_de_phase(m_compilatrice->messagere,
-                            PhaseCompilation::COMPILATION_TERMINEE);
+    espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)

@@ -92,7 +92,8 @@ bool Programme::typages_termines() const
     POUR (m_types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
 #ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour type " << chaine_type(it) << ", " << it << '\n';
+            std::cerr << "-- typage non terminé pour type " << chaine_type(it) << ", " << it
+                      << '\n';
 #endif
             return false;
         }
@@ -237,7 +238,7 @@ static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
 struct VisiteuseType {
     dls::ensemble<Type *> visites{};
 
-    void visite_type(Type *type, std::function<void(Type*)> rappel)
+    void visite_type(Type *type, std::function<void(Type *)> rappel)
     {
         if (!type) {
             return;
@@ -345,13 +346,14 @@ struct VisiteuseType {
     }
 };
 
-static void visite_type(Type *type, std::function<void(Type*)> rappel)
+static void visite_type(Type *type, std::function<void(Type *)> rappel)
 {
     VisiteuseType visiteuse{};
     visiteuse.visite_type(type, rappel);
 }
 
-ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace)
+ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme,
+                                                           EspaceDeTravail &espace)
 {
     auto resultat = ProgrammeRepreInter{};
 
@@ -363,11 +365,11 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
 
     /* Extrait les atomes pour les fonctions. */
     POUR (programme.fonctions()) {
-        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(espace, it);
         });
-        assert_rappel(it->atome, [&](){
+        assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
             erreur::imprime_site(espace, it);
         });
@@ -383,11 +385,11 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
 
     /* Extrait les atomes pour les globales. */
     POUR (programme.globales()) {
-        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&](){
+        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(espace, it);
         });
-        assert_rappel(it->atome, [&](){
+        assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
             erreur::imprime_site(espace, it);
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';

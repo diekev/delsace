@@ -1437,8 +1437,7 @@ static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchai
 
             auto index_membre = 0;
             for (auto &membre : type_tuple->membres) {
-                enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++
-                            << ";\n";
+                enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++ << ";\n";
             }
 
             enchaineuse << "} " << nom_broye << ";\n";
@@ -1515,7 +1514,8 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
         genere_code_pour_type(it, compilatrice, enchaineuse);
     }
 
-    generatrice.genere_code(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+    generatrice.genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 }

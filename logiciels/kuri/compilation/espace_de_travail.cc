@@ -37,8 +37,8 @@
 #include "coulisse_asm.hh"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
-#include "programme.hh"
 #include "parsage/identifiant.hh"
+#include "programme.hh"
 #include "statistiques/statistiques.hh"
 
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts)

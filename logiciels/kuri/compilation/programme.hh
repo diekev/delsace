@@ -106,4 +106,5 @@ struct ProgrammeRepreInter {
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme, std::ostream &os);
 
-ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme, EspaceDeTravail &espace);
+ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme,
+                                                           EspaceDeTravail &espace);

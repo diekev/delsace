@@ -107,7 +107,7 @@ struct VisiteuseAtome {
                             case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                             {
                                 auto pointeur_tableau =
-                                        valeur_const->valeur.valeur_structure.pointeur;
+                                    valeur_const->valeur.valeur_structure.pointeur;
                                 auto taille_tableau = valeur_const->valeur.valeur_structure.taille;
                                 for (auto i = 0; i < taille_tableau; ++i) {
                                     visite_atome(pointeur_tableau[i], rappel);
@@ -117,7 +117,7 @@ struct VisiteuseAtome {
                             case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                             {
                                 auto pointeur_tableau =
-                                        valeur_const->valeur.valeur_tableau.pointeur;
+                                    valeur_const->valeur.valeur_tableau.pointeur;
                                 auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
                                 for (auto i = 0; i < taille_tableau; ++i) {
                                     visite_atome(pointeur_tableau[i], rappel);

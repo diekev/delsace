@@ -50,8 +50,8 @@ struct Type;
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
     O(TYPAGE, typage, "typage")                                                                   \
     O(GENERATION_RI, generation_ri, "génération RI")                                              \
-    O(EXECUTION, execution, "exécution") \
-    O(LIAISON_PROGRAMME, liaison_programme, "liaison programme") \
+    O(EXECUTION, execution, "exécution")                                                          \
+    O(LIAISON_PROGRAMME, liaison_programme, "liaison programme")                                  \
     O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")
 
 enum class RaisonDEtre : unsigned char {
