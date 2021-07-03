@@ -655,6 +655,22 @@ void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme
     unites_en_attente.ajoute(unite);
 }
 
+void GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace, Programme *programme)
+{
+    auto unite = unites.ajoute_element(espace);
+    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_CODE_MACHINE);
+    unite->programme = programme;
+    unites_en_attente.ajoute(unite);
+}
+
+void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
+{
+    auto unite = unites.ajoute_element(espace);
+    unite->mute_raison_d_etre(RaisonDEtre::LIAISON_PROGRAMME);
+    unite->programme = programme;
+    unites_en_attente.ajoute(unite);
+}
+
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
 {
     assert(attente.est_valide());
@@ -979,6 +995,18 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 //        tache_terminee.genre = GenreTache::OPTIMISATION;
 //        taches_optimisation.enfile(tache_terminee);
     }
+
+    if (!espace->possede_erreur && espace->programme->ri_generees() && espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
+        if (espace->options.resultat == ResultatCompilation::RIEN) {
+            espace->change_de_phase(m_compilatrice->messagere,
+                                    PhaseCompilation::COMPILATION_TERMINEE);
+        }
+        else {
+            espace->change_de_phase(m_compilatrice->messagere,
+                                    PhaseCompilation::AVANT_GENERATION_OBJET);
+            requiers_generation_code_machine(espace, espace->programme);
+        }
+    }
 }
 
 void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
@@ -1005,6 +1033,32 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
     auto espace = unite->espace;
     espace->tache_execution_terminee(m_compilatrice->messagere);
     marque_unites_dependantes_pretes(unite);
+}
+
+void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
+{
+    assert(unite->programme);
+    auto espace = unite->espace;
+    espace->tache_generation_objet_terminee(m_compilatrice->messagere);
+
+    if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
+        espace->change_de_phase(m_compilatrice->messagere,
+                                PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
+        requiers_liaison_executable(espace, unite->programme);
+    }
+    else {
+        espace->change_de_phase(m_compilatrice->messagere,
+                                PhaseCompilation::COMPILATION_TERMINEE);
+    }
+}
+
+void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
+{
+    assert(unite->programme);
+    auto espace = unite->espace;
+    espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
+    espace->change_de_phase(m_compilatrice->messagere,
+                            PhaseCompilation::COMPILATION_TERMINEE);
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
@@ -1066,6 +1120,16 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             case RaisonDEtre::EXECUTION:
             {
                 ordonnanceuse.cree_tache_pour_execution(unite);
+                break;
+            }
+            case RaisonDEtre::GENERATION_CODE_MACHINE:
+            {
+                ordonnanceuse.cree_tache_pour_generation_code_machine(unite);
+                break;
+            }
+            case RaisonDEtre::LIAISON_PROGRAMME:
+            {
+                ordonnanceuse.cree_tache_pour_liaison_programme(unite);
                 break;
             }
             case RaisonDEtre::AUCUNE:

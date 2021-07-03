@@ -246,6 +246,26 @@ void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
 #endif
 }
 
+void OrdonnanceuseTache::cree_tache_pour_generation_code_machine(UniteCompilation *unite)
+{
+    auto tache = Tache();
+    tache.unite = unite;
+    tache.espace = unite->espace;
+    tache.genre = GenreTache::GENERE_FICHIER_OBJET;
+
+    taches_generation_code_machine.enfile(tache);
+}
+
+void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *unite)
+{
+    auto tache = Tache();
+    tache.unite = unite;
+    tache.espace = unite->espace;
+    tache.genre = GenreTache::LIAISON_EXECUTABLE;
+
+    taches_liaison_programme.enfile(tache);
+}
+
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
                                          int id,
                                          DrapeauxTacheronne drapeaux,
@@ -273,37 +293,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
 
     if (espace->possede_erreur) {
         return nouvelle_tache;
-    }
-
-    switch (tache_terminee.genre) {
-        default:
-        {
-            break;
-        }
-        case GenreTache::GENERE_FICHIER_OBJET:
-        {
-            espace->tache_generation_objet_terminee(m_compilatrice->messagere);
-
-            if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
-                espace->change_de_phase(m_compilatrice->messagere,
-                                        PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
-                renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
-                return Tache::liaison_objet(espace);
-            }
-            else {
-                espace->change_de_phase(m_compilatrice->messagere,
-                                        PhaseCompilation::COMPILATION_TERMINEE);
-            }
-
-            break;
-        }
-        case GenreTache::LIAISON_EXECUTABLE:
-        {
-            espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::COMPILATION_TERMINEE);
-            break;
-        }
     }
 
     /* indique que la tâcheronne est en exécution si elle a toujours des métaprogrammes à exécuter,
@@ -419,16 +408,12 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_optimisation.defile();
     }
 
-    if (!espace->possede_erreur && espace->programme->ri_generees() && espace->phase_courante() < PhaseCompilation::AVANT_GENERATION_OBJET) {
-        if (espace->options.resultat == ResultatCompilation::RIEN) {
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::COMPILATION_TERMINEE);
-        }
-        else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::AVANT_GENERATION_OBJET);
-            return Tache::genere_fichier_objet(espace);
-        }
+    if (!taches_generation_code_machine.est_vide() && dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
+        return taches_generation_code_machine.defile();
+    }
+
+    if (!taches_liaison_programme.est_vide() && dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
+        return taches_liaison_programme.defile();
     }
 
     if (!taches_execution.est_vide() &&
@@ -681,6 +666,7 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 tache.espace->coulisse->cree_fichier_objet(
                     compilatrice, *tache.espace, constructrice_ri);
+                compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);
                 temps_generation_code += tache.espace->coulisse->temps_generation_code;
                 temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
                 break;
@@ -690,6 +676,7 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 tache.espace->coulisse->cree_executable(compilatrice, *tache.espace);
+                compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
                 temps_executable += tache.espace->coulisse->temps_executable;
                 break;
             }

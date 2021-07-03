@@ -32,6 +32,7 @@
 
 class Compilatrice;
 class OrdonnanceuseTache;
+struct Programme;
 
 struct FileDAttente {
     struct Place {
@@ -76,6 +77,10 @@ class GestionnaireCode {
 
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
+    void requiers_generation_code_machine(EspaceDeTravail *espace, Programme *programme);
+
+    void requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme);
+
     /* Attente sur quelque chose. */
     void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
 
@@ -95,6 +100,10 @@ class GestionnaireCode {
     void message_recu(Message const *message);
 
     void execution_terminee(UniteCompilation *unite);
+
+    void generation_code_machine_terminee(UniteCompilation *unite);
+
+    void liaison_programme_terminee(UniteCompilation *unite);
 
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);

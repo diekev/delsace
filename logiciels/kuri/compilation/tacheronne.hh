@@ -127,6 +127,8 @@ struct OrdonnanceuseTache {
     dls::file<Tache> taches_execution{};
     dls::file<Tache> taches_message{};
     dls::file<Tache> taches_optimisation{};
+    dls::file<Tache> taches_liaison_programme{};
+    dls::file<Tache> taches_generation_code_machine{};
 #endif
 
     tableau_page<UniteCompilation> unites{};
@@ -152,6 +154,8 @@ struct OrdonnanceuseTache {
     void cree_tache_pour_typage(UniteCompilation *unite);
     void cree_tache_pour_generation_ri(UniteCompilation *unite);
     void cree_tache_pour_execution(UniteCompilation *unite);
+    void cree_tache_pour_generation_code_machine(UniteCompilation *unite);
+    void cree_tache_pour_liaison_programme(UniteCompilation *unite);
 
     Tache tache_suivante(Tache &tache_terminee,
                          int id,

@@ -40,6 +40,7 @@ struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudExpressionReference;
 struct NoeudExpression;
+struct Programme;
 struct Type;
 
 #define ENUMERE_RAISON_D_ETRE(O)                                                                  \
@@ -49,7 +50,9 @@ struct Type;
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
     O(TYPAGE, typage, "typage")                                                                   \
     O(GENERATION_RI, generation_ri, "génération RI")                                              \
-    O(EXECUTION, execution, "exécution")
+    O(EXECUTION, execution, "exécution") \
+    O(LIAISON_PROGRAMME, liaison_programme, "liaison programme") \
+    O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")
 
 enum class RaisonDEtre : unsigned char {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,
@@ -75,6 +78,7 @@ struct UniteCompilation {
     Fichier *fichier = nullptr;
     NoeudExpression *noeud = nullptr;
     MetaProgramme *metaprogramme = nullptr;
+    Programme *programme = nullptr;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
