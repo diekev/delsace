@@ -527,6 +527,17 @@ bool EspaceDeTravail::parsage_termine() const
            nombre_taches_parsage == 0;
 }
 
+void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
+{
+    os << "nombre_taches_chargement : " << nombre_taches_chargement << '\n';
+    os << "nombre_taches_lexage : " << nombre_taches_lexage << '\n';
+    os << "nombre_taches_parsage : " << nombre_taches_parsage << '\n';
+    os << "nombre_taches_typage : " << nombre_taches_typage << '\n';
+    os << "nombre_taches_ri : " << nombre_taches_ri << '\n';
+    os << "nombre_taches_execution : " << nombre_taches_execution << '\n';
+    os << "nombre_taches_optimisation : " << nombre_taches_optimisation << '\n';
+}
+
 void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
                                       PhaseCompilation nouvelle_phase)
 {
