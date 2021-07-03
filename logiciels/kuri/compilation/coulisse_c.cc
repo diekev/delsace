@@ -1445,6 +1445,26 @@ static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchai
     }
 }
 
+static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
+                                    EspaceDeTravail &espace,
+                                    ProgrammeRepreInter const &repr_inter_programme,
+                                    std::ostream &fichier_sortie)
+{
+    Enchaineuse enchaineuse;
+
+    auto generatrice = GeneratriceCodeC(espace);
+    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+
+    POUR (repr_inter_programme.types) {
+        genere_code_pour_type(it, compilatrice, enchaineuse);
+    }
+
+    generatrice.genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+
+    enchaineuse.imprime_dans_flux(fichier_sortie);
+}
+
 static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1474,20 +1494,7 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     atome_fonc->nombre_utilisations = 1;
     atome_fonc->nom = "main";
 
-    /* Génération du code. */
-    Enchaineuse enchaineuse;
-
-    auto generatrice = GeneratriceCodeC(espace);
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-
-    POUR (repr_inter_programme.types) {
-        genere_code_pour_type(it, compilatrice, enchaineuse);
-    }
-
-    generatrice.genere_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
-
-    enchaineuse.imprime_dans_flux(fichier_sortie);
+    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
 }
 
 static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
@@ -1515,20 +1522,7 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
             "Aucune fonction racine trouvée pour générer le code !\n");
     }
 
-    /* Génération du code. */
-    Enchaineuse enchaineuse;
-
-    auto generatrice = GeneratriceCodeC(espace);
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-
-    POUR (repr_inter_programme.types) {
-        genere_code_pour_type(it, compilatrice, enchaineuse);
-    }
-
-    generatrice.genere_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
-
-    enchaineuse.imprime_dans_flux(fichier_sortie);
+    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
 }
 
 static void genere_code_C(Compilatrice &compilatrice,
