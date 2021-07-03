@@ -698,11 +698,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto decl = noeud->comme_entete_fonction();
             genere_ri_pour_fonction(decl);
+            if (!decl->est_externe) {
+                assert(decl->corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
+            }
             break;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             auto corps = noeud->comme_corps_fonction();
+            assert(corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
             genere_ri_pour_fonction(corps->entete);
             break;
         }
