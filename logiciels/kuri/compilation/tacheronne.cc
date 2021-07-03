@@ -616,6 +616,7 @@ void Tacheronne::gere_tache()
                 auto debut_parsage = dls::chrono::compte_seconde();
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
+                compilatrice.gestionnaire_code->parsage_fichier_termine(tache.unite);
                 temps_parsage += debut_parsage.temps();
                 break;
             }
