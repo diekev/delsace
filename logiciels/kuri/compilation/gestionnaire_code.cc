@@ -527,7 +527,7 @@ static void rassemble_dependances(UniteCompilation *unite,
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
-    graphe.ajoute_dependances(*noeud_dependance, dependances, false);
+    graphe.ajoute_dependances(*noeud_dependance, dependances);
 
     epends_dependances_types(graphe, dependances);
 

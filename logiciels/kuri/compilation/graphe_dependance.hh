@@ -170,9 +170,7 @@ struct GrapheDependance {
                             Type *type2,
                             TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-    void ajoute_dependances(NoeudDependance &noeud,
-                            DonneesDependance &donnees,
-                            bool efface_donnees = true);
+    void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
 
     void connecte_noeuds(NoeudDependance &noeud1,
                          NoeudDependance &noeud2,
