@@ -117,7 +117,7 @@ static void rassemble_dependances(NoeudExpression *racine,
 
     // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.:
     //                    []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
-    visite_noeud(racine, [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+    visite_noeud(racine, PreferenceVisiteNoeud::SUBSTITUTION, [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
         // Note: les fonctions polymorphiques n'ont pas de types.
         if (noeud->type) {
             dependances.types_utilises.insere(noeud->type);
