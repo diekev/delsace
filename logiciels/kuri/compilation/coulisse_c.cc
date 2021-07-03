@@ -1445,36 +1445,6 @@ static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchai
     }
 }
 
-static void genere_code_pour_types(Compilatrice &compilatrice,
-                                   dls::outils::Synchrone<GrapheDependance> &graphe_,
-                                   Enchaineuse &enchaineuse)
-{
-    auto graphe = graphe_.verrou_ecriture();
-
-    POUR_TABLEAU_PAGE (graphe->noeuds) {
-        if (!it.est_type()) {
-            continue;
-        }
-
-        if (it.fut_visite) {
-            continue;
-        }
-
-        graphe->traverse(&it, [&](NoeudDependance *noeud) {
-            if (!noeud->est_type()) {
-                return;
-            }
-
-            auto type = noeud->type();
-            genere_code_pour_type(type, compilatrice, enchaineuse);
-        });
-    }
-
-    POUR_TABLEAU_PAGE (graphe->noeuds) {
-        it.fut_visite = false;
-    }
-}
-
 static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1524,42 +1494,39 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    EspaceDeTravail &espace,
                                                    std::ostream &fichier_sortie)
 {
-    Enchaineuse enchaineuse;
-
     espace.typeuse.construit_table_types();
 
-    auto &graphe = espace.graphe_dependance;
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-    genere_code_pour_types(compilatrice, graphe, enchaineuse);
+    auto programme = espace.programme;
 
-    kuri::tableau<AtomeFonction *> fonctions_racines;
-    fonctions_racines.reserve(espace.fonctions.taille());
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = representation_intermediaire_programme(*programme, espace);
 
-    POUR_TABLEAU_PAGE (espace.fonctions) {
-        if (it.decl && it.decl->possede_drapeau(EST_RACINE)) {
-            it.nombre_utilisations = 1;
-            fonctions_racines.ajoute(&it);
+    /* Garantie l'utilisation des fonctions racines. */
+    auto nombre_fonctions_racines = 0;
+    POUR (repr_inter_programme.fonctions) {
+        if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
+            it->nombre_utilisations = 1;
+            ++nombre_fonctions_racines;
         }
     }
 
-    if (fonctions_racines.est_vide()) {
+    if (nombre_fonctions_racines == 0) {
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
-        return;
     }
 
-    kuri::tableau<AtomeFonction *> fonctions;
+    /* Génération du code. */
+    Enchaineuse enchaineuse;
 
-    // À FAIRE : parfois les fonctions peuvent être incluses plusieurs fois ? c'est pourquoi nous
-    // avons un ensemble « utilises »
-    dls::ensemble<AtomeFonction *> utilises;
-    POUR (fonctions_racines) {
-        auto noeud_dep = it->decl->noeud_dependance;
-        graphe->rassemble_fonctions_utilisees(noeud_dep, fonctions, utilises);
+    auto generatrice = GeneratriceCodeC(espace);
+    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+
+    POUR (repr_inter_programme.types) {
+        genere_code_pour_type(it, compilatrice, enchaineuse);
     }
 
-//    auto generatrice = GeneratriceCodeC(espace);
-//    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+    generatrice.genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 }
