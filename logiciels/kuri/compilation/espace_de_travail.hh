@@ -259,4 +259,6 @@ struct EspaceDeTravail {
     {
         return m_compilatrice;
     }
+
+    void imprime_compte_taches(std::ostream &os) const;
 };
