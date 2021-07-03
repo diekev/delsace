@@ -53,6 +53,7 @@ genere_code_adn(kuri_message_compilatrice genere_message message)
 set(BIBLIOTHEQUES
 	kuri_arbre_syntaxique
 	kuri_ipa_compilatrice
+	kuri_message_compilatrice
 	kuri_options_compilatrice
 	kuri_parsage
 	kuri_representation_intermediaire
