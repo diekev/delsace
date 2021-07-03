@@ -1701,6 +1701,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
 
     if (decl->est_externe) {
+        decl->drapeaux |= RI_FUT_GENEREE;
         return;
     }
 
@@ -3573,6 +3574,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
             }
         }
 
+        decl->drapeaux |= RI_FUT_GENEREE;
         return;
     }
 
