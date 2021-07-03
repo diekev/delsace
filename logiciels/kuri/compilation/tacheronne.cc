@@ -419,7 +419,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_optimisation.defile();
     }
 
-    if (!espace->possede_erreur && espace->programme->ri_generees()) {
+    if (!espace->possede_erreur && espace->programme->ri_generees() && espace->phase_courante() < PhaseCompilation::AVANT_GENERATION_OBJET) {
         if (espace->options.resultat == ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::COMPILATION_TERMINEE);
@@ -436,7 +436,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_execution.defile();
     }
 
-    if (!compilation_terminee) {
+    if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
         if (espace->possede_erreur) {
             espace = m_compilatrice->espace_defaut_compilation();
         }
