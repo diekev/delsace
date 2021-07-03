@@ -109,8 +109,9 @@ struct OrdonnanceuseTache {
 		FILE_TYPAGE,
 		FILE_GENERATION_RI,
 		FILE_EXECUTION,
-		FILE_MESSAGE,
 		FILE_OPTIMISATION,
+        FILE_GENERATION_CODE_MACHINE,
+        FILE_LIAISON_PROGRAMME,
 
 		NOMBRE_FILES,
 	};
@@ -125,7 +126,6 @@ struct OrdonnanceuseTache {
     dls::file<Tache> taches_typage{};
     dls::file<Tache> taches_generation_ri{};
     dls::file<Tache> taches_execution{};
-    dls::file<Tache> taches_message{};
     dls::file<Tache> taches_optimisation{};
     dls::file<Tache> taches_liaison_programme{};
     dls::file<Tache> taches_generation_code_machine{};

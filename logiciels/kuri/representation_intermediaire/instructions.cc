@@ -58,6 +58,7 @@ struct VisiteuseAtome {
                 switch (constante->genre) {
                     case AtomeConstante::Genre::GLOBALE:
                     {
+                        /* Déjà gérée, genre_atome étant GLOBALE. */
                         break;
                     }
                     case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
@@ -68,10 +69,15 @@ struct VisiteuseAtome {
                     }
                     case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
                     {
+                        auto op_unaire_const = static_cast<OpUnaireConstant const *>(constante);
+                        visite_atome(op_unaire_const->operande, rappel);
                         break;
                     }
                     case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
                     {
+                        auto op_unaire_const = static_cast<OpBinaireConstant const *>(constante);
+                        visite_atome(op_unaire_const->operande_gauche, rappel);
+                        visite_atome(op_unaire_const->operande_droite, rappel);
                         break;
                     }
                     case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
@@ -87,31 +93,15 @@ struct VisiteuseAtome {
 
                         switch (valeur_const->valeur.genre) {
                             case AtomeValeurConstante::Valeur::Genre::NULLE:
-                            {
-                                break;
-                            }
                             case AtomeValeurConstante::Valeur::Genre::TYPE:
-                            {
-                                break;
-                            }
                             case AtomeValeurConstante::Valeur::Genre::REELLE:
-                            {
-                                break;
-                            }
                             case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                            {
-                                break;
-                            }
                             case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                            {
-                                break;
-                            }
                             case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                            {
-                                break;
-                            }
+                            case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
                             case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
                             {
+                                /* Pas de sous-atome. */
                                 break;
                             }
                             case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
@@ -134,10 +124,6 @@ struct VisiteuseAtome {
                                 }
                                 break;
                             }
-                            case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                            {
-                                break;
-                            }
                         }
                     }
                 }
@@ -152,6 +138,8 @@ struct VisiteuseAtome {
             }
             case Atome::Genre::FONCTION:
             {
+                /* Pour l'instant nous faisons la visite depuis les fonctions, inutile de les
+                 * traverser. */
                 break;
             }
             case Atome::Genre::INSTRUCTION:
@@ -227,11 +215,7 @@ struct VisiteuseAtome {
                     case Instruction::Genre::RETOUR:
                     {
                         auto retour = inst->comme_retour();
-
-                        if (retour->valeur) {
-                            visite_atome(retour->valeur, rappel);
-                        }
-
+                        visite_atome(retour->valeur, rappel);
                         break;
                     }
                     case Instruction::Genre::ALLOCATION:
@@ -239,6 +223,7 @@ struct VisiteuseAtome {
                     case Instruction::Genre::BRANCHE:
                     case Instruction::Genre::LABEL:
                     {
+                        /* Pas de sous-atome. */
                         break;
                     }
                 }

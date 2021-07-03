@@ -217,7 +217,8 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
     return taches_chargement.taille() + taches_lexage.taille() + taches_parsage.taille() +
            taches_typage.taille() + taches_generation_ri.taille() + taches_optimisation.taille() +
-           taches_execution.taille() + taches_message.taille();
+           taches_execution.taille() + taches_generation_code_machine.taille() +
+            taches_liaison_programme.taille();
 }
 
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
@@ -343,18 +344,6 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
         return taches_parsage.defile();
     }
 
-    // gère les tâches de messages avant les tâches de typage pour éviter les
-    // problèmes de symbole non définis si un métaprogramme n'a pas encore généré
-    // ce symbole
-    // ce n'est pas la solution finale pour un tel problème, mais c'est un début
-    // il nous faudra sans doute un système pour définir qu'un métaprogramme définira
-    // tel ou tel symbole, et trouver de meilleures heuristiques pour arrêter la
-    // compilation en cas d'indéfinition de symbole
-    if (!taches_message.est_vide() &&
-        (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE))) {
-        return taches_message.defile();
-    }
-
     /* Nous pouvons avoir des dépendances entre le typage et la génération de RI
      * quand nous exécutons des métaprogrammes #corps_texte : on ne peut typer une
      * fonction restante tant que le #corps_texte ne fut pas généré, mais nous ne
@@ -458,9 +447,7 @@ int OrdonnanceuseTache::enregistre_tacheronne(Badge<Tacheronne> /*badge*/)
 
 void OrdonnanceuseTache::purge_messages()
 {
-    while (!taches_message.est_vide()) {
-        taches_message.defile();
-    }
+    // À FAIRE(gestion) : purge les messages
 }
 
 void OrdonnanceuseTache::supprime_toutes_les_taches()
