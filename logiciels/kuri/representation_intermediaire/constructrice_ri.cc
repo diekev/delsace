@@ -3467,7 +3467,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 
     // ----------------------------------
     // initialise les variables globales
-#if 0 // À FAIRE(gestion)
+#if 0  // À FAIRE(gestion)
     auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
     POUR (*constructeurs_globaux) {

@@ -379,7 +379,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace,
     }
 
     if (tache_ri && tache_typage) {
-#if 0 // À FAIRE(gestion)
+#if 0  // À FAIRE(gestion)
         if (tache_typage->unite->etat() ==
                 UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
                 taches_generation_ri.taille() > taches_typage.taille()) {

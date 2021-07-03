@@ -930,7 +930,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         doit_envoyer_en_ri = true;
     }
 
-#if 0 //  À FAIRE(gestion)
+#if 0  //  À FAIRE(gestion)
     if (noeud->est_corps_fonction() && noeud->comme_corps_fonction()->entete->ident == ID::principale) {
         imprime_evenement(unite, "typage terminé");
 
