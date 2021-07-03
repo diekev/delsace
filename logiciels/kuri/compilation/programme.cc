@@ -428,7 +428,5 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
         }
     }
 
-    imprime_contenu_programme(resultat, std::cerr);
-
     return resultat;
 }
