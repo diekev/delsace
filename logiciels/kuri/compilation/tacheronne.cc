@@ -44,13 +44,13 @@
 
 const char *chaine_genre_tache(GenreTache genre)
 {
-#define ENUMERE_GENRE_TACHE_EX(genre)                                                             \
-    case GenreTache::genre:                                                                       \
-        return #genre;
+#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                                             \
+    case GenreTache::ACTION:                                                                       \
+        return CHAINE;
     switch (genre) {
-        ENUMERE_GENRES_TACHE
+        ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
     }
-#undef ENUMERE_GENRE_TACHE_EX
+#undef ENUMERE_GENRE_TACHE
 
     return "erreur";
 }
@@ -79,7 +79,7 @@ Tache Tache::compilation_terminee()
 Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
 {
     Tache t;
-    t.genre = GenreTache::GENERE_FICHIER_OBJET;
+    t.genre = GenreTache::GENERATION_CODE_MACHINE;
     t.espace = espace_;
     return t;
 }
@@ -87,7 +87,7 @@ Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
 Tache Tache::liaison_objet(EspaceDeTravail *espace_)
 {
     Tache t;
-    t.genre = GenreTache::LIAISON_EXECUTABLE;
+    t.genre = GenreTache::LIAISON_PROGRAMME;
     t.espace = espace_;
     return t;
 }
@@ -131,17 +131,17 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatr
 
 void OrdonnanceuseTache::cree_tache_pour_chargement(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_CHARGEMENT], unite, GenreTache::CHARGE_FICHIER);
+    ajoute_tache(taches[FILE_CHARGEMENT], unite, GenreTache::CHARGEMENT);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_lexage(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_LEXAGE], unite, GenreTache::LEXE);
+    ajoute_tache(taches[FILE_LEXAGE], unite, GenreTache::LEXAGE);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_parsage(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_PARSAGE], unite, GenreTache::PARSE);
+    ajoute_tache(taches[FILE_PARSAGE], unite, GenreTache::PARSAGE);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_typage(UniteCompilation *unite)
@@ -151,22 +151,22 @@ void OrdonnanceuseTache::cree_tache_pour_typage(UniteCompilation *unite)
 
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_GENERATION_RI], unite, GenreTache::GENERE_RI);
+    ajoute_tache(taches[FILE_GENERATION_RI], unite, GenreTache::GENERATION_RI);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_EXECUTION], unite, GenreTache::EXECUTE);
+    ajoute_tache(taches[FILE_EXECUTION], unite, GenreTache::EXECUTION);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_generation_code_machine(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_GENERATION_CODE_MACHINE], unite, GenreTache::GENERE_FICHIER_OBJET);
+    ajoute_tache(taches[FILE_GENERATION_CODE_MACHINE], unite, GenreTache::GENERATION_CODE_MACHINE);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_LIAISON_PROGRAMME], unite, GenreTache::LIAISON_EXECUTABLE);
+    ajoute_tache(taches[FILE_LIAISON_PROGRAMME], unite, GenreTache::LIAISON_PROGRAMME);
 }
 
 void OrdonnanceuseTache::renseigne_etat_tacheronne(int id, GenreTache genre_tache)
@@ -243,7 +243,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
      * nous rend la tâche */
     if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER) &&
         mv_en_execution && nouvelle_tache.genre == GenreTache::DORS) {
-        renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
+        renseigne_etat_tacheronne(id, GenreTache::EXECUTION);
     }
     else {
         renseigne_etat_tacheronne(id, nouvelle_tache.genre);
@@ -377,7 +377,7 @@ void Tacheronne::gere_tache()
 
                 break;
             }
-            case GenreTache::CHARGE_FICHIER:
+            case GenreTache::CHARGEMENT:
             {
                 auto fichier = tache.unite->fichier;
                 auto donnees = fichier->donnees_constantes;
@@ -407,7 +407,7 @@ void Tacheronne::gere_tache()
 
                 break;
             }
-            case GenreTache::LEXE:
+            case GenreTache::LEXAGE:
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
                 auto unite = tache.unite;
@@ -438,7 +438,7 @@ void Tacheronne::gere_tache()
 
                 break;
             }
-            case GenreTache::PARSE:
+            case GenreTache::PARSAGE:
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unite = tache.unite;
@@ -465,7 +465,7 @@ void Tacheronne::gere_tache()
                 temps_validation += debut_validation.temps();
                 break;
             }
-            case GenreTache::GENERE_RI:
+            case GenreTache::GENERATION_RI:
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
@@ -485,12 +485,12 @@ void Tacheronne::gere_tache()
                 temps_optimisation += debut_generation.temps();
                 break;
             }
-            case GenreTache::EXECUTE:
+            case GenreTache::EXECUTION:
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
                 break;
             }
-            case GenreTache::GENERE_FICHIER_OBJET:
+            case GenreTache::GENERATION_CODE_MACHINE:
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
@@ -501,7 +501,7 @@ void Tacheronne::gere_tache()
                 temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
                 break;
             }
-            case GenreTache::LIAISON_EXECUTABLE:
+            case GenreTache::LIAISON_PROGRAMME:
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));

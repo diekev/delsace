@@ -40,23 +40,26 @@ struct Compilatrice;
 struct MetaProgramme;
 struct Tacheronne;
 
-#define ENUMERE_GENRES_TACHE                                                                      \
-    ENUMERE_GENRE_TACHE_EX(DORS)                                                                  \
-    ENUMERE_GENRE_TACHE_EX(COMPILATION_TERMINEE)                                                  \
-    ENUMERE_GENRE_TACHE_EX(LEXE)                                                                  \
-    ENUMERE_GENRE_TACHE_EX(PARSE)                                                                 \
-    ENUMERE_GENRE_TACHE_EX(TYPAGE)                                                                \
-    ENUMERE_GENRE_TACHE_EX(GENERE_RI)                                                             \
-    ENUMERE_GENRE_TACHE_EX(EXECUTE)                                                               \
-    ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE)                                                    \
-    ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET)                                                  \
-    ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER)                                                        \
-    ENUMERE_GENRE_TACHE_EX(OPTIMISATION)
+#define ENUMERE_TACHES_POSSIBLES(O) \
+    O(CHARGER, CHARGEMENT, "chargement", 0) \
+    O(LEXER, LEXAGE, "lexage", 1) \
+    O(PARSER, PARSAGE, "parsage", 2) \
+    O(TYPER, TYPAGE, "typage", 3) \
+    O(GENERER_RI, GENERATION_RI, "génération RI", 4) \
+    O(EXECUTER, EXECUTION, "exécution", 5) \
+    O(OPTIMISER, OPTIMISATION, "optimisation", 6) \
+    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 7) \
+    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 8)
+
+#define ENUMERE_GENRES_TACHE(O)                                                                   \
+    O(DORMIR, DORS, "dormir", 0)                                                                  \
+    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                                                  \
+    ENUMERE_TACHES_POSSIBLES(O)
 
 enum class GenreTache {
-#define ENUMERE_GENRE_TACHE_EX(etat) etat,
-    ENUMERE_GENRES_TACHE
-#undef ENUMERE_GENRE_TACHE_EX
+#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX) ACTION,
+    ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
+#undef ENUMERE_GENRE_TACHE
 };
 
 const char *chaine_genre_tache(GenreTache genre);
@@ -77,18 +80,14 @@ struct Tache {
     static Tache liaison_objet(EspaceDeTravail *espace_);
 };
 
+/* Drapeaux pour les tâches étant dans des files. */
 enum class DrapeauxTacheronne : uint32_t {
-    /* drapeaux pour les tâches étant dans des files
-     * ATTENTION : l'ordre doit correspondre à l'énumération dans OrdonnanceuseTache ! */
-    PEUT_CHARGER = (1 << 0),
-    PEUT_LEXER = (1 << 1),
-    PEUT_PARSER = (1 << 2),
-    PEUT_TYPER = (1 << 3),
-    PEUT_GENERER_RI = (1 << 4),
-    PEUT_EXECUTER = (1 << 5),
-    PEUT_OPTIMISER = (1 << 6),
-    PEUT_GENERER_CODE = (1 << 7),
-    PEUT_LIER_PROGRAMME = (1 << 8),
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX) \
+    PEUT_##VERBE = (1 << INDEX),
+
+    ENUMERE_TACHES_POSSIBLES(ENUMERE_CAPACITE)
+
+#undef ENUMERE_CAPACITE
 
     PEUT_TOUT_FAIRE = 0xfffffff,
 };
@@ -98,15 +97,12 @@ DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
 struct OrdonnanceuseTache {
  public:
     enum {
-        FILE_CHARGEMENT,
-        FILE_LEXAGE,
-        FILE_PARSAGE,
-        FILE_TYPAGE,
-        FILE_GENERATION_RI,
-        FILE_EXECUTION,
-        FILE_OPTIMISATION,
-        FILE_GENERATION_CODE_MACHINE,
-        FILE_LIAISON_PROGRAMME,
+#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDEX) \
+        FILE_##ACTION,
+
+        ENUMERE_TACHES_POSSIBLES(ENUMERE_FILE)
+
+#undef ENUMERE_FILE
 
         NOMBRE_FILES,
     };
