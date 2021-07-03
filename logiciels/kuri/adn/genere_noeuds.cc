@@ -367,15 +367,20 @@ struct GeneratriceCodeCPP {
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            genere_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
+            genere_code_pour_enfant(os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
                 if (membre.type->est_tableau()) {
+                    auto nom_membre = membre.nom.nom_cpp();
+                    if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_APPEL" && nom_membre == "parametres") {
+                        nom_membre = "parametres_resolus";
+                    }
+
                     const auto type_tableau = membre.type->comme_tableau();
                     if (type_tableau->est_synchrone) {
-                        os << "\t\t\tPOUR ((*racine_typee->" << membre.nom
+                        os << "\t\t\tPOUR ((*racine_typee->" << nom_membre
                            << ".verrou_lecture())) {\n";
                     }
                     else {
-                        os << "\t\t\tPOUR (racine_typee->" << membre.nom << ") {\n";
+                        os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
                     }
                     os << "\t\t\t\tvisite_noeud(it, preference, rappel);\n";
                     os << "\t\t\t}\n";
