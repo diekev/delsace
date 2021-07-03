@@ -1488,6 +1488,8 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     // dans la coulisse pour chaque monomorphisation.
     type_structure->decl = this->decl;
     type_structure->union_originelle = this;
+    type_structure->drapeaux |= TYPE_FUT_VALIDE;
+    type_structure->drapeaux |= RI_TYPE_FUT_GENEREE;
 
     typeuse.graphe_->connecte_type_type(this, type_structure);
 }
