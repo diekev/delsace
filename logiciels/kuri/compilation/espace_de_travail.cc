@@ -430,6 +430,7 @@ void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere
     tache_lexage_ajoutee(messagere);
 
     nombre_taches_chargement -= 1;
+    assert(nombre_taches_chargement >= 0);
 }
 
 void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
@@ -437,11 +438,13 @@ void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &m
     /* Une fois que nous lexer quelque chose, il faut le parser. */
     tache_parsage_ajoutee(messagere);
     nombre_taches_lexage -= 1;
+    assert(nombre_taches_lexage >= 0);
 }
 
 void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_parsage -= 1;
+    assert(nombre_taches_parsage >= 0);
 
     if (parsage_termine()) {
         change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
@@ -451,6 +454,7 @@ void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &
 void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_typage -= 1;
+    assert(nombre_taches_typage >= 0);
 
     if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
         change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
@@ -460,6 +464,7 @@ void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &m
 void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_ri -= 1;
+    assert(nombre_taches_ri >= 0);
 
     if (optimisations) {
         tache_optimisation_ajoutee(messagere);
@@ -474,6 +479,7 @@ void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messa
 void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_optimisation -= 1;
+    assert(nombre_taches_optimisation >= 0);
 
     if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
         phase == PhaseCompilation::TYPAGE_TERMINE) {
@@ -484,6 +490,7 @@ void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Message
 void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
     nombre_taches_execution -= 1;
+    assert(nombre_taches_execution >= 0);
 }
 
 void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
