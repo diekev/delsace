@@ -100,9 +100,6 @@ static void rassemble_dependances(NoeudExpression *racine,
                                   EspaceDeTravail *espace,
                                   DonneesDependance &dependances)
 {
-    // À FAIRE(gestion) : pour les déclarations de variables, vérifie que la visite prend en compte
-    //                    les expressions multiples
-
     // À FAIRE(gestion) : pour les structures ou unions, vérifie que les connexions sont bonnes
     //                    entre les types et les ceux des membres (type_compose.membre,
     //                    type_structure.types_employes)
@@ -291,6 +288,20 @@ static void rassemble_dependances(NoeudExpression *racine,
             auto taille_tableau = args->expressions.taille();
             auto type_tfixe = espace->typeuse.type_tableau_fixe(args->type, taille_tableau, false);
             dependances.types_utilises.insere(type_tfixe);
+        }
+        else if (noeud->est_assignation_variable()) {
+            auto assignation = noeud->comme_assignation_variable();
+
+            POUR (assignation->donnees_exprs.plage()) {
+                rassemble_dependances(it.expression, espace, dependances);
+            }
+        }
+        else if (noeud->est_declaration_variable()) {
+            auto declaration = noeud->comme_declaration_variable();
+
+            POUR (declaration->donnees_decl.plage()) {
+                rassemble_dependances(it.expression, espace, dependances);
+            }
         }
 
         return DecisionVisiteNoeud::CONTINUE;
