@@ -398,6 +398,10 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
         return;
     }
 
+    /* Plante directement le drapeaux afin d'éviter les dépassements de pile en cas de cycles (p.e.
+     * pour les listes chainées). */
+    type->drapeaux |= TYPEDEF_FUT_GENERE;
+
     if (peut_etre_dereference(type)) {
         auto type_deref = type_dereference_pour(type);
 
@@ -443,7 +447,6 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
     }
 
     cree_typedef(type, enchaineuse);
-    type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
 // ----------------------------------------------
