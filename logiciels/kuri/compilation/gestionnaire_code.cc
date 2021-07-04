@@ -110,7 +110,15 @@ static void rassemble_dependances(NoeudExpression *racine,
     visite_noeud(racine, PreferenceVisiteNoeud::SUBSTITUTION, [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
         // Note: les fonctions polymorphiques n'ont pas de types.
         if (noeud->type) {
-            dependances.types_utilises.insere(noeud->type);
+            if (noeud->type->est_type_de_donnees()) {
+                auto type_de_donnees = noeud->type->comme_type_de_donnees();
+                if (type_de_donnees->type_connu) {
+                    dependances.types_utilises.insere(type_de_donnees->type_connu);
+                }
+            }
+            else {
+                dependances.types_utilises.insere(noeud->type);
+            }
         }
 
         if (noeud->est_entete_fonction()) {
@@ -478,7 +486,15 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     dls::pour_chaque_element(types_utilises, [&](auto &type) {
-        dependances.types_utilises.insere(type);
+        if (type->est_type_de_donnees()) {
+            auto type_de_donnees = type->comme_type_de_donnees();
+            if (type_de_donnees->type_connu) {
+                dependances.types_utilises.insere(type_de_donnees->type_connu);
+            }
+        }
+        else {
+            dependances.types_utilises.insere(type);
+        }
         return dls::DecisionIteration::Continue;
     });
 
