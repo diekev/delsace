@@ -89,11 +89,6 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
 // À FAIRE(gestion) : retourne des Attentes depuis les fonction d'appariements d'appels ou
 //                    d'opérateurs au lieu de true/false
 
-// À FAIRE(gestion) : pour les dépendances, il nous faudrait plutôt les substitutions
-
-// À FAIRE(gestion) : visite_noeud -> paramètre pour choisir les substitions, valeur de retour pour
-//                    décider si nous devons visiter les enfants ou non
-
 /* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
  * globales utilisées. */
 static void rassemble_dependances(NoeudExpression *racine,
@@ -109,8 +104,6 @@ static void rassemble_dependances(NoeudExpression *racine,
 
     // À FAIRE(gestion) : pour les structures ou unions, les membres constants peuvent être des
     //                    structures ou unions
-
-    // À FAIRE(gestion) : vérifie la traverse des variables des boucles pour
 
     // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.:
     //                    []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
