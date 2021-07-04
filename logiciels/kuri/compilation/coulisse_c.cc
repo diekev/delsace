@@ -414,11 +414,7 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
                 }
             }
 
-            if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
-            }
-
-            type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
         }
     }
     /* ajoute les types des paramètres et de retour des fonctions */
@@ -426,18 +422,10 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
         auto type_fonc = type->comme_fonction();
 
         POUR (type_fonc->types_entrees) {
-            if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-            }
-
-            it->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(compilatrice, it, enchaineuse);
         }
 
-        if ((type_fonc->type_sortie->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-            genere_typedefs_recursifs(compilatrice, type_fonc->type_sortie, enchaineuse);
-        }
-
-        type_fonc->type_sortie->drapeaux |= TYPEDEF_FUT_GENERE;
+        genere_typedefs_recursifs(compilatrice, type_fonc->type_sortie, enchaineuse);
     }
     else if (type->est_variadique()) {
         if (type->comme_variadique()->type_pointe) {
