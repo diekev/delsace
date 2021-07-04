@@ -618,7 +618,7 @@ struct Typeuse {
 
     Type *type_pour_lexeme(GenreLexeme lexeme);
 
-    TypePointeur *type_pointeur_pour(Type *type, bool ajoute_operateurs = true);
+    TypePointeur *type_pointeur_pour(Type *type, bool ajoute_operateurs = true, bool insere_dans_graphe = true);
 
     TypeReference *type_reference_pour(Type *type);
 

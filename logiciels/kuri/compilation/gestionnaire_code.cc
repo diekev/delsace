@@ -270,6 +270,11 @@ static void rassemble_dependances(NoeudExpression *racine,
                 dependances.fonctions_utilisees.insere(
                     const_cast<NoeudDeclarationEnteteFonction *>(comme->transformation.fonction));
             }
+
+            /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de RI.
+             * À FAIRE: généralise pour toutes les variables. */
+            auto type_pointeur = espace->typeuse.type_pointeur_pour(comme->transformation.type_cible, false, false);
+            dependances.types_utilises.insere(type_pointeur);
         }
         else if (noeud->est_appel()) {
             auto appel = noeud->comme_appel();

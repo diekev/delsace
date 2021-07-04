@@ -607,7 +607,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
     }
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs, bool insere_dans_graphe)
 {
     if (!type) {
         return ((*this)[TypeBase::PTR_NUL])->comme_pointeur();
@@ -621,8 +621,10 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 
     auto resultat = types_pointeurs_->ajoute_element(type);
 
-    auto graphe = graphe_.verrou_ecriture();
-    graphe->connecte_type_type(resultat, type);
+    if (insere_dans_graphe) {
+        auto graphe = graphe_.verrou_ecriture();
+        graphe->connecte_type_type(resultat, type);
+    }
 
     if (ajoute_operateurs) {
         operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
