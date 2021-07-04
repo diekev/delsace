@@ -390,8 +390,7 @@ static bool peut_etre_dereference(Type *type)
            type->genre == GenreType::REFERENCE || type->genre == GenreType::POINTEUR;
 }
 
-static void genere_typedefs_recursifs(Compilatrice &compilatrice,
-                                      Type *type,
+static void genere_typedefs_recursifs(Type *type,
                                       Enchaineuse &enchaineuse)
 {
     if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
@@ -423,7 +422,7 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
                 }
             }
 
-            genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
+            genere_typedefs_recursifs(type_deref, enchaineuse);
         }
     }
     /* ajoute les types des paramètres et de retour des fonctions */
@@ -431,19 +430,19 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
         auto type_fonc = type->comme_fonction();
 
         POUR (type_fonc->types_entrees) {
-            genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+            genere_typedefs_recursifs(it, enchaineuse);
         }
 
-        genere_typedefs_recursifs(compilatrice, type_fonc->type_sortie, enchaineuse);
+        genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
     }
     else if (type->est_variadique()) {
         if (type->comme_variadique()->type_pointe) {
-            genere_typedefs_recursifs(compilatrice, type->comme_variadique()->type_pointe, enchaineuse);
+            genere_typedefs_recursifs(type->comme_variadique()->type_pointe, enchaineuse);
         }
     }
     else if (type->est_opaque()) {
         auto opaque = type->comme_opaque();
-        genere_typedefs_recursifs(compilatrice, opaque->type_opacifie, enchaineuse);
+        genere_typedefs_recursifs(opaque->type_opacifie, enchaineuse);
     }
 
     cree_typedef(type, enchaineuse);
@@ -1402,13 +1401,13 @@ struct GeneratriceCodeC {
     }
 };
 
-static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchaineuse &enchaineuse)
+static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 {
     if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
         return;
     }
 
-    genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+    genere_typedefs_recursifs(type, enchaineuse);
 
     if (type) {
         if (type->est_structure()) {
@@ -1419,7 +1418,7 @@ static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchai
             }
 
             for (auto &membre : type_struct->membres) {
-                genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+                genere_typedefs_recursifs(membre.type, enchaineuse);
             }
 
             auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
@@ -1433,7 +1432,7 @@ static void genere_code_pour_type(Type *type, Compilatrice &compilatrice, Enchai
             }
 
             for (auto &membre : type_tuple->membres) {
-                genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+                genere_typedefs_recursifs(membre.type, enchaineuse);
             }
 
             auto nom_broye = nom_broye_type(type_tuple);
@@ -1461,7 +1460,7 @@ static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     POUR (repr_inter_programme.types) {
-        genere_code_pour_type(it, compilatrice, enchaineuse);
+        genere_code_pour_type(it, enchaineuse);
     }
 
     generatrice.genere_code(
