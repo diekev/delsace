@@ -169,11 +169,7 @@ static void rassemble_dependances(NoeudExpression *racine,
 
             auto indexage = noeud->comme_indexage();
             /* op peut être nul pour les déclaration de type ([]z32) */
-            if (!indexage->op) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
-
-            if (!indexage->op->est_basique) {
+            if (indexage->op && !indexage->op->est_basique) {
                 dependances.fonctions_utilisees.insere(indexage->op->decl);
             }
 
@@ -206,7 +202,9 @@ static void rassemble_dependances(NoeudExpression *racine,
                 case GenreType::CHAINE:
                 {
                     assert(interface->decl_panique_chaine);
-                    dependances.fonctions_utilisees.insere(interface->decl_panique_chaine);
+                    if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
+                        dependances.fonctions_utilisees.insere(interface->decl_panique_chaine);
+                    }
                     break;
                 }
                 default:
