@@ -1401,14 +1401,148 @@ struct GeneratriceCodeC {
     }
 };
 
+void visite_type(Type *type, int drapeau_visite, std::function<void(Type *)> rappel)
+{
+    if (!type) {
+        return;
+    }
+
+    if ((type->drapeaux & drapeau_visite) != 0) {
+        return;
+    }
+
+//    if (type->fonction_init) {
+//        visite_type(type->fonction_init->type, drapeau_visite, rappel);
+//    }
+
+    switch (type->genre) {
+        case GenreType::EINI:
+        {
+            break;
+        }
+        case GenreType::CHAINE:
+        {
+            break;
+        }
+        case GenreType::RIEN:
+        case GenreType::BOOL:
+        case GenreType::OCTET:
+        case GenreType::ENTIER_CONSTANT:
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::REEL:
+        {
+            break;
+        }
+        case GenreType::REFERENCE:
+        {
+            auto reference = type->comme_reference();
+            visite_type(reference->type_pointe, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::POINTEUR:
+        {
+            auto pointeur = type->comme_pointeur();
+            visite_type(pointeur->type_pointe, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::UNION:
+        {
+            break;
+        }
+        case GenreType::STRUCTURE:
+        {
+            auto type_struct = type->comme_structure();
+            for (auto &membre : type_struct->membres) {
+                visite_type(membre.type, drapeau_visite, rappel);
+            }
+            break;
+        }
+        case GenreType::TABLEAU_DYNAMIQUE:
+        {
+            auto tableau = type->comme_tableau_dynamique();
+            visite_type(tableau->type_pointe, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::TABLEAU_FIXE:
+        {
+            auto tableau = type->comme_tableau_fixe();
+            visite_type(tableau->type_pointe, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::VARIADIQUE:
+        {
+            auto variadique = type->comme_variadique();
+            visite_type(variadique->type_pointe, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::FONCTION:
+        {
+            auto fonction = type->comme_fonction();
+            POUR (fonction->types_entrees) {
+                visite_type(it, drapeau_visite, rappel);
+            }
+            visite_type(fonction->type_sortie, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::ENUM:
+        {
+            auto type_enum = type->comme_enum();
+            visite_type(type_enum->type_donnees, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::ERREUR:
+        {
+            auto type_erreur = type->comme_erreur();
+            visite_type(type_erreur->type_donnees, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::TYPE_DE_DONNEES:
+        {
+            auto type_de_donnees = type->comme_type_de_donnees();
+            visite_type(type_de_donnees->type_connu, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::POLYMORPHIQUE:
+        {
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto opaque = type->comme_opaque();
+            visite_type(opaque->type_opacifie, drapeau_visite, rappel);
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            auto type_tuple = type->comme_tuple();
+            for (auto &membre : type_tuple->membres) {
+                visite_type(membre.type, drapeau_visite, rappel);
+            }
+            break;
+        }
+    }
+
+    rappel(type);
+
+    type->drapeaux |= drapeau_visite;
+}
+
 static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 {
     if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
         return;
     }
 
+#if 0 // Ne peut pas utiliser visite_type car la mise en place du drapeau pour les structures
+      // fait en quelque sorte échouer la génération de typedef, si la structure s'inclue
+      // indirectement.
+    visite_type(type, TYPEDEF_FUT_GENERE, [&](Type *t) {
+                     cree_typedef(t, enchaineuse);
+                 });
+#else
     genere_typedefs_recursifs(type, enchaineuse);
-
+#endif
     if (type) {
         if (type->est_structure()) {
             auto type_struct = type->comme_structure();
@@ -1417,8 +1551,8 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
                 return;
             }
 
-            for (auto &membre : type_struct->membres) {
-                genere_typedefs_recursifs(membre.type, enchaineuse);
+            POUR (type_struct->membres) {
+                genere_typedefs_recursifs(it.type, enchaineuse);
             }
 
             auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
@@ -1431,8 +1565,8 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
                 return;
             }
 
-            for (auto &membre : type_tuple->membres) {
-                genere_typedefs_recursifs(membre.type, enchaineuse);
+            POUR (type_tuple->membres) {
+                genere_typedefs_recursifs(it.type, enchaineuse);
             }
 
             auto nom_broye = nom_broye_type(type_tuple);
