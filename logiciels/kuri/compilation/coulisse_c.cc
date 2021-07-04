@@ -444,6 +444,10 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
             genere_typedefs_recursifs(compilatrice, type->comme_variadique()->type_pointe, enchaineuse);
         }
     }
+    else if (type->est_opaque()) {
+        auto opaque = type->comme_opaque();
+        genere_typedefs_recursifs(compilatrice, opaque->type_opacifie, enchaineuse);
+    }
 
     cree_typedef(type, enchaineuse);
     type->drapeaux |= TYPEDEF_FUT_GENERE;
