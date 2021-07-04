@@ -398,7 +398,7 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
         return;
     }
 
-    /* Plante directement le drapeaux afin d'éviter les dépassements de pile en cas de cycles (p.e.
+    /* Plante directement le drapeau afin d'éviter les dépassements de pile en cas de cycles (p.e.
      * pour les listes chainées). */
     type->drapeaux |= TYPEDEF_FUT_GENERE;
 
