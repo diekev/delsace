@@ -1528,9 +1528,22 @@ void visite_type(Type *type, int drapeau_visite, std::function<void(Type *)> rap
     type->drapeaux |= drapeau_visite;
 }
 
+/* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
+ * types ont un typedef afin de simplifier la génération de code pour les déclaration de varibles :
+ * avec un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;` (PointeurTableau3Int est
+ * utilisé pour démontrer la chose, dans le langage ce serait plutôt KT3KPKsz32).
+ *
+ * Pour les structures (ou unions) nous devons également nous assurer que le code des structures
+ * utilisées par valeur pour leurs membres ont également leurs codes générés avant celui de la
+ * structure parent.
+ */
 static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 {
     if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
+        return;
+    }
+
+    if ((type->drapeaux & CODE_MACHINE_FUT_GENERE) != 0) {
         return;
     }
 
@@ -1553,6 +1566,10 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 
             POUR (type_struct->membres) {
                 genere_typedefs_recursifs(it.type, enchaineuse);
+
+                if (it.type->est_structure()) {
+                    genere_code_pour_type(it.type, enchaineuse);
+                }
             }
 
             auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
@@ -1581,6 +1598,8 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
             enchaineuse << "} " << nom_broye << ";\n";
         }
     }
+
+    type->drapeaux |= CODE_MACHINE_FUT_GENERE;
 }
 
 static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
