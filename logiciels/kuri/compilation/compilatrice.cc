@@ -261,6 +261,7 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
 
     espace->module_kuri = importe_module(espace, "Kuri", {});
 
+    gestionnaire_code->espace_cree(espace);
     return espace;
 }
 

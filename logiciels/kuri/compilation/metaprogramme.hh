@@ -29,6 +29,7 @@ struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDirectiveExecute;
 struct NoeudStruct;
+struct Programme;
 struct UniteCompilation;
 
 struct MetaProgramme {
@@ -56,4 +57,6 @@ struct MetaProgramme {
     ResultatExecution resultat{};
 
     DonneesExecution *donnees_execution = nullptr;
+
+    Programme *programme = nullptr;
 };

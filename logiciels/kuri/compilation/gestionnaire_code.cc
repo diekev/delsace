@@ -47,6 +47,30 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
+void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
+{
+  assert(espace->programme);
+  ajoute_programme(espace->programme);
+}
+
+void GestionnaireCode::metaprogramme_cree(MetaProgramme *metaprogramme)
+{
+  assert(metaprogramme->programme);
+  ajoute_programme(metaprogramme->programme);
+}
+
+void GestionnaireCode::ajoute_programme(Programme *programme)
+{
+  programmes_en_cours.enfile(programme);
+}
+
+void GestionnaireCode::enleve_programme(Programme *programme)
+{
+  programmes_en_cours.efface_si([&](Programme *programme_liste) {
+    return programme == programme_liste;
+  });
+}
+
 static bool est_declaration_variable_globale(NoeudExpression const *noeud)
 {
     if (!noeud->est_declaration_variable()) {
@@ -587,6 +611,8 @@ static void rassemble_dependances(UniteCompilation *unite,
         programme->ajoute_fonction(noeud->comme_entete_fonction());
     }
 
+    // À FAIRE : POUR (programmes_en_cours)
+
     if (doit_ajouter_les_dependances_au_programme(noeud, programme)) {
         ajoute_dependances_au_programme(dependances, *programme);
 
@@ -1020,6 +1046,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 //        taches_optimisation.enfile(tache_terminee);
     }
 
+    // À FAIRE : POUR (programmes_en_cours)
     if (!espace->possede_erreur && espace->programme->ri_generees() &&
         espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
         if (espace->options.resultat == ResultatCompilation::RIEN) {
@@ -1058,6 +1085,7 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
     auto espace = unite->espace;
     espace->tache_execution_terminee(m_compilatrice->messagere);
     marque_unites_dependantes_pretes(unite);
+    enleve_programme(unite->metaprogramme->programme);
 }
 
 void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)

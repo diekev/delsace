@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/tableau.hh"
@@ -55,6 +56,8 @@ class GestionnaireCode {
 
     Compilatrice *m_compilatrice = nullptr;
 
+    dls::file<Programme *> programmes_en_cours{};
+
   public:
     GestionnaireCode() = default;
     GestionnaireCode(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
@@ -64,13 +67,21 @@ class GestionnaireCode {
     GestionnaireCode(GestionnaireCode const &) = delete;
     GestionnaireCode &operator=(GestionnaireCode const &) = delete;
 
+    /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
+     * cours de compilation */
+    void espace_cree(EspaceDeTravail *espace);
+
+    /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
+     * cours de compilation */
+    void metaprogramme_cree(MetaProgramme *metaprogramme);
+
+    /* Création des unités pour le typage, etc. */
     void requiers_chargement(EspaceDeTravail *espace, Fichier *fichier);
 
     void requiers_lexage(EspaceDeTravail *espace, Fichier *fichier);
 
     void requiers_parsage(EspaceDeTravail *espace, Fichier *fichier);
 
-    /* Création des unités pour le typage, etc. */
     void requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
 
     void requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
@@ -105,10 +116,15 @@ class GestionnaireCode {
 
     void liaison_programme_terminee(UniteCompilation *unite);
 
+    void optimisation_terminee(UniteCompilation *unite);
+
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);
-    void optimisation_terminee(UniteCompilation *unite);
 
   private:
     void marque_unites_dependantes_pretes(UniteCompilation *unite);
+
+    void ajoute_programme(Programme *programme);
+
+    void enleve_programme(Programme *programme);
 };

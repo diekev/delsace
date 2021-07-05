@@ -518,53 +518,6 @@ void Tacheronne::gere_tache()
     temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 }
 
-// À FAIRE(gestion) : remplace ceci par le Programme
-static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
-{
-    auto visite = dls::ensemblon<NoeudDependance *, 32>();
-    auto a_visiter = dls::file<NoeudDependance *>();
-
-    a_visiter.enfile(noeud);
-
-    while (!a_visiter.est_vide()) {
-        auto n = a_visiter.defile();
-
-        visite.insere(n);
-
-        POUR (n->relations().plage()) {
-            auto noeud_fin = it.noeud_fin;
-
-            if (noeud_fin->est_type()) {
-                if ((noeud_fin->type()->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
-                    return false;
-                }
-            }
-            else if (noeud_fin->est_fonction()) {
-                auto noeud_syntaxique = noeud_fin->fonction();
-
-                if (!noeud_syntaxique->possede_drapeau(RI_FUT_GENEREE)) {
-                    return false;
-                }
-            }
-            else if (noeud_fin->est_globale()) {
-                auto noeud_syntaxique = noeud_fin->globale();
-
-                if (!noeud_syntaxique->possede_drapeau(RI_FUT_GENEREE)) {
-                    return false;
-                }
-            }
-
-            if (visite.possede(noeud_fin)) {
-                continue;
-            }
-
-            a_visiter.enfile(noeud_fin);
-        }
-    }
-
-    return true;
-}
-
 void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 {
     auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
@@ -620,6 +573,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         auto espace = unite->espace;
         auto &gestionnaire = compilatrice.gestionnaire_code;
 
+        //  À FAIRE(gestion) : ceci doit se faire via les dépendances
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_contexte, ID::ContexteProgramme);
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_base_allocatrice, ID::BaseAllocatrice);
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_stockage_temporaire,
@@ -637,6 +591,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
             return false;
         }
 
+        //  À FAIRE(gestion) : ajout de decl_creation_contexte comme dépendance à un métaprogramme
         auto decl_creation_contexte = interface->decl_creation_contexte;
         if (decl_creation_contexte->corps->unite == nullptr) {
             gestionnaire->mets_en_attente(unite,
@@ -644,6 +599,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
             return false;
         }
 
+#if 0
         if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {
             gestionnaire->mets_en_attente(
                 unite, Attente::sur_declaration(interface->decl_creation_contexte));
@@ -653,7 +609,9 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         if (!dependances_eurent_ri_generees(corps->entete->noeud_dependance)) {
             return false;
         }
+#endif
 
+        // À FAIRE(gestion) : manière de définir le point d'entrée d'un programme
         constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, corps->entete);
     }
 
