@@ -1102,25 +1102,42 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
 void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
 {
     assert(unite->programme);
-    auto espace = unite->espace;
-    espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
-    if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
-        espace->change_de_phase(m_compilatrice->messagere,
-                                PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
+    auto programme = unite->programme;
+    auto espace = unite->espace;
+
+    if (programme->pour_metaprogramme()) {
         requiers_liaison_executable(espace, unite->programme);
     }
     else {
-        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        espace->tache_generation_objet_terminee(m_compilatrice->messagere);
+
+        if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
+            espace->change_de_phase(m_compilatrice->messagere,
+                                    PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
+            requiers_liaison_executable(espace, unite->programme);
+        }
+        else {
+            espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        }
     }
 }
 
 void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
 {
     assert(unite->programme);
+
+    auto programme = unite->programme;
     auto espace = unite->espace;
-    espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
-    espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+
+    if (programme->pour_metaprogramme()) {
+        auto metaprogramme = programme->pour_metaprogramme();
+        requiers_execution(unite->espace, metaprogramme);
+    }
+    else {
+        espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
+        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+    }
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
