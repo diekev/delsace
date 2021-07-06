@@ -35,6 +35,58 @@
 #include "espace_de_travail.hh"
 #include "typage.hh"
 
+#if 0
+class EtatCompilation {
+    PhaseCompilation m_phase_courante{};
+
+public:
+    void avance_etat()
+    {
+        if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {
+            return;
+        }
+
+        const auto index_phase_courante = static_cast<int>(m_phase_courante);
+        const auto index_phase_suivante = index_phase_courante + 1;
+        m_phase_courante = static_cast<PhaseCompilation>(index_phase_suivante);
+    }
+
+    void essaie_d_aller_a(PhaseCompilation cible)
+    {
+        if (static_cast<int>(cible) != static_cast<int>(m_phase_courante) + 1) {
+            return;
+        }
+
+        m_phase_courante = cible;
+    }
+
+    void recule_vers(PhaseCompilation cible)
+    {
+        m_phase_courante = cible;
+    }
+
+    PhaseCompilation phase_courante() const
+    {
+        return m_phase_courante;
+    }
+};
+
+void ajoute_etat()
+{
+    EtatCompilation etat_compilation;
+
+    if (!typage_termine()) {
+        return;
+    }
+    etat_compilation.avance_etat();
+
+    if (!ri_terminee()) {
+        return;
+    }
+    etat_compilation.avance_etat();
+}
+#endif
+
 Programme *Programme::cree(EspaceDeTravail *espace)
 {
     Programme *resultat = memoire::loge<Programme>("Programme");
