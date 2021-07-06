@@ -52,7 +52,7 @@ Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
     return nullptr;
 }
 
-Coulisse  *Coulisse::cree_pour_metaprogramme()
+Coulisse *Coulisse::cree_pour_metaprogramme()
 {
     return memoire::loge<CoulisseMV>("CoulisseMV");
 }

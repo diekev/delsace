@@ -101,7 +101,8 @@ Programme *Programme::cree_pour_espace(EspaceDeTravail *espace)
     return resultat;
 }
 
-Programme *Programme::cree_pour_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+Programme *Programme::cree_pour_metaprogramme(EspaceDeTravail *espace,
+                                              MetaProgramme *metaprogramme)
 {
     Programme *resultat = Programme::cree(espace);
     resultat->m_pour_metaprogramme = metaprogramme;
@@ -229,7 +230,8 @@ bool Programme::ri_generees() const
 void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
 {
     if (pour_metaprogramme()) {
-        /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de l'exécutable. */
+        /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de
+         * l'exécutable. */
         if (racine->ident == ID::creation_contexte) {
             ajoute_fonction(racine);
         }

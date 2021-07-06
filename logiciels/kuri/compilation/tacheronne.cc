@@ -497,10 +497,10 @@ void Tacheronne::gere_tache()
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-      #if 0
+#if 0
                 auto programme = tache.unite->programme;
                 programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace);
-      #endif
+#endif
                 tache.espace->coulisse->cree_fichier_objet(
                     compilatrice, *tache.espace, constructrice_ri);
                 compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);

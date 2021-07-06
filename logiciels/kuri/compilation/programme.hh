@@ -69,7 +69,8 @@ struct Programme {
 
     static Programme *cree_pour_espace(EspaceDeTravail *espace);
 
-    static Programme *cree_pour_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    static Programme *cree_pour_metaprogramme(EspaceDeTravail *espace,
+                                              MetaProgramme *metaprogramme);
 
     /* Modifications. */
 

@@ -607,7 +607,9 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
     }
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs, bool insere_dans_graphe)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type,
+                                          bool ajoute_operateurs,
+                                          bool insere_dans_graphe)
 {
     if (!type) {
         return ((*this)[TypeBase::PTR_NUL])->comme_pointeur();

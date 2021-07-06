@@ -390,8 +390,7 @@ static bool peut_etre_dereference(Type *type)
            type->genre == GenreType::REFERENCE || type->genre == GenreType::POINTEUR;
 }
 
-static void genere_typedefs_recursifs(Type *type,
-                                      Enchaineuse &enchaineuse)
+static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
 {
     if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
         return;
@@ -1547,9 +1546,9 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         return;
     }
 
-#if 0 // Ne peut pas utiliser visite_type car la mise en place du drapeau pour les structures
-      // fait en quelque sorte échouer la génération de typedef, si la structure s'inclue
-      // indirectement.
+#if 0  // Ne peut pas utiliser visite_type car la mise en place du drapeau pour les structures
+       // fait en quelque sorte échouer la génération de typedef, si la structure s'inclue
+       // indirectement.
     visite_type(type, TYPEDEF_FUT_GENERE, [&](Type *t) {
                      cree_typedef(t, enchaineuse);
                  });

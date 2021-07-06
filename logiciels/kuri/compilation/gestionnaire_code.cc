@@ -51,36 +51,37 @@ compilation
   À FAIRE(gestion) : métaprogrammes
   - ajout d'un programme aux métaprogrammes
   - si une unité dépend sur l'exécution d'un métaprogramme mets-la en attente
-  - quand le programme du métaprogramme est compilé, crée une unité pour l'exécution du métaprogramme
+  - quand le programme du métaprogramme est compilé, crée une unité pour l'exécution du
+  métaprogramme
   - questions ouvertes :
     -- qui crée le métaprogramme
-    -- qui notifie le gestionnaire qu'un métaprogramme fut créé (pour ajouter son programme à liste)
+    -- qui notifie le gestionnaire qu'un métaprogramme fut créé (pour ajouter son programme à
+  liste)
     -- comment gérer les cas où un métaprogramme est créé, mais que les dépendances furent déjà
        compilées (comme decl_creation_contexte)
  */
 
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
-  assert(espace->programme);
-  ajoute_programme(espace->programme);
+    assert(espace->programme);
+    ajoute_programme(espace->programme);
 }
 
 void GestionnaireCode::metaprogramme_cree(MetaProgramme *metaprogramme)
 {
-  assert(metaprogramme->programme);
-  ajoute_programme(metaprogramme->programme);
+    assert(metaprogramme->programme);
+    ajoute_programme(metaprogramme->programme);
 }
 
 void GestionnaireCode::ajoute_programme(Programme *programme)
 {
-  programmes_en_cours.enfile(programme);
+    programmes_en_cours.enfile(programme);
 }
 
 void GestionnaireCode::enleve_programme(Programme *programme)
 {
-  programmes_en_cours.efface_si([&](Programme *programme_liste) {
-    return programme == programme_liste;
-  });
+    programmes_en_cours.efface_si(
+        [&](Programme *programme_liste) { return programme == programme_liste; });
 }
 
 static bool est_declaration_variable_globale(NoeudExpression const *noeud)
@@ -140,206 +141,213 @@ static void rassemble_dependances(NoeudExpression *racine,
 
     // À FAIRE(gestion) : vérifie les dépendances pour les types tableaux ou union anymnome (p.e.:
     //                    []z32, r32 | r16), il faut utilisé le type, et non le type_de_données
-    visite_noeud(racine, PreferenceVisiteNoeud::SUBSTITUTION, [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
-        // Note: les fonctions polymorphiques n'ont pas de types.
-        if (noeud->type) {
-            if (noeud->type->est_type_de_donnees()) {
-                auto type_de_donnees = noeud->type->comme_type_de_donnees();
-                if (type_de_donnees->type_connu) {
-                    dependances.types_utilises.insere(type_de_donnees->type_connu);
-                }
-            }
-            else {
-                dependances.types_utilises.insere(noeud->type);
-            }
-        }
-
-        if (noeud->est_entete_fonction()) {
-            /* Visite manuellement les enfants des entêtes, car nous irions visiter le corps qui
-             * ne fut pas encore typé. */
-            auto entete = noeud->comme_entete_fonction();
-
-            POUR (entete->params) {
-                rassemble_dependances(it, espace, dependances);
-            }
-
-            POUR (entete->params_sorties) {
-                rassemble_dependances(it, espace, dependances);
-            }
-
-            return DecisionVisiteNoeud::IGNORE_ENFANTS;
-        }
-
-        if (noeud->est_reference_declaration()) {
-            auto ref = noeud->comme_reference_declaration();
-
-            auto decl = ref->declaration_referee;
-
-            if (!decl) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
-
-            if (est_declaration_variable_globale(decl)) {
-                dependances.globales_utilisees.insere(decl->comme_declaration_variable());
-            }
-            else if (decl->est_entete_fonction() &&
-                     !decl->comme_entete_fonction()->est_polymorphe) {
-                auto decl_fonc = decl->comme_entete_fonction();
-                dependances.fonctions_utilisees.insere(decl_fonc);
-            }
-        }
-        else if (noeud->est_cuisine()) {
-            auto cuisine = noeud->comme_cuisine();
-            auto expr = cuisine->expression;
-            dependances.fonctions_utilisees.insere(
-                expr->comme_appel()->expression->comme_entete_fonction());
-        }
-        else if (noeud->est_indexage()) {
-            /* Traite les indexages avant les expressions binaires afin de ne pas les traiter comme
-             * tel (est_expression_binaire() retourne vrai pour les indexages). */
-
-            auto indexage = noeud->comme_indexage();
-            /* op peut être nul pour les déclaration de type ([]z32) */
-            if (indexage->op && !indexage->op->est_basique) {
-                dependances.fonctions_utilisees.insere(indexage->op->decl);
-            }
-
-            /* Marque les dépendances sur les fonctions d'interface de kuri. */
-            auto interface = espace->interface_kuri;
-
-            /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est chargée
-             * de transtyper automatiquement. */
-            auto type_indexe = indexage->operande_gauche->type;
-            if (type_indexe->est_opaque()) {
-                type_indexe = type_indexe->comme_opaque()->type_opacifie;
-            }
-
-            switch (type_indexe->genre) {
-                case GenreType::VARIADIQUE:
-                case GenreType::TABLEAU_DYNAMIQUE:
-                {
-                    assert(interface->decl_panique_tableau);
-                    dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
-                    break;
-                }
-                case GenreType::TABLEAU_FIXE:
-                {
-                    assert(interface->decl_panique_tableau);
-                    if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                        dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
+    visite_noeud(
+        racine,
+        PreferenceVisiteNoeud::SUBSTITUTION,
+        [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+            // Note: les fonctions polymorphiques n'ont pas de types.
+            if (noeud->type) {
+                if (noeud->type->est_type_de_donnees()) {
+                    auto type_de_donnees = noeud->type->comme_type_de_donnees();
+                    if (type_de_donnees->type_connu) {
+                        dependances.types_utilises.insere(type_de_donnees->type_connu);
                     }
-                    break;
                 }
-                case GenreType::CHAINE:
-                {
-                    assert(interface->decl_panique_chaine);
-                    if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                        dependances.fonctions_utilisees.insere(interface->decl_panique_chaine);
-                    }
-                    break;
-                }
-                default:
-                {
-                    break;
+                else {
+                    dependances.types_utilises.insere(noeud->type);
                 }
             }
-        }
-        else if (noeud->est_expression_binaire()) {
-            auto expression_binaire = noeud->comme_expression_binaire();
 
-            /* op peut être nul pour les déclaration de type (z32 | r32) */
-            if (!expression_binaire->op) {
-                return DecisionVisiteNoeud::CONTINUE;
+            if (noeud->est_entete_fonction()) {
+                /* Visite manuellement les enfants des entêtes, car nous irions visiter le corps
+                 * qui ne fut pas encore typé. */
+                auto entete = noeud->comme_entete_fonction();
+
+                POUR (entete->params) {
+                    rassemble_dependances(it, espace, dependances);
+                }
+
+                POUR (entete->params_sorties) {
+                    rassemble_dependances(it, espace, dependances);
+                }
+
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
-            if (!expression_binaire->op->est_basique) {
-                dependances.fonctions_utilisees.insere(expression_binaire->op->decl);
-            }
-        }
-        else if (noeud->est_discr()) {
-            auto discr = noeud->comme_discr();
-            if (discr->op && !discr->op->est_basique) {
-                dependances.fonctions_utilisees.insere(discr->op->decl);
-            }
-        }
-        else if (noeud->est_construction_tableau()) {
-            auto construction_tableau = noeud->comme_construction_tableau();
-            dependances.types_utilises.insere(construction_tableau->type);
+            if (noeud->est_reference_declaration()) {
+                auto ref = noeud->comme_reference_declaration();
 
-            /* Ajout également du type de pointeur pour la génération de code C. */
-            auto type_feuille = construction_tableau->type->comme_tableau_fixe()->type_pointe;
-            auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
-            dependances.types_utilises.insere(type_ptr);
-        }
-        else if (noeud->est_tente()) {
-            auto tente = noeud->comme_tente();
+                auto decl = ref->declaration_referee;
 
-            if (!tente->expression_piegee) {
+                if (!decl) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
+
+                if (est_declaration_variable_globale(decl)) {
+                    dependances.globales_utilisees.insere(decl->comme_declaration_variable());
+                }
+                else if (decl->est_entete_fonction() &&
+                         !decl->comme_entete_fonction()->est_polymorphe) {
+                    auto decl_fonc = decl->comme_entete_fonction();
+                    dependances.fonctions_utilisees.insere(decl_fonc);
+                }
+            }
+            else if (noeud->est_cuisine()) {
+                auto cuisine = noeud->comme_cuisine();
+                auto expr = cuisine->expression;
+                dependances.fonctions_utilisees.insere(
+                    expr->comme_appel()->expression->comme_entete_fonction());
+            }
+            else if (noeud->est_indexage()) {
+                /* Traite les indexages avant les expressions binaires afin de ne pas les traiter
+                 * comme tel (est_expression_binaire() retourne vrai pour les indexages). */
+
+                auto indexage = noeud->comme_indexage();
+                /* op peut être nul pour les déclaration de type ([]z32) */
+                if (indexage->op && !indexage->op->est_basique) {
+                    dependances.fonctions_utilisees.insere(indexage->op->decl);
+                }
+
+                /* Marque les dépendances sur les fonctions d'interface de kuri. */
                 auto interface = espace->interface_kuri;
-                assert(interface->decl_panique_erreur);
-                dependances.fonctions_utilisees.insere(interface->decl_panique_erreur);
+
+                /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
+                 * chargée de transtyper automatiquement. */
+                auto type_indexe = indexage->operande_gauche->type;
+                if (type_indexe->est_opaque()) {
+                    type_indexe = type_indexe->comme_opaque()->type_opacifie;
+                }
+
+                switch (type_indexe->genre) {
+                    case GenreType::VARIADIQUE:
+                    case GenreType::TABLEAU_DYNAMIQUE:
+                    {
+                        assert(interface->decl_panique_tableau);
+                        dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
+                        break;
+                    }
+                    case GenreType::TABLEAU_FIXE:
+                    {
+                        assert(interface->decl_panique_tableau);
+                        if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
+                            dependances.fonctions_utilisees.insere(
+                                interface->decl_panique_tableau);
+                        }
+                        break;
+                    }
+                    case GenreType::CHAINE:
+                    {
+                        assert(interface->decl_panique_chaine);
+                        if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
+                            dependances.fonctions_utilisees.insere(interface->decl_panique_chaine);
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
             }
-        }
-        else if (noeud->est_reference_membre_union()) {
-            auto interface = espace->interface_kuri;
-            assert(interface->decl_panique_membre_union);
-            dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
-        }
-        else if (noeud->est_comme()) {
-            auto comme = noeud->comme_comme();
+            else if (noeud->est_expression_binaire()) {
+                auto expression_binaire = noeud->comme_expression_binaire();
 
-            /* Marque les dépendances sur les fonctions d'interface de kuri. */
-            auto interface = espace->interface_kuri;
+                /* op peut être nul pour les déclaration de type (z32 | r32) */
+                if (!expression_binaire->op) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
 
-            if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
+                if (!expression_binaire->op->est_basique) {
+                    dependances.fonctions_utilisees.insere(expression_binaire->op->decl);
+                }
+            }
+            else if (noeud->est_discr()) {
+                auto discr = noeud->comme_discr();
+                if (discr->op && !discr->op->est_basique) {
+                    dependances.fonctions_utilisees.insere(discr->op->decl);
+                }
+            }
+            else if (noeud->est_construction_tableau()) {
+                auto construction_tableau = noeud->comme_construction_tableau();
+                dependances.types_utilises.insere(construction_tableau->type);
+
+                /* Ajout également du type de pointeur pour la génération de code C. */
+                auto type_feuille = construction_tableau->type->comme_tableau_fixe()->type_pointe;
+                auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
+                dependances.types_utilises.insere(type_ptr);
+            }
+            else if (noeud->est_tente()) {
+                auto tente = noeud->comme_tente();
+
+                if (!tente->expression_piegee) {
+                    auto interface = espace->interface_kuri;
+                    assert(interface->decl_panique_erreur);
+                    dependances.fonctions_utilisees.insere(interface->decl_panique_erreur);
+                }
+            }
+            else if (noeud->est_reference_membre_union()) {
+                auto interface = espace->interface_kuri;
                 assert(interface->decl_panique_membre_union);
-                // À FAIRE(gestion) : uniquement si l'union est nonsûre.
                 dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
             }
-            else if (comme->transformation.type == TypeTransformation::FONCTION) {
-                assert(comme->transformation.fonction);
-                dependances.fonctions_utilisees.insere(
-                    const_cast<NoeudDeclarationEnteteFonction *>(comme->transformation.fonction));
+            else if (noeud->est_comme()) {
+                auto comme = noeud->comme_comme();
+
+                /* Marque les dépendances sur les fonctions d'interface de kuri. */
+                auto interface = espace->interface_kuri;
+
+                if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
+                    assert(interface->decl_panique_membre_union);
+                    // À FAIRE(gestion) : uniquement si l'union est nonsûre.
+                    dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
+                }
+                else if (comme->transformation.type == TypeTransformation::FONCTION) {
+                    assert(comme->transformation.fonction);
+                    dependances.fonctions_utilisees.insere(
+                        const_cast<NoeudDeclarationEnteteFonction *>(
+                            comme->transformation.fonction));
+                }
+
+                /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
+                 * RI. À FAIRE: généralise pour toutes les variables. */
+                auto type_pointeur = espace->typeuse.type_pointeur_pour(
+                    comme->transformation.type_cible, false, false);
+                dependances.types_utilises.insere(type_pointeur);
+            }
+            else if (noeud->est_appel()) {
+                auto appel = noeud->comme_appel();
+
+                if (appel->noeud_fonction_appelee) {
+                    dependances.fonctions_utilisees.insere(
+                        appel->noeud_fonction_appelee->comme_entete_fonction());
+                }
+            }
+            else if (noeud->est_args_variadiques()) {
+                auto args = noeud->comme_args_variadiques();
+
+                /* Création d'un type tableau fixe, pour la génération de code. */
+                auto taille_tableau = args->expressions.taille();
+                auto type_tfixe = espace->typeuse.type_tableau_fixe(
+                    args->type, taille_tableau, false);
+                dependances.types_utilises.insere(type_tfixe);
+            }
+            else if (noeud->est_assignation_variable()) {
+                auto assignation = noeud->comme_assignation_variable();
+
+                POUR (assignation->donnees_exprs.plage()) {
+                    rassemble_dependances(it.expression, espace, dependances);
+                }
+            }
+            else if (noeud->est_declaration_variable()) {
+                auto declaration = noeud->comme_declaration_variable();
+
+                POUR (declaration->donnees_decl.plage()) {
+                    rassemble_dependances(it.expression, espace, dependances);
+                }
             }
 
-            /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de RI.
-             * À FAIRE: généralise pour toutes les variables. */
-            auto type_pointeur = espace->typeuse.type_pointeur_pour(comme->transformation.type_cible, false, false);
-            dependances.types_utilises.insere(type_pointeur);
-        }
-        else if (noeud->est_appel()) {
-            auto appel = noeud->comme_appel();
-
-            if (appel->noeud_fonction_appelee) {
-                dependances.fonctions_utilisees.insere(
-                    appel->noeud_fonction_appelee->comme_entete_fonction());
-            }
-        }
-        else if (noeud->est_args_variadiques()) {
-            auto args = noeud->comme_args_variadiques();
-
-            /* Création d'un type tableau fixe, pour la génération de code. */
-            auto taille_tableau = args->expressions.taille();
-            auto type_tfixe = espace->typeuse.type_tableau_fixe(args->type, taille_tableau, false);
-            dependances.types_utilises.insere(type_tfixe);
-        }
-        else if (noeud->est_assignation_variable()) {
-            auto assignation = noeud->comme_assignation_variable();
-
-            POUR (assignation->donnees_exprs.plage()) {
-                rassemble_dependances(it.expression, espace, dependances);
-            }
-        }
-        else if (noeud->est_declaration_variable()) {
-            auto declaration = noeud->comme_declaration_variable();
-
-            POUR (declaration->donnees_decl.plage()) {
-                rassemble_dependances(it.expression, espace, dependances);
-            }
-        }
-
-        return DecisionVisiteNoeud::CONTINUE;
-    });
+            return DecisionVisiteNoeud::CONTINUE;
+        });
 }
 
 /* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur vers
@@ -1118,7 +1126,8 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
             requiers_liaison_executable(espace, unite->programme);
         }
         else {
-            espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+            espace->change_de_phase(m_compilatrice->messagere,
+                                    PhaseCompilation::COMPILATION_TERMINEE);
         }
     }
 }

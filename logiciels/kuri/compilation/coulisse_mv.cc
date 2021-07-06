@@ -53,7 +53,7 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
     return true;
 }
 
-bool CoulisseMV::cree_executable(Programme */*programme*/)
+bool CoulisseMV::cree_executable(Programme * /*programme*/)
 {
     return true;
 }

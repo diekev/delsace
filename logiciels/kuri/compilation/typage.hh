@@ -619,13 +619,18 @@ struct Typeuse {
 
     Type *type_pour_lexeme(GenreLexeme lexeme);
 
-    TypePointeur *type_pointeur_pour(Type *type, bool ajoute_operateurs = true, bool insere_dans_graphe = true);
+    TypePointeur *type_pointeur_pour(Type *type,
+                                     bool ajoute_operateurs = true,
+                                     bool insere_dans_graphe = true);
 
     TypeReference *type_reference_pour(Type *type);
 
-    TypeTableauFixe *type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe = true);
+    TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
+                                       int taille,
+                                       bool insere_dans_graphe = true);
 
-    TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe, bool insere_dans_graphe = true);
+    TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
+                                                 bool insere_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
 
