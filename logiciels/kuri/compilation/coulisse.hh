@@ -28,6 +28,7 @@ struct Compilatrice;
 struct ConstructriceRI;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
+struct Programme;
 
 struct Coulisse {
     double temps_generation_code = 0.0;
@@ -45,4 +46,8 @@ struct Coulisse {
                                     ConstructriceRI &constructrice_ri) = 0;
 
     virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
+
+    virtual bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace) = 0;
+
+    virtual bool cree_executable(Programme *programme) = 0;
 };

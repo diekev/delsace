@@ -1687,3 +1687,13 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &
     temps_executable = debut_executable.temps();
     return true;
 }
+
+bool CoulisseLLVM::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+{
+    return true;
+}
+
+bool CoulisseLLVM::cree_executable(Programme *programme)
+{
+    return true;
+}

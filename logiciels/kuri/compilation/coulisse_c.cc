@@ -1862,3 +1862,13 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
     temps_executable = debut_executable.temps();
     return true;
 }
+
+bool CoulisseC::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+{
+    return true;
+}
+
+bool CoulisseC::cree_executable(Programme *programme)
+{
+    return true;
+}
