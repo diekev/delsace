@@ -33,6 +33,25 @@
 #include "erreur.h"
 #include "typage.hh"
 
+Programme *Programme::cree(EspaceDeTravail *espace)
+{
+    Programme *resultat = memoire::loge<Programme>("Programme");
+    resultat->m_espace = espace;
+    return resultat;
+}
+
+Programme *Programme::cree_pour_espace(EspaceDeTravail *espace)
+{
+    return Programme::cree(espace);
+}
+
+Programme *Programme::cree_pour_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+{
+    Programme *resultat = Programme::cree(espace);
+    resultat->m_pour_metaprogramme = metaprogramme;
+    return resultat;
+}
+
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 {
     if (possede(fonction)) {
@@ -148,6 +167,19 @@ bool Programme::ri_generees() const
 #endif
 
     return true;
+}
+
+void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
+{
+    if (pour_metaprogramme()) {
+        /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de l'exécutable. */
+        if (racine->ident == ID::creation_contexte) {
+            ajoute_fonction(racine);
+        }
+    }
+    else {
+        ajoute_fonction(racine);
+    }
 }
 
 void imprime_contenu_programme(const Programme &programme, std::ostream &os)

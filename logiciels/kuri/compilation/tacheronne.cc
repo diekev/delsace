@@ -490,6 +490,7 @@ void Tacheronne::gere_tache()
             case GenreTache::EXECUTION:
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
+                gere_unite_pour_execution(tache.unite);
                 break;
             }
             case GenreTache::GENERATION_CODE_MACHINE:
@@ -584,18 +585,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_info_fonction_trace_appel,
                                       ID::InfoFonctionTraceAppel);
 
+        //  À FAIRE(gestion) : ajout de decl_creation_contexte comme dépendance à un métaprogramme
         auto interface = espace->interface_kuri;
         if (interface->decl_creation_contexte == nullptr) {
             gestionnaire->mets_en_attente(unite,
                                           Attente::sur_interface_kuri(ID::creation_contexte));
-            return false;
-        }
-
-        //  À FAIRE(gestion) : ajout de decl_creation_contexte comme dépendance à un métaprogramme
-        auto decl_creation_contexte = interface->decl_creation_contexte;
-        if (decl_creation_contexte->corps->unite == nullptr) {
-            gestionnaire->mets_en_attente(unite,
-                                          Attente::sur_declaration(decl_creation_contexte->corps));
             return false;
         }
 
@@ -666,107 +660,15 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
     return true;
 }
 
-static void rassemble_globales_et_fonctions(EspaceDeTravail *espace,
-                                            MachineVirtuelle &mv,
-                                            NoeudDependance *racine,
-                                            kuri::tableau<AtomeGlobale *> &globales,
-                                            kuri::tableau<AtomeFonction *> &fonctions)
-{
-    auto graphe = espace->graphe_dependance.verrou_ecriture();
-
-    graphe->traverse(racine, [&](NoeudDependance *noeud_dep) {
-        if (noeud_dep->est_fonction()) {
-            auto decl_noeud = noeud_dep->fonction();
-
-            if (decl_noeud->possede_drapeau(CODE_BINAIRE_FUT_GENERE)) {
-                return;
-            }
-
-            auto atome_fonction = static_cast<AtomeFonction *>(decl_noeud->atome);
-            fonctions.ajoute(atome_fonction);
-            decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
-        }
-        else if (noeud_dep->est_type()) {
-            auto type = noeud_dep->type();
-
-            if ((type->drapeaux & CODE_BINAIRE_TYPE_FUT_GENERE) != 0) {
-                return;
-            }
-
-            if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-                auto atome_fonction = type->fonction_init;
-                assert(atome_fonction);
-                fonctions.ajoute(atome_fonction);
-                type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
-            }
-        }
-        else if (noeud_dep->est_globale()) {
-            auto decl_noeud = noeud_dep->globale();
-
-            if (decl_noeud->possede_drapeau(EST_CONSTANTE)) {
-                return;
-            }
-
-            if (decl_noeud->possede_drapeau(CODE_BINAIRE_FUT_GENERE)) {
-                return;
-            }
-
-            auto atome_globale = espace->trouve_globale(decl_noeud);
-
-            if (atome_globale->index == -1) {
-                atome_globale->index = mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
-            }
-
-            globales.ajoute(atome_globale);
-
-            decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
-        }
-    });
-
-    POUR_TABLEAU_PAGE (graphe->noeuds) {
-        it.fut_visite = false;
-    }
-}
-
-bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
+void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 {
     auto metaprogramme = unite->metaprogramme;
-    auto espace = unite->espace;
+    assert(metaprogramme->fonction->drapeaux & RI_FUT_GENEREE);
 
-    auto peut_executer = (metaprogramme->fonction->drapeaux & RI_FUT_GENEREE) != 0;
-
-    if (peut_executer) {
-        kuri::tableau<AtomeGlobale *> globales;
-        kuri::tableau<AtomeFonction *> fonctions;
-        rassemble_globales_et_fonctions(
-            espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
-
-        auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
-
-        if (!fonction) {
-            espace->rapporte_erreur(metaprogramme->fonction,
-                                    "Impossible de trouver la fonction pour le métaprogramme");
-        }
-
-        if (globales.taille() != 0) {
-            auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
-                espace, globales, fonction);
-            fonctions.ajoute(fonc_init);
-        }
-
-        POUR (fonctions) {
-            genere_code_binaire_pour_fonction(it, &mv);
-        }
-
-        // desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(),
-        // std::cerr);
-
-        metaprogramme->donnees_execution = mv.loge_donnees_execution();
-        mv.ajoute_metaprogramme(metaprogramme);
-    }
+    metaprogramme->donnees_execution = mv.loge_donnees_execution();
+    mv.ajoute_metaprogramme(metaprogramme);
 
     execute_metaprogrammes();
-    return peut_executer;
 }
 
 void Tacheronne::execute_metaprogrammes()

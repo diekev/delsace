@@ -24,25 +24,18 @@
 
 #pragma once
 
-struct Compilatrice;
-struct ConstructriceRI;
-struct EspaceDeTravail;
-struct OptionsDeCompilation;
+#include "coulisse.hh"
 
-struct Coulisse {
-    double temps_generation_code = 0.0;
-    double temps_fichier_objet = 0.0;
-    double temps_executable = 0.0;
+struct Programme;
 
-    virtual ~Coulisse() = default;
+struct CoulisseMV final : public Coulisse {
+    bool cree_fichier_objet(Compilatrice &compilatrice,
+                            EspaceDeTravail &espace,
+                            ConstructriceRI &constructrice_ri) override;
 
-    static Coulisse *cree_pour_options(OptionsDeCompilation options);
+    bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) override;
 
-    static Coulisse *detruit(Coulisse *coulisse);
+    bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace);
 
-    virtual bool cree_fichier_objet(Compilatrice &compilatrice,
-                                    EspaceDeTravail &espace,
-                                    ConstructriceRI &constructrice_ri) = 0;
-
-    virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
+    bool cree_executable(Programme *programme);
 };

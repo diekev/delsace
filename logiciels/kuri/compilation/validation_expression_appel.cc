@@ -1712,8 +1712,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             return std::get<Attente>(resultat_validation);
         }
         if (!est_ok(resultat_validation)) {
-            // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans granulariser
-            //           CodeRetourValidation pour différencier d'une erreur lourde ou rattrappable
+            // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans doute
+            //           granulariser ResultatValidation pour différencier d'une erreur lourde ou
+            //           rattrappable
             return Attente::sur_symbole(symbole_pour_expression(expr->expression));
         }
 

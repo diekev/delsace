@@ -47,6 +47,18 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
+/*
+  À FAIRE(gestion) : métaprogrammes
+  - ajout d'un programme aux métaprogrammes
+  - si une unité dépend sur l'exécution d'un métaprogramme mets-la en attente
+  - quand le programme du métaprogramme est compilé, crée une unité pour l'exécution du métaprogramme
+  - questions ouvertes :
+    -- qui crée le métaprogramme
+    -- qui notifie le gestionnaire qu'un métaprogramme fut créé (pour ajouter son programme à liste)
+    -- comment gérer les cas où un métaprogramme est créé, mais que les dépendances furent déjà
+       compilées (comme decl_creation_contexte)
+ */
+
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
   assert(espace->programme);
@@ -109,9 +121,6 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
         return dls::DecisionIteration::Continue;
     });
 }
-
-// À FAIRE(gestion) : retourne des Attentes depuis les fonction d'appariements d'appels ou
-//                    d'opérateurs au lieu de true/false
 
 /* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
  * globales utilisées. */
@@ -560,9 +569,7 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-static void rassemble_dependances(UniteCompilation *unite,
-                                  GrapheDependance &graphe,
-                                  GestionnaireCode &gestionnaire)
+void GestionnaireCode::determine_dependances(UniteCompilation *unite, GrapheDependance &graphe)
 {
     assert(unite->noeud);
     auto espace = unite->espace;
@@ -604,20 +611,25 @@ static void rassemble_dependances(UniteCompilation *unite,
     }
 #endif
 
-    /* Ajoute les dépendances au programme si nécessaire. */
-    auto programme = espace->programme;
-    /* Ajoute toutes les racines au programme courant. */
+    /* Ajoute les racines aux programmes courants. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
-        programme->ajoute_fonction(noeud->comme_entete_fonction());
+        POUR (programmes_en_cours) {
+            it->ajoute_racine(noeud->comme_entete_fonction());
+        }
     }
 
-    // À FAIRE : POUR (programmes_en_cours)
+    /* Ajoute les dépendances au programme si nécessaire. */
+    auto dependances_ajoutees = false;
+    POUR (programmes_en_cours) {
+        if (doit_ajouter_les_dependances_au_programme(noeud, it)) {
+            ajoute_dependances_au_programme(dependances, *it);
+            dependances_ajoutees = true;
+        }
+    }
 
-    if (doit_ajouter_les_dependances_au_programme(noeud, programme)) {
-        ajoute_dependances_au_programme(dependances, *programme);
-
-        /* Crée les unités de typage si nécessaire. */
-        garantie_typage_des_dependances(gestionnaire, dependances, espace);
+    /* Crée les unités de typage si nécessaire. */
+    if (dependances_ajoutees) {
+        garantie_typage_des_dependances(*this, dependances, espace);
     }
 #if 0
     else {
@@ -725,7 +737,6 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
     assert(attente.est_valide());
     assert(unite_attendante->est_prete());
 
-    // À FAIRE: vérifie que les types ou déclarations attendues ont une unité de compilation
     auto espace = unite_attendante->espace;
 
     if (attente.est<AttenteSurType>()) {
@@ -965,7 +976,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto noeud = unite->noeud;
     if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) ||
         noeud->est_corps_fonction()) {
-        rassemble_dependances(unite, *graphe, *this);
+        determine_dependances(unite, *graphe);
     }
 
     marque_unites_dependantes_pretes(unite);

@@ -31,6 +31,7 @@
 struct AtomeGlobale;
 struct AtomeFonction;
 struct EspaceDeTravail;
+struct MetaProgramme;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct Type;
@@ -48,7 +49,29 @@ struct Programme {
     kuri::tableau<Type *> m_types{};
     dls::ensemble<Type *> m_types_utilises{};
 
+    EspaceDeTravail *m_espace = nullptr;
+
+    /* Non-nul si le programme est celui d'un métaprogramme. */
+    MetaProgramme *m_pour_metaprogramme = nullptr;
+
+    // m_fonction_principale
+    // -- pour les exécutables : la foncion __principale
+    // -- pour les métaprogramme : le point d'entrée pour la machine virtuelle
+
+    // m_coulisse
+    // la coulisse à utiliser pour générer le code du programme
+
   public:
+    /* Création. */
+
+    static Programme *cree(EspaceDeTravail *espace);
+
+    static Programme *cree_pour_espace(EspaceDeTravail *espace);
+
+    static Programme *cree_pour_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+
+    /* Modifications. */
+
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction);
 
     void ajoute_globale(NoeudDeclarationVariable *globale);
@@ -92,6 +115,13 @@ struct Programme {
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs RI générées. */
     bool ri_generees() const;
+
+    MetaProgramme *pour_metaprogramme() const
+    {
+        return m_pour_metaprogramme;
+    }
+
+    void ajoute_racine(NoeudDeclarationEnteteFonction *racine);
 };
 
 void imprime_contenu_programme(Programme const &programme, std::ostream &os);

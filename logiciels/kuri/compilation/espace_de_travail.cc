@@ -34,9 +34,6 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "coulisse.hh"
-#include "coulisse_asm.hh"
-#include "coulisse_c.hh"
-#include "coulisse_llvm.hh"
 #include "parsage/identifiant.hh"
 #include "programme.hh"
 #include "statistiques/statistiques.hh"
@@ -46,41 +43,13 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilatio
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
-
-    if (options.coulisse == TypeCoulisse::C) {
-        coulisse = memoire::loge<CoulisseC>("CoulisseC");
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
-    }
-    else {
-        assert(false);
-    }
-
-    programme = memoire::loge<Programme>("Programme");
+    coulisse = Coulisse::cree_pour_options(options);
+    programme = Programme::cree_pour_espace(this);
 }
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    if (options.coulisse == TypeCoulisse::C) {
-        auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
-        coulisse = nullptr;
-    }
-
+    Coulisse::detruit(coulisse);
     memoire::deloge("Programme", programme);
 }
 
@@ -380,7 +349,9 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 {
-    return metaprogrammes->ajoute_element();
+    auto metaprogramme = metaprogrammes->ajoute_element();
+    metaprogramme->programme = Programme::cree_pour_metaprogramme(this, metaprogramme);
+    return metaprogramme;
 }
 
 void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)

@@ -202,7 +202,7 @@ struct Tacheronne {
     void gere_unite_pour_typage(UniteCompilation *unite);
     bool gere_unite_pour_ri(UniteCompilation *unite);
     bool gere_unite_pour_optimisation(UniteCompilation *unite);
-    bool gere_unite_pour_execution(UniteCompilation *unite);
+    void gere_unite_pour_execution(UniteCompilation *unite);
 
     void execute_metaprogrammes();
 

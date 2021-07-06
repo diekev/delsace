@@ -32,6 +32,7 @@
 #include "unite_compilation.hh"
 
 class Compilatrice;
+class GrapheDependance;
 class OrdonnanceuseTache;
 struct Programme;
 
@@ -127,4 +128,5 @@ class GestionnaireCode {
     void ajoute_programme(Programme *programme);
 
     void enleve_programme(Programme *programme);
+    void determine_dependances(UniteCompilation *unite, GrapheDependance &graphe);
 };

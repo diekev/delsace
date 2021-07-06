@@ -514,12 +514,6 @@ void MachineVirtuelle::depile(NoeudExpression *site, long n)
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
 {
-    /* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute
-     * des dépendances manquantes) */
-    if (fonction->chunk.code == nullptr) {
-        genere_code_binaire_pour_fonction(fonction, this);
-    }
-
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;
     frame->site = site;
