@@ -39,7 +39,9 @@ struct Coulisse {
 
     static Coulisse *cree_pour_options(OptionsDeCompilation options);
 
-    static Coulisse *detruit(Coulisse *coulisse);
+    static Coulisse *cree_pour_metaprogramme();
+
+    static void detruit(Coulisse *coulisse);
 
     virtual bool cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,

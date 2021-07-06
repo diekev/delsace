@@ -30,6 +30,7 @@
 
 struct AtomeGlobale;
 struct AtomeFonction;
+struct Coulisse;
 struct EspaceDeTravail;
 struct MetaProgramme;
 struct NoeudDeclarationEnteteFonction;
@@ -58,8 +59,8 @@ struct Programme {
     // -- pour les exécutables : la foncion __principale
     // -- pour les métaprogramme : le point d'entrée pour la machine virtuelle
 
-    // m_coulisse
     // la coulisse à utiliser pour générer le code du programme
+    Coulisse *m_coulisse = nullptr;
 
   public:
     /* Création. */
@@ -122,6 +123,11 @@ struct Programme {
     }
 
     void ajoute_racine(NoeudDeclarationEnteteFonction *racine);
+
+    Coulisse *coulisse() const
+    {
+        return m_coulisse;
+    }
 };
 
 void imprime_contenu_programme(Programme const &programme, std::ostream &os);

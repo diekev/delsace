@@ -30,7 +30,9 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "coulisse.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "typage.hh"
 
 Programme *Programme::cree(EspaceDeTravail *espace)
@@ -42,13 +44,16 @@ Programme *Programme::cree(EspaceDeTravail *espace)
 
 Programme *Programme::cree_pour_espace(EspaceDeTravail *espace)
 {
-    return Programme::cree(espace);
+    auto resultat = Programme::cree(espace);
+    resultat->m_coulisse = Coulisse::cree_pour_options(espace->options);
+    return resultat;
 }
 
 Programme *Programme::cree_pour_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
     Programme *resultat = Programme::cree(espace);
     resultat->m_pour_metaprogramme = metaprogramme;
+    resultat->m_coulisse = Coulisse::cree_pour_metaprogramme();
     return resultat;
 }
 
