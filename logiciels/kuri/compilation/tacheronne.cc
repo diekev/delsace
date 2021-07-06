@@ -634,9 +634,9 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
             return true;
         }
 
-        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
-            return false;
-        }
+//        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
+//            return false;
+//        }
 
         optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
     }
@@ -653,9 +653,9 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
             return true;
         }
 
-        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
-            return false;
-        }
+//        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
+//            return false;
+//        }
 
         optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
     }
