@@ -171,37 +171,6 @@ void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *uni
     ajoute_tache(taches[FILE_LIAISON_PROGRAMME], unite, GenreTache::LIAISON_PROGRAMME);
 }
 
-void OrdonnanceuseTache::renseigne_etat_tacheronne(int id, GenreTache genre_tache)
-{
-    etats_tacheronnes[id] = genre_tache;
-}
-
-bool OrdonnanceuseTache::toutes_les_tacheronnes_dorment() const
-{
-    POUR (etats_tacheronnes) {
-        if (it != GenreTache::DORS) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool OrdonnanceuseTache::autre_tacheronne_dans_etat(int id, GenreTache genre_tache)
-{
-    for (auto i = 0; i < etats_tacheronnes.taille(); ++i) {
-        if (i == id) {
-            continue;
-        }
-
-        if (etats_tacheronnes[i] == genre_tache) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
     auto resultat = 0l;
@@ -211,10 +180,7 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
     return resultat;
 }
 
-Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
-                                         int id,
-                                         DrapeauxTacheronne drapeaux,
-                                         bool mv_en_execution)
+Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux)
 {
     if (nombre_de_taches_en_attente() == 0) {
         m_compilatrice->gestionnaire_code->cree_taches(*this);
@@ -231,27 +197,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee,
         espace = tache_terminee.espace;
     }
 
-    /* Assigne une nouvelle tâche avant de traiter la dernière, afin d'éviter les
-     * problèmes de cycles, par exemple quand une tâche de typage est la seule dans
-     * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
-    auto nouvelle_tache = defile_une_tache(espace, drapeaux);
-
-    if (espace->possede_erreur) {
-        return nouvelle_tache;
-    }
-
-    /* indique que la tâcheronne est en exécution si elle a toujours des métaprogrammes à exécuter,
-     * ceci car les métaprogrammes n'ont pas forcément finis leurs exécutions quand la tâcheronne
-     * nous rend la tâche */
-    if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER) &&
-        mv_en_execution && nouvelle_tache.genre == GenreTache::DORS) {
-        renseigne_etat_tacheronne(id, GenreTache::EXECUTION);
-    }
-    else {
-        renseigne_etat_tacheronne(id, nouvelle_tache.genre);
-    }
-
-    return nouvelle_tache;
+    return defile_une_tache(espace, drapeaux);
 }
 
 Tache OrdonnanceuseTache::defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
@@ -268,26 +214,18 @@ Tache OrdonnanceuseTache::defile_une_tache(EspaceDeTravail *espace, DrapeauxTach
         }
     }
 
-    if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
-        if (espace->possede_erreur) {
-            espace = m_compilatrice->espace_defaut_compilation();
-        }
-
-        if (!toutes_les_tacheronnes_dorment()) {
-            return Tache::dors(espace);
-        }
-
-        // La Tâcheronne n'a pas pu recevoir une tâche lui étant spécifique.
-        if (nombre_de_taches_en_attente() != 0) {
-            return Tache::dors(espace);
-        }
-
-        return Tache::dors(espace);
+    if (espace->possede_erreur) {
+        /* Puisque l'espace possède une erreur, nous allons dormir sur l'espace par défaut de la
+         * compilation. Ceci car la tâche sera retournée dans tache_suivante suivant sa complétion. */
+        espace = m_compilatrice->espace_defaut_compilation();
     }
 
-    compilation_terminee = true;
+    // À FAIRE(gestion) : espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE
 
-    return Tache::compilation_terminee();
+    // À FAIRE(gestion) : manière de déterminer la fin de la compilation si un métaprogramme
+    // est toujours en exécution, etc.
+
+    return Tache::dors(espace);
 }
 
 long OrdonnanceuseTache::memoire_utilisee() const
@@ -350,7 +288,7 @@ void Tacheronne::gere_tache()
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
     while (true) {
-        tache = ordonnanceuse->tache_suivante(tache, id, drapeaux, !mv.terminee());
+        tache = ordonnanceuse->tache_suivante(tache, drapeaux);
 
         if (tache.genre != GenreTache::DORS) {
             nombre_dodos = 0;

@@ -134,10 +134,7 @@ struct OrdonnanceuseTache {
     void cree_tache_pour_generation_code_machine(UniteCompilation *unite);
     void cree_tache_pour_liaison_programme(UniteCompilation *unite);
 
-    Tache tache_suivante(Tache &tache_terminee,
-                         int id,
-                         DrapeauxTacheronne drapeaux,
-                         bool mv_en_execution);
+    Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
 
     long memoire_utilisee() const;
 
@@ -149,12 +146,6 @@ struct OrdonnanceuseTache {
     void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
 
   private:
-    void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
-
-    bool toutes_les_tacheronnes_dorment() const;
-
-    bool autre_tacheronne_dans_etat(int id, GenreTache genre_tache);
-
     long nombre_de_taches_en_attente() const;
 
     Tache defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux);
