@@ -118,6 +118,31 @@ struct OrdonnanceuseTache {
     int nombre_de_tacheronnes = 0;
     bool compilation_terminee = false;
 
+    // Tiens trace du nombre maximal de tâches par file, afin de générer des statistiques.
+    struct PiqueTailleFile {
+        long taches[OrdonnanceuseTache::NOMBRE_FILES];
+
+        PiqueTailleFile()
+        {
+            POUR (taches) {
+                it = 0;
+            }
+        }
+
+        ~PiqueTailleFile()
+        {
+            std::cerr << "Pique taille files :\n";
+    #define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX) \
+       std::cerr << "-- " << CHAINE << taches[INDEX] << '\n';
+
+            ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
+
+    #undef IMPRIME_NOMBRE_DE_TACHES
+        }
+    };
+
+    PiqueTailleFile pique_taille{};
+
   public:
     OrdonnanceuseTache() = default;
     OrdonnanceuseTache(Compilatrice *compilatrice);

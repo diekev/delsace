@@ -92,27 +92,6 @@ Tache Tache::liaison_objet(EspaceDeTravail *espace_)
     return t;
 }
 
-#if 0
-struct PiqueTailleFile {
-    long taches[OrdonnanceuseTache::NOMBRE_FILES];
-
-    ~PiqueTailleFile()
-    {
-        std::cerr << "Pique taille files :\n";
-        std::cerr << "-- taches_chargement    " << taches_chargement << '\n';
-        std::cerr << "-- taches_execution     " << taches_execution << '\n';
-        std::cerr << "-- taches_generation_ri " << taches_generation_ri << '\n';
-        std::cerr << "-- taches_lexage        " << taches_lexage << '\n';
-        std::cerr << "-- taches_message       " << taches_message << '\n';
-        std::cerr << "-- taches_optimisation  " << taches_optimisation << '\n';
-        std::cerr << "-- taches_parsage       " << taches_parsage << '\n';
-        std::cerr << "-- taches_typage        " << taches_typage << '\n';
-    }
-};
-
-static PiqueTailleFile pique_taille;
-#endif
-
 static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
 {
     switch (raison_d_etre) {
@@ -174,6 +153,8 @@ void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
     tache.genre = static_cast<GenreTache>(index_file + 2);
 
     taches[index_file].enfile(tache);
+
+    pique_taille.taches[index_file] = std::max(pique_taille.taches[index_file], taches[index_file].taille());
 }
 
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
@@ -231,7 +212,9 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
 long OrdonnanceuseTache::memoire_utilisee() const
 {
     auto memoire = 0l;
-    //  À FAIRE: memoire utilisée
+    POUR (pique_taille.taches) {
+        memoire += it * taille_de(Tache);
+    }
     return memoire;
 }
 
