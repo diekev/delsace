@@ -140,8 +140,6 @@ struct OrdonnanceuseTache {
 
   private:
     long nombre_de_taches_en_attente() const;
-
-    Tache defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {

@@ -187,6 +187,8 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux)
 {
+    using dls::outils::possede_drapeau;
+
     if (nombre_de_taches_en_attente() == 0) {
         m_compilatrice->gestionnaire_code->cree_taches(*this);
     }
@@ -201,13 +203,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
     else {
         espace = tache_terminee.espace;
     }
-
-    return defile_une_tache(espace, drapeaux);
-}
-
-Tache OrdonnanceuseTache::defile_une_tache(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
-{
-    using dls::outils::possede_drapeau;
 
     for (int i = 0; i < NOMBRE_FILES; ++i) {
         if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
