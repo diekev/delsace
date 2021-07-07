@@ -349,9 +349,9 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 {
-    auto metaprogramme = metaprogrammes->ajoute_element();
-    metaprogramme->programme = Programme::cree_pour_metaprogramme(this, metaprogramme);
-    return metaprogramme;
+    auto resultat = metaprogrammes->ajoute_element();
+    resultat->programme = Programme::cree_pour_metaprogramme(this, resultat);
+    return resultat;
 }
 
 void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)

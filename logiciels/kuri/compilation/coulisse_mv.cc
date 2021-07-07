@@ -45,10 +45,10 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
 //            espace, globales, fonction);
     }
 
-    POUR (repr_inter.fonctions) {
+   // POUR (repr_inter.fonctions) {
         // À FAIRE(gestion) la MV est utilisée pour les globales
         // genere_code_binaire_pour_fonction(it, &mv);
-    }
+    //}
 
     return true;
 }
