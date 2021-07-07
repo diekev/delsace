@@ -3071,6 +3071,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
          * au début de la fonction sera ajouté avant l'exécution du code donc il
          * est possible d'utiliser le contexte dans le métaprogramme. */
         entete->drapeaux |= FORCE_NULCTX;
+        // À FAIRE(gestion) : corps texte
         m_compilatrice.gestionnaire_code->requiers_execution(espace, metaprogramme);
     }
 
@@ -3549,6 +3550,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 });
         }
 
+        // À FAIRE(gestion) : corps texte
         m_compilatrice.gestionnaire_code->requiers_typage(espace, fonction->corps);
         m_compilatrice.gestionnaire_code->requiers_execution(espace, metaprogramme);
         return Attente::sur_metaprogramme(metaprogramme);
