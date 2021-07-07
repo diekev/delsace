@@ -87,6 +87,8 @@ class GestionnaireCode {
 
     void requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 
+    void requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void requiers_generation_code_machine(EspaceDeTravail *espace, Programme *programme);
@@ -128,5 +130,6 @@ class GestionnaireCode {
     void ajoute_programme(Programme *programme);
 
     void enleve_programme(Programme *programme);
-    void determine_dependances(UniteCompilation *unite, GrapheDependance &graphe);
+
+    void determine_dependances(NoeudExpression *noeud, EspaceDeTravail *espace, GrapheDependance &graphe);
 };

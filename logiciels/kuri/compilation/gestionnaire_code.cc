@@ -577,12 +577,10 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::determine_dependances(UniteCompilation *unite, GrapheDependance &graphe)
+void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
+                                             EspaceDeTravail *espace,
+                                             GrapheDependance &graphe)
 {
-    assert(unite->noeud);
-    auto espace = unite->espace;
-    auto noeud = unite->noeud;
-
     DonneesDependance dependances;
     rassemble_dependances(noeud, espace, dependances);
 
@@ -708,6 +706,34 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
     noeud->unite = unite;
 
     unites_en_attente.ajoute(unite);
+}
+
+void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+{
+    assert(metaprogramme->fonction);
+    assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
+
+    auto programme = metaprogramme->programme;
+    programme->ajoute_fonction(metaprogramme->fonction);
+
+    auto graphe = espace->graphe_dependance.verrou_ecriture();
+    determine_dependances(metaprogramme->fonction, espace, *graphe);
+    determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
+
+    /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
+     * lors de la complétion de son typage. Si elle n'existe pas, il faut l'ajouter manuellement. */
+    auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
+    if (decl_creation_contexte) {
+        programme->ajoute_fonction(espace->interface_kuri->decl_creation_contexte);
+
+        determine_dependances(decl_creation_contexte, espace, *graphe);
+
+        if (decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            determine_dependances(decl_creation_contexte->corps, espace, *graphe);
+        }
+    }
+
+    metaprogramme_cree(metaprogramme);
 }
 
 void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
@@ -984,7 +1010,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto noeud = unite->noeud;
     if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) ||
         noeud->est_corps_fonction()) {
-        determine_dependances(unite, *graphe);
+        determine_dependances(unite->noeud, unite->espace, *graphe);
     }
 
     marque_unites_dependantes_pretes(unite);

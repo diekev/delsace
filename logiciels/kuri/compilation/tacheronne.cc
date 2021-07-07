@@ -505,52 +505,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
     else if (pour_metaprogramme) {
         auto corps = noeud->comme_corps_fonction();
-
-        // À FAIRE(gestion) : bouge cela dans le gestionnaire de code
-#define ATTEND_SUR_TYPE_SI_NECESSAIRE(type, id)                                                   \
-    if (type == nullptr) {                                                                        \
-        compilatrice.gestionnaire_code->mets_en_attente(unite, Attente::sur_interface_kuri(id));  \
-        return false;                                                                             \
-    }                                                                                             \
-    if ((type->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {                                            \
-        compilatrice.gestionnaire_code->mets_en_attente(unite, Attente::sur_type(type));          \
-        return false;                                                                             \
-    }
-
         auto espace = unite->espace;
-        auto &gestionnaire = compilatrice.gestionnaire_code;
-
-        //  À FAIRE(gestion) : ceci doit se faire via les dépendances
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_contexte, ID::ContexteProgramme);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_base_allocatrice, ID::BaseAllocatrice);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_stockage_temporaire,
-                                      ID::StockageTemporaire);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_trace_appel, ID::TraceAppel);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_info_appel_trace_appel,
-                                      ID::InfoAppelTraceAppel);
-        ATTEND_SUR_TYPE_SI_NECESSAIRE(espace->typeuse.type_info_fonction_trace_appel,
-                                      ID::InfoFonctionTraceAppel);
-
-        //  À FAIRE(gestion) : ajout de decl_creation_contexte comme dépendance à un métaprogramme
-        auto interface = espace->interface_kuri;
-        if (interface->decl_creation_contexte == nullptr) {
-            gestionnaire->mets_en_attente(unite,
-                                          Attente::sur_interface_kuri(ID::creation_contexte));
-            return false;
-        }
-
-#if 0
-        if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {
-            gestionnaire->mets_en_attente(
-                unite, Attente::sur_declaration(interface->decl_creation_contexte));
-            return false;
-        }
-
-        if (!dependances_eurent_ri_generees(corps->entete->noeud_dependance)) {
-            return false;
-        }
-#endif
-
         // À FAIRE(gestion) : manière de définir le point d'entrée d'un programme
         constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, corps->entete);
     }
