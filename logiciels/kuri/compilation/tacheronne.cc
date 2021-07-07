@@ -220,7 +220,6 @@ long OrdonnanceuseTache::memoire_utilisee() const
 
 int OrdonnanceuseTache::enregistre_tacheronne(Badge<Tacheronne> /*badge*/)
 {
-    etats_tacheronnes.ajoute(GenreTache::DORS);
     return nombre_de_tacheronnes++;
 }
 

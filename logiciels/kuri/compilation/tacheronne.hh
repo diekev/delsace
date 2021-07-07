@@ -110,11 +110,6 @@ struct OrdonnanceuseTache {
 
     dls::file<Tache> taches[NOMBRE_FILES];
 
-    /* utilsé pour définir ce que fait chaque tâcheronne afin de savoir si tout le
-     * monde fait quelque : si tout le monde dors, il n'y a plus rien à faire donc
-     * la compilation est terminée */
-    dls::tablet<GenreTache, 16> etats_tacheronnes{};
-
     int nombre_de_tacheronnes = 0;
     bool compilation_terminee = false;
 
