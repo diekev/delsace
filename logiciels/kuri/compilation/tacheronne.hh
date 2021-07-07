@@ -125,14 +125,7 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
     OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
 
-    void cree_tache_pour_chargement(UniteCompilation *unite);
-    void cree_tache_pour_lexage(UniteCompilation *unite);
-    void cree_tache_pour_parsage(UniteCompilation *unite);
-    void cree_tache_pour_typage(UniteCompilation *unite);
-    void cree_tache_pour_generation_ri(UniteCompilation *unite);
-    void cree_tache_pour_execution(UniteCompilation *unite);
-    void cree_tache_pour_generation_code_machine(UniteCompilation *unite);
-    void cree_tache_pour_liaison_programme(UniteCompilation *unite);
+    void cree_tache_pour_unite(UniteCompilation *unite);
 
     Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
 

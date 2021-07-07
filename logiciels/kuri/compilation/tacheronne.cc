@@ -113,62 +113,67 @@ struct PiqueTailleFile {
 static PiqueTailleFile pique_taille;
 #endif
 
-static inline void ajoute_tache(dls::file<Tache> &taches,
-                                UniteCompilation *unite,
-                                GenreTache genre)
+static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
 {
-    assert(unite);
-    assert(unite->espace);
-    auto tache = Tache{};
-    tache.unite = unite;
-    tache.espace = unite->espace;
-    tache.genre = genre;
+    switch (raison_d_etre) {
+        case RaisonDEtre::CHARGEMENT_FICHIER:
+        {
+            return OrdonnanceuseTache::FILE_CHARGEMENT;
+        }
+        case RaisonDEtre::LEXAGE_FICHIER:
+        {
+            return OrdonnanceuseTache::FILE_LEXAGE;
+        }
+        case RaisonDEtre::PARSAGE_FICHIER:
+        {
+            return OrdonnanceuseTache::FILE_PARSAGE;
+        }
+        case RaisonDEtre::TYPAGE:
+        {
+            return OrdonnanceuseTache::FILE_TYPAGE;
+        }
+        case RaisonDEtre::GENERATION_RI:
+        {
+            return OrdonnanceuseTache::FILE_GENERATION_RI;
+        }
+        case RaisonDEtre::EXECUTION:
+        {
+            return OrdonnanceuseTache::FILE_EXECUTION;
+        }
+        case RaisonDEtre::GENERATION_CODE_MACHINE:
+        {
+            return OrdonnanceuseTache::FILE_GENERATION_CODE_MACHINE;
+        }
+        case RaisonDEtre::LIAISON_PROGRAMME:
+        {
+            return OrdonnanceuseTache::FILE_LIAISON_PROGRAMME;
+        }
+        case RaisonDEtre::AUCUNE:
+        {
+            return -1;
+        }
+    }
 
-    taches.enfile(tache);
+    return -1;
 }
 
 OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
 {
 }
 
-void OrdonnanceuseTache::cree_tache_pour_chargement(UniteCompilation *unite)
+void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
 {
-    ajoute_tache(taches[FILE_CHARGEMENT], unite, GenreTache::CHARGEMENT);
-}
+    assert(unite);
+    assert(unite->espace);
 
-void OrdonnanceuseTache::cree_tache_pour_lexage(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_LEXAGE], unite, GenreTache::LEXAGE);
-}
+    const auto index_file = file_pour_raison_d_etre(unite->raison_d_etre());
 
-void OrdonnanceuseTache::cree_tache_pour_parsage(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_PARSAGE], unite, GenreTache::PARSAGE);
-}
+    auto tache = Tache{};
+    tache.unite = unite;
+    tache.espace = unite->espace;
+    tache.genre = static_cast<GenreTache>(index_file + 2);
 
-void OrdonnanceuseTache::cree_tache_pour_typage(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_TYPAGE], unite, GenreTache::TYPAGE);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_generation_ri(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_GENERATION_RI], unite, GenreTache::GENERATION_RI);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_execution(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_EXECUTION], unite, GenreTache::EXECUTION);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_generation_code_machine(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_GENERATION_CODE_MACHINE], unite, GenreTache::GENERATION_CODE_MACHINE);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_liaison_programme(UniteCompilation *unite)
-{
-    ajoute_tache(taches[FILE_LIAISON_PROGRAMME], unite, GenreTache::LIAISON_PROGRAMME);
+    taches[index_file].enfile(tache);
 }
 
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const

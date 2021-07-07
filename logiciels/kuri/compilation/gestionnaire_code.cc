@@ -1204,54 +1204,13 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             //}
         }
 
-        switch (unite->raison_d_etre()) {
-            case RaisonDEtre::CHARGEMENT_FICHIER:
-            {
-                ordonnanceuse.cree_tache_pour_chargement(unite);
-                break;
-            }
-            case RaisonDEtre::LEXAGE_FICHIER:
-            {
-                ordonnanceuse.cree_tache_pour_lexage(unite);
-                break;
-            }
-            case RaisonDEtre::PARSAGE_FICHIER:
-            {
-                ordonnanceuse.cree_tache_pour_parsage(unite);
-                break;
-            }
-            case RaisonDEtre::TYPAGE:
-            {
-                ordonnanceuse.cree_tache_pour_typage(unite);
-                break;
-            }
-            case RaisonDEtre::GENERATION_RI:
-            {
-                // imprime_evenement(unite, "création d'une tâche de génération de RI");
-                ordonnanceuse.cree_tache_pour_generation_ri(unite);
-                break;
-            }
-            case RaisonDEtre::EXECUTION:
-            {
-                ordonnanceuse.cree_tache_pour_execution(unite);
-                break;
-            }
-            case RaisonDEtre::GENERATION_CODE_MACHINE:
-            {
-                ordonnanceuse.cree_tache_pour_generation_code_machine(unite);
-                break;
-            }
-            case RaisonDEtre::LIAISON_PROGRAMME:
-            {
-                ordonnanceuse.cree_tache_pour_liaison_programme(unite);
-                break;
-            }
-            case RaisonDEtre::AUCUNE:
-            {
-                unite->espace->rapporte_erreur_sans_site(
-                    "Erreur interne : obtenu une unité sans raison d'être");
-            }
+        if (unite->raison_d_etre() == RaisonDEtre::AUCUNE) {
+            unite->espace->rapporte_erreur_sans_site(
+                "Erreur interne : obtenu une unité sans raison d'être");
+            continue;
         }
+
+        ordonnanceuse.cree_tache_pour_unite(unite);
     }
 
     unites_en_attente = nouvelles_unites;
