@@ -40,7 +40,7 @@ enum class type_erreur : int {
 	AUCUNE_ERREUR,
 };
 
-using frappe = lng::erreur::frappe<type_erreur>;
+using frappe = lng::erreur::frappe<type_erreur, dls::chaine>;
 
 [[noreturn]] void lance_erreur(const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
