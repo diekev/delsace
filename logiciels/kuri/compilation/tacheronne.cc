@@ -1331,9 +1331,15 @@ static void rassemble_globales_et_fonctions(EspaceDeTravail *espace,
                 return;
             }
 
+            if (type->est_structure() && type->comme_structure()->union_originelle) {
+                type = type->comme_structure()->union_originelle;
+            }
+
             if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
                 auto atome_fonction = type->fonction_init;
-                assert(atome_fonction);
+                assert_rappel(atome_fonction, [&]() {
+                    std::cerr << "Pas d'atome pour " << chaine_type(type) << '\n';
+                });
                 fonctions.ajoute(atome_fonction);
                 type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
             }
