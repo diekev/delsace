@@ -1308,10 +1308,6 @@ struct GeneratriceCodeC {
 
         // définis enfin les fonction
         POUR (fonctions) {
-            if (it->nombre_utilisations == 0) {
-                continue;
-            }
-
             auto atome_fonc = it;
 
             if (atome_fonc->instructions.taille() == 0) {
@@ -1509,7 +1505,6 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
      * qui appelera le point d'entrée. */
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
-    atome_fonc->nombre_utilisations = 1;
     atome_fonc->nom = "main";
 
     genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
@@ -1530,7 +1525,6 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
-            it->nombre_utilisations = 1;
             ++nombre_fonctions_racines;
         }
     }
