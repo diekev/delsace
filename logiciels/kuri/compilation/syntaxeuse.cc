@@ -1339,7 +1339,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             return nullptr;
                         }
 
-                        //  À FAIRE(syntaxage) : déduplique, ou modifie la grammaire pour les directives
+                        //  À FAIRE(syntaxage) : déduplique, ou modifie la grammaire pour les
+                        //  directives
                         auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
 
                         // À FAIRE(syntaxaga) : position exacte de l'erreur, en cas de déclaration
