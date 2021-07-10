@@ -40,11 +40,11 @@ Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
         }
         case TypeCoulisse::LLVM:
         {
-            return memoire::loge<CoulisseC>("CoulisseLLVM");
+            return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
         }
         case TypeCoulisse::ASM:
         {
-            return memoire::loge<CoulisseC>("CoulisseASM");
+            return memoire::loge<CoulisseASM>("CoulisseASM");
         }
     }
 
