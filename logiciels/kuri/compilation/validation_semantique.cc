@@ -3133,6 +3133,7 @@ CodeRetourValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCor
 
     if (entete->est_polymorphe && !entete->est_monomorphisation) {
         // nous ferons l'analyse sémantique plus tard
+        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         return CodeRetourValidation::OK;
     }
 
@@ -3236,6 +3237,7 @@ CodeRetourValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCor
     }
 
     termine_fonction();
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
@@ -3287,6 +3289,7 @@ CodeRetourValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCo
 
     termine_fonction();
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
