@@ -390,6 +390,10 @@ static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
         return;
     }
 
+    /* Plante directement le drapeau afin d'éviter les dépassements de pile en cas de cycles (p.e.
+     * pour les listes chainées). */
+    type->drapeaux |= TYPEDEF_FUT_GENERE;
+
     if (peut_etre_dereference(type)) {
         auto type_deref = type_dereference_pour(type);
 
@@ -411,11 +415,7 @@ static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
                 }
             }
 
-            if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(type_deref, enchaineuse);
-            }
-
-            type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(type_deref, enchaineuse);
         }
     }
     /* ajoute les types des paramètres et de retour des fonctions */
@@ -423,22 +423,13 @@ static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
         auto type_fonc = type->comme_fonction();
 
         POUR (type_fonc->types_entrees) {
-            if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(it, enchaineuse);
-            }
-
-            it->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(it, enchaineuse);
         }
 
-        if ((type_fonc->type_sortie->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-            genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
-        }
-
-        type_fonc->type_sortie->drapeaux |= TYPEDEF_FUT_GENERE;
+        genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
     }
 
     cree_typedef(type, enchaineuse);
-    type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
 // ----------------------------------------------
