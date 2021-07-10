@@ -41,7 +41,7 @@ private:
 	tableau<type_valeur> m_file{};
 
     using iteratrice = typename tableau<type_valeur>::iteratrice;
-    using iteratrice_const = typename tableau<type_valeur>::iteratrice;
+    using iteratrice_const = typename tableau<type_valeur>::const_iteratrice;
 
 public:
 	file() = default;
