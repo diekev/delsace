@@ -158,6 +158,11 @@ struct OrdonnanceuseTache {
     void supprime_toutes_les_taches();
     void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
 
+    void marque_compilation_terminee()
+    {
+        compilation_terminee = true;
+    }
+
   private:
     long nombre_de_taches_en_attente() const;
 };

@@ -1179,7 +1179,13 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 {
     FileDAttente nouvelles_unites;
 
-    // std::cerr << unites_en_attente.attentes.taille() << " unités en attente...\n";
+    // À FAIRE(gestion) : espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE
+
+    // À FAIRE(gestion) : manière de déterminer la fin de la compilation si un métaprogramme
+    // est toujours en exécution, etc.
+    if (unites_en_attente.attentes.est_vide()) {
+        ordonnanceuse.marque_compilation_terminee();
+    }
 
     POUR (unites_en_attente.attentes) {
         auto unite = it.unite;

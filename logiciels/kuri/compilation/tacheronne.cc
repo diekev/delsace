@@ -201,10 +201,9 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
         espace = m_compilatrice->espace_defaut_compilation();
     }
 
-    // À FAIRE(gestion) : espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE
-
-    // À FAIRE(gestion) : manière de déterminer la fin de la compilation si un métaprogramme
-    // est toujours en exécution, etc.
+    if (compilation_terminee) {
+        return Tache::compilation_terminee();
+    }
 
     return Tache::dors(espace);
 }
