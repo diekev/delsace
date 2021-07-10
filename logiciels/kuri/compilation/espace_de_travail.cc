@@ -34,9 +34,6 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "coulisse.hh"
-#include "coulisse_asm.hh"
-#include "coulisse_c.hh"
-#include "coulisse_llvm.hh"
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
 
@@ -45,38 +42,12 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilatio
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
-
-    if (options.coulisse == TypeCoulisse::C) {
-        coulisse = memoire::loge<CoulisseC>("CoulisseC");
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
-    }
-    else {
-        assert(false);
-    }
+    coulisse = Coulisse::cree_pour_options(options);
 }
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    if (options.coulisse == TypeCoulisse::C) {
-        auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
-        coulisse = nullptr;
-    }
+    Coulisse::detruit(coulisse);
 }
 
 Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,

@@ -23,3 +23,49 @@
  */
 
 #include "coulisse.hh"
+
+#include "options.hh"
+
+#include "coulisse_asm.hh"
+#include "coulisse_c.hh"
+#include "coulisse_llvm.hh"
+
+Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
+{
+    switch (options.coulisse) {
+        case TypeCoulisse::C:
+        {
+            return memoire::loge<CoulisseC>("CoulisseC");
+        }
+        case TypeCoulisse::LLVM:
+        {
+            return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+        }
+        case TypeCoulisse::ASM:
+        {
+            return memoire::loge<CoulisseASM>("CoulisseASM");
+        }
+    }
+
+    assert(false);
+    return nullptr;
+}
+
+void Coulisse::detruit(Coulisse *coulisse)
+{
+    if (dynamic_cast<CoulisseC *>(coulisse)) {
+        auto c = dynamic_cast<CoulisseC *>(coulisse);
+        memoire::deloge("CoulisseC", c);
+        coulisse = nullptr;
+    }
+    else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
+        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
+        memoire::deloge("CoulisseLLVM", c);
+        coulisse = nullptr;
+    }
+    else if (dynamic_cast<CoulisseASM *>(coulisse)) {
+        auto c = dynamic_cast<CoulisseASM *>(coulisse);
+        memoire::deloge("CoulisseASM", c);
+        coulisse = nullptr;
+    }
+}
