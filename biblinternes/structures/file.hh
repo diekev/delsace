@@ -40,6 +40,9 @@ struct file {
 private:
 	tableau<type_valeur> m_file{};
 
+    using iteratrice = typename tableau<type_valeur>::iteratrice;
+    using iteratrice_const = typename tableau<type_valeur>::iteratrice;
+
 public:
 	file() = default;
 
@@ -105,6 +108,26 @@ public:
 
 		return ret;
 	}
+
+    iteratrice begin()
+    {
+        return m_file.debut();
+    }
+
+    iteratrice end()
+    {
+        return m_file.fin();
+    }
+
+    iteratrice_const begin() const
+    {
+        return m_file.debut();
+    }
+
+    iteratrice_const end() const
+    {
+        return m_file.fin();
+    }
 };
 
 template <typename T, unsigned long N>
