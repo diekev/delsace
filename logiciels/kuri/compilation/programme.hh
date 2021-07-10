@@ -129,6 +129,11 @@ struct Programme {
     {
         return m_coulisse;
     }
+
+    EspaceDeTravail *espace() const
+    {
+        return m_espace;
+    }
 };
 
 void imprime_contenu_programme(Programme const &programme, std::ostream &os);

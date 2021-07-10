@@ -135,4 +135,6 @@ class GestionnaireCode {
     void determine_dependances(NoeudExpression *noeud,
                                EspaceDeTravail *espace,
                                GrapheDependance &graphe);
+
+    bool plus_rien_n_est_a_faire() const;
 };

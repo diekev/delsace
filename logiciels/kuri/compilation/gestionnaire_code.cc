@@ -1175,11 +1175,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 {
     FileDAttente nouvelles_unites;
 
-    // À FAIRE(gestion) : espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE
-
-    // À FAIRE(gestion) : manière de déterminer la fin de la compilation si un métaprogramme
-    // est toujours en exécution, etc.
-    if (unites_en_attente.est_vide()) {
+    if (plus_rien_n_est_a_faire()) {
         ordonnanceuse.marque_compilation_terminee();
     }
 
@@ -1214,4 +1210,27 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
     }
 
     unites_en_attente = nouvelles_unites;
+}
+
+bool GestionnaireCode::plus_rien_n_est_a_faire() const
+{
+    if (!unites_en_attente.est_vide()) {
+        return false;
+    }
+
+    POUR (programmes_en_cours) {
+        /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
+         * avons un, la compilation ne peut se terminée. */
+        if (it->pour_metaprogramme()) {
+            return false;
+        }
+
+        /* Attend que tous les espaces eurent leur compilation terminée. */
+        auto espace = it->espace();
+        if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
+            return false;
+        }
+    }
+
+    return true;
 }
