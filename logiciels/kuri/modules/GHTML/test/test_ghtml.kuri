@@ -142,18 +142,12 @@ principale :: fonc () -> z32
 
     données_page : Indirection
 
-    chn := tente rends_page(*rendeuse_page, "base", données_page) piège err {
-        imprime("erreur lors du rendu de la page : %\n", err)
-        retourne 1
-    }
+    chn := rends_page(*rendeuse_page, "base", données_page)
 
     imprime("résultat :\n%\n", chn)
     déloge(chn)
 
-    chn = tente rends_page(*rendeuse_page, "corps", données_page) piège err {
-        imprime("erreur lors du rendu de la page : %\n", err)
-        retourne 1
-    }
+    chn = rends_page(*rendeuse_page, "corps", données_page)
 
     imprime("résultat :\n%\n", chn)
     déloge(chn)
