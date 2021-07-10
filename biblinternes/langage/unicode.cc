@@ -24,6 +24,8 @@
 
 #include "unicode.hh"
 
+#include "biblinternes/outils/gna.hh"
+
 namespace lng {
 
 inline bool entre(unsigned char c, unsigned char a, unsigned char b)
@@ -229,6 +231,72 @@ int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence)
 
 	/* Le point de code est trop large. */
 	return 0;
+}
+
+int sequence_aleatoire(GNA &gna, unsigned char *sequence, int taille_max)
+{
+    if (taille_max == 0) {
+        return 0;
+    }
+
+    int taille = gna.uniforme(1, 4);
+
+    if (taille > taille_max) {
+        taille = taille_max;
+    }
+
+    switch (taille) {
+        case 1:
+        {
+            sequence[0] = static_cast<unsigned char>(gna.uniforme(0x0, 0x7F));
+            break;
+        }
+        case 2:
+        {
+            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xC2, 0xDF));
+            sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            break;
+        }
+        case 3:
+        {
+            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xE0, 0xEF));
+
+            if (sequence[0] == 0xE0) {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0xA0, 0xBF));
+            }
+            else if (sequence[0] == 0xED) {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0x9F));
+            }
+            else {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            }
+
+            sequence[2] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            break;
+        }
+        case 4:
+        {
+            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xF0, 0xF4));
+
+            if (sequence[0] == 0xF0) {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x90, 0xBF));
+            }
+            else if (sequence[0] == 0xF4) {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0x8F));
+            }
+            else {
+                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            }
+
+            sequence[2] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            sequence[3] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            break;
+        }
+    }
+
+    assert(nombre_octets(reinterpret_cast<const char *>(sequence)) == taille);
+
+    return taille;
 }
 
 }  /* namespace lng */
