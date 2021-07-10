@@ -796,8 +796,8 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
 void GestionnaireCode::symbole_defini(IdentifiantCode *ident)
 {
     POUR (unites_en_attente.attentes) {
-        if (it.unite->attend_sur_symbole(ident)) {
-            it.unite->marque_prete();
+        if (it->attend_sur_symbole(ident)) {
+            it->marque_prete();
         }
     }
 }
@@ -886,43 +886,39 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     auto noeud = unite->noeud;
     if (noeud->est_entete_fonction() && est_identifiant_interface(noeud->ident)) {
         POUR (unites_en_attente.attentes) {
-            auto unite_en_attente = it.unite;
-            if (unite_en_attente->attend_sur_interface_kuri(noeud->ident)) {
-                unite_en_attente->marque_prete();
+            if (it->attend_sur_interface_kuri(noeud->ident)) {
+                it->marque_prete();
             }
         }
     }
 
     if (noeud->est_entete_fonction() && noeud->ident) {
         POUR (unites_en_attente.attentes) {
-            auto unite_en_attente = it.unite;
-            if (unite_en_attente->attend_sur_symbole(noeud->ident)) {
+            if (it->attend_sur_symbole(noeud->ident)) {
                 // std::cerr << "Marque prête une unité dépendant sur le symbole " << noeud->ident->nom << '\n';
-                unite_en_attente->marque_prete();
+                it->marque_prete();
             }
         }
     }
 
     if (noeud->est_declaration()) {
         POUR (unites_en_attente.attentes) {
-            auto unite_en_attente = it.unite;
-            if (unite_en_attente->attend_sur_declaration(noeud->comme_declaration())) {
+            if (it->attend_sur_declaration(noeud->comme_declaration())) {
                 // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
-                unite_en_attente->marque_prete();
+                it->marque_prete();
             }
         }
     }
 
     if (noeud->est_structure() || noeud->est_enum()) {
         POUR (unites_en_attente.attentes) {
-            auto unite_en_attente = it.unite;
-            if (unite_en_attente->attend_sur_type(noeud->type)) {
-                unite_en_attente->marque_prete();
+            if (it->attend_sur_type(noeud->type)) {
+                it->marque_prete();
             }
 
-            if (unite_en_attente->attend_sur_declaration(noeud->comme_declaration())) {
+            if (it->attend_sur_declaration(noeud->comme_declaration())) {
                 // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
-                unite_en_attente->marque_prete();
+                it->marque_prete();
             }
         }
     }
@@ -930,9 +926,8 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     if (noeud->est_importe()) {
         auto importe = noeud->comme_importe();
         POUR (unites_en_attente.attentes) {
-            auto unite_en_attente = it.unite;
-            if (unite_en_attente->attend_sur_symbole(importe->expression->ident)) {
-                unite_en_attente->marque_prete();
+            if (it->attend_sur_symbole(importe->expression->ident)) {
+                it->marque_prete();
             }
         }
     }
@@ -1116,9 +1111,8 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 void GestionnaireCode::message_recu(Message const *message)
 {
     POUR (unites_en_attente.attentes) {
-        auto unite = it.unite;
-        if (unite->attend_sur_message(message)) {
-            unite->marque_prete();
+        if (it->attend_sur_message(message)) {
+            it->marque_prete();
         }
     }
 }
@@ -1183,21 +1177,19 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
     // À FAIRE(gestion) : manière de déterminer la fin de la compilation si un métaprogramme
     // est toujours en exécution, etc.
-    if (unites_en_attente.attentes.est_vide()) {
+    if (unites_en_attente.est_vide()) {
         ordonnanceuse.marque_compilation_terminee();
     }
 
     POUR (unites_en_attente.attentes) {
-        auto unite = it.unite;
+        it->marque_prete_si_attente_resolue();
 
-        unite->marque_prete_si_attente_resolue();
-
-        if (!unite->est_prete()) {
+        if (!it->est_prete()) {
 //            imprime_evenement(unite, "remise dans la liste d'attente");
 //            std::cerr << "-- attent sur    : " << unite->commentaire() << '\n';
 //            std::cerr << "-- raison d'être : " << unite->raison_d_etre() << '\n';
 //            std::cerr << "-- attente récursive : \n" << chaine_attentes_recursives(unite) << '\n';
-            unite->cycle += 1;
+            it->cycle += 1;
 
 //            if (unite->cycle > 10) {
 //                unite->rapporte_erreur();
@@ -1205,18 +1197,18 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 //            }
 
             // if (!unite->est_bloquee()) {
-                nouvelles_unites.ajoute(unite);
+                nouvelles_unites.ajoute(it);
                 continue;
             //}
         }
 
-        if (unite->raison_d_etre() == RaisonDEtre::AUCUNE) {
-            unite->espace->rapporte_erreur_sans_site(
+        if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
+            it->espace->rapporte_erreur_sans_site(
                 "Erreur interne : obtenu une unité sans raison d'être");
             continue;
         }
 
-        ordonnanceuse.cree_tache_pour_unite(unite);
+        ordonnanceuse.cree_tache_pour_unite(it);
     }
 
     unites_en_attente = nouvelles_unites;

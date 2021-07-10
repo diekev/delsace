@@ -391,11 +391,8 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
-
-                if (gere_unite_pour_ri(tache.unite)) {
-                    compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
-                }
-
+                gere_unite_pour_ri(tache.unite);
+                compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
             }
@@ -462,7 +459,7 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     compilatrice.gestionnaire_code->typage_termine(unite);
 }
 
-bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
+void Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
     auto pour_metaprogramme = false;
@@ -479,7 +476,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         if (noeud->type == nullptr) {
             unite->espace->rapporte_erreur(
                 noeud, "Erreur interne: type nul sur une déclaration après la génération de RI");
-            return true;
+            return;
         }
 
         noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
@@ -490,11 +487,9 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         // À FAIRE(gestion) : manière de définir le point d'entrée d'un programme
         constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, corps->entete);
     }
-
-    return true;
 }
 
-bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
+void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
 
@@ -502,12 +497,12 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
         auto entete = noeud->comme_entete_fonction();
 
         if (entete->est_externe) {
-            return true;
+            return;
         }
 
         /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
         if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
-            return true;
+            return;
         }
 
 //        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
@@ -521,12 +516,12 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
         auto entete = corps->entete;
 
         if (entete->est_externe) {
-            return true;
+            return;
         }
 
         /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
         if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
-            return true;
+            return;
         }
 
 //        if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
@@ -538,8 +533,6 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
     else if (noeud->est_structure()) {
         // À FAIRE(optimisations) : fonctions d'initialisation des types
     }
-
-    return true;
 }
 
 void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)

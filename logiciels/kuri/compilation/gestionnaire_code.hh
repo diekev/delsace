@@ -37,16 +37,17 @@ class OrdonnanceuseTache;
 struct Programme;
 
 struct FileDAttente {
-    struct Place {
-        UniteCompilation *unite = nullptr;
-        bool est_vide = true;
-    };
 
-    kuri::tableau<Place> attentes{};
+    kuri::tableau<UniteCompilation *> attentes{};
 
     void ajoute(UniteCompilation *unite)
     {
-        attentes.ajoute({unite, false});
+        attentes.ajoute(unite);
+    }
+
+    bool est_vide() const
+    {
+        return attentes.est_vide();
     }
 };
 
