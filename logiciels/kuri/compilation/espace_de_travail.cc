@@ -254,37 +254,24 @@ AtomeGlobale *EspaceDeTravail::cree_globale(Type *type,
         typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
 }
 
-void EspaceDeTravail::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
-{
-    auto table = table_globales.verrou_ecriture();
-    table->insere({decl, atome});
-}
-
 AtomeGlobale *EspaceDeTravail::trouve_globale(NoeudDeclaration *decl)
 {
-    auto table = table_globales.verrou_lecture();
-    auto iter = table->trouve(decl);
-
-    if (iter != table->fin()) {
-        return iter->second;
-    }
-
-    return nullptr;
+    std::unique_lock lock(mutex_atomes_globales);
+    auto decl_var = decl->comme_declaration_variable();
+    return static_cast<AtomeGlobale *>(decl_var->atome);
 }
 
 AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
 {
-    auto table = table_globales.verrou_ecriture();
-    auto iter = table->trouve(decl);
+    std::unique_lock lock(mutex_atomes_globales);
 
-    if (iter != table->fin()) {
-        return iter->second;
+    auto decl_var = decl->comme_declaration_variable();
+
+    if (decl_var->atome == nullptr) {
+        decl_var->atome = cree_globale(decl->type, nullptr, false, false);
     }
 
-    auto atome = cree_globale(decl->type, nullptr, false, false);
-    table->insere({decl, atome});
-
-    return atome;
+    return static_cast<AtomeGlobale *>(decl_var->atome);
 }
 
 long EspaceDeTravail::memoire_utilisee() const
