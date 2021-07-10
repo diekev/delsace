@@ -727,6 +727,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(type, type_pointe);
         graphe->connecte_type_type(type, tableau_dyn);
+
+        type->type_tableau_dyn = tableau_dyn;
     }
 
     return type;

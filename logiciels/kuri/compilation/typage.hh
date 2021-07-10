@@ -450,6 +450,9 @@ struct TypeVariadique final : public TypeCompose {
     COPIE_CONSTRUCT(TypeVariadique);
 
     Type *type_pointe = nullptr;
+    /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
+     * tableau dynamique sera []z32. */
+    Type *type_tableau_dyn = nullptr;
 };
 
 struct TypeTypeDeDonnees : public Type {

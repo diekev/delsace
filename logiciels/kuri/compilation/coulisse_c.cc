@@ -228,7 +228,12 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         }
         case GenreType::VARIADIQUE:
         {
-            // les arguments variadiques sont transformés en tableaux, donc RÀF
+            auto variadique = type->comme_variadique();
+            /* Garantie la génération du typedef pour les types tableaux des variadiques. */
+            if (variadique->type_tableau_dyn && (variadique->type_tableau_dyn->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
+                cree_typedef(variadique->type_tableau_dyn, enchaineuse);
+                variadique->type_tableau_dyn->drapeaux |= TYPEDEF_FUT_GENERE;
+            }
             break;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
@@ -427,6 +432,11 @@ static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
         }
 
         genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
+    }
+    else if (type->est_variadique()) {
+        if (type->comme_variadique()->type_pointe) {
+            genere_typedefs_recursifs(type->comme_variadique()->type_pointe, enchaineuse);
+        }
     }
 
     cree_typedef(type, enchaineuse);
