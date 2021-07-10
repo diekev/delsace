@@ -132,5 +132,7 @@ class GestionnaireCode {
 
     void enleve_programme(Programme *programme);
 
-    void determine_dependances(NoeudExpression *noeud, EspaceDeTravail *espace, GrapheDependance &graphe);
+    void determine_dependances(NoeudExpression *noeud,
+                               EspaceDeTravail *espace,
+                               GrapheDependance &graphe);
 };

@@ -316,7 +316,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             noeud_directive->metaprogramme = metaprogramme;
 
-            m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace, metaprogramme);
+            m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+                                                                                 metaprogramme);
 
             noeud->type = noeud_directive->expression->type;
 

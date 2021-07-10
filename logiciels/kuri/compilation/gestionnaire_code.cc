@@ -708,7 +708,8 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
     unites_en_attente.ajoute(unite);
 }
 
-void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace,
+                                                          MetaProgramme *metaprogramme)
 {
     assert(metaprogramme->fonction);
     assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
@@ -721,7 +722,8 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
-     * lors de la complétion de son typage. Si elle n'existe pas, il faut l'ajouter manuellement. */
+     * lors de la complétion de son typage. Si elle n'existe pas, il faut l'ajouter manuellement.
+     */
     auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
     if (decl_creation_contexte) {
         programme->ajoute_fonction(espace->interface_kuri->decl_creation_contexte);

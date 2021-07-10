@@ -128,13 +128,13 @@ struct OrdonnanceuseTache {
         {
 #if 0
             std::cerr << "Pique taille files :\n";
-    #define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX) \
-       std::cerr << "-- " << CHAINE << " : " << taches[INDEX] << '\n';
+#    define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                \
+        std::cerr << "-- " << CHAINE << " : " << taches[INDEX] << '\n';
 
             ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
 
-    #undef IMPRIME_NOMBRE_DE_TACHES
-   #endif
+#    undef IMPRIME_NOMBRE_DE_TACHES
+#endif
         }
     };
 

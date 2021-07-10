@@ -154,7 +154,8 @@ void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
 
     taches[index_file].enfile(tache);
 
-    pique_taille.taches[index_file] = std::max(pique_taille.taches[index_file], taches[index_file].taille());
+    pique_taille.taches[index_file] = std::max(pique_taille.taches[index_file],
+                                               taches[index_file].taille());
 }
 
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
@@ -197,7 +198,8 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
 
     if (espace->possede_erreur) {
         /* Puisque l'espace possède une erreur, nous allons dormir sur l'espace par défaut de la
-         * compilation. Ceci car la tâche sera retournée dans tache_suivante suivant sa complétion. */
+         * compilation. Ceci car la tâche sera retournée dans tache_suivante suivant sa complétion.
+         */
         espace = m_compilatrice->espace_defaut_compilation();
     }
 
