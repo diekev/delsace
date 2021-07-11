@@ -537,7 +537,7 @@ bool CoulisseASM::cree_executable(Compilatrice & /*compilatrice*/, EspaceDeTrava
     return true;
 }
 
-bool CoulisseASM::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+bool CoulisseASM::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
 {
     return false;
 }

@@ -40,8 +40,6 @@
 
 #include "parsage/outils_lexemes.hh"
 
-#include "machine_virtuelle.hh"
-
 const char *chaine_code_operation(octet_t code_operation)
 {
     switch (code_operation) {
@@ -771,12 +769,12 @@ ffi_type *converti_type_ffi(Type *type)
 /* ************************************************************************** */
 
 struct ConvertisseuseRI {
-    MachineVirtuelle *mv = nullptr;
+    MetaProgramme *metaprogramme = nullptr;
     kuri::tableau<PatchLabel> patchs_labels{};
     dls::pile<int> pile_taille{};
     int dernier_decalage_pile = 0;
 
-    ConvertisseuseRI(MachineVirtuelle *mv_);
+    ConvertisseuseRI(MetaProgramme *metaprogramme_) : metaprogramme(metaprogramme_) {}
 
     COPIE_CONSTRUCT(ConvertisseuseRI);
 
@@ -793,9 +791,7 @@ struct ConvertisseuseRI {
     void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
 };
 
-void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
-                                       AtomeFonction *fonction,
-                                       MachineVirtuelle *mv)
+void genere_code_binaire_pour_fonction(EspaceDeTravail *espace, AtomeFonction *fonction, MetaProgramme *metaprogramme)
 {
     /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
     if (fonction->decl && fonction->decl->est_externe) {
@@ -840,7 +836,7 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
         return;
     }
 
-    auto convertisseuse = ConvertisseuseRI{mv};
+    auto convertisseuse = ConvertisseuseRI{metaprogramme};
 
     auto &chunk = fonction->chunk;
 
@@ -911,10 +907,6 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
     }
 
     // desassemble(chunk, fonction->nom.c_str(), std::cerr);
-}
-
-ConvertisseuseRI::ConvertisseuseRI(MachineVirtuelle *mv_) : mv(mv_)
-{
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
@@ -1415,10 +1407,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             unsigned char *donnees = nullptr;
 
             if (ou_patcher == DONNEES_GLOBALES) {
-                donnees = mv->donnees_globales.donnees() + decalage;
+                donnees = metaprogramme->donnees_globales.donnees() + decalage;
             }
             else {
-                donnees = mv->donnees_constantes.donnees() + decalage;
+                donnees = metaprogramme->donnees_constantes.donnees() + decalage;
             }
 
             switch (valeur_constante->valeur.genre) {
@@ -1554,7 +1546,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                             auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
+                            auto donnees_ = metaprogramme->donnees_globales.donnees() + decalage +
                                             static_cast<int>(decalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<long *>(donnees_ + 8) = taille_chaine;
@@ -1575,11 +1567,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto type_tableau = tableau->type->comme_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
-                            auto decalage_valeur = mv->donnees_constantes.taille();
+                            auto decalage_valeur = metaprogramme->donnees_constantes.taille();
                             auto adresse_tableau = decalage_valeur;
 
-                            mv->donnees_constantes.redimensionne(
-                                mv->donnees_constantes.taille() +
+                            metaprogramme->donnees_constantes.redimensionne(
+                                metaprogramme->donnees_constantes.taille() +
                                 static_cast<int>(type_pointe->taille_octet) *
                                     type_tableau->taille);
 
@@ -1596,9 +1588,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             patch.decalage_ou = decalage + static_cast<int>(decalage_membre);
                             patch.decalage_quoi = adresse_tableau;
 
-                            mv->patchs_donnees_constantes.ajoute(patch);
+                            metaprogramme->patchs_donnees_constantes.ajoute(patch);
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
+                            auto donnees_ = metaprogramme->donnees_globales.donnees() + decalage +
                                             static_cast<int>(decalage_membre);
                             *reinterpret_cast<long *>(donnees_ + 8) = taille;
                         }
@@ -1624,17 +1616,17 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
             if (atome_globale->index == -1) {
                 auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
+                atome_globale->index = metaprogramme->ajoute_globale(type_globale, atome_globale->ident);
 
                 if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
+                    auto globale = metaprogramme->globales[atome_globale->index];
                     auto initialisateur = atome_globale->initialisateur;
                     genere_code_binaire_pour_initialisation_globale(
                         initialisateur, globale.adresse, DONNEES_GLOBALES);
                 }
             }
 
-            auto globale = mv->globales[atome_globale->index];
+            auto globale = metaprogramme->globales[atome_globale->index];
 
             auto patch = PatchDonneesConstantes{};
             patch.ou = ou_patcher;
@@ -1642,7 +1634,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             patch.decalage_ou = decalage;
             patch.decalage_quoi = globale.adresse;
 
-            mv->patchs_donnees_constantes.ajoute(patch);
+            metaprogramme->patchs_donnees_constantes.ajoute(patch);
 
             break;
         }
@@ -1688,10 +1680,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 
             if (atome_globale->index == -1) {
                 auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
+                atome_globale->index = metaprogramme->ajoute_globale(type_globale, atome_globale->ident);
 
                 if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
+                    auto globale = metaprogramme->globales[atome_globale->index];
                     auto initialisateur = atome_globale->initialisateur;
                     genere_code_binaire_pour_initialisation_globale(
                         initialisateur, globale.adresse, DONNEES_GLOBALES);

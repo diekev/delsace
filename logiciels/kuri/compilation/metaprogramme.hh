@@ -24,13 +24,39 @@
 
 #pragma once
 
+#include "representation_intermediaire/code_binaire.hh"
+
 struct DonneesExecution;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDirectiveExecute;
 struct NoeudStruct;
 struct Programme;
+struct Statistiques;
 struct UniteCompilation;
+
+enum {
+    DONNEES_CONSTANTES,
+    DONNEES_GLOBALES,
+};
+
+enum {
+    ADRESSE_CONSTANTE,
+    ADRESSE_GLOBALE,
+};
+
+// Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
+// dans les constantes ou les globales. Par exemple, les pointeurs des infos types des membres des
+// structures sont écris dans un tableau constant, et le pointeur du tableau constant doit être
+// écris dans la zone mémoire ou se trouve le tableaeu de membre de l'InfoTypeStructure.
+struct PatchDonneesConstantes {
+    int ou;
+    int quoi;
+    int decalage_ou;
+    int decalage_quoi;
+};
+
+std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 
 struct MetaProgramme {
     enum class ResultatExecution : int {
@@ -59,4 +85,14 @@ struct MetaProgramme {
     DonneesExecution *donnees_execution = nullptr;
 
     Programme *programme = nullptr;
+
+    /* Pour le code binaire. */
+    kuri::tableau<Globale, int> globales{};
+    kuri::tableau<unsigned char, int> donnees_globales{};
+    kuri::tableau<unsigned char, int> donnees_constantes{};
+    kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
+
+    int ajoute_globale(Type *type, IdentifiantCode *ident);
+
+    void rassemble_statistiques(Statistiques &stats) const;
 };

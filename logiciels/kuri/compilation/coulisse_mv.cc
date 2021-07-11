@@ -47,20 +47,53 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
     }
 
     if (!repr_inter.globales.est_vide()) {
-//        auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
-//            espace, globales, fonction);
+        auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
+            espace, repr_inter.globales, fonction);
+
+        repr_inter.fonctions.ajoute(fonc_init);
     }
 
     POUR (repr_inter.fonctions) {
-         // À FAIRE(gestion) la MV est utilisée pour les globales, et les bibliothèques
-         genere_code_binaire_pour_fonction(it, &mv);
+        genere_code_binaire_pour_fonction(espace, it, metaprogramme);
     }
 
     return true;
 }
 
-bool CoulisseMV::cree_executable(Programme * /*programme*/)
+bool CoulisseMV::cree_executable(Programme *programme)
 {
     std::cerr << "CoulisseMV::cree_executable\n";
+    auto metaprogramme = programme->pour_metaprogramme();
+    assert(metaprogramme);
+
+    /* Liaison du code binaire du métaprogramme (application des patchs). */
+
+    /* nous devons utiliser nos propres données pour les globales */
+    auto ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
+    auto ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
+
+    // initialise les globales pour le métaprogramme
+    POUR (metaprogramme->patchs_donnees_constantes) {
+        void *adresse_ou = nullptr;
+        void *adresse_quoi = nullptr;
+
+        if (it.quoi == ADRESSE_CONSTANTE) {
+            adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
+        }
+        else {
+            adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
+        }
+
+        if (it.ou == DONNEES_CONSTANTES) {
+            adresse_ou = ptr_donnees_constantes + it.decalage_ou;
+        }
+        else {
+            adresse_ou = ptr_donnees_globales + it.decalage_ou;
+        }
+
+        *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
+        // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
+    }
+
     return true;
 }

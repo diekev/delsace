@@ -362,6 +362,10 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
         memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
     });
 
+    POUR_TABLEAU_PAGE ((*metaprogrammes.verrou_lecture())) {
+        it.rassemble_statistiques(stats);
+    }
+
     stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
     stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});
 }

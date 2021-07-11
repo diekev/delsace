@@ -763,8 +763,8 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     pile = de->pile;
     pointeur_pile = de->pointeur_pile;
     frames = de->frames;
-    ptr_donnees_constantes = de->donnees_constantes.donnees();
-    ptr_donnees_globales = de->donnees_globales.donnees();
+    ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
+    ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
 
     assert(pile);
     assert(pointeur_pile);
@@ -1331,7 +1331,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_REFERENCE_GLOBALE:
             {
                 auto index = LIS_4_OCTETS();
-                auto const &globale = this->globales[index];
+                auto const &globale = m_metaprogramme->globales[index];
                 empile(site, &ptr_donnees_globales[globale.adresse]);
                 break;
             }
@@ -1381,69 +1381,8 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     }
 }
 
-int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
-{
-    auto globale = Globale{};
-    globale.type = type;
-    globale.ident = ident;
-    globale.adresse = donnees_globales.taille();
-
-    donnees_globales.redimensionne(donnees_globales.taille() +
-                                   static_cast<int>(type->taille_octet));
-
-    auto ptr = globales.taille();
-
-    globales.ajoute(globale);
-
-    return ptr;
-}
-
 void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 {
-    installe_metaprogramme(metaprogramme);
-
-    /* appel le métaprogramme avant d'ajourner les données au cas où sa fonction
-     * n'aurait pas été générée */
-    appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
-
-    /* nous devons utiliser nos propres données pour les globales */
-    ptr_donnees_globales = donnees_globales.donnees();
-    ptr_donnees_constantes = donnees_constantes.donnees();
-
-    // initialise les globales pour le métaprogramme
-    POUR (patchs_donnees_constantes) {
-        void *adresse_ou = nullptr;
-        void *adresse_quoi = nullptr;
-
-        if (it.quoi == ADRESSE_CONSTANTE) {
-            adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
-        }
-        else {
-            adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
-        }
-
-        if (it.ou == DONNEES_CONSTANTES) {
-            adresse_ou = ptr_donnees_constantes + it.decalage_ou;
-        }
-        else {
-            adresse_ou = ptr_donnees_globales + it.decalage_ou;
-        }
-
-        *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
-        // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
-    }
-
-    /* copie les tableaux de données pour le métaprogramme, ceci est nécessaire
-     * car le code binaire des fonctions n'est généré qu'une seule fois, mais
-     * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
-     * les globales et les constantes ; pointeurs qui seraient invalidés quand
-     * lors de l'ajout d'autres globales ou constantes */
-    metaprogramme->donnees_execution->donnees_globales = donnees_globales;
-    metaprogramme->donnees_execution->donnees_constantes = donnees_constantes;
-
-    /* l'appel a modifié les frames du métaprogramme, sauvegarde */
-    desinstalle_metaprogramme(metaprogramme);
-
     m_metaprogrammes.ajoute(metaprogramme);
 }
 
@@ -1529,20 +1468,7 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 {
-    auto memoire_mv = 0l;
-
-    POUR_TABLEAU_PAGE (donnees_execution) {
-        memoire_mv += it.donnees_globales.taille();
-        memoire_mv += it.donnees_constantes.taille();
-    }
-
-    memoire_mv += donnees_execution.memoire_utilisee();
-    memoire_mv += globales.taille_memoire();
-    memoire_mv += donnees_constantes.taille_memoire();
-    memoire_mv += donnees_globales.taille_memoire();
-    memoire_mv += patchs_donnees_constantes.taille_memoire();
-
-    stats.memoire_mv += memoire_mv;
+    stats.memoire_mv += donnees_execution.memoire_utilisee();
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
 }

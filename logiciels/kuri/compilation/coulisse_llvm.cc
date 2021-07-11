@@ -1688,7 +1688,7 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &
     return true;
 }
 
-bool CoulisseLLVM::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+bool CoulisseLLVM::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
 {
     return true;
 }

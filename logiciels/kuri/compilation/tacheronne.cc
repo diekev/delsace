@@ -417,7 +417,7 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 if (programme->pour_metaprogramme()) {
-                    programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace);
+                    programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace, constructrice_ri);
                 }
                 else {
                     tache.espace->coulisse->cree_fichier_objet(

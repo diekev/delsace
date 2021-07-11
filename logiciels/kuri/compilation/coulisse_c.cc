@@ -1718,7 +1718,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
     return true;
 }
 
-bool CoulisseC::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+bool CoulisseC::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
 {
     return true;
 }
