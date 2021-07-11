@@ -892,6 +892,16 @@ static bool est_identifiant_interface(const IdentifiantCode *ident)
 
 void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
 {
+    if (unite->metaprogramme) {
+        POUR (unites_en_attente.attentes) {
+            if (it->attend_sur_metaprogramme(unite->metaprogramme)) {
+                it->marque_prete();
+            }
+        }
+
+        return;
+    }
+
     auto noeud = unite->noeud;
     if (noeud->est_entete_fonction() && est_identifiant_interface(noeud->ident)) {
         POUR (unites_en_attente.attentes) {

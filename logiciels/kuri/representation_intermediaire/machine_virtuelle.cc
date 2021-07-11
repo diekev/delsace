@@ -1383,6 +1383,11 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
 
 void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 {
+    /* Appel le métaprogramme pour initialiser sa frame d'appels, l'installation et la
+     * désinstallation ajournement les données d'exécution. */
+    installe_metaprogramme(metaprogramme);
+    appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
+    desinstalle_metaprogramme(metaprogramme);
     m_metaprogrammes.ajoute(metaprogramme);
 }
 

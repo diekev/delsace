@@ -46,6 +46,8 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
                                 "Impossible de trouver la fonction pour le métaprogramme");
     }
 
+    constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, metaprogramme->fonction);
+
     if (!repr_inter.globales.est_vide()) {
         auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
             espace, repr_inter.globales, fonction);
