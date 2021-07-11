@@ -35,6 +35,7 @@
 
 #include "compilation/bibliotheque.hh"
 #include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
 #include "compilation/operateurs.hh"
 
@@ -802,8 +803,8 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
         auto &donnees_externe = fonction->donnees_externe;
         auto decl = fonction->decl;
 
-        if (fonction->decl->possede_drapeau(COMPILATRICE)) {
-            donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(fonction->decl->ident);
+        if (decl->possede_drapeau(COMPILATRICE)) {
+            donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
             if (!decl->symbole->charge(espace, decl)) {

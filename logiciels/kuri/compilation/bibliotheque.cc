@@ -26,6 +26,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "statistiques/statistiques.hh"
+
 #include "espace_de_travail.hh"
 
 static bool fichier_existe(kuri::chaine const &chemin)
@@ -249,5 +251,6 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
 
 void GestionnaireBibliotheques::rassemble_statistiques(Statistiques &stats) const
 {
-    // À FAIRE
+    // À FAIRE(bibliotheque) : détail
+    stats.memoire_bibliotheques += memoire_utilisee();
 }

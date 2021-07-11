@@ -115,6 +115,8 @@ struct GestionnaireBibliotheques {
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
 
+    long memoire_utilisee() const;
+
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:

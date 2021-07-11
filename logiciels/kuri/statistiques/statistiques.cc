@@ -116,6 +116,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     tableau.ajoute_ligne(
         {"- Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.memoire_lexemes), "o"});
     tableau.ajoute_ligne({"- MV", formatte_nombre(stats.memoire_mv), "o"});
+    tableau.ajoute_ligne({"- Bibliothèques", formatte_nombre(stats.memoire_bibliotheques), "o"});
     tableau.ajoute_ligne(
         {"- Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.memoire), "o"});
     tableau.ajoute_ligne({"- RI", formatte_nombre(stats.memoire_ri), "o"});
