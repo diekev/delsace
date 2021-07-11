@@ -227,9 +227,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto noeud_directive = noeud->comme_execute();
 
-            auto resultat = valide_arbre_aplatis(noeud_directive, noeud_directive->arbre_aplatis);
-            if (!est_ok(resultat)) {
-                return resultat;
+            if (!fonction_courante) {
+                /* Uniquement pour les directives globales. */
+                auto resultat = valide_arbre_aplatis(noeud_directive, noeud_directive->arbre_aplatis);
+                if (!est_ok(resultat)) {
+                    return resultat;
+                }
             }
 
             // crée une fonction pour l'exécution
