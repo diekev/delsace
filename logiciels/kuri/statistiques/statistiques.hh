@@ -158,6 +158,7 @@ struct Statistiques {
     long memoire_compilatrice = 0ul;
     long memoire_ri = 0ul;
     long memoire_mv = 0ul;
+    long memoire_bibliotheques = 0ul;
     double temps_generation_code = 0.0;
     double temps_fichier_objet = 0.0;
     double temps_executable = 0.0;
