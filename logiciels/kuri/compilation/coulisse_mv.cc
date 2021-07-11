@@ -34,7 +34,6 @@
 
 bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
 {
-    std::cerr << "CoulisseMV::cree_fichier_objet\n";
     auto repr_inter = representation_intermediaire_programme(*programme, *espace);
     auto metaprogramme = programme->pour_metaprogramme();
     assert(metaprogramme);
@@ -64,7 +63,6 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
 
 bool CoulisseMV::cree_executable(Programme *programme)
 {
-    std::cerr << "CoulisseMV::cree_executable\n";
     auto metaprogramme = programme->pour_metaprogramme();
     assert(metaprogramme);
 
