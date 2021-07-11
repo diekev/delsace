@@ -4,3 +4,9 @@
 	mémoire(a) = mémoire(b);
 	mémoire(b) = temp;
 }
+
+// Type pour représenter un résultat optionnel
+Résultat :: union ($T: type_de_données) {
+    v: T
+    e: bool
+}

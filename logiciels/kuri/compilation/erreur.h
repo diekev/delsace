@@ -79,6 +79,9 @@ std::ostream &operator<<(std::ostream &os, Genre genre);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 
+dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
+                                           const NoeudExpression *expr);
+
 void lance_erreur(const kuri::chaine &quoi,
                   EspaceDeTravail const &espace,
                   const NoeudExpression *site,
@@ -110,7 +113,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *n,
-                                    dls::tablet<DonneesCandidate, 10> const &candidates);
+                                    dls::tablet<ErreurAppariement, 10> const &erreurs);
 
 void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *appl_fonc,

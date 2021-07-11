@@ -35,9 +35,6 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
-#include "coulisse_asm.hh"
-#include "coulisse_c.hh"
-#include "coulisse_llvm.hh"
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
 
@@ -94,19 +91,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
-
-    if (options.coulisse == TypeCoulisse::C) {
-        coulisse = memoire::loge<CoulisseC>("CoulisseC");
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
-    }
-    else {
-        assert(false);
-    }
+    coulisse = Coulisse::cree_pour_options(options);
 
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
 
@@ -142,21 +127,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    if (options.coulisse == TypeCoulisse::C) {
-        auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
-        coulisse = nullptr;
-    }
+    Coulisse::detruit(coulisse);
 }
 
 Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
@@ -363,37 +334,24 @@ AtomeGlobale *EspaceDeTravail::cree_globale(Type *type,
         typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
 }
 
-void EspaceDeTravail::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
-{
-    auto table = table_globales.verrou_ecriture();
-    table->insere({decl, atome});
-}
-
 AtomeGlobale *EspaceDeTravail::trouve_globale(NoeudDeclaration *decl)
 {
-    auto table = table_globales.verrou_lecture();
-    auto iter = table->trouve(decl);
-
-    if (iter != table->fin()) {
-        return iter->second;
-    }
-
-    return nullptr;
+    std::unique_lock lock(mutex_atomes_globales);
+    auto decl_var = decl->comme_declaration_variable();
+    return static_cast<AtomeGlobale *>(decl_var->atome);
 }
 
 AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
 {
-    auto table = table_globales.verrou_ecriture();
-    auto iter = table->trouve(decl);
+    std::unique_lock lock(mutex_atomes_globales);
 
-    if (iter != table->fin()) {
-        return iter->second;
+    auto decl_var = decl->comme_declaration_variable();
+
+    if (decl_var->atome == nullptr) {
+        decl_var->atome = cree_globale(decl->type, nullptr, false, false);
     }
 
-    auto atome = cree_globale(decl->type, nullptr, false, false);
-    table->insere({decl, atome});
-
-    return atome;
+    return static_cast<AtomeGlobale *>(decl_var->atome);
 }
 
 long EspaceDeTravail::memoire_utilisee() const
@@ -511,6 +469,7 @@ void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere
     tache_lexage_ajoutee(messagere);
 
     nombre_taches_chargement -= 1;
+    assert(nombre_taches_chargement >= 0);
 }
 
 void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
@@ -518,11 +477,13 @@ void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &m
     /* Une fois que nous lexer quelque chose, il faut le parser. */
     tache_parsage_ajoutee(messagere);
     nombre_taches_lexage -= 1;
+    assert(nombre_taches_lexage >= 0);
 }
 
 void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_parsage -= 1;
+    assert(nombre_taches_parsage >= 0);
 
     if (parsage_termine()) {
         change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
@@ -532,6 +493,7 @@ void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &
 void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_typage -= 1;
+    assert(nombre_taches_typage >= 0);
 
     if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
         change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
@@ -541,6 +503,7 @@ void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &m
 void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_ri -= 1;
+    assert(nombre_taches_ri >= 0);
 
     if (optimisations) {
         tache_optimisation_ajoutee(messagere);
@@ -555,6 +518,7 @@ void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messa
 void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_optimisation -= 1;
+    assert(nombre_taches_optimisation >= 0);
 
     if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
         phase == PhaseCompilation::TYPAGE_TERMINE) {
@@ -565,6 +529,7 @@ void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Message
 void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
     nombre_taches_execution -= 1;
+    assert(nombre_taches_execution >= 0);
 }
 
 void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
@@ -599,6 +564,17 @@ bool EspaceDeTravail::parsage_termine() const
 {
     return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 &&
            nombre_taches_parsage == 0;
+}
+
+void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
+{
+    os << "nombre_taches_chargement : " << nombre_taches_chargement << '\n';
+    os << "nombre_taches_lexage : " << nombre_taches_lexage << '\n';
+    os << "nombre_taches_parsage : " << nombre_taches_parsage << '\n';
+    os << "nombre_taches_typage : " << nombre_taches_typage << '\n';
+    os << "nombre_taches_ri : " << nombre_taches_ri << '\n';
+    os << "nombre_taches_execution : " << nombre_taches_execution << '\n';
+    os << "nombre_taches_optimisation : " << nombre_taches_optimisation << '\n';
 }
 
 void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,

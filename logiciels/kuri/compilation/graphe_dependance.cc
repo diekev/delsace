@@ -327,8 +327,24 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
 
             if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
                 auto atome_fonction = type->fonction_init;
+
+                if (!atome_fonction && type->est_structure()) {
+                    auto type_structure = type->comme_structure();
+
+                    if (type_structure->union_originelle) {
+                        atome_fonction = type_structure->union_originelle->fonction_init;
+                    }
+                }
+
+                // Il est possible que la fonction fut déjà ajoutée via l'union_originelle.
+                if (utilises.trouve(atome_fonction) != utilises.fin()) {
+                    return;
+                }
+
                 assert(atome_fonction);
                 fonctions.ajoute(atome_fonction);
+
+                utilises.insere(atome_fonction);
             }
         }
     });

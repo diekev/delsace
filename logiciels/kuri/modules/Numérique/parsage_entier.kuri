@@ -289,7 +289,7 @@ extrait_r16 :: fonc (chn: chaine) -> r16 | ErreurParsageEntier
     retourne v comme r16
 }
 
-parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
+parse_hexadécimal_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
 {
     résultat : n64
 
@@ -313,9 +313,23 @@ parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
         résultat += v
     }
 
-    si résultat > 65535 {
-        retourne ErreurParsageEntier.EntréeTropGrande
+    retourne résultat
+}
+
+parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
+{
+    v := tente parse_hexadécimal_n64(chn) piège err {
+        retourne err
     }
 
-    retourne résultat comme n16
+    retourne v comme n16
+}
+
+parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
+{
+    v := tente parse_hexadécimal_n64(chn) piège err {
+        retourne err
+    }
+
+    retourne v comme z32
 }

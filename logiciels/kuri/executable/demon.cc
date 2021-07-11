@@ -1,11 +1,11 @@
-#include <sys/inotify.h>
 #include <filesystem>
-#include <unistd.h>
-#include <thread>
 #include <fstream>
+#include <sys/inotify.h>
+#include <thread>
+#include <unistd.h>
 
-#include "structures/enchaineuse.hh"
 #include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
 template <typename... Ts>
@@ -24,7 +24,7 @@ static kuri::chaine chaine_depuis_path(const std::filesystem::path &chemin)
 
 static std::filesystem::path path_depuis_chaine(const kuri::chaine &c)
 {
-    return { std::string(c.pointeur(), static_cast<size_t>(c.taille())) };
+    return {std::string(c.pointeur(), static_cast<size_t>(c.taille()))};
 }
 
 static bool execute_commande_systeme(kuri::chaine_statique commande)
@@ -43,7 +43,11 @@ static void lance_application(DonneesCommandeKuri *donnees)
 {
     compilation_terminee = false;
 
-    auto commande_kuri = enchaine("kuri ", donnees->fichier, " --emets_fichiers_utilises ", donnees->nom_fichier_fichier_utilises, '\0');
+    auto commande_kuri = enchaine("kuri ",
+                                  donnees->fichier,
+                                  " --emets_fichiers_utilises ",
+                                  donnees->nom_fichier_fichier_utilises,
+                                  '\0');
 
     if (!execute_commande_systeme(commande_kuri)) {
         compilation_terminee = true;
@@ -126,7 +130,7 @@ class Guetteuse {
     kuri::table_hachage<int, kuri::chaine> table_chemin_fichiers{};
     kuri::table_hachage<kuri::chaine, int> table_desc_fichiers{};
 
-public:
+  public:
     void ajoute(int fd, const std::filesystem::path &chemin)
     {
         if (possede(fd)) {
@@ -178,7 +182,9 @@ static void initialise_liste_fichiers(int fd, Guetteuse &guetteuse)
     }
 }
 
-static void rafraichis_liste_fichiers_utilises(int fd, Guetteuse &guetteuse, kuri::chaine const &chemin_fichier)
+static void rafraichis_liste_fichiers_utilises(int fd,
+                                               Guetteuse &guetteuse,
+                                               kuri::chaine const &chemin_fichier)
 {
     while (!compilation_terminee) {
         continue;
@@ -229,10 +235,8 @@ int main(int argc, char **argv)
     auto fichier_racine_compilation = kuri::chaine_statique(argv[1]);
     auto nom_fichier_fichier_utilises = enchaine("/tmp/", &fichier_racine_compilation);
 
-    auto donnees_commande_kuri = DonneesCommandeKuri{
-        fichier_racine_compilation,
-        nom_fichier_fichier_utilises
-    };
+    auto donnees_commande_kuri = DonneesCommandeKuri{fichier_racine_compilation,
+                                                     nom_fichier_fichier_utilises};
 
     auto cree_exetron = [&]() {
         return new std::thread(lance_application, &donnees_commande_kuri);

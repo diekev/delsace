@@ -583,7 +583,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "form" {
             template_dans_portée := possède_dans_portée(*parseuse.pile_éléments_ouvert, "template")
 
-            si parseuse.élément_head != nul && !template_dans_portée {
+            si parseuse.élément_form != nul && !template_dans_portée {
                 // parser error, ignore le lexème
                 retourne
             }

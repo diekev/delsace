@@ -700,11 +700,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto decl = noeud->comme_entete_fonction();
             genere_ri_pour_fonction(decl);
+            if (!decl->est_externe) {
+                assert(decl->corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
+            }
             break;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             auto corps = noeud->comme_corps_fonction();
+            assert(corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
             genere_ri_pour_fonction(corps->entete);
             break;
         }
@@ -1699,6 +1703,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
 
     if (decl->est_externe) {
+        decl->drapeaux |= RI_FUT_GENEREE;
         return;
     }
 
@@ -1783,7 +1788,9 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE:
         {
-            assert_rappel(false, [&](){ std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n"; });
+            assert_rappel(false, [&]() {
+                std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n";
+            });
             break;
         }
         case TypeTransformation::INUTILE:
@@ -2682,7 +2689,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
             return cree_constante_entiere(type_enum, 0);
         }
         case GenreType::OPAQUE:
@@ -2956,7 +2963,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
 
             auto type_info_type_enum = m_espace->typeuse.type_info_type_enum;
 
@@ -3569,6 +3576,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
             }
         }
 
+        decl->drapeaux |= RI_FUT_GENEREE;
         return;
     }
 

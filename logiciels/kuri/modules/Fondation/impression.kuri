@@ -892,5 +892,5 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
     }
 
     imprime("%:% : l'assertion a échoué !\n", pos.fichier, pos.ligne)
-    abort()
+    panique("Une assertion a échoué")
 }

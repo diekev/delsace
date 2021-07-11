@@ -109,10 +109,28 @@ public:
 		return temp;
 	}
 
+	iteratrice_crue<T> operator+(int mouvement)
+	{
+		auto vieux_ptr = m_ptr;
+		m_ptr += mouvement;
+		auto temp(*this);
+		m_ptr = vieux_ptr;
+		return temp;
+	}
+
 	iteratrice_crue<T> operator+(const difference_type&  mouvement)
 	{
 		auto vieux_ptr = m_ptr;
 		m_ptr += mouvement;
+		auto temp(*this);
+		m_ptr = vieux_ptr;
+		return temp;
+	}
+
+	iteratrice_crue<T> operator-(int mouvement)
+	{
+		auto vieux_ptr = m_ptr;
+		m_ptr -= mouvement;
 		auto temp(*this);
 		m_ptr = vieux_ptr;
 		return temp;
@@ -553,5 +571,15 @@ private:
 		tablet_memoire.m_memoire = tablet_memoire.m_tablet;
 	}
 };
+
+template <typename T, size_t N, typename... Ts>
+auto cree_tablet(T arg, Ts &&... args)
+{
+	tablet<T, N> resultat;
+	resultat.reserve(1 + static_cast<long>(sizeof...(Ts)));
+	resultat.ajoute(arg);
+	((resultat.ajoute(args)), ...);
+	return resultat;
+}
 
 } /* namespace dls */

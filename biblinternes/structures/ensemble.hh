@@ -101,6 +101,11 @@ public:
 		return m_ensemble.find(valeur);
 	}
 
+    bool possede(Cle const &valeur) const
+    {
+        return trouve(valeur) != fin();
+    }
+
 	void permute(ensemble &autre)
 	{
 		m_ensemble.swap(autre.m_ensemble);

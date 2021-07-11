@@ -99,13 +99,13 @@ static DonneesTypeCommun donnees_types_communs[] = {
 
 const char *chaine_genre_type(GenreType genre)
 {
-#define ENUMERE_GENRE_TYPE_EX(genre)                                                              \
-    case GenreType::genre:                                                                        \
+#define ENUMERE_GENRE_TYPE_EX(nom, Genre, TypeRafine)                                             \
+    case GenreType::Genre:                                                                        \
     {                                                                                             \
-        return #genre;                                                                            \
+        return #Genre;                                                                            \
     }
     switch (genre) {
-        ENUMERE_GENRES_TYPES
+        ENUMERE_TYPE(ENUMERE_GENRE_TYPE_EX)
     }
 #undef ENUMERE_GENRE_TYPE_EX
 
@@ -727,6 +727,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(type, type_pointe);
         graphe->connecte_type_type(type, tableau_dyn);
+
+        type->type_tableau_dyn = tableau_dyn;
     }
 
     return type;
@@ -850,6 +852,10 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     auto type = types_unions->ajoute_element();
     type->nom = decl->lexeme->ident;
     type->decl = decl;
+
+    if (type->decl) {
+        type->nom = decl->lexeme->ident;
+    }
 
     return type;
 }
@@ -1322,6 +1328,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             if (type_fonc->types_entrees.est_vide()) {
                 enchaineuse << virgule;
             }
+            enchaineuse << ')';
 
             enchaineuse << '(';
             chaine_type(enchaineuse, type_fonc->type_sortie);
@@ -1479,6 +1486,14 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     type_structure->alignement = this->alignement;
     type_structure->nom = this->nom;
     type_structure->est_anonyme = this->est_anonyme;
+    // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
+    // dans la coulisse pour chaque monomorphisation.
+    type_structure->decl = this->decl;
+    type_structure->union_originelle = this;
+    type_structure->drapeaux |= TYPE_FUT_VALIDE;
+    type_structure->drapeaux |= RI_TYPE_FUT_GENEREE;
+
+    typeuse.graphe_->connecte_type_type(this, type_structure);
 }
 
 /* Pour la génération de RI, les types doivent être normalisés afin de se rapprocher de la manière

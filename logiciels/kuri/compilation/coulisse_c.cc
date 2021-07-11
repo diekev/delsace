@@ -64,7 +64,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         case GenreType::ERREUR:
         case GenreType::ENUM:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
             auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
 
             enchaineuse << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
@@ -209,6 +209,10 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
                             << ";\n";
             }
             else {
+                if (type_union->decl && type_union->decl->est_monomorphisation) {
+                    nom_union = enchaine(nom_union, type_union);
+                }
+
                 enchaineuse << "typedef struct " << nom_union << ' ' << nom_broye << ";\n";
             }
 
@@ -224,7 +228,12 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         }
         case GenreType::VARIADIQUE:
         {
-            // les arguments variadiques sont transformés en tableaux, donc RÀF
+            auto variadique = type->comme_variadique();
+            /* Garantie la génération du typedef pour les types tableaux des variadiques. */
+            if (variadique->type_tableau_dyn && (variadique->type_tableau_dyn->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
+                cree_typedef(variadique->type_tableau_dyn, enchaineuse);
+                variadique->type_tableau_dyn->drapeaux |= TYPEDEF_FUT_GENERE;
+            }
             break;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
@@ -380,13 +389,15 @@ static bool peut_etre_dereference(Type *type)
            type->genre == GenreType::REFERENCE || type->genre == GenreType::POINTEUR;
 }
 
-static void genere_typedefs_recursifs(Compilatrice &compilatrice,
-                                      Type *type,
-                                      Enchaineuse &enchaineuse)
+static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
 {
     if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
         return;
     }
+
+    /* Plante directement le drapeau afin d'éviter les dépassements de pile en cas de cycles (p.e.
+     * pour les listes chainées). */
+    type->drapeaux |= TYPEDEF_FUT_GENERE;
 
     if (peut_etre_dereference(type)) {
         auto type_deref = type_dereference_pour(type);
@@ -409,11 +420,7 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
                 }
             }
 
-            if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
-            }
-
-            type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(type_deref, enchaineuse);
         }
     }
     /* ajoute les types des paramètres et de retour des fonctions */
@@ -421,22 +428,22 @@ static void genere_typedefs_recursifs(Compilatrice &compilatrice,
         auto type_fonc = type->comme_fonction();
 
         POUR (type_fonc->types_entrees) {
-            if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-            }
-
-            it->drapeaux |= TYPEDEF_FUT_GENERE;
+            genere_typedefs_recursifs(it, enchaineuse);
         }
 
-        if ((type_fonc->type_sortie->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-            genere_typedefs_recursifs(compilatrice, type_fonc->type_sortie, enchaineuse);
+        genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
+    }
+    else if (type->est_variadique()) {
+        if (type->comme_variadique()->type_pointe) {
+            genere_typedefs_recursifs(type->comme_variadique()->type_pointe, enchaineuse);
         }
-
-        type_fonc->type_sortie->drapeaux |= TYPEDEF_FUT_GENERE;
+    }
+    else if (type->est_opaque()) {
+        auto opaque = type->comme_opaque();
+        genere_typedefs_recursifs(opaque->type_opacifie, enchaineuse);
     }
 
     cree_typedef(type, enchaineuse);
-    type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
 // ----------------------------------------------
@@ -584,7 +591,13 @@ struct GeneratriceCodeC {
                             }
                             case AtomeValeurConstante::Valeur::Genre::REELLE:
                             {
-                                return enchaine(valeur_const->valeur.valeur_reelle);
+                                auto type = valeur_const->type;
+
+                                if (type->taille_octet == 4) {
+                                    return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+                                }
+
+                                return enchaine("(double)", valeur_const->valeur.valeur_reelle);
                             }
                             case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                             {
@@ -1380,8 +1393,7 @@ struct GeneratriceCodeC {
     }
 };
 
-static void genere_code_pour_types(Compilatrice &compilatrice,
-                                   dls::outils::Synchrone<GrapheDependance> &graphe_,
+static void genere_code_pour_types(dls::outils::Synchrone<GrapheDependance> &graphe_,
                                    Enchaineuse &enchaineuse)
 {
     auto graphe = graphe_.verrou_ecriture();
@@ -1406,7 +1418,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
                 return;
             }
 
-            genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+            genere_typedefs_recursifs(type, enchaineuse);
 
             if (type) {
                 if (type->est_structure()) {
@@ -1417,7 +1429,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
                     }
 
                     for (auto &membre : type_struct->membres) {
-                        genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+                        genere_typedefs_recursifs(membre.type, enchaineuse);
                     }
 
                     auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
@@ -1431,7 +1443,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice,
                     }
 
                     for (auto &membre : type_tuple->membres) {
-                        genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+                        genere_typedefs_recursifs(membre.type, enchaineuse);
                     }
 
                     auto nom_broye = nom_broye_type(type_tuple);
@@ -1493,7 +1505,7 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
-    genere_code_pour_types(compilatrice, graphe, enchaineuse);
+    genere_code_pour_types(graphe, enchaineuse);
 
     dls::ensemble<AtomeFonction *> utilises;
     kuri::tableau<AtomeFonction *> fonctions;
@@ -1536,7 +1548,7 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     auto &graphe = espace.graphe_dependance;
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-    genere_code_pour_types(compilatrice, graphe, enchaineuse);
+    genere_code_pour_types(graphe, enchaineuse);
 
     kuri::tableau<AtomeFonction *> fonctions_racines;
     fonctions_racines.reserve(espace.fonctions.taille());

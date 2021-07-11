@@ -26,6 +26,8 @@
 
 #include "biblinternes/structures/chaine.hh"
 
+class GNA;
+
 /* ************************************************************************** */
 
 /* espaces */
@@ -79,5 +81,7 @@ dls::chaine supprime_accents(dls::chaine const &chaine);
 int converti_utf32(const char *sequence, int n);
 
 int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence);
+
+int sequence_aleatoire(GNA &gna, unsigned char *sequence, int taille_max);
 
 }  /* namespace lng */

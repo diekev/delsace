@@ -821,8 +821,7 @@ void Tacheronne::gere_tache()
                             *unite->espace,
                             unite->symbole_attendu);
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
                         auto decl = unite->declaration_attendue;
                         auto unite_decl = decl->unite;
                         auto erreur = rapporte_erreur(unite->espace,
@@ -839,8 +838,7 @@ void Tacheronne::gere_tache()
                                 .ajoute_message("\n");
                         }
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
                         auto site = unite->noeud;
 
                         if (site->est_corps_fonction()) {
@@ -861,15 +859,13 @@ void Tacheronne::gere_tache()
                             .ajoute_message(chaine_attentes_recursives(unite))
                             .ajoute_message("\n");
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
                         erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une "
                                              "déclaration attend sur une interface de Kuri",
                                              *unite->espace,
                                              unite->noeud);
                     }
-
-                    if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
+                    else if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
                         if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
                             auto expression_operation = static_cast<NoeudExpressionBinaire *>(
                                 unite->operateur_attendu);
@@ -912,14 +908,16 @@ void Tacheronne::gere_tache()
                                     "type_retour\n{\n\t...\n}\n");
                         }
                     }
-
-                    rapporte_erreur(unite->espace,
-                                    unite->noeud,
-                                    "Je ne peux pas continuer la compilation car une unité est "
-                                    "bloqué dans un cycle")
-                        .ajoute_message("\nNote : l'unité est dans l'état : ")
-                        .ajoute_message(chaine_attentes_recursives(unite))
-                        .ajoute_message("\n");
+                    else {
+                        rapporte_erreur(
+                            unite->espace,
+                            unite->noeud,
+                            "Je ne peux pas continuer la compilation car une unité est "
+                            "bloqué dans un cycle")
+                            .ajoute_message("\nNote : l'unité est dans l'état : ")
+                            .ajoute_message(chaine_attentes_recursives(unite))
+                            .ajoute_message("\n");
+                    }
 
                     break;
                 }
@@ -1035,7 +1033,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 case GenreNoeud::DECLARATION_ENTETE_FONCTION:
                 {
                     auto decl = unite->noeud->comme_entete_fonction();
-                    return contexte.valide_type_fonction(decl) == ResultatValidation::OK;
+                    return contexte.valide_type_fonction(decl) == CodeRetourValidation::OK;
                 }
                 case GenreNoeud::DECLARATION_CORPS_FONCTION:
                 {
@@ -1047,20 +1045,20 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                     }
 
                     if (decl->entete->est_operateur) {
-                        return contexte.valide_operateur(decl) == ResultatValidation::OK;
+                        return contexte.valide_operateur(decl) == CodeRetourValidation::OK;
                     }
 
-                    return contexte.valide_fonction(decl) == ResultatValidation::OK;
+                    return contexte.valide_fonction(decl) == CodeRetourValidation::OK;
                 }
                 case GenreNoeud::DECLARATION_ENUM:
                 {
                     auto decl = static_cast<NoeudEnum *>(unite->noeud);
-                    return contexte.valide_enum(decl) == ResultatValidation::OK;
+                    return contexte.valide_enum(decl) == CodeRetourValidation::OK;
                 }
                 case GenreNoeud::DECLARATION_STRUCTURE:
                 {
                     auto decl = static_cast<NoeudStruct *>(unite->noeud);
-                    return contexte.valide_structure(decl) == ResultatValidation::OK;
+                    return contexte.valide_structure(decl) == CodeRetourValidation::OK;
                 }
                 case GenreNoeud::DECLARATION_VARIABLE:
                 {
@@ -1071,7 +1069,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                          ++unite->index_courant) {
                         if (contexte.valide_semantique_noeud(
                                 decl->arbre_aplatis[unite->index_courant]) ==
-                            ResultatValidation::Erreur) {
+                            CodeRetourValidation::Erreur) {
                             auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
                             auto noeud_dependance = graphe->cree_noeud_globale(decl);
                             graphe->ajoute_dependances(*noeud_dependance,
@@ -1098,7 +1096,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                          ++unite->index_courant) {
                         if (contexte.valide_semantique_noeud(
                                 dir->arbre_aplatis[unite->index_courant]) ==
-                            ResultatValidation::Erreur) {
+                            CodeRetourValidation::Erreur) {
                             return false;
                         }
                     }
@@ -1109,7 +1107,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 case GenreNoeud::INSTRUCTION_CHARGE:
                 {
                     if (contexte.valide_semantique_noeud(unite->noeud) ==
-                        ResultatValidation::Erreur) {
+                        CodeRetourValidation::Erreur) {
                         return false;
                     }
 
@@ -1176,10 +1174,11 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
                 return false;
             }
 
-            // À FAIRE: nous avons un problème de concurrence critique apparement vis-à-vis de l'exécution des
-            // métaprogrammes et du typage de code, je ne sais pas encore la cause du problème, mais pour le
-            // moment, afin de pouvoir développer sereinement dans le langage, j'ajoute cette ligne pour ralentir
-            // le thread en attendant que la MachineVirtuelle finisse son travail (!?)
+            // À FAIRE: nous avons un problème de concurrence critique apparement vis-à-vis de
+            // l'exécution des métaprogrammes et du typage de code, je ne sais pas encore la cause
+            // du problème, mais pour le moment, afin de pouvoir développer sereinement dans le
+            // langage, j'ajoute cette ligne pour ralentir le thread en attendant que la
+            // MachineVirtuelle finisse son travail (!?)
             std::cerr << "Ralentis la compilation....\n";
 
             unite->restaure_etat_original();
@@ -1205,7 +1204,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         noeud->drapeaux |= RI_FUT_GENEREE;
 
         if (noeud->type == nullptr) {
-            unite->espace->rapporte_erreur(noeud, "Erreur interne: type nul sur une déclaration après la génération de RI");
+            unite->espace->rapporte_erreur(
+                noeud, "Erreur interne: type nul sur une déclaration après la génération de RI");
             return true;
         }
 
@@ -1331,9 +1331,15 @@ static void rassemble_globales_et_fonctions(EspaceDeTravail *espace,
                 return;
             }
 
+            if (type->est_structure() && type->comme_structure()->union_originelle) {
+                type = type->comme_structure()->union_originelle;
+            }
+
             if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
                 auto atome_fonction = type->fonction_init;
-                assert(atome_fonction);
+                assert_rappel(atome_fonction, [&]() {
+                    std::cerr << "Pas d'atome pour " << chaine_type(type) << '\n';
+                });
                 fonctions.ajoute(atome_fonction);
                 type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
             }

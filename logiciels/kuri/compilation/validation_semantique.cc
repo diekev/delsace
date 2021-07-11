@@ -50,7 +50,7 @@ using dls::outils::possede_drapeau;
 #define VERIFIE_INTERFACE_KURI_CHARGEE(nom)                                                       \
     if (espace->interface_kuri->decl_##nom == nullptr) {                                          \
         unite->attend_sur_interface_kuri(#nom);                                                   \
-        return ResultatValidation::Erreur;                                                        \
+        return CodeRetourValidation::Erreur;                                                      \
     }                                                                                             \
     else if (espace->interface_kuri->decl_##nom->corps->unite == nullptr) {                       \
         m_compilatrice.ordonnanceuse->cree_tache_pour_typage(                                     \
@@ -97,7 +97,7 @@ void ContexteValidationCode::termine_fonction()
     fonction_courante = nullptr;
 }
 
-ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
+CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
@@ -133,6 +133,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 espace, kuri::chaine(lexeme->chaine), inst->expression);
             temps_chargement += temps.temps();
 
+            if (!module) {
+                return CodeRetourValidation::Erreur;
+            }
+
             // @concurrence critique
             if (fichier->importe_module(module->nom())) {
                 espace->rapporte_avertissement(inst, "Importation superflux du module");
@@ -166,8 +170,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (decl->est_declaration_type) {
                 aplatis_arbre(decl);
                 POUR (decl->arbre_aplatis) {
-                    if (valide_semantique_noeud(it) == ResultatValidation::Erreur) {
-                        return ResultatValidation::Erreur;
+                    if (valide_semantique_noeud(it) == CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
                     }
                 }
 
@@ -183,8 +187,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     NoeudExpression *type_entree = decl->params[i];
 
                     if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte]) ==
-                        ResultatValidation::Erreur) {
-                        return ResultatValidation::Erreur;
+                        CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
                     }
                 }
 
@@ -192,8 +196,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (decl->params_sorties.taille() == 1) {
                     if (resoud_type_final(decl->params_sorties[0], type_sortie) ==
-                        ResultatValidation::Erreur) {
-                        return ResultatValidation::Erreur;
+                        CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
                     }
                 }
                 else {
@@ -202,14 +206,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     for (auto &type_declare : decl->params_sorties) {
                         if (resoud_type_final(type_declare, type_sortie) ==
-                            ResultatValidation::Erreur) {
-                            return ResultatValidation::Erreur;
+                            CodeRetourValidation::Erreur) {
+                            return CodeRetourValidation::Erreur;
                         }
 
                         // À FAIRE(état validation)
                         if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             unite->attend_sur_type(type_sortie);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         membres.ajoute({type_sortie});
@@ -220,7 +224,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 auto type_fonction = espace->typeuse.type_fonction(types_entrees, type_sortie);
                 decl->type = espace->typeuse.type_type_de_donnees(type_fonction);
-                return ResultatValidation::OK;
+                return CodeRetourValidation::OK;
             }
 
             break;
@@ -352,7 +356,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 graphe->cree_noeud_fonction(metaprogramme->fonction);
                 graphe->ajoute_dependances(*metaprogramme->fonction->noeud_dependance,
                                            donnees_dependance);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             break;
@@ -375,8 +379,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto inst = noeud->comme_reference_membre();
             noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-            if (valide_acces_membre(inst) == ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+            if (valide_acces_membre(inst) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
 
             donnees_dependance.types_utilises.insere(inst->type);
@@ -429,17 +433,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     rapporte_erreur(
                         "Attendu une expression de type après la déclaration de type tableau",
                         enfant2);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto type_de_donnees = type2->comme_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
                                                                 type_de_donnees;
-
-                if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                    unite->attend_sur_type(type_connu);
-                    return ResultatValidation::Erreur;
-                }
 
                 auto taille_tableau = 0l;
 
@@ -450,13 +449,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     if (res.est_errone) {
                         rapporte_erreur("Impossible d'évaluer la taille du tableau",
                                         expression_taille);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     if (res.valeur.type != TypeExpression::ENTIER) {
                         rapporte_erreur("L'expression n'est pas de type entier",
                                         expression_taille);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     if (res.valeur.entier == 0) {
@@ -469,6 +468,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (taille_tableau != 0) {
+                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+                    // via un membre
+                    if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                        unite->attend_sur_type(type_connu);
+                        return CodeRetourValidation::Erreur;
+                    }
+
                     auto type_tableau = espace->typeuse.type_tableau_fixe(
                         type_connu, static_cast<int>(taille_tableau));
                     expr->type = espace->typeuse.type_type_de_donnees(type_tableau);
@@ -480,7 +486,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     donnees_dependance.types_utilises.insere(type_tableau);
                 }
 
-                return ResultatValidation::OK;
+                return CodeRetourValidation::OK;
             }
 
             auto type_op = expr->lexeme->genre;
@@ -493,7 +499,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (type1->genre == GenreType::TYPE_DE_DONNEES) {
                 if (type2->genre != GenreType::TYPE_DE_DONNEES) {
                     rapporte_erreur("Opération impossible entre un type et autre chose", expr);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto type_type1 = type1->comme_type_de_donnees();
@@ -503,37 +509,37 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     default:
                     {
                         rapporte_erreur("Opérateur inapplicable sur des types", expr);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                     case GenreLexeme::BARRE:
                     {
                         if (type_type1->type_connu == nullptr) {
                             rapporte_erreur("Opération impossible car le type n'est pas connu",
                                             noeud);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if (type_type2->type_connu == nullptr) {
                             rapporte_erreur("Opération impossible car le type n'est pas connu",
                                             noeud);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if (type_type1->type_connu == type_type2->type_connu) {
                             rapporte_erreur(
                                 "Impossible de créer une union depuis des types similaires\n",
                                 expr);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             unite->attend_sur_type(type_type1->type_connu);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             unite->attend_sur_type(type_type2->type_connu);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
@@ -558,7 +564,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                 espace, decl_struct);
                         }
 
-                        return ResultatValidation::OK;
+                        return CodeRetourValidation::OK;
                     }
                     case GenreLexeme::EGALITE:
                     {
@@ -567,7 +573,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         expr->type = op->type_resultat;
                         expr->op = op;
                         donnees_dependance.types_utilises.insere(expr->type);
-                        return ResultatValidation::OK;
+                        return CodeRetourValidation::OK;
                     }
                     case GenreLexeme::DIFFERENCE:
                     {
@@ -576,7 +582,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         expr->type = op->type_resultat;
                         expr->op = op;
                         donnees_dependance.types_utilises.insere(expr->type);
-                        return ResultatValidation::OK;
+                        return CodeRetourValidation::OK;
                     }
                 }
             }
@@ -593,7 +599,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
                 if (cherche_candidats_operateurs(
                         *espace, *this, type1, type2, type_op, candidats)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
                 auto meilleur_candidat = OperateurCandidat::nul_const();
                 auto poids = 0.0;
@@ -607,7 +613,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (meilleur_candidat == nullptr) {
                     unite->attend_sur_operateur(noeud);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 expr->op = meilleur_candidat->op;
@@ -682,7 +688,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto candidats = dls::tablet<OperateurCandidat, 10>();
                 if (cherche_candidats_operateurs(
                         *espace, *this, type1, type2, type_op, candidats)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
                 auto meilleur_candidat = OperateurCandidat::nul_const();
                 auto poids = 0.0;
@@ -696,7 +702,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (meilleur_candidat == nullptr) {
                     unite->attend_sur_operateur(noeud);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 expr->type = meilleur_candidat->op->type_resultat;
@@ -728,15 +734,18 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (assignation_composee) {
                     expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
-                    auto transformation = TransformationType();
-                    if (cherche_transformation(
-                            *espace, *this, expr->type, type1, transformation)) {
-                        return ResultatValidation::Erreur;
+                    auto resultat = cherche_transformation(*espace, *this, expr->type, type1);
+
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        unite->marque_attente(std::get<Attente>(resultat));
+                        return CodeRetourValidation::Erreur;
                     }
+
+                    auto transformation = std::get<TransformationType>(resultat);
 
                     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                         rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
             }
@@ -784,7 +793,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     if (!est_valeur_gauche(enfant->genre_valeur)) {
                         rapporte_erreur("Ne peut pas prendre l'adresse d'une valeur-droite.",
                                         enfant);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expr->type = espace->typeuse.type_pointeur_pour(type);
@@ -794,7 +803,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         rapporte_erreur(
                             "Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
                             enfant);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expr->type = espace->typeuse[TypeBase::BOOL];
@@ -811,7 +820,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     if (op == nullptr) {
                         unite->attend_sur_operateur(noeud);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expr->type = op->type_resultat;
@@ -863,7 +872,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         if (res.valeur.entier >= type_tabl->taille) {
                             rapporte_erreur_acces_hors_limites(
                                 enfant2, type_tabl, res.valeur.entier);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         /* nous savons que l'accès est dans les limites,
@@ -901,7 +910,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                                      type2,
                                                      GenreLexeme::CROCHET_OUVRANT,
                                                      candidats)) {
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                     auto meilleur_candidat = OperateurCandidat::nul_const();
                     auto poids = 0.0;
@@ -915,7 +924,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     if (meilleur_candidat == nullptr) {
                         unite->attend_sur_operateur(noeud);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expr->type = meilleur_candidat->op->type_resultat;
@@ -949,12 +958,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             else {
                 if (type_index->genre == GenreType::ENUM) {
-                    type_index = type_index->comme_enum()->type_donnees;
+                    type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
                 }
 
                 if (transtype_si_necessaire(expr->operande_droite, type_cible) ==
-                    ResultatValidation::Erreur) {
-                    return ResultatValidation::Erreur;
+                    CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -1001,7 +1010,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
                 rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (!est_type_conditionnable(type_condition) &&
@@ -1009,7 +1018,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 rapporte_erreur("Impossible de conditionner le type de l'expression 'si'",
                                 inst->condition,
                                 erreur::Genre::TYPE_DIFFERENTS);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             /* pour les expressions x = si y { z } sinon { w } */
@@ -1025,7 +1034,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         espace->rapporte_erreur(racine,
                                                 "Bloc « sinon » manquant dans la condition si "
                                                 "utilisée comme expression !");
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
@@ -1049,7 +1058,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (res.est_errone) {
                     rapporte_erreur(
                         res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto condition_est_vraie = res.valeur.entier != 0;
@@ -1106,7 +1115,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     if (f->lexeme->ligne > decl_f->lexeme->ligne) {
                         rapporte_erreur(
                             "Redéfinition de la variable", f, erreur::Genre::VARIABLE_REDEFINIE);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
             }
@@ -1149,21 +1158,23 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                             //							df = enfant2->df;
                             //							auto nombre_vars_ret =
-                            //df->idx_types_retours.taille();
+                            // df->idx_types_retours.taille();
 
                             //							if (feuilles.taille() == nombre_vars_ret) {
                             //								requiers_index = false;
                             //								noeud->aide_generation_code =
-                            //GENERE_BOUCLE_COROUTINE;
+                            // GENERE_BOUCLE_COROUTINE;
                             //							}
-                            //							else if (feuilles.taille() == nombre_vars_ret + 1)
-                            //{ 								requiers_index = true; 								noeud->aide_generation_code =
-                            //GENERE_BOUCLE_COROUTINE_INDEX;
+                            //							else if (feuilles.taille() ==
+                            //nombre_vars_ret
+                            //+ 1) { 								requiers_index = true;
+                            // noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
                             //							}
                             //							else {
                             //								rapporte_erreur(
-                            //											"Mauvais compte d'arguments à
-                            //déployer", 											compilatrice, 											*enfant1->lexeme);
+                            //											"Mauvais compte d'arguments
+                            //à déployer", compilatrice,
+                            // *enfant1->lexeme);
                             //							}
                         }
                     }
@@ -1192,6 +1203,22 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return GENERE_BOUCLE_TABLEAU;
                     }
                 }
+                else if (est_type_entier(type) || type->est_entier_constant()) {
+                    if (type->est_entier_constant()) {
+                        enfant1->type = espace->typeuse[TypeBase::Z32];
+                        type = enfant1->type;
+                    }
+                    else {
+                        enfant1->type = type;
+                    }
+
+                    if (requiers_index) {
+                        return GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX;
+                    }
+                    else {
+                        return GENERE_BOUCLE_PLAGE_IMPLICITE;
+                    }
+                }
                 else {
                     espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
                         .ajoute_message("Note : le type de la variable est ")
@@ -1204,7 +1231,16 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto aide_generation_code = determine_iterande(enfant2);
 
             if (aide_generation_code == -1) {
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
+            }
+
+            /* Le type ne doit plus être un entier_constant après determine_itérande,
+             * donc nous pouvons directement l'assigner à enfant2->type.
+             * Ceci est nécessaire car la simplification du code accède aux opérateurs
+             * selon le type de enfant2. */
+            if (enfant2->type->est_entier_constant()) {
+                assert(!type->est_entier_constant());
+                enfant2->type = type;
             }
 
             /* il faut attendre de vérifier que le type est itérable avant de prendre cette
@@ -1257,14 +1293,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             expr->genre_valeur = GenreValeur::DROITE;
 
             if (resoud_type_final(expr->expression_type, expr->type) ==
-                ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+                CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
 
             if (noeud->type == nullptr) {
                 rapporte_erreur(
                     "Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             donnees_dependance.types_utilises.insere(noeud->type);
@@ -1273,19 +1309,22 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (enfant->type == nullptr) {
                 rapporte_erreur(
                     "Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
-
-            auto transformation = TransformationType();
 
             if (enfant->type->est_reference() && !noeud->type->est_reference()) {
                 transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
             }
 
-            if (cherche_transformation_pour_transtypage(
-                    *espace, *this, expr->expression->type, noeud->type, transformation)) {
-                return ResultatValidation::Erreur;
+            auto resultat = cherche_transformation_pour_transtypage(
+                *espace, *this, expr->expression->type, noeud->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
+                return CodeRetourValidation::Erreur;
             }
+
+            auto transformation = std::get<TransformationType>(resultat);
 
             if (transformation.type == TypeTransformation::INUTILE) {
                 espace->rapporte_avertissement(expr, "transtypage inutile");
@@ -1293,7 +1332,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_type_arguments(noeud, expr->expression);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             expr->transformation = transformation;
@@ -1315,15 +1354,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             expr->type = espace->typeuse[TypeBase::N32];
 
             auto expr_type = expr->expression;
-            if (resoud_type_final(expr_type, expr_type->type) == ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+            if (resoud_type_final(expr_type, expr_type->type) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
 
             if ((expr_type->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
                 unite->index_courant += 1;
                 unite->attend_sur_type(expr_type->type);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             break;
@@ -1356,7 +1395,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 else {
                     rapporte_erreur_type_operation(type_debut, type_fin, noeud);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
             else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
@@ -1373,7 +1412,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 rapporte_erreur("Attendu des types réguliers dans la plage de la boucle 'pour'",
                                 noeud,
                                 erreur::Genre::TYPE_DIFFERENTS);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             noeud->type = type_debut;
@@ -1398,7 +1437,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (inst->condition->type == nullptr &&
                 !est_operateur_bool(inst->condition->lexeme->genre)) {
                 rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             break;
@@ -1410,14 +1449,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (inst->condition->type == nullptr &&
                 !est_operateur_bool(inst->condition->lexeme->genre)) {
                 rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (inst->condition->type->genre != GenreType::BOOL) {
                 rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'",
                                 inst->condition,
                                 erreur::Genre::TYPE_ARGUMENT);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             break;
@@ -1430,7 +1469,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto feuilles = expr->expression->comme_virgule();
 
             if (feuilles->expressions.est_vide()) {
-                return ResultatValidation::OK;
+                return CodeRetourValidation::OK;
             }
 
             auto premiere_feuille = feuilles->expressions[0];
@@ -1446,8 +1485,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
                 if (transtype_si_necessaire(feuilles->expressions[i], type_feuille) ==
-                    ResultatValidation::Erreur) {
-                    return ResultatValidation::Erreur;
+                    CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -1467,8 +1506,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto expr = noeud_expr->expression;
 
             if (resoud_type_final(noeud_expr->expression, expr->type) ==
-                ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+                CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
 
             auto type_info_type = Type::nul();
@@ -1548,15 +1587,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto init_de = noeud->comme_init_de();
             Type *type = nullptr;
 
-            if (resoud_type_final(init_de->expression, type) == ResultatValidation::Erreur) {
+            if (resoud_type_final(init_de->expression, type) == CodeRetourValidation::Erreur) {
                 rapporte_erreur("impossible de définir le type de init_de", noeud);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (type->genre != GenreType::STRUCTURE && type->genre != GenreType::UNION) {
                 rapporte_erreur("init_de doit prendre le type d'une structure ou d'une union",
                                 noeud);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             auto types_entrees = dls::tablet<Type *, 6>(2);
@@ -1580,7 +1619,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (expr_type->type == nullptr) {
                 rapporte_erreur("impossible de définir le type de l'expression de type_de",
                                 expr_type);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (expr_type->type->genre == GenreType::TYPE_DE_DONNEES) {
@@ -1602,7 +1641,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 rapporte_erreur("Un pointeur est requis pour le déréférencement via 'mémoire'",
                                 expr->expression,
                                 erreur::Genre::TYPE_DIFFERENTS);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             auto type_pointeur = type->comme_pointeur();
@@ -1638,7 +1677,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 VERIFIE_UNITE_TYPAGE(type)
                 unite->attend_sur_type(type);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (type->genre == GenreType::UNION && type->comme_union()->est_anonyme) {
@@ -1657,9 +1696,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     valide_semantique_noeud(expr_paire);
 
                     Type *type_expr;
-                    if (resoud_type_final(expr_paire, type_expr) == ResultatValidation::Erreur) {
+                    if (resoud_type_final(expr_paire, type_expr) == CodeRetourValidation::Erreur) {
                         rapporte_erreur("Ne peut résoudre le type", expr_paire);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expr_paire->type = type_expr;
@@ -1693,27 +1732,28 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (decl->est_nonsure) {
                     rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 
-                auto valide_presence_membres = [&membres_rencontres, &decl, this, &expression]() {
-                    auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
+                auto valide_presence_membres =
+                    [&membres_rencontres, &type_union, this, &expression]() {
+                        auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
-                    POUR (*decl->bloc->membres.verrou_lecture()) {
-                        if (!membres_rencontres.possede(it->ident)) {
-                            valeurs_manquantes.insere(it->lexeme->chaine);
+                        POUR (type_union->membres) {
+                            if (!membres_rencontres.possede(it.nom)) {
+                                valeurs_manquantes.insere(it.nom->nom);
+                            }
                         }
-                    }
 
-                    if (valeurs_manquantes.taille() != 0) {
-                        rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
-                        return ResultatValidation::Erreur;
-                    }
+                        if (valeurs_manquantes.taille() != 0) {
+                            rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
+                            return CodeRetourValidation::Erreur;
+                        }
 
-                    return ResultatValidation::OK;
-                };
+                        return CodeRetourValidation::OK;
+                    };
 
                 noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -1730,14 +1770,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                               "Attendu une référence à un membre de l'union")
                             .ajoute_message(
                                 "L'expression est de genre : ", expr_paire->genre, "\n");
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
-
-                    auto nom_membre = expr_paire->ident->nom;
 
                     if (membres_rencontres.possede(expr_paire->ident)) {
                         rapporte_erreur("Redéfinition de l'expression", expr_paire);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     membres_rencontres.insere(expr_paire->ident);
@@ -1746,7 +1784,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     if (decl_var == nullptr) {
                         rapporte_erreur_membre_inconnu(noeud, expression, expr_paire, type_union);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expr_paire->ident);
@@ -1757,7 +1795,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         rapporte_erreur("Ne peut pas utiliser implicitement le membre car une "
                                         "variable de ce nom existe déjà",
                                         expr_paire);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     /* pousse la variable dans le bloc suivant */
@@ -1780,7 +1818,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-                auto type_enum = type->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type);
                 inst->op = type_enum->operateur_egt;
 
                 auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
@@ -1797,7 +1835,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                 "expression inattendue dans la discrimination, seules les "
                                 "références de déclarations sont supportées pour le moment",
                                 f);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         auto nom_membre = f->ident;
@@ -1813,12 +1851,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                         if (!nom_trouve) {
                             rapporte_erreur_membre_inconnu(noeud, expression, f, type_enum);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if (membres_rencontres.possede(nom_membre)) {
                             rapporte_erreur("Redéfinition de l'expression", f);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
 
                         membres_rencontres.insere(nom_membre);
@@ -1837,7 +1875,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     if (valeurs_manquantes.taille() != 0) {
                         rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
             }
@@ -1854,7 +1892,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                                  type_pour_la_recherche,
                                                  GenreLexeme::EGALITE,
                                                  candidats)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto meilleur_candidat = OperateurCandidat::nul_const();
@@ -1883,7 +1921,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                             "personnalisé, vous pouvez définir l'opérateur comme ceci :\n\n"
                             "\topérateur == :: fonc (a: MonType, b: MonType) -> bool\n\t{\n\t\t "
                             "/* logique de comparaison */\n\t}\n");
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 inst->op = meilleur_candidat->op;
@@ -1899,13 +1937,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     for (auto j = 0; j < feuilles->expressions.taille(); ++j) {
                         if (valide_semantique_noeud(feuilles->expressions[j]) ==
-                            ResultatValidation::Erreur) {
-                            return ResultatValidation::Erreur;
+                            CodeRetourValidation::Erreur) {
+                            return CodeRetourValidation::Erreur;
                         }
 
                         if (transtype_si_necessaire(feuilles->expressions[j], expression->type) ==
-                            ResultatValidation::Erreur) {
-                            return ResultatValidation::Erreur;
+                            CodeRetourValidation::Erreur) {
+                            return CodeRetourValidation::Erreur;
                         }
                     }
                 }
@@ -1923,7 +1961,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             if (!fonction_courante->est_coroutine) {
                 rapporte_erreur("'retiens' hors d'une coroutine", noeud);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             return valide_expression_retour(static_cast<NoeudRetour *>(noeud));
@@ -1946,7 +1984,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     .ajoute_message("Note : la variable est de type ")
                     .ajoute_message(chaine_type(variable->type))
                     .ajoute_message("\n");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             break;
@@ -1959,7 +1997,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 // nous avons un type variadique
                 auto type_var = espace->typeuse.type_variadique(nullptr);
                 expr->type = espace->typeuse.type_type_de_donnees(type_var);
-                return ResultatValidation::OK;
+                return CodeRetourValidation::OK;
             }
 
             auto type_expr = expr->expression->type;
@@ -2013,7 +2051,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if ((inst->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 VERIFIE_UNITE_TYPAGE(inst->type)
                 unite->attend_sur_type(inst->type);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (inst->type->genre == GenreType::ERREUR) {
@@ -2033,7 +2071,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     rapporte_erreur(
                         "Utilisation de « tente » sur une fonction qui ne retourne pas d'erreur",
                         inst);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 if (type_union->membres.taille() == 2) {
@@ -2060,7 +2098,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 rapporte_erreur(
                     "Utilisation de « tente » sur une fonction qui ne retourne pas d'erreur",
                     inst);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (inst->expression_piegee) {
@@ -2069,7 +2107,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     rapporte_erreur("Expression inattendu dans l'expression de piège, nous devons "
                                     "avoir une référence à une variable",
                                     inst->expression_piegee);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 auto var_piege = inst->expression_piegee->comme_reference_declaration();
@@ -2106,7 +2144,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans "
                                     "une boucle, la continuer, l'arrêter, ou la reprendre",
                                     inst);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
             else {
@@ -2138,13 +2176,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     .ajoute_message("Le type de la variable est : ")
                     .ajoute_message(chaine_type(type_employe))
                     .ajoute_message(".\n\n");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if ((type_employe->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 VERIFIE_UNITE_TYPAGE(type_employe)
                 unite->attend_sur_type(type_employe);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             auto type_structure = type_employe->comme_structure();
@@ -2181,10 +2219,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
     }
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_acces_membre(
+CodeRetourValidation ContexteValidationCode::valide_acces_membre(
     NoeudExpressionMembre *expression_membre)
 {
     auto structure = expression_membre->accedee;
@@ -2198,7 +2236,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             auto res = valide_reference_declaration(
                 ref, decl->comme_declaration_module()->module->bloc);
 
-            if (res != ResultatValidation::OK) {
+            if (res != CodeRetourValidation::OK) {
                 return res;
             }
 
@@ -2235,7 +2273,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
             VERIFIE_UNITE_TYPAGE(type)
             unite->attend_sur_type(type);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto type_compose = static_cast<TypeCompose *>(type);
@@ -2259,7 +2297,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
 
         if (membre_trouve == false) {
             rapporte_erreur_membre_inconnu(expression_membre, structure, membre, type_compose);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         expression_membre->index_membre = index_membre;
@@ -2279,7 +2317,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             if (structure->est_reference_declaration() &&
                 !structure->comme_reference_declaration()->declaration_referee->est_enum() &&
                 !expression_membre->type->est_type_de_donnees()) {
-                if (type->est_enum() && type->comme_enum()->est_drapeau) {
+                if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
                     expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                     if (!membre_est_implicite) {
                         expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
@@ -2289,7 +2327,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                     espace->rapporte_erreur(
                         expression_membre,
                         "Impossible d'accéder à une variable de type énumération");
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
@@ -2304,17 +2342,17 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 espace->interface_kuri->decl_panique_membre_union);
         }
 
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     espace
         ->rapporte_erreur(structure,
                           "Impossible de référencer un membre d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
-    return ResultatValidation::Erreur;
+    return CodeRetourValidation::Erreur;
 }
 
-ResultatValidation ContexteValidationCode::valide_type_fonction(
+CodeRetourValidation ContexteValidationCode::valide_type_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
 #ifdef STATISTIQUES_DETAILLEES
@@ -2351,9 +2389,9 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
 
     {
         CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (arbre aplatis)");
-        if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == ResultatValidation::Erreur) {
+        if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == CodeRetourValidation::Erreur) {
             graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -2366,8 +2404,9 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
 
         for (auto i = 0; i < decl->params.taille(); ++i) {
             if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
-                unite->espace->rapporte_erreur(decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
-                return ResultatValidation::Erreur;
+                unite->espace->rapporte_erreur(
+                    decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
+                return CodeRetourValidation::Erreur;
             }
 
             auto param = decl->parametre_entree(i);
@@ -2377,12 +2416,12 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
             if (noms.possede(variable->ident)) {
                 rapporte_erreur(
                     "Redéfinition de l'argument", variable, erreur::Genre::ARGUMENT_REDEFINI);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (dernier_est_variadic) {
                 rapporte_erreur("Argument déclaré après un argument variadic", variable);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (expression != nullptr) {
@@ -2390,7 +2429,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                     rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de "
                                     "valeur par défaut",
                                     param);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -2407,14 +2446,14 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                     rapporte_erreur("La déclaration de fonction variadique sans type n'est"
                                     " implémentée que pour les fonctions externes",
                                     param);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
 
         if (decl->est_polymorphe) {
             decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-            return ResultatValidation::OK;
+            return CodeRetourValidation::OK;
         }
     }
 
@@ -2441,8 +2480,8 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
         if (decl->params_sorties.taille() == 1) {
             if (resoud_type_final(
                     decl->params_sorties[0]->comme_declaration_variable()->expression_type,
-                    type_sortie) == ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+                    type_sortie) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
         }
         else {
@@ -2452,14 +2491,14 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
             for (auto &expr : decl->params_sorties) {
                 auto type_declare = expr->comme_declaration_variable();
                 if (resoud_type_final(type_declare->expression_type, type_sortie) ==
-                    ResultatValidation::Erreur) {
-                    return ResultatValidation::Erreur;
+                    CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
                 }
 
                 // À FAIRE(état validation) : nous ne devrions pas revalider les paramètres
                 if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
                     unite->attend_sur_type(type_sortie);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 membres.ajoute({type_sortie});
@@ -2475,20 +2514,20 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                 espace->rapporte_erreur(
                     decl->params[0],
                     "La fonction principale ne doit pas prendre de paramètres d'entrée !");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (decl->param_sortie->type->est_tuple()) {
                 espace->rapporte_erreur(
                     decl->param_sortie,
                     "La fonction principale ne peut retourner qu'une seule valeur !");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (decl->param_sortie->type != espace->typeuse[TypeBase::Z32]) {
                 espace->rapporte_erreur(decl->param_sortie,
                                         "La fonction principale doit retourner un z32 !");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
 
@@ -2504,13 +2543,13 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
 
         if (type_resultat == espace->typeuse[TypeBase::RIEN]) {
             rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (est_operateur_bool(decl->lexeme->genre) &&
             type_resultat != espace->typeuse[TypeBase::BOOL]) {
             rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto operateurs = espace->operateurs.verrou_ecriture();
@@ -2525,13 +2564,13 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                 if (op->type_operande == type1) {
                     if (op->est_basique) {
                         rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
                         .ajoute_message("L'opérateur fut déjà défini ici :\n")
                         .ajoute_site(op->decl);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -2545,13 +2584,13 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                 if (op->type2 == type2) {
                     if (op->est_basique) {
                         rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
                         .ajoute_message("L'opérateur fut déjà défini ici :\n")
                         .ajoute_site(op->decl);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -2588,7 +2627,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                 });
 
             if (eu_erreur) {
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
     }
@@ -2617,10 +2656,10 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
     possede_erreur = false;
 #endif
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
+CodeRetourValidation ContexteValidationCode::valide_arbre_aplatis(
     NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
 {
     aplatis_arbre(declaration);
@@ -2636,18 +2675,18 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
                         espace, noeud_enfant->comme_structure());
                 }
                 unite->attend_sur_declaration(noeud_enfant->comme_structure());
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             continue;
         }
 
-        if (valide_semantique_noeud(noeud_enfant) == ResultatValidation::Erreur) {
-            return ResultatValidation::Erreur;
+        if (valide_semantique_noeud(noeud_enfant) == CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
         }
     }
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
 static void rassemble_expressions(NoeudExpression *expr,
@@ -2713,7 +2752,7 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
-ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
+CodeRetourValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
     auto type_fonc = fonction_courante->type->comme_fonction();
     auto est_corps_texte = fonction_courante->corps->est_corps_texte;
@@ -2724,17 +2763,17 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if ((!fonction_courante->est_coroutine && type_fonc->type_sortie != inst->type) ||
             est_corps_texte) {
             rapporte_erreur("Expression de retour manquante", inst);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         donnees_dependance.types_utilises.insere(inst->type);
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     if (est_corps_texte) {
         if (inst->expression->est_virgule()) {
             rapporte_erreur("Trop d'expression de retour pour le corps texte", inst->expression);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto expr = inst->expression;
@@ -2742,13 +2781,13 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if (expr->est_assignation_variable()) {
             rapporte_erreur("Impossible d'assigner la valeur de retour pour un #corps_texte",
                             inst->expression);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (!expr->type->est_chaine()) {
             rapporte_erreur("Attendu un type chaine pour le retour de #corps_texte",
                             inst->expression);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         inst->type = espace->typeuse[TypeBase::CHAINE];
@@ -2762,13 +2801,13 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
         donnees_dependance.types_utilises.insere(inst->type);
 
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     if (type_fonc->type_sortie->est_rien()) {
         espace->rapporte_erreur(inst->expression,
                                 "Retour d'une valeur d'une fonction qui ne retourne rien");
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     dls::file_fixe<NoeudExpression *, 6> variables;
@@ -2796,18 +2835,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if (it.ident) {
             eu_nom = true;
 
-            if (expr->est_appel() &&
-                expr->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-                auto type_fonction =
-                    expr->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
-
-                if (type_fonction->type_sortie->est_tuple()) {
-                    espace->rapporte_erreur(
-                        it.expression,
-                        "Impossible de nommer les variables de retours si l'expression est une "
-                        "fonction retournant plusieurs valeurs");
-                    return ResultatValidation::Erreur;
-                }
+            if (expr->type->est_tuple()) {
+                espace->rapporte_erreur(
+                    it.expression,
+                    "Impossible de nommer les variables de retours si l'expression retourne "
+                    "plusieurs valeurs");
+                return CodeRetourValidation::Erreur;
             }
 
             for (auto i = 0; i < fonction_courante->params_sorties.taille(); ++i) {
@@ -2816,7 +2849,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                         espace->rapporte_erreur(
                             it.expression,
                             "Redéfinition d'une expression pour un paramètre de retour");
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     expressions[i] = it.expression;
@@ -2834,7 +2867,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
             if (expressions[index_courant] != nullptr) {
                 espace->rapporte_erreur(
                     it.expression, "Redéfinition d'une expression pour un paramètre de retour");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             expressions[index_courant] = it.expression;
@@ -2847,11 +2880,15 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) {
-        auto transformation = TransformationType();
-        if (cherche_transformation(
-                *espace, *this, type_de_l_expression, variable->type, transformation)) {
+        auto resultat = cherche_transformation(
+            *espace, *this, type_de_l_expression, variable->type);
+
+        if (std::holds_alternative<Attente>(resultat)) {
+            unite->marque_attente(std::get<Attente>(resultat));
             return false;
         }
+
+        auto transformation = std::get<TransformationType>(resultat);
 
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(
@@ -2875,7 +2912,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                 "impossible de retourner une expression de type « rien » à une variable",
                 it,
                 erreur::Genre::ASSIGNATION_RIEN);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
         else if (it->type->est_tuple()) {
             auto type_tuple = it->type->comme_tuple();
@@ -2889,18 +2926,18 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                 }
 
                 if (!valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
         else {
             if (variables.est_vide()) {
                 espace->rapporte_erreur(it, "Trop d'expressions de retour");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (!valide_typage_et_ajoute(donnees, variables.defile(), it, it->type)) {
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
 
@@ -2910,7 +2947,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     // À FAIRE : valeur par défaut des expressions
     if (!variables.est_vide()) {
         espace->rapporte_erreur(inst, "Expressions de retour manquante");
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     inst->type = type_fonc->type_sortie;
@@ -2921,10 +2958,10 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     }
 
     donnees_dependance.types_utilises.insere(inst->type);
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine *directive)
+CodeRetourValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine *directive)
 {
     auto expr = directive->expression;
 
@@ -2942,10 +2979,10 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     donnees_dependance.fonctions_utilisees.insere(
         expr->comme_appel()->expression->comme_entete_fonction());
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_reference_declaration(
+CodeRetourValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
@@ -2965,7 +3002,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
 	if (declarations.taille() == 0) {
 		unite->attend_sur_symbole(expr);
-		return ResultatValidation::Erreur;
+		return CodeRetourValidation::Erreur;
 	}
 
 	if (declarations.taille() > 1) {
@@ -2976,7 +3013,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 			e.ajoute_site(it);
 		}
 
-		return ResultatValidation::Erreur;
+		return CodeRetourValidation::Erreur;
 	}
 
 	auto decl = declarations[0];
@@ -2985,7 +3022,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     if (decl == nullptr) {
         unite->attend_sur_symbole(expr);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 #endif
 
@@ -2993,7 +3030,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
         if (decl->lexeme->ligne > expr->lexeme->ligne) {
             rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -3011,8 +3048,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             if (decl->unite == nullptr) {
                 m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
             }
+            // À FAIRE : curseur := curseur.curseurs[0] -> il faut pouvoir déterminer si la
+            // référence est celle de la variable que l'on valide, ceci ne fonctionnera pas pour
+            // les déclarations multiples, ou les types étant référencés dans les expressions de
+            // leurs membres
+            if (decl == unite->noeud) {
+                espace->rapporte_erreur(expr, "Utilisation d'une variable dans sa définition !\n");
+                return CodeRetourValidation::Erreur;
+            }
             unite->attend_sur_declaration(decl);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (decl->type && decl->type->est_opaque() && decl->est_declaration_variable() &&
@@ -3062,7 +3107,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
@@ -3105,13 +3150,14 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     return metaprogramme;
 }
 
-ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
+CodeRetourValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
 
     if (entete->est_polymorphe && !entete->est_monomorphisation) {
         // nous ferons l'analyse sémantique plus tard
-        return ResultatValidation::OK;
+        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+        return CodeRetourValidation::OK;
     }
 
     decl->type = entete->type;
@@ -3176,9 +3222,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
 
-    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == ResultatValidation::Erreur) {
+    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == CodeRetourValidation::Erreur) {
         graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     auto bloc = decl->bloc;
@@ -3192,7 +3238,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
             est_corps_texte) {
             rapporte_erreur(
                 "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (entete != espace->interface_kuri->decl_creation_contexte) {
@@ -3214,10 +3260,11 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     }
 
     termine_fonction();
-    return ResultatValidation::OK;
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *decl)
+CodeRetourValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
     commence_fonction(entete);
@@ -3249,23 +3296,24 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
         }
     }
 
-    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == ResultatValidation::Erreur) {
+    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == CodeRetourValidation::Erreur) {
         graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     auto inst_ret = derniere_instruction(decl->bloc);
 
     if (inst_ret == nullptr) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
     termine_fonction();
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
-    return ResultatValidation::OK;
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+    return CodeRetourValidation::OK;
 }
 
 enum {
@@ -3385,7 +3433,7 @@ static unsigned long valeur_max(Type *type)
 }
 
 template <int N>
-ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
+CodeRetourValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
 {
     auto &graphe = espace->graphe_dependance;
     graphe->connecte_type_type(type_enum, type_enum->type_donnees);
@@ -3410,7 +3458,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
         if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
             rapporte_erreur("Type d'expression inattendu dans l'énum", it);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto decl_expr = it->comme_declaration_variable();
@@ -3422,18 +3470,18 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
         if (decl_expr->expression_type != nullptr) {
             rapporte_erreur("Expression d'énumération déclarée avec un type", it);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
             rapporte_erreur("Expression invalide dans la déclaration du membre de l'énumération",
                             var);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (noms_rencontres.possede(var->ident)) {
             rapporte_erreur("Redéfinition du membre", var);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         noms_rencontres.insere(var->ident);
@@ -3449,7 +3497,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
             if (res.est_errone) {
                 espace->rapporte_erreur(res.noeud_erreur, res.message_erreur);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (N == VALIDE_ENUM_ERREUR) {
@@ -3458,14 +3506,14 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                         expr,
                         "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette "
                         "valeur est réservée par la compilatrice).");
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
             if (res.valeur.type != TypeExpression::ENTIER) {
                 espace->rapporte_erreur(expr,
                                         "L'expression d'une énumération doit être de type entier");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             valeur = res.valeur;
@@ -3486,7 +3534,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                         espace->rapporte_erreur(decl_expr,
                                                 "La valeur implicite d'une énumération drapeau "
                                                 "doit être une puissance de 2 !");
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
                 else {
@@ -3507,7 +3555,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                              valeur_max(type_enum->type_donnees),
                              ".\n");
             e.ajoute_message("Or, la valeur courante est de ", valeur.entier, ".\n");
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         valeur_enum_min = std::min(valeur.entier, valeur_enum_min);
@@ -3558,25 +3606,25 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
+CodeRetourValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
-    auto type_enum = decl->type->comme_enum();
+    auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {
         type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
     }
     else if (decl->expression_type != nullptr) {
-        if (valide_semantique_noeud(decl->expression_type) == ResultatValidation::Erreur) {
-            return ResultatValidation::Erreur;
+        if (valide_semantique_noeud(decl->expression_type) == CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
         }
 
         if (resoud_type_final(decl->expression_type, type_enum->type_donnees) ==
-            ResultatValidation::Erreur) {
-            return ResultatValidation::Erreur;
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
         }
 
         /* les énum_drapeaux doivent être des types naturels pour éviter les problèmes
@@ -3594,14 +3642,14 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
                     "Un décalage à droite sur l'octet de type relatif 10101010 produirait "
                     "10010101 et non 01010101 comme attendu. Ainsi, pour que je puisse garantir "
                     "un programme bienformé, un type naturel doit être utilisé.\n");
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (!est_type_entier(type_enum->type_donnees)) {
             espace->rapporte_erreur(
                 decl->expression_type,
                 "Le type de données d'une énumération doit être de type entier");
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
     else if (type_enum->est_drapeau) {
@@ -3636,7 +3684,7 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
  * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
  * Il faudra également proprement gérer le cas pour les infos types.
  */
-ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
+CodeRetourValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
     auto &graphe = espace->graphe_dependance;
 
@@ -3651,13 +3699,14 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     if (decl->est_polymorphe) {
-        if (valide_arbre_aplatis(decl, decl->arbre_aplatis_params) == ResultatValidation::Erreur) {
+        if (valide_arbre_aplatis(decl, decl->arbre_aplatis_params) ==
+            CodeRetourValidation::Erreur) {
             graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (!decl->monomorphisations) {
@@ -3668,7 +3717,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     if (decl->est_corps_texte) {
@@ -3694,12 +3743,12 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         unite->attend_sur_metaprogramme(metaprogramme);
 
         // retourne faux, nous retyperons quand le corps sera généré et parsé
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
-    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == ResultatValidation::Erreur) {
+    if (valide_arbre_aplatis(decl, decl->arbre_aplatis) == CodeRetourValidation::Erreur) {
         graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
@@ -3711,7 +3760,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         // structres (p.e. stat)
         if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
             rapporte_erreur_redefinition_symbole(decl, decl_precedente);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -3725,7 +3774,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur",
                             enf,
                             erreur::Genre::TYPE_ARGUMENT);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto type_base = enf->type;
@@ -3737,11 +3786,11 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur",
                                 enf,
                                 erreur::Genre::TYPE_ARGUMENT);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
 
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     };
 
     auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant, NoeudExpression *expr_valeur) {
@@ -3753,25 +3802,25 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if ((type_membre->drapeaux & TYPE_FUT_VALIDE) == 0) {
             VERIFIE_UNITE_TYPAGE(type_membre)
             unite->attend_sur_type(type_membre);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (align_type == 0) {
             unite->espace->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
-                .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
-            return ResultatValidation::Erreur;
+                .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
+            return CodeRetourValidation::Erreur;
         }
 
         if (type_membre->taille_octet == 0) {
             rapporte_erreur("impossible de définir la taille du type", enfant);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         type_compose->membres.ajoute({enfant->type, enfant->ident, 0, 0, expr_valeur});
 
         donnees_dependance.types_utilises.insere(type_membre);
 
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     };
 
     if (decl->est_union) {
@@ -3789,25 +3838,25 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                         rapporte_erreur("Ne peut avoir un type « rien » dans une union",
                                         decl_var,
                                         erreur::Genre::TYPE_DIFFERENTS);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
                     if (var->type->est_structure() || var->type->est_union()) {
                         if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             VERIFIE_UNITE_TYPAGE(var->type)
                             unite->attend_sur_type(var->type);
-                            return ResultatValidation::Erreur;
+                            return CodeRetourValidation::Erreur;
                         }
                     }
 
                     if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
                         rapporte_erreur(
                             "Expression invalide dans la déclaration du membre de l'union", var);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
 
-                    if (verifie_inclusion_valeur(var) == ResultatValidation::Erreur) {
-                        return ResultatValidation::Erreur;
+                    if (verifie_inclusion_valeur(var) == CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
                     }
 
                     /* l'arbre syntaxique des expressions par défaut doivent contenir
@@ -3817,8 +3866,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                     transtype_si_necessaire(expression, donnees.transformations[i]);
 
                     // À FAIRE(emploi) : préserve l'emploi dans les données types
-                    if (ajoute_donnees_membre(var, expression) == ResultatValidation::Erreur) {
-                        return ResultatValidation::Erreur;
+                    if (ajoute_donnees_membre(var, expression) == CodeRetourValidation::Erreur) {
+                        return CodeRetourValidation::Erreur;
                     }
                 }
             }
@@ -3837,7 +3886,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     auto type_struct = type_compose->comme_structure();
@@ -3862,7 +3911,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
         if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
             rapporte_erreur("Déclaration inattendu dans le bloc de la structure", it);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto decl_var = it->comme_declaration_variable();
@@ -3880,8 +3929,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if (decl_var->declaration_vient_d_un_emploi) {
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (ajoute_donnees_membre(decl_var, decl_var->expression) ==
-                ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+                CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
 
             continue;
@@ -3895,25 +3944,25 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                     rapporte_erreur("Ne peut avoir un type « rien » dans une structure",
                                     decl_var,
                                     erreur::Genre::TYPE_DIFFERENTS);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
                 if (var->type->est_structure() || var->type->est_union()) {
                     if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                         VERIFIE_UNITE_TYPAGE(var->type)
                         unite->attend_sur_type(var->type);
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
 
                 if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
                     rapporte_erreur(
                         "Expression invalide dans la déclaration du membre de la structure", var);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
 
-                if (verifie_inclusion_valeur(var) == ResultatValidation::Erreur) {
-                    return ResultatValidation::Erreur;
+                if (verifie_inclusion_valeur(var) == CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
                 }
 
                 /* l'arbre syntaxique des expressions par défaut doivent contenir
@@ -3923,8 +3972,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 transtype_si_necessaire(expression, donnees.transformations[i]);
 
                 // À FAIRE(emploi) : préserve l'emploi dans les données types
-                if (ajoute_donnees_membre(var, expression) == ResultatValidation::Erreur) {
-                    return ResultatValidation::Erreur;
+                if (ajoute_donnees_membre(var, expression) == CodeRetourValidation::Erreur) {
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
@@ -3980,10 +4029,10 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, decl);
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_declaration_variable(
+CodeRetourValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
     if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
@@ -3994,7 +4043,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
             if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 unite->attend_sur_type(type_opacifie);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
         else {
@@ -4004,7 +4053,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         auto type_opaque = espace->typeuse.cree_opaque(decl, type_opacifie);
         decl->type = type_opaque;
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     auto &ctx = m_tacheronne.contexte_validation_declaration;
@@ -4053,13 +4102,13 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
                 if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
                     rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
             if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
-                ResultatValidation::Erreur) {
-                return ResultatValidation::Erreur;
+                CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
             }
         }
     }
@@ -4109,12 +4158,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
         }
         else {
-            auto transformation = TransformationType();
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, variable->type, transformation)) {
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, variable->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            auto transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     variable->type, type_de_l_expression, expression);
@@ -4149,23 +4201,23 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             // il est possible d'ignorer les variables
             if (variables.est_vide()) {
                 espace->rapporte_erreur(decl, "Trop d'expressions ou de types pour l'assignation");
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if ((decl->drapeaux & EST_CONSTANTE) && it->est_non_initialisation()) {
                 rapporte_erreur("Impossible de ne pas initialiser une constante", it);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (decl->drapeaux & EST_EXTERNE) {
                 rapporte_erreur(
                     "Ne peut pas assigner une variable globale externe dans sa déclaration", decl);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (it->type == nullptr && !it->est_non_initialisation()) {
                 rapporte_erreur("impossible de définir le type de l'expression", it);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             if (it->est_non_initialisation()) {
@@ -4183,7 +4235,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     }
 
                     if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
-                        return ResultatValidation::Erreur;
+                        return CodeRetourValidation::Erreur;
                     }
                 }
             }
@@ -4192,11 +4244,11 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     "impossible d'assigner une expression de type « rien » à une variable",
                     it,
                     erreur::Genre::ASSIGNATION_RIEN);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
             else {
                 if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
 
@@ -4236,7 +4288,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
             if (variable->type == nullptr) {
                 rapporte_erreur("variable déclarée sans type", variable);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             decl_var->type = variable->type;
@@ -4270,10 +4322,10 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, decl);
     }
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
+CodeRetourValidation ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
     auto variable = inst->variable;
@@ -4287,7 +4339,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !",
                                 inst,
                                 erreur::Genre::ASSIGNATION_INVALIDE);
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
 
             variables.enfile(it);
@@ -4298,7 +4350,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !",
                             inst,
                             erreur::Genre::ASSIGNATION_INVALIDE);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         variables.enfile(variable);
@@ -4332,11 +4384,15 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4350,11 +4406,15 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             // déréférence var
             type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
 
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, type_de_la_variable, transformation)) {
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, type_de_la_variable);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4365,11 +4425,15 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else if (expr_est_reference) {
             // déréférence expr
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4377,11 +4441,15 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             }
         }
         else {
-            if (cherche_transformation(
-                    *espace, *this, type_de_l_expression, var->type, transformation)) {
+            auto resultat = cherche_transformation(
+                *espace, *this, type_de_l_expression, var->type);
+
+            if (std::holds_alternative<Attente>(resultat)) {
+                unite->marque_attente(std::get<Attente>(resultat));
                 return false;
             }
 
+            transformation = std::get<TransformationType>(resultat);
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
                 rapporte_erreur_assignation_type_differents(
                     var->type, type_de_l_expression, expression);
@@ -4400,21 +4468,21 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         if (it->est_non_initialisation()) {
             rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation",
                             inst->expression);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (it->type == nullptr) {
             rapporte_erreur("Impossible de définir le type de la variable !",
                             inst,
                             erreur::Genre::TYPE_INCONNU);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         if (it->type->est_rien()) {
             rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !",
                             inst,
                             erreur::Genre::ASSIGNATION_RIEN);
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
 
         auto donnees = DonneesAssignations();
@@ -4431,13 +4499,13 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 }
 
                 if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
-                    return ResultatValidation::Erreur;
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
         else {
             if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
-                return ResultatValidation::Erreur;
+                return CodeRetourValidation::Erreur;
             }
         }
 
@@ -4449,7 +4517,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     while (!variables.est_vide()) {
         if (!ajoute_variable(
                 *donnees, variables.defile(), donnees->expression, donnees->expression->type)) {
-            return ResultatValidation::Erreur;
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -4458,11 +4526,11 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         inst->donnees_exprs.ajoute(std::move(it));
     }
 
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
 template <typename TypeControleBoucle>
-ResultatValidation ContexteValidationCode::valide_controle_boucle(TypeControleBoucle *inst)
+CodeRetourValidation ContexteValidationCode::valide_controle_boucle(TypeControleBoucle *inst)
 {
     auto chaine_var = inst->expression == nullptr ? nullptr : inst->expression->ident;
     auto boucle = bloc_est_dans_boucle(inst->bloc_parent, chaine_var);
@@ -4470,28 +4538,28 @@ ResultatValidation ContexteValidationCode::valide_controle_boucle(TypeControleBo
     if (!boucle) {
         if (!chaine_var) {
             espace->rapporte_erreur(
-                inst, "« continue » en dehors d'une boucle", erreur::Genre::CONTROLE_INVALIDE);
-            return ResultatValidation::Erreur;
+                inst, "« continue » en dehors d'une boucle", erreur::Genre::CONTROLE_INVALIDE);
+            return CodeRetourValidation::Erreur;
         }
 
         espace->rapporte_erreur(inst->expression,
                                 "La variable ne réfère à aucune boucle",
                                 erreur::Genre::VARIABLE_INCONNUE);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     inst->boucle_controlee = boucle;
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
 /* ************************************************************************** */
 
-ResultatValidation ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
-                                                             Type *&type_final)
+CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
+                                                               Type *&type_final)
 {
     if (expression_type == nullptr) {
         type_final = nullptr;
-        return ResultatValidation::OK;
+        return CodeRetourValidation::OK;
     }
 
     auto type_var = expression_type->type;
@@ -4499,23 +4567,23 @@ ResultatValidation ContexteValidationCode::resoud_type_final(NoeudExpression *ex
     if (type_var == nullptr) {
         espace->rapporte_erreur(expression_type,
                                 "Erreur interne, le type de l'expression est nul !");
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     if (type_var->genre != GenreType::TYPE_DE_DONNEES) {
         rapporte_erreur("attendu un type de données", expression_type);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     auto type_de_donnees = type_var->comme_type_de_donnees();
 
     if (type_de_donnees->type_connu == nullptr) {
         rapporte_erreur("impossible de définir le type selon l'expression", expression_type);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     type_final = type_de_donnees->type_connu;
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
 void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud)
@@ -4585,12 +4653,6 @@ void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(
     erreur::valeur_manquante_discr(*espace, expression, valeurs_manquantes);
 }
 
-void ContexteValidationCode::rapporte_erreur_fonction_inconnue(
-    NoeudExpression *b, const dls::tablet<DonneesCandidate, 10> &candidates)
-{
-    erreur::lance_erreur_fonction_inconnue(*espace, b, candidates);
-}
-
 void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl_fonc,
                                                              const NoeudExpression *decl_fonc,
                                                              const NoeudExpression *decl_appel)
@@ -4598,25 +4660,28 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
     erreur::lance_erreur_fonction_nulctx(*espace, appl_fonc, decl_fonc, decl_appel);
 }
 
-ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
-                                                                   Type *type_cible)
+CodeRetourValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
+                                                                     Type *type_cible)
 {
-    auto transformation = TransformationType();
-    if (cherche_transformation(*espace, *this, expression->type, type_cible, transformation)) {
-        return ResultatValidation::Erreur;
+    auto resultat = cherche_transformation(*espace, *this, expression->type, type_cible);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        unite->marque_attente(std::get<Attente>(resultat));
+        return CodeRetourValidation::Erreur;
     }
 
+    auto transformation = std::get<TransformationType>(resultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         rapporte_erreur_assignation_type_differents(type_cible, expression->type, expression);
-        return ResultatValidation::Erreur;
+        return CodeRetourValidation::Erreur;
     }
 
     transtype_si_necessaire(expression, transformation);
-    return ResultatValidation::OK;
+    return CodeRetourValidation::OK;
 }
 
-void ContexteValidationCode::transtype_si_necessaire(
-    NoeudExpression *&expression, TransformationType const &transformation)
+void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
+                                                     TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
         return;

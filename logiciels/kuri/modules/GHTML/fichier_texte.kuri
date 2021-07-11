@@ -8,11 +8,17 @@ FichierTexte :: struct {
     données : chaine
 
     succès := faux
+
+    fichier_mémoire := faux
 }
 
 // À FAIRE: rechargement des fichiers, s'ils ont changés
 commence_fichier :: fonc (fichier: *FichierTexte) -> rien
 {
+    si fichier.fichier_mémoire {
+        retourne
+    }
+
     chm := construit_chemin(fichier.chemin)
     fichier.données = contenu_fichier_texte(chm)
     fichier.succès = vrai

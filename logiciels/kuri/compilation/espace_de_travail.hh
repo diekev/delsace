@@ -107,9 +107,6 @@ struct EspaceDeTravail {
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
     tableau_page<AtomeFonction> fonctions{};
-
-    using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
-    dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
     tableau_page<AtomeGlobale> globales{};
 
     struct DonneesConstructeurGlobale {
@@ -125,6 +122,7 @@ struct EspaceDeTravail {
     dls::outils::Synchrone<TableChaine> table_chaines{};
 
     std::mutex mutex_atomes_fonctions{};
+    std::mutex mutex_atomes_globales{};
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
@@ -203,7 +201,6 @@ struct EspaceDeTravail {
                                AtomeConstante *valeur,
                                bool initialisateur,
                                bool est_constante);
-    void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
     AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
     AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
 
@@ -259,4 +256,6 @@ struct EspaceDeTravail {
     {
         return m_compilatrice;
     }
+
+    void imprime_compte_taches(std::ostream &os) const;
 };

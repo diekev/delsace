@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
                 nom_fichier_utilises = argv[i];
             }
             else {
-
             }
         }
     }

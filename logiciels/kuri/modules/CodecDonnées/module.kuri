@@ -246,6 +246,38 @@ encode_format_url :: fonc (texte: chaine) -> chaine
     retourne résultat
 }
 
+encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
+{
+    //caractères_réservés := "\r\n !#$&'()*+,/:;=?@[]"
+
+    caractères_non_réservés := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+
+    hex := "0123456789ABCDEF"
+
+    pour texte {
+        si it == ' ' {
+            ajoute_au_tampon(enchaineuse, "+")
+        }
+        sinon {
+            pour c dans caractères_non_réservés {
+                si c == it {
+                    ajoute_au_tampon(enchaineuse, it)
+                    arrête
+                }
+            }
+            sansarrêt {
+                a := (it comme n8 >> 4) & 0xff
+                // À FAIRE(langage) : n8 & 0xff donne des valeurs étranges
+                b := (it comme n8) % 16
+                // À FAIRE(enchaineuse, langage) : type pour les caractères
+                ajoute_au_tampon(enchaineuse, "%")
+                ajoute_au_tampon(enchaineuse, hex[a])
+                ajoute_au_tampon(enchaineuse, hex[b])
+            }
+        }
+    }
+}
+
 résoud_échappement_url :: fonc (chn: chaine) -> chaine
 {
     nchn : chaine
@@ -310,7 +342,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
         si chn[index_courant] == '%' {
             index_courant += 1
 
-            si index_courant + 2 >= chn.taille {
+            si index_courant + 1 >= chn.taille {
                 arrête
             }
 
@@ -322,7 +354,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
                 v = (c - 'a') + 10
             }
             sinon si 'A' <= c <= 'F' {
-                v = (c - 'a') + 10
+                v = (c - 'A') + 10
             }
             sinon si '0' <= c <= '9' {
                 v = (c - '0')
@@ -337,21 +369,24 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
                 v += (c - 'a') + 10
             }
             sinon si 'A' <= c <= 'F' {
-                v += (c - 'a') + 10
+                v += (c - 'A') + 10
             }
             sinon si '0' <= c <= '9' {
                 v += (c - '0')
             }
 
             chn[index_d_insertion] = v
-            index_courant += 1
-            index_d_insertion += 1
+        }
+        // Google utilise des + pour les espaces, à voir si c'est standard.
+        sinon si chn[index_courant] == '+' {
+            chn[index_d_insertion] = ' '
         }
         sinon {
             chn[index_d_insertion] = chn[index_courant]
-            index_courant += 1
-            index_d_insertion += 1
         }
+
+        index_courant += 1
+        index_d_insertion += 1
     }
 
     chn.taille = index_d_insertion
@@ -381,4 +416,92 @@ décode_différence :: fonc (données: []$T)
         it += précédent
         précédent = it
     }
+}
+
+// -------------------------------------------------------------------
+
+encode_hexadécimal :: fonc (entrée: []octet) -> chaine
+{
+    résultat : chaine
+
+    caractère_hexadécimal := "0123456789abcdef"
+
+    pour entrée {
+        a := (it >> 4) & 0xf
+        b := it & 0xf
+
+        chaine_ajoute(*résultat, caractère_hexadécimal[a])
+        chaine_ajoute(*résultat, caractère_hexadécimal[b])
+    }
+
+    retourne résultat
+}
+
+nombre_depuis_hex :: fonc (hex: z8) -> z8
+{
+    si 'a' <= hex <= 'f' {
+        retourne 10 + hex - 'a'
+    }
+
+    si 'A' <= hex <= 'F' {
+        retourne 10 + hex - 'A'
+    }
+
+    si '0' <= hex <= '9' {
+        retourne hex - '0'
+    }
+
+    retourne 255
+}
+
+décode_hexadécimal :: fonc (entrée: []octet) -> chaine
+{
+    résultat : chaine
+
+    index := 0
+
+    tantque index < entrée.taille {
+        a := entrée[index]
+        b := entrée[index + 1]
+
+        na := nombre_depuis_hex(a comme z8) comme n8
+        nb := nombre_depuis_hex(b comme z8) comme n8
+
+        c := na << 4 | nb
+
+        chaine_ajoute(*résultat, c comme z8)
+
+        index += 2
+    }
+
+    retourne résultat
+}
+
+// -------------------------------------------------------------------
+
+encode_base96 :: fonc (message: []octet) -> chaine
+{
+    base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»
+
+    résultat : chaine
+    index := 0
+
+    pour message {
+        index %= 6
+
+        n := it comme n8
+
+        a := (n >> 4) & 0xf
+        b := n & 0xf
+
+        ca := base[16 * index + a]
+        chaine_ajoute(*résultat, ca)
+        index += 1
+
+        cb := base[16 * index + b]
+        chaine_ajoute(*résultat, cb)
+        index += 1
+    }
+
+    retourne résultat
 }

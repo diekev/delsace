@@ -7,6 +7,8 @@ importe Compilatrice
 
     Lignes directrices de la NASA :
 
+    https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf
+
     1. pas de goto, setjmp, longjmp, récursion directe ou indirecte
 
     2. toutes les boucles doivent avoir une limite

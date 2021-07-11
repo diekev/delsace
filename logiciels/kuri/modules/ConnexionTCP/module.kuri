@@ -14,6 +14,7 @@ importe POSIX
 importe SysFichier
 importe Internet
 importe Réseau
+importe Temps
 
 TypePrise :: énum {
     RAPPEL
@@ -33,6 +34,34 @@ Prise :: struct {
     // la taille de la prise avec les données utilisateurs
     taille_mémoire: z64
     info_utilisateur: *InfoType
+
+    données_serveuse_: *rien
+    info_données_serveuse_: *InfoType
+
+    /* délais */
+    délai : z32 // secondes
+    horodotage_délai : z32 // quand le délai fut mis en place
+}
+
+mute_données_serveuse :: fonc (prise: *Prise, info_serveuse: *$T)
+{
+    prise.données_serveuse_ = info_serveuse
+    prise.info_données_serveuse_ = info_de(T)
+}
+
+accède_données_serveuse :: fonc (prise: *Prise, $T: type_de_données) -> *T
+{
+    si prise.info_données_serveuse_ != info_de(T) {
+        retourne nul
+    }
+
+    retourne prise.données_serveuse_ comme *T
+}
+
+mute_délai :: fonc (prise: *Prise, délai: z32)
+{
+    prise.délai = délai
+    prise.horodotage_délai = maintenant_précis().secondes() comme z32
 }
 
 données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées
@@ -408,6 +437,7 @@ détruit_boucle :: fonc (boucle_évènements: *Boucle)
 
 lance :: fonc (boucle_prises: *Boucle)
 {
+    // À FAIRE: chronomètre de délai
     // us_loop_integrate(loop);
 
     // tantque boucle_prises.num_fds
@@ -449,7 +479,7 @@ lance :: fonc (boucle_prises: *Boucle)
         }
 
         /* Emit post callback */
-        // À FAIRE: ici nous avons les timers...
+        // À FAIRE: libération de la mémoire
         // us_internal_loop_post(loop);
     }
 }

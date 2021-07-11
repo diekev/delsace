@@ -27,6 +27,7 @@
 struct Compilatrice;
 struct ConstructriceRI;
 struct EspaceDeTravail;
+struct OptionsDeCompilation;
 
 struct Coulisse {
     double temps_generation_code = 0.0;
@@ -34,6 +35,10 @@ struct Coulisse {
     double temps_executable = 0.0;
 
     virtual ~Coulisse() = default;
+
+    static Coulisse *cree_pour_options(OptionsDeCompilation options);
+
+    static void detruit(Coulisse *coulisse);
 
     virtual bool cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,

@@ -1,0 +1,80 @@
+importe CodecDonnées
+importe Fondation
+
+Formulaire :: struct {
+    action: chaine
+    méthode: chaine
+    entrées : []EntréeFormulaire
+}
+
+EntréeFormulaire :: struct {
+    nom: chaine
+    type: chaine
+    valeur_défaut: chaine
+    hidden: bool
+}
+
+formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
+{
+    formulaire : Formulaire
+    // À FAIRE : l'action par défaut est la page courante
+    formulaire.action = chaine_ou_défaut(cherche_attribut(élément, "action"), "/")
+    formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, "method"), "GET")
+
+    pour élément.enfants {
+        input := est_élément_type(it, "input")
+
+        saufsi input {
+            continue
+        }
+
+        ajoute_entrée(formulaire, input)
+    }
+
+    retourne formulaire
+}
+
+ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Élément)
+{
+    entrée : EntréeFormulaire
+    entrée.nom = chaine_ou_défaut(cherche_attribut(input, "name"))
+    entrée.type = chaine_ou_défaut(cherche_attribut(input, "type"))
+    entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, "value"))
+    tableau_ajoute(*formulaire.entrées, entrée)
+}
+
+// Génère une chaine de caractère au format encodée url pour les données du formulaire.
+// Par exemple : nom=le+nom&mot_de_passe=le+mot+de+passe
+// À FAIRE : paramétrise, aléatorise
+génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
+{
+    enchaineuse : Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
+
+    virgule := ""
+
+    pour formulaire.entrées {
+        si it.nom == "" {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, virgule)
+        encode_format_url(*enchaineuse, it.nom)
+        ajoute_au_tampon(*enchaineuse, "=")
+
+        si it.type == "text" {
+            encode_format_url(*enchaineuse, "un texte")
+        }
+        sinon si it.type == "password" {
+            encode_format_url(*enchaineuse, "un mot de passe")
+        }
+        sinon si it.type == "email" {
+            encode_format_url(*enchaineuse, "une.adresse@courri.el")
+        }
+
+        virgule = "&"
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}

@@ -821,7 +821,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
 
                 // a.DRAPEAU => (a & DRAPEAU) != 0
-                auto type_enum = ref_membre->type->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
                 auto valeur_lit_enum = assem->cree_litterale_entier(
@@ -863,7 +863,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (type_accede->est_enum() || type_accede->est_erreur()) {
-                auto type_enum = type_accede->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 noeud->substitution = assem->cree_litterale_entier(
                     noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
@@ -1174,7 +1174,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                             ref_var->comme_reference_declaration()->declaration_referee);
                         var->substitution = nouvelle_ref;
 
-                        auto type_enum = ref_membre->type->comme_enum();
+                        auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
                         auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 
                         if (it.expression->comme_litterale_bool()->valeur) {
@@ -1371,6 +1371,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     switch (inst->aide_generation_code) {
         case GENERE_BOUCLE_PLAGE:
         case GENERE_BOUCLE_PLAGE_INDEX:
+        case GENERE_BOUCLE_PLAGE_IMPLICITE:
+        case GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX:
         {
             /*
 
@@ -1396,13 +1398,38 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
              */
 
-            /* condition */
-            auto expr_plage = expression_iteree->comme_plage();
-            simplifie(expr_plage->debut);
-            simplifie(expr_plage->fin);
+            NoeudExpression *expr_debut = nullptr;
+            NoeudExpression *expr_fin = nullptr;
 
-            auto expr_debut = inverse_boucle ? expr_plage->fin : expr_plage->debut;
-            auto expr_fin = inverse_boucle ? expr_plage->debut : expr_plage->fin;
+            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE ||
+                inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
+                simplifie(expression_iteree);
+
+                // 0 ... expr - 1
+                expr_debut = assem->cree_litterale_entier(
+                    expression_iteree->lexeme, expression_iteree->type, 0);
+
+                auto valeur_un = assem->cree_litterale_entier(
+                    expression_iteree->lexeme, expression_iteree->type, 1);
+                expr_fin = assem->cree_expression_binaire(expression_iteree->lexeme,
+                                                          expression_iteree->type->operateur_sst,
+                                                          expression_iteree,
+                                                          valeur_un);
+            }
+            else {
+                auto expr_plage = expression_iteree->comme_plage();
+                simplifie(expr_plage->debut);
+                simplifie(expr_plage->fin);
+
+                expr_debut = expr_plage->debut;
+                expr_fin = expr_plage->fin;
+            }
+
+            /* condition */
+
+            if (inverse_boucle) {
+                std::swap(expr_debut, expr_fin);
+            }
 
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->expressions->ajoute(init_it);
@@ -2015,7 +2042,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             comparaison.operande_gauche = expression;
 
             if (N == DISCR_ENUM) {
-                auto valeur = valeur_enum(expression->type->comme_enum(), expr->ident);
+                auto valeur = valeur_enum(static_cast<TypeEnum *>(expression->type), expr->ident);
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
                 comparaison.operande_droite = constante;
@@ -2061,7 +2088,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 #if 0
 	/* génération du code pour l'expression contre laquelle nous testons */
 	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
-		valeur_f = valeur_enum(expression->type->comme_enum(), f->ident);
+  valeur_f = valeur_enum(static_cast<TypeEnum *>(expression->type), f->ident);
 	}
 	else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
 		auto type_union = noeud->expr->type->comme_union();
@@ -2479,7 +2506,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = type->comme_enum();
+            auto type_enum = static_cast<TypeEnum *>(type);
 
             auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
             info_type->genre = GenreInfoType::ENUM;

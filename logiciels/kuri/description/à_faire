@@ -18,6 +18,7 @@
 // Bugs
 
 - collision de symbole pour les retours des fonctions dans les fonctions
+- collision de symbole dans la coulisse C si deux structures de mêmes noms sont définies dans des fonctions différentes
 - compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
 - impossible de convertir implicitement un opaque de pointeur vers un *octet
 - impossible de comparer un opaque de pointeur avec nul
@@ -28,6 +29,10 @@
 - erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 - aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
 - compilation infinie si nous utilisons #exécute pour une globale
+- les fonctions surchargées ayant des valeurs polymorphiques collisionnent
+- les plages implicites des boucles pour de type entier naturel prennent la valeur maximale quand du type si le nombre de boucle = 0
+    pour m {} // si m == 0, alors la plage est de 0 ... m - 1 = 0 ... type.max
+- Couleur.Couleur(1.0, 1.0, 1.0, 1.0) sans importer Couleur crash
 
 // -----------------------------------
 // Architecture/Qualité de code
@@ -85,7 +90,6 @@
 
 // --------------------------- Compilatrice
 
-remplace DonneesCandidate::raison par une chaine de caractère
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 
