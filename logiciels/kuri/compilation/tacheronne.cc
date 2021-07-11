@@ -1399,7 +1399,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
         }
 
         POUR (fonctions) {
-            genere_code_binaire_pour_fonction(it, &mv);
+            genere_code_binaire_pour_fonction(espace, it, &mv);
         }
 
         // desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(),

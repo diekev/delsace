@@ -45,7 +45,8 @@
 #undef DEBOGUE_LOCALES
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
-    ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(fonction)
+    ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
+        reinterpret_cast<GestionnaireBibliotheques::type_fonction>(fonction)
 
 namespace oper {
 
@@ -371,84 +372,10 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
-/* Redéfini certaines fonction afin de pouvoir controler leurs comportements.
- * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
- * la mémoire de notre coté, ou encore vérifier qu'il n'y ait pas de fuite de
- * mémoire dans les métaprogrammes.
- */
-static void *notre_malloc(size_t n)
-{
-    return malloc(n);
-}
-
-static void *notre_realloc(void *ptr, size_t taille)
-{
-    return realloc(ptr, taille);
-}
-
-static void notre_free(void *ptr)
-{
-    free(ptr);
-}
-
-/* ************************************************************************** */
-
-void GestionnaireBibliotheques::ajoute_bibliotheque(kuri::chaine const &chemin)
-{
-    auto objet = dls::systeme_fichier::shared_library(dls::chaine(chemin).c_str());
-    bibliotheques.ajoute({std::move(objet), chemin});
-}
-
-void GestionnaireBibliotheques::ajoute_fonction_pour_symbole(
-    IdentifiantCode *symbole, GestionnaireBibliotheques::type_fonction fonction)
-{
-    symboles_et_fonctions.insere({symbole, fonction});
-}
-
-GestionnaireBibliotheques::type_fonction GestionnaireBibliotheques::fonction_pour_symbole(
-    IdentifiantCode *symbole)
-{
-    auto iter = symboles_et_fonctions.trouve(symbole);
-
-    if (iter != symboles_et_fonctions.fin()) {
-        return iter->second;
-    }
-
-    POUR (bibliotheques) {
-        try {
-            auto ptr_symbole = it.bib(dls::chaine(symbole->nom.pointeur(), symbole->nom.taille()));
-            auto fonction = reinterpret_cast<MachineVirtuelle::fonction_symbole>(
-                ptr_symbole.ptr());
-            ajoute_fonction_pour_symbole(symbole, fonction);
-            return fonction;
-        }
-        catch (...) {
-            continue;
-        }
-    }
-
-    // std::cerr << "Impossible de trouver le symbole : " << symbole << '\n';
-    return nullptr;
-}
-
-long GestionnaireBibliotheques::memoire_utilisee() const
-{
-    return bibliotheques.taille_memoire();
-}
-
 static constexpr auto TAILLE_PILE = 1024 * 1024;
 
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
 {
-    gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
-    gestionnaire_bibliotheques.ajoute_bibliotheque("/tmp/r16_tables_x64.so");
-
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
 }
 
 MachineVirtuelle::~MachineVirtuelle()
@@ -517,7 +444,7 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
     /* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute
      * des dépendances manquantes) */
     if (fonction->chunk.code == nullptr) {
-        genere_code_binaire_pour_fonction(fonction, this);
+        genere_code_binaire_pour_fonction(m_metaprogramme->unite->espace, fonction, this);
     }
 
     auto frame = &frames[profondeur_appel++];
@@ -1460,11 +1387,6 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     }
 }
 
-MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(IdentifiantCode *symbole)
-{
-    return gestionnaire_bibliotheques.fonction_pour_symbole(symbole);
-}
-
 int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
 {
     auto globale = Globale{};
@@ -1625,7 +1547,6 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     memoire_mv += donnees_constantes.taille_memoire();
     memoire_mv += donnees_globales.taille_memoire();
     memoire_mv += patchs_donnees_constantes.taille_memoire();
-    memoire_mv += gestionnaire_bibliotheques.memoire_utilisee();
 
     stats.memoire_mv += memoire_mv;
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;

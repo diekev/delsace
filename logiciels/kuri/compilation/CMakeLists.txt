@@ -68,6 +68,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+	bibliotheque.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
@@ -91,6 +92,7 @@ set(SOURCES
 	validation_expression_appel.hh
 	validation_semantique.hh
 
+	bibliotheque.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc

@@ -33,6 +33,7 @@
 
 #include "parsage/modules.hh"
 
+#include "bibliotheque.hh"
 #include "erreur.h"
 #include "graphe_dependance.hh"
 #include "messagere.hh"
@@ -134,6 +135,8 @@ struct EspaceDeTravail {
     Coulisse *coulisse = nullptr;
 
     Module *module_kuri = nullptr;
+
+    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques{};
 
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
