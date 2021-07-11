@@ -35,58 +35,6 @@
 #include "espace_de_travail.hh"
 #include "typage.hh"
 
-#if 0
-class EtatCompilation {
-    PhaseCompilation m_phase_courante{};
-
-public:
-    void avance_etat()
-    {
-        if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {
-            return;
-        }
-
-        const auto index_phase_courante = static_cast<int>(m_phase_courante);
-        const auto index_phase_suivante = index_phase_courante + 1;
-        m_phase_courante = static_cast<PhaseCompilation>(index_phase_suivante);
-    }
-
-    void essaie_d_aller_a(PhaseCompilation cible)
-    {
-        if (static_cast<int>(cible) != static_cast<int>(m_phase_courante) + 1) {
-            return;
-        }
-
-        m_phase_courante = cible;
-    }
-
-    void recule_vers(PhaseCompilation cible)
-    {
-        m_phase_courante = cible;
-    }
-
-    PhaseCompilation phase_courante() const
-    {
-        return m_phase_courante;
-    }
-};
-
-void ajoute_etat()
-{
-    EtatCompilation etat_compilation;
-
-    if (!typage_termine()) {
-        return;
-    }
-    etat_compilation.avance_etat();
-
-    if (!ri_terminee()) {
-        return;
-    }
-    etat_compilation.avance_etat();
-}
-#endif
-
 Programme *Programme::cree(EspaceDeTravail *espace)
 {
     Programme *resultat = memoire::loge<Programme>("Programme");
@@ -217,6 +165,30 @@ DiagnostiqueEtatCompilation Programme::diagnositique_compilation() const
     DiagnostiqueEtatCompilation diagnositique{};
     ri_generees(diagnositique);
     return diagnositique;
+}
+
+EtatCompilation Programme::ajourne_etat_compilation()
+{
+    auto diagnostic = diagnositique_compilation();
+
+    // À FAIRE(gestion) : ceci n'est que pour les métaprogrammes
+    m_etat_compilation.essaie_d_aller_a(PhaseCompilation::PARSAGE_EN_COURS);
+    m_etat_compilation.essaie_d_aller_a(PhaseCompilation::PARSAGE_TERMINE);
+
+    if (diagnostic.toutes_les_declarations_a_typer_le_sont) {
+        m_etat_compilation.essaie_d_aller_a(PhaseCompilation::TYPAGE_TERMINE);
+    }
+
+    if (diagnostic.toutes_les_ri_sont_generees) {
+        m_etat_compilation.essaie_d_aller_a(PhaseCompilation::GENERATION_CODE_TERMINEE);
+    }
+
+    return m_etat_compilation;
+}
+
+void Programme::change_de_phase(PhaseCompilation phase)
+{
+    m_etat_compilation.essaie_d_aller_a(phase);
 }
 
 void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)

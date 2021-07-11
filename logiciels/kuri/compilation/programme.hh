@@ -28,6 +28,8 @@
 
 #include "structures/tableau.hh"
 
+#include "message.hh" // pour PhaseCompilation
+
 struct AtomeGlobale;
 struct AtomeFonction;
 struct Coulisse;
@@ -37,6 +39,42 @@ struct NoeudDeclaration;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct Type;
+
+/* Machine à état pour la PhaseCompilation. */
+class EtatCompilation {
+    PhaseCompilation m_phase_courante{};
+
+public:
+    void avance_etat()
+    {
+        if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {
+            return;
+        }
+
+        const auto index_phase_courante = static_cast<int>(m_phase_courante);
+        const auto index_phase_suivante = index_phase_courante + 1;
+        m_phase_courante = static_cast<PhaseCompilation>(index_phase_suivante);
+    }
+
+    void essaie_d_aller_a(PhaseCompilation cible)
+    {
+        if (static_cast<int>(cible) != static_cast<int>(m_phase_courante) + 1) {
+            return;
+        }
+
+        m_phase_courante = cible;
+    }
+
+    void recule_vers(PhaseCompilation cible)
+    {
+        m_phase_courante = cible;
+    }
+
+    PhaseCompilation phase_courante() const
+    {
+        return m_phase_courante;
+    }
+};
 
 struct DiagnostiqueEtatCompilation {
     bool toutes_les_declarations_a_typer_le_sont = false;
@@ -75,6 +113,8 @@ struct Programme {
 
     // la coulisse à utiliser pour générer le code du programme
     Coulisse *m_coulisse = nullptr;
+
+    EtatCompilation m_etat_compilation{};
 
   public:
     /* Création. */
@@ -152,6 +192,10 @@ struct Programme {
     }
 
     DiagnostiqueEtatCompilation diagnositique_compilation() const;
+
+    EtatCompilation ajourne_etat_compilation();
+
+    void change_de_phase(PhaseCompilation phase);
 };
 
 void imprime_contenu_programme(Programme const &programme, std::ostream &os);

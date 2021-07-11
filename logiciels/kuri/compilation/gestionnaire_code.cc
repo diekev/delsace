@@ -1095,8 +1095,6 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 //        taches_optimisation.enfile(tache_terminee);
     }
 
-    // À FAIRE(gestion) : ajout d'un état aux programmes afin de ne pas générer plusieurs fois
-    // le code machine
     POUR (programmes_en_cours) {
         auto espace_du_programme = it->espace();
 
@@ -1105,7 +1103,10 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
         }
 
         if (it->pour_metaprogramme()) {
-            if (it->ri_generees()) {
+            auto etat = it->ajourne_etat_compilation();
+
+            if (etat.phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
+                it->change_de_phase(PhaseCompilation::AVANT_GENERATION_OBJET);
                 requiers_generation_code_machine(espace_du_programme, it);
             }
         }
@@ -1160,6 +1161,8 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     auto espace = unite->espace;
 
     if (programme->pour_metaprogramme()) {
+        programme->change_de_phase(PhaseCompilation::APRES_GENERATION_OBJET);
+        programme->change_de_phase(PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
         requiers_liaison_executable(espace, unite->programme);
     }
     else {
@@ -1186,6 +1189,8 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
 
     if (programme->pour_metaprogramme()) {
         auto metaprogramme = programme->pour_metaprogramme();
+        programme->change_de_phase(PhaseCompilation::APRES_LIAISON_EXECUTABLE);
+        programme->change_de_phase(PhaseCompilation::COMPILATION_TERMINEE);
         requiers_execution(unite->espace, metaprogramme);
     }
     else {
