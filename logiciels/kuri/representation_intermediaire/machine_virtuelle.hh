@@ -27,7 +27,6 @@
 #include "code_binaire.hh"
 
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "structures/chaine.hh"
 
