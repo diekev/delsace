@@ -33,9 +33,23 @@ struct AtomeFonction;
 struct Coulisse;
 struct EspaceDeTravail;
 struct MetaProgramme;
+struct NoeudDeclaration;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct Type;
+
+struct DiagnostiqueEtatCompilation {
+    bool toutes_les_declarations_a_typer_le_sont = false;
+    bool toutes_les_ri_sont_generees = false;
+
+    Type *type_a_valider = nullptr;
+    NoeudDeclaration *declaration_a_valider = nullptr;
+
+    Type *ri_type_a_generer = nullptr;
+    NoeudDeclaration *ri_declaration_a_generer = nullptr;
+};
+
+void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnositic);
 
 /* Représentation d'un programme. Ceci peut être le programme final tel que généré par la
  * compilation ou bien un métaprogramme. */
@@ -112,10 +126,12 @@ struct Programme {
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs types validés. */
-    bool typages_termines() const;
+    bool typages_termines(DiagnostiqueEtatCompilation &diagnositique) const;
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs RI générées. */
+    bool ri_generees(DiagnostiqueEtatCompilation &diagnositique) const;
+
     bool ri_generees() const;
 
     MetaProgramme *pour_metaprogramme() const
@@ -134,6 +150,8 @@ struct Programme {
     {
         return m_espace;
     }
+
+    DiagnostiqueEtatCompilation diagnositique_compilation() const;
 };
 
 void imprime_contenu_programme(Programme const &programme, std::ostream &os);

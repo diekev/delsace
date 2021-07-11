@@ -309,6 +309,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             decl_corps->bloc->expressions->ajoute(expr_ret);
 
             decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
+            decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
 
             auto metaprogramme = espace->cree_metaprogramme();
             metaprogramme->directive = noeud_directive;

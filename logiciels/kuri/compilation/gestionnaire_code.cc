@@ -721,8 +721,10 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
+    requiers_generation_ri(espace, metaprogramme->fonction);
+
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
-     * lors de la complétion de son typage. Si elle n'existe pas, il faut l'ajouter manuellement.
+     * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
      */
     auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
     if (decl_creation_contexte) {
@@ -732,6 +734,11 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 
         if (decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
             determine_dependances(decl_creation_contexte->corps, espace, *graphe);
+        }
+        else {
+            if (decl_creation_contexte->corps->unite == nullptr) {
+                requiers_typage(espace, decl_creation_contexte->corps);
+            }
         }
     }
 
@@ -1088,17 +1095,33 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 //        taches_optimisation.enfile(tache_terminee);
     }
 
-    // À FAIRE : POUR (programmes_en_cours)
-    if (!espace->possede_erreur && espace->programme->ri_generees() &&
-        espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
-        if (espace->options.resultat == ResultatCompilation::RIEN) {
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::COMPILATION_TERMINEE);
+    // À FAIRE(gestion) : ajout d'un état aux programmes afin de ne pas générer plusieurs fois
+    // le code machine
+    POUR (programmes_en_cours) {
+        auto espace_du_programme = it->espace();
+
+        if (espace_du_programme->possede_erreur) {
+            continue;
+        }
+
+        if (it->pour_metaprogramme()) {
+            if (it->ri_generees()) {
+                requiers_generation_code_machine(espace_du_programme, it);
+            }
         }
         else {
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::AVANT_GENERATION_OBJET);
-            requiers_generation_code_machine(espace, espace->programme);
+            if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
+                    it->ri_generees()) {
+                if (espace->options.resultat == ResultatCompilation::RIEN) {
+                    espace->change_de_phase(m_compilatrice->messagere,
+                                            PhaseCompilation::COMPILATION_TERMINEE);
+                }
+                else {
+                    espace->change_de_phase(m_compilatrice->messagere,
+                                            PhaseCompilation::AVANT_GENERATION_OBJET);
+                    requiers_generation_code_machine(espace, espace->programme);
+                }
+            }
         }
     }
 }

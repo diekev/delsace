@@ -415,12 +415,14 @@ void Tacheronne::gere_tache()
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-#if 0
                 auto programme = tache.unite->programme;
-                programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace);
-#endif
-                tache.espace->coulisse->cree_fichier_objet(
-                    compilatrice, *tache.espace, constructrice_ri);
+                if (programme->pour_metaprogramme()) {
+                    programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace);
+                }
+                else {
+                    tache.espace->coulisse->cree_fichier_objet(
+                        compilatrice, *tache.espace, constructrice_ri);
+                }
                 compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);
                 temps_generation_code += tache.espace->coulisse->temps_generation_code;
                 temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
@@ -430,11 +432,13 @@ void Tacheronne::gere_tache()
             {
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-#if 0
                 auto programme = tache.unite->programme;
-                programme->coulisse()->cree_executable(programme);
-#endif
-                tache.espace->coulisse->cree_executable(compilatrice, *tache.espace);
+                if (programme->pour_metaprogramme()) {
+                    programme->coulisse()->cree_executable(programme);
+                }
+                else {
+                    tache.espace->coulisse->cree_executable(compilatrice, *tache.espace);
+                }
                 compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
                 temps_executable += tache.espace->coulisse->temps_executable;
                 break;

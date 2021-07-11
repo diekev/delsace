@@ -139,92 +139,84 @@ void Programme::ajoute_type(Type *type)
 
 #undef DEBOGUE_VERIFICATIONS
 
-bool Programme::typages_termines() const
+bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) const
 {
     POUR (m_fonctions) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-#ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour entête " << it->lexeme->chaine << '\n';
-#endif
+            diagnostique.declaration_a_valider = it;
             return false;
         }
 
         if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-#ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour corps " << it->lexeme->chaine << '\n';
-#endif
+            diagnostique.declaration_a_valider = it;
             return false;
         }
     }
 
     POUR (m_globales) {
         if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-#ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour globale " << it->lexeme->chaine << '\n';
-#endif
+            diagnostique.declaration_a_valider = it;
             return false;
         }
     }
 
     POUR (m_types) {
         if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
-#ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- typage non terminé pour type " << chaine_type(it) << ", " << it
-                      << '\n';
-#endif
+            diagnostique.type_a_valider = it;
             return false;
         }
     }
 
+    diagnostique.toutes_les_declarations_a_typer_le_sont = true;
     return true;
 }
 
-bool Programme::ri_generees() const
+bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 {
-#ifdef DEBOGUE_VERIFICATIONS
-    std::cerr << __func__ << '\n';
-#endif
-    if (!typages_termines()) {
-#ifdef DEBOGUE_VERIFICATIONS
-        std::cerr << "-- typages non terminés !\n";
-#endif
+    if (!typages_termines(diagnostique)) {
         return false;
     }
 
     POUR (m_fonctions) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
-            assert(it->unite);
-#ifdef DEBOGUE_VERIFICATIONS
-            std::cerr << "-- ri non générée pour fonction " << it->lexeme->chaine << '\n';
-#endif
+            assert_rappel(it->unite, [&]() {
+                std::cerr << "Aucune unité pour de compilation pour :\n";
+                erreur::imprime_site(*m_espace, it);
+            });
+            diagnostique.ri_declaration_a_generer = it;
             return false;
         }
     }
-#ifdef DEBOGUE_VERIFICATIONS
-    std::cerr << "-- ri fonctions générées !\n";
-#endif
 
     POUR (m_globales) {
         if (!it->possede_drapeau(RI_FUT_GENEREE)) {
-            std::cerr << "-- ri non générée pour globale " << it->ident->nom << '\n';
+            diagnostique.ri_declaration_a_generer = it;
             return false;
         }
     }
-#ifdef DEBOGUE_VERIFICATIONS
-    std::cerr << "-- ri globales générées !\n";
-#endif
 
     POUR (m_types) {
         if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
-            std::cerr << "-- ri non générée pour type " << chaine_type(it) << '\n';
+            diagnostique.ri_type_a_generer = it;
             return false;
         }
     }
-#ifdef DEBOGUE_VERIFICATIONS
-    std::cerr << "-- ri types générées !\n";
-#endif
 
+    diagnostique.toutes_les_ri_sont_generees = true;
     return true;
+}
+
+bool Programme::ri_generees() const
+{
+    auto diagnostic = diagnositique_compilation();
+    return diagnostic.toutes_les_ri_sont_generees;
+}
+
+DiagnostiqueEtatCompilation Programme::diagnositique_compilation() const
+{
+    DiagnostiqueEtatCompilation diagnositique{};
+    ri_generees(diagnositique);
+    return diagnositique;
 }
 
 void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
@@ -516,4 +508,24 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
     }
 
     return resultat;
+}
+
+void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
+{
+    if (!diagnositic.toutes_les_declarations_a_typer_le_sont) {
+        if (diagnositic.type_a_valider) {
+            std::cerr << "-- validation non performée pour le type : " << chaine_type(diagnositic.type_a_valider);
+        }
+        if (diagnositic.declaration_a_valider) {
+            std::cerr << "-- validation non performée pour déclaration " << diagnositic.declaration_a_valider->lexeme->chaine << '\n';
+        }
+        return;
+    }
+
+    if (diagnositic.ri_type_a_generer) {
+        std::cerr << "-- RI non générée pour le type : " << chaine_type(diagnositic.ri_type_a_generer);
+    }
+    if (diagnositic.ri_declaration_a_generer) {
+        std::cerr << "-- RI non générée pour déclaration " << diagnositic.ri_declaration_a_generer->lexeme->chaine << '\n';
+    }
 }

@@ -24,6 +24,8 @@
 
 #include "coulisse_mv.hh"
 
+#include <iostream>
+
 #include "programme.hh"
 
 bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
@@ -38,6 +40,8 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
                                 "Impossible de trouver la fonction pour le métaprogramme");
     }
 #endif
+
+    std::cerr << "CoulisseMV::cree_fichier_objet\n";
 
     if (!repr_inter.globales.est_vide()) {
         // À FAIRE(gestion)
@@ -55,5 +59,6 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
 
 bool CoulisseMV::cree_executable(Programme * /*programme*/)
 {
+    std::cerr << "CoulisseMV::cree_executable\n";
     return true;
 }
