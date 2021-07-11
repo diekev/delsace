@@ -36,7 +36,7 @@ struct CoulisseLLVM final : public Coulisse {
 
     bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) override;
 
-    bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace) override;
+    bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri) override;
 
     bool cree_executable(Programme *programme) override;
 };

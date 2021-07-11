@@ -41,7 +41,7 @@ struct CoulisseMV final : public Coulisse {
         return true;
     }
 
-    bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace) override;
+    bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri) override;
 
     bool cree_executable(Programme *programme) override;
 };

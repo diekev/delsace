@@ -26,33 +26,35 @@
 
 #include <iostream>
 
+#include "representation_intermediaire/code_binaire.hh"
+#include "representation_intermediaire/constructrice_ri.hh"
+
+#include "espace_de_travail.hh"
 #include "programme.hh"
 
-bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace)
+bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
 {
+    std::cerr << "CoulisseMV::cree_fichier_objet\n";
     auto repr_inter = representation_intermediaire_programme(*programme, *espace);
+    auto metaprogramme = programme->pour_metaprogramme();
+    assert(metaprogramme);
 
-#if 0
     auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
 
     if (!fonction) {
         espace->rapporte_erreur(metaprogramme->fonction,
                                 "Impossible de trouver la fonction pour le métaprogramme");
     }
-#endif
-
-    std::cerr << "CoulisseMV::cree_fichier_objet\n";
 
     if (!repr_inter.globales.est_vide()) {
-        // À FAIRE(gestion)
 //        auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
 //            espace, globales, fonction);
     }
 
-   // POUR (repr_inter.fonctions) {
-        // À FAIRE(gestion) la MV est utilisée pour les globales
-        // genere_code_binaire_pour_fonction(it, &mv);
-    //}
+    POUR (repr_inter.fonctions) {
+         // À FAIRE(gestion) la MV est utilisée pour les globales, et les bibliothèques
+         genere_code_binaire_pour_fonction(it, &mv);
+    }
 
     return true;
 }
