@@ -230,7 +230,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         {
             auto variadique = type->comme_variadique();
             /* Garantie la génération du typedef pour les types tableaux des variadiques. */
-            if (variadique->type_tableau_dyn && (variadique->type_tableau_dyn->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
+            if (variadique->type_tableau_dyn &&
+                (variadique->type_tableau_dyn->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
                 cree_typedef(variadique->type_tableau_dyn, enchaineuse);
                 variadique->type_tableau_dyn->drapeaux |= TYPEDEF_FUT_GENERE;
             }
