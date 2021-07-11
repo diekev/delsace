@@ -581,7 +581,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDependance &graphe)
 {
-    DonneesDependance dependances;
+    dependances.efface();
     rassemble_dependances(noeud, espace, dependances);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de

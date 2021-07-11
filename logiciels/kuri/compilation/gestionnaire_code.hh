@@ -29,6 +29,7 @@
 
 #include "structures/tableau.hh"
 
+#include "graphe_dependance.hh"
 #include "unite_compilation.hh"
 
 class Compilatrice;
@@ -37,7 +38,6 @@ class OrdonnanceuseTache;
 struct Programme;
 
 struct FileDAttente {
-
     kuri::tableau<UniteCompilation *> attentes{};
 
     void ajoute(UniteCompilation *unite)
@@ -59,6 +59,8 @@ class GestionnaireCode {
     Compilatrice *m_compilatrice = nullptr;
 
     dls::file<Programme *> programmes_en_cours{};
+
+    DonneesDependance dependances{};
 
   public:
     GestionnaireCode() = default;
