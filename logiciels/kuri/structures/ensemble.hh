@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2020 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2021 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,34 +24,95 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-
-#include "structures/tableau.hh"
+#include "tableau.hh"
 
 namespace kuri {
 
-template <typename Cle, typename Valeur>
-struct table_hachage {
-  private:
-    kuri::tableau<Cle, int> cles{};
-    kuri::tableau<Valeur, int> valeurs{};
+template <typename T>
+class ensemble {
+private:
+    kuri::tableau<T, int> cles{};
     kuri::tableau<char, int> occupes{};
-    kuri::tableau<size_t, int> empreintes{};
 
     long capacite = 0;
     long nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
 
-  public:
+public:
+    void insere(T const &cle)
+    {
+        auto empreinte = std::hash<T>()(cle);
+        auto index = trouve_index_innoccupe(cle, empreinte);
+        occupes[index] = 1;
+        cles[index] = cle;
+    }
+
+    void insere(T &&cle)
+    {
+        auto empreinte = std::hash<T>()(cle);
+        auto index = trouve_index_innoccupe(cle, empreinte);
+        occupes[index] = 1;
+        cles[index] = std::move(cle);
+    }
+
+    void supprime(T const &cle)
+    {
+        auto empreinte = std::hash<T>()(cle);
+        auto index = trouve_index(cle, empreinte);
+        if (index != -1) {
+            occupes[index] = 0;
+            nombre_elements -= 1;
+        }
+    }
+
+    bool possede(T const &cle) const
+    {
+        auto empreinte = std::hash<T>()(cle);
+        return trouve_index(cle, empreinte) != -1;
+    }
+
+    long taille() const
+    {
+        return nombre_elements;
+    }
+
+    bool est_vide() const
+    {
+        return taille() == 0;
+    }
+
+    void efface()
+    {
+        occupes.efface();
+        cles.efface();
+        capacite = 0;
+        nombre_elements = 0;
+    }
+
+    template <typename Rappel>
+    void pour_chaque_element(Rappel &&rappel)
+    {
+        if (capacite == 0) {
+            return;
+        }
+
+        for (int i = 0; i < capacite; ++i) {
+            if (!occupes[i]) {
+                continue;
+            }
+
+            rappel(cles[i]);
+        }
+    }
+
+private:
     void alloue(long taille)
     {
         capacite = taille;
 
         cles.redimensionne(static_cast<int>(taille));
-        valeurs.redimensionne(static_cast<int>(taille));
         occupes.redimensionne(static_cast<int>(taille));
-        empreintes.redimensionne(static_cast<int>(taille));
         nombre_elements = 0;
 
         POUR (occupes) {
@@ -62,8 +123,6 @@ struct table_hachage {
     void agrandis()
     {
         auto vieilles_cles = cles;
-        auto vieilles_valeurs = valeurs;
-        auto vieilles_empreintes = empreintes;
         auto vieilles_occupes = occupes;
 
         auto nouvelle_taille = capacite * 2;
@@ -76,65 +135,12 @@ struct table_hachage {
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
             if (vieilles_occupes[i]) {
-                insere(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
+                insere(std::move(vieilles_cles[i]));
             }
         }
     }
 
-    void insere(Cle const &cle, Valeur const &valeur)
-    {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        empreintes[index] = empreinte;
-        cles[index] = cle;
-        valeurs[index] = valeur;
-    }
-
-    void insere(Cle &&cle, Valeur &&valeur)
-    {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        empreintes[index] = empreinte;
-        cles[index] = std::move(cle);
-        valeurs[index] = std::move(valeur);
-    }
-
-    Valeur trouve(Cle const &cle, bool &trouve)
-    {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-
-        if (index == -1) {
-            trouve = false;
-            return {};
-        }
-
-        trouve = true;
-        return valeurs[index];
-    }
-
-    Valeur valeur_ou(Cle const &cle, Valeur defaut)
-    {
-        auto trouvee = false;
-        auto valeur = trouve(cle, trouvee);
-
-        if (!trouvee) {
-            return defaut;
-        }
-
-        return valeur;
-    }
-
-    bool possede(Cle const &cle)
-    {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        return index != -1;
-    }
-
-    int trouve_index(Cle const &cle, size_t empreinte)
+    int trouve_index(T const &cle, size_t empreinte) const
     {
         if (capacite == 0) {
             return -1;
@@ -143,10 +149,8 @@ struct table_hachage {
         auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
 
         while (occupes[index]) {
-            if (empreintes[index] == empreinte) {
-                if (cles[index] == cle) {
-                    return index;
-                }
+            if (cles[index] == cle) {
+                return index;
             }
 
             index += 1;
@@ -159,23 +163,7 @@ struct table_hachage {
         return -1;
     }
 
-    long taille() const
-    {
-        return nombre_elements;
-    }
-
-    void efface()
-    {
-        occupes.efface();
-        empreintes.efface();
-        cles.efface();
-        valeurs.efface();
-        capacite = 0;
-        nombre_elements = 0;
-    }
-
-  private:
-    int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
+    int trouve_index_innoccupe(T const &cle, size_t empreinte)
     {
         auto index = trouve_index(cle, empreinte);
 
@@ -201,4 +189,4 @@ struct table_hachage {
     }
 };
 
-}  // namespace kuri
+}
