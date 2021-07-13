@@ -1669,7 +1669,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     });
 #endif
 
-    auto fonction_courante = contexte.fonction_courante;
+    auto fonction_courante = contexte.fonction_courante();
 
     // ------------
     // valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
@@ -1941,7 +1941,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             /* il est possible d'utiliser un type avant sa validation final, par exemple en
              * paramètre d'une fonction de rappel qui est membre de la structure */
             if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0 &&
-                copie->type != contexte.union_ou_structure_courante) {
+                copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
                 return Attente::sur_type(copie->type);

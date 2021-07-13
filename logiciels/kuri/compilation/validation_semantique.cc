@@ -59,14 +59,51 @@ ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
 {
 }
 
-void ContexteValidationCode::commence_fonction(NoeudDeclarationEnteteFonction *fonction)
+/* Point d'entrée pour la validation sémantique. Nous utilisons ceci au lieu de directement appeler
+ * valide_semantique_noeud, puisque la validation des arbres aplatis pourrait résulter en un
+ * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.
+ * En outre, ceci nous permet de mieux controler les racines de validations, qui doivent être
+ * des déclarations ou directives globales. */
+ResultatValidation ContexteValidationCode::valide()
 {
-    fonction_courante = fonction;
-}
+    if (racine_validation()->est_entete_fonction()) {
+        return valide_type_fonction(racine_validation()->comme_entete_fonction());
+    }
 
-void ContexteValidationCode::termine_fonction()
-{
-    fonction_courante = nullptr;
+    if (racine_validation()->est_corps_fonction()) {
+        auto corps = racine_validation()->comme_corps_fonction();
+        if (corps->entete->est_operateur) {
+            return valide_operateur(corps);
+        }
+        return valide_fonction(corps);
+    }
+
+    if (racine_validation()->est_enum()) {
+        auto enumeration = racine_validation()->comme_enum();
+        return valide_enum(enumeration);
+    }
+
+    if (racine_validation()->est_structure()) {
+        auto structure = racine_validation()->comme_structure();
+        return valide_structure(structure);
+    }
+
+    if (racine_validation()->est_declaration_variable()) {
+        auto decl = racine_validation()->comme_declaration_variable();
+        return valide_arbre_aplatis(decl, decl->arbre_aplatis);
+    }
+
+    if (racine_validation()->est_execute()) {
+        auto execute = racine_validation()->comme_execute();
+        return valide_arbre_aplatis(execute, execute->arbre_aplatis);
+    }
+
+    if (racine_validation()->est_importe() || racine_validation()->est_charge()) {
+        return valide_semantique_noeud(racine_validation());
+    }
+
+    unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
+    return CodeRetourValidation::Erreur;
 }
 
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
@@ -227,14 +264,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto noeud_directive = noeud->comme_execute();
 
-            if (!fonction_courante) {
-                /* Uniquement pour les directives globales. */
-                auto resultat = valide_arbre_aplatis(noeud_directive, noeud_directive->arbre_aplatis);
-                if (!est_ok(resultat)) {
-                    return resultat;
-                }
-            }
-
             // crée une fonction pour l'exécution
             auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(noeud->lexeme);
             auto decl_corps = decl_entete->corps;
@@ -242,7 +271,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             decl_entete->bloc_parent = noeud->bloc_parent;
             decl_corps->bloc_parent = noeud->bloc_parent;
 
-            decl_entete->drapeaux |= FORCE_NULCTX;
             decl_entete->est_metaprogramme = true;
 
             // le type de la fonction est fonc () -> (type_expression)
@@ -300,10 +328,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 expr_ret->expression = noeud_directive->expression;
 
                 /* besoin de valider pour mettre en place les informations de retour */
-                auto ancienne_fonction_courante = fonction_courante;
-                fonction_courante = decl_entete;
+                auto ancienne_racine = unite->noeud;
+                unite->noeud = decl_entete;
                 valide_expression_retour(expr_ret);
-                fonction_courante = ancienne_fonction_courante;
+                unite->noeud = ancienne_racine;
             }
             else {
                 decl_corps->bloc->expressions->ajoute(noeud_directive->expression);
@@ -325,13 +353,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             noeud->type = noeud_directive->expression->type;
 
-            // À FAIRE: ceci ne prend en compte les expressions pour les variables globales
-            if (fonction_courante) {
+            if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
                 unite->index_courant += 1;
                 return Attente::sur_metaprogramme(metaprogramme);
             }
 
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
@@ -1848,7 +1876,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::INSTRUCTION_RETIENS:
         {
-            if (!fonction_courante->est_coroutine) {
+            if (!fonction_courante() || !fonction_courante()->est_coroutine) {
                 rapporte_erreur("'retiens' hors d'une coroutine", noeud);
                 return CodeRetourValidation::Erreur;
             }
@@ -2077,8 +2105,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             // pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
             // fonction (ce qui est le cas pour les paramètres...)
-            if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
-                bloc_parent = fonction_courante->corps->bloc;
+            if (fonction_courante() && bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
+                bloc_parent = fonction_courante()->corps->bloc;
             }
 
             POUR (type_structure->membres) {
@@ -2243,7 +2271,6 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
 #endif
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction");
-    commence_fonction(decl);
 
     /* Valide les constantes polymorphiques. */
     if (decl->est_polymorphe) {
@@ -2612,13 +2639,13 @@ static void rassemble_expressions(NoeudExpression *expr,
 
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
-    auto type_fonc = fonction_courante->type->comme_fonction();
-    auto est_corps_texte = fonction_courante->corps->est_corps_texte;
+    auto type_fonc = fonction_courante()->type->comme_fonction();
+    auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
 
     if (inst->expression == nullptr) {
         inst->type = espace->typeuse[TypeBase::RIEN];
 
-        if ((!fonction_courante->est_coroutine && type_fonc->type_sortie != inst->type) ||
+        if ((!fonction_courante()->est_coroutine && type_fonc->type_sortie != inst->type) ||
             est_corps_texte) {
             rapporte_erreur("Expression de retour manquante", inst);
             return CodeRetourValidation::Erreur;
@@ -2651,7 +2678,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
         DonneesAssignations donnees;
         donnees.expression = inst->expression;
-        donnees.variables.ajoute(fonction_courante->params_sorties[0]);
+        donnees.variables.ajoute(fonction_courante()->params_sorties[0]);
         donnees.transformations.ajoute({});
 
         inst->donnees_exprs.ajoute(std::move(donnees));
@@ -2666,7 +2693,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
     dls::file_fixe<NoeudExpression *, 6> variables;
 
-    POUR (fonction_courante->params_sorties) {
+    POUR (fonction_courante()->params_sorties) {
         variables.enfile(it);
     }
 
@@ -2697,8 +2724,8 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                 return CodeRetourValidation::Erreur;
             }
 
-            for (auto i = 0; i < fonction_courante->params_sorties.taille(); ++i) {
-                if (it.ident == fonction_courante->params_sorties[i]->ident) {
+            for (auto i = 0; i < fonction_courante()->params_sorties.taille(); ++i) {
+                if (it.ident == fonction_courante()->params_sorties[i]->ident) {
                     if (expressions[i] != nullptr) {
                         espace->rapporte_erreur(
                             it.expression,
@@ -2976,6 +3003,34 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     return metaprogramme;
 }
 
+NoeudExpression *ContexteValidationCode::racine_validation() const
+{
+    assert(unite->noeud);
+    return unite->noeud;
+}
+
+NoeudDeclarationEnteteFonction *ContexteValidationCode::fonction_courante() const
+{
+    if (racine_validation()->est_entete_fonction()) {
+        return racine_validation()->comme_entete_fonction();
+    }
+
+    if (racine_validation()->est_corps_fonction()) {
+        return racine_validation()->comme_corps_fonction()->entete;
+    }
+
+    return nullptr;
+}
+
+Type *ContexteValidationCode::union_ou_structure_courante() const
+{
+    if (racine_validation()->est_structure()) {
+        return racine_validation()->type;
+    }
+
+    return nullptr;
+}
+
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
@@ -3020,8 +3075,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
         entete = fonction;
     }
-
-    commence_fonction(entete);
 
     if (unite->index_courant == 0) {
         auto requiers_contexte = !decl->entete->possede_drapeau(FORCE_NULCTX);
@@ -3083,7 +3136,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-    termine_fonction();
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
@@ -3091,8 +3143,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
-    commence_fonction(entete);
-
     decl->type = entete->type;
 
     if (unite->index_courant == 0) {
@@ -3131,7 +3181,6 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-    termine_fonction();
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
@@ -3513,11 +3562,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto noeud_dependance = graphe->cree_noeud_type(decl->type);
     decl->noeud_dependance = noeud_dependance;
 
-    union_ou_structure_courante = decl->type;
-    DIFFERE {
-        union_ou_structure_courante = nullptr;
-    };
-
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
@@ -3842,15 +3886,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
-    /* Nous devons valider l'arbre avant les types opaques, afin que l'expression soit validée. */
-    if (decl->possede_drapeau(EST_GLOBALE) && decl->unite == unite &&
-        (unite->index_courant == 0 || unite->index_courant < decl->arbre_aplatis.taille() - 1)) {
-        auto resultat = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-        if (!est_ok(resultat)) {
-            return resultat;
-        }
-    }
-
     if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
         auto type_opacifie = Type::nul();
 
@@ -4135,7 +4170,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
     }
 
-    if (!fonction_courante) {
+    if (!fonction_courante()) {
         simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, decl);
     }
 

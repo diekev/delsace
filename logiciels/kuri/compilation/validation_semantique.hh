@@ -102,8 +102,6 @@ struct ContexteValidationDeclaration {
 struct ContexteValidationCode {
     Compilatrice &m_compilatrice;
     Tacheronne &m_tacheronne;
-    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
-    Type *union_ou_structure_courante = nullptr;
 
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;
@@ -116,9 +114,7 @@ struct ContexteValidationCode {
 
     COPIE_CONSTRUCT(ContexteValidationCode);
 
-    void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
-
-    void termine_fonction();
+    ResultatValidation valide();
 
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
@@ -175,6 +171,12 @@ struct ContexteValidationCode {
     ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
     void transtype_si_necessaire(NoeudExpression *&expression,
                                  TransformationType const &transformation);
+
+    NoeudExpression *racine_validation() const;
+
+    NoeudDeclarationEnteteFonction *fonction_courante() const;
+
+    Type *union_ou_structure_courante() const;
 
     MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
