@@ -3137,8 +3137,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 

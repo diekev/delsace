@@ -110,7 +110,6 @@ struct EspaceDeTravail {
     Programme *programme = nullptr;
 
     tableau_page<AtomeFonction> fonctions{};
-
     tableau_page<AtomeGlobale> globales{};
 
     struct DonneesConstructeurGlobale {
