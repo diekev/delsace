@@ -196,7 +196,7 @@ void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
     if (pour_metaprogramme()) {
         /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de
          * l'exécutable. */
-        if (racine->ident == ID::creation_contexte) {
+        if (racine->ident == ID::cree_contexte) {
             ajoute_fonction(racine);
         }
     }

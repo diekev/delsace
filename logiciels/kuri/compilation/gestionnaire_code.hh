@@ -139,4 +139,5 @@ class GestionnaireCode {
                                GrapheDependance &graphe);
 
     bool plus_rien_n_est_a_faire() const;
+    std::optional<Attente> tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace, Programme *programme, GrapheDependance &graphe);
 };

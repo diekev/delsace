@@ -2434,6 +2434,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::creation_contexte) {
                 noeud->drapeaux |= FORCE_NULCTX;
                 noeud->drapeaux |= FORCE_SANSTRACE;
+                noeud->drapeaux |= EST_RACINE;
                 m_unite->espace->interface_kuri->decl_creation_contexte = noeud;
             }
             else if (ident_directive == ID::compilatrice) {

@@ -136,7 +136,7 @@ kuri::chaine UniteCompilation::commentaire() const
     }
 
     if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        return m_attente.interface_kuri()->nom;
+        return enchaine("(interface kuri) ", m_attente.interface_kuri()->nom);
     }
 
     if (m_attente.est<AttenteSurMessage>()) {
@@ -189,7 +189,9 @@ UniteCompilation *UniteCompilation::unite_attendue() const
 
     if (m_attente.est<AttenteSurMetaProgramme>()) {
         auto metaprogramme_attendu = m_attente.metaprogramme();
-        return metaprogramme_attendu->unite;
+        // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
+        // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
+        return metaprogramme_attendu->fonction->unite;
     }
 
     if (m_attente.est<AttenteSurInterfaceKuri>()) {

@@ -708,6 +708,47 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
     unites_en_attente.ajoute(unite);
 }
 
+std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_contexte(
+        EspaceDeTravail *espace,
+        Programme *programme,
+        GrapheDependance &graphe)
+{
+    /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
+     * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
+     */
+    auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
+
+    if (!decl_creation_contexte) {
+        return Attente::sur_interface_kuri(ID::cree_contexte);
+    }
+
+    programme->ajoute_fonction(decl_creation_contexte);
+
+    if (!decl_creation_contexte->unite) {
+        requiers_typage(espace, decl_creation_contexte);
+        return Attente::sur_declaration(decl_creation_contexte);
+    }
+
+    if (!decl_creation_contexte->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_declaration(decl_creation_contexte);
+    }
+
+    determine_dependances(decl_creation_contexte, espace, graphe);
+
+    if (!decl_creation_contexte->corps->unite) {
+        requiers_typage(espace, decl_creation_contexte->corps);
+        return Attente::sur_declaration(decl_creation_contexte->corps);
+    }
+
+    if (decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_declaration(decl_creation_contexte->corps);
+    }
+
+    determine_dependances(decl_creation_contexte->corps, espace, graphe);
+
+    return {};
+}
+
 void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace,
                                                           MetaProgramme *metaprogramme)
 {
@@ -723,23 +764,9 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 
     requiers_generation_ri(espace, metaprogramme->fonction);
 
-    /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
-     * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
-     */
-    auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
-    if (decl_creation_contexte) {
-        programme->ajoute_fonction(espace->interface_kuri->decl_creation_contexte);
-
-        determine_dependances(decl_creation_contexte, espace, *graphe);
-
-        if (decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            determine_dependances(decl_creation_contexte->corps, espace, *graphe);
-        }
-        else {
-            if (decl_creation_contexte->corps->unite == nullptr) {
-                requiers_typage(espace, decl_creation_contexte->corps);
-            }
-        }
+    auto attente = tente_de_garantir_presence_creation_contexte(espace, programme, *graphe);
+    if (attente.has_value()) {
+        metaprogramme->fonction->unite->mute_attente(attente.value());
     }
 
     metaprogramme_cree(metaprogramme);
@@ -854,6 +881,7 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     O(panique_membre_union)                                                                       \
     O(panique_erreur_non_geree)                                                                   \
     O(__rappel_panique_defaut)                                                                    \
+    O(cree_contexte)                                                                              \
     O(DLS_vers_r32)                                                                               \
     O(DLS_vers_r64)                                                                               \
     O(DLS_depuis_r32)                                                                             \
@@ -903,10 +931,19 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     }
 
     auto noeud = unite->noeud;
-    if (noeud->est_entete_fonction() && est_identifiant_interface(noeud->ident)) {
+    if (noeud->est_declaration() && est_identifiant_interface(noeud->ident)) {
         POUR (unites_en_attente.attentes) {
             if (it->attend_sur_interface_kuri(noeud->ident)) {
-                it->marque_prete();
+                /* Pour crée_contexte, change l'attente pour attendre sur le corps car il nous
+                 * faut le code. */
+                if (noeud->ident == ID::cree_contexte) {
+                    if (noeud->est_entete_fonction()) {
+                        it->mute_attente(Attente::sur_declaration(noeud->comme_entete_fonction()->corps));
+                    }
+                }
+                else {
+                    it->marque_prete();
+                }
             }
         }
     }
@@ -923,7 +960,7 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     if (noeud->est_declaration()) {
         POUR (unites_en_attente.attentes) {
             if (it->attend_sur_declaration(noeud->comme_declaration())) {
-                // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
+                std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
                 it->marque_prete();
             }
         }
@@ -1231,10 +1268,13 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 //            std::cerr << "-- attente récursive : \n" << chaine_attentes_recursives(unite) << '\n';
             it->cycle += 1;
 
-//            if (unite->cycle > 10) {
-//                unite->rapporte_erreur();
-//                return;
-//            }
+            if (it->cycle > 1000) {
+                it->rapporte_erreur();
+                // À FAIRE(gestion) : verrou mort pour l'effacement des tâches
+                unites_en_attente.attentes.efface();
+                ordonnanceuse.supprime_toutes_les_taches();
+                return;
+            }
 
             // if (!unite->est_bloquee()) {
                 nouvelles_unites.ajoute(it);

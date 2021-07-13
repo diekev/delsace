@@ -271,6 +271,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             decl_entete->bloc_parent = noeud->bloc_parent;
             decl_corps->bloc_parent = noeud->bloc_parent;
 
+            /* Le contexte sera ajouté via decl_creation_contexte de l'interface kuri. */
+            decl_entete->drapeaux |= FORCE_NULCTX;
             decl_entete->est_metaprogramme = true;
 
             // le type de la fonction est fonc () -> (type_expression)
