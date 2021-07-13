@@ -978,6 +978,10 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     }
 
     if (noeud->possede_drapeau(EST_GLOBALE)) {
+        if (noeud->est_execute()) {
+            /* Les #exécutes globales sont gérées via les métaprogrammes. */
+            return false;
+        }
         return true;
     }
 
@@ -1023,7 +1027,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
     auto noeud = unite->noeud;
     if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) ||
-        noeud->est_corps_fonction()) {
+        noeud->est_corps_fonction() || noeud->est_execute()) {
         determine_dependances(unite->noeud, unite->espace, *graphe);
     }
 
