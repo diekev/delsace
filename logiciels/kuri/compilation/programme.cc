@@ -234,8 +234,8 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme, std::ostrea
     }
     os << "Fonctions dans le programme...\n";
     POUR (programme.fonctions) {
-        if (it->ident) {
-            os << "-- " << it->ident->nom << '\n';
+        if (it->decl && it->decl->ident) {
+            os << "-- " << it->decl->ident->nom << ' ' << chaine_type(it->type) << '\n';
         }
         else {
             os << "-- anonyme de type " << chaine_type(it->type) << '\n';
