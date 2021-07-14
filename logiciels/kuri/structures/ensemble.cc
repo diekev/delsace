@@ -23,4 +23,3 @@
  */
 
 #include "ensemble.hh"
-

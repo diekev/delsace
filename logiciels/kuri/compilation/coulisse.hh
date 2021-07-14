@@ -62,7 +62,9 @@ struct Coulisse {
      */
     virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
 
-    virtual bool cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri) = 0;
+    virtual bool cree_fichier_objet(Programme *programme,
+                                    EspaceDeTravail *espace,
+                                    ConstructriceRI &constructrice_ri) = 0;
 
     virtual bool cree_executable(Programme *programme) = 0;
 };

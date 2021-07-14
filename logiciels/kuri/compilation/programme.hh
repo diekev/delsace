@@ -28,7 +28,7 @@
 
 #include "structures/tableau.hh"
 
-#include "message.hh" // pour PhaseCompilation
+#include "message.hh"  // pour PhaseCompilation
 
 struct AtomeGlobale;
 struct AtomeFonction;
@@ -44,7 +44,7 @@ struct Type;
 class EtatCompilation {
     PhaseCompilation m_phase_courante{};
 
-public:
+  public:
     void avance_etat()
     {
         if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {

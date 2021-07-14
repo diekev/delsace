@@ -48,7 +48,7 @@ using AttenteSurDeclaration = AttenteSur<NoeudDeclaration>;
 using AttenteSurSymbole = AttenteSur<NoeudExpressionReference>;
 using AttenteSurOperateur = AttenteSur<NoeudExpression>;
 using AttenteSurMessage = AttenteSur<Message>;
-using AttenteSurRI = AttenteSur<Atome*>;
+using AttenteSurRI = AttenteSur<Atome *>;
 
 /* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer
  * son chemin dans la compilation. */

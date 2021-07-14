@@ -774,7 +774,9 @@ struct ConvertisseuseRI {
     dls::pile<int> pile_taille{};
     int dernier_decalage_pile = 0;
 
-    ConvertisseuseRI(MetaProgramme *metaprogramme_) : metaprogramme(metaprogramme_) {}
+    ConvertisseuseRI(MetaProgramme *metaprogramme_) : metaprogramme(metaprogramme_)
+    {
+    }
 
     COPIE_CONSTRUCT(ConvertisseuseRI);
 
@@ -791,7 +793,9 @@ struct ConvertisseuseRI {
     void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
 };
 
-void genere_code_binaire_pour_fonction(EspaceDeTravail *espace, AtomeFonction *fonction, MetaProgramme *metaprogramme)
+void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
+                                       AtomeFonction *fonction,
+                                       MetaProgramme *metaprogramme)
 {
     /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
     if (fonction->decl && fonction->decl->est_externe) {
@@ -1616,7 +1620,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
             if (atome_globale->index == -1) {
                 auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = metaprogramme->ajoute_globale(type_globale, atome_globale->ident);
+                atome_globale->index = metaprogramme->ajoute_globale(type_globale,
+                                                                     atome_globale->ident);
 
                 if (atome_globale->est_constante) {
                     auto globale = metaprogramme->globales[atome_globale->index];
@@ -1680,7 +1685,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 
             if (atome_globale->index == -1) {
                 auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = metaprogramme->ajoute_globale(type_globale, atome_globale->ident);
+                atome_globale->index = metaprogramme->ajoute_globale(type_globale,
+                                                                     atome_globale->ident);
 
                 if (atome_globale->est_constante) {
                     auto globale = metaprogramme->globales[atome_globale->index];

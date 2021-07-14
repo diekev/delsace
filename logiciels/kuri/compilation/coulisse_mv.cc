@@ -32,7 +32,9 @@
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
-bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espace, ConstructriceRI &constructrice_ri)
+bool CoulisseMV::cree_fichier_objet(Programme *programme,
+                                    EspaceDeTravail *espace,
+                                    ConstructriceRI &constructrice_ri)
 {
     auto repr_inter = representation_intermediaire_programme(*programme, *espace);
     auto metaprogramme = programme->pour_metaprogramme();

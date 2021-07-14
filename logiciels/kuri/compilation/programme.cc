@@ -488,18 +488,22 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
 {
     if (!diagnositic.toutes_les_declarations_a_typer_le_sont) {
         if (diagnositic.type_a_valider) {
-            std::cerr << "-- validation non performée pour le type : " << chaine_type(diagnositic.type_a_valider);
+            std::cerr << "-- validation non performée pour le type : "
+                      << chaine_type(diagnositic.type_a_valider);
         }
         if (diagnositic.declaration_a_valider) {
-            std::cerr << "-- validation non performée pour déclaration " << diagnositic.declaration_a_valider->lexeme->chaine << '\n';
+            std::cerr << "-- validation non performée pour déclaration "
+                      << diagnositic.declaration_a_valider->lexeme->chaine << '\n';
         }
         return;
     }
 
     if (diagnositic.ri_type_a_generer) {
-        std::cerr << "-- RI non générée pour le type : " << chaine_type(diagnositic.ri_type_a_generer);
+        std::cerr << "-- RI non générée pour le type : "
+                  << chaine_type(diagnositic.ri_type_a_generer);
     }
     if (diagnositic.ri_declaration_a_generer) {
-        std::cerr << "-- RI non générée pour déclaration " << diagnositic.ri_declaration_a_generer->lexeme->chaine << '\n';
+        std::cerr << "-- RI non générée pour déclaration "
+                  << diagnositic.ri_declaration_a_generer->lexeme->chaine << '\n';
     }
 }

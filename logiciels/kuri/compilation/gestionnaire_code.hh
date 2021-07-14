@@ -90,7 +90,8 @@ class GestionnaireCode {
 
     void requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 
-    void requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    void requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace,
+                                                         MetaProgramme *metaprogramme);
 
     void requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
@@ -141,5 +142,7 @@ class GestionnaireCode {
                                GrapheDependance &graphe);
 
     bool plus_rien_n_est_a_faire() const;
-    std::optional<Attente> tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace, Programme *programme, GrapheDependance &graphe);
+    std::optional<Attente> tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
+                                                                        Programme *programme,
+                                                                        GrapheDependance &graphe);
 };

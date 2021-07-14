@@ -142,7 +142,8 @@ struct UniteCompilation {
 
     inline bool attend_sur_metaprogramme(MetaProgramme *metaprogramme_)
     {
-        return m_attente.est<AttenteSurMetaProgramme>() && m_attente.metaprogramme() == metaprogramme_;
+        return m_attente.est<AttenteSurMetaProgramme>() &&
+               m_attente.metaprogramme() == metaprogramme_;
     }
 
     inline bool attend_sur_ri(Atome **ri)

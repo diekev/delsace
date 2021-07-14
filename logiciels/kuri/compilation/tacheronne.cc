@@ -418,7 +418,8 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 if (programme->pour_metaprogramme()) {
-                    programme->coulisse()->cree_fichier_objet(programme, tache.unite->espace, constructrice_ri);
+                    programme->coulisse()->cree_fichier_objet(
+                        programme, tache.unite->espace, constructrice_ri);
                 }
                 else {
                     tache.espace->coulisse->cree_fichier_objet(
@@ -477,7 +478,8 @@ void Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
     if (unite->est_pour_generation_ri_principale_mp()) {
-        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, noeud->comme_entete_fonction());
+        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace,
+                                                               noeud->comme_entete_fonction());
     }
     else {
         constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);

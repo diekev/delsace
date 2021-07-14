@@ -155,7 +155,10 @@ struct DonneesDependance {
     }
 };
 
-void imprime_dependances(const DonneesDependance &dependances, EspaceDeTravail *espace, const char *message, std::ostream &flux);
+void imprime_dependances(const DonneesDependance &dependances,
+                         EspaceDeTravail *espace,
+                         const char *message,
+                         std::ostream &flux);
 
 struct GrapheDependance {
     tableau_page<NoeudDependance> noeuds{};

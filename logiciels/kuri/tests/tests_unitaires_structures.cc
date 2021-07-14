@@ -22,8 +22,8 @@
  *
  */
 
-#include "biblinternes/tests/test_unitaire.hh"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/tests/test_unitaire.hh"
 
 #include "../structures/ensemble.hh"
 
@@ -53,7 +53,8 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
     e.efface();
     CU_VERIFIE_EGALITE(controleuse, e.taille(), 0l);
 
-    auto element_unique = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+    auto element_unique = gna.uniforme(std::numeric_limits<int>::min(),
+                                       std::numeric_limits<int>::max());
 
     for (auto i = 0; i < elements.taille(); ++i) {
         elements[i] = element_unique;

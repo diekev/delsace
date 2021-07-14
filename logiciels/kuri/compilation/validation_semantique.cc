@@ -2107,7 +2107,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             // pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
             // fonction (ce qui est le cas pour les paramètres...)
-            if (fonction_courante() && bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
+            if (fonction_courante() &&
+                bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
                 bloc_parent = fonction_courante()->corps->bloc;
             }
 

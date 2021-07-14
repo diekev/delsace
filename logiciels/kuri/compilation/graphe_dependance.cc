@@ -343,7 +343,10 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
     });
 }
 
-void imprime_dependances(const DonneesDependance &dependances, EspaceDeTravail *espace, const char *message, std::ostream &flux)
+void imprime_dependances(const DonneesDependance &dependances,
+                         EspaceDeTravail *espace,
+                         const char *message,
+                         std::ostream &flux)
 {
     flux << "Dépendances pour : " << message << '\n';
 

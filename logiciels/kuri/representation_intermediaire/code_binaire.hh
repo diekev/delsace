@@ -287,6 +287,8 @@ struct Globale {
     int adresse = 0;
 };
 
-void genere_code_binaire_pour_fonction(EspaceDeTravail *espace, AtomeFonction *fonction, MetaProgramme *metaprogramme);
+void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
+                                       AtomeFonction *fonction,
+                                       MetaProgramme *metaprogramme);
 
 ffi_type *converti_type_ffi(Type *type);

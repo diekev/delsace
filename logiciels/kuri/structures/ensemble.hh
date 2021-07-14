@@ -30,7 +30,7 @@ namespace kuri {
 
 template <typename T>
 class ensemble {
-private:
+  private:
     kuri::tableau<T, int> cles{};
     kuri::tableau<char, int> occupes{};
 
@@ -39,7 +39,7 @@ private:
 
     static constexpr auto TAILLE_MIN = 32;
 
-public:
+  public:
     void insere(T const &cle)
     {
         auto empreinte = std::hash<T>()(cle);
@@ -106,7 +106,7 @@ public:
         }
     }
 
-private:
+  private:
     void alloue(long taille)
     {
         capacite = taille;
@@ -189,4 +189,4 @@ private:
     }
 };
 
-}
+}  // namespace kuri

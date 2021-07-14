@@ -668,7 +668,8 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
     unites_en_attente.ajoute(unite);
 }
 
-void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
+    EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
     espace->tache_ri_ajoutee(m_compilatrice->messagere);
 
@@ -682,9 +683,7 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(EspaceDeT
 }
 
 std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_contexte(
-        EspaceDeTravail *espace,
-        Programme *programme,
-        GrapheDependance &graphe)
+    EspaceDeTravail *espace, Programme *programme, GrapheDependance &graphe)
 {
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
@@ -1144,7 +1143,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
         }
         else {
             if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
-                    it->ri_generees()) {
+                it->ri_generees()) {
                 if (espace->options.resultat == ResultatCompilation::RIEN) {
                     espace->change_de_phase(m_compilatrice->messagere,
                                             PhaseCompilation::COMPILATION_TERMINEE);
