@@ -90,6 +90,8 @@ class GestionnaireCode {
 
     void requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 
+    void requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+
     void requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);

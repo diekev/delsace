@@ -50,6 +50,7 @@ struct Type;
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
     O(TYPAGE, typage, "typage")                                                                   \
     O(GENERATION_RI, generation_ri, "génération RI")                                              \
+    O(GENERATION_RI_PRINCIPALE_MP, generation_ri_principale_mp, "génération RI principale mp")    \
     O(EXECUTION, execution, "exécution")                                                          \
     O(LIAISON_PROGRAMME, liaison_programme, "liaison programme")                                  \
     O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")

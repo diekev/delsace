@@ -46,11 +46,6 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme, EspaceDeTravail *espac
         return false;
     }
 
-    constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, metaprogramme->fonction);
-
-    std::cerr << "CoulisseMV." << __func__ << '\n';
-    imprime_contenu_programme(repr_inter, std::cerr);
-
     if (!repr_inter.globales.est_vide()) {
         auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
             espace, repr_inter.globales, fonction);

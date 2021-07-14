@@ -708,6 +708,19 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
     unites_en_attente.ajoute(unite);
 }
 
+void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+{
+    espace->tache_ri_ajoutee(m_compilatrice->messagere);
+
+    auto unite = unites.ajoute_element(espace);
+    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI_PRINCIPALE_MP);
+    unite->noeud = metaprogramme->fonction;
+
+    metaprogramme->fonction->unite = unite;
+
+    unites_en_attente.ajoute(unite);
+}
+
 std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_contexte(
         EspaceDeTravail *espace,
         Programme *programme,
@@ -746,6 +759,10 @@ std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_con
 
     determine_dependances(decl_creation_contexte->corps, espace, graphe);
 
+    if (!decl_creation_contexte->corps->possede_drapeau(RI_FUT_GENEREE)) {
+        return Attente::sur_ri(&decl_creation_contexte->atome);
+    }
+
     return {};
 }
 
@@ -762,7 +779,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
-    requiers_generation_ri(espace, metaprogramme->fonction);
+    requiers_generation_ri_principale_metaprogramme(espace, metaprogramme);
 
     auto attente = tente_de_garantir_presence_creation_contexte(espace, programme, *graphe);
     if (attente.has_value()) {
@@ -931,14 +948,26 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
     }
 
     auto noeud = unite->noeud;
+
+    Atome **ri = nullptr;
+    if (unite->est_pour_generation_ri() || unite->est_pour_generation_ri_principale_mp()) {
+        if (noeud->est_corps_fonction()) {
+            ri = &noeud->comme_corps_fonction()->entete->atome;
+        }
+        else if (noeud->est_entete_fonction()) {
+            ri = &noeud->comme_entete_fonction()->atome;
+        }
+    }
+
     if (noeud->est_declaration() && est_identifiant_interface(noeud->ident)) {
         POUR (unites_en_attente.attentes) {
             if (it->attend_sur_interface_kuri(noeud->ident)) {
-                /* Pour crée_contexte, change l'attente pour attendre sur le corps car il nous
+                /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il nous
                  * faut le code. */
+                // std::cerr << "Marque prête une unité dépendant sur l'interface  " << noeud->ident->nom << '\n';
                 if (noeud->ident == ID::cree_contexte) {
                     if (noeud->est_entete_fonction()) {
-                        it->mute_attente(Attente::sur_declaration(noeud->comme_entete_fonction()->corps));
+                        it->mute_attente(Attente::sur_ri(&noeud->comme_entete_fonction()->atome));
                     }
                 }
                 else {
@@ -959,8 +988,17 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
 
     if (noeud->est_declaration()) {
         POUR (unites_en_attente.attentes) {
-            if (it->attend_sur_declaration(noeud->comme_declaration())) {
-                std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
+            if (!it->attend_sur_declaration(noeud->comme_declaration())) {
+                continue;
+            }
+
+            // std::cerr << "Marque prête une unité dépendant sur la déclaration de " << noeud->ident->nom << '\n';
+            if (noeud->ident == ID::cree_contexte) {
+                if (noeud->est_entete_fonction()) {
+                    it->mute_attente(Attente::sur_ri(&noeud->comme_entete_fonction()->atome));
+                }
+            }
+            else {
                 it->marque_prete();
             }
         }
@@ -983,6 +1021,14 @@ void GestionnaireCode::marque_unites_dependantes_pretes(UniteCompilation *unite)
         auto importe = noeud->comme_importe();
         POUR (unites_en_attente.attentes) {
             if (it->attend_sur_symbole(importe->expression->ident)) {
+                it->marque_prete();
+            }
+        }
+    }
+
+    if (ri) {
+        POUR (unites_en_attente.attentes) {
+            if (it->attend_sur_ri(ri)) {
                 it->marque_prete();
             }
         }

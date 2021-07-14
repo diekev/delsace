@@ -112,6 +112,7 @@ static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
             return OrdonnanceuseTache::FILE_TYPAGE;
         }
         case RaisonDEtre::GENERATION_RI:
+        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
         {
             return OrdonnanceuseTache::FILE_GENERATION_RI;
         }
@@ -468,31 +469,22 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 void Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
-    auto pour_metaprogramme = false;
 
-    if (noeud->est_corps_fonction()) {
-        auto corps = noeud->comme_corps_fonction();
-        pour_metaprogramme = corps->entete->est_metaprogramme;
+    if (noeud->type == nullptr) {
+        unite->espace->rapporte_erreur(
+            noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
+        return;
     }
 
-    if (noeud->est_declaration() && !pour_metaprogramme) {
+    if (unite->est_pour_generation_ri_principale_mp()) {
+        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, noeud->comme_entete_fonction());
+    }
+    else {
         constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
-        noeud->drapeaux |= RI_FUT_GENEREE;
-
-        if (noeud->type == nullptr) {
-            unite->espace->rapporte_erreur(
-                noeud, "Erreur interne: type nul sur une déclaration après la génération de RI");
-            return;
-        }
-
-        noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
     }
-    else if (pour_metaprogramme) {
-        auto corps = noeud->comme_corps_fonction();
-        auto espace = unite->espace;
-        // À FAIRE(gestion) : manière de définir le point d'entrée d'un programme
-        constructrice_ri.genere_ri_pour_fonction_metaprogramme(espace, corps->entete);
-    }
+
+    noeud->drapeaux |= RI_FUT_GENEREE;
+    noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
 }
 
 void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
