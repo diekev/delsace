@@ -201,7 +201,9 @@ void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
         }
     }
     else {
-        ajoute_fonction(racine);
+        if (racine->ident != ID::cree_contexte) {
+            ajoute_fonction(racine);
+        }
     }
 }
 
