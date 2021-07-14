@@ -144,6 +144,11 @@ struct UniteCompilation {
         return m_attente.est<AttenteSurMetaProgramme>() && m_attente.metaprogramme() == metaprogramme_;
     }
 
+    inline bool attend_sur_ri(Atome **ri)
+    {
+        return m_attente.est<AttenteSurRI>() && m_attente.ri() == ri;
+    }
+
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \

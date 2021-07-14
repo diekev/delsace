@@ -27,6 +27,7 @@
 #include <cassert>
 #include <variant>
 
+struct Atome;
 struct IdentifiantCode;
 struct Message;
 struct MetaProgramme;
@@ -47,6 +48,7 @@ using AttenteSurDeclaration = AttenteSur<NoeudDeclaration>;
 using AttenteSurSymbole = AttenteSur<NoeudExpressionReference>;
 using AttenteSurOperateur = AttenteSur<NoeudExpression>;
 using AttenteSurMessage = AttenteSur<Message>;
+using AttenteSurRI = AttenteSur<Atome*>;
 
 /* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer
  * son chemin dans la compilation. */
@@ -58,7 +60,8 @@ struct Attente {
                                      AttenteSurDeclaration,
                                      AttenteSurSymbole,
                                      AttenteSurOperateur,
-                                     AttenteSurMessage>;
+                                     AttenteSurMessage,
+                                     AttenteSurRI>;
 
     TypeAttente attente{};
 
@@ -112,6 +115,12 @@ struct Attente {
     {
         assert(message);
         return AttenteSurMessage{message};
+    }
+
+    static Attente sur_ri(Atome **atome)
+    {
+        assert(atome);
+        return AttenteSurRI{atome};
     }
 
     /* Discrimination. */
@@ -171,5 +180,11 @@ struct Attente {
     {
         assert(est<AttenteSurMessage>());
         return std::get<AttenteSurMessage>(attente).valeur;
+    }
+
+    Atome **ri() const
+    {
+        assert(est<AttenteSurRI>());
+        return std::get<AttenteSurRI>(attente).valeur;
     }
 };
