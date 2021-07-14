@@ -601,7 +601,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     else {
         std::cerr << "Ne doit pas ajouter les dépendances au programme\n";
         if (noeud->est_corps_fonction()) {
-            erreur::imprime_site(*unite->espace, noeud->comme_corps_fonction()->entete);
+            erreur::imprime_site(*espace, noeud->comme_corps_fonction()->entete);
         }
     }
 #endif
@@ -712,7 +712,7 @@ std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_con
         return Attente::sur_declaration(decl_creation_contexte->corps);
     }
 
-    if (decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+    if (!decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_declaration(decl_creation_contexte->corps);
     }
 
