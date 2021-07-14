@@ -772,6 +772,9 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     assert(metaprogramme->fonction);
     assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
 
+    /* Ajoute le programme à la liste des programmes avant de traiter les dépendances. */
+    metaprogramme_cree(metaprogramme);
+
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
@@ -785,8 +788,6 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     if (attente.has_value()) {
         metaprogramme->fonction->unite->mute_attente(attente.value());
     }
-
-    metaprogramme_cree(metaprogramme);
 }
 
 void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
