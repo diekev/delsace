@@ -34,6 +34,7 @@
 #include "structures/tableau_compresse.hh"
 
 struct AtomeFonction;
+struct EspaceDeTravail;
 struct GrapheDependance;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
@@ -153,6 +154,8 @@ struct DonneesDependance {
         types_utilises.efface();
     }
 };
+
+void imprime_dependances(const DonneesDependance &dependances, EspaceDeTravail *espace, const char *message, std::ostream &flux);
 
 struct GrapheDependance {
     tableau_page<NoeudDependance> noeuds{};

@@ -47,20 +47,6 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
-/*
-  À FAIRE(gestion) : métaprogrammes
-  - ajout d'un programme aux métaprogrammes
-  - si une unité dépend sur l'exécution d'un métaprogramme mets-la en attente
-  - quand le programme du métaprogramme est compilé, crée une unité pour l'exécution du
-  métaprogramme
-  - questions ouvertes :
-    -- qui crée le métaprogramme
-    -- qui notifie le gestionnaire qu'un métaprogramme fut créé (pour ajouter son programme à
-  liste)
-    -- comment gérer les cas où un métaprogramme est créé, mais que les dépendances furent déjà
-       compilées (comme decl_creation_contexte)
- */
-
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
     assert(espace->programme);
@@ -591,32 +577,6 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     epends_dependances_types(graphe, dependances);
 
-#if 0
-    if (noeud->ident == ID::principale) {
-        std::cerr << "Dépendances de la fonction principale :\n";
-
-        std::cerr << "fonctions :\n";
-        dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-            erreur::imprime_site(*espace, fonction);
-            return dls::DecisionIteration::Continue;
-        });
-
-        std::cerr << "globales :\n";
-        /* Requiers le typage de toutes les déclarations utilisées. */
-        dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-            erreur::imprime_site(*espace, globale);
-            return dls::DecisionIteration::Continue;
-        });
-
-        std::cerr << "types :\n";
-        /* Requiers le typage de tous les types utilisés. */
-        dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-            std::cerr << chaine_type(type) << '\n';
-            return dls::DecisionIteration::Continue;
-        });
-    }
-#endif
-
     /* Ajoute les racines aux programmes courants. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
         POUR (programmes_en_cours) {
@@ -1125,22 +1085,12 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         doit_envoyer_en_ri = true;
     }
 
-#if 0  //  À FAIRE(gestion)
+#if 0
     if (noeud->est_corps_fonction() && noeud->comme_corps_fonction()->entete->ident == ID::principale) {
         imprime_evenement(unite, "typage terminé");
 
         if (doit_envoyer_en_ri) {
             imprime_evenement(unite, "ri requise");
-        }
-    }
-
-    if (!noeud->est_execute()) {
-        auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(
-            unite->espace, static_cast<NoeudDeclaration *>(noeud));
-
-        if (message_enfile && doit_envoyer_en_ri) {
-            mets_en_attente(unite, Attente::sur_message(message_enfile));
-            doit_envoyer_en_ri = false;
         }
     }
 #endif
@@ -1154,22 +1104,6 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
     espace->tache_typage_terminee(m_compilatrice->messagere);
-
-#if 0 /* Ancienne logique en cas de non-complétion de la tâche. */
-    if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME &&
-        espace->parsage_termine() &&
-        (unite->index_courant == unite->index_precedent)) {
-        unite->cycle += 1;
-    }
-
-    if (unite->index_courant > unite->index_precedent) {
-        unite->cycle = 0;
-    }
-
-    unite->index_precedent = unite->index_courant;
-
-    taches_typage.enfile(tache_terminee);
-#endif
 }
 
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
