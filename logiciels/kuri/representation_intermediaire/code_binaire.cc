@@ -768,34 +768,18 @@ ffi_type *converti_type_ffi(Type *type)
 
 /* ************************************************************************** */
 
-struct ConvertisseuseRI {
-    MetaProgramme *metaprogramme = nullptr;
-    kuri::tableau<PatchLabel> patchs_labels{};
-    dls::pile<int> pile_taille{};
-    int dernier_decalage_pile = 0;
-
-    ConvertisseuseRI(MetaProgramme *metaprogramme_) : metaprogramme(metaprogramme_)
-    {
+bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctions)
+{
+    POUR (fonctions) {
+        if (!genere_code_pour_fonction(it)) {
+            return false;
+        }
     }
 
-    COPIE_CONSTRUCT(ConvertisseuseRI);
+    return true;
+}
 
-    void genere_code_binaire_pour_instruction(Instruction *instruction,
-                                              Chunk &chunk,
-                                              bool pour_operande);
-
-    void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
-
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                         int decalage,
-                                                         int ou_patcher);
-
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
-};
-
-void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
-                                       AtomeFonction *fonction,
-                                       MetaProgramme *metaprogramme)
+bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 {
     /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
     if (fonction->decl && fonction->decl->est_externe) {
@@ -812,7 +796,7 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
 
         if (fonction->decl->est_variadique) {
             // les fonctions variadiques doivent être préparées pour chaque appel
-            return;
+            return true;
         }
 
         auto type_fonction = fonction->type->comme_fonction();
@@ -833,14 +817,12 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
                                    ptr_types_entrees);
 
         if (status != FFI_OK) {
-            std::cerr << "Impossible de préparer pour FFI !\n";
-            return;
+            espace->rapporte_erreur(fonction->decl, "Impossible de préparer l'interface d'appel forrain pour la fonction");
+            return false;
         }
 
-        return;
+        return true;
     }
-
-    auto convertisseuse = ConvertisseuseRI{metaprogramme};
 
     auto &chunk = fonction->chunk;
 
@@ -864,15 +846,6 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
     }
-
-    // À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
-    // durée de vie de celles-ci ne fonctionne pas
-    //           il existe des superposition partiells entre certaines variables
-    //           lors de la dernière investigation, il semberait que les instructions de retours au
-    //           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
-    //           optimisation et alloue de l'espace pour toutes les variables au début de chaque
-    //           fonction.
-#undef OPTIMISE_ALLOCS
 
 #ifndef OPTIMISE_ALLOCS
     POUR (fonction->instructions) {
@@ -902,15 +875,19 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
             continue;
         }
 
-        convertisseuse.genere_code_binaire_pour_instruction(it, chunk, false);
+        genere_code_binaire_pour_instruction(it, chunk, false);
     }
 
-    POUR (convertisseuse.patchs_labels) {
+    POUR (patchs_labels) {
         auto decalage = chunk.decalages_labels[it.index_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = decalage;
     }
 
+    /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
+    patchs_labels.efface();
+
     // desassemble(chunk, fonction->nom.c_str(), std::cerr);
+    return true;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
@@ -1617,21 +1594,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(constante);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = metaprogramme->ajoute_globale(type_globale,
-                                                                     atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = metaprogramme->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            auto globale = metaprogramme->globales[atome_globale->index];
+            auto index_gloable = genere_code_pour_globale(atome_globale);
+            auto globale = metaprogramme->globales[index_gloable];
 
             auto patch = PatchDonneesConstantes{};
             patch.ou = ou_patcher;
@@ -1682,21 +1646,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(atome);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = metaprogramme->ajoute_globale(type_globale,
-                                                                     atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = metaprogramme->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            chunk.emets_reference_globale(nullptr, atome_globale->index);
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            chunk.emets_reference_globale(nullptr, index_globale);
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1719,4 +1670,34 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
             break;
         }
     }
+}
+
+int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
+{
+    assert(index_globales.valeur_ou(globale, -1) == -1);
+    auto type_globale = globale->type->comme_pointeur()->type_pointe;
+    auto index = metaprogramme->ajoute_globale(type_globale, globale->ident);
+    index_globales.insere(globale, index);
+    return index;
+}
+
+int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
+{
+    auto index = index_globales.valeur_ou(atome_globale, -1);
+
+    if (index != -1) {
+        /* Un index de -1 indique que le code ne fut pas encore généré. */
+        return index;
+    }
+
+    index = ajoute_globale(atome_globale);
+
+    if (atome_globale->est_constante) {
+        auto globale = metaprogramme->globales[index];
+        auto initialisateur = atome_globale->initialisateur;
+        genere_code_binaire_pour_initialisation_globale(
+            initialisateur, globale.adresse, DONNEES_GLOBALES);
+    }
+
+    return index;
 }

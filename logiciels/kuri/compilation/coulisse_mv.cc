@@ -55,11 +55,8 @@ bool CoulisseMV::cree_fichier_objet(Programme *programme,
         repr_inter.fonctions.ajoute(fonc_init);
     }
 
-    POUR (repr_inter.fonctions) {
-        genere_code_binaire_pour_fonction(espace, it, metaprogramme);
-    }
-
-    return true;
+    auto convertisseuse_ri = ConvertisseuseRI(espace, metaprogramme);
+    return convertisseuse_ri.genere_code(repr_inter.fonctions);
 }
 
 bool CoulisseMV::cree_executable(Programme *programme)
