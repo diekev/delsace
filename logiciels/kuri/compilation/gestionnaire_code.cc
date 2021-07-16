@@ -30,6 +30,8 @@
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
+// À FAIRE(gestion) : compilation infinie sur un symbole inconnu
+
 // À FAIRE(gestion) : message pour la génération de code machine
 
 // À FAIRE(gestion) : message pour la liaison du programme finale
