@@ -458,3 +458,139 @@ supprime :: fonc(chm : &CheminFichier) -> z32
 	ptr_chemin := crée_chaine_c_temp(chm.chn)
     retourne remove(ptr_chemin)
 }
+
+// Outils pour travailler sur des chemins
+
+système_séparateur_chemin_préféré :: fonc () -> z8
+{
+    retourne '/'
+}
+
+divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
+{
+    morceaux := divise(chemin.chn, système_séparateur_chemin_préféré())
+
+    pour morceaux {
+        pile.empile(it)
+    }
+}
+
+chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
+{
+    pile_secondaire : Pile(chaine)
+    diffère détruit(pile_secondaire)
+
+    tantque !pile.est_vide() {
+        morceau_courant := pile.dépile()
+
+        si morceau_courant == "." {
+            continue
+        }
+
+        si morceau_courant == ".." {
+            // À FAIRE : si la pile est vide, retourne un chemin invalide
+            saufsi pile.est_vide() {
+                _ := pile.dépile()
+            }
+            continue
+        }
+
+        pile_secondaire.empile(morceau_courant)
+    }
+
+    résultat : chaine
+
+    // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
+    // chemin on tous été supprimés, soit que le chemin fut celui de la racine
+    si pile_secondaire.est_vide() {
+        chaine_ajoute(*résultat, système_séparateur_chemin_préféré())
+    }
+
+    tantque !pile_secondaire.est_vide() {
+        morceau_courant := pile_secondaire.dépile()
+        chaine_ajoute(*résultat, système_séparateur_chemin_préféré())
+        chaine_ajoute(*résultat, morceau_courant)
+    }
+
+    retourne CheminFichier(résultat)
+}
+
+chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
+{
+    pile: Pile(chaine)
+    diffère détruit(pile)
+    divise_et_empile_chemin(pile, chemin)
+    retourne chemin_normalisé(pile)
+}
+
+opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
+{
+    retourne chemin1.chn == chemin2.chn
+}
+
+opérateur == :: fonc (chemin: CheminFichier, chn: chaine) -> bool
+{
+    retourne chemin.chn == chn
+}
+
+opérateur != :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
+{
+    retourne chemin1.chn != chemin2.chn
+}
+
+opérateur != :: fonc (chemin: CheminFichier, chn: chaine) -> bool
+{
+    retourne chemin.chn != chn
+}
+
+chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
+{
+    chemin1_normalisé := chemin_normalisé(chemin1)
+    chemin2_normalisé := chemin_normalisé(chemin2)
+    diffère déloge(chemin1_normalisé.chn)
+    diffère déloge(chemin2_normalisé.chn)
+    retourne chemin1_normalisé == chemin2_normalisé
+}
+
+crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+{
+    // divise selon le séparateur du système
+    pile : Pile(chaine)
+    diffère détruit(pile)
+    divise_et_empile_chemin(pile, base)
+    divise_et_empile_chemin(pile, feuille)
+    retourne chemin_normalisé(pile)
+}
+
+/*
+    À FAIRE : tests
+
+    /. -> /
+
+    /home/../dev -> /dev
+    /home/./kevin -> /home/kevin
+
+    chm := crée_chemin_absolu(CheminFichier("/"), CheminFichier("."))
+
+    si chm != "/" {
+        imprime("Erreur !\n")
+    }
+
+    imprime("%\n", chm.chn)
+    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("./kevin"))
+
+    si chm != "/home/kevin" {
+        imprime("Erreur !\n")
+    }
+    imprime("%\n", chm.chn)
+    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("../dev"))
+    si chm != "/dev" {
+        imprime("Erreur !\n")
+    }
+    imprime("%\n", chm.chn)
+
+    si chemins_sont_équivalents(CheminFichier("/home/kevin"), CheminFichier("/home/kevin/../kevin")) {
+        imprime("Les chemins sont équivalents !\n")
+    }
+
+ */
