@@ -594,3 +594,33 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
     }
 
  */
+
+
+/*
+
+    Opération sur les chemins de fichiers :
+    - trouve le nom du dossier
+    - trouve le nom du fichier
+    - trouve l'extension
+    - remplace l'extension
+    - chemin relatif (crée_chemin_relatif, est_chemin_relatif, est_relatif_à)
+    - chemin absolu (crée_chemin_absolu, est_chemin_absolu)
+    - chemins sont équivalents
+    - normalisation de chemin
+    - crée un nom sûr (pour éviter les problèmes sur Windows dûs à des noms réservés)
+    - ajout d'un suffixe avant l'extension (manipulations générales)
+
+    - détermine une séquence de fichier (a001.ext, a0002.ext, etc.)
+        -- séquence d'images
+        -- séquence de caches
+        -- séquence UDIM
+        -- avoir un système de token pour définir où se trouve la quantité à trouver
+            -- mon_image.<UDIM>.ext
+            -- mon_image.<u0_v0>.ext
+            -- mon_image.<u1_v1>.ext
+            -- etc.
+    - crée une séquence de fichier
+        -- pour les séquences, l'application cliente peut se charger de créer le bon chemin
+
+
+ */
