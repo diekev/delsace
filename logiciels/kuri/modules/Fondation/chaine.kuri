@@ -149,6 +149,7 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 	}
 }
 
+// À FAIRE : permet de d'avoir une version avec un conteneur spécialisé (p.e. une pile)
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {
     taille_mot : z64 = 0
