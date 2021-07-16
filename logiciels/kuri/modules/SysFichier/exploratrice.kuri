@@ -1,0 +1,81 @@
+importe GlibC
+importe Structures
+
+/* Exploratrice de système de fichier pour visiter des dossiers depuis un chemin racine.
+ * L'exploratrice peut avoir un filtre pour ignorer certains fichiers.
+ * Voir aussi:
+ * https://ensiwiki.ensimag.fr/index.php?title=Towards_a_better_libc_primitive_for_handling_path_names */
+
+ExploratriceFichier :: struct {
+    // Le dossier racine où commencer l'exploration
+    racine: CheminFichier
+
+    pile_dossiers: Pile(*DIR)
+
+    filtre_chemin: fonc(CheminFichier)(bool)
+}
+
+détruit :: fonc (exploratrice: &ExploratriceFichier)
+{
+    détruit(exploratrice.pile_dossiers)
+}
+
+crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichier
+{
+    exploratrice: ExploratriceFichier
+    si est_dossier(chemin) {
+        exploratrice.racine = chemin
+        empile_dossier(exploratrice, chemin)
+    }
+    retourne exploratrice
+}
+
+/* Retourne le prochain chemin dans le dossier courant de l'exploration.
+ * Le chemin est alloué dynamiquement, et c'est la responsabilité de l'appelant
+ * de libérer la mémoire. */
+chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> CheminFichier | z32
+{
+    tantque !exploration_finie(exploratrice) {
+        dossier_courant := exploratrice.pile_dossiers.tête()
+        entrée := readdir(dossier_courant)
+
+        si entrée == nul {
+            dépile_dossier(exploratrice)
+            continue
+        }
+
+        chemin_entrée := chemin_pour_dirname(entrée)
+
+        si chemin_entrée.chn == "." || chemin_entrée.chn == ".." {
+            continue
+        }
+
+        si exploratrice.filtre_chemin && !exploratrice.filtre_chemin(chemin_entrée) {
+            continue
+        }
+
+        retourne crée_chemin_absolu(exploratrice.racine, chemin_entrée)
+    }
+
+    retourne 0
+}
+
+exploration_finie :: fonc (exploratrice: &ExploratriceFichier) -> bool
+{
+    retourne exploratrice.pile_dossiers.est_vide()
+}
+
+empile_dossier :: fonc (exploratrice: &ExploratriceFichier, chemin: CheminFichier)
+{
+    dir := ouvre_dossier(chemin)
+
+    si dir {
+        exploratrice.pile_dossiers.empile(dir)
+    }
+}
+
+dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
+{
+    dir := exploratrice.pile_dossiers.dépile()
+    _ := closedir(dir)
+}
