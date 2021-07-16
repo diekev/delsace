@@ -978,7 +978,6 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "section", "summary", "ul") {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("la portée ne possède aucun élément du même tag de fin")
-                dépile(*parseuse.pile_éléments_ouvert)
                 retourne
             }
 
