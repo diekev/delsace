@@ -157,8 +157,10 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 
     pour c, i dans ligne {
 	    si c == séparation {
-			mot := construit_chaine(*ligne[début_mot], taille_mot)
-            tableau_ajoute(*mots, mot)
+            si i != 0 {
+                mot := construit_chaine(*ligne[début_mot], taille_mot)
+                tableau_ajoute(*mots, mot)
+            }
 
 			début_mot = i + 1 comme z64
 			taille_mot = 0
