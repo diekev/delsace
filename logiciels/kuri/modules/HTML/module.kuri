@@ -2,6 +2,7 @@
 // Spec : https://html.spec.whatwg.org/multipage/parsing.html
 
 importe Fondation
+importe Temps
 
 imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
 {
@@ -114,4 +115,37 @@ détruit_noeud :: fonc (noeud: *Noeud)
     déloge(noeud.attributs)
     déloge(noeud.enfants)
     détruit_noeud_selon_genre(noeud)
+}
+
+/* Résultat du parsage (« parsat », de « parser » + « -at ») d'un document HTML. */
+ParsatHTML :: struct {
+    /* Le document qui fut parsé. */
+    document: *Document
+    /* Les différentes erreurs parsage. */
+    erreurs: []chaine
+    /* Le temps de parsage du document, en microsecondes. */
+    temps: z64
+}
+
+détruit :: fonc (parsat: &ParsatHTML)
+{
+    détruit_noeud(parsat.document)
+    déloge(parsat.erreurs)
+}
+
+/* Parse un document HTML depuis une chaine de caractère. */
+parse_document :: fonc (document: chaine) -> ParsatHTML
+{
+    parseuse := initialise_parseuse(document)
+    diffère { détruit_parseuse(*parseuse) }
+
+    début := maintenant_précis()
+    parse(*parseuse)
+    temps := début.temps_écoulé_microsecondes()
+
+    parsat : ParsatHTML
+    parsat.document = parseuse.document
+    parsat.temps = temps
+    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)
+    retourne parsat
 }
