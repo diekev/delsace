@@ -27,6 +27,8 @@ Parseuse :: struct {
     pause := faux
 
     niveau_imbrication_script := 0
+
+    erreurs: []chaine
 }
 
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
@@ -45,6 +47,7 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
     détruit_liste(*parseuse.liste_éléments_actifs_formattage)
     déloge(parseuse.pile_éléments_ouvert.éléments)
     déloge(parseuse.pile_insertion_template)
+    déloge(parseuse.erreurs)
 }
 
 parse :: fonc (parseuse: *Parseuse)
@@ -185,7 +188,7 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> inattendu")
+        erreur_de_parsage(parseuse, "<doctype> inattendu")
         retourne
     }
 
@@ -235,7 +238,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> avant <head>")
+        erreur_de_parsage(parseuse, "<doctype> avant <head>")
         retourne
     }
 
@@ -285,7 +288,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> dans <head>")
+        erreur_de_parsage(parseuse, "<doctype> dans <head>")
         retourne
     }
 
@@ -370,14 +373,14 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "template" {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
-                erreur_de_parsage("aucun <template> dans la pile d'éléments ouverts")
+                erreur_de_parsage(parseuse, "aucun <template> dans la pile d'éléments ouverts")
                 retourne
             }
 
             parseuse.génère_tags_fin_implicites_attentivement()
 
             si parseuse.noeud_courant().texte != "template" {
-                erreur_de_parsage("le noeud courant n'est pas un <template>")
+                erreur_de_parsage(parseuse, "le noeud courant n'est pas un <template>")
             }
 
             parseuse.dépile_tous_les_éléments_jusque("template")
@@ -398,7 +401,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> dans <noscript>")
+        erreur_de_parsage(parseuse, "<doctype> dans <noscript>")
         retourne
     }
 
@@ -421,7 +424,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "head" || lexème.nom == "noscript" {
-            erreur_de_parsage("<head> ou <noscript> dans <noscript>")
+            erreur_de_parsage(parseuse, "<head> ou <noscript> dans <noscript>")
             retourne
         }
 
@@ -439,7 +442,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom != "br" {
-            erreur_de_parsage("élément inattendu dans <noscript>")
+            erreur_de_parsage(parseuse, "élément inattendu dans <noscript>")
             retourne
         }
     }
@@ -462,7 +465,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> après <head>")
+        erreur_de_parsage(parseuse, "<doctype> après <head>")
         retourne
     }
 
@@ -490,7 +493,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
-            erreur_de_parsage("élément inattendu après <head>")
+            erreur_de_parsage(parseuse, "élément inattendu après <head>")
 
             empile(*parseuse.pile_éléments_ouvert, parseuse.élément_head)
             parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
@@ -615,7 +618,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     noeud = parseuse.noeud_courant()
 
                     si noeud.texte != "li" {
-                        erreur_de_parsage("le noeud courant n'est pas un <li>")
+                        erreur_de_parsage(parseuse, "le noeud courant n'est pas un <li>")
                     }
 
                     tantque noeud.texte != "li" {
@@ -659,7 +662,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             noeud := parseuse.noeud_courant()
             si fait_partie_de(noeud.texte, "h1", "h2", "h3", "h4", "h5", "h6") {
-                erreur_de_parsage("élément <h> ouvert quand un autre <h> s'ouvre")
+                erreur_de_parsage(parseuse, "élément <h> ouvert quand un autre <h> s'ouvre")
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
@@ -689,7 +692,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     parseuse.génère_tags_fin_implicites_autres_que("dd")
 
                     si parseuse.noeud_courant().texte != "dd" {
-                        erreur_de_parsage("le noeud courant doit être un <dd>")
+                        erreur_de_parsage(parseuse, "le noeud courant doit être un <dd>")
                     }
 
                     parseuse.dépile_tous_les_éléments_jusque("dd")
@@ -699,7 +702,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     parseuse.génère_tags_fin_implicites_autres_que("dt")
 
                     si parseuse.noeud_courant().texte != "dt" {
-                        erreur_de_parsage("le noeud courant doit être un <dt>")
+                        erreur_de_parsage(parseuse, "le noeud courant doit être un <dt>")
                     }
 
                     parseuse.dépile_tous_les_éléments_jusque("dt")
@@ -726,7 +729,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "button" {
             si possède_dans_portée(*parseuse.pile_éléments_ouvert, "button") {
-                erreur_de_parsage("<button> déjà ouvert lors de l'ouverture d'un <button>")
+                erreur_de_parsage(parseuse, "<button> déjà ouvert lors de l'ouverture d'un <button>")
                 génère_tags_fin_implicites(parseuse)
 
                 dépile_tous_les_éléments_jusque(parseuse, "button")
@@ -900,7 +903,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 parseuse.génère_tags_fin_implicites()
 
                 si parseuse.noeud_courant().texte != "ruby" {
-                    erreur_de_parsage("attendu un élément <ruby>")
+                    erreur_de_parsage(parseuse, "attendu un élément <ruby>")
                 }
 
                 _ := parseuse.insère_élément_html(lexème)
@@ -913,7 +916,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 parseuse.génère_tags_fin_implicites_autres_que("rtc")
 
                 si !fait_partie_de(parseuse.noeud_courant().texte, "ruby", "rtc") {
-                    erreur_de_parsage("attendu un élément <ruby> ou <rtc>")
+                    erreur_de_parsage(parseuse, "attendu un élément <ruby> ou <rtc>")
                 }
 
                 _ := parseuse.insère_élément_html(lexème)
@@ -977,7 +980,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "section", "summary", "ul") {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("la portée ne possède aucun élément du même tag de fin")
+                erreur_de_parsage(parseuse, "la portée ne possède aucun élément du même tag de fin")
                 retourne
             }
 
@@ -986,7 +989,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             noeud := parseuse.noeud_courant()
 
             si noeud.texte != lexème.nom {
-                erreur_de_parsage("le noeud courrant ne possède pas le même tag de fin")
+                erreur_de_parsage(parseuse, "le noeud courrant ne possède pas le même tag de fin")
             }
 
             dépile_tous_les_éléments_jusque(parseuse, lexème.nom)
@@ -1008,14 +1011,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 parseuse.génère_tags_fin_implicites()
 
                 si noeud != parseuse.noeud_courant() {
-                    erreur_de_parsage("l'élément <form> n'est pas le noeud courrant")
+                    erreur_de_parsage(parseuse, "l'élément <form> n'est pas le noeud courrant")
                 }
 
                 supprime_élément(*parseuse.pile_éléments_ouvert, noeud)
             }
             sinon {
                 si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "form") {
-                    erreur_de_parsage("<form> n'est pas la dans la portée")
+                    erreur_de_parsage(parseuse, "<form> n'est pas la dans la portée")
                     retourne
                 }
 
@@ -1024,7 +1027,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 noeud := parseuse.noeud_courant()
 
                 si noeud.texte != "form" {
-                    erreur_de_parsage("attendu un élément <form>")
+                    erreur_de_parsage(parseuse, "attendu un élément <form>")
                 }
 
                 dépile_tous_les_éléments_jusque(parseuse, "form")
@@ -1035,7 +1038,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "p" {
             si !possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
-                erreur_de_parsage("aucun <p> ouvert dans une portée <button>")
+                erreur_de_parsage(parseuse, "aucun <p> ouvert dans une portée <button>")
 
                 lexème_p : Lexème
                 lexème_p.genre = GenreLexème.DébutTag
@@ -1049,7 +1052,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "li" {
             si !possède_dans_portée_list_item(*parseuse.pile_éléments_ouvert, "li") {
-                erreur_de_parsage("aucun <li> dans portée list item")
+                erreur_de_parsage(parseuse, "aucun <li> dans portée list item")
                 retourne
             }
 
@@ -1058,7 +1061,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             noeud := parseuse.noeud_courant()
 
             si noeud.texte != "li" {
-                erreur_de_parsage("le noeud courant n'est pas un <li>")
+                erreur_de_parsage(parseuse, "le noeud courant n'est pas un <li>")
             }
 
             dépile_tous_les_éléments_jusque(parseuse, "li")
@@ -1067,14 +1070,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "dd" || lexème.nom == "dt" {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("aucun <dd> ou <dt> dans la portée")
+                erreur_de_parsage(parseuse, "aucun <dd> ou <dt> dans la portée")
                 retourne
             }
 
             parseuse.génère_tags_fin_implicites_autres_que(lexème.nom)
 
             si parseuse.noeud_courant().texte != lexème.nom {
-                erreur_de_parsage("le noeud courant n'est ni un <dd> ni un <dt>")
+                erreur_de_parsage(parseuse, "le noeud courant n'est ni un <dd> ni un <dt>")
             }
 
             parseuse.dépile_tous_les_éléments_jusque(lexème.nom)
@@ -1083,7 +1086,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
             si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("aucun élément <h> dans la porté")
+                erreur_de_parsage(parseuse, "aucun élément <h> dans la porté")
                 retourne
             }
 
@@ -1092,7 +1095,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             noeud := parseuse.noeud_courant()
 
             si noeud.texte != lexème.nom {
-                erreur_de_parsage("le noeud courant n'a pas de balise <h>")
+                erreur_de_parsage(parseuse, "le noeud courant n'a pas de balise <h>")
                 imprime("balise : <%>\n", lexème.nom)
             }
 
@@ -1177,7 +1180,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("doctype dans table")
+        erreur_de_parsage(parseuse, "doctype dans table")
         retourne
     }
 
@@ -1230,7 +1233,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "table" {
-            erreur_de_parsage("<table> dans <table>")
+            erreur_de_parsage(parseuse, "<table> dans <table>")
 
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "table") {
                 retourne
@@ -1251,7 +1254,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             attr := cherche_attribut(*lexème, "type")
 
             si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
-                erreur_de_parsage("lexème inattendu dans table")
+                erreur_de_parsage(parseuse, "lexème inattendu dans table")
                 parseuse.adoption_activée = vrai
                 parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
                 parseuse.adoption_activée = faux
@@ -1265,7 +1268,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "form" {
-            erreur_de_parsage("<form> dans <table>")
+            erreur_de_parsage(parseuse, "<form> dans <table>")
 
             si parseuse.élément_form != nul || possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
                 // ignore
@@ -1281,7 +1284,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "table" {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "table") {
-                erreur_de_parsage("auncune <table> dans la portée table")
+                erreur_de_parsage(parseuse, "auncune <table> dans la portée table")
                 retourne
             }
 
@@ -1291,7 +1294,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "body", "caption", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr") {
-            erreur_de_parsage("balise inattendue dans <table>")
+            erreur_de_parsage(parseuse, "balise inattendue dans <table>")
             retourne
         }
 
@@ -1306,7 +1309,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    erreur_de_parsage("lexème inattendu dans table")
+    erreur_de_parsage(parseuse, "lexème inattendu dans table")
     parseuse.adoption_activée = vrai
     parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
     parseuse.adoption_activée = faux
@@ -1338,7 +1341,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "th", "td") {
-            erreur_de_parsage("<th> ou <td> dans corps table")
+            erreur_de_parsage(parseuse, "<th> ou <td> dans corps table")
             parseuse.dépile_vers_contexte_table_body()
 
             lexème_tr : Lexème
@@ -1365,7 +1368,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si fait_partie_de(lexème.nom, "tbody", "tfoot", "thead") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("élément hors d'une portée <table>")
+                erreur_de_parsage(parseuse, "élément hors d'une portée <table>")
                 // ignore
                 retourne
             }
@@ -1387,7 +1390,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "body", "caption", "col", "colgroup", "html", "td", "th", "tr") {
-            erreur_de_parsage("élément invalide dans <table>")
+            erreur_de_parsage(parseuse, "élément invalide dans <table>")
         }
     }
 
@@ -1407,7 +1410,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
-                erreur_de_parsage("élément invalide dans <tr>")
+                erreur_de_parsage(parseuse, "élément invalide dans <tr>")
                 retourne
             }
 
@@ -1422,7 +1425,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "tr" {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
-                erreur_de_parsage("<tr> manquant dans portée <table>")
+                erreur_de_parsage(parseuse, "<tr> manquant dans portée <table>")
                 retourne
             }
 
@@ -1434,7 +1437,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "table" {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
-                erreur_de_parsage("élément invalide dans <tr>")
+                erreur_de_parsage(parseuse, "élément invalide dans <tr>")
                 retourne
             }
 
@@ -1447,7 +1450,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "tbody", "tfoot", "thead") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("élément manquant dans <tr>")
+                erreur_de_parsage(parseuse, "élément manquant dans <tr>")
                 retourne
             }
 
@@ -1463,7 +1466,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "body", "caption", "col", "colgroup", "html", "td", "th") {
-            erreur_de_parsage("élément invalide dans <tr>")
+            erreur_de_parsage(parseuse, "élément invalide dans <tr>")
             retourne
         }
     }
@@ -1476,14 +1479,14 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si fait_partie_de(lexème.nom, "td", "th") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("aucun élément du type dans portée <table>")
+                erreur_de_parsage(parseuse, "aucun élément du type dans portée <table>")
                 retourne
             }
 
             parseuse.génère_tags_fin_implicites()
 
             si parseuse.noeud_courant().texte != lexème.nom {
-                erreur_de_parsage("le noeud courant n'est pas de la même balise")
+                erreur_de_parsage(parseuse, "le noeud courant n'est pas de la même balise")
             }
 
             parseuse.dépile_tous_les_éléments_jusque(lexème.nom)
@@ -1493,13 +1496,13 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "body", "caption", "col", "colgroup", "html") {
-            erreur_de_parsage("élément invalide dans cellule")
+            erreur_de_parsage(parseuse, "élément invalide dans cellule")
             retourne
         }
 
         si fait_partie_de(lexème.nom, "table", "tbody", "tfoot", "thead", "tr") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
-                erreur_de_parsage("élément manquant de la portée <table>")
+                erreur_de_parsage(parseuse, "élément manquant de la portée <table>")
                 retourne
             }
 
@@ -1512,7 +1515,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.DébutTag {
         si fait_partie_de(lexème.nom, "caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr") {
             si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "td") && !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "th") {
-                erreur_de_parsage("<td> ou <tr> manquant dans portée <table>")
+                erreur_de_parsage(parseuse, "<td> ou <tr> manquant dans portée <table>")
                 retourne
             }
 
@@ -1529,7 +1532,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère {
         si lexème.point_de_code == NUL {
-            erreur_de_parsage("caractère nul dans <select>")
+            erreur_de_parsage(parseuse, "caractère nul dans <select>")
             retourne
         }
 
@@ -1543,7 +1546,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("<doctype> dans <select>")
+        erreur_de_parsage(parseuse, "<doctype> dans <select>")
         retourne
     }
 
@@ -1576,10 +1579,10 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "select" {
-            erreur_de_parsage("<select> inattendu")
+            erreur_de_parsage(parseuse, "<select> inattendu")
 
             si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
-                erreur_de_parsage("aucun <select> dans la portée <select>")
+                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
                 retourne
             }
 
@@ -1589,10 +1592,10 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "input", "keygen", "textarea") {
-            erreur_de_parsage("élément inattendu dans <select>")
+            erreur_de_parsage(parseuse, "élément inattendu dans <select>")
 
             si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
-                erreur_de_parsage("aucun <select> dans la portée <select>")
+                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
                 retourne
             }
 
@@ -1614,7 +1617,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             si parseuse.noeud_courant().texte != "optgroup" {
-                erreur_de_parsage("attendu <optgroup> sur la pile d'éléments ouverts")
+                erreur_de_parsage(parseuse, "attendu <optgroup> sur la pile d'éléments ouverts")
                 retourne
             }
 
@@ -1624,7 +1627,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "option" {
             si parseuse.noeud_courant().texte != "option"  {
-                erreur_de_parsage("attendu <option> sur la pile d'éléments ouverts")
+                erreur_de_parsage(parseuse, "attendu <option> sur la pile d'éléments ouverts")
                 retourne
             }
 
@@ -1634,7 +1637,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "select" {
             si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
-                erreur_de_parsage("aucun <select> dans la portée <select>")
+                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
                 retourne
             }
 
@@ -1654,7 +1657,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    erreur_de_parsage("lexème inattendu dans <select>")
+    erreur_de_parsage(parseuse, "lexème inattendu dans <select>")
 }
 
 insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1720,7 +1723,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        erreur_de_parsage("fin de tag invalide dans <template>")
+        erreur_de_parsage(parseuse, "fin de tag invalide dans <template>")
         retourne
     }
 
@@ -1730,7 +1733,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        erreur_de_parsage("fin de fichier dans <template>")
+        erreur_de_parsage(parseuse, "fin de fichier dans <template>")
         parseuse.dépile_tous_les_éléments_jusque("template")
         enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
         parseuse.pile_insertion_template.taille -= 1
@@ -1754,7 +1757,7 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage("obtenu doctype après body")
+        erreur_de_parsage(parseuse, "obtenu doctype après body")
         retourne
     }
 
@@ -1927,18 +1930,18 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si !possède(*parseuse.pile_éléments_ouvert, élément_formattage) {
-            erreur_de_parsage("l'élément de formattage n'est pas dans la pile d'élément ouvert")
+            erreur_de_parsage(parseuse, "l'élément de formattage n'est pas dans la pile d'élément ouvert")
             supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
             retourne
         }
 
         si !possède_dans_portée(*parseuse.pile_éléments_ouvert, élément_formattage) {
-            erreur_de_parsage("l'élément de formattage n'est pas dans la portée")
+            erreur_de_parsage(parseuse, "l'élément de formattage n'est pas dans la portée")
             retourne
         }
 
         si élément_formattage != parseuse.noeud_courant() {
-            erreur_de_parsage("l'élément de formattage n'est pas le noeud courrant")
+            erreur_de_parsage(parseuse, "l'élément de formattage n'est pas le noeud courrant")
             // ne retourne pas
         }
 
@@ -2004,7 +2007,7 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             parseuse.génère_tags_fin_implicites_autres_que(lexème.nom)
 
             si élément != parseuse.noeud_courant() {
-                erreur_de_parsage("l'élément n'est pas le noeud courrant")
+                erreur_de_parsage(parseuse, "l'élément n'est pas le noeud courrant")
             }
 
             // 3. Pop all the nodes from the current node up to node, including node : ceci devrait déjà être fait ?
@@ -2016,7 +2019,7 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             arrête
         }
         sinon si fait_partie_de_catégorie_spécial(élément.texte) {
-            erreur_de_parsage("l'élément est dans la catégorie spéciale")
+            erreur_de_parsage(parseuse, "l'élément est dans la catégorie spéciale")
             retourne
         }
 
@@ -2032,7 +2035,7 @@ ferme_un_élément_p :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     si noeud.texte != "p" {
-        erreur_de_parsage("l'élément courant n'est pas un <p>")
+        erreur_de_parsage(parseuse, "l'élément courant n'est pas un <p>")
     }
 
     dépile_tous_les_éléments_jusque(parseuse, "p")
@@ -2079,9 +2082,9 @@ dépile_vers_contexte_table_row :: fonc (parseuse: *Parseuse)
     }
 }
 
-erreur_de_parsage :: fonc (message: chaine)
+erreur_de_parsage :: fonc (parseuse: *Parseuse, message: chaine)
 {
-    imprime("erreur de parsage : % !\n", message)
+    tableau_ajoute(*parseuse.erreurs, message)
 }
 
 restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
@@ -2200,7 +2203,7 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     si !fait_partie_de(noeud.texte, "td", "th") {
-        erreur_de_parsage("attendu un <td> ou <th>")
+        erreur_de_parsage(parseuse, "attendu un <td> ou <th>")
     }
 
     tantque !fait_partie_de(noeud.texte, "td", "th") {
