@@ -225,6 +225,43 @@ système_positionne_fichier :: fonc (fd: z32, décalage: z32, où: z32) -> Résu
     retourne résultat comme z32
 }
 
+système_position_courante_fichier :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, 0, SEEK_CUR)
+}
+
+système_position_début_fichier :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, 0, SEEK_SET)
+}
+
+système_position_fin_fichier :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, 0, SEEK_END)
+}
+
+système_fin_de_fichier :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    position_courante := tente système_position_courante_fichier(fd) piège err {
+        retourne err
+    }
+
+    fin_de_fichier := tente système_position_fin_fichier(fd) piège err {
+        retourne err
+    }
+
+    // repositionne là où nous étions
+    _ := tente système_positionne_fichier(fd, position_courante, SEEK_SET) piège err {
+        retourne err
+    }
+
+    si position_courante >= fin_de_fichier {
+        retourne 1
+    }
+
+    retourne 0
+}
+
 crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFichier
 {
     chn_c_cible := crée_chaine_c(cible)
@@ -373,7 +410,7 @@ ferme :: fonc (fichier: *Fichier) -> ErreurFichier
     retourne système_ferme(fichier.desc)
 }
 
-lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
+lis :: fonc (fichier: *Fichier, tampon: chaine) -> RésultatOpérationFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
         retourne 0 comme ErreurFichier
@@ -383,7 +420,7 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
         retourne err
     }
 
-    retourne 0 comme ErreurFichier
+    retourne octets_lus comme z32
 }
 
 RésultatLectureN64 :: union {
@@ -524,6 +561,15 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     }
 
     retourne résultat
+}
+
+est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
+{
+    résultat := tente système_fin_de_fichier(fichier.desc) piège err {
+        retourne vrai
+    }
+
+    retourne résultat == 1
 }
 
 // écris_à_la_position
