@@ -1,0 +1,180 @@
+#bibliothèque_statique "libmodule_c_compression.a"
+#bibliothèque_dynamique "z"
+
+importe Fondation
+importe SysFichier
+
+charge "interface"
+
+/* Création d'un flux de compression pour un fichier. */
+
+crée_flux_compression_pour_fichier :: fonc (fichier: *Fichier) -> FluxCompression
+{
+    flux : FluxCompression
+    flux.donnees_utilisateur = fichier
+    flux.lis = flux_compression_fichier_lis
+    flux.ecris = flux_compression_fichier_ecris
+    flux.possede_erreur = flux_compression_fichier_possede_erreur
+    flux.fin_de_flux = flux_compression_fichier_fin_de_flux
+    retourne flux
+}
+
+flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+{
+    taille_écrite : n32
+
+    pousse_contexte __contexte_fil_principal {
+        fichier := flux.donnees_utilisateur comme *Fichier
+
+        tampon : []octet = ---
+        tampon.pointeur = données comme *octet
+        tampon.taille = taille comme z64
+
+        résultat := fichier.écris(tampon)
+
+        discr résultat {
+            e {
+                taille_écrite = 0
+            }
+            r {
+                taille_écrite = résultat.r comme n32
+            }
+        }
+    }
+
+    retourne taille_écrite
+}
+
+flux_compression_fichier_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+{
+    taille_lue : n32
+
+    pousse_contexte __contexte_fil_principal {
+        fichier := flux.donnees_utilisateur comme *Fichier
+
+        tampon : chaine = ---
+        tampon.pointeur = données comme *z8
+        tampon.taille = taille comme z64
+
+        résultat := fichier.lis(tampon)
+
+        discr résultat {
+            e {
+                taille_lue = 0
+            }
+            r {
+                taille_lue = résultat.r comme n32
+            }
+        }
+    }
+
+    retourne taille_lue
+}
+
+flux_compression_fichier_fin_de_flux :: fonc (flux: *FluxCompression) -> bool #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        fichier := flux.donnees_utilisateur comme *Fichier
+        si est_fin_de_fichier(fichier) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+flux_compression_fichier_possede_erreur :: fonc (flux: *FluxCompression) -> bool #nulctx
+{
+    // À FAIRE
+    retourne faux
+}
+
+/* Création d'un flux de compression pour une chaine. */
+
+crée_flux_compression_pour_chaine :: fonc (chn: *chaine) -> FluxCompression
+{
+    flux : FluxCompression
+    flux.donnees_utilisateur = chn
+    flux.lis = flux_compression_chaine_lis
+    flux.ecris = flux_compression_chaine_ecris
+    flux.possede_erreur = flux_compression_chaine_possede_erreur
+    flux.fin_de_flux = flux_compression_chaine_fin_de_flux
+    retourne flux
+}
+
+flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+{
+    taille_écrite : n32
+
+    pousse_contexte __contexte_fil_principal {
+        chn := flux.donnees_utilisateur comme *chaine
+
+        tampon : chaine = ---
+        tampon.pointeur = données comme *z8
+        tampon.taille = taille comme z64
+
+        taille_écrite = taille
+
+        chaine_ajoute(chn, tampon)
+    }
+
+    retourne taille_écrite
+}
+
+flux_compression_chaine_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+{
+    taille_lue : n32
+
+    pousse_contexte __contexte_fil_principal {
+        chn := flux.donnees_utilisateur comme *chaine
+
+        taille_z64 := taille comme z64
+
+        si taille_z64 > chn.taille {
+            taille_z64 = chn.taille
+        }
+
+        copie_mem_nonsur(src = chn.pointeur, dst = données, taille = taille_z64)
+
+        taille_lue = taille_z64 comme n32
+        mémoire(chn) = avance(mémoire(chn), taille_z64)
+    }
+
+    retourne taille_lue
+}
+
+flux_compression_chaine_fin_de_flux :: fonc (flux: *FluxCompression) -> bool #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        chn := flux.donnees_utilisateur comme *chaine
+        retourne chn.taille == 0
+    }
+    retourne faux
+}
+
+flux_compression_chaine_possede_erreur :: fonc (flux: *FluxCompression) -> bool #nulctx
+{
+    retourne faux
+}
+
+taille_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression) -> n32 #nulctx
+{
+    retourne 1024
+}
+
+cree_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, taille: n32) -> *n8 #nulctx
+{
+    ptr: *n8
+
+    pousse_contexte __contexte_fil_principal {
+        ptr = loge_mémoire(taille comme z64, nul, PositionCodeSource())
+    }
+
+    retourne ptr
+}
+
+detruit_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, pointeur: *n8, taille: n32) -> rien #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
+    }
+}
