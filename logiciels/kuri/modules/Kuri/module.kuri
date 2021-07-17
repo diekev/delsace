@@ -676,6 +676,19 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
+/**
+ * Retourne un tableau ayant les mêmes valeurs que le tableau en paramètre, et réinitialise
+ * ce dernier. Ceci est utile pour transférer la propriété d'un tableau.
+ */
+tableau_vole_mémoire :: fonc (tableau: &[]$T) -> []T
+{
+    résultat := tableau
+    tableau.pointeur = nul
+    tableau.taille = 0
+    tableau.capacité = 0
+    retourne résultat
+}
+
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> z64 #externe
