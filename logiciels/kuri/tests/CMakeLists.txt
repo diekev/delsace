@@ -72,3 +72,11 @@ install(
 	DIRECTORY fichiers
 	DESTINATION ${RACINE_INSTALLATION}/fichiers_tests
 )
+
+################################################################################
+
+add_executable(test_transformation test_transformation.cc)
+target_include_directories(test_transformation PUBLIC "${INCLUSIONS}")
+target_link_libraries(test_transformation "${BIBLIOTHEQUES}")
+
+add_test(NAME test_transformation COMMAND test_transformation)
