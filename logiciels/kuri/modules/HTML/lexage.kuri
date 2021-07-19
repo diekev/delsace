@@ -1950,21 +1950,54 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
     retourne vrai
 }
 
+ChaineFixe :: struct {
+    données: [23]z8
+    taille: z8
+}
+
+chaine_ajoute :: fonc (chn: *ChaineFixe, c: z8)
+{
+    chn.données[chn.taille] = c
+    chn.taille += 1
+}
+
+chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
+{
+	nombre_octets := point_de_code_vers_utf8(point_de_code, *chn.données[chn.taille] comme *n8)
+
+	si nombre_octets == 0 {
+		// À FAIRE : que faire ici ?
+		retourne
+	}
+
+    chn.taille += nombre_octets comme z8
+}
+
+converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = *chn.données[0]
+    résultat.taille = chn.taille
+    retourne résultat
+}
+
 cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 {
     dernier_résultat : RésultatRecherche
     dernier_caractère_apparié : n32
 
+    tampon_temporaire : ChaineFixe
+
     boucle {
         caractère_suivant := lexeuse.point_de_code_suivant()
+        // À FAIRE: supprime ceci par quelque moyen
         chaine_ajoute(*lexeuse.tampon_temporaire, caractère_suivant)
 
-        // XXX - À FAIRE
-        chn_temp := converti_vers_chaine(lexeuse.tampon_temporaire)
+        chaine_ajoute(*tampon_temporaire, caractère_suivant)
+
+        chn_temp := converti_vers_chaine(tampon_temporaire)
 
         résultat := ensemble_possède_rappel_si_possible(*symboles_entités, chn_temp, commence_par)
-
-        déloge(chn_temp)
 
         si !résultat.trouvé {
             lexeuse.curseur -= 1
