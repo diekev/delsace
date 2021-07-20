@@ -763,10 +763,12 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
 void Lexeuse::rapporte_erreur(const kuri::chaine &quoi)
 {
     m_possede_erreur = true;
+
+    // À FAIRE : formatte le message d'erreur selon le standard du langage.
     auto ligne_courante = m_donnees->tampon[m_compte_ligne];
 
     Enchaineuse enchaineuse;
-    enchaineuse << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
+    enchaineuse << "Erreur : " << m_donnees->chemin << ":" << m_compte_ligne + 1 << ":\n";
     enchaineuse << ligne_courante;
 
     /* La position ligne est en octet, il faut donc compter le nombre d'octets
