@@ -1,0 +1,129 @@
+/* Programme pour imprimer les statistiques du parsage d'un fichier HTML.
+ * Le programme peut opérer sur un fichier simple ou sur un dossier contenant des fichiers HTML. */
+
+importe Fondation
+importe HTML
+importe SysFichier
+
+StatistiquesParsage :: struct {
+    /* Le temps de parsage en microsecondes. */
+    temps: z64
+    /* La taille des données en octets. */
+    taille: z64
+}
+
+imprime_stats :: fonc (statistiques: StatistiquesParsage)
+{
+    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation=3))
+    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation=3))
+    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation=3))
+}
+
+est_fichier_html :: fonc (chm: CheminFichier) -> bool
+{
+    retourne chm.extension() == ".html"
+}
+
+parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &StatistiquesParsage)
+{
+    contenu := contenu_fichier_texte(chemin.chn)
+    diffère déloge(contenu)
+
+    parsat := parse_document(contenu)
+
+    statistiques.temps += parsat.temps
+    statistiques.taille += contenu.taille
+
+    diffère détruit(parsat)
+}
+
+parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiques: &StatistiquesParsage) -> z32
+{
+    exploratrice := crée_exploratrice_fichier(dossier)
+    diffère détruit(exploratrice)
+    exploratrice.filtre_chemin = est_fichier_html
+
+    nombre_de_fichiers := 0
+
+    boucle {
+        chemin_possible := exploratrice.chemin_suivant()
+
+        discr chemin_possible {
+            CheminFichier {
+                chemin := chemin_possible comme CheminFichier
+                si est_fichier_html(chemin) {
+                    parse_page_et_accumule_stats(chemin, statistiques)
+                    nombre_de_fichiers += 1
+                }
+                déloge(chemin.chn)
+            }
+            sinon {
+                arrête
+            }
+        }
+    }
+
+    retourne nombre_de_fichiers
+}
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("Utilisation: % [FICHIER|DOSSIER]\n", args[0])
+        retourne 1
+    }
+
+    chm := CheminFichier(args[1])
+    statistiques : StatistiquesParsage
+
+    si est_dossier(chm) {
+        si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
+            imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
+            retourne 1
+        }
+    }
+    sinon si est_fichier_html(chm) {
+        parse_page_et_accumule_stats(chm, statistiques)
+    }
+    sinon {
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+        retourne 1
+    }
+
+    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
+
+    imprime_stats(statistiques)
+
+    retourne 0
+}
+
+importe Compilatrice
+
+// Fichier reddit
+// ~60 ms non-optimisé
+// ~18 ms optimisé
+//
+// Fichier legifrance
+// ~8 s non-optimisé
+// ~1.8 s optimisé
+optimise_code :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.niveau_optimisation = NiveauOptimisation.O3
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    compilatrice_ajourne_options(options)
+}
+
+// #exécute optimise_code()
+
+compile_pour_profilage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.PROFILAGE
+    compilatrice_ajourne_options(options)
+}
+
+// #exécute compile_pour_profilage()
