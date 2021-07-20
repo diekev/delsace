@@ -1572,6 +1572,38 @@ static void genere_code_C(Compilatrice &compilatrice,
     }
 }
 
+static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
+{
+    switch (niveau) {
+        case NiveauOptimisation::AUCUN:
+        case NiveauOptimisation::O0:
+        {
+            return "-O0 ";
+        }
+        case NiveauOptimisation::O1:
+        {
+            return "-O1 ";
+        }
+        case NiveauOptimisation::O2:
+        {
+            return "-O2 ";
+        }
+        case NiveauOptimisation::Os:
+        {
+            return "-Os ";
+        }
+        /* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+         * plus proche. */
+        case NiveauOptimisation::Oz:
+        case NiveauOptimisation::O3:
+        {
+            return "-O3 ";
+        }
+    }
+
+    return "";
+}
+
 static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
                                                   OptionsDeCompilation const &ops)
 {
@@ -1582,6 +1614,16 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
     //	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
     //		enchaineuse << "/tmp/tables_r16.o ";
     //	}
+
+    if (ops.compilation_pour == CompilationPour::PRODUCTION) {
+        enchaineuse << chaine_pour_niveau_optimisation(ops.niveau_optimisation);
+    }
+    else if (ops.compilation_pour == CompilationPour::DEBOGAGE) {
+        enchaineuse << " -g -Og ";
+    }
+    else if (ops.compilation_pour == CompilationPour::PROFILAGE) {
+        enchaineuse << " -pg ";
+    }
 
     /* désactivation des erreurs concernant le manque de "const" quand
      * on passe des variables générés temporairement par la coulisse à
@@ -1595,38 +1637,6 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         /* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une
          * manière de le faire depuis les métaprogrammes */
         enchaineuse << "-fno-stack-protector ";
-    }
-
-    switch (ops.niveau_optimisation) {
-        case NiveauOptimisation::AUCUN:
-        case NiveauOptimisation::O0:
-        {
-            enchaineuse << "-O0 ";
-            break;
-        }
-        case NiveauOptimisation::O1:
-        {
-            enchaineuse << "-O1 ";
-            break;
-        }
-        case NiveauOptimisation::O2:
-        {
-            enchaineuse << "-O2 ";
-            break;
-        }
-        case NiveauOptimisation::Os:
-        {
-            enchaineuse << "-Os ";
-            break;
-        }
-        /* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-         * plus proche. */
-        case NiveauOptimisation::Oz:
-        case NiveauOptimisation::O3:
-        {
-            enchaineuse << "-O3 ";
-            break;
-        }
     }
 
     if (ops.architecture == ArchitectureCible::X86) {
@@ -1695,7 +1705,16 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
     auto debut_executable = dls::chrono::compte_seconde();
 
     Enchaineuse enchaineuse;
-    enchaineuse << "/usr/bin/g++-9 /tmp/compilation_kuri.o ";
+    enchaineuse << "/usr/bin/g++-9 ";
+
+    if (espace.options.compilation_pour == CompilationPour::PROFILAGE) {
+        enchaineuse << " -pg ";
+    }
+    else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
+        enchaineuse << " -g ";
+    }
+
+    enchaineuse << " /tmp/compilation_kuri.o ";
 
     if (espace.options.architecture == ArchitectureCible::X86) {
         enchaineuse << " /tmp/r16_tables_x86.o ";
