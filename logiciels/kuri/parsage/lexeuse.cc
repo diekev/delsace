@@ -718,6 +718,11 @@ void Lexeuse::performe_lexage()
                 continue;
             }
 
+            /* Metton-nous sur la bonne ligne en cas d'erreur.
+             * À FAIRE : il est possible qu'il existe des nouvelles lignes dans la chaine. */
+            this->m_compte_ligne = it.ligne;
+            this->m_position_ligne = it.colonne;
+
             this->m_debut = it.chaine.pointeur();
             auto fin_chaine = this->m_debut + it.chaine.taille();
 
