@@ -469,6 +469,7 @@ système_séparateur_chemin_préféré :: fonc () -> z8
 divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 {
     morceaux := divise(chemin.chn, système_séparateur_chemin_préféré())
+    diffère déloge(morceaux)
 
     pour morceaux {
         pile.empile(it)
