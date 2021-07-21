@@ -1330,9 +1330,73 @@ insère_mode_DansCaption :: fonc (parseuse: *Parseuse, lexème: Lexème)
     panique("algorithme d'insertion incomplet")
 }
 
+// https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incolgroup
 insère_mode_DansGroupeColonne :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
-    panique("algorithme d'insertion incomplet")
+    si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
+        parseuse.insère_caractère(lexème.point_de_code)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.Commentaire {
+        parseuse.insère_commentaire(lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.Doctype {
+        parseuse.erreur_de_parsage("DOCTYPE inattendu, le tag sera ignoré")
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.DébutTag && lexème.nom == TAG_html {
+        insère_mode_DansBody(parseuse, lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.DébutTag && lexème.nom == TAG_col {
+        _ := parseuse.insère_élément_html(lexème)
+        dépile(*parseuse.pile_éléments_ouvert)
+        reconnait_drapeau_auto_fermant(*lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_colgroup {
+        noeud_courant := parseuse.noeud_courant()
+
+        si noeud_courant.texte != TAG_colgroup {
+            parseuse.erreur_de_parsage("obtenu </colgroup> alors que <colgroup> n'est pas le noeud courant, le tag sera ignoré")
+            retourne
+        }
+
+        dépile(*parseuse.pile_éléments_ouvert)
+        parseuse.mode_insertion = insère_mode_DansTable
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_col {
+        parseuse.erreur_de_parsage("obtenu </col>, le tag sera ignoré")
+        retourne
+    }
+
+    si (lexème.genre == GenreLexème.DébutTag || lexème.genre == GenreLexème.FinTag) && lexème.nom == TAG_template {
+        insère_mode_DansHead(parseuse, lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinDeFichier {
+        insère_mode_DansBody(parseuse, lexème)
+        retourne
+    }
+
+    noeud_courant := parseuse.noeud_courant()
+    si noeud_courant.texte != TAG_colgroup {
+        parseuse.erreur_de_parsage("le noeud courant n'est pas un <colgroup>, le lexème sera ignoré")
+        retourne
+    }
+
+    dépile(*parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = insère_mode_DansTable
+    parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
 
 insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
