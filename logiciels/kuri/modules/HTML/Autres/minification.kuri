@@ -1,0 +1,185 @@
+importe Chaine
+importe Fondation
+importe HTML
+importe SysFichier
+importe Temps
+
+/*
+
+    Options:
+    - supprime espaces blancs
+    - supprime commentaires
+    - supprime apostrophes, guillemets pour les attributs des noeuds si possible
+    - supprime tag fin html, head, body
+
+    À FAIRE : caractères échappés
+
+ */
+
+minifie_noeud :: fonc (noeud: *Noeud, enchaineuse: *Enchaineuse)
+{
+    si noeud.genre == GenreNoeud.Texte {
+        texte := noeud comme *NoeudTexte
+
+        données := texte.données
+
+        // À FAIRE : supprime espaces redondants entre les mots
+        tantque données.taille > 0 {
+            si données[0] == '\n' || données[0] ==  ' ' || données[0] == '\t' {
+                données = avance(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        tantque données.taille > 0 {
+            index := données.taille - 1
+            si données[index] == '\n' || données[index] ==  ' ' || données[index] == '\t' {
+                données = recule(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        enchaineuse.ajoute_au_tampon(données)
+    }
+    sinon si noeud.genre == GenreNoeud.Élément {
+        élément := noeud comme *Élément
+        enchaineuse.imprime_dans_enchaineuse("<%", élément.texte.chn)
+
+        pour élément.attributs {
+            enchaineuse.imprime_dans_enchaineuse(" %=", it.nom)
+
+            besoin_apostrophes := faux
+            pour c dans it.valeur {
+                si c == ' ' || c == '/' {
+                    besoin_apostrophes = vrai
+                    arrête
+                }
+            }
+
+            si besoin_apostrophes {
+                enchaineuse.imprime_dans_enchaineuse("'%'", it.valeur)
+            }
+            sinon {
+                enchaineuse.imprime_dans_enchaineuse("%", it.valeur)
+            }
+        }
+
+        si est_tag_auto_fermant(élément.texte) {
+            enchaineuse.ajoute_au_tampon("/>")
+            retourne
+        }
+
+        enchaineuse.ajoute_au_tampon(">")
+
+        pour élément.enfants {
+            minifie_noeud(it, enchaineuse)
+        }
+
+        saufsi fait_partie_de(élément.texte, TAG_head, TAG_html, TAG_body) {
+            enchaineuse.imprime_dans_enchaineuse("</%>", élément.texte.chn)
+        }
+    }
+    sinon si noeud.genre == GenreNoeud.Doctype {
+        enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
+    }
+    sinon si noeud.genre == GenreNoeud.Document {
+        pour noeud.enfants {
+            minifie_noeud(it, enchaineuse)
+        }
+    }
+}
+
+minifie_document :: fonc (document: *Document) -> z64
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    minifie_noeud(document, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
+
+    retourne taille_chaine(*enchaineuse)
+}
+
+est_fichier_html :: fonc (chm: CheminFichier) -> bool
+{
+    retourne chm.extension() == ".html"
+}
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("Utilisation: % FICHIER\n", args[0])
+        retourne 1
+    }
+
+    chm := CheminFichier(args[1])
+
+    saufsi est_fichier_html(chm) {
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+        retourne 1
+    }
+
+    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère détruit_chaines_internées()
+
+    contenu := contenu_fichier_texte(chm.chn)
+    diffère déloge(contenu)
+
+    imprime("%\n", contenu)
+
+    taille_contenu := contenu.taille
+
+    début := maintenant_précis()
+    parsat := parse_document(contenu)
+    diffère détruit(parsat)
+
+    taille_minifiée := minifie_document(parsat.document)
+    temps := début.temps_écoulé_microsecondes()
+
+    imprime("\n")
+    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation=3))
+    imprime("Taille minifiée  : %o\n", FormatEntier(taille_minifiée, séparation=3))
+    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation=3))
+
+    retourne 0
+}
+
+importe Compilatrice
+
+optimise_code :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.niveau_optimisation = NiveauOptimisation.O3
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    compilatrice_ajourne_options(options)
+}
+
+// #exécute optimise_code()
+
+compile_pour_profilage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.PROFILAGE
+    compilatrice_ajourne_options(options)
+}
+
+// #exécute compile_pour_profilage()
+
+compile_pour_débogage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    compilatrice_ajourne_options(options)
+}
+
+// #exécute compile_pour_débogage()
