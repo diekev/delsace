@@ -64,6 +64,7 @@ TAG_image : *ChaineInternée
 TAG_img : *ChaineInternée
 TAG_input : *ChaineInternée
 TAG_keygen : *ChaineInternée
+TAG_legend : *ChaineInternée
 TAG_li : *ChaineInternée
 TAG_link : *ChaineInternée
 TAG_listing : *ChaineInternée
@@ -194,6 +195,7 @@ initialise_tags :: fonc ()
 	TAG_img = crée_chaine_internée("img")
 	TAG_input = crée_chaine_internée("input")
 	TAG_keygen = crée_chaine_internée("keygen")
+    TAG_legend = crée_chaine_internée("legend")
 	TAG_li = crée_chaine_internée("li")
 	TAG_link = crée_chaine_internée("link")
 	TAG_listing = crée_chaine_internée("listing")
