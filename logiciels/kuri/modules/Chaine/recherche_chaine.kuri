@@ -5,6 +5,7 @@
  * - structure vide
  */
 
+/*
 
 BaseChaine :: struct ($T: type_de_données) {
     données: []T
@@ -134,3 +135,5 @@ Enchaineuse :: struct {
 // ----------
 
 // ----------
+
+*/
