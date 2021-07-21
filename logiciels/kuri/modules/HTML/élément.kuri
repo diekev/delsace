@@ -1,22 +1,23 @@
+importe Chaine
 importe Fondation
 
-est_tag_auto_fermant :: fonc (tag: chaine) -> bool
+est_tag_auto_fermant :: fonc (tag: *ChaineInternée) -> bool
 {
     discr tag {
-        "area",
-        "base",
-        "br",
-        "col",
-        "embed",
-        "hr",
-        "img",
-        "input",
-        "link",
-        "meta",
-        "param",
-        "source",
-        "track",
-        "wbr" {
+        TAG_area,
+        TAG_base,
+        TAG_br,
+        TAG_col,
+        TAG_embed,
+        TAG_hr,
+        TAG_img,
+        TAG_input,
+        TAG_link,
+        TAG_meta,
+        TAG_param,
+        TAG_source,
+        TAG_track,
+        TAG_wbr {
             retourne vrai
         }
         sinon {
@@ -28,17 +29,17 @@ est_tag_auto_fermant :: fonc (tag: chaine) -> bool
 Élément :: struct {
     empl base: Noeud
 
-    texte : chaine
+    texte : *ChaineInternée
 }
 
-initialise_élément :: fonc (élément: *Élément, document: *Document, texte: chaine) -> rien
+initialise_élément :: fonc (élément: *Élément, document: *Document, texte: *ChaineInternée) -> rien
 {
     élément.genre = GenreNoeud.Élément
     élément.document = document
-    élément.texte = copie_chaine(texte)
+    élément.texte = texte
 }
 
-crée_élément_avec_tag :: fonc (document: *Document, tag: chaine) -> *Élément
+crée_élément_avec_tag :: fonc (document: *Document, tag: *ChaineInternée) -> *Élément
 {
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément := loge(Élément);
@@ -64,18 +65,18 @@ est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
     discr élément.texte {
-        "acronym",
-        "applet",
-        "basefont",
-        "big",
-        "center",
-        "dir",
-        "font",
-        "frame",
-        "frameset",
-        "noframes",
-        "strike",
-        "tt" {
+        TAG_acronym,
+        TAG_applet,
+        TAG_basefont,
+        TAG_big,
+        TAG_center,
+        TAG_dir,
+        TAG_font,
+        TAG_frame,
+        TAG_frameset,
+        TAG_noframes,
+        TAG_strike,
+        TAG_tt {
             retourne faux
         }
         sinon {
@@ -84,8 +85,28 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
-fait_partie_de_catégorie_spécial :: fonc (nom: chaine) -> bool
+fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool
 {
     // À FAIRE : utilisation d'une recherche binaire
-    retourne fait_partie_de(nom, "address", "applet", "area", "article", "aside", "base", "basefont", "bgsound", "blockquote", "body", "br", "button", "caption", "center", "col", "colgroup", "dd", "details", "dir", "div", "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "iframe", "img", "input", "keygen", "li", "link", "listing", "main", "marquee", "menu", "meta", "nav", "noembed", "noframes", "noscript", "object", "ol", "p", "param", "plaintext", "pre", "script", "section", "select", "source", "style", "summary", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "title", "tr", "track", "ul", "wbr", "xmp", "mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignObject", "desc", "title")
+    retourne fait_partie_de(nom,
+                            TAG_address, TAG_applet, TAG_area, TAG_article,
+                            TAG_aside, TAG_base, TAG_basefont, TAG_bgsound,
+                            TAG_blockquote, TAG_body, TAG_br, TAG_button,
+                            TAG_caption, TAG_center, TAG_col, TAG_colgroup,
+                            TAG_dd, TAG_details, TAG_dir, TAG_div, TAG_dl,
+                            TAG_dt, TAG_embed, TAG_fieldset, TAG_figcaption,
+                            TAG_figure, TAG_footer, TAG_form, TAG_frame,
+                            TAG_frameset, TAG_h1, TAG_h2, TAG_h3, TAG_h4,
+                            TAG_h5, TAG_h6, TAG_head, TAG_header, TAG_hgroup,
+                            TAG_hr, TAG_html, TAG_iframe, TAG_img, TAG_input,
+                            TAG_keygen, TAG_li, TAG_link, TAG_listing, TAG_main,
+                            TAG_marquee, TAG_menu, TAG_meta, TAG_nav, TAG_noembed,
+                            TAG_noframes, TAG_noscript, TAG_object, TAG_ol, TAG_p,
+                            TAG_param, TAG_plaintext, TAG_pre, TAG_script,
+                            TAG_section, TAG_select, TAG_source, TAG_style,
+                            TAG_summary, TAG_table, TAG_tbody, TAG_td, TAG_template,
+                            TAG_textarea, TAG_tfoot, TAG_th, TAG_thead, TAG_title,
+                            TAG_tr, TAG_track, TAG_ul, TAG_wbr, TAG_xmp, TAG_mi,
+                            TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml,
+                            TAG_foreignObject, TAG_desc, TAG_title)
 }

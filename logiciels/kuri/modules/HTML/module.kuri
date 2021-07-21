@@ -86,7 +86,7 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         Élément {
             élément := noeud comme *Élément
-            déloge(élément.texte)
+            // Ne pas détruire le texte, c'est un pointeur partagé !
             déloge(élément)
         }
         Texte {

@@ -1,6 +1,7 @@
 /* Programme pour imprimer les statistiques du parsage d'un fichier HTML.
  * Le programme peut opérer sur un fichier simple ou sur un dossier contenant des fichiers HTML. */
 
+importe Chaine
 importe Fondation
 importe HTML
 importe SysFichier
@@ -93,6 +94,7 @@ principale :: fonc () -> z32
     }
 
     diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
+    diffère détruit_chaines_internées()
 
     imprime_stats(statistiques)
 

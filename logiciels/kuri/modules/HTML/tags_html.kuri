@@ -1,0 +1,377 @@
+importe Chaine
+
+/* Les tags communs comme ChaineInternées */
+
+// Tag spéciale pour s'assurer que tous les lexèmes et éléments ont un tag valide.
+TAG_vide : *ChaineInternée
+
+TAG_a : *ChaineInternée
+TAG_address : *ChaineInternée
+TAG_annotation_xml : *ChaineInternée
+TAG_applet : *ChaineInternée
+TAG_area : *ChaineInternée
+TAG_article : *ChaineInternée
+TAG_aside : *ChaineInternée
+TAG_b : *ChaineInternée
+TAG_base : *ChaineInternée
+TAG_basefont : *ChaineInternée
+TAG_basefront : *ChaineInternée
+TAG_bgsound : *ChaineInternée
+TAG_big : *ChaineInternée
+TAG_blockquote : *ChaineInternée
+TAG_body : *ChaineInternée
+TAG_br : *ChaineInternée
+TAG_button : *ChaineInternée
+TAG_caption : *ChaineInternée
+TAG_center : *ChaineInternée
+TAG_code : *ChaineInternée
+TAG_col : *ChaineInternée
+TAG_colgroup : *ChaineInternée
+TAG_dd : *ChaineInternée
+TAG_desc : *ChaineInternée
+TAG_details : *ChaineInternée
+TAG_dialog : *ChaineInternée
+TAG_dir : *ChaineInternée
+TAG_div : *ChaineInternée
+TAG_dl : *ChaineInternée
+TAG_dt : *ChaineInternée
+TAG_em : *ChaineInternée
+TAG_embed : *ChaineInternée
+TAG_fieldset : *ChaineInternée
+TAG_figcaption : *ChaineInternée
+TAG_figure : *ChaineInternée
+TAG_font : *ChaineInternée
+TAG_footer : *ChaineInternée
+TAG_foreignObject : *ChaineInternée
+TAG_form : *ChaineInternée
+TAG_frame : *ChaineInternée
+TAG_frameset : *ChaineInternée
+TAG_h1 : *ChaineInternée
+TAG_h2 : *ChaineInternée
+TAG_h3 : *ChaineInternée
+TAG_h4 : *ChaineInternée
+TAG_h5 : *ChaineInternée
+TAG_h6 : *ChaineInternée
+TAG_head : *ChaineInternée
+TAG_header : *ChaineInternée
+TAG_hgroup : *ChaineInternée
+TAG_hr : *ChaineInternée
+TAG_html : *ChaineInternée
+TAG_i : *ChaineInternée
+TAG_iframe : *ChaineInternée
+TAG_image : *ChaineInternée
+TAG_img : *ChaineInternée
+TAG_input : *ChaineInternée
+TAG_keygen : *ChaineInternée
+TAG_li : *ChaineInternée
+TAG_link : *ChaineInternée
+TAG_listing : *ChaineInternée
+TAG_main : *ChaineInternée
+TAG_marquee : *ChaineInternée
+TAG_math : *ChaineInternée
+TAG_menu : *ChaineInternée
+TAG_meta : *ChaineInternée
+TAG_mi : *ChaineInternée
+TAG_mo : *ChaineInternée
+TAG_mn : *ChaineInternée
+TAG_ms : *ChaineInternée
+TAG_mtext : *ChaineInternée
+TAG_nav : *ChaineInternée
+TAG_nobr : *ChaineInternée
+TAG_noembed : *ChaineInternée
+TAG_noframes : *ChaineInternée
+TAG_noscript : *ChaineInternée
+TAG_object : *ChaineInternée
+TAG_ol : *ChaineInternée
+TAG_optgroup : *ChaineInternée
+TAG_option : *ChaineInternée
+TAG_p : *ChaineInternée
+TAG_param : *ChaineInternée
+TAG_plaintext : *ChaineInternée
+TAG_pre : *ChaineInternée
+TAG_rb : *ChaineInternée
+TAG_rp : *ChaineInternée
+TAG_rt : *ChaineInternée
+TAG_rtc : *ChaineInternée
+TAG_ruby : *ChaineInternée
+TAG_s : *ChaineInternée
+TAG_script : *ChaineInternée
+TAG_section : *ChaineInternée
+TAG_select : *ChaineInternée
+TAG_small : *ChaineInternée
+TAG_source : *ChaineInternée
+TAG_strike : *ChaineInternée
+TAG_strong : *ChaineInternée
+TAG_style : *ChaineInternée
+TAG_summary : *ChaineInternée
+TAG_svg : *ChaineInternée
+TAG_table : *ChaineInternée
+TAG_tbody : *ChaineInternée
+TAG_td : *ChaineInternée
+TAG_template : *ChaineInternée
+TAG_textarea : *ChaineInternée
+TAG_tfoot : *ChaineInternée
+TAG_th : *ChaineInternée
+TAG_thead : *ChaineInternée
+TAG_title : *ChaineInternée
+TAG_tr : *ChaineInternée
+TAG_track : *ChaineInternée
+TAG_tt : *ChaineInternée
+TAG_u : *ChaineInternée
+TAG_ul : *ChaineInternée
+TAG_wbr : *ChaineInternée
+TAG_xmp : *ChaineInternée
+
+tags_initialisés := faux
+
+initialise_tags :: fonc ()
+{
+    si tags_initialisés {
+        retourne
+    }
+
+    tags_initialisés = vrai
+
+    TAG_vide = crée_chaine_internée("")
+
+    TAG_a = crée_chaine_internée("a")
+	TAG_address = crée_chaine_internée("address")
+    TAG_annotation_xml = crée_chaine_internée("annotation-xml")
+	TAG_applet = crée_chaine_internée("applet")
+	TAG_area = crée_chaine_internée("area")
+	TAG_article = crée_chaine_internée("article")
+	TAG_aside = crée_chaine_internée("aside")
+	TAG_b = crée_chaine_internée("b")
+	TAG_base = crée_chaine_internée("base")
+	TAG_basefont = crée_chaine_internée("basefont")
+	TAG_basefront = crée_chaine_internée("basefront")
+	TAG_bgsound = crée_chaine_internée("bgsound")
+	TAG_big = crée_chaine_internée("big")
+	TAG_blockquote = crée_chaine_internée("blockquote")
+	TAG_body = crée_chaine_internée("body")
+	TAG_br = crée_chaine_internée("br")
+	TAG_button = crée_chaine_internée("button")
+	TAG_caption = crée_chaine_internée("caption")
+	TAG_center = crée_chaine_internée("center")
+	TAG_code = crée_chaine_internée("code")
+	TAG_col = crée_chaine_internée("col")
+	TAG_colgroup = crée_chaine_internée("colgroup")
+	TAG_dd = crée_chaine_internée("dd")
+	TAG_desc = crée_chaine_internée("desc")
+	TAG_details = crée_chaine_internée("details")
+	TAG_dialog = crée_chaine_internée("dialog")
+	TAG_dir = crée_chaine_internée("dir")
+	TAG_div = crée_chaine_internée("div")
+	TAG_dl = crée_chaine_internée("dl")
+	TAG_dt = crée_chaine_internée("dt")
+	TAG_em = crée_chaine_internée("em")
+	TAG_embed = crée_chaine_internée("embed")
+	TAG_fieldset = crée_chaine_internée("fieldset")
+	TAG_figcaption = crée_chaine_internée("figcaption")
+	TAG_figure = crée_chaine_internée("figure")
+	TAG_font = crée_chaine_internée("font")
+	TAG_footer = crée_chaine_internée("footer")
+	TAG_foreignObject = crée_chaine_internée("foreignObject")
+	TAG_form = crée_chaine_internée("form")
+	TAG_frame = crée_chaine_internée("frame")
+	TAG_frameset = crée_chaine_internée("frameset")
+	TAG_h1 = crée_chaine_internée("h1")
+	TAG_h2 = crée_chaine_internée("h2")
+	TAG_h3 = crée_chaine_internée("h3")
+	TAG_h4 = crée_chaine_internée("h4")
+	TAG_h5 = crée_chaine_internée("h5")
+	TAG_h6 = crée_chaine_internée("h6")
+	TAG_head = crée_chaine_internée("head")
+	TAG_header = crée_chaine_internée("header")
+	TAG_hgroup = crée_chaine_internée("hgroup")
+	TAG_hr = crée_chaine_internée("hr")
+	TAG_html = crée_chaine_internée("html")
+	TAG_i = crée_chaine_internée("i")
+	TAG_iframe = crée_chaine_internée("iframe")
+	TAG_image = crée_chaine_internée("image")
+	TAG_img = crée_chaine_internée("img")
+	TAG_input = crée_chaine_internée("input")
+	TAG_keygen = crée_chaine_internée("keygen")
+	TAG_li = crée_chaine_internée("li")
+	TAG_link = crée_chaine_internée("link")
+	TAG_listing = crée_chaine_internée("listing")
+	TAG_main = crée_chaine_internée("main")
+	TAG_marquee = crée_chaine_internée("marquee")
+	TAG_math = crée_chaine_internée("math")
+	TAG_menu = crée_chaine_internée("menu")
+	TAG_meta = crée_chaine_internée("meta")
+    TAG_mi = crée_chaine_internée("mi")
+    TAG_mo = crée_chaine_internée("mo")
+    TAG_mn = crée_chaine_internée("mn")
+    TAG_ms = crée_chaine_internée("ms")
+    TAG_mtext = crée_chaine_internée("mtext")
+	TAG_nav = crée_chaine_internée("nav")
+	TAG_nobr = crée_chaine_internée("nobr")
+	TAG_noembed = crée_chaine_internée("noembed")
+	TAG_noframes = crée_chaine_internée("noframes")
+	TAG_noscript = crée_chaine_internée("noscript")
+	TAG_object = crée_chaine_internée("object")
+	TAG_ol = crée_chaine_internée("ol")
+	TAG_optgroup = crée_chaine_internée("optgroup")
+	TAG_option = crée_chaine_internée("option")
+	TAG_p = crée_chaine_internée("p")
+	TAG_param = crée_chaine_internée("param")
+	TAG_plaintext = crée_chaine_internée("plaintext")
+	TAG_pre = crée_chaine_internée("pre")
+	TAG_rb = crée_chaine_internée("rb")
+	TAG_rp = crée_chaine_internée("rp")
+	TAG_rt = crée_chaine_internée("rt")
+	TAG_rtc = crée_chaine_internée("rtc")
+	TAG_ruby = crée_chaine_internée("ruby")
+	TAG_s = crée_chaine_internée("s")
+	TAG_script = crée_chaine_internée("script")
+	TAG_section = crée_chaine_internée("section")
+	TAG_select = crée_chaine_internée("select")
+	TAG_small = crée_chaine_internée("small")
+	TAG_source = crée_chaine_internée("source")
+	TAG_strike = crée_chaine_internée("strike")
+	TAG_strong = crée_chaine_internée("strong")
+	TAG_style = crée_chaine_internée("style")
+	TAG_summary = crée_chaine_internée("summary")
+	TAG_svg = crée_chaine_internée("svg")
+	TAG_table = crée_chaine_internée("table")
+	TAG_tbody = crée_chaine_internée("tbody")
+	TAG_td = crée_chaine_internée("td")
+	TAG_template = crée_chaine_internée("template")
+	TAG_textarea = crée_chaine_internée("textarea")
+	TAG_tfoot = crée_chaine_internée("tfoot")
+	TAG_th = crée_chaine_internée("th")
+	TAG_thead = crée_chaine_internée("thead")
+	TAG_title = crée_chaine_internée("title")
+	TAG_tr = crée_chaine_internée("tr")
+	TAG_track = crée_chaine_internée("track")
+	TAG_tt = crée_chaine_internée("tt")
+	TAG_u = crée_chaine_internée("u")
+	TAG_ul = crée_chaine_internée("ul")
+	TAG_wbr = crée_chaine_internée("wbr")
+    TAG_xmp = crée_chaine_internée("xmp")
+
+    // imprime_tags()
+}
+
+importe Fondation
+
+imprime_tags :: fonc ()
+{
+    imprime("TAG_a : %\n", TAG_a.chn)
+    imprime("TAG_address : %\n", TAG_address.chn)
+    imprime("TAG_annotation_xml : %\n", TAG_annotation_xml)
+    imprime("TAG_applet : %\n", TAG_applet.chn)
+    imprime("TAG_area : %\n", TAG_area.chn)
+    imprime("TAG_article : %\n", TAG_article.chn)
+    imprime("TAG_aside : %\n", TAG_aside.chn)
+    imprime("TAG_b : %\n", TAG_b.chn)
+    imprime("TAG_base : %\n", TAG_base.chn)
+    imprime("TAG_basefont : %\n", TAG_basefont.chn)
+    imprime("TAG_basefront : %\n", TAG_basefront.chn)
+    imprime("TAG_bgsound : %\n", TAG_bgsound.chn)
+    imprime("TAG_big : %\n", TAG_big.chn)
+    imprime("TAG_blockquote : %\n", TAG_blockquote.chn)
+    imprime("TAG_body : %\n", TAG_body.chn)
+    imprime("TAG_br : %\n", TAG_br.chn)
+    imprime("TAG_button : %\n", TAG_button.chn)
+    imprime("TAG_caption : %\n", TAG_caption.chn)
+    imprime("TAG_center : %\n", TAG_center.chn)
+    imprime("TAG_code : %\n", TAG_code.chn)
+    imprime("TAG_col : %\n", TAG_col.chn)
+    imprime("TAG_colgroup : %\n", TAG_colgroup.chn)
+    imprime("TAG_dd : %\n", TAG_dd.chn)
+    imprime("TAG_desc : %\n", TAG_desc.chn)
+    imprime("TAG_details : %\n", TAG_details.chn)
+    imprime("TAG_dialog : %\n", TAG_dialog.chn)
+    imprime("TAG_dir : %\n", TAG_dir.chn)
+    imprime("TAG_div : %\n", TAG_div.chn)
+    imprime("TAG_dl : %\n", TAG_dl.chn)
+    imprime("TAG_dt : %\n", TAG_dt.chn)
+    imprime("TAG_em : %\n", TAG_em.chn)
+    imprime("TAG_embed : %\n", TAG_embed.chn)
+    imprime("TAG_fieldset : %\n", TAG_fieldset.chn)
+    imprime("TAG_figcaption : %\n", TAG_figcaption.chn)
+    imprime("TAG_figure : %\n", TAG_figure.chn)
+    imprime("TAG_font : %\n", TAG_font.chn)
+    imprime("TAG_footer : %\n", TAG_footer.chn)
+    imprime("TAG_foreignObject : %\n", TAG_foreignObject.chn)
+    imprime("TAG_form : %\n", TAG_form.chn)
+    imprime("TAG_frame : %\n", TAG_frame.chn)
+    imprime("TAG_frameset : %\n", TAG_frameset.chn)
+    imprime("TAG_h1 : %\n", TAG_h1.chn)
+    imprime("TAG_h2 : %\n", TAG_h2.chn)
+    imprime("TAG_h3 : %\n", TAG_h3.chn)
+    imprime("TAG_h4 : %\n", TAG_h4.chn)
+    imprime("TAG_h5 : %\n", TAG_h5.chn)
+    imprime("TAG_h6 : %\n", TAG_h6.chn)
+    imprime("TAG_head : %\n", TAG_head.chn)
+    imprime("TAG_header : %\n", TAG_header.chn)
+    imprime("TAG_hgroup : %\n", TAG_hgroup.chn)
+    imprime("TAG_hr : %\n", TAG_hr.chn)
+    imprime("TAG_html : %\n", TAG_html.chn)
+    imprime("TAG_i : %\n", TAG_i.chn)
+    imprime("TAG_iframe : %\n", TAG_iframe.chn)
+    imprime("TAG_image : %\n", TAG_image.chn)
+    imprime("TAG_img : %\n", TAG_img.chn)
+    imprime("TAG_input : %\n", TAG_input.chn)
+    imprime("TAG_keygen : %\n", TAG_keygen.chn)
+    imprime("TAG_li : %\n", TAG_li.chn)
+    imprime("TAG_link : %\n", TAG_link.chn)
+    imprime("TAG_listing : %\n", TAG_listing.chn)
+    imprime("TAG_main : %\n", TAG_main.chn)
+    imprime("TAG_marquee : %\n", TAG_marquee.chn)
+    imprime("TAG_math : %\n", TAG_math.chn)
+    imprime("TAG_menu : %\n", TAG_menu.chn)
+    imprime("TAG_meta : %\n", TAG_meta.chn)
+    imprime("TAG_mi : %\n", TAG_mi.chn)
+    imprime("TAG_mo : %\n", TAG_mo.chn)
+    imprime("TAG_mn : %\n", TAG_mn.chn)
+    imprime("TAG_ms : %\n", TAG_ms.chn)
+    imprime("TAG_mtext : %\n", TAG_mtext.chn)
+    imprime("TAG_nav : %\n", TAG_nav.chn)
+    imprime("TAG_nobr : %\n", TAG_nobr.chn)
+    imprime("TAG_noembed : %\n", TAG_noembed.chn)
+    imprime("TAG_noframes : %\n", TAG_noframes.chn)
+    imprime("TAG_noscript : %\n", TAG_noscript.chn)
+    imprime("TAG_object : %\n", TAG_object.chn)
+    imprime("TAG_ol : %\n", TAG_ol.chn)
+    imprime("TAG_optgroup : %\n", TAG_optgroup.chn)
+    imprime("TAG_option : %\n", TAG_option.chn)
+    imprime("TAG_p : %\n", TAG_p.chn)
+    imprime("TAG_param : %\n", TAG_param.chn)
+    imprime("TAG_plaintext : %\n", TAG_plaintext.chn)
+    imprime("TAG_pre : %\n", TAG_pre.chn)
+    imprime("TAG_rb : %\n", TAG_rb.chn)
+    imprime("TAG_rp : %\n", TAG_rp.chn)
+    imprime("TAG_rt : %\n", TAG_rt.chn)
+    imprime("TAG_rtc : %\n", TAG_rtc.chn)
+    imprime("TAG_ruby : %\n", TAG_ruby.chn)
+    imprime("TAG_s : %\n", TAG_s.chn)
+    imprime("TAG_script : %\n", TAG_script.chn)
+    imprime("TAG_section : %\n", TAG_section.chn)
+    imprime("TAG_select : %\n", TAG_select.chn)
+    imprime("TAG_small : %\n", TAG_small.chn)
+    imprime("TAG_source : %\n", TAG_source.chn)
+    imprime("TAG_strike : %\n", TAG_strike.chn)
+    imprime("TAG_strong : %\n", TAG_strong.chn)
+    imprime("TAG_style : %\n", TAG_style.chn)
+    imprime("TAG_summary : %\n", TAG_summary.chn)
+    imprime("TAG_svg : %\n", TAG_svg.chn)
+    imprime("TAG_table : %\n", TAG_table.chn)
+    imprime("TAG_tbody : %\n", TAG_tbody.chn)
+    imprime("TAG_td : %\n", TAG_td.chn)
+    imprime("TAG_template : %\n", TAG_template.chn)
+    imprime("TAG_textarea : %\n", TAG_textarea.chn)
+    imprime("TAG_tfoot : %\n", TAG_tfoot.chn)
+    imprime("TAG_th : %\n", TAG_th.chn)
+    imprime("TAG_thead : %\n", TAG_thead.chn)
+    imprime("TAG_title : %\n", TAG_title.chn)
+    imprime("TAG_tr : %\n", TAG_tr.chn)
+    imprime("TAG_track : %\n", TAG_track.chn)
+    imprime("TAG_tt : %\n", TAG_tt.chn)
+    imprime("TAG_u : %\n", TAG_u.chn)
+    imprime("TAG_ul : %\n", TAG_ul.chn)
+    imprime("TAG_wbr : %\n", TAG_wbr.chn)
+    imprime("TAG_xmp : %\n", TAG_xmp.chn)
+}

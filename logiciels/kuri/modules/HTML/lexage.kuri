@@ -1,13 +1,14 @@
+importe Chaine
 importe Fondation
 importe Ensemble
 importe Structures
 
-est_espace_blanc_html :: fonc (c: z8) -> bool
+est_espace_blanc_html :: fonc (c: z8) -> bool #enligne
 {
     retourne c == ' ' || c == '\t' || c == 0x0C || c == '\n'
 }
 
-est_espace_blanc_html :: fonc (c: n32) -> bool
+est_espace_blanc_html :: fonc (c: n32) -> bool #enligne
 {
     retourne c == 0x20 || c == 0x09 || c == 0x0C || c == 0x0A
 }
@@ -25,7 +26,7 @@ Lexème :: struct {
     genre: GenreLexème
 
     // général
-    nom: chaine
+    nom: *ChaineInternée = TAG_vide
 
     // doctype
     identifiant_public_doctype: chaine
@@ -73,7 +74,7 @@ copie_lexème :: fonc (lexème: *Lexème) -> Lexème
 {
     nouveau_lexème : Lexème
     nouveau_lexème.genre = lexème.genre
-    nouveau_lexème.nom = copie_chaine(lexème.nom)
+    nouveau_lexème.nom = lexème.nom
 
     pour lexème.attributs {
         ajoute_attribut(*nouveau_lexème)
@@ -86,15 +87,14 @@ copie_lexème :: fonc (lexème: *Lexème) -> Lexème
 
 détruit_lexème :: fonc (lexème: *Lexème)
 {
+    // Ne pas détruire le nom du lexème car c'est un pointeur partagé !
+
     discr lexème.genre {
         Doctype {
-            déloge(lexème.nom)
             déloge(lexème.identifiant_public_doctype)
             déloge(lexème.identifiant_système_doctype)
         }
         DébutTag {
-            déloge(lexème.nom)
-
             pour lexème.attributs {
                 déloge(it.nom)
                 déloge(it.valeur)
@@ -103,7 +103,7 @@ détruit_lexème :: fonc (lexème: *Lexème)
             déloge(lexème.attributs)
         }
         FinTag {
-            déloge(lexème.nom)
+            // RÀF
         }
         Commentaire {
             déloge(lexème.données)
@@ -215,7 +215,11 @@ Lexeuse :: struct {
 
     tampon_temporaire : ChaineUTF32
 
-    nom_dernier_tag_début : chaine
+    /* Le nom du lexème courant, en cours de lexage. */
+    nom_lexème_courant : chaine
+
+    /* Le nom du dernier tag de début rencontré, mis en place lors de l'émission d'un lexème. */
+    nom_dernier_tag_début : *ChaineInternée
 
     code_référence_caractère : n32
 
@@ -230,7 +234,6 @@ initialise_lexeuse :: fonc (document: chaine) -> Lexeuse
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
     détruit_chaine(*lexeuse.tampon_temporaire)
-    déloge(lexeuse.nom_dernier_tag_début)
     détruit(lexeuse.file_lexèmes)
 }
 
@@ -253,7 +256,7 @@ point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
     retourne converti_utf8_utf32(*lexeuse.document[position]) comme n32
 }
 
-a_fini :: fonc (lexeuse: *Lexeuse) -> bool
+a_fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne
 {
     retourne lexeuse.curseur >= lexeuse.document.taille
 }
@@ -265,9 +268,13 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème)
 
 émet_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
+    si lexeuse.nom_lexème_courant {
+        lexeuse.lexème_courant.nom = crée_chaine_internée(lexeuse.nom_lexème_courant)
+        déloge(lexeuse.nom_lexème_courant)
+    }
+
     si lexeuse.lexème_courant.genre == GenreLexème.DébutTag {
-        déloge(lexeuse.nom_dernier_tag_début)
-        lexeuse.nom_dernier_tag_début = copie_chaine(lexeuse.lexème_courant.nom)
+        lexeuse.nom_dernier_tag_début = lexeuse.lexème_courant.nom
     }
 
     retourne lexeuse.lexème_courant
@@ -277,10 +284,10 @@ imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
 {
     discr lexème_courant.genre {
         Doctype {
-            imprime("DOCTYPE { nom : % }\n", lexème_courant.nom)
+            imprime("DOCTYPE { nom : % }\n", lexème_courant.nom.chn)
         }
         DébutTag {
-            imprime("Début Tag { nom : %", lexème_courant.nom)
+            imprime("Début Tag { nom : %", lexème_courant.nom.chn)
 
             si lexème_courant.attributs {
                 imprime(", attributs : ")
@@ -297,7 +304,7 @@ imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
             imprime(" }\n")
         }
         FinTag {
-            imprime("Fin Tag { nom : % }\n", lexème_courant.nom)
+            imprime("Fin Tag { nom : % }\n", lexème_courant.nom.chn)
         }
         Commentaire {
             imprime("Commentaire\n")
@@ -394,17 +401,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                 }
             }
             EndTagOpen {
@@ -486,13 +493,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, CARACTÈRE_REMPLACEMENT)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -511,7 +518,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
             }
@@ -524,10 +531,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
@@ -537,7 +544,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne défile(lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                 }
             }
             AfterDOCTYPEName {
@@ -1165,7 +1172,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             RCDATAEndTagName {
-                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                si lexeuse.nom_dernier_tag_début == lexeuse.nom_lexème_courant {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
                         continue
@@ -1180,17 +1187,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
-                déloge(lexeuse.lexème_courant.nom)
+                déloge(lexeuse.nom_lexème_courant)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
@@ -1222,7 +1229,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             RAWTEXTEndTagName {
-                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                si lexeuse.nom_dernier_tag_début == lexeuse.nom_lexème_courant {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
                         continue
@@ -1237,17 +1244,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
-                déloge(lexeuse.lexème_courant.nom)
+                déloge(lexeuse.nom_lexème_courant)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
@@ -1581,7 +1588,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             ScriptDataEndTagName {
-                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                si lexeuse.nom_dernier_tag_début == lexeuse.nom_lexème_courant {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
                         continue
@@ -1596,17 +1603,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
-                déloge(lexeuse.lexème_courant.nom)
+                déloge(lexeuse.nom_lexème_courant)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
 
@@ -1719,7 +1726,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             ScriptDataEscapedEndTagName {
-                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                si lexeuse.nom_dernier_tag_début == lexeuse.nom_lexème_courant {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
                         continue
@@ -1734,17 +1741,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
-                déloge(lexeuse.lexème_courant.nom)
+                déloge(lexeuse.nom_lexème_courant)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
 

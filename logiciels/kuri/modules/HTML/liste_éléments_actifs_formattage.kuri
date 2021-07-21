@@ -1,3 +1,5 @@
+importe Chaine
+
 EntréeFormattage :: struct {
     élément: *Élément
     lexème: Lexème
@@ -104,7 +106,7 @@ possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément
     retourne faux
 }
 
-élément_avant_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage, nom_tag: chaine) -> *Élément
+élément_avant_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage, nom_tag: *ChaineInternée) -> *Élément
 {
     i := liste.entrées.taille - 1
     élément_trouvé : *Élément = nul
