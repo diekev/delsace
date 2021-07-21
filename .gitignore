@@ -2,6 +2,7 @@
 *.user
 *.user.*
 a.out
+gmon.out
 test.db
 *.a
 *.so
