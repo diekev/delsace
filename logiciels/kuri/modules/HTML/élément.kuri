@@ -110,3 +110,19 @@ fait_partie_de_catégorie_spécial :: fonc (nom: *ChaineInternée) -> bool
                             TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml,
                             TAG_foreignObject, TAG_desc, TAG_title)
 }
+
+enfant_directe_avec_balise :: fonc (élément: *Élément, balise: *ChaineInternée) -> *Élément
+{
+    pour élément.enfants {
+        saufsi it.genre == GenreNoeud.Élément {
+            continue
+        }
+
+        élément_enfant := (it comme *Élément)
+        si élément_enfant.texte == balise {
+            retourne élément_enfant
+        }
+    }
+
+    retourne nul
+}
