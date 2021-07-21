@@ -1619,7 +1619,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << chaine_pour_niveau_optimisation(ops.niveau_optimisation);
     }
     else if (ops.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g -Og ";
+        enchaineuse << " -g -Og -fsanitize=address ";
     }
     else if (ops.compilation_pour == CompilationPour::PROFILAGE) {
         enchaineuse << " -pg ";
@@ -1711,7 +1711,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
         enchaineuse << " -pg ";
     }
     else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g ";
+        enchaineuse << " -g  -fsanitize=address ";
     }
 
     enchaineuse << " /tmp/compilation_kuri.o ";
