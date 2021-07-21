@@ -277,7 +277,19 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             }
         }
         sinon si élément.texte == TAG_form {
-            // À FAIRE : vérifie qu'il y a un fieldset avec un legend
+            fieldset := élément.enfant_directe_avec_balise(TAG_fieldset)
+
+            saufsi fieldset {
+                contexte_vérification.ajoute_diagnostique("<form> sans <fieldset>")
+            }
+            sinon {
+                legend := fieldset.enfant_directe_avec_balise(TAG_legend)
+
+                saufsi legend {
+                    contexte_vérification.ajoute_diagnostique("<fieldset> sans <legend>")
+                }
+            }
+
             // À FAIRE : vérifie que les inputs ont des labels
         }
         sinon si élément.texte == TAG_base {
