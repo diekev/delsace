@@ -1,0 +1,78 @@
+importe Fondation
+
+/* Une chaine internée est une chaine qui n'existe qu'en un seul exemplaire dans
+ * le programme, ceci nous permet de ne faire qu'une comparaison de pointeur au
+ * lieu d'une comparaison de chaine complète. */
+ChaineInternée :: struct {
+    chn: chaine
+}
+
+opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+{
+    si chaine_internée == nul {
+        retourne chn == ""
+    }
+
+    retourne chaine_internée.chn == chn
+}
+
+opérateur != :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+{
+    si chaine_internée == nul {
+        retourne chn != ""
+    }
+
+    retourne chaine_internée.chn != chn
+}
+
+opérateur < :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+{
+    retourne chaine_internée.chn < chn
+}
+
+opérateur > :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+{
+    si chaine_internée == nul {
+        retourne faux
+    }
+
+    retourne chaine_internée.chn > chn
+}
+
+table_des_chaines : []*ChaineInternée
+
+crée_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
+{
+    chaine_existante := trouve_chaine_internée(chn)
+
+    saufsi chaine_existante {
+        nouvelle_chaine := loge(ChaineInternée)
+        nouvelle_chaine.chn = copie_chaine(chn)
+
+        tableau_ajoute(*table_des_chaines, nouvelle_chaine)
+        chaine_existante = nouvelle_chaine
+    }
+
+    retourne chaine_existante
+}
+
+trouve_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
+{
+    pour table_des_chaines {
+        si it.chn == chn {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+détruit_chaines_internées :: fonc ()
+{
+    pour table_des_chaines {
+        déloge(it.chn)
+        déloge(it)
+    }
+
+    déloge(table_des_chaines)
+}
