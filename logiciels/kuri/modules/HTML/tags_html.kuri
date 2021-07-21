@@ -18,6 +18,7 @@ TAG_basefont : *ChaineInternée
 TAG_basefront : *ChaineInternée
 TAG_bgsound : *ChaineInternée
 TAG_big : *ChaineInternée
+TAG_blink : *ChaineInternée
 TAG_blockquote : *ChaineInternée
 TAG_body : *ChaineInternée
 TAG_br : *ChaineInternée
@@ -147,6 +148,7 @@ initialise_tags :: fonc ()
 	TAG_basefront = crée_chaine_internée("basefront")
 	TAG_bgsound = crée_chaine_internée("bgsound")
 	TAG_big = crée_chaine_internée("big")
+    TAG_blink = crée_chaine_internée("blink")
 	TAG_blockquote = crée_chaine_internée("blockquote")
 	TAG_body = crée_chaine_internée("body")
 	TAG_br = crée_chaine_internée("br")
