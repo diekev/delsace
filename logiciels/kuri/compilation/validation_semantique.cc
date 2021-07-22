@@ -756,6 +756,11 @@ CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpres
             auto enfant = expr->operande;
             auto type = enfant->type;
 
+            if (type == nullptr) {
+                espace->rapporte_erreur(enfant, "Erreur interne : type nul pour l'opérande d'un opérateur unaire !");
+                return CodeRetourValidation::Erreur;
+            }
+
             if (type->est_type_de_donnees() && dls::outils::est_element(expr->lexeme->genre,
                                                                         GenreLexeme::FOIS_UNAIRE,
                                                                         GenreLexeme::ESP_UNAIRE)) {
