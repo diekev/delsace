@@ -1,4 +1,4 @@
-
+/*
 union Chunk nonsûr {
     suivant: *Chunk
     # À FAIRE: paramètre gabarit de taille
@@ -85,3 +85,4 @@ struct AllocatricePoule {
         }
     }
 }
+*/

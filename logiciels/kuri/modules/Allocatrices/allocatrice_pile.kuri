@@ -1,4 +1,4 @@
-
+/*
 AllocatricePile :: struct {
     données: [16 * 1024]octet
     début: *octet
@@ -99,3 +99,4 @@ allocatrice_pile :: fonc(
         }
     }
 }
+*/

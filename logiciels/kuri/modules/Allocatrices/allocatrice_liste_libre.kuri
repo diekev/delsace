@@ -1,4 +1,4 @@
-
+/*
 NoeudListeLibre :: struct {
     suivant: *NoeudListeLibre = nul
 }
@@ -39,3 +39,4 @@ allocatrice_liste_libre :: fonc(
 
     retourne nul
 }
+*/

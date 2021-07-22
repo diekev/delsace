@@ -1,130 +1,254 @@
-// Une allocatrice qui ajoute une entête aux blocs alloués et les stocke dans
-// une liste afin de trouver des fuites de mémoires potentielles.
+importe Fondation
 
-importe GlibC
+LienLocal :: struct {
+	suivant: *LienLocal
+    précédent: *LienLocal
+}
+
+ListeChainée :: struct {
+    premier: *rien
+	dernier: *rien
+}
+
+ajoute_lien :: fonc (liste: *ListeChainée, vlien: *rien)
+{
+	lien := vlien comme *LienLocal
+
+	lien.suivant = nul
+	lien.précédent = liste.dernier comme *LienLocal
+
+	si liste.dernier {
+        (liste.dernier comme *LienLocal).suivant = lien
+	}
+	si liste.premier == nul {
+		liste.premier = lien
+	}
+	liste.dernier = lien
+}
+
+enlève_lien :: fonc (liste: *ListeChainée, vlien: *rien)
+{
+	lien := vlien comme *LienLocal
+
+	si lien.suivant {
+		lien.suivant.précédent = lien.précédent
+	}
+	si lien.précédent {
+		lien.précédent.suivant = lien.suivant
+	}
+
+	si liste.dernier == lien {
+		liste.dernier = lien.précédent
+	}
+	si liste.premier == lien {
+		liste.premier = lien.suivant
+	}
+}
+
+// À FAIRE: généralise (taille + (2^n - 1) & ~(2^n - 1)
+taille_alignée :: fonc (taille: z64) -> z64 #enligne
+{
+	retourne (taille + 3) & (~3)
+}
 
 EntêteMémoire :: struct {
-    précédent : *EntêteMémoire = nul
-    suivant : *EntêteMémoire = nul
-    taille_bloc : z64 = 0
-    pos : PositionCodeSource
-    info : *InfoType
+    suivante: *EntêteMémoire
+    précédente: *EntêteMémoire
+
+    info: *InfoType
+    taille : z64 = 0
+
+    traces : []TraceAppel
+
+    pad: [2]z32
 }
 
-ListeEntête :: struct {
-    premier : *EntêteMémoire = nul
-    dernier : *EntêteMémoire = nul
-}
-
-enliste :: fonc (liste : *ListeEntête, entête : *EntêteMémoire) -> rien
+pointeur_depuis_entête :: fonc (entête: *EntêteMémoire) -> *rien #enligne
 {
-    entête.suivant = nul
-    entête.précédent = liste.dernier
-
-    si liste.dernier != nul {
-        liste.dernier.suivant = entête
-    }
-
-    si liste.premier == nul {
-        liste.premier = entête
-    }
-
-    liste.dernier = entête
+	retourne entête + 1
 }
 
-déliste :: fonc (liste : *ListeEntête, entête : *EntêteMémoire) -> rien
+entête_depuis_pointeur :: fonc (pointeur: *rien) -> *EntêteMémoire #enligne
 {
-    si entête.suivant != nul {
-        entête.suivant.précédent = entête.précédent
-    }
-
-    si entête.précédent != nul {
-        entête.précédent.suivant = entête.suivant
-    }
-
-    si liste.dernier == entête {
-        liste.dernier = entête.précédent
-    }
-
-    si liste.premier == entête {
-        liste.premier = entête.suivant
-    }
+	/* le pointeur pointe sur le bloc, recule d'une EntêteMémoire pour retrouvre l'entête */
+	retourne (pointeur comme *EntêteMémoire) - 1
 }
 
 AllocatriceGardée :: struct {
-    empl base : BaseAllocatrice
+    empl base: BaseAllocatrice
 
-    liste_entêtes : ListeEntête
+    liste_de_mémoire : ListeChainée
 }
 
-allocation_gardée :: fonc(
-    allocatrice: *AllocatriceGardée,
-    nouvelle_taille: z64,
-    pos: PositionCodeSource) -> *rien
+taille_à_allouer_avec_entête :: fonc (taille: z64) -> z64 #enligne
 {
-    taille := nouvelle_taille + taille_de(EntêteMémoire) comme z64
-
-    ptr := malloc(taille)
-
-    si ptr == nul {
-        retourne nul
-    }
-
-    ptr_entête := ptr comme *EntêteMémoire
-    ptr_entête.taille_bloc = nouvelle_taille
-    ptr_entête.pos = pos
-
-    enliste(*allocatrice.liste_entêtes, ptr_entête)
-
-    ptr_z8 := ptr comme *z8
-
-    retourne ptr_z8 + taille_de(EntêteMémoire)
+    retourne taille_alignée(taille) + taille_de(EntêteMémoire) comme z64
 }
 
-imprime_liste_entête :: fonc (alloc: *AllocatriceGardée) -> rien
+entête_depuis_lien :: fonc (lien: *rien) -> *EntêteMémoire #enligne
 {
-    entête := alloc.liste_entêtes.premier
-
-    printf("-------------------\n".pointeur)
-    printf("Erreur : des blocs de mémoire n'ont pas été délogés !\n".pointeur)
-
-    tantque entête != nul {
-        printf("-- entête\n".pointeur)
-        printf("---- taille bloc : %d\n".pointeur, entête.taille_bloc)
-        printf("---- fichier     : \"%s\"\n".pointeur, entête.pos.fichier.pointeur)
-        printf("---- fonction    : \"%s\"\n".pointeur, entête.pos.fonction.pointeur)
-        printf("---- ligne       : %d\n".pointeur, entête.pos.ligne)
-        printf("---- colonne     : %d\n".pointeur, entête.pos.colonne)
-        entête = entête.suivant
-    }
+    retourne lien comme *EntêteMémoire
 }
 
-vérifie_si_liste_vide :: fonc (alloc: *AllocatriceGardée) -> bool
+imprime_trace :: fonc (tableau: []TraceAppel, enchaineuse: *Enchaineuse)
 {
-    entête := alloc.liste_entêtes.premier
-
-    nombre_blocs_non_libérés := 0
-    taille_bloc_non_libérés : z64 = 0
-
-    tantque entête != nul {
-        nombre_blocs_non_libérés += 1
-        taille_bloc_non_libérés += entête.taille_bloc
-
-        entête = entête.suivant
+    pour tableau {
+        trace := it
+        info_fonction := trace.info_fonction
+        info_appel := trace.info_appel
+        imprime_dans_enchaineuse(enchaineuse, "%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
+        imprime_dans_enchaineuse(enchaineuse, "%\n", info_appel.texte);
     }
-
-    si nombre_blocs_non_libérés != 0 {
-        //printf("-------------------\n".pointeur)
-        //printf("Erreur : des blocs de mémoire n'ont pas été délogés !\n".pointeur)
-        //printf("-- Nombre de blocs : %d\n".pointeur, nombre_blocs_non_libérés)
-        //printf("-- Taille          : %do\n".pointeur, taille_bloc_non_libérés)
-        retourne faux
-    }
-
-    retourne vrai
 }
 
-allocatrice_gardée :: fonc(
+/* Imprime la liste de blocs de mémoire non-libérés. L'impression se fait via le log du contexte courant.
+ * ATTENTION : puisque cette fonction alloue de la mémoire, il ne faut pas l'appeler dans le même contexte
+ * que celui où se trouve l'allocatrice ! */
+imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
+{
+    premier := allocatrice.liste_de_mémoire.premier
+
+    si premier != nul {
+        imprime_log("[AllocatriceGardée]", "blocs de mémoire non-libérés !\n")
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+	tantque premier != nul {
+		entête := entête_depuis_lien(premier)
+        chn_type := chaine_pour_type(entête.info)
+        diffère déloge(chn_type)
+        imprime_dans_enchaineuse(*enchaineuse, "Fuite de mémoire : bloc de % octets non-libéré pour le type %\n", entête.taille, chn_type)
+        imprime_trace(entête.traces, *enchaineuse)
+		premier = entête.suivante
+	}
+
+    rapport := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime_log("[AllocatriceGardée]", "%", rapport)
+    déloge(rapport)
+}
+
+nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
+{
+    résultat := 0
+    trace := racine
+
+    tantque trace != nul {
+        résultat += 1
+        trace = trace.précédente
+    }
+
+    retourne résultat
+}
+
+copie_trace_appel :: fonc (racine: *TraceAppel, tableau: []TraceAppel)
+{
+    trace := racine
+    index := 0
+
+    tantque trace != nul {
+        copie : TraceAppel
+        copie.info_appel = trace.info_appel
+        copie.info_fonction = trace.info_fonction
+        tableau.pointeur[index] = copie
+        index += 1
+        trace = trace.précédente
+    }
+}
+
+enregistre_trace_appels :: fonc (racine: *TraceAppel) -> []TraceAppel
+{
+    n := nombre_de_trace(racine)
+    t := malloc(taille_de(TraceAppel) comme z64 * n)
+
+    tableau_traces : []TraceAppel
+    tableau_traces.pointeur = t
+    tableau_traces.taille = n
+    copie_trace_appel(racine, tableau_traces)
+    retourne tableau_traces
+}
+
+libère_tableau_trace_appels :: fonc (tableau_traces: []TraceAppel)
+{
+    free(tableau_traces.pointeur)
+}
+
+loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
+{
+    taille_à_allouer := taille_à_allouer_avec_entête(taille)
+
+    entête := malloc(taille_à_allouer) comme *EntêteMémoire
+    entête.info = info
+    entête.taille = taille_alignée(taille)
+
+    traces := enregistre_trace_appels(contexte.trace_appel)
+    entête.traces = traces
+
+    // À FAIRE: mutex
+    ajoute_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+
+    // À FAIRE: tiens trace de l'allocation (nombre, taille)
+
+    retourne pointeur_depuis_entête(entête)
+}
+
+reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, nouvelle_taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
+{
+    saufsi ancien_pointeur {
+        retourne loge_mémoire(allocatrice, nouvelle_taille, info, pos)
+    }
+
+	/* calcule la taille alignée correspondante à l'allocation */
+	taille_allouée := taille_alignée(ancienne_taille)
+    // À FAIRE: vérifie taille
+
+	entête := entête_depuis_pointeur(ancien_pointeur)
+    enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+
+    nouvelle_taille_à_allouer := taille_à_allouer_avec_entête(nouvelle_taille)
+
+    entête = realloc(entête, nouvelle_taille_à_allouer) comme *EntêteMémoire
+
+    entête.taille = taille_alignée(nouvelle_taille)
+    entête.info = info
+    libère_tableau_trace_appels(entête.traces)
+    entête.traces = enregistre_trace_appels(contexte.trace_appel)
+    ajoute_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+
+    retourne pointeur_depuis_entête(entête)
+}
+
+déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, info: *InfoType) -> *rien
+{
+    saufsi ancien_pointeur {
+		retourne nul
+	}
+
+	/* calcule la taille alignée correspondante à l'allocation */
+	taille_allouée := taille_alignée(ancienne_taille)
+
+	entête := entête_depuis_pointeur(ancien_pointeur)
+
+/*
+	if (entete->taille != taille) {
+		std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du délogement !\n";
+		std::cerr << "La taille du logement était de " << entete->taille << ", mais la taille reçue est de " << taille << " !\n";
+	}
+*/
+
+    // À FAIRE: mutex
+    enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+
+    libère_tableau_trace_appels(entête.traces)
+	free(entête)
+
+	//enleve_memoire(taille);
+	//nombre_deallocations += 1;
+    retourne nul
+}
+
+allocation_gardée :: fonc (
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
     ancienne_taille : z64,
@@ -133,53 +257,48 @@ allocatrice_gardée :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    alloc := données comme *AllocatriceGardée
-
     discr mode {
         ALLOUE {
-            retourne allocation_gardée(alloc, nouvelle_taille, pos)
+            allocatrice := données comme *AllocatriceGardée
+            retourne loge_mémoire(allocatrice, nouvelle_taille, info, pos)
         }
         RÉALLOUE {
-            si ancien_pointeur == nul {
-                retourne allocation_gardée(alloc, nouvelle_taille, pos)
-            }
-
-            ptr_z8 := ancien_pointeur comme *z8
-
-            ptr := ptr_z8 - taille_de(EntêteMémoire)
-
-            {
-                ptr_entête := ptr comme *EntêteMémoire
-                déliste(*alloc.liste_entêtes, ptr_entête)
-            }
-
-            taille := nouvelle_taille + taille_de(EntêteMémoire) comme z64
-
-            nptr := realloc(ptr, taille) comme *z8
-
-            si nptr == nul {
-                retourne nul
-            }
-
-            {
-                ptr_entête := ptr comme *EntêteMémoire
-                ptr_entête.taille_bloc = nouvelle_taille
-                ptr_entête.pos = pos
-                enliste(*alloc.liste_entêtes, ptr_entête)
-            }
-
-            retourne nptr + taille_de(EntêteMémoire)
+            allocatrice := données comme *AllocatriceGardée
+            retourne reloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, nouvelle_taille, info, pos)
         }
         DÉSALLOUE {
-            ptr := ancien_pointeur - taille_de(EntêteMémoire)
-
-            {
-                ptr_entête := ptr comme *EntêteMémoire
-                déliste(*alloc.liste_entêtes, ptr_entête)
-            }
-
-            free(ptr)
-            retourne nul
+            allocatrice := données comme *AllocatriceGardée
+            retourne déloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, info)
         }
     }
 }
+
+/*
+XXX :: struct {
+    mqlsjdk: z32
+}
+
+mon_logueur :: fonc (c: chaine, message: chaine, mode: ModeLogage, données: *rien)
+{
+    imprime("%\n", c)
+}
+
+principale :: fonc () -> z32
+{
+    allocatrice_gardée : AllocatriceGardée
+
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = allocation_gardée
+    nouveau_contexte.données_allocatrice = *allocatrice_gardée
+
+    pousse_contexte nouveau_contexte {
+        a := loge(XXX)
+        //déloge(a)
+    }
+
+    contexte.logueur = mon_logueur
+    imprime_liste_mémoire(*allocatrice_gardée)
+
+    retourne 0
+}
+*/

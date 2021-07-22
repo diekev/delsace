@@ -1,3 +1,4 @@
+/*
 allocatrice_nulle :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
@@ -9,6 +10,7 @@ allocatrice_nulle :: fonc(
 {
     retourne nul
 }
+*/
 
 /*
 
