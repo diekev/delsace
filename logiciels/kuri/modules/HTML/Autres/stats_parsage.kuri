@@ -1,6 +1,7 @@
 /* Programme pour imprimer les statistiques du parsage d'un fichier HTML.
  * Le programme peut opérer sur un fichier simple ou sur un dossier contenant des fichiers HTML. */
 
+importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
@@ -67,6 +68,11 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
     retourne nombre_de_fichiers
 }
 
+mon_logueur :: fonc (c: chaine, message: chaine, mode: ModeLogage, données: *rien)
+{
+    imprime("%\n", c)
+}
+
 principale :: fonc () -> z32
 {
     args := arguments_ligne_commande()
@@ -76,27 +82,40 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    chm := CheminFichier(args[1])
-    statistiques : StatistiquesParsage
+    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
 
-    si est_dossier(chm) {
-        si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
-            imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
+    allocatrice_gardée : AllocatriceGardée
+    diffère imprime_liste_mémoire(*allocatrice_gardée)
+    // Il nous faut un logueur pour imprimer la liste de mémoire
+    contexte.logueur = mon_logueur
+
+    nouveau_contexte := contexte
+    // l'allocation gardée a un certain coût...
+    //nouveau_contexte.allocatrice = allocation_gardée
+    //nouveau_contexte.données_allocatrice = *allocatrice_gardée
+
+    pousse_contexte nouveau_contexte {
+        diffère détruit_chaines_internées()
+
+        chm := CheminFichier(args[1])
+        statistiques : StatistiquesParsage
+
+        si est_dossier(chm) {
+            si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
+                imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
+                retourne 1
+            }
+        }
+        sinon si est_fichier_html(chm) {
+            parse_page_et_accumule_stats(chm, statistiques)
+        }
+        sinon {
+            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
             retourne 1
         }
-    }
-    sinon si est_fichier_html(chm) {
-        parse_page_et_accumule_stats(chm, statistiques)
-    }
-    sinon {
-        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
-        retourne 1
-    }
 
-    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
-    diffère détruit_chaines_internées()
-
-    imprime_stats(statistiques)
+        imprime_stats(statistiques)
+    }
 
     retourne 0
 }
