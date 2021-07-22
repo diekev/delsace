@@ -226,8 +226,11 @@ Lexeuse :: struct {
     file_lexèmes : File(T = Lexème)
 }
 
-initialise_lexeuse :: fonc (document: ChaineUTF32) -> Lexeuse
+initialise_lexeuse :: fonc (document: &ChaineUTF32) -> Lexeuse
 {
+    /* Ajout un point de code pour signifer la fin du fichier, ceci
+     * nous évite d'avoir à appeler a_fini pour chaque point_de_code. */
+    tableau_ajoute(*document.points_de_code, FIN_DE_FICHIER)
     retourne Lexeuse(document = document)
 }
 
@@ -241,10 +244,6 @@ détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 
 point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
 {
-    si lexeuse.a_fini() {
-        retourne 0xffffffff
-    }
-
     position := lexeuse.curseur
     lexeuse.curseur += 1
     retourne lexeuse.document.points_de_code[position]
