@@ -233,6 +233,7 @@ initialise_lexeuse :: fonc (document: ChaineUTF32) -> Lexeuse
 
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
+    détruit_chaine(lexeuse.nom_lexème_courant)
     détruit_chaine(lexeuse.tampon_temporaire)
     détruit(lexeuse.file_lexèmes)
     détruit_chaine(lexeuse.document)
