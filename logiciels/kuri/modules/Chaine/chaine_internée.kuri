@@ -1,10 +1,60 @@
-importe Fondation
 
 /* Une chaine internée est une chaine qui n'existe qu'en un seul exemplaire dans
  * le programme, ceci nous permet de ne faire qu'une comparaison de pointeur au
  * lieu d'une comparaison de chaine complète. */
+
+importe Fondation
+
+/* Le type de chaine qui sera interné. Ceci utilise la sémantique de valeur, ainsi deux chaines de types
+ * différents (p.e. chaine et ChaineUTF32) qui possède les mêmes points de code dans un codec commun ne
+ * seront internées qu'une seule fois. */
+TypeChaineInternée :: union {
+    chn_native: chaine
+    chn_utf32: ChaineUTF32
+}
+
+détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
+{
+    discr type_chaine {
+        chn_native {
+            déloge(type_chaine.chn_native)
+        }
+        chn_utf32 {
+            détruit_chaine(type_chaine.chn_utf32)
+        }
+    }
+}
+
+opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: chaine) -> bool
+{
+    discr type_chaine {
+        chn_native {
+            retourne type_chaine.chn_native == chn
+        }
+        chn_utf32 {
+            retourne type_chaine.chn_utf32 == chn
+        }
+    }
+
+    retourne faux
+}
+
+opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bool
+{
+    discr type_chaine {
+        chn_native {
+            retourne type_chaine.chn_native == chn
+        }
+        chn_utf32 {
+            retourne type_chaine.chn_utf32 == chn
+        }
+    }
+
+    retourne faux
+}
+
 ChaineInternée :: struct {
-    chn: chaine
+    chn: TypeChaineInternée
 }
 
 opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
@@ -18,11 +68,21 @@ opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 
 opérateur != :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
+    retourne !(chaine_internée == chn)
+}
+
+opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
+{
     si chaine_internée == nul {
-        retourne chn != ""
+        retourne chn.est_vide()
     }
 
-    retourne chaine_internée.chn != chn
+    retourne chaine_internée.chn == chn
+}
+
+opérateur != :: fonc (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
+{
+    retourne !(chaine_internée == chn)
 }
 
 opérateur < :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
@@ -41,7 +101,7 @@ opérateur > :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 
 table_des_chaines : []*ChaineInternée
 
-crée_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
+crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
     chaine_existante := trouve_chaine_internée(chn)
 
@@ -56,7 +116,7 @@ crée_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
     retourne chaine_existante
 }
 
-trouve_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
+trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
     pour table_des_chaines {
         si it.chn == chn {
@@ -70,7 +130,7 @@ trouve_chaine_internée :: fonc (chn: chaine) -> *ChaineInternée
 détruit_chaines_internées :: fonc ()
 {
     pour table_des_chaines {
-        déloge(it.chn)
+        détruit_chaine(it.chn)
         déloge(it)
     }
 
