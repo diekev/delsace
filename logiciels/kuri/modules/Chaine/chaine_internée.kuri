@@ -13,6 +13,8 @@ TypeChaineInternée :: union {
     chn_utf32: ChaineUTF32
 }
 
+// À FAIRE(langage) : les accès à des membres d'unions échoues
+
 détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {
     discr type_chaine {
@@ -99,7 +101,52 @@ opérateur > :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
     retourne chaine_internée.chn > chn
 }
 
+/* Retourne une copie de la chaine internée du type de chaine native.
+ * C'est de la responsabilité de l'appelante de libérer la mémoire allouée. */
+chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
+{
+    // À FAIRE(langage) : l'accès à des unions membres de structures échoue
+    type_chaine := chaine_internée.chn
+    discr type_chaine {
+        chn_native {
+            retourne copie_chaine(type_chaine.chn_native)
+        }
+        chn_utf32 {
+            retourne converti_vers_chaine(type_chaine.chn_utf32)
+        }
+    }
+
+    retourne copie_chaine("")
+}
+
 table_des_chaines : []*ChaineInternée
+//table_des_chaines : Table(TypeChaineInternée, *ChaineInternée)
+
+/*
+calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
+{
+    empreinte : n64 = 5381
+
+    discr type_chaine {
+        chn_native {
+            chn_utf32 := crée_chaine_utf32(type_chaine.chn_native)
+            pour chn_utf32.points_de_code {
+                /* empreinte * 33 + c */
+                empreinte = ((empreinte << 5) + empreinte) + it comme n64
+            }
+            détruit_chaine(chn_utf32)
+        }
+        chn_utf32 {
+            pour type_chaine.chn_utf32.points_de_code {
+                /* empreinte * 33 + c */
+                empreinte = ((empreinte << 5) + empreinte) + it comme n64
+            }
+        }
+    }
+
+    retourne empreinte
+}
+*/
 
 crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
@@ -110,6 +157,25 @@ crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
         nouvelle_chaine.chn = copie_chaine(chn)
 
         tableau_ajoute(*table_des_chaines, nouvelle_chaine)
+        //insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
+        chaine_existante = nouvelle_chaine
+    }
+
+    retourne chaine_existante
+}
+
+/* Crée une ChaineInternée depuis une chaine native, mais convertis en UTF-32 afin
+ * d'éviter les comparaisons coûteuse entre chaine et ChaineUTF32. */
+crée_chaine_internée_converti_utf32 :: fonc (chn: chaine) -> *ChaineInternée
+{
+    chaine_existante := trouve_chaine_internée(chn)
+
+    saufsi chaine_existante {
+        nouvelle_chaine := loge(ChaineInternée)
+        nouvelle_chaine.chn = crée_chaine_utf32(chn)
+
+        tableau_ajoute(*table_des_chaines, nouvelle_chaine)
+        // insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
         chaine_existante = nouvelle_chaine
     }
 
@@ -118,6 +184,22 @@ crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 
 trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
+    /*
+    type_chaine : TypeChaineInternée
+    type_chaine = chn
+
+    résultat := trouve(*table_des_chaines, type_chaine)
+
+    discr résultat {
+        *ChaineInternée {
+            retourne résultat comme *ChaineInternée
+        }
+        sinon {
+            retourne nul
+        }
+    }
+    */
+
     pour table_des_chaines {
         si it.chn == chn {
             retourne it
@@ -136,3 +218,150 @@ détruit_chaines_internées :: fonc ()
 
     déloge(table_des_chaines)
 }
+
+
+// --------------------------------------------------------------
+
+/*
+Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données) {
+    clés: []TypeClé
+    valeurs: []TypeValeur
+    occupés: []bool
+    empreintes: []n64
+
+    capacité: z64
+    nombre_éléments: z64
+
+    TAILLE_MIN :: 32
+}
+
+alloue :: fonc (table: *Table($TypeClé, $TypeValeur), taille: z64)
+{
+    // À FAIRE: allocatrice comme membre de la table
+    table.capacité = taille
+
+    table.clés = loge_tableau(TypeClé, taille)
+    table.valeurs = loge_tableau(TypeValeur, taille)
+    table.occupés = loge_tableau(bool, taille)
+    table.empreintes = loge_tableau(n64, taille)
+
+    table.clés.taille = taille
+    table.valeurs.taille = taille
+    table.occupés.taille = taille
+    table.empreintes.taille = taille
+
+    pour & table.occupés {
+        it = faux
+    }
+}
+
+détruit :: fonc (table: *Table($TypeClé, $TypeValeur))
+{
+    déloge(table.clés)
+    déloge(table.occupés)
+    déloge(table.valeurs)
+    déloge(table.empreintes)
+    table.capacité = 0
+    table.nombre_éléments = 0
+}
+
+agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
+{
+    vieilles_clés := table.clés
+    vieilles_occupés := table.occupés
+    vieilles_valeurs := table.valeurs
+    vieilles_empreintes := table.empreintes
+
+    nouvelle_taille := table.capacité * 2
+
+    si nouvelle_taille < Table.TAILLE_MIN {
+        nouvelle_taille = Table.TAILLE_MIN
+    }
+
+    alloue(table, nouvelle_taille)
+
+    pour vieilles_occupés {
+        si it {
+            insère(table, vieilles_clés[index_it], vieilles_valeurs[index_it])
+        }
+    }
+
+    déloge(vieilles_clés)
+    déloge(vieilles_occupés)
+    déloge(vieilles_valeurs)
+    déloge(vieilles_empreintes)
+}
+
+insère :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, valeur: TypeValeur)
+{
+    empreinte := calcule_empreinte(clé)
+    index := trouve_index(table, clé, empreinte)
+
+    si index == -1 {
+        si table.nombre_éléments * 2 >= table.capacité {
+            agrandis(table)
+        }
+
+        index = (empreinte % table.capacité comme n64) comme z64
+
+        tantque table.occupés[index] {
+            index += 1
+
+            si index >= table.capacité {
+                index = 0
+            }
+        }
+
+        table.nombre_éléments += 1
+    }
+
+    table.occupés[index] = vrai
+    table.empreintes[index] = empreinte
+    table.clés[index] = clé
+    table.valeurs[index] = valeur
+}
+
+trouve :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> TypeValeur | bool
+{
+    empreinte := calcule_empreinte(clé)
+    index := trouve_index(table, clé, empreinte)
+
+    si index == -1 {
+        retourne faux
+    }
+
+    retourne table.valeurs[index]
+}
+
+possède :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> bool
+{
+    empreinte := calcule_empreinte(clé)
+    index := trouve_index(table, clé, empreinte)
+    retourne index != -1
+}
+
+trouve_index :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, empreinte: n64) -> z64
+{
+    saufsi table.capacité {
+        retourne -1
+    }
+
+    index := (empreinte % table.capacité comme n64) comme z64
+
+    tantque table.occupés[index] {
+        si table.empreintes[index] == empreinte {
+            si table.clés[index] == clé {
+                retourne index
+            }
+        }
+
+        index += 1
+
+        si index >= table.capacité {
+            index = 0
+        }
+    }
+
+    retourne -1
+}
+*/

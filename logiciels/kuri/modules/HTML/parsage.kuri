@@ -38,9 +38,11 @@ initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
 {
     initialise_tags()
 
+    flux_utf32 := crée_chaine_utf32(entrée)
+
     parseuse: Parseuse
     parseuse.mode_insertion = insère_mode_Initial
-    parseuse.lexeuse = initialise_lexeuse(entrée)
+    parseuse.lexeuse = initialise_lexeuse(flux_utf32)
     parseuse.document = crée_noeud_document()
 
     retourne parseuse
@@ -178,7 +180,7 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.Doctype {
         doctype := crée_noeud_doctype(parseuse.document)
-        doctype.ajoute_attribut("name", lexème.nom.chn)
+        doctype.ajoute_attribut("name", lexème.nom)
         parseuse.document.ajoute_enfant(doctype)
         parseuse.mode_insertion = insère_mode_AvantHtml
         retourne

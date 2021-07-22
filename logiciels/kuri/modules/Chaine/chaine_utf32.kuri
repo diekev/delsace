@@ -49,6 +49,8 @@ crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
 {
     résultat : ChaineUTF32
 
+    tableau_réserve(*résultat.points_de_code, chn.taille)
+
     curseur := 0
     ptr := chn.pointeur
 
