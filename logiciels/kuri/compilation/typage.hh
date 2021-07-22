@@ -335,6 +335,8 @@ struct TypeCompose : public Type {
     static TypeCompose *cree_eini();
 
     static TypeCompose *cree_chaine();
+
+    void marque_polymorphique();
 };
 
 inline bool est_type_compose(const Type *type)

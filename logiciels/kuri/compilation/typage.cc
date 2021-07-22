@@ -257,6 +257,16 @@ TypeCompose *TypeCompose::cree_chaine()
     return type;
 }
 
+void TypeCompose::marque_polymorphique()
+{
+    POUR (membres) {
+        if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+            return;
+        }
+    }
+}
+
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
                                  kuri::tableau<TypeCompose::Membre, int> &&membres_)
@@ -898,9 +908,12 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
     type->est_anonyme = true;
     type->drapeaux |= (TYPE_FUT_VALIDE);
 
-    calcule_taille_type_compose(type, false, 0);
+    type->marque_polymorphique();
 
-    type->cree_type_structure(*this, type->decalage_index);
+    if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+        calcule_taille_type_compose(type, false, 0);
+        type->cree_type_structure(*this, type->decalage_index);
+    }
 
     return type;
 }
@@ -1663,6 +1676,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
             max_alignement = std::max(taille, max_alignement);
 
             assert_rappel(it.type->alignement != 0, [&] {
+                std::cerr << "Dans le calcul de la taille du type : " << chaine_type(type) << '\n';
                 std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
             });
 
