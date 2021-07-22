@@ -48,26 +48,29 @@ converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
 {
     résultat : ChaineUTF32
-
     tableau_réserve(*résultat.points_de_code, chn.taille)
 
+    ptr_source := chn.pointeur
     curseur := 0
-    ptr := chn.pointeur
+
+    ptr_résultat := résultat.points_de_code.pointeur
+    taille : z64 = 0
 
     tantque curseur < chn.taille {
-        no := nombre_octets_utf8_rapide(*ptr[curseur])
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
 
         si no == 0 {
             curseur += 1
             continue
         }
 
-        point_de_code := converti_utf8_utf32(*ptr[curseur]) comme n32
-        chaine_ajoute(*résultat, point_de_code)
+        ptr_résultat[taille] = converti_utf8_utf32(*ptr_source[curseur]) comme n32
 
+        taille += 1
         curseur += no comme z32
     }
 
+    résultat.points_de_code.taille = taille
     retourne résultat
 }
 
