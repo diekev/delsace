@@ -14,6 +14,8 @@ TypeChaineInternée :: union {
 }
 
 // À FAIRE(langage) : les accès à des membres d'unions échoues
+// À FAIRE(langage) : les discriminations sur des types pointeurs échoues
+// À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type membre, pour éviter les paniques en cas de membre non-actif
 
 détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {
@@ -49,6 +51,20 @@ opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bo
         }
         chn_utf32 {
             retourne type_chaine.chn_utf32 == chn
+        }
+    }
+
+    retourne faux
+}
+
+opérateur == :: fonc (type_chaine_a: TypeChaineInternée, type_chaine_b: TypeChaineInternée) -> bool
+{
+    discr type_chaine_a {
+        chn_native {
+            retourne type_chaine_b == type_chaine_a.chn_native
+        }
+        chn_utf32 {
+            retourne type_chaine_b == type_chaine_a.chn_utf32
         }
     }
 
@@ -119,10 +135,9 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
     retourne copie_chaine("")
 }
 
-table_des_chaines : []*ChaineInternée
-//table_des_chaines : Table(TypeChaineInternée, *ChaineInternée)
+table_des_chaines : Table(TypeChaineInternée, *ChaineInternée)
 
-/*
+// Empreinte DJB2
 calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 {
     empreinte : n64 = 5381
@@ -146,7 +161,6 @@ calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 
     retourne empreinte
 }
-*/
 
 crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
@@ -156,8 +170,7 @@ crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
         nouvelle_chaine := loge(ChaineInternée)
         nouvelle_chaine.chn = copie_chaine(chn)
 
-        tableau_ajoute(*table_des_chaines, nouvelle_chaine)
-        //insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
+        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
         chaine_existante = nouvelle_chaine
     }
 
@@ -174,8 +187,7 @@ crée_chaine_internée_converti_utf32 :: fonc (chn: chaine) -> *ChaineInternée
         nouvelle_chaine := loge(ChaineInternée)
         nouvelle_chaine.chn = crée_chaine_utf32(chn)
 
-        tableau_ajoute(*table_des_chaines, nouvelle_chaine)
-        // insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
+        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
         chaine_existante = nouvelle_chaine
     }
 
@@ -184,25 +196,17 @@ crée_chaine_internée_converti_utf32 :: fonc (chn: chaine) -> *ChaineInternée
 
 trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
-    /*
     type_chaine : TypeChaineInternée
     type_chaine = chn
 
     résultat := trouve(*table_des_chaines, type_chaine)
 
     discr résultat {
-        *ChaineInternée {
-            retourne résultat comme *ChaineInternée
-        }
-        sinon {
+        bool {
             retourne nul
         }
-    }
-    */
-
-    pour table_des_chaines {
-        si it.chn == chn {
-            retourne it
+        sinon {
+            retourne résultat comme *ChaineInternée
         }
     }
 
@@ -211,18 +215,20 @@ trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 
 détruit_chaines_internées :: fonc ()
 {
-    pour table_des_chaines {
-        détruit_chaine(it.chn)
-        déloge(it)
+    pour v, idx dans table_des_chaines.valeurs {
+        saufsi table_des_chaines.occupés[idx] {
+            continue
+        }
+
+        détruit_chaine(v.chn)
+        déloge(v)
     }
 
-    déloge(table_des_chaines)
+    détruit(*table_des_chaines)
 }
-
 
 // --------------------------------------------------------------
 
-/*
 Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données) {
     clés: []TypeClé
     valeurs: []TypeValeur
@@ -274,8 +280,8 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 
     nouvelle_taille := table.capacité * 2
 
-    si nouvelle_taille < Table.TAILLE_MIN {
-        nouvelle_taille = Table.TAILLE_MIN
+    si nouvelle_taille < Table($TypeClé, $TypeValeur).TAILLE_MIN {
+        nouvelle_taille = Table($TypeClé, $TypeValeur).TAILLE_MIN
     }
 
     alloue(table, nouvelle_taille)
@@ -364,4 +370,3 @@ trouve_index :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, emp
 
     retourne -1
 }
-*/
