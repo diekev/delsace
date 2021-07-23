@@ -40,22 +40,6 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Compression/)
+  DESTINATION /opt/bin/kuri/modules/Compression/)
 
-add_dependencies(${NOM_PROJET} parcer)
-
-set(FICHIER_MODULE "")
-
-add_custom_command(
-    OUTPUT /tmp/interface.kuri
-    COMMAND parcer "${CMAKE_CURRENT_SOURCE_DIR}/compression.h" -o "/tmp/interface.kuri"
-    DEPENDS parcer "${CMAKE_CURRENT_SOURCE_DIR}/compression.h"
-    COMMENT "Compilation de ${CMAKE_CURRENT_SOURCE_DIR}/compression.h"
-)
-list(APPEND FICHIER_MODULE /tmp/interface.kuri)
-
-add_custom_target(SOURCE_KURI_MODULE ALL DEPENDS "${FICHIER_MODULE}")
-
-install(
-    FILES "${FICHIER_MODULE}"
-    DESTINATION /opt/bin/kuri/modules/Compression/)
+compile_interface_c(${NOM_PROJET} compression.h Compression interface_compression)

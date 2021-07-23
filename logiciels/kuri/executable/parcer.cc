@@ -1179,9 +1179,11 @@ struct Convertisseuse {
                 else {
                     imprime_commentaire(cursor, flux_sortie);
                     auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                    imprime_tab(flux_sortie);
-                    flux_sortie << nom;
-                    flux_sortie << " :: struct #externe;\n\n";
+                    if (nom != "ContexteKuri") {
+                      imprime_tab(flux_sortie);
+                      flux_sortie << nom;
+                      flux_sortie << " :: struct #externe;\n\n";
+                    }
                 }
 
                 break;

@@ -1,0 +1,34 @@
+FilExecution :: struct #externe;
+
+EXETRON_nombre_fils_materiel :: fonc () -> n32 #externe
+
+EXETRON_cree_fil :: fonc (ctx_kuri : *ContexteKuri, rappel :  #nulctx fonc (*rien)(rien), argument : *rien) -> *FilExecution #externe
+
+EXETRON_joins_fil :: fonc (ptr_fil : *FilExecution) -> bool #externe
+
+EXETRON_detache_fil :: fonc (ptr_fil : *FilExecution) -> rien #externe
+
+EXETRON_detruit_fil :: fonc (ctx_kuri : *ContexteKuri, ptr_fil : *FilExecution) -> rien #externe
+
+Mutex :: struct #externe;
+
+EXETRON_cree_mutex :: fonc (ctx_kuri : *ContexteKuri) -> *Mutex #externe
+
+EXETRON_verrouille_mutex :: fonc (mutex : *Mutex) -> rien #externe
+
+EXETRON_deverrouille_mutex :: fonc (mutex : *Mutex) -> rien #externe
+
+EXETRON_detruit_mutex :: fonc (ctx_kuri : *ContexteKuri, mutex : *Mutex) -> rien #externe
+
+VariableCondition :: struct #externe;
+
+EXETRON_cree_variable_condition :: fonc (ctx_kuri : *ContexteKuri) -> *VariableCondition #externe
+
+EXETRON_variable_condition_notifie_tous :: fonc (condition_variable : *VariableCondition) -> rien #externe
+
+EXETRON_variable_condition_notifie_un :: fonc (condition_variable : *VariableCondition) -> rien #externe
+
+EXETRON_variable_condition_attend :: fonc (condition_variable : *VariableCondition, mutex : *Mutex) -> rien #externe
+
+EXETRON_detruit_variable_condition :: fonc (ctx_kuri : *ContexteKuri, mutex : *VariableCondition) -> rien #externe
+

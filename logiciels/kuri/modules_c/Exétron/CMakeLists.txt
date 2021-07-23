@@ -30,6 +30,7 @@ set(BIBLIOTHEQUES
 
 add_library(${NOM_PROJET} STATIC
     exétron.cc
+    exétron.h
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
@@ -40,3 +41,5 @@ install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
 	DESTINATION /opt/bin/kuri/modules/Exétron/)
+
+compile_interface_c(${NOM_PROJET} exétron.h Exétron interface_exétron)

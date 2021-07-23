@@ -32,6 +32,8 @@ add_library(${NOM_PROJET} STATIC
     alea.cc
 
     alea.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
@@ -41,4 +43,6 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Aléa/)
+  DESTINATION /opt/bin/kuri/modules/Aléa/)
+
+compile_interface_c(${NOM_PROJET} alea.h Aléa interface_aléa)

@@ -4,7 +4,7 @@
 importe Fondation
 importe SysFichier
 
-charge "interface"
+charge "interface_compression"
 
 /* Création d'un flux de compression pour un fichier. */
 

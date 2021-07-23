@@ -28,24 +28,28 @@
 #include <system_error>
 #include <thread>
 
+#include "exétron.h"
+
+#include "../InterfaceCKuri/contexte_kuri.hh"
+
 extern "C" {
 
-struct FileExecution {
+struct FilExecution {
     std::function<void(void *)> rappel_;
     void *argument_;
     std::thread thread;
     bool fut_joint_ = false;
     bool termine_ = false;
 
-    FileExecution(std::function<void(void *)> rappel, void *arg)
-        : rappel_(rappel), argument_(arg), thread(&FileExecution::lance, this)
+    FilExecution(std::function<void(void *)> rappel, void *arg)
+        : rappel_(rappel), argument_(arg), thread(&FilExecution::lance, this)
     {
     }
 
-    FileExecution(FileExecution const &) = delete;
-    FileExecution &operator=(FileExecution const &) = delete;
+    FilExecution(FilExecution const &) = delete;
+    FilExecution &operator=(FilExecution const &) = delete;
 
-    ~FileExecution()
+    ~FilExecution()
     {
         if (!fut_joint_) {
             joins();
@@ -54,7 +58,7 @@ struct FileExecution {
 
     static void lance(void *arg)
     {
-        auto moi = static_cast<FileExecution *>(arg);
+        auto moi = static_cast<FilExecution *>(arg);
         moi->rappel_(moi->argument_);
         moi->termine_ = true;
     }
@@ -95,35 +99,34 @@ unsigned int EXETRON_nombre_fils_materiel()
     return std::thread::hardware_concurrency();
 }
 
-void *EXETRON_cree_fil(void (*rappel)(void *), void *argument)
+FilExecution *EXETRON_cree_fil(ContexteKuri *ctx_kuri, void (*rappel)(void *), void *argument)
 {
-    return new FileExecution(rappel, argument);
+    return kuri_loge<FilExecution>(ctx_kuri, rappel, argument);
 }
 
 /* À FAIRE : ajout d'une durée minimum à attendre avant d'annuler si le fil ne fut pas joint. */
-bool EXETRON_joins_fil(void *ptr_fil)
+bool EXETRON_joins_fil(FilExecution *ptr_fil)
 {
-    auto fil = static_cast<FileExecution *>(ptr_fil);
+    auto fil = static_cast<FilExecution *>(ptr_fil);
     return fil->joins();
 }
 
-void EXETRON_detache_fil(void *ptr_fil)
+void EXETRON_detache_fil(FilExecution *ptr_fil)
 {
-    auto fil = static_cast<FileExecution *>(ptr_fil);
+    auto fil = static_cast<FilExecution *>(ptr_fil);
     fil->detache();
 }
 
-void EXETRON_detruit_fil(void *ptr_fil)
+void EXETRON_detruit_fil(ContexteKuri *ctx_kuri, FilExecution *ptr_fil)
 {
-    auto fil = static_cast<FileExecution *>(ptr_fil);
-    delete fil;
+    kuri_deloge(ctx_kuri, ptr_fil);
 }
 
-using Mutex = std::mutex;
+struct Mutex : public std::mutex {};
 
-Mutex *EXETRON_cree_mutex()
+Mutex *EXETRON_cree_mutex(ContexteKuri *ctx_kuri)
 {
-    return new Mutex;
+  return kuri_loge<Mutex>(ctx_kuri);
 }
 
 void EXETRON_verrouille_mutex(Mutex *mutex)
@@ -136,16 +139,16 @@ void EXETRON_deverrouille_mutex(Mutex *mutex)
     mutex->unlock();
 }
 
-void EXETRON_detruit_mutex(Mutex *mutex)
+void EXETRON_detruit_mutex(ContexteKuri *ctx_kuri, Mutex *mutex)
 {
-    delete mutex;
+    kuri_deloge(ctx_kuri, mutex);
 }
 
-using VariableCondition = std::condition_variable;
+struct VariableCondition : public std::condition_variable {};
 
-VariableCondition *EXETRON_cree_variable_condition()
+VariableCondition *EXETRON_cree_variable_condition(ContexteKuri *ctx_kuri)
 {
-    return new VariableCondition;
+  return kuri_loge<VariableCondition>(ctx_kuri);
 }
 
 void EXETRON_variable_condition_notifie_tous(VariableCondition *condition_variable)
@@ -160,12 +163,12 @@ void EXETRON_variable_condition_notifie_un(VariableCondition *condition_variable
 
 void EXETRON_variable_condition_attend(VariableCondition *condition_variable, Mutex *mutex)
 {
-    std::unique_lock l(*mutex);
+    std::unique_lock l(*static_cast<std::mutex *>(mutex));
     condition_variable->wait(l);
 }
 
-void EXETRON_detruit_variable_condition(VariableCondition *mutex)
+void EXETRON_detruit_variable_condition(ContexteKuri *ctx_kuri, VariableCondition *condition_variable)
 {
-    delete mutex;
+    kuri_deloge(ctx_kuri, condition_variable);
 }
 }

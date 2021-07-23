@@ -35,6 +35,36 @@ set(RACINE_INSTALLATION kuri)
 include(CTest)
 enable_testing()
 
+# Macro pour compiler un fichier d'entête C en un fichier .kuri pour pouvoir appeler les fonctions
+# y définis dans les programmes Kuri.
+macro(compile_interface_c __nom_projet__ __fichier_entete__ __nom_module__ __nom_fichier_genere__)
+  # Attend que Parcer est compilé.
+  add_dependencies(${__nom_projet__} parcer)
+
+  # Niveau d'indirection pour générer un fichier .kuri et l'installer puisque CMake ne connait pas
+  # ce genre de fichier
+  set(FICHIER_MODULE "")
+
+  set(FICHIER_DESTINATION "/tmp/${__nom_fichier_genere__}.kuri")
+  set(FICHIER_ENTETE "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier_entete__}")
+
+  add_custom_command(
+      OUTPUT ${FICHIER_DESTINATION}
+      COMMAND parcer "${FICHIER_ENTETE}" -o "${FICHIER_DESTINATION}"
+      DEPENDS parcer "${FICHIER_ENTETE}"
+      COMMENT "Génération de l'interface Kuri pour ${FICHIER_ENTETE}"
+  )
+
+  list(APPEND FICHIER_MODULE ${FICHIER_DESTINATION})
+
+  # Attend que FICHIER_MODULE est disponible
+  add_custom_target(SOURCE_KURI_MODULE_${__nom_projet__} ALL DEPENDS "${FICHIER_MODULE}")
+
+  install(
+      FILES "${FICHIER_MODULE}"
+      DESTINATION ${RACINE_INSTALLATION}/modules/${__nom_module__}/)
+endmacro(compile_interface_c)
+
 add_subdirectory(adn)
 add_subdirectory(arbre_syntaxique)
 add_subdirectory(compilation)
