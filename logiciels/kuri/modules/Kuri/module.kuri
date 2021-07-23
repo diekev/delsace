@@ -791,3 +791,52 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
 
     retourne résultat
 }
+
+// -----------------------------------
+
+// Contexte pour les fonctions/modules C.
+ContexteKuri :: struct {
+    loge_memoire : #nulctx fonc (*ContexteKuri,n64)(*rien)
+	reloge_memoire : #nulctx fonc (*ContexteKuri,*rien,n64,n64)(*rien)
+	deloge_memoire : #nulctx fonc (*ContexteKuri,*rien,n64)(rien)
+}
+
+loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, taille: n64) -> *rien #nulctx
+{
+    pointeur : *rien
+
+    pousse_contexte __contexte_fil_principal {
+        pointeur = loge_mémoire(taille comme z64, nul, PositionCodeSource())
+    }
+
+    retourne pointeur
+}
+
+reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
+{
+    pointeur : *rien
+
+    pousse_contexte __contexte_fil_principal {
+        pointeur = reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    }
+
+    retourne pointeur
+}
+
+déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64) -> rien #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    }
+
+    retourne
+}
+
+initialise_contexte_kuri :: fonc () -> ContexteKuri
+{
+    ctx: ContexteKuri
+    ctx.loge_memoire = loge_memoire_pour_contexte_kuri
+    ctx.reloge_memoire = reloge_memoire_pour_contexte_kuri
+    ctx.deloge_memoire = déloge_memoire_pour_contexte_kuri
+    retourne ctx
+}
