@@ -1154,28 +1154,26 @@ CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpres
                             espace->rapporte_erreur(enfant2,
                                                     "Les coroutines ne sont plus supportées dans "
                                                     "le langage pour le moment");
-                            //							enfant1->type = enfant2->type;
+#if 0
+                            enfant1->type = enfant2->type;
 
-                            //							df = enfant2->df;
-                            //							auto nombre_vars_ret =
-                            // df->idx_types_retours.taille();
+                            df = enfant2->df;
+                            auto nombre_vars_ret = df->idx_types_retours.taille();
 
-                            //							if (feuilles.taille() == nombre_vars_ret) {
-                            //								requiers_index = false;
-                            //								noeud->aide_generation_code =
-                            // GENERE_BOUCLE_COROUTINE;
-                            //							}
-                            //							else if (feuilles.taille() ==
-                            //nombre_vars_ret
-                            //+ 1) { 								requiers_index = true;
-                            // noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
-                            //							}
-                            //							else {
-                            //								rapporte_erreur(
-                            //											"Mauvais compte d'arguments
-                            //à déployer", compilatrice,
-                            // *enfant1->lexeme);
-                            //							}
+                            if (feuilles.taille() == nombre_vars_ret) {
+                                requiers_index = false;
+                                noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+                            }
+                            else if (feuilles.taille() == nombre_vars_ret + 1) {
+                                requiers_index = true;
+                                noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+                            }
+                            else {
+                                rapporte_erreur("Mauvais compte d'arguments à déployer ",
+                                                compilatrice,
+                                                *enfant1->lexeme);
+                            }
+#endif
                         }
                     }
                 }
