@@ -94,7 +94,8 @@ static bool verifie_transformation(Compilatrice &compilatrice,
                                    TypeBase type2,
                                    bool est_possible)
 {
-    return verifie_transformation(compilatrice, espace, typeuse[type1], typeuse[type2], est_possible);
+    return verifie_transformation(
+        compilatrice, espace, typeuse[type1], typeuse[type2], est_possible);
 }
 
 int main()
@@ -108,21 +109,36 @@ int main()
 
     auto reussite = true;
 
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::N8, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_N8, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::REF_N8, TypeBase::N8, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::PTR_N8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::PTR_N8, TypeBase::N8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::Z8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_Z8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::PTR_Z8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::N64, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_N64, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::N8, TypeBase::CHAINE, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::R64, TypeBase::N8, false);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::R64, TypeBase::EINI, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::EINI, TypeBase::R64, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::EINI, TypeBase::EINI, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::N8, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_N8, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::REF_N8, TypeBase::N8, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::PTR_N8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::PTR_N8, TypeBase::N8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::Z8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_Z8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::PTR_Z8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::N64, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::REF_N64, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::N8, TypeBase::CHAINE, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::R64, TypeBase::N8, false);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::R64, TypeBase::EINI, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::EINI, TypeBase::R64, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::EINI, TypeBase::EINI, true);
     // test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
     reussite &= verifie_transformation(
         compilatrice, espace, typeuse, TypeBase::TABL_OCTET, TypeBase::EINI, true);
@@ -155,8 +171,10 @@ int main()
     reussite &= verifie_transformation(compilatrice, espace, dt_tabl_fixe, dt_tabl_octet, true);
 
     /* test : appel fonction */
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::R16, TypeBase::R32, true);
-    reussite &= verifie_transformation(compilatrice, espace, typeuse, TypeBase::R32, TypeBase::R16, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::R16, TypeBase::R32, true);
+    reussite &= verifie_transformation(
+        compilatrice, espace, typeuse, TypeBase::R32, TypeBase::R16, true);
 
     // test nul -> fonc()
 

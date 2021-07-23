@@ -36,7 +36,9 @@ struct FilExecution;
 
 unsigned int EXETRON_nombre_fils_materiel();
 
-struct FilExecution *EXETRON_cree_fil(struct ContexteKuri *ctx_kuri, void (*rappel)(void *), void *argument);
+struct FilExecution *EXETRON_cree_fil(struct ContexteKuri *ctx_kuri,
+                                      void (*rappel)(void *),
+                                      void *argument);
 
 /* À FAIRE : ajout d'une durée minimum à attendre avant d'annuler si le fil ne fut pas joint. */
 bool EXETRON_joins_fil(struct FilExecution *ptr_fil);
@@ -63,9 +65,11 @@ void EXETRON_variable_condition_notifie_tous(struct VariableCondition *condition
 
 void EXETRON_variable_condition_notifie_un(struct VariableCondition *condition_variable);
 
-void EXETRON_variable_condition_attend(struct VariableCondition *condition_variable, struct Mutex *mutex);
+void EXETRON_variable_condition_attend(struct VariableCondition *condition_variable,
+                                       struct Mutex *mutex);
 
-void EXETRON_detruit_variable_condition(struct ContexteKuri *ctx_kuri, struct VariableCondition *mutex);
+void EXETRON_detruit_variable_condition(struct ContexteKuri *ctx_kuri,
+                                        struct VariableCondition *mutex);
 
 #ifdef __cplusplus
 }

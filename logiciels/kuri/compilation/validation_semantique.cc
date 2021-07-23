@@ -757,7 +757,8 @@ CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpres
             auto type = enfant->type;
 
             if (type == nullptr) {
-                espace->rapporte_erreur(enfant, "Erreur interne : type nul pour l'opérande d'un opérateur unaire !");
+                espace->rapporte_erreur(
+                    enfant, "Erreur interne : type nul pour l'opérande d'un opérateur unaire !");
                 return CodeRetourValidation::Erreur;
             }
 

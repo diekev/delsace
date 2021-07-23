@@ -47,19 +47,19 @@ struct ContexteKuri {
 template <typename T, typename... Args>
 T *kuri_loge(ContexteKuri *ctx_kuri, Args &&... args)
 {
-  T *ptr = static_cast<T *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof (T)));
-  new (ptr) T(args...);
-  return ptr;
+    T *ptr = static_cast<T *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof(T)));
+    new (ptr) T(args...);
+    return ptr;
 }
 
 template <typename T>
 void kuri_deloge(ContexteKuri *ctx_kuri, T *ptr)
 {
-  if (!ptr) {
-    return;
-  }
+    if (!ptr) {
+        return;
+    }
 
-  ptr->~T();
-  ctx_kuri->deloge_memoire(ctx_kuri, ptr, sizeof(T));
+    ptr->~T();
+    ctx_kuri->deloge_memoire(ctx_kuri, ptr, sizeof(T));
 }
 #endif
