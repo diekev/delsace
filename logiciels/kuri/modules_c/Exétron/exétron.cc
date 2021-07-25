@@ -107,14 +107,12 @@ FilExecution *EXETRON_cree_fil(ContexteKuri *ctx_kuri, void (*rappel)(void *), v
 /* À FAIRE : ajout d'une durée minimum à attendre avant d'annuler si le fil ne fut pas joint. */
 bool EXETRON_joins_fil(FilExecution *ptr_fil)
 {
-    auto fil = static_cast<FilExecution *>(ptr_fil);
-    return fil->joins();
+    return ptr_fil->joins();
 }
 
 void EXETRON_detache_fil(FilExecution *ptr_fil)
 {
-    auto fil = static_cast<FilExecution *>(ptr_fil);
-    fil->detache();
+    ptr_fil->detache();
 }
 
 void EXETRON_detruit_fil(ContexteKuri *ctx_kuri, FilExecution *ptr_fil)
