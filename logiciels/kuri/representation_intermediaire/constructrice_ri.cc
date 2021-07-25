@@ -3244,8 +3244,38 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
         }
         case GenreType::FONCTION:
         {
-            type->atome_info_type = cree_info_type_defaut(IDInfoType::FONCTION,
-                                                          type->taille_octet);
+            auto type_fonction = type->comme_fonction();
+
+            kuri::tableau<AtomeConstante *> types_entree;
+            types_entree.reserve(type_fonction->types_entrees.taille());
+            POUR (type_fonction->types_entrees) {
+                types_entree.ajoute(cree_info_type(it));
+            }
+
+            kuri::tableau<AtomeConstante *> types_sortie;
+            types_sortie.reserve(1);
+            types_sortie.ajoute(cree_info_type(type_fonction->type_sortie));
+
+            auto valeur_id = cree_z32(IDInfoType::FONCTION);
+            auto valeur_taille_octet = cree_z32(type->taille_octet);
+
+            auto type_membre = m_espace->typeuse.type_pointeur_pour(
+                m_espace->typeuse.type_info_type_, false);
+            auto tableau_types_entree = cree_tableau_global(type_membre, std::move(types_entree));
+            auto tableau_types_sortie = cree_tableau_global(type_membre, std::move(types_sortie));
+
+            auto valeurs = kuri::tableau<AtomeConstante *>(5);
+            valeurs[0] = valeur_id;
+            valeurs[1] = valeur_taille_octet;
+            valeurs[2] = tableau_types_entree;
+            valeurs[3] = tableau_types_sortie;
+            valeurs[4] = cree_constante_booleenne(false);
+
+            auto type_pointeur = m_espace->typeuse.type_info_type_fonction;
+
+            auto initialisateur = cree_constante_structure(type_pointeur, std::move(valeurs));
+
+            type->atome_info_type = cree_globale(type_pointeur, initialisateur, false, true);
             break;
         }
         case GenreType::EINI:
