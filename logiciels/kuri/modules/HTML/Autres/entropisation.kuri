@@ -1,0 +1,292 @@
+importe Fondation
+importe HTML
+importe Chaine
+importe SysFichier
+importe Aléa
+
+// À FAIRE(langage) : erreurs de compilation car l'union TypeChaineInternée n'est pas traversée pour la génération de code C
+c: ChaineUTF32
+
+ContexteFormattage :: struct {
+    profondeur: z32
+}
+
+imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, profondeur: z32)
+{
+    pour profondeur {
+        enchaineuse.ajoute_au_tampon("    ")
+    }
+}
+
+formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud, enchaineuse: *Enchaineuse)
+{
+    si noeud.genre == GenreNoeud.Texte {
+        texte := noeud comme *NoeudTexte
+
+        données := texte.données
+
+        // À FAIRE : gère proprement le texte
+        tantque données.taille > 0 {
+            si données[0] == '\n' || données[0] ==  ' ' || données[0] == '\t' {
+                données = avance(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        tantque données.taille > 0 {
+            index := données.taille - 1
+            si données[index] == '\n' || données[index] ==  ' ' || données[index] == '\t' {
+                données = recule(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        enchaineuse.ajoute_au_tampon(données)
+    }
+    sinon si noeud.genre == GenreNoeud.Élément {
+        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
+
+        élément := noeud comme *Élément
+
+        chn_tag := chaine_native(élément.texte)
+        diffère déloge(chn_tag)
+
+        enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
+
+        pour élément.attributs {
+            enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
+        }
+
+        si est_tag_auto_fermant(élément.texte) {
+            enchaineuse.ajoute_au_tampon("/>\n")
+            retourne
+        }
+
+        // À FAIRE : gestion des nouvelles lignes
+        enchaineuse.ajoute_au_tampon(">\n")
+
+        contexte_formattage.profondeur += 1
+        pour élément.enfants {
+            formatte_noeud(contexte_formattage, it, enchaineuse)
+        }
+        contexte_formattage.profondeur -= 1
+
+        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
+        enchaineuse.imprime_dans_enchaineuse("</%>\n", chn_tag)
+    }
+    sinon si noeud.genre == GenreNoeud.Doctype {
+        enchaineuse.ajoute_au_tampon("<!DOCTYPE html>\n")
+    }
+    sinon si noeud.genre == GenreNoeud.Document {
+        pour noeud.enfants {
+            formatte_noeud(contexte_formattage, it, enchaineuse)
+        }
+    }
+}
+
+formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    contexte_formattage: ContexteFormattage
+
+    formatte_noeud(contexte_formattage, document, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, fichier_sortie)
+
+    retourne taille_chaine(*enchaineuse)
+}
+
+// -----------------------------------------------------------
+
+ContexteEntropisation :: struct {
+    gna: *GNA
+
+    profondeur: z32
+    éléments_créés: z32
+
+    profondeur_max: z32
+    nombre_enfants_max: z32
+    nombre_éléments_max: z32
+}
+
+crée_noeud_élément :: fonc (tag: *ChaineInternée) -> *Élément
+{
+    n := loge(Élément)
+    n.genre = GenreNoeud.Élément
+    n.texte = tag
+    retourne n
+}
+
+choisis_un_de :: fonc (gna: *GNA, tags: ...*ChaineInternée) -> *ChaineInternée
+{
+    index := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
+    retourne tags[index]
+}
+
+tag_enfant_possible :: fonc (gna: *GNA, tag: *ChaineInternée) -> *ChaineInternée
+{
+    si tag == TAG_head {
+        retourne gna.choisis_un_de(TAG_meta, TAG_script, TAG_a)
+    }
+
+    si tag == TAG_table {
+        retourne TAG_tbody
+    }
+
+    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_link, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
+}
+
+nombre_enfants_possibles :: fonc (gna: *GNA, tag: *ChaineInternée) -> z32
+{
+    si tag == TAG_table {
+        retourne 1
+    }
+
+    retourne gna.uniforme(0.0, 10.0) comme z32
+}
+
+génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Élément)
+{
+    si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
+        retourne
+    }
+
+    si ctx_entropie.éléments_créés >= ctx_entropie.nombre_éléments_max {
+        retourne
+    }
+
+    gna := ctx_entropie.gna
+
+    doit_faire_des_enfants := gna.uniforme(0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32)
+    saufsi doit_faire_des_enfants {
+        retourne
+    }
+
+    nombre_enfants := nombre_enfants_possibles(gna, parent.texte)
+    pour 0 ... nombre_enfants - 1 {
+        enfant := crée_noeud_élément(tag_enfant_possible(gna, parent.texte))
+        ctx_entropie.éléments_créés += 1
+        ajoute_enfant(parent, enfant)
+    }
+
+    ctx_entropie.profondeur += 1
+    pour parent.enfants {
+        saufsi it.genre == GenreNoeud.Élément {
+            continue
+        }
+
+        élément_enfant := it comme *Élément
+
+        saufsi !est_tag_auto_fermant(élément_enfant.texte) {
+            continue
+        }
+
+        si élément_enfant.texte == TAG_script {
+            continue
+        }
+
+        génère_enfants_récusifs(ctx_entropie, élément_enfant)
+    }
+    ctx_entropie.profondeur -= 1
+}
+
+ParamètresEntropisation :: struct {
+    limite_basse_enfants : z32
+    limite_haute_enfants : z32
+
+    limite_basse_profondeur : z32
+    limite_haute_profondeur : z32
+
+    limite_basse_éléments : z32
+    limite_haute_éléments : z32
+
+    graine : n32
+
+    fichier_sortie : CheminFichier
+}
+
+ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichier
+{
+    si paramètres.fichier_sortie.chn == "" {
+        retourne sortie_standarde()
+    }
+
+    fichier := tente ouvre_fichier_pour_lecture(paramètres.fichier_sortie.chn) piège nonatteignable
+
+    résultat := loge(Fichier)
+    mémoire(résultat) = fichier
+    retourne résultat
+}
+
+détruit_fichier :: fonc (paramètres: &ParamètresEntropisation, fichier: *Fichier)
+{
+    si paramètres.fichier_sortie.chn != "" {
+        _ := ferme(fichier)
+        déloge(fichier)
+    }
+}
+
+programme_entropisation :: fonc (paramètres: ParamètresEntropisation)
+{
+    diffère détruit_chaines_internées()
+
+    ctx_kuri := initialise_contexte_kuri()
+
+    gna: *GNA = crée_gna(*ctx_kuri, paramètres.graine)
+    diffère détruit_gna(*ctx_kuri, gna)
+
+    document := crée_noeud_document()
+    diffère détruit_noeud(document)
+
+    doctype := crée_noeud_doctype(document)
+
+    html := crée_noeud_élément(TAG_html)
+    head := crée_noeud_élément(TAG_head)
+    body := crée_noeud_élément(TAG_body)
+
+    ajoute_enfant(document, doctype)
+    ajoute_enfant(document, html)
+    ajoute_enfant(html, head)
+    ajoute_enfant(html, body)
+
+    profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32
+
+    ctx_entropie: ContexteEntropisation
+    ctx_entropie.gna = gna
+    ctx_entropie.profondeur_max = profondeur_max
+    ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants
+    ctx_entropie.nombre_éléments_max = paramètres.limite_haute_éléments
+
+    génère_enfants_récusifs(ctx_entropie, head)
+    génère_enfants_récusifs(ctx_entropie, body)
+
+    fichier := paramètres.ouvre_fichier_sortie()
+    diffère détruit_fichier(paramètres, fichier)
+
+    _ := formatte_document(document, fichier)
+}
+
+principale :: fonc () -> z32
+{
+    {
+        // À FAIRE(langage) : erreurs de compilation si certains symboles ne sont pas utilisés
+        parsat := parse_document("")
+        diffère détruit(parsat)
+    }
+
+    paramètres : ParamètresEntropisation
+    paramètres.limite_haute_profondeur = 5
+    paramètres.limite_haute_enfants = 10
+    paramètres.limite_haute_éléments = 100
+
+    programme_entropisation(paramètres)
+
+    retourne 0
+}
