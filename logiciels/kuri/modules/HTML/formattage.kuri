@@ -1,0 +1,102 @@
+/* Routines de formattage, d'impression, de documents HTML. */
+
+importe Chaine
+importe Fondation
+importe SysFichier
+
+ContexteFormattage :: struct {
+    profondeur: z32
+}
+
+imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, profondeur: z32)
+{
+    pour profondeur {
+        enchaineuse.ajoute_au_tampon("    ")
+    }
+}
+
+formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud, enchaineuse: *Enchaineuse)
+{
+    si noeud.genre == GenreNoeud.Texte {
+        texte := noeud comme *NoeudTexte
+
+        données := texte.données
+
+        // À FAIRE : gère proprement le texte
+        tantque données.taille > 0 {
+            si données[0] == '\n' || données[0] ==  ' ' || données[0] == '\t' {
+                données = avance(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        tantque données.taille > 0 {
+            index := données.taille - 1
+            si données[index] == '\n' || données[index] ==  ' ' || données[index] == '\t' {
+                données = recule(données, 1)
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        enchaineuse.ajoute_au_tampon(données)
+    }
+    sinon si noeud.genre == GenreNoeud.Élément {
+        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
+
+        élément := noeud comme *Élément
+
+        chn_tag := chaine_native(élément.texte)
+        diffère déloge(chn_tag)
+
+        enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
+
+        pour élément.attributs {
+            enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
+        }
+
+        si est_tag_auto_fermant(élément.texte) {
+            enchaineuse.ajoute_au_tampon("/>\n")
+            retourne
+        }
+
+        // À FAIRE : gestion des nouvelles lignes
+        enchaineuse.ajoute_au_tampon(">\n")
+
+        contexte_formattage.profondeur += 1
+        pour élément.enfants {
+            formatte_noeud(contexte_formattage, it, enchaineuse)
+        }
+        contexte_formattage.profondeur -= 1
+
+        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
+        enchaineuse.imprime_dans_enchaineuse("</%>\n", chn_tag)
+    }
+    sinon si noeud.genre == GenreNoeud.Doctype {
+        enchaineuse.ajoute_au_tampon("<!DOCTYPE html>\n")
+    }
+    sinon si noeud.genre == GenreNoeud.Document {
+        pour noeud.enfants {
+            formatte_noeud(contexte_formattage, it, enchaineuse)
+        }
+    }
+}
+
+/* Formatte le document et imprime-le dans le fichier sortie. */
+formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    contexte_formattage: ContexteFormattage
+
+    formatte_noeud(contexte_formattage, document, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, fichier_sortie)
+
+    retourne taille_chaine(*enchaineuse)
+}
