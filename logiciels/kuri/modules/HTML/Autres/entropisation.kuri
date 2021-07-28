@@ -10,6 +10,7 @@ c: ChaineUTF32
 // -----------------------------------------------------------
 
 ContexteEntropisation :: struct {
+    document: *Document
     gna: *GNA
 
     profondeur: z32
@@ -18,14 +19,6 @@ ContexteEntropisation :: struct {
     profondeur_max: z32
     nombre_enfants_max: z32
     nombre_éléments_max: z32
-}
-
-crée_noeud_élément :: fonc (tag: *ChaineInternée) -> *Élément
-{
-    n := loge(Élément)
-    n.genre = GenreNoeud.Élément
-    n.texte = tag
-    retourne n
 }
 
 choisis_un_de :: fonc (gna: *GNA, tags: ...*ChaineInternée) -> *ChaineInternée
@@ -75,7 +68,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
 
     nombre_enfants := nombre_enfants_possibles(gna, parent.texte)
     pour 0 ... nombre_enfants - 1 {
-        enfant := crée_noeud_élément(tag_enfant_possible(gna, parent.texte))
+        enfant := crée_élément_avec_tag(ctx_entropie.document, tag_enfant_possible(gna, parent.texte))
         ctx_entropie.éléments_créés += 1
         ajoute_enfant(parent, enfant)
     }
@@ -151,9 +144,9 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation)
 
     doctype := crée_noeud_doctype(document)
 
-    html := crée_noeud_élément(TAG_html)
-    head := crée_noeud_élément(TAG_head)
-    body := crée_noeud_élément(TAG_body)
+    html := crée_élément_avec_tag(document, TAG_html)
+    head := crée_élément_avec_tag(document, TAG_head)
+    body := crée_élément_avec_tag(document, TAG_body)
 
     ajoute_enfant(document, doctype)
     ajoute_enfant(document, html)
@@ -163,6 +156,7 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation)
     profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32
 
     ctx_entropie: ContexteEntropisation
+    ctx_entropie.document = document
     ctx_entropie.gna = gna
     ctx_entropie.profondeur_max = profondeur_max
     ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants
