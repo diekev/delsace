@@ -4,83 +4,187 @@ importe Chaine
 importe Fondation
 importe SysFichier
 
-ContexteFormattage :: struct {
-    profondeur: z32
+/* À FAIRE : options
+ * - taille tabulation
+ * - préférences guillemet/apostrophe
+ */
+
+est_élément_optionnel :: fonc (tag: *ChaineInternée) -> bool
+{
+    retourne fait_partie_de(tag, TAG_html, TAG_head, TAG_body)
 }
 
-imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, profondeur: z32)
+ContexteFormattage :: struct {
+    profondeur: z32
+    supprime_espaces_blancs_texte: bool = vrai
+    insère_nouvelle_lignes_après_tags: bool = vrai
+    indente_tags: bool = vrai
+    /* Supprime les guillemets des attributs si possible. */
+    supprime_guillemets_attributs: bool
+    supprime_slash_tags_auto_fermant: bool
+    supprime_commentaire: bool
+    /* Ignore les tags de fins pour les éléments optionnels: html, head, body. */
+    ignore_tag_fin_éléments_optionnels: bool
+}
+
+initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
 {
-    pour profondeur {
+    ctx: ContexteFormattage
+    ctx.insère_nouvelle_lignes_après_tags = faux
+    ctx.supprime_espaces_blancs_texte = vrai
+    ctx.indente_tags = faux
+    ctx.supprime_espaces_blancs_texte = vrai
+    ctx.supprime_guillemets_attributs = vrai
+    ctx.supprime_slash_tags_auto_fermant = vrai
+    ctx.supprime_commentaire = vrai
+    ctx.ignore_tag_fin_éléments_optionnels = vrai
+    retourne ctx
+}
+
+// À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
+formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: chaine) -> chaine
+{
+    saufsi contexte_formattage.supprime_espaces_blancs_texte {
+        retourne texte
+    }
+
+    tantque texte.taille > 0 {
+        si texte[0] == '\n' || texte[0] ==  ' ' || texte[0] == '\t' {
+            texte = avance(texte, 1)
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    tantque texte.taille > 0 {
+        index := texte.taille - 1
+        si texte[index] == '\n' || texte[index] ==  ' ' || texte[index] == '\t' {
+            texte = recule(texte, 1)
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne texte
+}
+
+tabulation_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
+{
+    saufsi contexte_formattage.indente_tags {
+        retourne
+    }
+
+    pour contexte_formattage.profondeur {
         enchaineuse.ajoute_au_tampon("    ")
     }
 }
 
+nouvelle_ligne_après_tag_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
+{
+    si contexte_formattage.insère_nouvelle_lignes_après_tags {
+        enchaineuse.ajoute_au_tampon("\n")
+    }
+}
+
+peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, valeur: chaine) -> bool
+{
+    saufsi contexte_formattage.supprime_guillemets_attributs {
+        retourne faux
+    }
+
+    besoin_apostrophes := faux
+    pour c dans valeur {
+        si c == ' ' || c == '/' {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
 formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud, enchaineuse: *Enchaineuse)
 {
-    si noeud.genre == GenreNoeud.Texte {
-        texte := noeud comme *NoeudTexte
-
-        données := texte.données
-
-        // À FAIRE : gère proprement le texte
-        tantque données.taille > 0 {
-            si données[0] == '\n' || données[0] ==  ' ' || données[0] == '\t' {
-                données = avance(données, 1)
-            }
-            sinon {
-                arrête
-            }
-        }
-
-        tantque données.taille > 0 {
-            index := données.taille - 1
-            si données[index] == '\n' || données[index] ==  ' ' || données[index] == '\t' {
-                données = recule(données, 1)
-            }
-            sinon {
-                arrête
-            }
-        }
-
-        enchaineuse.ajoute_au_tampon(données)
-    }
-    sinon si noeud.genre == GenreNoeud.Élément {
-        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
-
-        élément := noeud comme *Élément
-
-        chn_tag := chaine_native(élément.texte)
-        diffère déloge(chn_tag)
-
-        enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
-
-        pour élément.attributs {
-            enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
-        }
-
-        si est_tag_auto_fermant(élément.texte) {
-            enchaineuse.ajoute_au_tampon("/>\n")
+    discr noeud.genre {
+        Invalide {
             retourne
         }
+        Commentaire {
+            si contexte_formattage.supprime_commentaire {
+                retourne
+            }
 
-        // À FAIRE : gestion des nouvelles lignes
-        enchaineuse.ajoute_au_tampon(">\n")
+            commentaire := noeud comme *NoeudCommentaire
+            texte := formatte_texte(contexte_formattage, commentaire.données)
 
-        contexte_formattage.profondeur += 1
-        pour élément.enfants {
-            formatte_noeud(contexte_formattage, it, enchaineuse)
+            tabulation_au_besoin(contexte_formattage, enchaineuse)
+            enchaineuse.ajoute_au_tampon("<!--", texte, "-->")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
         }
-        contexte_formattage.profondeur -= 1
+        Document {
+            pour noeud.enfants {
+                formatte_noeud(contexte_formattage, it, enchaineuse)
+            }
+        }
+        Doctype {
+            enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+        }
+        Texte {
+            texte := noeud comme *NoeudTexte
+            données := formatte_texte(contexte_formattage, texte.données)
+            enchaineuse.ajoute_au_tampon(données)
+        }
+        Élément {
+            tabulation_au_besoin(contexte_formattage, enchaineuse)
 
-        imprime_tabulation(enchaineuse, contexte_formattage.profondeur)
-        enchaineuse.imprime_dans_enchaineuse("</%>\n", chn_tag)
-    }
-    sinon si noeud.genre == GenreNoeud.Doctype {
-        enchaineuse.ajoute_au_tampon("<!DOCTYPE html>\n")
-    }
-    sinon si noeud.genre == GenreNoeud.Document {
-        pour noeud.enfants {
-            formatte_noeud(contexte_formattage, it, enchaineuse)
+            élément := noeud comme *Élément
+
+            chn_tag := chaine_native(élément.texte)
+            diffère déloge(chn_tag)
+
+            /* Ouverture du tag. */
+            enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
+
+            /* Attributs. */
+            pour élément.attributs {
+                si peut_ignorer_les_guillemets(contexte_formattage, it.valeur) {
+                    enchaineuse.imprime_dans_enchaineuse(" %=%", it.nom, it.valeur)
+                }
+                sinon {
+                    enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
+                }
+            }
+
+            si est_tag_auto_fermant(élément.texte) {
+                si contexte_formattage.supprime_slash_tags_auto_fermant {
+                    enchaineuse.ajoute_au_tampon(">")
+                }
+                sinon {
+                    enchaineuse.ajoute_au_tampon("/>")
+                }
+
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                retourne
+            }
+
+            enchaineuse.ajoute_au_tampon(">")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+
+            /* Enfants. */
+            contexte_formattage.profondeur += 1
+            pour élément.enfants {
+                formatte_noeud(contexte_formattage, it, enchaineuse)
+            }
+            contexte_formattage.profondeur -= 1
+
+            /* Fermeture du tag. */
+            saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.texte) {
+                tabulation_au_besoin(contexte_formattage, enchaineuse)
+                enchaineuse.imprime_dans_enchaineuse("</%>", chn_tag)
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            }
         }
     }
 }
@@ -88,11 +192,15 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
 /* Formatte le document et imprime-le dans le fichier sortie. */
 formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
 {
+    contexte_formattage: ContexteFormattage
+    retourne formatte_document(contexte_formattage, document, fichier_sortie)
+}
+
+formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *Document, fichier_sortie: *Fichier) -> z64
+{
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
-
-    contexte_formattage: ContexteFormattage
 
     formatte_noeud(contexte_formattage, document, *enchaineuse)
 

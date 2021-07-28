@@ -8,11 +8,6 @@ importe HTML
 importe SysFichier
 importe Temps
 
-/* À FAIRE : options
- * - taille tabulation
- * - préférences guillemet/apostrophe
- */
-
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
 {
     retourne chm.extension() == ".html"

@@ -4,108 +4,6 @@ importe HTML
 importe SysFichier
 importe Temps
 
-/*
-
-    Options:
-    - supprime espaces blancs
-    - supprime commentaires
-    - supprime apostrophes, guillemets pour les attributs des noeuds si possible
-    - supprime tag fin html, head, body
-
-    À FAIRE : caractères échappés
-
- */
-
-minifie_noeud :: fonc (noeud: *Noeud, enchaineuse: *Enchaineuse)
-{
-    si noeud.genre == GenreNoeud.Texte {
-        texte := noeud comme *NoeudTexte
-
-        données := texte.données
-
-        // À FAIRE : supprime espaces redondants entre les mots
-        tantque données.taille > 0 {
-            si données[0] == '\n' || données[0] ==  ' ' || données[0] == '\t' {
-                données = avance(données, 1)
-            }
-            sinon {
-                arrête
-            }
-        }
-
-        tantque données.taille > 0 {
-            index := données.taille - 1
-            si données[index] == '\n' || données[index] ==  ' ' || données[index] == '\t' {
-                données = recule(données, 1)
-            }
-            sinon {
-                arrête
-            }
-        }
-
-        enchaineuse.ajoute_au_tampon(données)
-    }
-    sinon si noeud.genre == GenreNoeud.Élément {
-        élément := noeud comme *Élément
-        enchaineuse.imprime_dans_enchaineuse("<%", élément.texte.chn)
-
-        pour élément.attributs {
-            enchaineuse.imprime_dans_enchaineuse(" %=", it.nom)
-
-            besoin_apostrophes := faux
-            pour c dans it.valeur {
-                si c == ' ' || c == '/' {
-                    besoin_apostrophes = vrai
-                    arrête
-                }
-            }
-
-            si besoin_apostrophes {
-                enchaineuse.imprime_dans_enchaineuse("'%'", it.valeur)
-            }
-            sinon {
-                enchaineuse.imprime_dans_enchaineuse("%", it.valeur)
-            }
-        }
-
-        si est_tag_auto_fermant(élément.texte) {
-            enchaineuse.ajoute_au_tampon("/>")
-            retourne
-        }
-
-        enchaineuse.ajoute_au_tampon(">")
-
-        pour élément.enfants {
-            minifie_noeud(it, enchaineuse)
-        }
-
-        saufsi fait_partie_de(élément.texte, TAG_head, TAG_html, TAG_body) {
-            enchaineuse.imprime_dans_enchaineuse("</%>", élément.texte.chn)
-        }
-    }
-    sinon si noeud.genre == GenreNoeud.Doctype {
-        enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
-    }
-    sinon si noeud.genre == GenreNoeud.Document {
-        pour noeud.enfants {
-            minifie_noeud(it, enchaineuse)
-        }
-    }
-}
-
-minifie_document :: fonc (document: *Document) -> z64
-{
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère { détruit_tampons(*enchaineuse) }
-
-    minifie_noeud(document, *enchaineuse)
-
-    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
-
-    retourne taille_chaine(*enchaineuse)
-}
-
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
 {
     retourne chm.extension() == ".html"
@@ -141,7 +39,8 @@ principale :: fonc () -> z32
     parsat := parse_document(contenu)
     diffère détruit(parsat)
 
-    taille_minifiée := minifie_document(parsat.document)
+    contexte_formattage := initialise_contexte_formattage_minification()
+    taille_minifiée := formatte_document(contexte_formattage, parsat.document, sortie_standarde())
     temps := début.temps_écoulé_microsecondes()
 
     imprime("\n")
