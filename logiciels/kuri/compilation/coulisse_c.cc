@@ -1231,6 +1231,11 @@ struct GeneratriceCodeC {
             auto atome_fonc = it;
 
             auto type_fonction = atome_fonc->type->comme_fonction();
+
+            if (atome_fonc->enligne) {
+                os << "static __attribute__((always_inline)) inline ";
+            }
+
             os << nom_broye_type(type_fonction->type_sortie) << " ";
 
             os << atome_fonc->nom;
@@ -1313,6 +1318,10 @@ struct GeneratriceCodeC {
             if (atome_fonc->instructions.taille() == 0) {
                 // ignore les fonctions externes
                 continue;
+            }
+
+            if (atome_fonc->enligne) {
+                os << "static __attribute__((always_inline)) inline ";
             }
 
             // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
