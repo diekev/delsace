@@ -1,6 +1,18 @@
 /* Programme pour imprimer les statistiques du parsage d'un fichier HTML.
  * Le programme peut opérer sur un fichier simple ou sur un dossier contenant des fichiers HTML. */
 
+/*
+
+    Optimisations, améliorations :
+    - utilise des ChaineUTF16 pour tous les textes, ceci car Javascript utilise de telles chaines, mais c'est aussi le standard.
+        - Fondation.chaine_ajoute crée des embouteillages
+    - réutilise la mémoire de détruit_lexème
+    - allocation spéciale pour les noeuds, avec une allocatrice par page
+    - crée_chaine_utf32 est coûteuse, il faudra trouver une bonne manière d'optimiser le codec Unicode
+    - les références de caractères utilise trop de comparaisons de chaines, peut-être qu'un hash parfait pourrait être utilisé ?
+
+ */
+
 importe Allocatrices
 importe Chaine
 importe Fondation
@@ -138,7 +150,7 @@ optimise_code :: fonc ()
     compilatrice_ajourne_options(options)
 }
 
-#exécute optimise_code()
+// #exécute optimise_code()
 
 compile_pour_profilage :: fonc ()
 {
