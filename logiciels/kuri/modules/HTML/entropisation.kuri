@@ -23,14 +23,14 @@ choisis_un_de :: fonc (gna: *GNA, tags: ...*ChaineInternée) -> *ChaineInternée
 tag_enfant_possible :: fonc (gna: *GNA, tag: *ChaineInternée) -> *ChaineInternée
 {
     si tag == TAG_head {
-        retourne gna.choisis_un_de(TAG_meta, TAG_script, TAG_a)
+        retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript)
     }
 
     si tag == TAG_table {
         retourne TAG_tbody
     }
 
-    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_link, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
+    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
 }
 
 nombre_enfants_possibles :: fonc (gna: *GNA, tag: *ChaineInternée) -> z32
