@@ -19,6 +19,7 @@ imprime_stats :: fonc (statistiques: StatistiquesParsage)
     imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation=3))
     imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation=3))
     imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation=3))
+    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation=3))
 }
 
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
@@ -124,11 +125,11 @@ importe Compilatrice
 
 // Fichier reddit
 // ~60 ms non-optimisé
-// ~18 ms optimisé
+// ~15 ms optimisé
 //
 // Fichier legifrance
-// ~8 s non-optimisé
-// ~1.8 s optimisé
+// ~6 s non-optimisé
+// ~1.5 s optimisé
 optimise_code :: fonc ()
 {
     options := compilatrice_obtiens_options()
@@ -137,7 +138,7 @@ optimise_code :: fonc ()
     compilatrice_ajourne_options(options)
 }
 
-// #exécute optimise_code()
+#exécute optimise_code()
 
 compile_pour_profilage :: fonc ()
 {
