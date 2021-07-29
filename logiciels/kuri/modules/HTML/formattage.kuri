@@ -208,3 +208,12 @@ formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *
 
     retourne taille_chaine(*enchaineuse)
 }
+
+crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, document: *Document) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+    formatte_noeud(contexte_formattage, document, *enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
