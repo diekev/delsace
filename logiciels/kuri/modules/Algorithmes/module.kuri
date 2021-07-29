@@ -2,13 +2,13 @@
 // de comparaisons, et sont résistant aux dépassement de bornes.
 
 // Retourne le nombre d'éléments se situant entre deux pointeurs.
-distance :: fonc (ptr1 : *$T, ptr2 : *T) -> z64
+distance :: fonc (ptr1 : *$T, ptr2 : *T) -> z64 #enligne
 {
 	retourne ptr2 - ptr1
 }
 
 // Retourne le pointeur se situant à n éléments après celui donné.
-suivant :: fonc (ptr : *$T, n : z64) -> *T
+suivant :: fonc (ptr : *$T, n : z64) -> *T #enligne
 {
 	retourne ptr + n
 }

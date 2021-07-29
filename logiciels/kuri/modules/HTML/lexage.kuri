@@ -254,7 +254,7 @@ a_fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne
     retourne lexeuse.curseur >= lexeuse.document.taille()
 }
 
-crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème)
+crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème) #enligne
 {
     lexeuse.lexème_courant = Lexème(genre = genre)
 }
@@ -313,13 +313,13 @@ imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
     détruit_lexème(lexème_courant)
 }
 
-émet_lexème_fin_de_fichier :: fonc (lexeuse: *Lexeuse) -> Lexème
+émet_lexème_fin_de_fichier :: fonc (lexeuse: *Lexeuse) -> Lexème #enligne
 {
     lexeuse.crée_lexème(GenreLexème.FinDeFichier)
     retourne lexeuse.lexème_courant
 }
 
-émet_lexème_caractère :: fonc (lexeuse: *Lexeuse, point_de_code: n32) -> Lexème
+émet_lexème_caractère :: fonc (lexeuse: *Lexeuse, point_de_code: n32) -> Lexème #enligne
 {
     lexeuse.crée_lexème(GenreLexème.Caractère)
     lexeuse.lexème_courant.point_de_code = point_de_code

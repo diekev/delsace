@@ -13,7 +13,7 @@ détruit :: fonc (file: &File(T = $T))
     file.taille = 0
 }
 
-enfile :: fonc (file: &File(T = $T), valeur: T)
+enfile :: fonc (file: &File(T = $T), valeur: T) #enligne
 {
     tableau_ajoute(*file.données, valeur)
     file.taille += 1
@@ -27,12 +27,12 @@ défile :: fonc (file: &File(T = $T)) -> T
     retourne élément
 }
 
-est_vide :: fonc (file: &File(T = $T)) -> bool
+est_vide :: fonc (file: &File(T = $T)) -> bool #enligne
 {
     retourne file.taille == 0
 }
 
-nombre_éléments :: fonc (file: &File(T = $T)) -> z32
+nombre_éléments :: fonc (file: &File(T = $T)) -> z32 #enligne
 {
     retourne file.taille
 }

@@ -3,7 +3,7 @@ importe Fondation
 
 charge "tags_html"
 
-est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
+est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
 }
@@ -78,7 +78,7 @@ parse :: fonc (parseuse: *Parseuse)
     }
 }
 
-noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément
+noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément #enligne
 {
     retourne noeud_courant(*parseuse.pile_éléments_ouvert)
 }

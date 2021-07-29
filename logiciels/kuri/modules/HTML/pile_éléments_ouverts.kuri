@@ -4,27 +4,27 @@ PileÉlémentsOuverts :: struct {
     éléments: []*Élément
 }
 
-noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne
 {
     retourne pile.éléments[pile.éléments.taille - 1]
 }
 
-noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne
 {
     retourne pile.éléments[pile.éléments.taille - 2]
 }
 
-empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
+empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) #enligne
 {
     tableau_ajoute(*pile.éléments, élément)
 }
 
-dépile :: fonc (pile: *PileÉlémentsOuverts)
+dépile :: fonc (pile: *PileÉlémentsOuverts) #enligne
 {
     pile.éléments.taille -= 1
 }
 
-taille :: fonc (pile: *PileÉlémentsOuverts) -> z64
+taille :: fonc (pile: *PileÉlémentsOuverts) -> z64 #enligne
 {
     retourne pile.éléments.taille
 }
