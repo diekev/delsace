@@ -42,7 +42,7 @@ Lexème :: struct {
     point_de_code: n32
 
     // commentaire
-    données: chaine
+    données: ChaineUTF16
 
     attribut_courant : *Attribut
 }
@@ -96,8 +96,8 @@ détruit_lexème :: fonc (lexème: *Lexème)
         }
         DébutTag {
             pour lexème.attributs {
-                déloge(it.nom)
-                déloge(it.valeur)
+                détruit_chaine(it.nom)
+                détruit_chaine(it.valeur)
             }
 
             déloge(lexème.attributs)
@@ -106,7 +106,7 @@ détruit_lexème :: fonc (lexème: *Lexème)
             // RÀF
         }
         Commentaire {
-            déloge(lexème.données)
+            détruit_chaine(lexème.données)
         }
         Caractère {
             // RÀF

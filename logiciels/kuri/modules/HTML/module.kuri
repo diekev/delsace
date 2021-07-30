@@ -1,6 +1,7 @@
 // Module de parsage de code HTML
 // Spec : https://html.spec.whatwg.org/multipage/parsing.html
 
+importe Chaine
 importe Fondation
 importe Temps
 
@@ -81,7 +82,7 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         Commentaire {
             commentaire := noeud comme *NoeudCommentaire
-            déloge(commentaire.données)
+            détruit_chaine(commentaire.données)
             déloge(commentaire)
         }
         Élément {
@@ -91,7 +92,7 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
         }
         Texte {
             texte := noeud comme *NoeudTexte
-            déloge(texte.données)
+            détruit_chaine(texte.données)
             déloge(texte)
         }
         Doctype {
@@ -108,8 +109,8 @@ détruit_noeud :: fonc (noeud: *Noeud)
     }
 
     pour noeud.attributs {
-        déloge(it.nom)
-        déloge(it.valeur)
+        détruit_chaine(it.nom)
+        détruit_chaine(it.valeur)
     }
 
     déloge(noeud.attributs)

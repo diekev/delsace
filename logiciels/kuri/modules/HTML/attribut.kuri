@@ -1,9 +1,11 @@
+importe Chaine
+
 Attribut :: struct {
-    nom: chaine
-    valeur: chaine
+    nom: ChaineUTF16
+    valeur: ChaineUTF16
 }
 
-chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := "") -> chaine
+chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> ChaineUTF16
 {
     si attribut {
         retourne attribut.valeur

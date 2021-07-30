@@ -60,17 +60,23 @@ ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
 {
+    // attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
+    // tableau_ajoute(*noeud.attributs, attribut)
+}
+
+ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
+{
     attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
     tableau_ajoute(*noeud.attributs, attribut)
 }
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: *ChaineInternée)
 {
-    attribut := Attribut(nom = copie_chaine(nom), valeur = valeur.chaine_native())
-    tableau_ajoute(*noeud.attributs, attribut)
+    // attribut := Attribut(nom = copie_chaine(nom), valeur = valeur.chaine_native())
+    // tableau_ajoute(*noeud.attributs, attribut)
 }
 
-possède_attribut :: fonc (noeud: *Noeud, nom: chaine) -> bool
+possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
 {
     pour noeud.attributs {
         si it.nom == nom {
