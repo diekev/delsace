@@ -5,6 +5,16 @@ Attribut :: struct {
     valeur: ChaineUTF16
 }
 
+détruit_attributs :: fonc (attributs: &[]Attribut)
+{
+    pour attributs comme []Attribut {
+        détruit_chaine(it.nom)
+        détruit_chaine(it.valeur)
+    }
+
+    déloge(attributs)
+}
+
 chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> ChaineUTF16
 {
     si attribut {
@@ -12,4 +22,32 @@ chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := ChaineUTF16()) -> Cha
     }
 
     retourne défaut
+}
+
+cherche_attribut :: fonc (attributs: []Attribut, nom: ChaineUTF16) -> *Attribut
+{
+    pour * attributs {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+cherche_attribut :: fonc (attributs: []Attribut, nom: chaine) -> *Attribut
+{
+    pour * attributs {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+ajoute_attribut :: fonc (attributs: *[]Attribut, nom: ChaineUTF16, valeur: ChaineUTF16)
+{
+    attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
+    tableau_ajoute(attributs, attribut)
 }

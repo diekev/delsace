@@ -66,8 +66,7 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
 {
-    attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
-    tableau_ajoute(*noeud.attributs, attribut)
+    ajoute_attribut(*noeud.attributs, nom, valeur)
 }
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: *ChaineInternée)
@@ -78,24 +77,10 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: *ChaineInternée)
 
 possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
 {
-    pour noeud.attributs {
-        si it.nom == nom {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
 cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
 {
-    pour noeud.attributs {
-        si it.nom != nom {
-            continue
-        }
-
-        retourne *noeud.attributs[index_it]
-    }
-
-    retourne nul
+    retourne cherche_attribut(noeud.attributs, nom)
 }

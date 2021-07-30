@@ -13,6 +13,16 @@ détruit_chaine :: fonc (chn: &ChaineUTF16)
     déloge(chn.unités)
 }
 
+est_vide :: fonc (chn: &ChaineUTF16) -> bool #enligne
+{
+    retourne chn.unités.taille == 0
+}
+
+réinitialise :: fonc (chn: &ChaineUTF16) #enligne
+{
+    chn.unités.taille = 0
+}
+
 copie_chaine :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
 {
     résultat : ChaineUTF16

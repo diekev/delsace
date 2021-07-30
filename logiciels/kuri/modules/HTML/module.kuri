@@ -108,12 +108,8 @@ détruit_noeud :: fonc (noeud: *Noeud)
         détruit_noeud(it)
     }
 
-    pour noeud.attributs {
-        détruit_chaine(it.nom)
-        détruit_chaine(it.valeur)
-    }
+    détruit_attributs(noeud.attributs)
 
-    déloge(noeud.attributs)
     déloge(noeud.enfants)
     détruit_noeud_selon_genre(noeud)
 }

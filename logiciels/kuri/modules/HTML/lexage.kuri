@@ -43,31 +43,16 @@ Lexème :: struct {
 
     // commentaire
     données: ChaineUTF16
-
-    attribut_courant : *Attribut
 }
 
 cherche_attribut :: fonc (lexème: *Lexème, nom: chaine) -> *Attribut
 {
-    pour lexème.attributs {
-        si it.nom == nom {
-            retourne *lexème.attributs[index_it]
-        }
-    }
-
-    retourne nul
+    retourne cherche_attribut(lexème.attributs, nom)
 }
 
 reconnait_drapeau_auto_fermant :: fonc (lexème: *Lexème)
 {
     lexème.drapeau_auto_fermant_reconnu = lexème.auto_fermant
-}
-
-ajoute_attribut :: fonc (lexème: *Lexème)
-{
-    attribut : Attribut
-    tableau_ajoute(*lexème.attributs, attribut)
-    lexème.attribut_courant = *lexème.attributs[lexème.attributs.taille - 1]
 }
 
 copie_lexème :: fonc (lexème: *Lexème) -> Lexème
@@ -77,9 +62,7 @@ copie_lexème :: fonc (lexème: *Lexème) -> Lexème
     nouveau_lexème.nom = lexème.nom
 
     pour lexème.attributs {
-        ajoute_attribut(*nouveau_lexème)
-        nouveau_lexème.attribut_courant.nom = copie_chaine(it.nom)
-        nouveau_lexème.attribut_courant.valeur = copie_chaine(it.valeur)
+        ajoute_attribut(*nouveau_lexème.attributs, it.nom, it.valeur)
     }
 
     retourne nouveau_lexème
@@ -95,12 +78,7 @@ détruit_lexème :: fonc (lexème: *Lexème)
             déloge(lexème.identifiant_système_doctype)
         }
         DébutTag {
-            pour lexème.attributs {
-                détruit_chaine(it.nom)
-                détruit_chaine(it.valeur)
-            }
-
-            déloge(lexème.attributs)
+            détruit_attributs(lexème.attributs)
         }
         FinTag {
             // RÀF
@@ -218,6 +196,9 @@ Lexeuse :: struct {
     /* Le nom du lexème courant, en cours de lexage. */
     nom_lexème_courant : ChaineUTF32
 
+    nom_attribut_courant : ChaineUTF16
+    valeur_attribut_courant : ChaineUTF16
+
     /* Le nom du dernier tag de début rencontré, mis en place lors de l'émission d'un lexème. */
     nom_dernier_tag_début : *ChaineInternée
 
@@ -240,6 +221,8 @@ détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
     détruit_chaine(lexeuse.tampon_temporaire)
     détruit(lexeuse.file_lexèmes)
     détruit_chaine(lexeuse.document)
+    détruit_chaine(lexeuse.nom_attribut_courant)
+    détruit_chaine(lexeuse.valeur_attribut_courant)
 }
 
 point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
@@ -266,11 +249,23 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème) #enligne
         réinitialise(lexeuse.nom_lexème_courant)
     }
 
+    lexeuse.ajoute_attribut()
+
     si lexeuse.lexème_courant.genre == GenreLexème.DébutTag {
         lexeuse.nom_dernier_tag_début = lexeuse.lexème_courant.nom
     }
 
     retourne lexeuse.lexème_courant
+}
+
+ajoute_attribut :: fonc (lexeuse: *Lexeuse)
+{
+    saufsi lexeuse.nom_attribut_courant.est_vide() && lexeuse.valeur_attribut_courant.est_vide() {
+        ajoute_attribut(*lexeuse.lexème_courant.attributs, lexeuse.nom_attribut_courant, lexeuse.valeur_attribut_courant)
+    }
+
+    réinitialise(lexeuse.nom_attribut_courant)
+    réinitialise(lexeuse.valeur_attribut_courant)
 }
 
 imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
@@ -934,13 +929,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.AttributeName
 
-                    ajoute_attribut(*lexeuse.lexème_courant)
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
+                    lexeuse.ajoute_attribut()
+                    chaine_ajoute(*lexeuse.nom_attribut_courant, c)
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
 
-                    ajoute_attribut(*lexeuse.lexème_courant)
+                    lexeuse.ajoute_attribut()
                 }
             }
             AttributeName {
@@ -951,17 +946,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.BeforeAttributeValue
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.nom_attribut_courant, c + 0x20)
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.nom_attribut_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == GUILLEMET || c == APOSTROPHE || c == CHEVRON_OUVRANT {
                     // @erreur unexpected-character-in-attribute-name parse error, ajoute quand même
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_attribut_courant, c)
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
+                    chaine_ajoute(*lexeuse.nom_attribut_courant, c)
                 }
 
                 /* À FAIRE: quand nous quittons cet état, nous devons vérifier qu'un autre attribut
@@ -988,7 +983,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    ajoute_attribut(*lexeuse.lexème_courant)
+                    lexeuse.ajoute_attribut()
                     lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
                 }
             }
@@ -1020,13 +1015,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état_retour = ÉtatLexage.AttributeValueDoubleQuoted
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, c)
                 }
             }
             AttributeValueSingleQuoted {
@@ -1038,13 +1033,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état_retour = ÉtatLexage.AttributeValueSingleQuoted
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, c)
                 }
             }
             AttributeValueUnquoted {
@@ -1061,7 +1056,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
@@ -1069,10 +1064,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == APOSTROPHE || c == GUILLEMET || c == ACCENT_GRAVE || c == CHEVRON_OUVRANT || c == EGAL {
                     // @erreur unexpected-character-in-unquoted-attribute-value parse error
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, c)
                 }
                 sinon {
-                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.valeur_attribut_courant, c)
                 }
             }
             AfterAttributeValueQuoted {
@@ -1432,7 +1427,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             AmbiguousAmpersand {
                 si est_ascii_alphanumérique(c) {
                     si nous_sommes_dans_attribut(lexeuse) {
-                        chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
+                        chaine_ajoute(*lexeuse.valeur_attribut_courant, c)
                     }
                     sinon {
                         retourne lexeuse.émet_lexème_caractère(c)
@@ -1951,7 +1946,7 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
     // détermine si nous somme dans un attribut
     si nous_sommes_dans_attribut(lexeuse) {
         pour lexeuse.tampon_temporaire.points_de_code {
-            chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, it)
+            chaine_ajoute(*lexeuse.valeur_attribut_courant, it)
         }
 
         retourne faux
