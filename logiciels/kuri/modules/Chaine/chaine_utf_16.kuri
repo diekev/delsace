@@ -169,7 +169,7 @@ est_trailling_surrogate :: fonc (unité: n16) -> bool #enligne
 }
 
 // À FAIRE(langage) : doit être résultat: *[2]n16
-utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *n16) -> z32
+utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *n16) -> z32 #enligne
 {
     //assert(point_de_code <= 0x10FFFF)
 

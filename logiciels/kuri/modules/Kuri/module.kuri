@@ -556,7 +556,7 @@ test_compare_chaine :: fonc () -> rien
 
 // Fonctions basiques pour les tableaux
 
-tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien
+tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien #enligne
 {
     tmp := mémoire(tabl)
 
