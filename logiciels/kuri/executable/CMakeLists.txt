@@ -110,33 +110,33 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${INCLUSIONS_DELSACE_CHRONO}
-	/usr/lib/llvm-6.0/include/
+	/usr/lib/llvm-9/include/
 )
 
 set(BIBLIOTHEQUES
 	stdc++fs
 	bib_outils
-	/usr/lib/llvm-6.0/lib/libclangTooling.a
-	/usr/lib/llvm-6.0/lib/libclangFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangFrontendTool.a
-	/usr/lib/llvm-6.0/lib/libclangDriver.a
-	/usr/lib/llvm-6.0/lib/libclangSerialization.a
-	/usr/lib/llvm-6.0/lib/libclangCodeGen.a
-	/usr/lib/llvm-6.0/lib/libclangParse.a
-	/usr/lib/llvm-6.0/lib/libclangSema.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCheckers.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCore.a
-	/usr/lib/llvm-6.0/lib/libclangAnalysis.a
-	/usr/lib/llvm-6.0/lib/libclangARCMigrate.a
-	/usr/lib/llvm-6.0/lib/libclangRewrite.a
-	/usr/lib/llvm-6.0/lib/libclangRewriteFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangEdit.a
-	/usr/lib/llvm-6.0/lib/libclangAST.a
-	/usr/lib/llvm-6.0/lib/libclangLex.a
-	/usr/lib/llvm-6.0/lib/libclangBasic.a
-	/usr/lib/llvm-6.0/lib/libLLVM.so
-	/usr/lib/llvm-6.0/lib/libclang.so
+	/usr/lib/llvm-9/lib/libclangTooling.a
+	/usr/lib/llvm-9/lib/libclangFrontend.a
+	/usr/lib/llvm-9/lib/libclangFrontendTool.a
+	/usr/lib/llvm-9/lib/libclangDriver.a
+	/usr/lib/llvm-9/lib/libclangSerialization.a
+	/usr/lib/llvm-9/lib/libclangCodeGen.a
+	/usr/lib/llvm-9/lib/libclangParse.a
+	/usr/lib/llvm-9/lib/libclangSema.a
+	/usr/lib/llvm-9/lib/libclangStaticAnalyzerFrontend.a
+	/usr/lib/llvm-9/lib/libclangStaticAnalyzerCheckers.a
+	/usr/lib/llvm-9/lib/libclangStaticAnalyzerCore.a
+	/usr/lib/llvm-9/lib/libclangAnalysis.a
+	/usr/lib/llvm-9/lib/libclangARCMigrate.a
+	/usr/lib/llvm-9/lib/libclangRewrite.a
+	/usr/lib/llvm-9/lib/libclangRewriteFrontend.a
+	/usr/lib/llvm-9/lib/libclangEdit.a
+	/usr/lib/llvm-9/lib/libclangAST.a
+	/usr/lib/llvm-9/lib/libclangLex.a
+	/usr/lib/llvm-9/lib/libclangBasic.a
+	/usr/lib/llvm-9/lib/libLLVM.so
+	/usr/lib/llvm-9/lib/libclang.so
 	bib_json
 )
 
