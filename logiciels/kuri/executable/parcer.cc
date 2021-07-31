@@ -1068,6 +1068,7 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
 struct Convertisseuse {
     std::filesystem::path fichier_source{};
     std::filesystem::path fichier_entete{};
+    std::filesystem::path dossier_source{};
 
     int profondeur = 0;
     /* pour les structures, unions, et énumérations anonymes */
@@ -1098,6 +1099,8 @@ struct Convertisseuse {
 
     void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
+        dossier_source = fichier_entete.parent_path();
+
         CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
         // imprime_asa(cursor, 0, std::cout);
         convertis(cursor, trans_unit, flux_sortie);
@@ -1138,6 +1141,10 @@ struct Convertisseuse {
                     auto nom_fichier = clang_getFileName(file);
                     auto nom_fichier_c = std::filesystem::path(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
+
+                    if (nom_fichier_c.parent_path() != dossier_source) {
+                        continue;
+                    }
 
                     //  À FAIRE: option pour controler ceci.
                     //                    if (nom_fichier_c != fichier_source && nom_fichier_c !=
