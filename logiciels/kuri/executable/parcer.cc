@@ -1407,7 +1407,6 @@ struct Convertisseuse {
 
                 if (nombre_enfants == 0) {
                     /* nous avons une déclaration simple (int x;) */
-                    flux_sortie << "dyn ";
                     flux_sortie << clang_getCursorSpelling(cursor);
                     flux_sortie << " : ";
                     flux_sortie << converti_type(cursor, typedefs);
