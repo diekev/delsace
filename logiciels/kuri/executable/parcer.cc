@@ -217,6 +217,10 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
             continue;
         }
 
+        if (morceau == "enum") {
+            continue;
+        }
+
         if (morceau == "const") {
             continue;
         }
