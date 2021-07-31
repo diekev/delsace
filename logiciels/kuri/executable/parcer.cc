@@ -1096,6 +1096,13 @@ struct Convertisseuse {
         clang_disposeString(comment);
     }
 
+    void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
+    {
+        CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
+        // imprime_asa(cursor, 0, std::cout);
+        convertis(cursor, trans_unit, flux_sortie);
+    }
+
     void convertis(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
         ++profondeur;
@@ -2298,8 +2305,6 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    CXCursor cursor = clang_getTranslationUnitCursor(unit);
-
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
@@ -2313,10 +2318,10 @@ int main(int argc, char **argv)
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
-        convertisseuse.convertis(cursor, unit, fichier);
+        convertisseuse.convertis(unit, fichier);
     }
     else {
-        convertisseuse.convertis(cursor, unit, std::cerr);
+        convertisseuse.convertis(unit, std::cerr);
     }
 
     if (convertisseuse.cursors_non_pris_en_charges.taille() != 0) {
@@ -2326,8 +2331,6 @@ int main(int argc, char **argv)
             std::cerr << '\t' << clang_getCursorKindSpelling(kind) << " (" << kind << ')' << '\n';
         }
     }
-
-    // imprime_asa(cursor, 0, std::cout);
 
     clang_disposeTranslationUnit(unit);
     clang_disposeIndex(index);
