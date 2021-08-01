@@ -282,11 +282,11 @@ vector_t :: struct {
     /** Pointer to dynamically allocated items. */
     items : *rien
     /** Number of items that can be held in currently allocated storage. */
-    capacity : size_t
+    capacity : n64
     /** Number of items. */
-    size : size_t
+    size : n64
     /** Size (in bytes) of a single item. */
-    item_size : size_t
+    item_size : n64
 }
 
 /**
@@ -296,7 +296,7 @@ vector_t :: struct {
  * @return               a new empty vector
  *
  */
-vector_new :: fonc (item_size : size_t) -> *vector_t #externe
+vector_new :: fonc (item_size : n64) -> *vector_t #externe
 
 /**
  *  Deletes a vector.
@@ -313,7 +313,7 @@ vector_delete :: fonc (self : *vector_t) -> rien #externe
  *  @param  index the index of the item to be returned
  *  @return       pointer on the specified item
  */
-vector_get :: fonc (self : *vector_t, index : size_t) -> *rien #externe
+vector_get :: fonc (self : *vector_t, index : n64) -> *rien #externe
 
 /**
  *  Returns a pointer to the first item.
@@ -355,7 +355,7 @@ vector_empty :: fonc (self : *vector_t) -> z32 #externe
  *  @param  self  a vector structure
  *  @return       number of items
  */
-vector_size :: fonc (self : *vector_t) -> size_t #externe
+vector_size :: fonc (self : *vector_t) -> n64 #externe
 
 /**
  *  Reserve storage such that it can hold at last size items.
@@ -363,7 +363,7 @@ vector_size :: fonc (self : *vector_t) -> size_t #externe
  *  @param  self  a vector structure
  *  @param  size  the new storage capacity
  */
-vector_reserve :: fonc (self : *vector_t, size : size_t) -> rien #externe
+vector_reserve :: fonc (self : *vector_t, size : n64) -> rien #externe
 
 /**
  *  Returns current storage capacity
@@ -371,7 +371,7 @@ vector_reserve :: fonc (self : *vector_t, size : size_t) -> rien #externe
  *  @param  self  a vector structure
  *  @return       storage capacity
  */
-vector_capacity :: fonc (self : *vector_t) -> size_t #externe
+vector_capacity :: fonc (self : *vector_t) -> n64 #externe
 
 /**
  *  Decrease capacity to fit actual size.
@@ -394,7 +394,7 @@ vector_clear :: fonc (self : *vector_t) -> rien #externe
  *  @param  index the index of the item to be replaced
  *  @param  item  the new item
  */
-vector_set :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #externe
+vector_set :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe
 
 /**
  *  Erase an item.
@@ -402,7 +402,7 @@ vector_set :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #ext
  *  @param  self  a vector structure
  *  @param  index the index of the item to be erased
  */
-vector_erase :: fonc (self : *vector_t, index : size_t) -> rien #externe
+vector_erase :: fonc (self : *vector_t, index : n64) -> rien #externe
 
 /**
  *  Erase a range of items.
@@ -411,7 +411,7 @@ vector_erase :: fonc (self : *vector_t, index : size_t) -> rien #externe
  *  @param  first the index of the first item to be erased
  *  @param  last  the index of the last item to be erased
  */
-vector_erase_range :: fonc (self : *vector_t, first : size_t, last : size_t) -> rien #externe
+vector_erase_range :: fonc (self : *vector_t, first : n64, last : n64) -> rien #externe
 
 /**
  *  Appends given item to the end of the vector.
@@ -438,7 +438,7 @@ vector_pop_back :: fonc (self : *vector_t) -> rien #externe
  *  @param  self a vector structure
  *  @param  size the new size
  */
-vector_resize :: fonc (self : *vector_t, size : size_t) -> rien #externe
+vector_resize :: fonc (self : *vector_t, size : n64) -> rien #externe
 
 /**
  *  Insert a single item at specified index.
@@ -447,7 +447,7 @@ vector_resize :: fonc (self : *vector_t, size : size_t) -> rien #externe
  *  @param  index location before which to insert item
  *  @param  item  the item to be inserted
  */
-vector_insert :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #externe
+vector_insert :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe
 
 /**
  *  Insert raw data at specified index.
@@ -457,7 +457,7 @@ vector_insert :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #
  *  @param  data  a pointer to the items to be inserted
  *  @param  count the number of items to be inserted
  */
-vector_insert_data :: fonc (self : *vector_t, index : size_t, data : *rien, count : size_t) -> rien #externe
+vector_insert_data :: fonc (self : *vector_t, index : n64, data : *rien, count : n64) -> rien #externe
 
 /**
  *  Append raw data to the end of the vector.
@@ -466,7 +466,7 @@ vector_insert_data :: fonc (self : *vector_t, index : size_t, data : *rien, coun
  *  @param  data  a pointer to the items to be inserted
  *  @param  count the number of items to be inserted
  */
-vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : size_t) -> rien #externe
+vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : n64) -> rien #externe
 
 /**
  *  Sort vector items according to cmp function.
@@ -487,19 +487,19 @@ texture_atlas_t :: struct {
     /**
      *  Width (in pixels) of the underlying texture
      */
-    width : size_t
+    width : n64
     /**
      * Height (in pixels) of the underlying texture
      */
-    height : size_t
+    height : n64
     /**
      * Depth (in bytes) of the underlying texture
      */
-    depth : size_t
+    depth : n64
     /**
      * Allocated surface size
      */
-    used : size_t
+    used : n64
     /**
      * Texture identity (OpenGL)
      */
@@ -519,7 +519,7 @@ texture_atlas_t :: struct {
  * @return          a new empty texture atlas.
  *
  */
-texture_atlas_new :: fonc (width : size_t, height : size_t, depth : size_t) -> *texture_atlas_t #externe
+texture_atlas_new :: fonc (width : n64, height : n64, depth : n64) -> *texture_atlas_t #externe
 
 /**
  *  Deletes a texture atlas.
@@ -538,7 +538,7 @@ texture_atlas_delete :: fonc (self : *texture_atlas_t) -> rien #externe
  *  @return       Coordinates of the allocated region
  *
  */
-texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : size_t, height : size_t) -> ivec4 #externe
+texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : n64, height : n64) -> ivec4 #externe
 
 /**
  *  Upload data to the specified atlas region.
@@ -552,7 +552,7 @@ texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : size_t, heigh
  *  @param stride stride of the data
  *
  */
-texture_atlas_set_region :: fonc (self : *texture_atlas_t, x : size_t, y : size_t, width : size_t, height : size_t, data : *n8, stride : size_t) -> rien #externe
+texture_atlas_set_region :: fonc (self : *texture_atlas_t, x : n64, y : n64, width : n64, height : n64, data : *n8, stride : n64) -> rien #externe
 
 /**
  *  Remove all allocated regions from the atlas.
@@ -583,7 +583,7 @@ kerning_t :: struct {
     /**
      * Left Unicode codepoint in the kern pair in UTF-32 LE encoding.
      */
-    codepoint : uint32_t
+    codepoint : n32
     /**
      * Kerning value (in fractional pixels).
      */
@@ -597,15 +597,15 @@ texture_glyph_t :: struct {
     /**
      * Unicode codepoint this glyph represents in UTF-32 LE encoding.
      */
-    codepoint : uint32_t
+    codepoint : n32
     /**
      * Glyph's width in pixels.
      */
-    width : size_t
+    width : n64
     /**
      * Glyph's height in pixels.
      */
-    height : size_t
+    height : n64
     /**
      * Glyph's left bearing expressed in integer pixels.
      */
@@ -690,7 +690,7 @@ texture_font_t :: struct {
          */
         anonyme24 :: struct {
             base : *rien
-            size : size_t
+            size : n64
         }
 
         memory : anonyme24
@@ -805,7 +805,7 @@ texture_font_new_from_file :: fonc (atlas : *texture_atlas_t, pt_size : r32, fil
  * @return A new empty font (no glyph inside yet)
  *
  */
-texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, memory_base : *rien, memory_size : size_t) -> *texture_font_t #externe
+texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, memory_base : *rien, memory_size : n64) -> *texture_font_t #externe
 
 /**
  * Delete a texture font. Note that this does not delete the glyph from the
@@ -858,9 +858,9 @@ texture_font_load_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> z32
  * @return Number of missed glyph if the texture is not big enough to hold
  *         every glyphs.
  */
-texture_font_load_glyphs :: fonc (self : *texture_font_t, codepoints : *z8) -> size_t #externe
+texture_font_load_glyphs :: fonc (self : *texture_font_t, codepoints : *z8) -> n64 #externe
 
-texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : size_t, height_new : size_t) -> rien #externe
+texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : n64, height_new : n64) -> rien #externe
 
 /**
  * Get the kerning between two horizontal glyphs.

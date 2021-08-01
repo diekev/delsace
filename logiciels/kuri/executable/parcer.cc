@@ -2321,13 +2321,21 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
-    // convertisseuse.typedefs.insere({"size_t", {"ulong"}});
-    // convertisseuse.typedefs.insere({"std::size_t", {"ulong"}});
+    convertisseuse.typedefs.insere({"size_t", {"ulong"}});
+    convertisseuse.typedefs.insere({"std::size_t", {"ulong"}});
+    convertisseuse.typedefs.insere({"uint8_t", {"uchar"}});
+    convertisseuse.typedefs.insere({"uint16_t", {"ushort"}});
+    convertisseuse.typedefs.insere({"uint32_t", {"uint"}});
+    convertisseuse.typedefs.insere({"uint64_t", {"ulong"}});
+    convertisseuse.typedefs.insere({"int8_t", {"char"}});
+    convertisseuse.typedefs.insere({"int16_t", {"short"}});
+    convertisseuse.typedefs.insere({"int32_t", {"int"}});
+    convertisseuse.typedefs.insere({"int64_t", {"long"}});
     /* Hack afin de convertir les types half vers notre langage, ceci empêche d'y ajouter les
      * typedefs devantêtre utilisés afin de faire compiler le code C puisque ni half ni r16
      * n'existent en C. */
-    // convertisseuse.typedefs.insere({"r16", {"r16"}});
-    // convertisseuse.typedefs.insere({"half", {"r16"}});
+    convertisseuse.typedefs.insere({"r16", {"r16"}});
+    convertisseuse.typedefs.insere({"half", {"r16"}});
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
