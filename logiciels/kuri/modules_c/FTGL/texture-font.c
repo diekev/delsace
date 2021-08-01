@@ -57,12 +57,12 @@ texture_font_load_face(texture_font_t *self, float size,
     /* Load face */
     switch (self->location) {
     case TEXTURE_FONT_FILE:
-        error = FT_New_Face(*library, self->filename, 0, face);
+        error = FT_New_Face(*library, self->fileinfo.filename, 0, face);
         break;
 
     case TEXTURE_FONT_MEMORY:
         error = FT_New_Memory_Face(*library,
-            self->memory.base, self->memory.size, 0, face);
+            self->fileinfo.memory.base, self->fileinfo.memory.size, 0, face);
         break;
     }
 
@@ -281,7 +281,7 @@ texture_font_new_from_file(texture_atlas_t *atlas, const float pt_size,
     self->size  = pt_size;
 
     self->location = TEXTURE_FONT_FILE;
-    self->filename = strdup(filename);
+    self->fileinfo.filename = strdup(filename);
 
     if (texture_font_init(self)) {
         texture_font_delete(self);
@@ -312,8 +312,8 @@ texture_font_new_from_memory(texture_atlas_t *atlas, float pt_size,
     self->size  = pt_size;
 
     self->location = TEXTURE_FONT_MEMORY;
-    self->memory.base = memory_base;
-    self->memory.size = memory_size;
+    self->fileinfo.memory.base = memory_base;
+    self->fileinfo.memory.size = memory_size;
 
     if (texture_font_init(self)) {
         texture_font_delete(self);
@@ -332,8 +332,8 @@ texture_font_delete( texture_font_t *self )
 
     assert( self );
 
-    if(self->location == TEXTURE_FONT_FILE && self->filename)
-        free( self->filename );
+    if(self->location == TEXTURE_FONT_FILE && self->fileinfo.filename)
+        free( self->fileinfo.filename );
 
     for( i=0; i<vector_size( self->glyphs ); ++i)
     {

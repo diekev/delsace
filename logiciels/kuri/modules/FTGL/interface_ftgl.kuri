@@ -9,63 +9,10 @@
  *
  */
 ivec4 :: union nonsûr {
-    /**< All compoments at once     */
-    data : [4]z32
-    anonyme0 :: struct {
-        /**< Alias for first component  */
-        x : z32
-        /**< Alias for second component */
-        y : z32
-        /**< Alias for third component  */
-        z : z32
-        /**< Alias for fourht component */
-        w : z32
-    }
-
-    anonyme1 :: struct {
-        /**< Alias for first component  */
-        x_ : z32
-        /**< Alias for second component */
-        y_ : z32
-        /**< Alias for third component  */
-        width : z32
-        /**< Alias for fourth component */
-        height : z32
-    }
-
-    anonyme2 :: struct {
-        /**< Alias for first component  */
-        r : z32
-        /**< Alias for second component */
-        g : z32
-        /**< Alias for third component  */
-        b : z32
-        /**< Alias for fourth component */
-        a : z32
-    }
-
-    anonyme3 :: struct {
-        /**< Alias for first component  */
-        red : z32
-        /**< Alias for second component */
-        green : z32
-        /**< Alias for third component  */
-        blue : z32
-        /**< Alias for fourth component */
-        alpha : z32
-    }
-
-    anonyme4 :: struct {
-        /**< Alias for first component  */
-        vstart : z32
-        /**< Alias for second component */
-        vcount : z32
-        /**< Alias for third component  */
-        istart : z32
-        /**< Alias for fourth component */
-        icount : z32
-    }
-
+    x : z32
+    y : z32
+    z : z32
+    w : z32
 }
 
 /**
@@ -78,35 +25,9 @@ ivec4 :: union nonsûr {
  *
  */
 ivec3 :: union nonsûr {
-    /**< All compoments at once     */
-    data : [3]z32
-    anonyme5 :: struct {
-        /**< Alias for first component  */
-        x : z32
-        /**< Alias for second component */
-        y : z32
-        /**< Alias for third component  */
-        z : z32
-    }
-
-    anonyme6 :: struct {
-        /**< Alias for first component  */
-        r : z32
-        /**< Alias for second component */
-        g : z32
-        /**< Alias for third component  */
-        b : z32
-    }
-
-    anonyme7 :: struct {
-        /**< Alias for first component  */
-        red : z32
-        /**< Alias for second component */
-        green : z32
-        /**< Alias for third component  */
-        blue : z32
-    }
-
+    x : z32
+    y : z32
+    z : z32
 }
 
 /**
@@ -118,29 +39,8 @@ ivec3 :: union nonsûr {
  *
  */
 ivec2 :: union nonsûr {
-    /**< All compoments at once     */
-    data : [2]z32
-    anonyme8 :: struct {
-        /**< Alias for first component  */
-        x : z32
-        /**< Alias for second component */
-        y : z32
-    }
-
-    anonyme9 :: struct {
-        /**< Alias for first component  */
-        s : z32
-        /**< Alias for second component */
-        t : z32
-    }
-
-    anonyme10 :: struct {
-        /**< Alias for first component  */
-        start : z32
-        /**< Alias for second component */
-        end : z32
-    }
-
+    x : z32
+    y : z32
 }
 
 /**
@@ -153,55 +53,10 @@ ivec2 :: union nonsûr {
  *  - Fourth component: <b>w</b>, <b>height</b>, <b>a</b> or <b>alpha</b>
  */
 vec4 :: struct {
-    anonyme11 :: union nonsûr {
-        /**< All compoments at once    */
-        data : [4]r32
-        anonyme12 :: struct {
-            /**< Alias for first component */
-            x : r32
-            /**< Alias for second component */
-            y : r32
-            /**< Alias for third component  */
-            z : r32
-            /**< Alias for fourth component */
-            w : r32
-        }
-
-        anonyme13 :: struct {
-            /**< Alias for first component */
-            left : r32
-            /**< Alias for second component */
-            top : r32
-            /**< Alias for third component  */
-            width : r32
-            /**< Alias for fourth component */
-            height : r32
-        }
-
-        anonyme14 :: struct {
-            /**< Alias for first component */
-            r : r32
-            /**< Alias for second component */
-            g : r32
-            /**< Alias for third component  */
-            b : r32
-            /**< Alias for fourth component */
-            a : r32
-        }
-
-        anonyme15 :: struct {
-            /**< Alias for first component */
-            red : r32
-            /**< Alias for second component */
-            green : r32
-            /**< Alias for third component  */
-            blue : r32
-            /**< Alias for fourth component */
-            alpha : r32
-        }
-
-    }
-
+    x : r32
+    y : r32
+    z : r32
+    w : r32
 }
 
 /**
@@ -213,35 +68,9 @@ vec4 :: struct {
  *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
  */
 vec3 :: union nonsûr {
-    /**< All compoments at once    */
-    data : [3]r32
-    anonyme16 :: struct {
-        /**< Alias for first component */
-        x : r32
-        /**< Alias fo second component */
-        y : r32
-        /**< Alias fo third component  */
-        z : r32
-    }
-
-    anonyme17 :: struct {
-        /**< Alias for first component */
-        r : r32
-        /**< Alias fo second component */
-        g : r32
-        /**< Alias fo third component  */
-        b : r32
-    }
-
-    anonyme18 :: struct {
-        /**< Alias for first component */
-        red : r32
-        /**< Alias fo second component */
-        green : r32
-        /**< Alias fo third component  */
-        blue : r32
-    }
-
+    x : r32
+    y : r32
+    z : r32
 }
 
 /**
@@ -252,25 +81,8 @@ vec3 :: union nonsûr {
  *  - Second component: <b>y</b> or <b>t</b>
  */
 vec2 :: struct {
-    anonyme19 :: union nonsûr {
-        /**< All components at once     */
-        data : [2]r32
-        anonyme20 :: struct {
-            /**< Alias for first component  */
-            x : r32
-            /**< Alias for second component */
-            y : r32
-        }
-
-        anonyme21 :: struct {
-            /**< Alias for first component  */
-            s : r32
-            /**< Alias for second component */
-            t : r32
-        }
-
-    }
-
+    x : r32
+    y : r32
 }
 
 /**
@@ -674,13 +486,13 @@ texture_font_t :: struct {
     /**
      * font location
      */
-    anonyme22 :: énum n32 {
+    anonyme0 :: énum n32 {
         TEXTURE_FONT_FILE := 0
         TEXTURE_FONT_MEMORY
     }
 
-    location : anonyme22
-    anonyme23 :: union nonsûr {
+    location : anonyme0
+    anonyme1 :: union nonsûr {
         /**
          * Font filename, for when location == TEXTURE_FONT_FILE
          */
@@ -688,14 +500,15 @@ texture_font_t :: struct {
         /**
          * Font memory address, for when location == TEXTURE_FONT_MEMORY
          */
-        anonyme24 :: struct {
+        anonyme2 :: struct {
             base : *rien
             size : n64
         }
 
-        memory : anonyme24
+        memory : anonyme2
     }
 
+    fileinfo : anonyme1
     /**
      * Font size
      */
