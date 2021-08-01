@@ -2035,11 +2035,13 @@ struct Convertisseuse {
         flux_sortie << " :: fonc ";
 
         auto virgule = "(";
+        auto nombre_parametres = 0;
 
         if (!noms_structure.est_vide()) {
             flux_sortie << virgule;
             flux_sortie << "this : *" << noms_structure.haut();
             virgule = ", ";
+            ++nombre_parametres;
         }
 
         for (auto i = 0; i < enfants.taille(); ++i) {
@@ -2050,6 +2052,7 @@ struct Convertisseuse {
                 flux_sortie << "this : &";
                 flux_sortie << converti_type(param, typedefs);
                 virgule = ", ";
+                ++nombre_parametres;
                 continue;
             }
 
@@ -2064,10 +2067,11 @@ struct Convertisseuse {
             flux_sortie << converti_type(param, typedefs);
 
             virgule = ", ";
+            ++nombre_parametres;
         }
 
         /* Il n'y a pas de paramètres. */
-        if (enfants.taille() == 0 && noms_structure.est_vide()) {
+        if (nombre_parametres == 0) {
             flux_sortie << '(';
         }
 

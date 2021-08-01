@@ -6,13 +6,13 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe : *z8, empreinte : *z8) -> z32 #e
 
 HACHEUSE :: struct #externe;
 
-KRYPTO_HACHEUSE_cree_sha1 :: fonc ) -> *HACHEUSE #externe
+KRYPTO_HACHEUSE_cree_sha1 :: fonc () -> *HACHEUSE #externe
 
-KRYPTO_HACHEUSE_cree_sha256 :: fonc ) -> *HACHEUSE #externe
+KRYPTO_HACHEUSE_cree_sha256 :: fonc () -> *HACHEUSE #externe
 
-KRYPTO_HACHEUSE_cree_md5 :: fonc ) -> *HACHEUSE #externe
+KRYPTO_HACHEUSE_cree_md5 :: fonc () -> *HACHEUSE #externe
 
-KRYPTO_HACHEUSE_cree_crc32 :: fonc ) -> *HACHEUSE #externe
+KRYPTO_HACHEUSE_cree_crc32 :: fonc () -> *HACHEUSE #externe
 
 KRYPTO_HACHEUSE_cree_hmac_md5 :: fonc (key : *rien, numKeyBytes : n64, data : *rien, numDataBytes : n64) -> *HACHEUSE #externe
 

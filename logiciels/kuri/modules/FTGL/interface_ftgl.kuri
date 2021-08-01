@@ -877,7 +877,7 @@ texture_glyph_get_kerning :: fonc (self : *texture_glyph_t, codepoint : *z8) -> 
  *
  * @return a new empty glyph (not valid)
  */
-texture_glyph_new :: fonc ) -> *texture_glyph_t #externe
+texture_glyph_new :: fonc () -> *texture_glyph_t #externe
 
 /**
  * Simple structure that describes text properties.
