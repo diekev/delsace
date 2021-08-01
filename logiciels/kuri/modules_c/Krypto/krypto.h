@@ -42,20 +42,22 @@ struct HACHEUSE *KRYPTO_HACHEUSE_cree_md5();
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_crc32();
 
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_md5(const void *key,
-                                        unsigned long numKeyBytes,
-                                        const void *data,
-                                        unsigned long numDataBytes);
+                                               unsigned long numKeyBytes,
+                                               const void *data,
+                                               unsigned long numDataBytes);
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha1(const void *key,
-                                         unsigned long numKeyBytes,
-                                         const void *data,
-                                         unsigned long numDataBytes);
+                                                unsigned long numKeyBytes,
+                                                const void *data,
+                                                unsigned long numDataBytes);
 struct HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
-                                           unsigned long numKeyBytes,
-                                           const void *data,
-                                           unsigned long numDataBytes);
+                                                  unsigned long numKeyBytes,
+                                                  const void *data,
+                                                  unsigned long numDataBytes);
 
 void KRYPTO_HACHEUSE_detruit(struct HACHEUSE *poignee);
-void KRYPTO_HACHEUSE_ajourne(struct HACHEUSE *poignee, const void *data, unsigned long numDataBytes);
+void KRYPTO_HACHEUSE_ajourne(struct HACHEUSE *poignee,
+                             const void *data,
+                             unsigned long numDataBytes);
 void KRYPTO_HACHEUSE_condensat(struct HACHEUSE *poignee, unsigned char *sortie);
 void KRYPTO_HACHEUSE_condensat_hex(struct HACHEUSE *poignee, char *sortie);
 int KRYPTO_HACHEUSE_taille_condensat(struct HACHEUSE *poignee);
