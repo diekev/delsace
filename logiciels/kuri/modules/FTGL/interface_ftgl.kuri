@@ -8,7 +8,7 @@
  *  - Fourth component: <b>w</b>, <b>a</b>, <b>alpha</b>, <b>height</b> or <b>icount</b>
  *
  */
-ivec4 :: union nonsûr {
+ivec4 :: struct {
     x : z32
     y : z32
     z : z32
@@ -24,7 +24,7 @@ ivec4 :: union nonsûr {
  *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
  *
  */
-ivec3 :: union nonsûr {
+ivec3 :: struct {
     x : z32
     y : z32
     z : z32
@@ -38,7 +38,7 @@ ivec3 :: union nonsûr {
  *  - Second component: <b>y</b>, <b>t</b> or <b>end</b>
  *
  */
-ivec2 :: union nonsûr {
+ivec2 :: struct {
     x : z32
     y : z32
 }
@@ -67,7 +67,7 @@ vec4 :: struct {
  *  - Second component: <b>y</b>, <b>g</b> or <b>green</b>
  *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
  */
-vec3 :: union nonsûr {
+vec3 :: struct {
     x : r32
     y : r32
     z : r32

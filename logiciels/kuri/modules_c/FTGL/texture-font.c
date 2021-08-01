@@ -208,9 +208,9 @@ texture_font_init(texture_font_t *self)
 
     assert(self->atlas);
     assert(self->size > 0);
-    assert((self->location == TEXTURE_FONT_FILE && self->filename)
+    assert((self->location == TEXTURE_FONT_FILE && self->fileinfo.filename)
         || (self->location == TEXTURE_FONT_MEMORY
-            && self->memory.base && self->memory.size));
+            && self->fileinfo.memory.base && self->fileinfo.memory.size));
 
     self->glyphs = vector_new(sizeof(texture_glyph_t *));
     self->height = 0;
@@ -678,7 +678,7 @@ texture_font_get_glyph( texture_font_t * self,
     texture_glyph_t *glyph;
 
     assert( self );
-    assert( self->filename );
+    assert( self->fileinfo.filename );
     assert( self->atlas );
 
     /* Check if codepoint has been already loaded */

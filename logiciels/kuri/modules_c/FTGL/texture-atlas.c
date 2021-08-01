@@ -259,7 +259,7 @@ texture_atlas_get_region( texture_atlas_t * self,
 void
 texture_atlas_clear( texture_atlas_t * self )
 {
-    ivec3 node = {{1,1,1}};
+    ivec3 node = {1,1,1};
 
     assert( self );
     assert( self->data );

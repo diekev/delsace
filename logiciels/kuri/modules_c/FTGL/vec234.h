@@ -19,7 +19,7 @@
  *  - Fourth component: <b>w</b>, <b>a</b>, <b>alpha</b>, <b>height</b> or <b>icount</b>
  *
  */
-typedef union {
+typedef struct {
     int x;
     int y;
     int z;
@@ -35,7 +35,7 @@ typedef union {
  *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
  *
  */
-typedef union {
+typedef struct {
     int x;
     int y;
     int z;
@@ -49,7 +49,7 @@ typedef union {
  *  - Second component: <b>y</b>, <b>t</b> or <b>end</b>
  *
  */
-typedef union {
+typedef struct {
     int x;
     int y;
 } ivec2;
@@ -78,7 +78,7 @@ typedef struct vec4 {
  *  - Second component: <b>y</b>, <b>g</b> or <b>green</b>
  *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
  */
-typedef union {
+typedef struct {
     float x;
     float y;
     float z;
