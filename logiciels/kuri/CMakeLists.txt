@@ -65,6 +65,33 @@ macro(compile_interface_c __nom_projet__ __fichier_entete__ __nom_module__ __nom
       DESTINATION ${RACINE_INSTALLATION}/modules/${__nom_module__}/)
 endmacro(compile_interface_c)
 
+# Compile un module C en une bibliothèque utilisable depuis le langage.
+# Ceci compile une version statique, et une version dynamique de la bibliothèque, ainsi que l'interface Kuri pour le module.
+macro(compile_module_c __nom__ __nom_interface__ __entete_interface__ __dossier__ __sources__ __inclusions__ __bibliotheques__)
+	set(NOM_STATIQUE ${__nom__}_statique)
+	set(NOM_DYNAMIQUE ${__nom__}_dynamique)
+
+	set(CHEMIN_INSTALLATION ${RACINE_INSTALLATION}/modules/${__dossier__}/)
+
+	# Version statique
+	add_library(${NOM_STATIQUE} STATIC ${__sources__})
+	target_include_directories(${NOM_STATIQUE} PUBLIC ${__inclusions__})
+	target_link_libraries(${NOM_STATIQUE} ${__bibliotheques__})
+	set_target_properties(${NOM_STATIQUE} PROPERTIES OUTPUT_NAME ${__nom__})
+	install(TARGETS ${NOM_STATIQUE} ARCHIVE DESTINATION ${CHEMIN_INSTALLATION})
+
+	# Version dynamique
+	add_library(${NOM_DYNAMIQUE} SHARED ${__sources__})
+	target_include_directories(${NOM_DYNAMIQUE} PUBLIC ${__inclusions__})
+	target_link_libraries(${NOM_DYNAMIQUE} ${__bibliotheques__})
+	set_target_properties(${NOM_DYNAMIQUE} PROPERTIES OUTPUT_NAME ${__nom__})
+	install(TARGETS ${NOM_DYNAMIQUE} LIBRARY DESTINATION ${CHEMIN_INSTALLATION})
+
+	# Compile l'interface, nous devons dépendre sur une cible de compilation,
+	# prenons arbitrairement la cible statique
+	compile_interface_c(${NOM_STATIQUE} ${__entete_interface__} ${__dossier__} interface_${__nom_interface__})
+endmacro()
+
 add_subdirectory(adn)
 add_subdirectory(arbre_syntaxique)
 add_subdirectory(compilation)

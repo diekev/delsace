@@ -1,0 +1,36 @@
+BCrypt_taille_tampon :: fonc () -> z64 #externe
+
+BCrypt_genere_empreinte :: fonc (mot_de_passe : *z8, charge_travail : z32, sortie : *z8) -> rien #externe
+
+BCrypt_compare_empreinte :: fonc (mot_de_passe : *z8, empreinte : *z8) -> z32 #externe
+
+HACHEUSE :: struct #externe;
+
+KRYPTO_HACHEUSE_cree_sha1 :: fonc ) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_sha256 :: fonc ) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_md5 :: fonc ) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_crc32 :: fonc ) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_hmac_md5 :: fonc (key : *rien, numKeyBytes : n64, data : *rien, numDataBytes : n64) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_hmac_sha1 :: fonc (key : *rien, numKeyBytes : n64, data : *rien, numDataBytes : n64) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_cree_hmac_sha256 :: fonc (key : *rien, numKeyBytes : n64, data : *rien, numDataBytes : n64) -> *HACHEUSE #externe
+
+KRYPTO_HACHEUSE_detruit :: fonc (poignee : *HACHEUSE) -> rien #externe
+
+KRYPTO_HACHEUSE_ajourne :: fonc (poignee : *HACHEUSE, data : *rien, numDataBytes : n64) -> rien #externe
+
+KRYPTO_HACHEUSE_condensat :: fonc (poignee : *HACHEUSE, sortie : *n8) -> rien #externe
+
+KRYPTO_HACHEUSE_condensat_hex :: fonc (poignee : *HACHEUSE, sortie : *z8) -> rien #externe
+
+KRYPTO_HACHEUSE_taille_condensat :: fonc (poignee : *HACHEUSE) -> z32 #externe
+
+KRYPTO_HACHEUSE_taille_bloc :: fonc (poignee : *HACHEUSE) -> z32 #externe
+
+KRYPTO_HACHEUSE_compare_condensat :: fonc (a : *n8, taille_a : n64, b : *n8, taille_b : n64) -> z32 #externe
+

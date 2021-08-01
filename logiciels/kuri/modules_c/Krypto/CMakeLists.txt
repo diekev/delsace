@@ -32,7 +32,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 )
 
-add_library(${NOM_PROJET} STATIC
+set(SOURCES
 	bcrypt.c
 	crypt_blowfish.c
 	crypt_gensalt.c
@@ -60,19 +60,12 @@ add_library(${NOM_PROJET} STATIC
 	crypt.h
 	crypt_blowfish.h
 	crypt_gensalt.h
-	krypto.hh
+	krypto.h
 	ow-crypt.h
 
 	x86.S
 )
 
-desactive_drapeaux_compilation(${NOM_PROJET})
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Krypto/)
+compile_module_c(${NOM_PROJET} krypto krypto.h Krypto "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
+desactive_drapeaux_compilation(${NOM_PROJET}_statique)
+desactive_drapeaux_compilation(${NOM_PROJET}_dynamique)

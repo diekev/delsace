@@ -10,12 +10,6 @@ importe Fondation
 // À FAIRE : bibliothèque de fonctions non cryptographiques
 // À FAIRE : ne passe pas des chaines mais des tableaux d'octets
 
-BCrypt_taille_tampon :: fonc () -> z64 #externe
-
-BCrypt_genere_empreinte :: fonc (mot_de_passe: *z8, charge_travail: z32, sortie: *z8) -> rien #externe
-
-BCrypt_compare_empreinte :: fonc (mot_de_passe: *z8, empreinte: *z8) -> z32 #externe
-
 BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
@@ -37,26 +31,6 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
     retourne ok
 //    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
 }
-
-HACHEUSE :: struct #externe
-
-KRYPTO_HACHEUSE_cree_sha1 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_sha256 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_md5 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_crc32 :: fonc () -> *HACHEUSE #externe
-
-KRYPTO_HACHEUSE_cree_hmac_md5 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_hmac_sha1 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_hmac_sha256 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-
-KRYPTO_HACHEUSE_detruit :: fonc (hacheuse: *HACHEUSE) #externe
-KRYPTO_HACHEUSE_ajourne :: fonc (hacheuse: *HACHEUSE, données: *rien, taille_données: n64) #externe
-KRYPTO_HACHEUSE_condensat :: fonc (hacheuse: *HACHEUSE, sortie: *z8) #externe
-KRYPTO_HACHEUSE_condensat_hex :: fonc (hacheuse: *HACHEUSE, sortie: *z8) #externe
-KRYPTO_HACHEUSE_taille_condensat :: fonc (hacheuse: *HACHEUSE) -> z32 #externe
-KRYPTO_HACHEUSE_taille_bloc :: fonc (hacheuse: *HACHEUSE) -> z32  #externe
-
-KRYPTO_HACHEUSE_compare_condensat :: fonc (a: *n8, taille_a: n64, b: *n8, taille_b: n64) -> z32 #externe
 
 crée_crc32 :: fonc () -> *HACHEUSE
 {

@@ -1,0 +1,22 @@
+ResultatOperation :: énum n32 {
+    OK
+    IMAGE_INEXISTANTE
+    TYPE_IMAGE_NON_SUPPORTE
+}
+
+ImageIO :: struct {
+    donnees : *r32
+    taille_donnees : z64
+    largeur : z32
+    hauteur : z32
+    nombre_composants : z32
+}
+
+IMG_ouvre_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe
+
+IMG_ecris_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe
+
+IMG_detruit_image :: fonc (image : *ImageIO) -> rien #externe
+
+IMG_calcul_empreinte_floue :: fonc (chemin : *z8, composant_x : z32, composant_y : z32, resultat : *z8, taille_resultat : *z64) -> rien #externe
+

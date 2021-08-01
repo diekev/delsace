@@ -536,7 +536,7 @@ std::string encode(
 
 extern "C" {
 
-ResultatOperation IMG_ouvre_image(const char *chemin, Image *image)
+ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
 {
     auto input = OIIO::ImageInput::open(chemin);
 
@@ -567,7 +567,7 @@ ResultatOperation IMG_ouvre_image(const char *chemin, Image *image)
     return ResultatOperation::OK;
 }
 
-ResultatOperation IMG_ecris_image(const char *chemin, Image *image)
+ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
 {
     auto out = OIIO::ImageOutput::create(chemin);
 
@@ -591,7 +591,7 @@ ResultatOperation IMG_ecris_image(const char *chemin, Image *image)
     return ResultatOperation::OK;
 }
 
-void IMG_detruit_image(Image *image)
+void IMG_detruit_image(ImageIO *image)
 {
     delete[] image->donnees;
     image->donnees = nullptr;

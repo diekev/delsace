@@ -1,0 +1,959 @@
+/**
+ * Tuple of 4 ints.
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component:  <b>x</b>, <b>r</b>, <b>red</b> or <b>vstart</b>
+ *  - Second component: <b>y</b>, <b>g</b>, <b>green</b> or <b>vcount</b>
+ *  - Third component:  <b>z</b>, <b>b</b>, <b>blue</b>, <b>width</b> or <b>istart</b>
+ *  - Fourth component: <b>w</b>, <b>a</b>, <b>alpha</b>, <b>height</b> or <b>icount</b>
+ *
+ */
+ivec4 :: union nonsûr {
+    /**< All compoments at once     */
+    data : [4]z32
+    anonyme0 :: struct {
+        /**< Alias for first component  */
+        x : z32
+        /**< Alias for second component */
+        y : z32
+        /**< Alias for third component  */
+        z : z32
+        /**< Alias for fourht component */
+        w : z32
+    }
+
+    anonyme1 :: struct {
+        /**< Alias for first component  */
+        x_ : z32
+        /**< Alias for second component */
+        y_ : z32
+        /**< Alias for third component  */
+        width : z32
+        /**< Alias for fourth component */
+        height : z32
+    }
+
+    anonyme2 :: struct {
+        /**< Alias for first component  */
+        r : z32
+        /**< Alias for second component */
+        g : z32
+        /**< Alias for third component  */
+        b : z32
+        /**< Alias for fourth component */
+        a : z32
+    }
+
+    anonyme3 :: struct {
+        /**< Alias for first component  */
+        red : z32
+        /**< Alias for second component */
+        green : z32
+        /**< Alias for third component  */
+        blue : z32
+        /**< Alias for fourth component */
+        alpha : z32
+    }
+
+    anonyme4 :: struct {
+        /**< Alias for first component  */
+        vstart : z32
+        /**< Alias for second component */
+        vcount : z32
+        /**< Alias for third component  */
+        istart : z32
+        /**< Alias for fourth component */
+        icount : z32
+    }
+
+}
+
+/**
+ * Tuple of 3 ints.
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component:  <b>x</b>, <b>r</b> or <b>red</b>
+ *  - Second component: <b>y</b>, <b>g</b> or <b>green</b>
+ *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
+ *
+ */
+ivec3 :: union nonsûr {
+    /**< All compoments at once     */
+    data : [3]z32
+    anonyme5 :: struct {
+        /**< Alias for first component  */
+        x : z32
+        /**< Alias for second component */
+        y : z32
+        /**< Alias for third component  */
+        z : z32
+    }
+
+    anonyme6 :: struct {
+        /**< Alias for first component  */
+        r : z32
+        /**< Alias for second component */
+        g : z32
+        /**< Alias for third component  */
+        b : z32
+    }
+
+    anonyme7 :: struct {
+        /**< Alias for first component  */
+        red : z32
+        /**< Alias for second component */
+        green : z32
+        /**< Alias for third component  */
+        blue : z32
+    }
+
+}
+
+/**
+ * Tuple of 2 ints.
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component: <b>x</b>, <b>s</b> or <b>start</b>
+ *  - Second component: <b>y</b>, <b>t</b> or <b>end</b>
+ *
+ */
+ivec2 :: union nonsûr {
+    /**< All compoments at once     */
+    data : [2]z32
+    anonyme8 :: struct {
+        /**< Alias for first component  */
+        x : z32
+        /**< Alias for second component */
+        y : z32
+    }
+
+    anonyme9 :: struct {
+        /**< Alias for first component  */
+        s : z32
+        /**< Alias for second component */
+        t : z32
+    }
+
+    anonyme10 :: struct {
+        /**< Alias for first component  */
+        start : z32
+        /**< Alias for second component */
+        end : z32
+    }
+
+}
+
+/**
+ * Tuple of 4 floats.
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component:  <b>x</b>, <b>left</b>, <b>r</b> or <b>red</b>
+ *  - Second component: <b>y</b>, <b>top</b>, <b>g</b> or <b>green</b>
+ *  - Third component:  <b>z</b>, <b>width</b>, <b>b</b> or <b>blue</b>
+ *  - Fourth component: <b>w</b>, <b>height</b>, <b>a</b> or <b>alpha</b>
+ */
+vec4 :: struct {
+    anonyme11 :: union nonsûr {
+        /**< All compoments at once    */
+        data : [4]r32
+        anonyme12 :: struct {
+            /**< Alias for first component */
+            x : r32
+            /**< Alias for second component */
+            y : r32
+            /**< Alias for third component  */
+            z : r32
+            /**< Alias for fourth component */
+            w : r32
+        }
+
+        anonyme13 :: struct {
+            /**< Alias for first component */
+            left : r32
+            /**< Alias for second component */
+            top : r32
+            /**< Alias for third component  */
+            width : r32
+            /**< Alias for fourth component */
+            height : r32
+        }
+
+        anonyme14 :: struct {
+            /**< Alias for first component */
+            r : r32
+            /**< Alias for second component */
+            g : r32
+            /**< Alias for third component  */
+            b : r32
+            /**< Alias for fourth component */
+            a : r32
+        }
+
+        anonyme15 :: struct {
+            /**< Alias for first component */
+            red : r32
+            /**< Alias for second component */
+            green : r32
+            /**< Alias for third component  */
+            blue : r32
+            /**< Alias for fourth component */
+            alpha : r32
+        }
+
+    }
+
+}
+
+/**
+ * Tuple of 3 floats
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component:  <b>x</b>, <b>r</b> or <b>red</b>
+ *  - Second component: <b>y</b>, <b>g</b> or <b>green</b>
+ *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
+ */
+vec3 :: union nonsûr {
+    /**< All compoments at once    */
+    data : [3]r32
+    anonyme16 :: struct {
+        /**< Alias for first component */
+        x : r32
+        /**< Alias fo second component */
+        y : r32
+        /**< Alias fo third component  */
+        z : r32
+    }
+
+    anonyme17 :: struct {
+        /**< Alias for first component */
+        r : r32
+        /**< Alias fo second component */
+        g : r32
+        /**< Alias fo third component  */
+        b : r32
+    }
+
+    anonyme18 :: struct {
+        /**< Alias for first component */
+        red : r32
+        /**< Alias fo second component */
+        green : r32
+        /**< Alias fo third component  */
+        blue : r32
+    }
+
+}
+
+/**
+ * Tuple of 2 floats
+ *
+ * Each field can be addressed using several aliases:
+ *  - First component:  <b>x</b> or <b>s</b>
+ *  - Second component: <b>y</b> or <b>t</b>
+ */
+vec2 :: struct {
+    anonyme19 :: union nonsûr {
+        /**< All components at once     */
+        data : [2]r32
+        anonyme20 :: struct {
+            /**< Alias for first component  */
+            x : r32
+            /**< Alias for second component */
+            y : r32
+        }
+
+        anonyme21 :: struct {
+            /**< Alias for first component  */
+            s : r32
+            /**< Alias for second component */
+            t : r32
+        }
+
+    }
+
+}
+
+/**
+ *  Generic vector structure.
+ *
+ * @memberof vector
+ */
+vector_t :: struct {
+    /** Pointer to dynamically allocated items. */
+    items : *rien
+    /** Number of items that can be held in currently allocated storage. */
+    capacity : size_t
+    /** Number of items. */
+    size : size_t
+    /** Size (in bytes) of a single item. */
+    item_size : size_t
+}
+
+/**
+ * Creates a new empty vector.
+ *
+ * @param   item_size    item size in bytes
+ * @return               a new empty vector
+ *
+ */
+vector_new :: fonc (item_size : size_t) -> *vector_t #externe
+
+/**
+ *  Deletes a vector.
+ *
+ *  @param self a vector structure
+ *
+ */
+vector_delete :: fonc (self : *vector_t) -> rien #externe
+
+/**
+ *  Returns a pointer to the item located at specified index.
+ *
+ *  @param  self  a vector structure
+ *  @param  index the index of the item to be returned
+ *  @return       pointer on the specified item
+ */
+vector_get :: fonc (self : *vector_t, index : size_t) -> *rien #externe
+
+/**
+ *  Returns a pointer to the first item.
+ *
+ *  @param  self  a vector structure
+ *  @return       pointer on the first item
+ */
+vector_front :: fonc (self : *vector_t) -> *rien #externe
+
+/**
+ *  Returns a pointer to the last item
+ *
+ *  @param  self  a vector structure
+ *  @return pointer on the last item
+ */
+vector_back :: fonc (self : *vector_t) -> *rien #externe
+
+/**
+ *  Check if an item is contained within the vector.
+ *
+ *  @param  self  a vector structure
+ *  @param  item  item to be searched in the vector
+ *  @param  cmp   a pointer a comparison function
+ *  @return       1 if item is contained within the vector, 0 otherwise
+ */
+vector_contains :: fonc (self : *vector_t, item : *rien, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> z32 #externe
+
+/**
+ *  Checks whether the vector is empty.
+ *
+ *  @param  self  a vector structure
+ *  @return       1 if the vector is empty, 0 otherwise
+ */
+vector_empty :: fonc (self : *vector_t) -> z32 #externe
+
+/**
+ *  Returns the number of items
+ *
+ *  @param  self  a vector structure
+ *  @return       number of items
+ */
+vector_size :: fonc (self : *vector_t) -> size_t #externe
+
+/**
+ *  Reserve storage such that it can hold at last size items.
+ *
+ *  @param  self  a vector structure
+ *  @param  size  the new storage capacity
+ */
+vector_reserve :: fonc (self : *vector_t, size : size_t) -> rien #externe
+
+/**
+ *  Returns current storage capacity
+ *
+ *  @param  self  a vector structure
+ *  @return       storage capacity
+ */
+vector_capacity :: fonc (self : *vector_t) -> size_t #externe
+
+/**
+ *  Decrease capacity to fit actual size.
+ *
+ *  @param  self  a vector structure
+ */
+vector_shrink :: fonc (self : *vector_t) -> rien #externe
+
+/**
+ *  Removes all items.
+ *
+ *  @param  self  a vector structure
+ */
+vector_clear :: fonc (self : *vector_t) -> rien #externe
+
+/**
+ *  Replace an item.
+ *
+ *  @param  self  a vector structure
+ *  @param  index the index of the item to be replaced
+ *  @param  item  the new item
+ */
+vector_set :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #externe
+
+/**
+ *  Erase an item.
+ *
+ *  @param  self  a vector structure
+ *  @param  index the index of the item to be erased
+ */
+vector_erase :: fonc (self : *vector_t, index : size_t) -> rien #externe
+
+/**
+ *  Erase a range of items.
+ *
+ *  @param  self  a vector structure
+ *  @param  first the index of the first item to be erased
+ *  @param  last  the index of the last item to be erased
+ */
+vector_erase_range :: fonc (self : *vector_t, first : size_t, last : size_t) -> rien #externe
+
+/**
+ *  Appends given item to the end of the vector.
+ *
+ *  @param  self a vector structure
+ *  @param  item the item to be inserted
+ */
+vector_push_back :: fonc (self : *vector_t, item : *rien) -> rien #externe
+
+/**
+ *  Removes the last item of the vector.
+ *
+ *  @param  self a vector structure
+ */
+vector_pop_back :: fonc (self : *vector_t) -> rien #externe
+
+/**
+ *  Resizes the vector to contain size items
+ *
+ *  If the current size is less than size, additional items are appended and
+ *  initialized with value. If the current size is greater than size, the
+ *  vector is reduced to its first size elements.
+ *
+ *  @param  self a vector structure
+ *  @param  size the new size
+ */
+vector_resize :: fonc (self : *vector_t, size : size_t) -> rien #externe
+
+/**
+ *  Insert a single item at specified index.
+ *
+ *  @param  self  a vector structure
+ *  @param  index location before which to insert item
+ *  @param  item  the item to be inserted
+ */
+vector_insert :: fonc (self : *vector_t, index : size_t, item : *rien) -> rien #externe
+
+/**
+ *  Insert raw data at specified index.
+ *
+ *  @param  self  a vector structure
+ *  @param  index location before which to insert item
+ *  @param  data  a pointer to the items to be inserted
+ *  @param  count the number of items to be inserted
+ */
+vector_insert_data :: fonc (self : *vector_t, index : size_t, data : *rien, count : size_t) -> rien #externe
+
+/**
+ *  Append raw data to the end of the vector.
+ *
+ *  @param  self  a vector structure
+ *  @param  data  a pointer to the items to be inserted
+ *  @param  count the number of items to be inserted
+ */
+vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : size_t) -> rien #externe
+
+/**
+ *  Sort vector items according to cmp function.
+ *
+ *  @param  self  a vector structure
+ *  @param  cmp   a pointer a comparison function
+ */
+vector_sort :: fonc (self : *vector_t, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> rien #externe
+
+/**
+ * A texture atlas is used to pack several small regions into a single texture.
+ */
+texture_atlas_t :: struct {
+    /**
+     * Allocated nodes
+     */
+    nodes : *vector_t
+    /**
+     *  Width (in pixels) of the underlying texture
+     */
+    width : size_t
+    /**
+     * Height (in pixels) of the underlying texture
+     */
+    height : size_t
+    /**
+     * Depth (in bytes) of the underlying texture
+     */
+    depth : size_t
+    /**
+     * Allocated surface size
+     */
+    used : size_t
+    /**
+     * Texture identity (OpenGL)
+     */
+    id : n32
+    /**
+     * Atlas data
+     */
+    data : *n8
+}
+
+/**
+ * Creates a new empty texture atlas.
+ *
+ * @param   width   width of the atlas
+ * @param   height  height of the atlas
+ * @param   depth   bit depth of the atlas
+ * @return          a new empty texture atlas.
+ *
+ */
+texture_atlas_new :: fonc (width : size_t, height : size_t, depth : size_t) -> *texture_atlas_t #externe
+
+/**
+ *  Deletes a texture atlas.
+ *
+ *  @param self a texture atlas structure
+ *
+ */
+texture_atlas_delete :: fonc (self : *texture_atlas_t) -> rien #externe
+
+/**
+ *  Allocate a new region in the atlas.
+ *
+ *  @param self   a texture atlas structure
+ *  @param width  width of the region to allocate
+ *  @param height height of the region to allocate
+ *  @return       Coordinates of the allocated region
+ *
+ */
+texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : size_t, height : size_t) -> ivec4 #externe
+
+/**
+ *  Upload data to the specified atlas region.
+ *
+ *  @param self   a texture atlas structure
+ *  @param x      x coordinate the region
+ *  @param y      y coordinate the region
+ *  @param width  width of the region
+ *  @param height height of the region
+ *  @param data   data to be uploaded into the specified region
+ *  @param stride stride of the data
+ *
+ */
+texture_atlas_set_region :: fonc (self : *texture_atlas_t, x : size_t, y : size_t, width : size_t, height : size_t, data : *n8, stride : size_t) -> rien #externe
+
+/**
+ *  Remove all allocated regions from the atlas.
+ *
+ *  @param self   a texture atlas structure
+ */
+texture_atlas_clear :: fonc (self : *texture_atlas_t) -> rien #externe
+
+/**
+ * A list of possible ways to render a glyph.
+ */
+rendermode_t :: énum n32 {
+    RENDER_NORMAL
+    RENDER_OUTLINE_EDGE
+    RENDER_OUTLINE_POSITIVE
+    RENDER_OUTLINE_NEGATIVE
+    RENDER_SIGNED_DISTANCE_FIELD
+}
+
+/**
+ * A structure that hold a kerning value relatively to a Unicode
+ * codepoint.
+ *
+ * This structure cannot be used alone since the (necessary) right
+ * Unicode codepoint is implicitely held by the owner of this structure.
+ */
+kerning_t :: struct {
+    /**
+     * Left Unicode codepoint in the kern pair in UTF-32 LE encoding.
+     */
+    codepoint : uint32_t
+    /**
+     * Kerning value (in fractional pixels).
+     */
+    kerning : r32
+}
+
+/**
+ * A structure that describe a glyph.
+ */
+texture_glyph_t :: struct {
+    /**
+     * Unicode codepoint this glyph represents in UTF-32 LE encoding.
+     */
+    codepoint : uint32_t
+    /**
+     * Glyph's width in pixels.
+     */
+    width : size_t
+    /**
+     * Glyph's height in pixels.
+     */
+    height : size_t
+    /**
+     * Glyph's left bearing expressed in integer pixels.
+     */
+    offset_x : z32
+    /**
+     * Glyphs's top bearing expressed in integer pixels.
+     *
+     * Remember that this is the distance from the baseline to the top-most
+     * glyph scanline, upwards y coordinates being positive.
+     */
+    offset_y : z32
+    /**
+     * For horizontal text layouts, this is the horizontal distance (in
+     * fractional pixels) used to increment the pen position when the glyph is
+     * drawn as part of a string of text.
+     */
+    advance_x : r32
+    /**
+     * For vertical text layouts, this is the vertical distance (in fractional
+     * pixels) used to increment the pen position when the glyph is drawn as
+     * part of a string of text.
+     */
+    advance_y : r32
+    /**
+     * First normalized texture coordinate (x) of top-left corner
+     */
+    s0 : r32
+    /**
+     * Second normalized texture coordinate (y) of top-left corner
+     */
+    t0 : r32
+    /**
+     * First normalized texture coordinate (x) of bottom-right corner
+     */
+    s1 : r32
+    /**
+     * Second normalized texture coordinate (y) of bottom-right corner
+     */
+    t1 : r32
+    /**
+     * A vector of kerning pairs relative to this glyph.
+     */
+    kerning : *vector_t
+    /**
+     * Mode this glyph was rendered
+     */
+    rendermode : rendermode_t
+    /**
+     * Glyph outline thickness
+     */
+    outline_thickness : r32
+}
+
+/**
+ *  Texture font structure.
+ */
+texture_font_t :: struct {
+    /**
+     * Vector of glyphs contained in this font.
+     */
+    glyphs : *vector_t
+    /**
+     * Atlas structure to store glyphs data.
+     */
+    atlas : *texture_atlas_t
+    /**
+     * font location
+     */
+    anonyme22 :: énum n32 {
+        TEXTURE_FONT_FILE := 0
+        TEXTURE_FONT_MEMORY
+    }
+
+    location : anonyme22
+    anonyme23 :: union nonsûr {
+        /**
+         * Font filename, for when location == TEXTURE_FONT_FILE
+         */
+        filename : *z8
+        /**
+         * Font memory address, for when location == TEXTURE_FONT_MEMORY
+         */
+        anonyme24 :: struct {
+            base : *rien
+            size : size_t
+        }
+
+        memory : anonyme24
+    }
+
+    /**
+     * Font size
+     */
+    size : r32
+    /**
+     * Whether to use autohint when rendering font
+     */
+    hinting : z32
+    /**
+     * Mode the font is rendering its next glyph
+     */
+    rendermode : rendermode_t
+    /**
+     * Outline thickness
+     */
+    outline_thickness : r32
+    /**
+     * Whether to use our own lcd filter.
+     */
+    filtering : z32
+    /**
+     * LCD filter weights
+     */
+    lcd_weights : [5]n8
+    /**
+     * Whether to use kerning if available
+     */
+    kerning : z32
+    /**
+     * This field is simply used to compute a default line spacing (i.e., the
+     * baseline-to-baseline distance) when writing text with this font. Note
+     * that it usually is larger than the sum of the ascender and descender
+     * taken as absolute values. There is also no guarantee that no glyphs
+     * extend above or below subsequent baselines when using this distance.
+     */
+    height : r32
+    /**
+     * This field is the distance that must be placed between two lines of
+     * text. The baseline-to-baseline distance should be computed as:
+     * ascender - descender + linegap
+     */
+    linegap : r32
+    /**
+     * The ascender is the vertical distance from the horizontal baseline to
+     * the highest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the ascender differently. For some, it represents the
+     * ascent of all capital latin characters (without accents), for others it
+     * is the ascent of the highest accented character, and finally, other
+     * formats define it as being equal to bbox.yMax.
+     */
+    ascender : r32
+    /**
+     * The descender is the vertical distance from the horizontal baseline to
+     * the lowest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the descender differently. For some, it represents the
+     * descent of all capital latin characters (without accents), for others it
+     * is the ascent of the lowest accented character, and finally, other
+     * formats define it as being equal to bbox.yMin. This field is negative
+     * for values below the baseline.
+     */
+    descender : r32
+    /**
+     * The position of the underline line for this face. It is the center of
+     * the underlining stem. Only relevant for scalable formats.
+     */
+    underline_position : r32
+    /**
+     * The thickness of the underline for this face. Only relevant for scalable
+     * formats.
+     */
+    underline_thickness : r32
+    /**
+     * The padding to be add to the glyph's texture that are loaded by this font.
+     * Usefull when adding effects with shaders.
+     */
+    padding : z32
+}
+
+/**
+ * This function creates a new texture font from given filename and size.  The
+ * texture atlas is used to store glyph on demand. Note the depth of the atlas
+ * will determine if the font is rendered as alpha channel only (depth = 1) or
+ * RGB (depth = 3) that correspond to subpixel rendering (if available on your
+ * freetype implementation).
+ *
+ * @param atlas     A texture atlas
+ * @param pt_size   Size of font to be created (in points)
+ * @param filename  A font filename
+ *
+ * @return A new empty font (no glyph inside yet)
+ *
+ */
+texture_font_new_from_file :: fonc (atlas : *texture_atlas_t, pt_size : r32, filename : *z8) -> *texture_font_t #externe
+
+/**
+ * This function creates a new texture font from a memory location and size.
+ * The texture atlas is used to store glyph on demand. Note the depth of the
+ * atlas will determine if the font is rendered as alpha channel only
+ * (depth = 1) or RGB (depth = 3) that correspond to subpixel rendering (if
+ * available on your freetype implementation).
+ *
+ * @param atlas       A texture atlas
+ * @param pt_size     Size of font to be created (in points)
+ * @param memory_base Start of the font file in memory
+ * @param memory_size Size of the font file memory region, in bytes
+ *
+ * @return A new empty font (no glyph inside yet)
+ *
+ */
+texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, memory_base : *rien, memory_size : size_t) -> *texture_font_t #externe
+
+/**
+ * Delete a texture font. Note that this does not delete the glyph from the
+ * texture atlas.
+ *
+ * @param self a valid texture font
+ */
+texture_font_delete :: fonc (self : *texture_font_t) -> rien #externe
+
+/**
+ * Request a new glyph from the font. If it has not been created yet, it will
+ * be.
+ *
+ * @param self      A valid texture font
+ * @param codepoint Character codepoint to be loaded in UTF-8 encoding.
+ *
+ * @return A pointer on the new glyph or 0 if the texture atlas is not big
+ *         enough
+ *
+ */
+texture_font_get_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe
+
+/**
+ * Request an already loaded glyph from the font.
+ *
+ * @param self      A valid texture font
+ * @param codepoint Character codepoint to be found in UTF-8 encoding.
+ *
+ * @return A pointer on the glyph or 0 if the glyph is not loaded
+ */
+texture_font_find_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe
+
+/**
+ * Request the loading of a given glyph.
+ *
+ * @param self       A valid texture font
+ * @param codepoints Character codepoint to be loaded in UTF-8 encoding.
+ *
+ * @return One if the glyph could be loaded, zero if not.
+ */
+texture_font_load_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> z32 #externe
+
+/**
+ * Request the loading of several glyphs at once.
+ *
+ * @param self       A valid texture font
+ * @param codepoints Character codepoints to be loaded in UTF-8 encoding. May
+ *                   contain duplicates.
+ *
+ * @return Number of missed glyph if the texture is not big enough to hold
+ *         every glyphs.
+ */
+texture_font_load_glyphs :: fonc (self : *texture_font_t, codepoints : *z8) -> size_t #externe
+
+texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : size_t, height_new : size_t) -> rien #externe
+
+/**
+ * Get the kerning between two horizontal glyphs.
+ *
+ * @param self      A valid texture glyph
+ * @param codepoint Character codepoint of the peceding character in UTF-8 encoding.
+ *
+ * @return x kerning value
+ */
+texture_glyph_get_kerning :: fonc (self : *texture_glyph_t, codepoint : *z8) -> r32 #externe
+
+/**
+ * Creates a new empty glyph
+ *
+ * @return a new empty glyph (not valid)
+ */
+texture_glyph_new :: fonc ) -> *texture_glyph_t #externe
+
+/**
+ * Simple structure that describes text properties.
+ */
+markup_t :: struct {
+    /**
+     * A font family name such as "normal", "sans", "serif" or "monospace".
+     */
+    family : *z8
+    /**
+     * Font size.
+     */
+    size : r32
+    /**
+     * Whether text is bold.
+     */
+    bold : z32
+    /**
+     * Whether text is italic.
+     */
+    italic : z32
+    /**
+     * Spacing between letters.
+     */
+    spacing : r32
+    /**
+     * Gamma correction.
+     */
+    gamma : r32
+    /**
+     * Text color.
+     */
+    foreground_color : vec4
+    /**
+     * Background color.
+     */
+    background_color : vec4
+    /**
+     * Whether outline is active.
+     */
+    outline : z32
+    /**
+     * Outline color.
+     */
+    outline_color : vec4
+    /**
+     * Whether underline is active.
+     */
+    underline : z32
+    /**
+     * Underline color.
+     */
+    underline_color : vec4
+    /**
+     * Whether overline is active.
+     */
+    overline : z32
+    /**
+     * Overline color.
+     */
+    overline_color : vec4
+    /**
+     * Whether strikethrough is active.
+     */
+    strikethrough : z32
+    /**
+     * Strikethrough color.
+     */
+    strikethrough_color : vec4
+    /**
+     * Pointer on the corresponding font (family/size/bold/italic)
+     */
+    font : *texture_font_t
+}
+
+/**
+ * Default markup
+ */
+default_markup : markup_t
