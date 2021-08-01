@@ -1082,6 +1082,13 @@ struct Convertisseuse {
 
     dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
 
+    void ajoute_typedef(dls::chaine &&nom_typedef, dls::chaine &&nom_type)
+    {
+        kuri::tableau<dls::chaine> tabl;
+        tabl.ajoute(nom_type);
+        typedefs.insere({nom_typedef, tabl});
+    }
+
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
     {
         auto comment = clang_Cursor_getRawCommentText(cursor);
@@ -2321,21 +2328,21 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
-    convertisseuse.typedefs.insere({"size_t", {"ulong"}});
-    convertisseuse.typedefs.insere({"std::size_t", {"ulong"}});
-    convertisseuse.typedefs.insere({"uint8_t", {"uchar"}});
-    convertisseuse.typedefs.insere({"uint16_t", {"ushort"}});
-    convertisseuse.typedefs.insere({"uint32_t", {"uint"}});
-    convertisseuse.typedefs.insere({"uint64_t", {"ulong"}});
-    convertisseuse.typedefs.insere({"int8_t", {"char"}});
-    convertisseuse.typedefs.insere({"int16_t", {"short"}});
-    convertisseuse.typedefs.insere({"int32_t", {"int"}});
-    convertisseuse.typedefs.insere({"int64_t", {"long"}});
+    convertisseuse.ajoute_typedef("size_t", "ulong");
+    convertisseuse.ajoute_typedef("std::size_t", "ulong");
+    convertisseuse.ajoute_typedef("uint8_t", "uchar");
+    convertisseuse.ajoute_typedef("uint16_t", "ushort");
+    convertisseuse.ajoute_typedef("uint32_t", "uint");
+    convertisseuse.ajoute_typedef("uint64_t", "ulong");
+    convertisseuse.ajoute_typedef("int8_t", "char");
+    convertisseuse.ajoute_typedef("int16_t", "short");
+    convertisseuse.ajoute_typedef("int32_t", "int");
+    convertisseuse.ajoute_typedef("int64_t", "long");
     /* Hack afin de convertir les types half vers notre langage, ceci empêche d'y ajouter les
      * typedefs devantêtre utilisés afin de faire compiler le code C puisque ni half ni r16
      * n'existent en C. */
-    convertisseuse.typedefs.insere({"r16", {"r16"}});
-    convertisseuse.typedefs.insere({"half", {"r16"}});
+    convertisseuse.ajoute_typedef("r16", "r16");
+    convertisseuse.ajoute_typedef("half", "r16");
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
