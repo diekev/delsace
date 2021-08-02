@@ -1,5 +1,3 @@
-#bibliothèque_statique "libexetron.a"
-
 charge "interface_exétron"
 
 // ------------------------------------------

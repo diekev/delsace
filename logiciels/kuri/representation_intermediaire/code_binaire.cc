@@ -33,6 +33,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/bibliotheque.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
@@ -806,8 +807,11 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
             donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
-            donnees_externe.ptr_fonction =
-                espace->gestionnaire_bibliotheques->fonction_pour_symbole(decl->ident);
+            if (!decl->symbole->charge(espace, decl)) {
+                return;
+            }
+
+            donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
         }
 
         if (fonction->decl->est_variadique) {

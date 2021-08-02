@@ -108,6 +108,7 @@ CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpres
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::INSTRUCTION_DIFFERE:
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         {
             break;
         }
@@ -155,6 +156,11 @@ CodeRetourValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpres
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
             }
 
+            break;
+        }
+        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
+        {
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
@@ -2628,6 +2634,24 @@ CodeRetourValidation ContexteValidationCode::valide_type_fonction(
                 return CodeRetourValidation::Erreur;
             }
         }
+    }
+
+    // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
+    if (decl->est_externe && decl->ident && decl->ident->nom != "__principale" &&
+        !decl->possede_drapeau(COMPILATRICE)) {
+        auto bibliotheque = espace->gestionnaire_bibliotheques->trouve_bibliotheque(
+            decl->ident_bibliotheque);
+
+        if (!bibliotheque) {
+            espace
+                ->rapporte_erreur(decl,
+                                  "Impossible de définir la bibliothèque où trouver la fonction")
+                .ajoute_message(
+                    "« ", decl->ident_bibliotheque->nom, " » ne réfère à aucune bibliothèque !");
+            return CodeRetourValidation::Erreur;
+        }
+
+        decl->symbole = bibliotheque->cree_symbole(decl->nom_symbole);
     }
 
     graphe->ajoute_dependances(*noeud_dep, donnees_dependance);

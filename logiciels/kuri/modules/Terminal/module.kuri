@@ -109,10 +109,10 @@ termios :: struct #externe {
     c_ospeed : n32		/* output speed */
 }
 
-tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe
-tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe
+tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc
+tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe libc
 
-iscntrl :: fonc (c: z32) -> z32 #externe
+iscntrl :: fonc (c: z32) -> z32 #externe libc
 
 // -------------------------------
 
@@ -125,4 +125,4 @@ winsize :: struct #externe {
 
 TIOCGWINSZ :: 0x5413 comme n64
 
-ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe
+ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe libc

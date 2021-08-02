@@ -49,11 +49,8 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
 
 charge "interface_image"
 
-#bibliothèque_statique "libmodule_c_image.a"
-
-#chemin "/opt/lib/oiio/lib/"
-
-#bibliothèque_dynamique "OpenImageIO"
+liboiio :: #bibliothèque "OpenImageIO"
+#dépendance_bibliothèque libimage liboiio
 
 écris_image :: fonc (chemin: chaine, image: ImageIO)
 {

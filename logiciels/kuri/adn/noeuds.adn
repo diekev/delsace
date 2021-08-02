@@ -226,6 +226,14 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
 	Atome *atome
 }
 
+struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
+	@comme déclaration_bibliothèque
+	@code  NoeudCodeDéclarationBibliothèque
+	@genre DÉCLARATION_BIBLIOTHÈQUE
+
+	Bibliothèque *bibliothèque
+}
+
 struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
 	@genre DÉCLARATION_VARIABLE
 	@comme déclaration_variable
@@ -387,6 +395,14 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	bool est_déclaration_type [copie]
 	bool est_monomorphisation
 	bool est_métaprogramme
+
+	/* pour les fonctions externes :
+	 * - nom du symbole dans la bibliothèque
+	 * - la bibliothèque où se trouve le Symbole
+	 * - le symbole lui-même */
+	chaine_statique nom_symbole
+	IdentifiantCode *ident_bibliothèque
+	Symbole *symbole
 
 	/* Le paramètre de sortie :
 	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
@@ -660,4 +676,13 @@ struct NoeudInstructionDiffère : NoeudExpression {
 	@code  NoeudCodeDiffère
 
 	NoeudExpression *expression [code enfant]
+}
+
+struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
+	@genre DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE
+	@comme dépendance_bibliothèque
+	@code  NoeudCodeDépendanceBibliothèque
+
+	IdentifiantCode *ident_bibliothèque_dépendante
+	IdentifiantCode *ident_bibliothèque_dépendue
 }

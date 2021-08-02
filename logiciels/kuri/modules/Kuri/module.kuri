@@ -5,9 +5,9 @@
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
-malloc :: fonc (taille : z64) -> *rien #externe
-realloc :: fonc (ptr : *rien, taille : z64) -> *rien #externe
-free :: fonc (ptr : *rien) -> rien #externe
+malloc :: fonc (taille : z64) -> *rien #externe libc
+realloc :: fonc (ptr : *rien, taille : z64) -> *rien #externe libc
+free :: fonc (ptr : *rien) -> rien #externe libc
 
 // --------------------------
 
@@ -691,7 +691,7 @@ tableau_vole_mémoire :: fonc (tableau: &[]$T) -> []T
 
 // --------------------------------
 
-strlen :: fonc (str: *z8) -> z64 #externe
+strlen :: fonc (str: *z8) -> z64 #externe libc
 
 arguments_ligne_commande :: fonc () -> []chaine
 {
@@ -762,7 +762,7 @@ __fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx
 }
 
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
-__principale :: fonc (contexte: ContexteProgramme) -> z32 #externe
+__principale :: fonc (contexte: ContexteProgramme) -> z32 #principale
 
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
 {

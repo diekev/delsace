@@ -72,13 +72,13 @@ static inline r32 DLS_fabs(r32 f)
 static inline n16 DLS_depuis_r32_except(n32 i)
 {
 	n32 s = ((i>>16) & 0x8000);
-	z32 e = ((i>>13) & 0x3fc00) - 0x1c000;
+	z32 e = static_cast<z32>(((i>>13) & 0x3fc00) - 0x1c000);
 
 	if (e <= 0) {
 		// denormalized
 		union { n32 i; r32 f; } u;
 		u.i = i;
-		return (n16)(s | (int)(DLS_fabs(u.f) * 1.6777216e7f + 0.5f));
+		return (n16)(s | (n32)(DLS_fabs(u.f) * 1.6777216e7f + 0.5f));
 	}
 
 	if (e == 0x23c00) {
@@ -99,7 +99,7 @@ static inline n16 DLS_depuis_r32(r32 val)
 	union { n32 i; float f; } u;
 	u.f = val;
 
-	int e = table_r32_r16[(u.i >> 23) & 0x1ff];
+	n32 e = table_r32_r16[(u.i >> 23) & 0x1ff];
 
 	if (e) {
 		return (n16)(e + (((u.i & 0x7fffff) + 0x1000) >> 13));

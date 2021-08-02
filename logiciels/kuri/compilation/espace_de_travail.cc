@@ -26,6 +26,7 @@
 
 #include <fstream>
 
+#include "biblinternes/nombre_decimaux/r16_c.h"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
@@ -33,6 +34,7 @@
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+#include "compilatrice.hh"
 #include "coulisse.hh"
 #include "parsage/identifiant.hh"
 #include "statistiques/statistiques.hh"
@@ -59,24 +61,69 @@ static void notre_free(void *ptr)
     free(ptr);
 }
 
+static float vers_r32(uint16_t f)
+{
+    return DLS_vers_r32(f);
+}
+
+static uint16_t depuis_r32(float f)
+{
+    return DLS_depuis_r32(f);
+}
+
+static double vers_r64(uint16_t f)
+{
+    return DLS_vers_r64(f);
+}
+
+static uint16_t depuis_r64(double f)
+{
+    return DLS_depuis_r64(f);
+}
+
 /* ************************************************************************** */
 
-EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts)
-    : options(opts), typeuse(graphe_dependance, this->operateurs), m_compilatrice(compilatrice)
+EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
+                                 OptionsDeCompilation opts,
+                                 kuri::chaine nom_)
+    : nom(nom_), options(opts), typeuse(graphe_dependance, this->operateurs),
+      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), m_compilatrice(compilatrice)
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
     coulisse = Coulisse::cree_pour_options(options);
 
-    gestionnaire_bibliotheques->ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
-    gestionnaire_bibliotheques->ajoute_bibliotheque("/tmp/r16_tables_x64.so");
+    auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
 
-    gestionnaire_bibliotheques->ajoute_fonction_pour_symbole(
-        ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
-    gestionnaire_bibliotheques->ajoute_fonction_pour_symbole(
-        ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
-    gestionnaire_bibliotheques->ajoute_fonction_pour_symbole(
-        ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
+    /* La bibliothèque C. */
+    auto libc = gestionnaire_bibliotheques->cree_bibliotheque(
+        nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
+
+    auto malloc_ = libc->cree_symbole("malloc");
+    malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+
+    auto realloc_ = libc->cree_symbole("realloc");
+    realloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+
+    auto free_ = libc->cree_symbole("free");
+    free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
+
+    /* La bibliothèque r16. */
+    auto bibr16 = gestionnaire_bibliotheques->cree_bibliotheque(
+        nullptr, table_idents->identifiant_pour_chaine("libr16"), "r16");
+
+    bibr16->cree_symbole("DLS_vers_r32")
+        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r32));
+    bibr16->cree_symbole("DLS_depuis_r32")
+        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
+    bibr16->cree_symbole("DLS_vers_r64")
+        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r64));
+    bibr16->cree_symbole("DLS_depuis_r64")
+        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
+
+    /* La bibliothèque pthread. */
+    gestionnaire_bibliotheques->cree_bibliotheque(
+        nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
 }
 
 EspaceDeTravail::~EspaceDeTravail()

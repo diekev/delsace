@@ -5,7 +5,6 @@
 - ajout de #portée_module
 - ajout de #portée_export
 - ajout de #convention_c
-- retravaille #bibliothèque_dynamique, #bibliothèque_statique
 - ajout de #thread_local
 - ajout de #macro
 - ajout de #boucle_pour
@@ -589,31 +588,6 @@ instructions SIMD
 
 idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
     -- nécéssite support de la part du système d'exploitation
-
-directive #externe : argument définissant la bibliothèque où trouver le symbole
-- libc :: #bibiliothèque_externe "c"
-- write :: fonc (...) -> z32 #externe libc
-
-    libXXX_linux_x64.a
-    libXXX_linux_x64.so
-
-    struct Bibliotheque {
-        IdentifiantCode *ident;
-
-        dls::chaine nom = "";
-
-        dls::chaine chemin_statique = "";
-        dls::chaine chemin_dynamique = "";
-
-        // symboles
-    };
-
-    libc :: #bibliothèque_externe "c"
-
-    alembic :: #bibliothèque_externe "Alembic"
-    ipa_alembic :: #bibliothèque_externe "alembic"
-
-    #bibliothèque_mère ipa_alembic alembic
 
 génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?

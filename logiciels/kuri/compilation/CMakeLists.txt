@@ -65,6 +65,7 @@ set(BIBLIOTHEQUES
 	bib_moultfilage
 	bib_structures
 	memoire
+	nombre_decimaux
 )
 
 set(SOURCES

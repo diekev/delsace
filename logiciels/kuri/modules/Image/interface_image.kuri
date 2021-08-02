@@ -1,3 +1,5 @@
+libmodule_c_image :: #bibliothèque "module_c_image"
+
 ResultatOperation :: énum n32 {
     OK
     IMAGE_INEXISTANTE
@@ -12,11 +14,11 @@ ImageIO :: struct {
     nombre_composants : z32
 }
 
-IMG_ouvre_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe
+IMG_ouvre_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe libmodule_c_image
 
-IMG_ecris_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe
+IMG_ecris_image :: fonc (chemin : *z8, image : *ImageIO) -> ResultatOperation #externe libmodule_c_image
 
-IMG_detruit_image :: fonc (image : *ImageIO) -> rien #externe
+IMG_detruit_image :: fonc (image : *ImageIO) -> rien #externe libmodule_c_image
 
-IMG_calcul_empreinte_floue :: fonc (chemin : *z8, composant_x : z32, composant_y : z32, resultat : *z8, taille_resultat : *z64) -> rien #externe
+IMG_calcul_empreinte_floue :: fonc (chemin : *z8, composant_x : z32, composant_y : z32, resultat : *z8, taille_resultat : *z64) -> rien #externe libmodule_c_image
 

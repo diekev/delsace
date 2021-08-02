@@ -1,3 +1,5 @@
+libmodule_c_compression :: #bibliothèque "module_c_compression"
+
 /**
  * Ensemble de fonctions de rappel utilisées par les routines de compression ou de décompression
  * afin de déléguer certaines actions à l'application Kuri.
@@ -54,10 +56,10 @@ FluxCompression :: struct {
 /**
  * Compresse les données d'un flux d'entrée vers un flux de sortie au format Zlib.
  */
-ZLIB_compresse :: fonc (ctx : *ContexteCompression, flux_entree : *FluxCompression, flux_sortie : *FluxCompression, niveau : z32) -> z32 #externe
+ZLIB_compresse :: fonc (ctx : *ContexteCompression, flux_entree : *FluxCompression, flux_sortie : *FluxCompression, niveau : z32) -> z32 #externe libmodule_c_compression
 
 /**
  * Décompresse les données d'un flux d'entrée vers un flux de sortie au format Zlib.
  */
-ZLIB_decompresse :: fonc (ctx : *ContexteCompression, flux_entree : *FluxCompression, flux_sortie : *FluxCompression) -> z32 #externe
+ZLIB_decompresse :: fonc (ctx : *ContexteCompression, flux_entree : *FluxCompression, flux_sortie : *FluxCompression) -> z32 #externe libmodule_c_compression
 

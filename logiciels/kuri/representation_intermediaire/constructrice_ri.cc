@@ -629,6 +629,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::EXPRESSION_PLAGE:
         case GenreNoeud::EXPRESSION_VIRGULE:

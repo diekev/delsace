@@ -52,6 +52,8 @@ static void aplatis_arbre(NoeudExpression *racine,
     }
 
     switch (racine->genre) {
+        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
         {
             break;
@@ -556,6 +558,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
     }
 
     switch (noeud->genre) {
+        case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         {

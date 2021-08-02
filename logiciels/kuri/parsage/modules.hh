@@ -35,6 +35,7 @@
 #include <mutex>
 
 #include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 
@@ -167,8 +168,13 @@ struct Module {
     dls::tablet<Fichier *, 16> fichiers{};
     bool importe = false;
 
+    kuri::chaine chemin_bibliotheque_32bits{};
+    kuri::chaine chemin_bibliotheque_64bits{};
+
     Module(DonneesConstantesModule *dc) : donnees_constantes(dc)
     {
+        chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
+        chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
     COPIE_CONSTRUCT(Module);

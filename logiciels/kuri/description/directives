@@ -5,9 +5,7 @@ Directives pour le compilateur
 #aligne N               indique l'alignement souhaité pour la structure, où N est un nombre entier, puissance de 2
 #compacte               indique que la structure ne doit pas contenir de rembourrage entre les membres, ignorant leurs alignements machines natifs
 #opaque                 crée un type depuis un autre, le nouveau type sera héritera des propriétés du type source, mais sera strictement typé (si Entier :: #opaque z32, alors z32 ne peut se faire passer pour Entier)
-#bibliothèque_statique  indique le chemin d'une bibliothèque statique pour lier le programme final (.a sur GNU/Linux)
-#bibliothèque_dynamique indique le chemin d'une bibliothèque dynamique pour lier le programme final (.so sur GNU/Linux)
-#chemin                 indique un chemin où chercher les bibliothèques ou autres fichiers
+#bibliothèque           indique le nom de la bibliothèque à lier à l'identifiant utilisé (p.e. libm :: #bibliothèque "m", liera libm.so à l'identifiant libm, et toute fonction utilisant cette identifant après #externe sera considérer comme faisant partie de libm.so, qui sera alors utilisée lors de la liaison des programmes et métaprogrammes pour trouver le symbole associé)
 #compilatrice           indique qu'une fonction est définie par la compilatrice, ne peut être que dans le module Kuri ou Compilatrice
 #def                    indique une définition de macro pour la coulisse C
 #enligne                indique qu'une fonction doit être considérée pour l'enlignage

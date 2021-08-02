@@ -1,21 +1,21 @@
 // À FAIRE : implémente les fonctions suivantes avec notre langage
 
-#bibliothèque_dynamique "m"
+libcmath :: #bibliothèque "m"
 
-sqrt :: fonc (v: r64) -> r64 #externe
-cos :: fonc (a : r64) -> r64 #externe
-sin :: fonc (a : r64) -> r64 #externe
-tan :: fonc (a : r64) -> r64 #externe
-acos :: fonc (a : r64) -> r64 #externe
-asin :: fonc (a : r64) -> r64 #externe
-atan :: fonc (a : r64) -> r64 #externe
-atan2 :: fonc (a : r64, b: r64) -> r64 #externe
-pow :: fonc (a: r64, b: r64) -> r64 #externe
-ceil :: fonc (a: r64) -> r64 #externe
-floor :: fonc (a: r64) -> r64 #externe
-copysign :: fonc (a: r64, b: r64) -> r64 #externe
-log :: fonc (a: r64) -> r64 #externe
-exp :: fonc (a: r64) -> r64 #externe
+sqrt :: fonc (v: r64) -> r64 #externe libcmath
+cos :: fonc (a : r64) -> r64 #externe libcmath
+sin :: fonc (a : r64) -> r64 #externe libcmath
+tan :: fonc (a : r64) -> r64 #externe libcmath
+acos :: fonc (a : r64) -> r64 #externe libcmath
+asin :: fonc (a : r64) -> r64 #externe libcmath
+atan :: fonc (a : r64) -> r64 #externe libcmath
+atan2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath
+pow :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+ceil :: fonc (a: r64) -> r64 #externe libcmath
+floor :: fonc (a: r64) -> r64 #externe libcmath
+copysign :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+log :: fonc (a: r64) -> r64 #externe libcmath
+exp :: fonc (a: r64) -> r64 #externe libcmath
 
 exp :: fonc (a: r32) -> r32
 {

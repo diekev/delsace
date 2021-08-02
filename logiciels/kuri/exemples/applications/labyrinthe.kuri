@@ -23,7 +23,7 @@ Labyrinthe :: struct {
     taille_groupe : []z32
 }
 
-rand :: fonc () -> z32 #externe
+rand :: fonc () -> z32 #externe libc
 
 nombre_aléatoire :: fonc () -> z32
 {

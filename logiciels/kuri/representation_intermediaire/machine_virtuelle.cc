@@ -46,7 +46,7 @@
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
-        reinterpret_cast<GestionnaireBibliotheques::type_fonction>(fonction)
+        reinterpret_cast<Symbole::type_fonction>(fonction)
 
 namespace oper {
 

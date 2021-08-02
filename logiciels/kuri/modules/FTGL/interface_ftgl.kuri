@@ -1,3 +1,5 @@
+libmodule_c_ftgl :: #bibliothèque "module_c_ftgl"
+
 /**
  * Tuple of 4 ints.
  *
@@ -108,7 +110,7 @@ vector_t :: struct {
  * @return               a new empty vector
  *
  */
-vector_new :: fonc (item_size : n64) -> *vector_t #externe
+vector_new :: fonc (item_size : n64) -> *vector_t #externe libmodule_c_ftgl
 
 /**
  *  Deletes a vector.
@@ -116,7 +118,7 @@ vector_new :: fonc (item_size : n64) -> *vector_t #externe
  *  @param self a vector structure
  *
  */
-vector_delete :: fonc (self : *vector_t) -> rien #externe
+vector_delete :: fonc (self : *vector_t) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Returns a pointer to the item located at specified index.
@@ -125,7 +127,7 @@ vector_delete :: fonc (self : *vector_t) -> rien #externe
  *  @param  index the index of the item to be returned
  *  @return       pointer on the specified item
  */
-vector_get :: fonc (self : *vector_t, index : n64) -> *rien #externe
+vector_get :: fonc (self : *vector_t, index : n64) -> *rien #externe libmodule_c_ftgl
 
 /**
  *  Returns a pointer to the first item.
@@ -133,7 +135,7 @@ vector_get :: fonc (self : *vector_t, index : n64) -> *rien #externe
  *  @param  self  a vector structure
  *  @return       pointer on the first item
  */
-vector_front :: fonc (self : *vector_t) -> *rien #externe
+vector_front :: fonc (self : *vector_t) -> *rien #externe libmodule_c_ftgl
 
 /**
  *  Returns a pointer to the last item
@@ -141,7 +143,7 @@ vector_front :: fonc (self : *vector_t) -> *rien #externe
  *  @param  self  a vector structure
  *  @return pointer on the last item
  */
-vector_back :: fonc (self : *vector_t) -> *rien #externe
+vector_back :: fonc (self : *vector_t) -> *rien #externe libmodule_c_ftgl
 
 /**
  *  Check if an item is contained within the vector.
@@ -151,7 +153,7 @@ vector_back :: fonc (self : *vector_t) -> *rien #externe
  *  @param  cmp   a pointer a comparison function
  *  @return       1 if item is contained within the vector, 0 otherwise
  */
-vector_contains :: fonc (self : *vector_t, item : *rien, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> z32 #externe
+vector_contains :: fonc (self : *vector_t, item : *rien, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> z32 #externe libmodule_c_ftgl
 
 /**
  *  Checks whether the vector is empty.
@@ -159,7 +161,7 @@ vector_contains :: fonc (self : *vector_t, item : *rien, cmp :  #nulctx fonc (*r
  *  @param  self  a vector structure
  *  @return       1 if the vector is empty, 0 otherwise
  */
-vector_empty :: fonc (self : *vector_t) -> z32 #externe
+vector_empty :: fonc (self : *vector_t) -> z32 #externe libmodule_c_ftgl
 
 /**
  *  Returns the number of items
@@ -167,7 +169,7 @@ vector_empty :: fonc (self : *vector_t) -> z32 #externe
  *  @param  self  a vector structure
  *  @return       number of items
  */
-vector_size :: fonc (self : *vector_t) -> n64 #externe
+vector_size :: fonc (self : *vector_t) -> n64 #externe libmodule_c_ftgl
 
 /**
  *  Reserve storage such that it can hold at last size items.
@@ -175,7 +177,7 @@ vector_size :: fonc (self : *vector_t) -> n64 #externe
  *  @param  self  a vector structure
  *  @param  size  the new storage capacity
  */
-vector_reserve :: fonc (self : *vector_t, size : n64) -> rien #externe
+vector_reserve :: fonc (self : *vector_t, size : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Returns current storage capacity
@@ -183,21 +185,21 @@ vector_reserve :: fonc (self : *vector_t, size : n64) -> rien #externe
  *  @param  self  a vector structure
  *  @return       storage capacity
  */
-vector_capacity :: fonc (self : *vector_t) -> n64 #externe
+vector_capacity :: fonc (self : *vector_t) -> n64 #externe libmodule_c_ftgl
 
 /**
  *  Decrease capacity to fit actual size.
  *
  *  @param  self  a vector structure
  */
-vector_shrink :: fonc (self : *vector_t) -> rien #externe
+vector_shrink :: fonc (self : *vector_t) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Removes all items.
  *
  *  @param  self  a vector structure
  */
-vector_clear :: fonc (self : *vector_t) -> rien #externe
+vector_clear :: fonc (self : *vector_t) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Replace an item.
@@ -206,7 +208,7 @@ vector_clear :: fonc (self : *vector_t) -> rien #externe
  *  @param  index the index of the item to be replaced
  *  @param  item  the new item
  */
-vector_set :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe
+vector_set :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Erase an item.
@@ -214,7 +216,7 @@ vector_set :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #extern
  *  @param  self  a vector structure
  *  @param  index the index of the item to be erased
  */
-vector_erase :: fonc (self : *vector_t, index : n64) -> rien #externe
+vector_erase :: fonc (self : *vector_t, index : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Erase a range of items.
@@ -223,7 +225,7 @@ vector_erase :: fonc (self : *vector_t, index : n64) -> rien #externe
  *  @param  first the index of the first item to be erased
  *  @param  last  the index of the last item to be erased
  */
-vector_erase_range :: fonc (self : *vector_t, first : n64, last : n64) -> rien #externe
+vector_erase_range :: fonc (self : *vector_t, first : n64, last : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Appends given item to the end of the vector.
@@ -231,14 +233,14 @@ vector_erase_range :: fonc (self : *vector_t, first : n64, last : n64) -> rien #
  *  @param  self a vector structure
  *  @param  item the item to be inserted
  */
-vector_push_back :: fonc (self : *vector_t, item : *rien) -> rien #externe
+vector_push_back :: fonc (self : *vector_t, item : *rien) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Removes the last item of the vector.
  *
  *  @param  self a vector structure
  */
-vector_pop_back :: fonc (self : *vector_t) -> rien #externe
+vector_pop_back :: fonc (self : *vector_t) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Resizes the vector to contain size items
@@ -250,7 +252,7 @@ vector_pop_back :: fonc (self : *vector_t) -> rien #externe
  *  @param  self a vector structure
  *  @param  size the new size
  */
-vector_resize :: fonc (self : *vector_t, size : n64) -> rien #externe
+vector_resize :: fonc (self : *vector_t, size : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Insert a single item at specified index.
@@ -259,7 +261,7 @@ vector_resize :: fonc (self : *vector_t, size : n64) -> rien #externe
  *  @param  index location before which to insert item
  *  @param  item  the item to be inserted
  */
-vector_insert :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe
+vector_insert :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Insert raw data at specified index.
@@ -269,7 +271,7 @@ vector_insert :: fonc (self : *vector_t, index : n64, item : *rien) -> rien #ext
  *  @param  data  a pointer to the items to be inserted
  *  @param  count the number of items to be inserted
  */
-vector_insert_data :: fonc (self : *vector_t, index : n64, data : *rien, count : n64) -> rien #externe
+vector_insert_data :: fonc (self : *vector_t, index : n64, data : *rien, count : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Append raw data to the end of the vector.
@@ -278,7 +280,7 @@ vector_insert_data :: fonc (self : *vector_t, index : n64, data : *rien, count :
  *  @param  data  a pointer to the items to be inserted
  *  @param  count the number of items to be inserted
  */
-vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : n64) -> rien #externe
+vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Sort vector items according to cmp function.
@@ -286,7 +288,7 @@ vector_push_back_data :: fonc (self : *vector_t, data : *rien, count : n64) -> r
  *  @param  self  a vector structure
  *  @param  cmp   a pointer a comparison function
  */
-vector_sort :: fonc (self : *vector_t, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> rien #externe
+vector_sort :: fonc (self : *vector_t, cmp :  #nulctx fonc (*rien,*rien)(z32)) -> rien #externe libmodule_c_ftgl
 
 /**
  * A texture atlas is used to pack several small regions into a single texture.
@@ -331,7 +333,7 @@ texture_atlas_t :: struct {
  * @return          a new empty texture atlas.
  *
  */
-texture_atlas_new :: fonc (width : n64, height : n64, depth : n64) -> *texture_atlas_t #externe
+texture_atlas_new :: fonc (width : n64, height : n64, depth : n64) -> *texture_atlas_t #externe libmodule_c_ftgl
 
 /**
  *  Deletes a texture atlas.
@@ -339,7 +341,7 @@ texture_atlas_new :: fonc (width : n64, height : n64, depth : n64) -> *texture_a
  *  @param self a texture atlas structure
  *
  */
-texture_atlas_delete :: fonc (self : *texture_atlas_t) -> rien #externe
+texture_atlas_delete :: fonc (self : *texture_atlas_t) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Allocate a new region in the atlas.
@@ -350,7 +352,7 @@ texture_atlas_delete :: fonc (self : *texture_atlas_t) -> rien #externe
  *  @return       Coordinates of the allocated region
  *
  */
-texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : n64, height : n64) -> ivec4 #externe
+texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : n64, height : n64) -> ivec4 #externe libmodule_c_ftgl
 
 /**
  *  Upload data to the specified atlas region.
@@ -364,14 +366,14 @@ texture_atlas_get_region :: fonc (self : *texture_atlas_t, width : n64, height :
  *  @param stride stride of the data
  *
  */
-texture_atlas_set_region :: fonc (self : *texture_atlas_t, x : n64, y : n64, width : n64, height : n64, data : *n8, stride : n64) -> rien #externe
+texture_atlas_set_region :: fonc (self : *texture_atlas_t, x : n64, y : n64, width : n64, height : n64, data : *n8, stride : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  *  Remove all allocated regions from the atlas.
  *
  *  @param self   a texture atlas structure
  */
-texture_atlas_clear :: fonc (self : *texture_atlas_t) -> rien #externe
+texture_atlas_clear :: fonc (self : *texture_atlas_t) -> rien #externe libmodule_c_ftgl
 
 /**
  * A list of possible ways to render a glyph.
@@ -601,7 +603,7 @@ texture_font_t :: struct {
  * @return A new empty font (no glyph inside yet)
  *
  */
-texture_font_new_from_file :: fonc (atlas : *texture_atlas_t, pt_size : r32, filename : *z8) -> *texture_font_t #externe
+texture_font_new_from_file :: fonc (atlas : *texture_atlas_t, pt_size : r32, filename : *z8) -> *texture_font_t #externe libmodule_c_ftgl
 
 /**
  * This function creates a new texture font from a memory location and size.
@@ -618,7 +620,7 @@ texture_font_new_from_file :: fonc (atlas : *texture_atlas_t, pt_size : r32, fil
  * @return A new empty font (no glyph inside yet)
  *
  */
-texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, memory_base : *rien, memory_size : n64) -> *texture_font_t #externe
+texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, memory_base : *rien, memory_size : n64) -> *texture_font_t #externe libmodule_c_ftgl
 
 /**
  * Delete a texture font. Note that this does not delete the glyph from the
@@ -626,7 +628,7 @@ texture_font_new_from_memory :: fonc (atlas : *texture_atlas_t, pt_size : r32, m
  *
  * @param self a valid texture font
  */
-texture_font_delete :: fonc (self : *texture_font_t) -> rien #externe
+texture_font_delete :: fonc (self : *texture_font_t) -> rien #externe libmodule_c_ftgl
 
 /**
  * Request a new glyph from the font. If it has not been created yet, it will
@@ -639,7 +641,7 @@ texture_font_delete :: fonc (self : *texture_font_t) -> rien #externe
  *         enough
  *
  */
-texture_font_get_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe
+texture_font_get_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe libmodule_c_ftgl
 
 /**
  * Request an already loaded glyph from the font.
@@ -649,7 +651,7 @@ texture_font_get_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *tex
  *
  * @return A pointer on the glyph or 0 if the glyph is not loaded
  */
-texture_font_find_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe
+texture_font_find_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *texture_glyph_t #externe libmodule_c_ftgl
 
 /**
  * Request the loading of a given glyph.
@@ -659,7 +661,7 @@ texture_font_find_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> *te
  *
  * @return One if the glyph could be loaded, zero if not.
  */
-texture_font_load_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> z32 #externe
+texture_font_load_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> z32 #externe libmodule_c_ftgl
 
 /**
  * Request the loading of several glyphs at once.
@@ -671,9 +673,9 @@ texture_font_load_glyph :: fonc (self : *texture_font_t, codepoint : *z8) -> z32
  * @return Number of missed glyph if the texture is not big enough to hold
  *         every glyphs.
  */
-texture_font_load_glyphs :: fonc (self : *texture_font_t, codepoints : *z8) -> n64 #externe
+texture_font_load_glyphs :: fonc (self : *texture_font_t, codepoints : *z8) -> n64 #externe libmodule_c_ftgl
 
-texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : n64, height_new : n64) -> rien #externe
+texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : n64, height_new : n64) -> rien #externe libmodule_c_ftgl
 
 /**
  * Get the kerning between two horizontal glyphs.
@@ -683,14 +685,14 @@ texture_font_enlarge_atlas :: fonc (self : *texture_font_t, width_new : n64, hei
  *
  * @return x kerning value
  */
-texture_glyph_get_kerning :: fonc (self : *texture_glyph_t, codepoint : *z8) -> r32 #externe
+texture_glyph_get_kerning :: fonc (self : *texture_glyph_t, codepoint : *z8) -> r32 #externe libmodule_c_ftgl
 
 /**
  * Creates a new empty glyph
  *
  * @return a new empty glyph (not valid)
  */
-texture_glyph_new :: fonc () -> *texture_glyph_t #externe
+texture_glyph_new :: fonc () -> *texture_glyph_t #externe libmodule_c_ftgl
 
 /**
  * Simple structure that describes text properties.

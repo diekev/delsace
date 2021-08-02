@@ -1082,6 +1082,8 @@ struct Convertisseuse {
 
     dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
 
+    dls::chaine pour_bibliotheque{};
+
     void ajoute_typedef(dls::chaine &&nom_typedef, dls::chaine &&nom_type)
     {
         kuri::tableau<dls::chaine> tabl;
@@ -1108,6 +1110,11 @@ struct Convertisseuse {
 
     void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
+        if (pour_bibliotheque != "") {
+            flux_sortie << "lib" << pour_bibliotheque << " :: #bibliothèque \""
+                        << pour_bibliotheque << "\"\n\n";
+        }
+
         dossier_source = fichier_entete.parent_path();
 
         CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
@@ -2087,6 +2094,9 @@ struct Convertisseuse {
         if (est_declaration) {
             /* Nous avons une déclaration */
             flux_sortie << " #externe";
+            if (pour_bibliotheque != "") {
+                flux_sortie << " lib" << pour_bibliotheque;
+            }
             flux_sortie << '\n';
             flux_sortie << '\n';
             return;
@@ -2107,6 +2117,7 @@ struct Configuration {
     dls::chaine fichier_sortie{};
     kuri::tableau<dls::chaine> args{};
     kuri::tableau<dls::chaine> inclusions{};
+    dls::chaine nom_bibliotheque{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -2225,21 +2236,31 @@ static std::optional<Configuration> cree_config_depuis_json(int argc, char **arg
 
 static std::optional<Configuration> cree_config_pour_metaprogramme(int argc, char **argv)
 {
-    if (argc != 4) {
-        std::cerr << "Utilisation " << argv[0] << " FICHIER_SOURCE -o FICHIER_SORTIE.kuri\n";
+    if (argc != 6) {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
         return {};
     }
 
     auto config = Configuration{};
     config.fichier = argv[1];
 
-    if (std::string(argv[2]) != "-o") {
-        std::cerr << "Utilisation " << argv[0] << " FICHIER_SOURCE -o FICHIER_SORTIE.kuri\n";
-        std::cerr << "Attendu '-o' après le nom du fichier d'entrée !\n";
+    if (std::string(argv[2]) != "-b") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-b' après le nom du fichier d'entrée !\n";
         return {};
     }
 
-    config.fichier_sortie = argv[3];
+    if (std::string(argv[4]) != "-o") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-o' après le nom de la bibliothèque !\n";
+        return {};
+    }
+
+    config.nom_bibliotheque = argv[3];
+    config.fichier_sortie = argv[5];
 
     return valide_configuration(config);
 }
@@ -2328,6 +2349,7 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
+    convertisseuse.pour_bibliotheque = config.nom_bibliotheque;
     convertisseuse.ajoute_typedef("size_t", "ulong");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
     convertisseuse.ajoute_typedef("uint8_t", "uchar");

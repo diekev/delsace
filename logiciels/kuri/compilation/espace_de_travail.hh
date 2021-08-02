@@ -136,7 +136,7 @@ struct EspaceDeTravail {
 
     Module *module_kuri = nullptr;
 
-    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques{};
+    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
 
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
@@ -144,7 +144,7 @@ struct EspaceDeTravail {
 
     Compilatrice &m_compilatrice;
 
-    explicit EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts);
+    EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 
     COPIE_CONSTRUCT(EspaceDeTravail);
 

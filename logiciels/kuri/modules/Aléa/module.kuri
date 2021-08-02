@@ -2,12 +2,13 @@
 
 importe Alphabet
 importe Fondation
+importe Math // nous dépendons sur libm.so pour le moment
 importe Introspection
 
-#bibliothèque_statique "libmodule_c_alea.a"
-#bibliothèque_dynamique "m"
-
 charge "interface_aléa"
+
+// À FAIRE : ce serait bien de le définir lors de la génération du code
+#dépendance_bibliothèque libaléa libcmath
 
 crée_gna :: fonc (ctx_kuri : *ContexteKuri, graine: n32) -> *GNA
 {
