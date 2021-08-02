@@ -244,6 +244,7 @@ struct ConstructriceRI {
     AtomeConstante *cree_info_type(Type *type);
     AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
     AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
+    AtomeConstante *cree_info_type_avec_transtype(Type *type);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
                                      Atome *pointeur_tableau_fixe,
