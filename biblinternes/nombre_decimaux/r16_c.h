@@ -72,7 +72,7 @@ static inline r32 DLS_fabs(r32 f)
 static inline n16 DLS_depuis_r32_except(n32 i)
 {
 	n32 s = ((i>>16) & 0x8000);
-	z32 e = static_cast<z32>(((i>>13) & 0x3fc00) - 0x1c000);
+	z32 e = (z32)(((i>>13) & 0x3fc00) - 0x1c000);
 
 	if (e <= 0) {
 		// denormalized
