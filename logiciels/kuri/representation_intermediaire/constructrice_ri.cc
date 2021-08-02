@@ -3255,8 +3255,19 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             }
 
             kuri::tableau<AtomeConstante *> types_sortie;
-            types_sortie.reserve(1);
-            types_sortie.ajoute(cree_info_type(type_fonction->type_sortie));
+            auto type_sortie = type_fonction->type_sortie;
+            if (type_sortie->est_tuple()) {
+                auto tuple = type_sortie->comme_tuple();
+
+                types_sortie.reserve(tuple->membres.taille());
+                POUR (tuple->membres) {
+                    types_sortie.ajoute(cree_info_type(it.type));
+                }
+            }
+            else {
+                types_sortie.reserve(1);
+                types_sortie.ajoute(cree_info_type(type_fonction->type_sortie));
+            }
 
             auto valeur_id = cree_z32(IDInfoType::FONCTION);
             auto valeur_taille_octet = cree_z32(type->taille_octet);
