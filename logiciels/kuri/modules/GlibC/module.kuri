@@ -541,3 +541,5 @@ timerfd_create :: fonc (clockid: z32, flags: z32) -> z32 #externe libc
 timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value: *itimerspec) -> z32 #externe libc
 
 timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc
+
+qsort :: fonc (liste : *rien, taille_liste : n64, taille_element : n64, fonction_comparaison :  #nulctx fonc (*rien,*rien)(z32)) -> rien #externe libc

@@ -155,6 +155,48 @@ taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64 #enligne
     retourne résultat
 }
 
+// Fonction de comparaison pour qsort.
+compare_chaine_utf16 :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        a1 := mémoire(attr1 comme *ChaineUTF16)
+        a2 := mémoire(attr2 comme *ChaineUTF16)
+
+        si a1 < a2 {
+            retourne -1
+        }
+
+        si a1 == a2 {
+            retourne 0
+        }
+    }
+
+    retourne 1
+}
+
+divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> []ChaineUTF16
+{
+    position := 0
+    résultat : []ChaineUTF16
+
+    répète {
+        token : ChaineUTF16
+        token.unités.pointeur = chn.unités.pointeur + position
+        token.unités.taille = 0
+
+        tantque position < chn.taille() && chn.unités.pointeur[position] != délimiteur {
+            token.unités.taille += 1
+            position += 1
+        }
+
+        // assert(chn.unités.pointeur[position] == délimiteur)
+        tableau_ajoute(*résultat, token)
+        position += 1
+    } tantque position < chn.taille()
+
+    retourne résultat
+}
+
 est_valeur_scalaire :: fonc (unité: n16) -> bool #enligne
 {
     retourne unité < 0xD800 || unité > 0xDFFF
@@ -230,21 +272,13 @@ est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
     i := 0
 
     boucle {
-        a : n16 = 0
-        si i < chn1.taille() {
-            a = chn1.unités[i]
+        si i >= chn1.taille() {
+            retourne vrai
         }
 
-        b : n16 = 0
-        si i < chn2.taille() {
-            b = chn2.unités[i]
-        }
+        a := chn1.unités[i]
 
-        si b == 0 {
-            retourne faux
-        }
-
-        si a != b {
+        si i >= chn2.taille() || a != chn2.unités[i] {
             retourne faux
         }
 
