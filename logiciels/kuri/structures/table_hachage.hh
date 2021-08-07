@@ -52,6 +52,7 @@ struct table_hachage {
         valeurs.redimensionne(static_cast<int>(taille));
         occupes.redimensionne(static_cast<int>(taille));
         empreintes.redimensionne(static_cast<int>(taille));
+        nombre_elements = 0;
 
         POUR (occupes) {
             it = 0;
