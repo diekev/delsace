@@ -244,10 +244,10 @@ struct GeneratriceCodeCPP {
 
             // À FAIRE : ceci ne prend pas en compte les ancêtres
             if (it->possede_enfants()) {
-                os << ">\";\n";
+                os << ">\\n\";\n";
             }
             else {
-                os << "/>\";\n";
+                os << "/>\\n\";\n";
             }
 
             genere_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
@@ -271,7 +271,7 @@ struct GeneratriceCodeCPP {
 
             if (it->possede_enfants()) {
                 os << "\t\t\timprime_tab(os, profondeur);\n";
-                os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\";\n";
+                os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\\n\";\n";
             }
 
             os << "\t\t\tbreak;\n";
