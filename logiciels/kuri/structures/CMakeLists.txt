@@ -34,6 +34,7 @@ set(SOURCES
     chaine.cc
 	chaine_statique.cc
 	enchaineuse.cc
+    ensemble.cc
 	table_hachage.cc
 	tableau.cc
 	tableau_compresse.cc
@@ -41,6 +42,7 @@ set(SOURCES
     chaine.hh
 	chaine_statique.hh
 	enchaineuse.hh
+    ensemble.hh
 	table_hachage.hh
 	tableau.hh
 	tableau_compresse.hh

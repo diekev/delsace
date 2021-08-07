@@ -46,6 +46,15 @@ add_test(NAME tests_unitaires COMMAND test_kuri)
 
 install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
+###############################################################
+
+add_executable(tests_unitaires_structures tests_unitaires_structures.cc)
+target_include_directories(tests_unitaires_structures PUBLIC "${INCLUSIONS}")
+target_link_libraries(tests_unitaires_structures "${BIBLIOTHEQUES}")
+add_test(NAME tests_structures COMMAND tests_unitaires_structures)
+
+###############################################################
+
 add_executable(test_aleatoire_kuri test_donnees_aleatoire.cc)
 target_include_directories(test_aleatoire_kuri PUBLIC "${INCLUSIONS}")
 target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")

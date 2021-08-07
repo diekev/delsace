@@ -89,6 +89,14 @@ class Controleuse {
 public:
 	explicit Controleuse(std::ostream &os = std::cerr);
 
+    /**
+     * Retourne vrai si une erreur existe.
+     */
+    bool possede_erreur() const
+    {
+        return m_echecs.taille() != 0;
+    }
+
 	/**
 	 * Verifie que la condition est vraie. Si la condition n'est pas vraie, une
 	 * note est ajoutée au flux de sortie contenant la cond_str, le fichier et
@@ -213,7 +221,7 @@ void Controleuse::verifie_egalite(
 		pousse_erreur(ss.str());
 	}
 
-	m_flux << ".";
+    //m_flux << ".";
 	++m_total;
 }
 
@@ -234,7 +242,7 @@ void Controleuse::verifie_egalite_decimale(
 		pousse_erreur(ss.str());
 	}
 
-	m_flux << ".";
+    //m_flux << ".";
 	++m_total;
 }
 
@@ -256,7 +264,7 @@ void Controleuse::verifie_egalite_epsilon(
 		pousse_erreur(ss.str());
 	}
 
-	m_flux << ".";
+    //m_flux << ".";
 	++m_total;
 }
 
@@ -286,7 +294,7 @@ void Controleuse::verifie_exception_jetee(
 		pousse_erreur(ss.str());
 	}
 
-	m_flux << ".";
+    //m_flux << ".";
 	++m_total;
 }
 
