@@ -40,9 +40,22 @@ struct Coulisse {
 
     static void detruit(Coulisse *coulisse);
 
+    /* Crée un fichier objet.
+     *
+     * compilatrice est requise pour :
+     * - les chemins de compilations (racine_kuri)
+     *
+     * constructrice_ri est requise pour :
+     * - générer la fonction principale du programme
+     */
     virtual bool cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     ConstructriceRI &constructrice_ri) = 0;
 
+    /* Crée l'exécutable depuis le fichier objet.
+     *
+     * compilatrice est requise pour :
+     * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
+     */
     virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
 };
