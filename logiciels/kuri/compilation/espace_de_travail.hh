@@ -36,6 +36,7 @@
 #include "bibliotheque.hh"
 #include "erreur.h"
 #include "graphe_dependance.hh"
+#include "interface_module_kuri.hh"
 #include "messagere.hh"
 #include "metaprogramme.hh"
 #include "operateurs.hh"
@@ -44,22 +45,7 @@
 
 struct Coulisse;
 struct ConstructriceRI;
-
-// Interface avec le module « Kuri », pour certaines fonctions intéressantes
-struct InterfaceKuri {
-    NoeudDeclarationEnteteFonction *decl_panique = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_tableau = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_chaine = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_membre_union = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_memoire = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_erreur = nullptr;
-    NoeudDeclarationEnteteFonction *decl_rappel_panique_defaut = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_vers_r32 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_vers_r64 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_depuis_r32 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_depuis_r64 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_creation_contexte = nullptr;
-};
+struct Programme;
 
 /* IPA :
  * - crée_un_espace_de_travail

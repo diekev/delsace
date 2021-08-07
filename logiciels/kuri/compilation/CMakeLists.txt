@@ -79,6 +79,7 @@ set(SOURCES
 	erreur.h
 	espace_de_travail.hh
 	graphe_dependance.hh
+	interface_module_kuri.hh
 	messagere.hh
 	metaprogramme.hh
 	monomorphisations.hh
@@ -103,6 +104,7 @@ set(SOURCES
 	erreur.cc
 	espace_de_travail.cc
 	graphe_dependance.cc
+	interface_module_kuri.cc
 	messagere.cc
 	metaprogramme.cc
 	monomorphisations.cc
