@@ -1,0 +1,147 @@
+// 1. génère une liste de types possibles
+//    a. nombre de membres aléatoires
+//    b. types des membres aléatoires (types possibles | types déjà créés)
+//    c. struct, union, union nonsûre, énum, erreur, opaque, alias
+
+// 2. génère soit une fonction appelée par principale, ou une directive d'exécution
+
+// 3.
+
+
+TableDesTypes {
+    // pour tous les types crées
+}
+
+TableProbabilite {
+
+}
+
+Creatrice {
+    NoeudExpression *cree_expression_pour_type(Type *type)
+    {
+        // permet de prendre des types références
+
+        auto choix = table_probabilite.choisit_genre_expression(type);
+
+        switch (choix) {
+            case ChoixGenreExpression::LITTERALE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::DECLARATION_VARIABLE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::DECLARATION_CONSTANTE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::APPEL_FONCTION:
+            {
+                // choisit une fonction existante, ou crées-en une.
+                break;
+            }
+            case ChoixGenreExpression::CONSTRUCTION_STRUCTURE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::CONSTRUCTION_TABLEAU:
+            {
+                break;
+            }
+            case ChoixGenreExpression::OPERATEUR_UNAIRE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::OPERATEUR_BINAIRE:
+            {
+                break;
+            }
+            case ChoixGenreExpression::CONDITION_SI:
+            {
+                break;
+            }
+            case ChoixGenreExpression::CONDITION_SAUFSI:
+            {
+                break;
+            }
+            case ChoixGenreExpression::DISCRIMINATION:
+            {
+                break;
+            }
+        }
+    }
+
+    NoeudStruct *cree_structure()
+    {
+        // À FAIRE : possibilité de la créer dans une fonction
+        // À FAIRE : possibilité de la créer dans une autre structure
+        // À FAIRE : choix du nombre des membres
+        // À FAIRE : emploi
+        // À FAIRE : constantes
+    }
+
+    NoeudStruct *cree_union()
+    {
+        // À FAIRE : possibilité de la créer dans une fonction
+        // À FAIRE : possibilité de la créer dans une autre structure
+        // À FAIRE : choix du nombre des membres
+        // À FAIRE : emploi
+        // À FAIRE : constantes
+        // À FAIRE : sûre/nonsûre/anonyme
+    }
+
+    NoeudStruct *cree_enumeration()
+    {
+        // À FAIRE : possibilité de la créer dans une fonction
+        // À FAIRE : possibilité de la créer dans une autre structure
+        // À FAIRE : choix du nombre des membres
+        // À FAIRE : choix du type sous-jacent
+    }
+
+    // À FAIRE (plusieurs types de retour)
+    NoeudDeclarationFonction *cree_fonction(Type *type_retour_desire)
+    {
+        // choisit le nom de la fonction
+
+        // choisit le type de retour
+        if (!type_retour_desire) {
+
+        }
+
+        // choisit le nombre de paramètres
+
+        // crée un paramètre, avec potentiellement une valeur par défaut
+    }
+
+    NoeudAppel *cree_appel_fonction(NoeudDeclarationEnteteFonction *entete)
+    {
+        // pour chaque paramètre, chosit si nous utilisons la valeur par défaut,
+        // ou si nous utilisons une nouvelle valeur
+    }
+}
+
+TableDesVariables {
+    // pour toutes les variables (locales ou globales) ou paramètres créés
+    kuri::table_hachage<Type *, kuri::tableau<NoeudDeclaration *>> variables_typees{};
+
+    kuri::Typeuse typeuse;
+
+    NoeudDeclaration *declaration_pour_type(Type *type)
+    {
+        // détermine si nous devrions créer une nouvelle ou utiliser une ancienne déclaration
+
+        auto choix = table_probabilite.choisit_creation_ou_reutilisation_variable();
+
+        if (choix == ChoixVariable::Creation) {
+            return creatrice.cree_expression_pour_type(type);
+        }
+
+        // permet de prendre des types références, mais uniquement si nous réutilisons une variable
+        const auto type_reference = typeuse.type_reference_pour(type);
+        const auto &variables_type = variables_typees[type];
+        const auto &variables_references = variables_type[type_reference];
+
+        return table_probabilite.choisit_valeur(variables, variables_references);
+    }
+}

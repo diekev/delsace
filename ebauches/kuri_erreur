@@ -1,0 +1,29 @@
+
+
+    rapporteur->fichier()
+    rapporteur->ligne()
+    rapporteur->colonne()
+
+    rapporteur->plage()
+
+    rapporteur->message()
+
+
+    rapporteur->nombre_de_note()
+
+rapporte_erreur(code_erreur, contexte_erreur);
+
+-- Erreur : Échappement caractère invalide
+
+Alors que je performe l'analyse lexicale de %site.fichier, je trouve un échappement invalide :
+
+%site.texte_ligne
+%site.sous_ligne_expression
+
+L'échappement '%site.expression' se fait sur un caractère non-échappable '%site.expression' !
+
+Pour connaître la liste de séquences d'échappement #doc.caractère_échappement.
+
+-- Erreur : Nombre littéral invalide
+
+Alors que je performe l'analyse sémantique de %site.fonction
