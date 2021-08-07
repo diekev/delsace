@@ -317,11 +317,11 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::cha
 
 Message const *Compilatrice::attend_message()
 {
-    if (!messagere->possede_message()) {
+    auto messagere_ = messagere.verrou_ecriture();
+    if (!messagere_->possede_message()) {
         return nullptr;
     }
-
-    return messagere->defile();
+    return messagere_->defile();
 }
 
 EspaceDeTravail *Compilatrice::espace_defaut_compilation()
