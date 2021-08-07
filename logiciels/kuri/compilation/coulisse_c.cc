@@ -1782,8 +1782,8 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
 
         enchaineuse << " -l" << it->nom;
     }
-    /* Ajout d'une liaison dynamic pour dire à ld de chercher les symboles des bibliothèques propres à GCC
-     * dans des bibliothèques dynamiques (car aucune version statique n'existe). */
+    /* Ajout d'une liaison dynamic pour dire à ld de chercher les symboles des bibliothèques
+     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
     enchaineuse << " -Wl,-Bdynamic";
 
     if (espace.options.architecture == ArchitectureCible::X86) {

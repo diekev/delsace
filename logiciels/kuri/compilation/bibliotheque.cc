@@ -342,7 +342,9 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
     /* Garantie l'existence d'un caractère nul à la fin du nom. */
     assert(chemin_dynamique.taille() < 1023);
     char tampon_chaine_c[1024];
-    memcpy(tampon_chaine_c, chemin_dynamique.pointeur(), static_cast<size_t>(chemin_dynamique.taille()));
+    memcpy(tampon_chaine_c,
+           chemin_dynamique.pointeur(),
+           static_cast<size_t>(chemin_dynamique.taille()));
     tampon_chaine_c[chemin_dynamique.taille()] = '\0';
 
     int fd = open(tampon_chaine_c, O_RDONLY);

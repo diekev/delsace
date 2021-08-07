@@ -915,7 +915,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (expr->type->est_entier_constant() && inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
+            if (expr->type->est_entier_constant() &&
+                inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
                 expr->type = typeuse[TypeBase::Z64];
                 return;
             }
