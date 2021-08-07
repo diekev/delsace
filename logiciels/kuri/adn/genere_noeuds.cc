@@ -185,7 +185,11 @@ struct GeneratriceCodeCPP {
         os << "    CONTINUE,\n";
         os << "    IGNORE_ENFANTS,\n";
         os << "};\n\n";
-        os << "void visite_noeud(NoeudExpression const *racine, "
+        os << "enum class PreferenceVisiteNoeud : unsigned char {\n";
+        os << "    ORIGINAL,\n";
+        os << "    SUBSTITUTION,\n";
+        os << "};\n\n";
+        os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
               "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel);\n\n";
     }
 
@@ -340,11 +344,15 @@ struct GeneratriceCodeCPP {
 
     void genere_visite_noeud(FluxSortieCPP &os)
     {
-        os << "void visite_noeud(NoeudExpression const *racine, "
+        os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
               "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel)\n";
         os << "{\n";
         os << "\tif (!racine) {\n";
         os << "\t\treturn;\n";
+        os << "\t}\n";
+        os << "\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION && racine->substitution) "
+              "{\n";
+        os << "\t\tracine = racine->substitution;\n";
         os << "\t}\n";
         os << "\tauto decision = rappel(racine);\n";
         os << "\tif (decision == DecisionVisiteNoeud::IGNORE_ENFANTS) {\n";
@@ -360,23 +368,31 @@ struct GeneratriceCodeCPP {
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            genere_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto type_tableau = membre.type->comme_tableau();
-                    if (type_tableau->est_synchrone) {
-                        os << "\t\t\tPOUR ((*racine_typee->" << membre.nom
-                           << ".verrou_lecture())) {\n";
+            genere_code_pour_enfant(
+                os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
+                    if (membre.type->est_tableau()) {
+                        auto nom_membre = membre.nom.nom_cpp();
+                        if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_APPEL" &&
+                            nom_membre == "parametres") {
+                            nom_membre = "parametres_resolus";
+                        }
+
+                        const auto type_tableau = membre.type->comme_tableau();
+                        if (type_tableau->est_synchrone) {
+                            os << "\t\t\tPOUR ((*racine_typee->" << nom_membre
+                               << ".verrou_lecture())) {\n";
+                        }
+                        else {
+                            os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
+                        }
+                        os << "\t\t\t\tvisite_noeud(it, preference, rappel);\n";
+                        os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tPOUR (racine_typee->" << membre.nom << ") {\n";
+                        os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom
+                           << ", preference, rappel);\n";
                     }
-                    os << "\t\t\t\tvisite_noeud(it, rappel);\n";
-                    os << "\t\t\t}\n";
-                }
-                else {
-                    os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom << ", rappel);\n";
-                }
-            });
+                });
 
             os << "\t\t\tbreak;\n";
             os << "\t\t}\n";
