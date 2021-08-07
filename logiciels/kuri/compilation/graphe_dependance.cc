@@ -181,9 +181,7 @@ void GrapheDependance::ajoute_dependances(NoeudDependance &noeud,
 
     /* libère la mémoire */
     if (efface_donnees) {
-        donnees.types_utilises.efface();
-        donnees.fonctions_utilisees.efface();
-        donnees.globales_utilisees.efface();
+        donnees.efface();
     }
 }
 

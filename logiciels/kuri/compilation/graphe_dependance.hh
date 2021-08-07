@@ -146,6 +146,13 @@ struct DonneesDependance {
     dls::ensemblon<NoeudDeclarationEnteteFonction const *, 16> fonctions_utilisees{};
     dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
     dls::ensemblon<Type *, 16> types_utilises{};
+
+    void efface()
+    {
+        fonctions_utilisees.efface();
+        globales_utilisees.efface();
+        types_utilises.efface();
+    }
 };
 
 void imprime_dependances(const DonneesDependance &dependances,
