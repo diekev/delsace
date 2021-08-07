@@ -3833,6 +3833,18 @@ CodeRetourValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         type_union->est_nonsure = decl->est_nonsure;
 
         POUR (*decl->bloc->membres.verrou_ecriture()) {
+            if (dls::outils::est_element(
+                    it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+                // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
+                auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
+                type_compose->membres.ajoute(
+                    {type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT});
+
+                // l'utilisation d'un type de données brise le graphe de dépendance
+                donnees_dependance.types_utilises.insere(it->type);
+                continue;
+            }
+
             auto decl_var = it->comme_declaration_variable();
 
             for (auto &donnees : decl_var->donnees_decl.plage()) {
