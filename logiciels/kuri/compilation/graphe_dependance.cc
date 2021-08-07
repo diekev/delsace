@@ -28,6 +28,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "statistiques/statistiques.hh"
+
+#include "erreur.h"
 #include "typage.hh"
 
 const char *chaine_type_relation(TypeRelation type)
@@ -347,5 +349,33 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
                 utilises.insere(atome_fonction);
             }
         }
+    });
+}
+
+void imprime_dependances(const DonneesDependance &dependances,
+                         EspaceDeTravail *espace,
+                         const char *message,
+                         std::ostream &flux)
+{
+    flux << "Dépendances pour : " << message << '\n';
+
+    flux << "fonctions :\n";
+    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        erreur::imprime_site(*espace, fonction);
+        return dls::DecisionIteration::Continue;
+    });
+
+    flux << "globales :\n";
+    /* Requiers le typage de toutes les déclarations utilisées. */
+    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        erreur::imprime_site(*espace, globale);
+        return dls::DecisionIteration::Continue;
+    });
+
+    flux << "types :\n";
+    /* Requiers le typage de tous les types utilisés. */
+    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        flux << chaine_type(type) << '\n';
+        return dls::DecisionIteration::Continue;
     });
 }
