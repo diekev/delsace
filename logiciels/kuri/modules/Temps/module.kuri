@@ -356,7 +356,7 @@ importe Compilatrice
 #test {
     date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
 
-    compilatrice_vérifie_égalité(date.jour, 22)
+    compilatrice_vérifie_égalité(date.jour, 21)
     compilatrice_vérifie_égalité(date.mois, 10)
     compilatrice_vérifie_égalité(date.année, 2020)
     compilatrice_vérifie_égalité(date.heure, 6)
@@ -368,7 +368,7 @@ importe Compilatrice
     date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
 
     résultat := date.formatte("%h:%m:%s")
-    compilatrice_vérifie_égalité(résultat, "6:37:20")
+    compilatrice_vérifie_égalité(résultat, "06:37:20")
     déloge(résultat)
 
     résultat = date.formatte("%J/%M/%A")
@@ -376,11 +376,11 @@ importe Compilatrice
     déloge(résultat)
 
     résultat = date.formatte("%J/%M/%A %h:%m:%s")
-    compilatrice_vérifie_égalité(résultat, "22/11/2020 6:37:20")
+    compilatrice_vérifie_égalité(résultat, "22/11/2020 06:37:20")
     déloge(résultat)
 
     résultat = date.formatte("%h:%m:%s %J/%M/%A")
-    compilatrice_vérifie_égalité(résultat, "6:37:20 22/11/2020")
+    compilatrice_vérifie_égalité(résultat, "06:37:20 22/11/2020")
     déloge(résultat)
 }
 
