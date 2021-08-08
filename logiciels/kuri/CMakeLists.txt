@@ -88,7 +88,7 @@ macro(compile_module_c __nom__ __nom_interface__ __entete_interface__ __dossier_
 	install(TARGETS ${NOM_DYNAMIQUE} LIBRARY DESTINATION ${CHEMIN_INSTALLATION})
 
 	# Compile l'interface, nous devons dépendre sur une cible de compilation,
-	# prenons arbitrairement la cible statique
+	# prenons arbitrairement la cible statique
 	compile_interface_c(${NOM_STATIQUE} ${__nom__} ${__entete_interface__} ${__dossier__} interface_${__nom_interface__})
 endmacro()
 
