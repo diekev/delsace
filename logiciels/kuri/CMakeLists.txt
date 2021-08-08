@@ -186,7 +186,7 @@ set(FICHIERS_TESTS
 
 foreach(FICHIER_TEST ${FICHIERS_TESTS})
     get_filename_component(NOM_FICHIER ${FICHIER_TEST} NAME)
-    add_test(NAME compilation_${NOM_FICHIER} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${FICHIER_TEST})
+    add_test(NAME compilation_${NOM_FICHIER} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${FICHIER_TEST} --tests)
 endforeach(FICHIER_TEST)
 
 set(FICHIERS_TESTS_COROUTINE
