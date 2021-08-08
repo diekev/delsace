@@ -59,6 +59,7 @@ kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
     remplace(std_string, "è", "e");
     remplace(std_string, "ê", "e");
     remplace(std_string, "û", "u");
+    remplace(std_string, "ç", "c");
     remplace(std_string, "É", "E");
     remplace(std_string, "È", "E");
     remplace(std_string, "Ê", "E");
