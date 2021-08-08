@@ -15,6 +15,7 @@ fais_conversion_code :: fonc ()
 
     boucle {
         message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
 
         discr message.genre {
             TYPAGE_CODE_TERMINÉ {

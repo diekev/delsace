@@ -620,6 +620,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
+        auto message = depile<Message *>(site);
+        static_cast<void>(message);
+        /* RÀF pour le moment. */
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 
