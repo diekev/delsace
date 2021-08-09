@@ -563,6 +563,20 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
     retourne chemin_normalisé(pile)
 }
 
+est_absolu :: fonc (chm: CheminFichier) -> bool
+{
+    saufsi chm.chn {
+        retourne faux
+    }
+
+    premier_caractère := chm.chn[0]
+    si premier_caractère != '/' && premier_caractère != '~' {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 /*
     À FAIRE : tests
 
