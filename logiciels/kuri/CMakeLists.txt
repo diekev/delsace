@@ -135,6 +135,7 @@ endforeach(DOSSIER_TEST)
 set(FICHIERS_TESTS
     exemples/applications/base64.kuri
     exemples/applications/calendrier_républicain.kuri
+    exemples/applications/chemin_complet.kuri
     exemples/applications/cliente.kuri
     exemples/applications/client_smtp.kuri
     exemples/applications/crée_test_compilateur.kuri
