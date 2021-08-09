@@ -1209,7 +1209,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 frame->pointeur += 8;
 
 #ifdef DEBOGUE_INTERPRETEUSE
-                std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
+                std::cerr << "-- appel : " << ptr_fonction->nom << " ("
+                          << chaine_type(ptr_fonction->type) << ')' << '\n';
 #endif
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
