@@ -54,7 +54,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
     auto const &nom_broye = nom_broye_type(type);
 
-    enchaineuse << "// " << chaine_type(type) << '\n';
+    enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
 
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
