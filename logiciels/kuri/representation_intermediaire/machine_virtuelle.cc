@@ -689,7 +689,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     ffi_call(&donnees_externe.cif,
-             ptr_fonction->donnees_externe.ptr_fonction,
+             donnees_externe.ptr_fonction,
              pointeur_pile,
              pointeurs_arguments.donnees());
 
