@@ -3554,6 +3554,8 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
         }
     }
 
+    assert(contexte);
+
     atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille();
 
     genere_ri_pour_noeud(fonction->corps->bloc);
