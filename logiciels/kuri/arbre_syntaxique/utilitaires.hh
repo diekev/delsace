@@ -162,3 +162,7 @@ void simplifie_arbre(EspaceDeTravail *espace,
                      NoeudExpression *arbre);
 
 void aplatis_arbre(NoeudExpression *declaration);
+
+void imprime_details_fonction(EspaceDeTravail *espace,
+                              NoeudDeclarationEnteteFonction const *entete,
+                              std::ostream &os);

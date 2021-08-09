@@ -2956,3 +2956,41 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme,
 
     return cree_assignation_variable(valeur->lexeme, valeur, inc);
 }
+
+static const char *ordre_fonction(NoeudDeclarationEnteteFonction const *entete)
+{
+    if (entete->est_operateur) {
+        return "l'opérateur";
+    }
+
+    if (entete->est_coroutine) {
+        return "la coroutine";
+    }
+
+    return "la fonction";
+}
+
+void imprime_details_fonction(EspaceDeTravail *espace,
+                              NoeudDeclarationEnteteFonction const *entete,
+                              std::ostream &os)
+{
+    os << "Détail pour " << ordre_fonction(entete) << " " << entete->lexeme->chaine << " :\n";
+    os << "-- Type                 : " << chaine_type(entete->type) << '\n';
+    os << "-- Est polymorphique    : " << std::boolalpha << entete->est_polymorphe << '\n';
+    os << "-- Est #corps_texte     : " << std::boolalpha << entete->corps->est_corps_texte << '\n';
+    os << "-- Entête fut validée   : " << std::boolalpha
+       << entete->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
+    os << "-- Corps fut validé     : " << std::boolalpha
+       << entete->corps->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
+    os << "-- Est monomorphisation : " << std::boolalpha << entete->est_monomorphisation << '\n';
+    if (entete->est_monomorphisation) {
+        os << "-- Paramètres de monomorphisation :\n";
+        POUR ((*entete->bloc_constantes->membres.verrou_lecture())) {
+            os << "     " << it->ident->nom << " : " << chaine_type(it->type) << '\n';
+        }
+    }
+    if (espace) {
+        os << "-- Site de définition :\n";
+        erreur::imprime_site(*espace, entete);
+    }
+}
