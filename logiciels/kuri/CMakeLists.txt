@@ -208,3 +208,7 @@ foreach(FICHIER_TEST ${FICHIERS_TESTS_COROUTINE})
 endforeach(FICHIER_TEST)
 
 add_test(NAME test_spec_bdd COMMAND bundle exec rspec WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/exemples/applications/BDD)
+
+if(CHEMIN_DELSACE_PRIVE)
+  include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)
+endif()
