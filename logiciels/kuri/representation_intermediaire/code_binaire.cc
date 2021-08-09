@@ -1210,12 +1210,16 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             chunk.emets(op_binaire->site);
 
             auto type_gauche = op_binaire->valeur_gauche->type;
+            auto type_droite = op_binaire->valeur_droite->type;
 
-            if (type_gauche->genre == GenreType::ENTIER_CONSTANT) {
+            auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
+            if (taille_octet == 0) {
+                assert(type_gauche->genre == GenreType::ENTIER_CONSTANT &&
+                       type_droite->genre == GenreType::ENTIER_CONSTANT);
                 chunk.emets(4);
             }
             else {
-                chunk.emets(type_gauche->taille_octet);
+                chunk.emets(taille_octet);
             }
 
             break;
