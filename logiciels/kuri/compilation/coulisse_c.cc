@@ -1494,7 +1494,7 @@ static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibl
     }
 }
 
-static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
+static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
                                                      kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1511,6 +1511,7 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     if (fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
+        return false;
     }
 
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
@@ -1547,9 +1548,10 @@ static void genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
+    return true;
 }
 
-static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
+static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    EspaceDeTravail &espace,
                                                    std::ostream &fichier_sortie)
 {
@@ -1574,7 +1576,7 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     if (fonctions_racines.est_vide()) {
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
-        return;
+        return false;
     }
 
     kuri::tableau<AtomeFonction *> fonctions;
@@ -1591,21 +1593,20 @@ static void genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
+    return true;
 }
 
-static void genere_code_C(Compilatrice &compilatrice,
+static bool genere_code_C(Compilatrice &compilatrice,
                           ConstructriceRI &constructrice_ri,
                           EspaceDeTravail &espace,
                           kuri::tableau<Bibliotheque *> &bibliotheques,
                           std::ostream &fichier_sortie)
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        genere_code_C_depuis_fonction_principale(
+        return genere_code_C_depuis_fonction_principale(
             compilatrice, constructrice_ri, espace, bibliotheques, fichier_sortie);
     }
-    else {
-        genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
-    }
+    return genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1706,7 +1707,9 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
     std::cout << "Génération du code..." << std::endl;
     auto debut_generation_code = dls::chrono::compte_seconde();
-    genere_code_C(compilatrice, constructrice_ri, espace, m_bibliotheques, of);
+    if (!genere_code_C(compilatrice, constructrice_ri, espace, m_bibliotheques, of)) {
+        return false;
+    }
     temps_generation_code = debut_generation_code.temps();
 
     of.close();
