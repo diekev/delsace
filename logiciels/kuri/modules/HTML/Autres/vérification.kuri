@@ -115,13 +115,15 @@ finalise_diagnostiques :: fonc (contexte_vérification: &ContexteVérification)
 
 rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
 {
-    chn := mémoire(données.pointeur comme **chaine)
-    chaine_ajoute(chn, noeud_texte.données)
+    chn := mémoire(données.pointeur comme **ChaineUTF16)
+    pour noeud_texte.données.unités {
+        chaine_ajoute(chn, it)
+    }
 }
 
-extrait_texte :: fonc (noeud: *Noeud) -> chaine
+extrait_texte :: fonc (noeud: *Noeud) -> ChaineUTF16
 {
-    résultat : chaine
+    résultat : ChaineUTF16
     ptr_résultat := *résultat
     rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, ptr_résultat)
     retourne résultat
@@ -165,10 +167,10 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         }
         sinon si élément.texte == TAG_title {
             texte := extrait_texte(élément)
-            si texte {
+            si texte.taille() != 0 {
                 contexte_vérification.possède_titre = vrai
             }
-            déloge(texte)
+            détruit_chaine(texte)
         }
         sinon si élément.texte == TAG_meta {
             attr_charset := élément.cherche_attribut("charset")
@@ -262,13 +264,13 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             }
 
             texte_ancre := extrait_texte(élément)
-            diffère déloge(texte_ancre)
+            diffère détruit_chaine(texte_ancre)
 
             si possède_titre && texte_ancre == possède_titre.valeur {
                 contexte_vérification.ajoute_diagnostique("<a> avec un titre et un texte similaire")
             }
 
-            saufsi texte_ancre {
+            saufsi texte_ancre.taille() != 0 {
                 contexte_vérification.ajoute_diagnostique("<a> sans texte")
             }
 
