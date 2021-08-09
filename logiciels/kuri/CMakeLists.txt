@@ -182,6 +182,11 @@ set(FICHIERS_TESTS
     exemples/tests/test_sys_fichier.kuri
     exemples/tests/test_unicode.kuri
     modules/GHTML/test/test_ghtml.kuri
+    modules/HTML/Autres/entropisation.kuri
+    modules/HTML/Autres/formattage.kuri
+    modules/HTML/Autres/minification.kuri
+    modules/HTML/Autres/stats_parsage.kuri
+    modules/HTML/Autres/vérification.kuri
 )
 
 foreach(FICHIER_TEST ${FICHIERS_TESTS})
