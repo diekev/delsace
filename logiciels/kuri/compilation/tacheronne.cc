@@ -1451,31 +1451,18 @@ void Tacheronne::execute_metaprogrammes()
                                             "Le corps-texte a retourné une chaine vide");
                 }
 
-                auto fichier_racine = espace->fichier(it->corps_texte->lexeme->fichier);
-                auto module = fichier_racine->module;
-
                 auto tampon = dls::chaine(resultat.pointeur(), resultat.taille());
 
                 if (*tampon.fin() != '\n') {
                     tampon.ajoute('\n');
                 }
 
-                auto nom_fichier = enchaine(it);
-                auto resultat_fichier = espace->trouve_ou_cree_fichier(
-                    compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
+                auto fichier = espace->cree_fichier_pour_metaprogramme(it);
+                auto donnees_fichier = fichier->donnees_constantes;
+                donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-                if (resultat_fichier.est<FichierNeuf>()) {
-                    auto fichier = resultat_fichier.resultat<FichierNeuf>().fichier;
-                    auto donnees_fichier = fichier->donnees_constantes;
-
-                    fichier->module = module;
-                    fichier->metaprogramme_corps_texte = it;
-
-                    donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
-
-                    compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
-                    compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
-                }
+                compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
+                compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
             }
         }
 

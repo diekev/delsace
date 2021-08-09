@@ -162,6 +162,8 @@ struct EspaceDeTravail {
                                            kuri::chaine_statique chemin,
                                            bool importe_kuri);
 
+    Fichier *cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
+
     /**
      * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
      * en dehors de portée, le programme crashera.

@@ -193,6 +193,20 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(
     return FichierNeuf(*fichier);
 }
 
+Fichier *EspaceDeTravail::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme_)
+{
+    auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexeme->fichier);
+    auto module = fichier_racine->module;
+    auto nom_fichier = enchaine(metaprogramme_);
+    auto resultat_fichier = this->trouve_ou_cree_fichier(
+        this->compilatrice().sys_module, module, nom_fichier, nom_fichier, false);
+    assert(resultat_fichier.est<FichierNeuf>());
+    auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
+    resultat->module = module;
+    resultat->metaprogramme_corps_texte = metaprogramme_;
+    return resultat;
+}
+
 Fichier *EspaceDeTravail::fichier(long index) const
 {
     auto fichiers_ = fichiers.verrou_lecture();
