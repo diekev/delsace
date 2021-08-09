@@ -1298,6 +1298,26 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
 
             if (type_structure->nom) {
                 enchaineuse << type_structure->nom->nom;
+                if (type_structure->decl) {
+                    auto decl = type_structure->decl;
+                    const char *virgule = "(";
+                    if (decl->est_monomorphisation) {
+                        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+                            enchaineuse << virgule;
+                            enchaineuse << chaine_type(it->type);
+                            virgule = ", ";
+                        }
+                        enchaineuse << ')';
+                    }
+                    else if (decl->est_polymorphe) {
+                        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+                            enchaineuse << virgule;
+                            enchaineuse << '$' << it->ident->nom;
+                            virgule = ", ";
+                        }
+                        enchaineuse << ')';
+                    }
+                }
                 return;
             }
 
@@ -1356,7 +1376,10 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         }
         case GenreType::TYPE_DE_DONNEES:
         {
-            enchaineuse << "type_de_données";
+            auto type_de_donnees = type->comme_type_de_donnees();
+            enchaineuse << ((type_de_donnees->type_connu) ?
+                                chaine_type(type_de_donnees->type_connu) :
+                                "type_de_données");
             return;
         }
         case GenreType::POLYMORPHIQUE:
