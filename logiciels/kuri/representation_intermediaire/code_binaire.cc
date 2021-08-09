@@ -792,6 +792,10 @@ struct ConvertisseuseRI {
                                                          int ou_patcher);
 
     void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
+
+    int ajoute_globale(AtomeGlobale *globale);
+
+    int genere_code_pour_globale(AtomeGlobale *atome_globale);
 };
 
 void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
@@ -1629,20 +1633,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(constante);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            auto globale = mv->globales[atome_globale->index];
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            auto globale = mv->globales[index_globale];
 
             auto patch = PatchDonneesConstantes{};
             patch.ou = ou_patcher;
@@ -1693,20 +1685,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(atome);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            chunk.emets_reference_globale(nullptr, atome_globale->index);
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            chunk.emets_reference_globale(nullptr, index_globale);
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1729,4 +1709,34 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
             break;
         }
     }
+}
+
+int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
+{
+    assert(globale->index == -1);
+    auto type_globale = globale->type->comme_pointeur()->type_pointe;
+    auto index = mv->ajoute_globale(type_globale, globale->ident);
+    globale->index = index;
+    return index;
+}
+
+int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
+{
+    auto index = atome_globale->index;
+
+    if (index != -1) {
+        /* Un index de -1 indique que le code ne fut pas encore généré. */
+        return index;
+    }
+
+    index = ajoute_globale(atome_globale);
+
+    if (atome_globale->est_constante) {
+        auto globale = mv->globales[index];
+        auto initialisateur = atome_globale->initialisateur;
+        genere_code_binaire_pour_initialisation_globale(
+            initialisateur, globale.adresse, DONNEES_GLOBALES);
+    }
+
+    return index;
 }
