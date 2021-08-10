@@ -1769,7 +1769,15 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &esp
             continue;
         }
 
-        enchaineuse << " -L" << vers_std_path(it->chemin_dynamique).parent_path().c_str();
+        auto chemin_parent = vers_std_path(it->chemin_dynamique).parent_path();
+        if (chemin_parent.empty()) {
+            chemin_parent = vers_std_path(it->chemin_statique).parent_path();
+            if (chemin_parent.empty()) {
+                continue;
+            }
+        }
+
+        enchaineuse << " -L" << chemin_parent.c_str();
     }
 
     /* À FAIRE(bibliothèques) : permet la liaison statique.
