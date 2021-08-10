@@ -2913,7 +2913,15 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
         }
         case GenreType::ENTIER_CONSTANT:
         {
-            type->atome_info_type = cree_info_type_entier(4, true);
+            auto &typeuse = espace()->typeuse;
+            auto type_z32 = typeuse[TypeBase::Z32];
+            if (type_z32->atome_info_type) {
+                type->atome_info_type = type_z32->atome_info_type;
+            }
+            else {
+                type->atome_info_type = cree_info_type_entier(4, true);
+                type_z32->atome_info_type = type->atome_info_type;
+            }
             break;
         }
         case GenreType::ENTIER_NATUREL:
@@ -2923,7 +2931,22 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
         }
         case GenreType::ENTIER_RELATIF:
         {
-            type->atome_info_type = cree_info_type_entier(type->taille_octet, true);
+            auto &typeuse = espace()->typeuse;
+            auto type_z32 = typeuse[TypeBase::Z32];
+
+            if (type != type_z32) {
+                type->atome_info_type = cree_info_type_entier(type->taille_octet, true);
+            }
+            else {
+                auto type_entier_constant = typeuse[TypeBase::ENTIER_CONSTANT];
+                if (type_entier_constant->atome_info_type) {
+                    type->atome_info_type = type_entier_constant->atome_info_type;
+                }
+                else {
+                    type->atome_info_type = cree_info_type_entier(type->taille_octet, true);
+                    type_entier_constant->atome_info_type = type->atome_info_type;
+                }
+            }
             break;
         }
         case GenreType::REEL:
