@@ -467,11 +467,13 @@ struct VisiteuseType {
     }
 };
 
+#if 0
 static void visite_type(Type *type, std::function<void(Type *)> rappel)
 {
     VisiteuseType visiteuse{};
     visiteuse.visite_type(type, rappel);
 }
+#endif
 
 ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme)
 {
