@@ -31,6 +31,11 @@ Instruction *AtomeFonction::derniere_instruction() const
     return instructions[instructions.taille() - 1];
 }
 
+void VisiteuseAtome::reinitialise()
+{
+    visites.efface();
+}
+
 void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
 {
     if (!racine) {

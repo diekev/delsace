@@ -303,9 +303,9 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
 }
 
 template <typename T>
-static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
+static kuri::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
 {
-    dls::ensemble<T> resultat;
+    kuri::ensemble<T> resultat;
 
     POUR (tableau) {
         resultat.insere(it);
@@ -319,7 +319,7 @@ static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
 static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
                                                AtomeFonction *fonction,
                                                VisiteuseAtome &visiteuse,
-                                               dls::ensemble<AtomeGlobale *> &globales_utilisees)
+                                               kuri::ensemble<AtomeGlobale *> &globales_utilisees)
 {
     POUR (fonction->instructions) {
         visiteuse.visite_atome(it, [&](Atome *atome) {
@@ -341,12 +341,13 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
     VisiteuseAtome visiteuse{};
 
     POUR (repr_inter.fonctions) {
+        visiteuse.reinitialise();
         rassemble_globales_supplementaires(repr_inter, it, visiteuse, globales_utilisees);
     }
 }
 
 struct VisiteuseType {
-    dls::ensemble<Type *> visites{};
+    kuri::ensemble<Type *> visites{};
 
     void visite_type(Type *type, std::function<void(Type *)> rappel)
     {

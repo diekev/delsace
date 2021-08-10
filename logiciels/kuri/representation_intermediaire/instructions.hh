@@ -28,7 +28,7 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/ensemble.hh"
+#include "structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -866,7 +866,9 @@ COMME_INST(InstructionTranstype, transtype)
 struct VisiteuseAtome {
     /* Les atomes peuvent avoir des dépendances cycliques, donc tenons trace de ceux qui ont été
      * visités. */
-    dls::ensemble<Atome *> visites{};
+    kuri::ensemble<Atome *> visites{};
+
+    void reinitialise();
 
     void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
 };
