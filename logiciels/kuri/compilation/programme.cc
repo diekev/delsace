@@ -318,10 +318,11 @@ static dls::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
  * et InfoType. */
 static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
                                                AtomeFonction *fonction,
+                                               VisiteuseAtome &visiteuse,
                                                dls::ensemble<AtomeGlobale *> &globales_utilisees)
 {
     POUR (fonction->instructions) {
-        visite_atome(it, [&](Atome *atome) {
+        visiteuse.visite_atome(it, [&](Atome *atome) {
             if (atome->genre_atome == Atome::Genre::GLOBALE) {
                 if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome))) {
                     return;
@@ -337,9 +338,10 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
 static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
 {
     auto globales_utilisees = cree_ensemble(repr_inter.globales);
+    VisiteuseAtome visiteuse{};
 
     POUR (repr_inter.fonctions) {
-        rassemble_globales_supplementaires(repr_inter, it, globales_utilisees);
+        rassemble_globales_supplementaires(repr_inter, it, visiteuse, globales_utilisees);
     }
 }
 
@@ -524,8 +526,9 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
          * aurions ajoutées (qui ne sont pas dans le programme initiale). */
         auto type_utilises = cree_ensemble(resultat.types);
 
+        VisiteuseType visiteuse{};
         auto ajoute_type_si_necessaire = [&](Type *type_racine) {
-            visite_type(type_racine, [&](Type *type) {
+            visiteuse.visite_type(type_racine, [&](Type *type) {
                 if (type_utilises.possede(type)) {
                     return;
                 }
@@ -579,6 +582,7 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
 void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
 {
     auto globales_utilisees = cree_ensemble(this->globales);
-    rassemble_globales_supplementaires(*this, fonction, globales_utilisees);
+    VisiteuseAtome visiteuse{};
+    rassemble_globales_supplementaires(*this, fonction, visiteuse, globales_utilisees);
     fonctions.ajoute(fonction);
 }
