@@ -84,6 +84,9 @@ class ensemble {
 
     void efface()
     {
+        POUR (occupes) {
+            it = 0;
+        }
         occupes.efface();
         cles.efface();
         capacite = 0;
