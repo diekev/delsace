@@ -3256,7 +3256,7 @@ CodeRetourValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCor
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
 
     if (est_corps_texte) {
-        /* Le dreapeaux nulctx est pour la génération de RI de l'entête, donc il
+        /* Le drapeaux nulctx est pour la génération de RI de l'entête, donc il
          * faut le mettre après avoir validé le corps, la création d'un contexte
          * au début de la fonction sera ajouté avant l'exécution du code donc il
          * est possible d'utiliser le contexte dans le métaprogramme. */
@@ -3835,10 +3835,15 @@ CodeRetourValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         POUR (*decl->bloc->membres.verrou_ecriture()) {
             if (dls::outils::est_element(
                     it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
-                // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
+                // utilisation d'un type de données afin de pouvoir automatiquement déterminer un
+                // type
                 auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
-                type_compose->membres.ajoute(
-                    {type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT});
+                type_compose->membres.ajoute({type_de_donnees,
+                                              it->ident,
+                                              0,
+                                              0,
+                                              nullptr,
+                                              TypeCompose::Membre::EST_CONSTANT});
 
                 // l'utilisation d'un type de données brise le graphe de dépendance
                 donnees_dependance.types_utilises.insere(it->type);
