@@ -95,7 +95,6 @@ static bool est_type_de_base(Type *type_de, Type *type_vers)
  */
 template <bool POUR_TRANSTYPAGE>
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers)
 {
@@ -238,23 +237,24 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
         auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
-                                     const char *nom_fonction) -> ResultatTransformation {
+                                     IdentifiantCode *nom_fonction) -> ResultatTransformation {
             if (fonction == nullptr) {
                 return Attente::sur_interface_kuri(nom_fonction);
             }
 
-            contexte.donnees_dependance.fonctions_utilisees.insere(fonction);
             return TransformationType{fonction, type_vers};
         };
 
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32, "DLS_vers_r32");
+                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32,
+                                         ID::DLS_vers_r32);
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64, "DLS_vers_r64");
+                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64,
+                                         ID::DLS_vers_r64);
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -264,12 +264,12 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
                 return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32,
-                                         "DLS_depuis_r32");
+                                         ID::DLS_depuis_r32);
             }
 
             if (type_de->taille_octet == 8) {
                 return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64,
-                                         "DLS_depuis_r64");
+                                         ID::DLS_depuis_r64);
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -315,6 +315,10 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
     }
 
     if (type_vers->genre == GenreType::EINI) {
+        /* Il nous faut attendre sur le type pour pouvoir générer l'InfoType. */
+        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_de);
+        }
         return TypeTransformation::CONSTRUIT_EINI;
     }
 
@@ -333,16 +337,8 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
                     auto decl_panique_membre_union =
                         espace.interface_kuri->decl_panique_membre_union;
                     if (decl_panique_membre_union == nullptr) {
-                        return Attente::sur_interface_kuri("panique_membre_union");
+                        return Attente::sur_interface_kuri(ID::panique_membre_union);
                     }
-
-                    if (decl_panique_membre_union->corps->unite == nullptr) {
-                        contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(
-                            &espace, decl_panique_membre_union->corps);
-                    }
-
-                    contexte.donnees_dependance.fonctions_utilisees.insere(
-                        decl_panique_membre_union);
                 }
 
                 return TransformationType{
@@ -377,6 +373,14 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         if (type_de->est_reference()) {
             auto type_pointe_de = type_de->comme_reference()->type_pointe;
 
+            if ((type_pointe_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_pointe_de);
+            }
+
+            if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_pointe);
+            }
+
             if (est_type_de_base(type_pointe_de, type_pointe)) {
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
@@ -384,6 +388,14 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 
         if (type_pointe == type_de) {
             return TypeTransformation::PREND_REFERENCE;
+        }
+
+        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_de);
+        }
+
+        if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_pointe);
         }
 
         if (est_type_de_base(type_de, type_pointe)) {
@@ -525,27 +537,24 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
 }
 
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers)
 {
-    return cherche_transformation<false>(espace, contexte, type_de, type_vers);
+    return cherche_transformation<false>(espace, type_de, type_vers);
 }
 
 ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                                               ContexteValidationCode &contexte,
                                                                Type *type_de,
                                                                Type *type_vers)
 {
-    return cherche_transformation<true>(espace, contexte, type_de, type_vers);
+    return cherche_transformation<true>(espace, type_de, type_vers);
 }
 
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf)
 {
-    auto resultat = cherche_transformation<false>(espace, contexte, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -573,12 +582,11 @@ ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
 }
 
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf,
                                                   NoeudExpression *enfant)
 {
-    auto resultat = cherche_transformation<false>(espace, contexte, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);

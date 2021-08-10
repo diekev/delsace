@@ -31,12 +31,9 @@ static bool verifie_transformation(Compilatrice &compilatrice,
                                    Type *type2,
                                    bool est_possible)
 {
-    auto unite = UniteCompilation(espace);
     auto tacheronne = Tacheronne(compilatrice);
 
-    auto contexte = ContexteValidationCode(compilatrice, tacheronne, unite);
-
-    auto resultat = cherche_transformation(*espace, contexte, type1, type2);
+    auto resultat = cherche_transformation(*espace, type1, type2);
 
     auto transformation = TransformationType();
     if (std::holds_alternative<TransformationType>(resultat)) {

@@ -142,7 +142,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     auto donnees_fichier = fichier->donnees_constantes;
     donnees_fichier->charge_tampon(std::move(tampon));
 
-    compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+    compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
     auto tacheronne = Tacheronne(compilatrice);
     tacheronne.gere_tache();

@@ -188,6 +188,7 @@ enum {
     POSSEDE_TYPE_TYPE_DE_DONNEES = 256,
     CODE_BINAIRE_TYPE_FUT_GENERE = 512,
     TYPE_EST_NORMALISE = 1024,
+    CODE_MACHINE_FUT_GENERE = 2048,
 };
 
 struct Type {
@@ -620,13 +621,18 @@ struct Typeuse {
 
     Type *type_pour_lexeme(GenreLexeme lexeme);
 
-    TypePointeur *type_pointeur_pour(Type *type, bool ajoute_operateurs = true);
+    TypePointeur *type_pointeur_pour(Type *type,
+                                     bool ajoute_operateurs = true,
+                                     bool insere_dans_graphe = true);
 
     TypeReference *type_reference_pour(Type *type);
 
-    TypeTableauFixe *type_tableau_fixe(Type *type_pointe, int taille);
+    TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
+                                       int taille,
+                                       bool insere_dans_graphe = true);
 
-    TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe);
+    TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
+                                                 bool insere_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
 

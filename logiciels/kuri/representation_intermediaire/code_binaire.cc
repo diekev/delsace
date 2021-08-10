@@ -41,8 +41,6 @@
 
 #include "parsage/outils_lexemes.hh"
 
-#include "machine_virtuelle.hh"
-
 const char *chaine_code_operation(octet_t code_operation)
 {
     switch (code_operation) {
@@ -771,36 +769,28 @@ ffi_type *converti_type_ffi(Type *type)
 
 /* ************************************************************************** */
 
-struct ConvertisseuseRI {
-    MachineVirtuelle *mv = nullptr;
-    kuri::tableau<PatchLabel> patchs_labels{};
-    dls::pile<int> pile_taille{};
-    int dernier_decalage_pile = 0;
+ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_)
+    : espace(espace_), donnees_executions(&espace_->donnees_constantes_executions),
+      metaprogramme(metaprogramme_)
+{
+}
 
-    ConvertisseuseRI(MachineVirtuelle *mv_);
+bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctions)
+{
+    POUR (fonctions) {
+        /* Évite de recréer le code binaire. */
+        if (it->chunk.code || it->donnees_externe.ptr_fonction != nullptr) {
+            continue;
+        }
+        if (!genere_code_pour_fonction(it)) {
+            return false;
+        }
+    }
 
-    COPIE_CONSTRUCT(ConvertisseuseRI);
+    return true;
+}
 
-    void genere_code_binaire_pour_instruction(Instruction *instruction,
-                                              Chunk &chunk,
-                                              bool pour_operande);
-
-    void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
-
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                         int decalage,
-                                                         int ou_patcher);
-
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
-
-    int ajoute_globale(AtomeGlobale *globale);
-
-    int genere_code_pour_globale(AtomeGlobale *atome_globale);
-};
-
-void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
-                                       AtomeFonction *fonction,
-                                       MachineVirtuelle *mv)
+bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 {
     /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
     if (fonction->decl && fonction->decl->est_externe) {
@@ -812,7 +802,7 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
         }
         else {
             if (!decl->symbole->charge(espace, decl)) {
-                return;
+                return false;
             }
 
             donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
@@ -820,7 +810,7 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
 
         if (fonction->decl->est_variadique) {
             // les fonctions variadiques doivent être préparées pour chaque appel
-            return;
+            return true;
         }
 
         auto type_fonction = fonction->type->comme_fonction();
@@ -841,14 +831,14 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
                                    ptr_types_entrees);
 
         if (status != FFI_OK) {
-            std::cerr << "Impossible de préparer pour FFI !\n";
-            return;
+            espace->rapporte_erreur(
+                fonction->decl,
+                "Impossible de préparer l'interface d'appel forrain pour la fonction");
+            return false;
         }
 
-        return;
+        return true;
     }
-
-    auto convertisseuse = ConvertisseuseRI{mv};
 
     auto &chunk = fonction->chunk;
 
@@ -872,15 +862,6 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
     }
-
-    // À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
-    // durée de vie de celles-ci ne fonctionne pas
-    //           il existe des superposition partiells entre certaines variables
-    //           lors de la dernière investigation, il semberait que les instructions de retours au
-    //           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
-    //           optimisation et alloue de l'espace pour toutes les variables au début de chaque
-    //           fonction.
-#undef OPTIMISE_ALLOCS
 
 #ifndef OPTIMISE_ALLOCS
     POUR (fonction->instructions) {
@@ -910,19 +891,19 @@ void genere_code_binaire_pour_fonction(EspaceDeTravail *espace,
             continue;
         }
 
-        convertisseuse.genere_code_binaire_pour_instruction(it, chunk, false);
+        genere_code_binaire_pour_instruction(it, chunk, false);
     }
 
-    POUR (convertisseuse.patchs_labels) {
+    POUR (patchs_labels) {
         auto decalage = chunk.decalages_labels[it.index_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = decalage;
     }
 
-    // desassemble(chunk, fonction->nom.c_str(), std::cerr);
-}
+    /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
+    patchs_labels.efface();
 
-ConvertisseuseRI::ConvertisseuseRI(MachineVirtuelle *mv_) : mv(mv_)
-{
+    // desassemble(chunk, fonction->nom.c_str(), std::cerr);
+    return true;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
@@ -1427,10 +1408,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             unsigned char *donnees = nullptr;
 
             if (ou_patcher == DONNEES_GLOBALES) {
-                donnees = mv->donnees_globales.donnees() + decalage;
+                donnees = donnees_executions->donnees_globales.donnees() + decalage;
             }
             else {
-                donnees = mv->donnees_constantes.donnees() + decalage;
+                donnees = donnees_executions->donnees_constantes.donnees() + decalage;
             }
 
             switch (valeur_constante->valeur.genre) {
@@ -1566,8 +1547,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                             auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
-                                            static_cast<int>(decalage_membre);
+                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                                            decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<long *>(donnees_ + 8) = taille_chaine;
                         }
@@ -1587,11 +1568,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto type_tableau = tableau->type->comme_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
-                            auto decalage_valeur = mv->donnees_constantes.taille();
+                            auto decalage_valeur = donnees_executions->donnees_constantes.taille();
                             auto adresse_tableau = decalage_valeur;
 
-                            mv->donnees_constantes.redimensionne(
-                                mv->donnees_constantes.taille() +
+                            donnees_executions->donnees_constantes.redimensionne(
+                                donnees_executions->donnees_constantes.taille() +
                                 static_cast<int>(type_pointe->taille_octet) *
                                     type_tableau->taille);
 
@@ -1608,10 +1589,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             patch.decalage_ou = decalage + static_cast<int>(decalage_membre);
                             patch.decalage_quoi = adresse_tableau;
 
-                            mv->patchs_donnees_constantes.ajoute(patch);
+                            donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
-                                            static_cast<int>(decalage_membre);
+                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                                            decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<long *>(donnees_ + 8) = taille;
                         }
                         else {
@@ -1634,7 +1615,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         {
             auto atome_globale = static_cast<AtomeGlobale *>(constante);
             auto index_globale = genere_code_pour_globale(atome_globale);
-            auto globale = mv->globales[index_globale];
+            auto globale = donnees_executions->globales[index_globale];
 
             auto patch = PatchDonneesConstantes{};
             patch.ou = ou_patcher;
@@ -1642,7 +1623,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             patch.decalage_ou = decalage;
             patch.decalage_quoi = globale.adresse;
 
-            mv->patchs_donnees_constantes.ajoute(patch);
+            donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
             break;
         }
@@ -1715,7 +1696,7 @@ int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
 {
     assert(globale->index == -1);
     auto type_globale = globale->type->comme_pointeur()->type_pointe;
-    auto index = mv->ajoute_globale(type_globale, globale->ident);
+    auto index = donnees_executions->ajoute_globale(type_globale, globale->ident);
     globale->index = index;
     return index;
 }
@@ -1732,7 +1713,7 @@ int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
     index = ajoute_globale(atome_globale);
 
     if (atome_globale->est_constante) {
-        auto globale = mv->globales[index];
+        auto globale = donnees_executions->globales[index];
         auto initialisateur = atome_globale->initialisateur;
         genere_code_binaire_pour_initialisation_globale(
             initialisateur, globale.adresse, DONNEES_GLOBALES);

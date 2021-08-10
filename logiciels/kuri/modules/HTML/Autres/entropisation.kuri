@@ -1,19 +1,7 @@
-importe Chaine
 importe HTML
-
-// À FAIRE(langage) : erreurs de compilation car l'union TypeChaineInternée n'est pas traversée pour la génération de code C
-c: ChaineUTF32
-
-// -----------------------------------------------------------
 
 principale :: fonc () -> z32
 {
-    {
-        // À FAIRE(langage) : erreurs de compilation si certains symboles ne sont pas utilisés
-        parsat := parse_document("")
-        diffère détruit(parsat)
-    }
-
     paramètres : ParamètresEntropisation
     paramètres.limite_haute_profondeur = 5
     paramètres.limite_haute_enfants = 10

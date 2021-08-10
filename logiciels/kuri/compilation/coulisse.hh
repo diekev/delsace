@@ -28,6 +28,7 @@ struct Compilatrice;
 struct ConstructriceRI;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
+struct Programme;
 
 struct Coulisse {
     double temps_generation_code = 0.0;
@@ -37,6 +38,8 @@ struct Coulisse {
     virtual ~Coulisse() = default;
 
     static Coulisse *cree_pour_options(OptionsDeCompilation options);
+
+    static Coulisse *cree_pour_metaprogramme();
 
     static void detruit(Coulisse *coulisse);
 
@@ -50,6 +53,7 @@ struct Coulisse {
      */
     virtual bool cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
+                                    Programme *programme,
                                     ConstructriceRI &constructrice_ri) = 0;
 
     /* Crée l'exécutable depuis le fichier objet.
@@ -57,5 +61,7 @@ struct Coulisse {
      * compilatrice est requise pour :
      * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
      */
-    virtual bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) = 0;
+    virtual bool cree_executable(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme) = 0;
 };

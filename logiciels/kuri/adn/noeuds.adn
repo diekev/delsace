@@ -464,6 +464,8 @@ struct NoeudStruct : NoeudDéclarationSymbole {
 	NoeudStruct *polymorphe_de_base
 
 	Monomorphisations *monomorphisations
+
+	MetaProgramme *metaprogramme_corps_texte
 }
 
 struct NoeudEnum : NoeudDéclarationSymbole {
@@ -644,6 +646,8 @@ struct NoeudDirectiveExécute : NoeudExpression {
 	NoeudExpression *expression [code enfant]
 
 	NoeudExpression * [] arbre_aplatis
+
+	MetaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {

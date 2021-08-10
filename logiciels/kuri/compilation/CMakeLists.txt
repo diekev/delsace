@@ -69,21 +69,25 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+	attente.hh
 	bibliotheque.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
 	coulisse_asm.hh
 	coulisse_c.hh
+	coulisse_mv.hh
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
+	gestionnaire_code.hh
 	graphe_dependance.hh
 	interface_module_kuri.hh
 	messagere.hh
 	metaprogramme.hh
 	monomorphisations.hh
 	operateurs.hh
+	programme.hh
 	portee.hh
 	structures.hh
 	syntaxeuse.hh
@@ -94,21 +98,25 @@ set(SOURCES
 	validation_expression_appel.hh
 	validation_semantique.hh
 
+	attente.cc
 	bibliotheque.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
 	coulisse_asm.cc
 	coulisse_c.cc
+	coulisse_mv.cc
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc
+	gestionnaire_code.cc
 	graphe_dependance.cc
 	interface_module_kuri.cc
 	messagere.cc
 	metaprogramme.cc
 	monomorphisations.cc
 	operateurs.cc
+	programme.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc

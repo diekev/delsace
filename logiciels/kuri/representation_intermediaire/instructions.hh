@@ -66,6 +66,7 @@ struct Atome {
     Genre genre_atome{};
     // vrai si l'atome est celui d'une instruction chargeable
     bool est_chargeable = false;
+    bool ri_generee = false;
 
     int nombre_utilisations = 0;
 

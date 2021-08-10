@@ -25,11 +25,11 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/file_fixe.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
-#include "graphe_dependance.hh"
-#include "validation_expression_appel.hh"
 
 struct Compilatrice;
 struct Lexeme;
@@ -48,6 +48,25 @@ enum class CodeRetourValidation : int {
     OK,
     Erreur,
 };
+
+using ResultatValidation = std::variant<CodeRetourValidation, Attente>;
+
+inline bool est_attente(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<Attente>(resultat);
+}
+
+inline bool est_erreur(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<CodeRetourValidation>(resultat) &&
+           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::Erreur;
+}
+
+inline bool est_ok(ResultatValidation const &resultat)
+{
+    return std::holds_alternative<CodeRetourValidation>(resultat) &&
+           std::get<CodeRetourValidation>(resultat) == CodeRetourValidation::OK;
+}
 
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
  * mais également éviter de construire les différentes structures de données y utilisées;
@@ -83,11 +102,6 @@ struct ContexteValidationDeclaration {
 struct ContexteValidationCode {
     Compilatrice &m_compilatrice;
     Tacheronne &m_tacheronne;
-    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
-    Type *union_ou_structure_courante = nullptr;
-
-    /* Les données des dépendances d'un noeud syntaxique. */
-    DonneesDependance donnees_dependance{};
 
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;
@@ -100,30 +114,28 @@ struct ContexteValidationCode {
 
     COPIE_CONSTRUCT(ContexteValidationCode);
 
-    void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
+    ResultatValidation valide();
 
-    void termine_fonction();
+    ResultatValidation valide_semantique_noeud(NoeudExpression *);
+    ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-    CodeRetourValidation valide_semantique_noeud(NoeudExpression *);
-    CodeRetourValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
-
-    CodeRetourValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
-    CodeRetourValidation valide_fonction(NoeudDeclarationCorpsFonction *);
-    CodeRetourValidation valide_operateur(NoeudDeclarationCorpsFonction *);
+    ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
+    ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
     template <int N>
-    CodeRetourValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
-    CodeRetourValidation valide_enum(NoeudEnum *);
+    ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
+    ResultatValidation valide_enum(NoeudEnum *);
 
-    CodeRetourValidation valide_structure(NoeudStruct *);
-    CodeRetourValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
-    CodeRetourValidation valide_assignation(NoeudAssignation *inst);
-    CodeRetourValidation valide_arbre_aplatis(
-        NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
-    CodeRetourValidation valide_expression_retour(NoeudRetour *inst_retour);
-    CodeRetourValidation valide_cuisine(NoeudDirectiveCuisine *directive);
-    CodeRetourValidation valide_reference_declaration(NoeudExpressionReference *expr,
-                                                      NoeudBloc *bloc_recherche);
+    ResultatValidation valide_structure(NoeudStruct *);
+    ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+    ResultatValidation valide_assignation(NoeudAssignation *inst);
+    ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
+                                            kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
+    ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
+    ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
+    ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
+                                                    NoeudBloc *bloc_recherche);
 
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
@@ -156,9 +168,15 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
 
-    CodeRetourValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
+    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
     void transtype_si_necessaire(NoeudExpression *&expression,
                                  TransformationType const &transformation);
+
+    NoeudExpression *racine_validation() const;
+
+    NoeudDeclarationEnteteFonction *fonction_courante() const;
+
+    Type *union_ou_structure_courante() const;
 
     MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,

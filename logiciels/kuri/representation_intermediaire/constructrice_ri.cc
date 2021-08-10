@@ -74,10 +74,11 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(EspaceDeTravail *espace)
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
+    EspaceDeTravail *espace, kuri::tableau<AtomeGlobale *> const &globales)
 {
     m_espace = espace;
-    return genere_ri_pour_fonction_principale();
+    return genere_ri_pour_fonction_principale(globales);
 }
 
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
@@ -1704,6 +1705,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     if (decl->est_externe) {
         decl->drapeaux |= RI_FUT_GENEREE;
+        atome_fonc->ri_generee = true;
         return;
     }
 
@@ -1730,6 +1732,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     decl->drapeaux |= RI_FUT_GENEREE;
     decl->corps->drapeaux |= RI_FUT_GENEREE;
+    fonction_courante->ri_generee = true;
 
     fonction_courante = nullptr;
     contexte = nullptr;
@@ -3465,7 +3468,8 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
     return constante_chaine;
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
+    kuri::tableau<AtomeGlobale *> const &globales)
 {
     nombre_labels = 0;
 
@@ -3502,6 +3506,18 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
     auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
     POUR (*constructeurs_globaux) {
+        bool globale_trouvee = false;
+        for (auto &globale : globales) {
+            if (it.atome == globale) {
+                globale_trouvee = true;
+                break;
+            }
+        }
+
+        if (!globale_trouvee) {
+            continue;
+        }
+
         if (it.expression->est_non_initialisation()) {
             continue;
         }
@@ -3604,10 +3620,12 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                     }
                 }
 
+                atome->ri_generee = true;
                 atome->initialisateur = valeur;
             }
         }
 
+        decl->atome->ri_generee = true;
         decl->drapeaux |= RI_FUT_GENEREE;
         return;
     }

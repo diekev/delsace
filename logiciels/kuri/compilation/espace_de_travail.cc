@@ -37,6 +37,7 @@
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "parsage/identifiant.hh"
+#include "programme.hh"
 #include "statistiques/statistiques.hh"
 
 /* ************************************************************************** */
@@ -92,6 +93,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(*this, *ops);
     coulisse = Coulisse::cree_pour_options(options);
+    programme = Programme::cree_pour_espace(this);
 
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
 
@@ -129,6 +131,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 EspaceDeTravail::~EspaceDeTravail()
 {
     Coulisse::detruit(coulisse);
+    memoire::deloge("Programme", programme);
 }
 
 Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
@@ -204,6 +207,7 @@ Fichier *EspaceDeTravail::cree_fichier_pour_metaprogramme(MetaProgramme *metapro
     auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
     resultat->module = module;
     resultat->metaprogramme_corps_texte = metaprogramme_;
+    metaprogramme_->fichier = resultat;
     return resultat;
 }
 
@@ -420,13 +424,17 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
         memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
     });
 
+    donnees_constantes_executions.rassemble_statistiques(stats);
+
     stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
     stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});
 }
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 {
-    return metaprogrammes->ajoute_element();
+    auto resultat = metaprogrammes->ajoute_element();
+    resultat->programme = Programme::cree_pour_metaprogramme(this, resultat);
+    return resultat;
 }
 
 void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)

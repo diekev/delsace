@@ -29,6 +29,7 @@
 #include "coulisse_asm.hh"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
+#include "coulisse_mv.hh"
 
 Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
 {
@@ -51,6 +52,11 @@ Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
     return nullptr;
 }
 
+Coulisse *Coulisse::cree_pour_metaprogramme()
+{
+    return memoire::loge<CoulisseMV>("CoulisseMV");
+}
+
 void Coulisse::detruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
@@ -66,6 +72,11 @@ void Coulisse::detruit(Coulisse *coulisse)
     else if (dynamic_cast<CoulisseASM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseASM *>(coulisse);
         memoire::deloge("CoulisseASM", c);
+        coulisse = nullptr;
+    }
+    else if (dynamic_cast<CoulisseMV *>(coulisse)) {
+        auto c = dynamic_cast<CoulisseMV *>(coulisse);
+        memoire::deloge("CoulisseMV", c);
         coulisse = nullptr;
     }
 }

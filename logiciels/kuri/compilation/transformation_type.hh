@@ -24,16 +24,15 @@
 
 #pragma once
 
-#include "biblinternes/structures/vue_chaine_compacte.hh"
-
+#include <iostream>
 #include <variant>
+
+#include "attente.hh"
 
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct Type;
-
-struct ContexteValidationCode;
 
 #define ENUMERE_TYPES_TRANSFORMATION                                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(INUTILE)                                                       \
@@ -126,34 +125,13 @@ struct TransformationType {
     }
 };
 
-struct Attente {
-    Type *attend_sur_type = nullptr;
-    const char *attend_sur_interface_kuri = nullptr;
-
-    static Attente sur_type(Type *type)
-    {
-        auto attente = Attente{};
-        attente.attend_sur_type = type;
-        return attente;
-    }
-
-    static Attente sur_interface_kuri(const char *nom_fonction)
-    {
-        auto attente = Attente{};
-        attente.attend_sur_interface_kuri = nom_fonction;
-        return attente;
-    }
-};
-
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
-                                              ContexteValidationCode &contexte,
                                               Type *type_de,
                                               Type *type_vers);
 
 ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                                               ContexteValidationCode &contexte,
                                                                Type *type_de,
                                                                Type *type_vers);
 
@@ -168,13 +146,11 @@ using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
 ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
                                                   Type *type_arg,
                                                   Type *type_enf,
                                                   NoeudExpression *enfant);

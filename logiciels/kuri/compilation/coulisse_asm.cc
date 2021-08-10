@@ -33,6 +33,7 @@
 #include "broyage.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "programme.hh"
 #include "typage.hh"
 
 static constexpr const char *RSP = "rsp";
@@ -58,7 +59,7 @@ struct GeneratriceCodeASM {
 
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void genere_code(tableau_page<AtomeGlobale> const &globales,
+    void genere_code(const kuri::tableau<AtomeGlobale *> &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
                      Enchaineuse &os);
 };
@@ -398,7 +399,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
     }
 }
 
-void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
+void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
                                      const kuri::tableau<AtomeFonction *> &fonctions,
                                      Enchaineuse &os)
 {
@@ -497,6 +498,7 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
 
 bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
                                      EspaceDeTravail &espace,
+                                     Programme *programme,
                                      ConstructriceRI &constructrice_ri)
 {
     std::ostream &fichier_sortie = std::cerr;
@@ -508,31 +510,31 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         erreur::fonction_principale_manquante(espace);
     }
 
-    auto fonction_principale = espace.fonction_principale->noeud_dependance;
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = representation_intermediaire_programme(*programme);
 
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     // genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
-    dls::ensemble<AtomeFonction *> utilises;
-    kuri::tableau<AtomeFonction *> fonctions;
-    auto &graphe = espace.graphe_dependance;
-    graphe->rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
-
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-    fonctions.ajoute(atome_principale);
+    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(
+        &espace, repr_inter_programme.globales);
+    repr_inter_programme.fonctions.ajoute(atome_principale);
 
     auto generatrice = GeneratriceCodeASM(espace);
-    generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+    generatrice.genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 
     return true;
 }
 
-bool CoulisseASM::cree_executable(Compilatrice & /*compilatrice*/, EspaceDeTravail & /*espace*/)
+bool CoulisseASM::cree_executable(Compilatrice & /*compilatrice*/,
+                                  EspaceDeTravail & /*espace*/,
+                                  Programme * /* programme */)
 {
     return false;
 }

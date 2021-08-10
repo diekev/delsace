@@ -92,6 +92,8 @@ struct EspaceDeTravail {
 
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
+    Programme *programme = nullptr;
+
     tableau_page<AtomeFonction> fonctions{};
     tableau_page<AtomeGlobale> globales{};
 
@@ -129,6 +131,10 @@ struct EspaceDeTravail {
     mutable std::atomic<bool> possede_erreur{false};
 
     Compilatrice &m_compilatrice;
+
+    /* Pour les executions des métaprogrammes. */
+    std::mutex mutex_donnees_constantes_executions{};
+    DonneesConstantesExecutions donnees_constantes_executions{};
 
     EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 

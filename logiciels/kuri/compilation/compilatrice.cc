@@ -38,7 +38,7 @@
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice() : ordonnanceuse(this)
+Compilatrice::Compilatrice() : ordonnanceuse(this), messagere(this), gestionnaire_code(this)
 {
     this->definitions->ajoute("_REENTRANT");
 
@@ -114,8 +114,8 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
             sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
 
         if (resultat.est<FichierNeuf>()) {
-            ordonnanceuse->cree_tache_pour_chargement(espace,
-                                                      resultat.resultat<FichierNeuf>().fichier);
+            gestionnaire_code->requiers_chargement(espace,
+                                                   resultat.resultat<FichierNeuf>().fichier);
         }
     }
 
@@ -130,8 +130,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
 
-            ordonnanceuse->cree_tache_pour_lexage(espace,
-                                                  resultat.resultat<FichierNeuf>().fichier);
+            gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
         }
     }
 
@@ -170,8 +169,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
     if (resultat.est<FichierNeuf>()) {
-        ordonnanceuse->cree_tache_pour_chargement(espace,
-                                                  resultat.resultat<FichierNeuf>().fichier);
+        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
     }
 }
 
@@ -226,7 +224,7 @@ void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
         ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
     }
     else {
-        ordonnanceuse->supprime_toutes_les_taches();
+        // ordonnanceuse->supprime_toutes_les_taches();
         m_possede_erreur = true;
         m_code_erreur = genre;
     }
@@ -247,6 +245,7 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
     auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
     espace->module_kuri = importe_module(espace, "Kuri", {});
     espaces_de_travail->ajoute(espace);
+    gestionnaire_code->espace_cree(espace);
     return espace;
 }
 
@@ -297,7 +296,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
         if (!donnees_fichier->fut_charge) {
             donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
         }
-        ordonnanceuse->cree_tache_pour_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
+        gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
     }
 }
 

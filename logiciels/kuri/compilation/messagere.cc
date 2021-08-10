@@ -25,6 +25,7 @@
 #include "message.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+#include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "unite_compilation.hh"
 
@@ -90,27 +91,23 @@ void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *mod
     pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-bool Messagere::ajoute_message_typage_code(EspaceDeTravail *espace,
-                                           NoeudDeclaration *noeud_decl,
-                                           UniteCompilation *unite)
+Message *Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     if (!interception_commencee) {
-        return false;
+        return nullptr;
     }
 
-    convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud_decl);
+    convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
 
     auto message = messages_typage_code.ajoute_element();
     message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
     message->espace = espace;
-    message->code = noeud_decl->noeud_code;
+    message->code = noeud->noeud_code;
 
-    assert(unite);
-
-    file_message.enfile({unite, message});
+    file_message.enfile(message);
     pic_de_message = std::max(file_message.taille(), pic_de_message);
 
-    return true;
+    return message;
 }
 
 void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
@@ -146,18 +143,7 @@ Message const *Messagere::defile()
         return nullptr;
     }
 
-    auto message = file_message.defile();
-    derniere_unite = message.unite;
-
-    // marque le message comme reçu avant de l'envoyer pour éviter d'être bloqué dans les
-    // tâcheronnes j'ai voulu faire en sorte que le message ne soit marqué comme reçu que quand
-    // nous envoyons le message suivant, mais si ce message est le dernier, il n'y a pas de message
-    // suivant et les tâcheronnes sont bloquées sur un message marqué comme non-reçu
-    if (derniere_unite) {
-        derniere_unite->message_recu = true;
-    }
-
-    return message.message;
+    return file_message.defile();
 }
 
 void Messagere::commence_interception(EspaceDeTravail * /*espace*/)
@@ -171,12 +157,12 @@ void Messagere::termine_interception(EspaceDeTravail * /*espace*/)
 
     /* purge tous les messages puisque nous ne sommes plus écouté */
     while (!file_message.est_vide()) {
-        auto m = file_message.defile();
-
-        /* indique que le message a été reçu au cas où une tâcheronne serait en
-         * train d'essayer d'émettre un message */
-        if (m.unite) {
-            m.unite->message_recu = true;
-        }
+        auto message = file_message.defile();
+        m_compilatrice->gestionnaire_code->message_recu(message);
     }
+}
+
+void Messagere::purge_messages()
+{
+    file_message.efface();
 }

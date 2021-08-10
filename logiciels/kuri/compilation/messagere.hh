@@ -30,6 +30,7 @@
 
 #include "message.hh"
 
+struct Compilatrice;
 struct EspaceDeTravail;
 struct Module;
 struct NoeudDeclaration;
@@ -46,25 +47,25 @@ struct Messagere {
 
     bool interception_commencee = false;
 
+    Compilatrice *m_compilatrice = nullptr;
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
-    UniteCompilation *derniere_unite = nullptr;
-
-    struct DonneesMessage {
-        UniteCompilation *unite = nullptr;
-        Message const *message = nullptr;
-    };
-
-    dls::file<DonneesMessage> file_message{};
+    dls::file<Message const *> file_message{};
 
   public:
+    Messagere() = default;
+    Messagere(const Messagere &) = default;
+    Messagere &operator=(const Messagere &) = default;
+
+    Messagere(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
+    {
+    }
+
     void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
     void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
-    bool ajoute_message_typage_code(EspaceDeTravail *espace,
-                                    NoeudDeclaration *noeud_decl,
-                                    UniteCompilation *unite);
+    Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
     void ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
     long memoire_utilisee() const;
@@ -79,4 +80,6 @@ struct Messagere {
     void commence_interception(EspaceDeTravail *espace);
 
     void termine_interception(EspaceDeTravail *espace);
+
+    void purge_messages();
 };

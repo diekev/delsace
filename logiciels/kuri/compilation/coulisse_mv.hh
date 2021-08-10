@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2021 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -26,13 +26,9 @@
 
 #include "coulisse.hh"
 
-#include "structures/tableau.hh"
+struct Programme;
 
-struct Bibliotheque;
-
-struct CoulisseC final : public Coulisse {
-    kuri::tableau<Bibliotheque *> m_bibliotheques{};
-
+struct CoulisseMV final : public Coulisse {
     bool cree_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
                             Programme *programme,

@@ -143,8 +143,8 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-    dls::ensemblon<NoeudDeclarationEnteteFonction const *, 16> fonctions_utilisees{};
-    dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
+    dls::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
+    dls::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
     dls::ensemblon<Type *, 16> types_utilises{};
 
     void efface()
@@ -183,9 +183,7 @@ struct GrapheDependance {
                             Type *type2,
                             TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-    void ajoute_dependances(NoeudDependance &noeud,
-                            DonneesDependance &donnees,
-                            bool efface_donnees = true);
+    void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
 
     void connecte_noeuds(NoeudDependance &noeud1,
                          NoeudDependance &noeud2,

@@ -43,42 +43,14 @@ struct FrameAppel {
     octet_t *pointeur_pile = nullptr;
 };
 
-enum {
-    DONNEES_CONSTANTES,
-    DONNEES_GLOBALES,
-};
-
-enum {
-    ADRESSE_CONSTANTE,
-    ADRESSE_GLOBALE,
-};
-
-// Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
-// dans les constantes ou les globales. Par exemple, les pointeurs des infos types des membres des
-// structures sont écris dans un tableau constant, et le pointeur du tableau constant doit être
-// écris dans la zone mémoire ou se trouve le tableaeu de membre de l'InfoTypeStructure.
-struct PatchDonneesConstantes {
-    int ou;
-    int quoi;
-    int decalage_ou;
-    int decalage_quoi;
-};
-
-std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
-
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 struct DonneesExecution {
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
-
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
-
-    int ajoute_globale(Type *type, IdentifiantCode *ident);
 };
 
 struct MachineVirtuelle {
@@ -94,6 +66,8 @@ struct MachineVirtuelle {
     Compilatrice &compilatrice;
 
     tableau_page<DonneesExecution> donnees_execution{};
+
+    DonneesConstantesExecutions *donnees_constantes = nullptr;
 
     kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
     kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
@@ -116,19 +90,12 @@ struct MachineVirtuelle {
     MetaProgramme *m_metaprogramme = nullptr;
 
   public:
-    kuri::tableau<Globale, int> globales{};
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
-    kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
-
     bool stop = false;
 
     MachineVirtuelle(Compilatrice &compilatrice_);
     ~MachineVirtuelle();
 
     COPIE_CONSTRUCT(MachineVirtuelle);
-
-    int ajoute_globale(Type *type, IdentifiantCode *ident);
 
     void ajoute_metaprogramme(MetaProgramme *metaprogramme);
 

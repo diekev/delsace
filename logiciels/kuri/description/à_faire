@@ -55,7 +55,6 @@
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
 - ajout des bugs à la liste des tests de compilation, tests de régressions pour les bugs
 - ajout d'une fonction visite_noeud :
-    -- pour rassembler les dépendances à la fin de la validation de typage
     -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
     -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
 
@@ -800,35 +799,6 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
-
-struct GestionnaireUnite {
-    void remplis_files_de_compilation()
-    {
-        POUR (unites_pretes_pour_messages) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_message(it);
-            }
-        }
-
-        POUR (unites_attendant_sur_message_recu) {
-            if (message_recu) {
-                unites_pretes_pour_ri.enfile(it);
-            }
-        }
-
-        POUR (unites_pretes_pour_ri) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_ri(it);
-            }
-        }
-
-        POUR (unites_pretes_pour_optimisations) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_optimisation(it);
-            }
-        }
-    }
-};
 
 // idées pour réusiner les globles pour la RI et l'exécution du code
 // deux zones : lectures, écritures

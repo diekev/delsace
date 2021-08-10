@@ -155,9 +155,7 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
     stats_graphe.fusionne_entree({"NoeudDependance", noeuds.taille(), memoire});
 }
 
-void GrapheDependance::ajoute_dependances(NoeudDependance &noeud,
-                                          DonneesDependance &donnees,
-                                          bool efface_donnees)
+void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees)
 {
     dls::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
         auto noeud_type = cree_noeud_type(type);
@@ -178,11 +176,6 @@ void GrapheDependance::ajoute_dependances(NoeudDependance &noeud,
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
         return dls::DecisionIteration::Continue;
     });
-
-    /* libère la mémoire */
-    if (efface_donnees) {
-        donnees.efface();
-    }
 }
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)

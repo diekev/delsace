@@ -691,12 +691,11 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
 }
 
-bool cherche_candidats_operateurs(EspaceDeTravail &espace,
-                                  ContexteValidationCode &contexte,
-                                  Type *type1,
-                                  Type *type2,
-                                  GenreLexeme type_op,
-                                  dls::tablet<OperateurCandidat, 10> &candidats)
+std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
+                                                    Type *type1,
+                                                    Type *type2,
+                                                    GenreLexeme type_op,
+                                                    dls::tablet<OperateurCandidat, 10> &candidats)
 {
     assert(type1);
     assert(type2);
@@ -714,20 +713,18 @@ bool cherche_candidats_operateurs(EspaceDeTravail &espace,
     }
 
     for (auto const op : op_candidats) {
-        auto poids1_ou_attente = verifie_compatibilite(espace, contexte, op->type1, type1);
+        auto poids1_ou_attente = verifie_compatibilite(espace, op->type1, type1);
 
         if (std::holds_alternative<Attente>(poids1_ou_attente)) {
-            contexte.unite->marque_attente(std::get<Attente>(poids1_ou_attente));
-            return true;
+            return std::get<Attente>(poids1_ou_attente);
         }
 
         auto poids1 = std::get<PoidsTransformation>(poids1_ou_attente);
 
-        auto poids2_ou_attente = verifie_compatibilite(espace, contexte, op->type2, type2);
+        auto poids2_ou_attente = verifie_compatibilite(espace, op->type2, type2);
 
         if (std::holds_alternative<Attente>(poids2_ou_attente)) {
-            contexte.unite->marque_attente(std::get<Attente>(poids2_ou_attente));
-            return true;
+            return std::get<Attente>(poids2_ou_attente);
         }
 
         auto poids2 = std::get<PoidsTransformation>(poids2_ou_attente);
@@ -745,20 +742,18 @@ bool cherche_candidats_operateurs(EspaceDeTravail &espace,
         }
 
         if (op->est_commutatif && poids != 1.0) {
-            auto poids3_ou_attente = verifie_compatibilite(espace, contexte, op->type1, type2);
+            auto poids3_ou_attente = verifie_compatibilite(espace, op->type1, type2);
 
             if (std::holds_alternative<Attente>(poids3_ou_attente)) {
-                contexte.unite->marque_attente(std::get<Attente>(poids3_ou_attente));
-                return true;
+                return std::get<Attente>(poids3_ou_attente);
             }
 
             auto poids3 = std::get<PoidsTransformation>(poids3_ou_attente);
 
-            auto poids4_ou_attente = verifie_compatibilite(espace, contexte, op->type2, type1);
+            auto poids4_ou_attente = verifie_compatibilite(espace, op->type2, type1);
 
             if (std::holds_alternative<Attente>(poids4_ou_attente)) {
-                contexte.unite->marque_attente(std::get<Attente>(poids4_ou_attente));
-                return true;
+                return std::get<Attente>(poids4_ou_attente);
             }
 
             auto poids4 = std::get<PoidsTransformation>(poids4_ou_attente);
@@ -779,7 +774,7 @@ bool cherche_candidats_operateurs(EspaceDeTravail &espace,
         }
     }
 
-    return false;
+    return {};
 }
 
 const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,

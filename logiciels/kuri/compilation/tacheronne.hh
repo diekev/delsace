@@ -40,24 +40,26 @@ struct Compilatrice;
 struct MetaProgramme;
 struct Tacheronne;
 
-#define ENUMERE_GENRES_TACHE                                                                      \
-    ENUMERE_GENRE_TACHE_EX(DORS)                                                                  \
-    ENUMERE_GENRE_TACHE_EX(COMPILATION_TERMINEE)                                                  \
-    ENUMERE_GENRE_TACHE_EX(LEXE)                                                                  \
-    ENUMERE_GENRE_TACHE_EX(PARSE)                                                                 \
-    ENUMERE_GENRE_TACHE_EX(TYPAGE)                                                                \
-    ENUMERE_GENRE_TACHE_EX(GENERE_RI)                                                             \
-    ENUMERE_GENRE_TACHE_EX(EXECUTE)                                                               \
-    ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE)                                                    \
-    ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET)                                                  \
-    ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE)                                                        \
-    ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER)                                                        \
-    ENUMERE_GENRE_TACHE_EX(OPTIMISATION)
+#define ENUMERE_TACHES_POSSIBLES(O)                                                               \
+    O(CHARGER, CHARGEMENT, "chargement", 0)                                                       \
+    O(LEXER, LEXAGE, "lexage", 1)                                                                 \
+    O(PARSER, PARSAGE, "parsage", 2)                                                              \
+    O(TYPER, TYPAGE, "typage", 3)                                                                 \
+    O(GENERER_RI, GENERATION_RI, "génération RI", 4)                                              \
+    O(EXECUTER, EXECUTION, "exécution", 5)                                                        \
+    O(OPTIMISER, OPTIMISATION, "optimisation", 6)                                                 \
+    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 7)                        \
+    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 8)
+
+#define ENUMERE_GENRES_TACHE(O)                                                                   \
+    O(DORMIR, DORS, "dormir", 0)                                                                  \
+    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                      \
+    ENUMERE_TACHES_POSSIBLES(O)
 
 enum class GenreTache {
-#define ENUMERE_GENRE_TACHE_EX(etat) etat,
-    ENUMERE_GENRES_TACHE
-#undef ENUMERE_GENRE_TACHE_EX
+#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX) ACTION,
+    ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
+#undef ENUMERE_GENRE_TACHE
 };
 
 const char *chaine_genre_tache(GenreTache genre);
@@ -76,24 +78,15 @@ struct Tache {
     static Tache genere_fichier_objet(EspaceDeTravail *espace_);
 
     static Tache liaison_objet(EspaceDeTravail *espace_);
-
-    static Tache attend_message(UniteCompilation *unite_);
 };
 
+/* Drapeaux pour les tâches étant dans des files. */
 enum class DrapeauxTacheronne : uint32_t {
-    /* drapeaux pour les tâches étant dans des files
-     * ATTENTION : l'ordre doit correspondre à l'énumération dans OrdonnanceuseTache ! */
-    PEUT_CHARGER = (1 << 0),
-    PEUT_LEXER = (1 << 1),
-    PEUT_PARSER = (1 << 2),
-    PEUT_TYPER = (1 << 3),
-    PEUT_GENERER_RI = (1 << 4),
-    PEUT_EXECUTER = (1 << 5),
-    PEUT_ENVOYER_MESSAGE = (1 << 6),
-    PEUT_OPTIMISER = (1 << 7),
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX) PEUT_##VERBE = (1 << INDEX),
 
-    /* drapeaux pour les tâches n'étant pas dans des files */
-    PEUT_GENERER_CODE = (1 << 8),
+    ENUMERE_TACHES_POSSIBLES(ENUMERE_CAPACITE)
+
+#undef ENUMERE_CAPACITE
 
     PEUT_TOUT_FAIRE = 0xfffffff,
 };
@@ -101,46 +94,51 @@ enum class DrapeauxTacheronne : uint32_t {
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
 
 struct OrdonnanceuseTache {
+  public:
+    enum {
+#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDEX) FILE_##ACTION,
+
+        ENUMERE_TACHES_POSSIBLES(ENUMERE_FILE)
+
+#undef ENUMERE_FILE
+
+        NOMBRE_FILES,
+    };
+
   private:
     Compilatrice *m_compilatrice = nullptr;
 
-#if 0
-	enum {
-		FILE_CHARGEMENT,
-		FILE_LEXAGE,
-		FILE_PARSAGE,
-		FILE_TYPAGE,
-		FILE_GENERATION_RI,
-		FILE_EXECUTION,
-		FILE_MESSAGE,
-		FILE_OPTIMISATION,
-
-		NOMBRE_FILES,
-	};
-
-	dls::file<Tache> taches[NOMBRE_FILES];
-
-	void enfile(Tache tache, int index_file);
-#else
-    dls::file<Tache> taches_chargement{};
-    dls::file<Tache> taches_lexage{};
-    dls::file<Tache> taches_parsage{};
-    dls::file<Tache> taches_typage{};
-    dls::file<Tache> taches_generation_ri{};
-    dls::file<Tache> taches_execution{};
-    dls::file<Tache> taches_message{};
-    dls::file<Tache> taches_optimisation{};
-#endif
-
-    tableau_page<UniteCompilation> unites{};
-
-    /* utilsé pour définir ce que fait chaque tâcheronne afin de savoir si tout le
-     * monde fait quelque : si tout le monde dors, il n'y a plus rien à faire donc
-     * la compilation est terminée */
-    dls::tablet<GenreTache, 16> etats_tacheronnes{};
+    dls::file<Tache> taches[NOMBRE_FILES];
 
     int nombre_de_tacheronnes = 0;
     bool compilation_terminee = false;
+
+    // Tiens trace du nombre maximal de tâches par file, afin de générer des statistiques.
+    struct PiqueTailleFile {
+        long taches[OrdonnanceuseTache::NOMBRE_FILES];
+
+        PiqueTailleFile()
+        {
+            POUR (taches) {
+                it = 0;
+            }
+        }
+
+        ~PiqueTailleFile()
+        {
+#if 0
+            std::cerr << "Pique taille files :\n";
+#    define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                \
+        std::cerr << "-- " << CHAINE << " : " << taches[INDEX] << '\n';
+
+            ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
+
+#    undef IMPRIME_NOMBRE_DE_TACHES
+#endif
+        }
+    };
+
+    PiqueTailleFile pique_taille{};
 
   public:
     OrdonnanceuseTache() = default;
@@ -149,38 +147,24 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
     OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
 
-    void cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
-    void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    void cree_tache_pour_unite(UniteCompilation *unite);
 
-    Tache tache_suivante(Tache &tache_terminee,
-                         bool tache_completee,
-                         int id,
-                         DrapeauxTacheronne drapeaux,
-                         bool mv_en_execution);
+    Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
 
     long memoire_utilisee() const;
 
     int enregistre_tacheronne(Badge<Tacheronne> badge);
 
-    void purge_messages();
-
     void supprime_toutes_les_taches();
     void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
 
+    void marque_compilation_terminee()
+    {
+        compilation_terminee = true;
+    }
+
   private:
-    void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
-
-    bool toutes_les_tacheronnes_dorment() const;
-
-    bool autre_tacheronne_dans_etat(int id, GenreTache genre_tache);
-
     long nombre_de_taches_en_attente() const;
-
-    Tache tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {
@@ -222,10 +206,10 @@ struct Tacheronne {
     void gere_tache();
 
   private:
-    bool gere_unite_pour_typage(UniteCompilation *unite);
-    bool gere_unite_pour_ri(UniteCompilation *unite);
-    bool gere_unite_pour_optimisation(UniteCompilation *unite);
-    bool gere_unite_pour_execution(UniteCompilation *unite);
+    void gere_unite_pour_typage(UniteCompilation *unite);
+    void gere_unite_pour_ri(UniteCompilation *unite);
+    void gere_unite_pour_optimisation(UniteCompilation *unite);
+    void gere_unite_pour_execution(UniteCompilation *unite);
 
     void execute_metaprogrammes();
 

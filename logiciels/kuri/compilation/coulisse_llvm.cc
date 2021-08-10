@@ -1613,8 +1613,9 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
     return true;
 }
 
-bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice,
+bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
                                       EspaceDeTravail &espace,
+                                      Programme * /*programme*/,
                                       ConstructriceRI & /*constructrice_ri*/)
 {
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -1676,7 +1677,9 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice,
     return true;
 }
 
-bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace)
+bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
+                                   EspaceDeTravail &espace,
+                                   Programme * /*programme*/)
 {
     auto debut_executable = dls::chrono::compte_seconde();
     if (!::cree_executable(espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {

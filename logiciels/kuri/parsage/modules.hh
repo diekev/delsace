@@ -86,6 +86,8 @@ struct Fichier {
 
     dls::ensemblon<Module *, 16> modules_importes{};
 
+    bool fut_parse = false;
+
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
