@@ -28,6 +28,7 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -861,5 +862,13 @@ COMME_INST(InstructionStockeMem, stocke_mem)
 COMME_INST(InstructionTranstype, transtype)
 
 #undef COMME_INST
+
+struct VisiteuseAtome {
+    /* Les atomes peuvent avoir des dépendances cycliques, donc tenons trace de ceux qui ont été
+     * visités. */
+    dls::ensemble<Atome *> visites{};
+
+    void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
+};
 
 void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
