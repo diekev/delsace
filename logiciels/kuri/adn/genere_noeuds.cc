@@ -394,6 +394,15 @@ struct GeneratriceCodeCPP {
                     }
                 });
 
+            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_BOUCLE") {
+                os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pre, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarret, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sinon, preference, rappel);\n";
+                os << "\t\t\t}\n";
+            }
+
             os << "\t\t\tbreak;\n";
             os << "\t\t}\n";
         }
