@@ -264,7 +264,7 @@ static void rassemble_dependances(NoeudExpression *racine,
 
                 if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
                     assert(interface->decl_panique_membre_union);
-                    auto type_union = comme->transformation.type_cible->comme_union();
+                    auto type_union = comme->expression->type->comme_union();
                     if (!type_union->est_nonsure) {
                         dependances.fonctions_utilisees.insere(
                             interface->decl_panique_membre_union);
