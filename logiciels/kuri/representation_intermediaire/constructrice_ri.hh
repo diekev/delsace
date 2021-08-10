@@ -212,6 +212,9 @@ struct ConstructriceRI {
                                                     AtomeConstante *valeur_droite);
     AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
+    AtomeConstante *cree_info_type(Type *type);
+    AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
+
   private:
     AtomeFonction *genere_fonction_init_globales_et_appel(
         const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
@@ -243,10 +246,14 @@ struct ConstructriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *cree_info_type(Type *type);
+    void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
+                                            unsigned int index,
+                                            unsigned int taille_octet);
     AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
     AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
     AtomeConstante *cree_info_type_avec_transtype(Type *type);
+    AtomeConstante *cree_globale_info_type(Type *type_info_type,
+                                           kuri::tableau<AtomeConstante *> &&valeurs);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
                                      Atome *pointeur_tableau_fixe,

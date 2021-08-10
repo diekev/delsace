@@ -1220,8 +1220,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 void GeneratriceCodeLLVM::genere_code()
 {
-    m_espace.typeuse.construit_table_types();
-
     POUR_TABLEAU_PAGE (m_espace.globales) {
         __indente_globale.v = 0;
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);

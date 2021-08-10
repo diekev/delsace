@@ -504,8 +504,6 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
-    espace.typeuse.construit_table_types();
-
     if (espace.fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
     }

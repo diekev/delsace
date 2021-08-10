@@ -1541,6 +1541,64 @@ static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibl
     }
 }
 
+static void genere_table_des_types(Typeuse &typeuse,
+                                   ProgrammeRepreInter &repr_inter_programme,
+                                   ConstructriceRI &constructrice_ri)
+{
+    auto index_type = 0u;
+    POUR (repr_inter_programme.types) {
+        if (!it->atome_info_type) {
+            // constructrice_ri.cree_info_type(it);
+            continue;
+        }
+
+        it->index_dans_table_types = index_type++;
+
+        auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
+        auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
+        auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
+            initialisateur->valeur.valeur_structure.pointeur[2]);
+        atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+    }
+
+    AtomeGlobale *atome_table_des_types = nullptr;
+    POUR (repr_inter_programme.globales) {
+        if (it->ident == ID::__table_des_types) {
+            atome_table_des_types = it;
+            break;
+        }
+    }
+
+    if (!atome_table_des_types) {
+        return;
+    }
+
+    kuri::tableau<AtomeConstante *> table_des_types;
+    table_des_types.reserve(index_type);
+
+    POUR (repr_inter_programme.types) {
+        if (!it->atome_info_type) {
+            continue;
+        }
+
+        table_des_types.ajoute(constructrice_ri.transtype_base_info_type(it->atome_info_type));
+    }
+
+    auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+    atome_table_des_types->initialisateur = constructrice_ri.cree_tableau_global(
+        type_pointeur_info_type, std::move(table_des_types));
+
+    auto initialisateur = static_cast<AtomeValeurConstante *>(
+        atome_table_des_types->initialisateur);
+    auto atome_acces = static_cast<AccedeIndexConstant *>(
+        initialisateur->valeur.valeur_structure.pointeur[0]);
+    repr_inter_programme.globales.ajoute(static_cast<AtomeGlobale *>(atome_acces->accede));
+
+    auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
+                                                       static_cast<int>(index_type));
+    repr_inter_programme.types.ajoute(type_tableau_fixe);
+}
+
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1548,9 +1606,6 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      kuri::tableau<Bibliotheque *> &bibliotheques,
                                                      std::ostream &fichier_sortie)
 {
-
-    espace.typeuse.construit_table_types();
-
     auto fonction_principale = espace.fonction_principale;
     if (fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
@@ -1559,6 +1614,8 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
+
+    genere_table_des_types(espace.typeuse, repr_inter_programme, constructrice_ri);
 
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale
@@ -1588,8 +1645,6 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    Programme *programme,
                                                    std::ostream &fichier_sortie)
 {
-    espace.typeuse.construit_table_types();
-
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
 

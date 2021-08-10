@@ -745,6 +745,7 @@ crée_contexte :: fonc () -> rien #création_contexte
 __contexte_fil_principal : ContexteProgramme = ---
 __arguments_ligne_commande : []*z8 = ---
 __tampon_stockage_tamporaire : [16384]z8 = ---
+__table_des_types : []*InfoType
 
 __init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nulctx
 {

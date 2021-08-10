@@ -21,6 +21,7 @@ id_info :: énum z32 {
 InfoType :: struct #interface {
 	id : id_info
 	taille_en_octet : n32
+	index_dans_table_des_types : n32
 }
 
 InfoTypeEntier :: struct #interface {

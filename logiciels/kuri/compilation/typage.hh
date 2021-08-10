@@ -668,8 +668,6 @@ struct Typeuse {
     }
 
     void rassemble_statistiques(Statistiques &stats) const;
-
-    void construit_table_types();
 };
 
 /* ************************************************************************** */
