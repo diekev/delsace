@@ -3128,7 +3128,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
-            remplis_membres_de_bases_info_type(valeurs, IDInfoType::TABLEAU, type->taille_octet);
+            remplis_membres_de_bases_info_type(valeurs, IDInfoType::STRUCTURE, type->taille_octet);
             valeurs[3] = cree_chaine(type_struct->nom->nom);
             valeurs[4] = tableau_membre;
 
