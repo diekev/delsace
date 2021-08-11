@@ -56,6 +56,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "programme.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"
@@ -319,7 +320,7 @@ struct GeneratriceCodeLLVM {
 
     void genere_code_pour_instruction(Instruction const *inst);
 
-    void genere_code();
+    void genere_code(const ProgrammeRepreInter &repr_inter);
 
     llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, long taille_chaine);
 };
@@ -1218,12 +1219,12 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
     }
 }
 
-void GeneratriceCodeLLVM::genere_code()
+void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
-    POUR_TABLEAU_PAGE (m_espace.globales) {
+    POUR (repr_inter.globales) {
         __indente_globale.v = 0;
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
-        auto valeur_globale = &it;
+        auto valeur_globale = it;
 
         auto type = valeur_globale->type->comme_pointeur()->type_pointe;
         auto type_llvm = converti_type_llvm(type);
@@ -1245,24 +1246,28 @@ void GeneratriceCodeLLVM::genere_code()
                                                 nullptr,
                                                 nom_globale);
 
+        globale->setAlignment(type->alignement);
         table_globales[valeur_globale] = globale;
     }
 
-    POUR_TABLEAU_PAGE (m_espace.globales) {
+    POUR (repr_inter.globales) {
         __indente_globale.v = 0;
         // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
-        auto valeur_globale = &it;
+        auto valeur_globale = it;
 
+        auto globale = table_globales[valeur_globale];
         if (valeur_globale->initialisateur) {
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 genere_code_pour_atome(valeur_globale->initialisateur, true));
-            auto globale = table_globales[valeur_globale];
             globale->setInitializer(valeur_initialisateur);
+        }
+        else {
+            globale->setInitializer(llvm::ConstantAggregateZero::get(globale->getType()));
         }
     }
 
-    POUR_TABLEAU_PAGE (m_espace.fonctions) {
-        auto atome_fonc = &it;
+    POUR (repr_inter.fonctions) {
+        auto atome_fonc = it;
 
         auto type_fonction = atome_fonc->type->comme_fonction();
         auto type_llvm = converti_type_fonction(type_fonction,
@@ -1274,8 +1279,8 @@ void GeneratriceCodeLLVM::genere_code()
                                m_module);
     }
 
-    POUR_TABLEAU_PAGE (m_espace.fonctions) {
-        auto atome_fonc = &it;
+    POUR (repr_inter.fonctions) {
+        auto atome_fonc = it;
         table_valeurs.efface();
         table_blocs.efface();
 
@@ -1613,7 +1618,7 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 
 bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
                                       EspaceDeTravail &espace,
-                                      Programme * /*programme*/,
+                                      Programme *programme,
                                       ConstructriceRI & /*constructrice_ri*/)
 {
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
@@ -1629,6 +1634,8 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         std::cerr << erreur << '\n';
         return 1;
     }
+
+    auto repr_inter = representation_intermediaire_programme(*programme);
 
     auto CPU = "generic";
     auto feature = "";
@@ -1650,7 +1657,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
 
     initialise_optimisation(espace.options.niveau_optimisation, generatrice);
 
-    generatrice.genere_code();
+    generatrice.genere_code(repr_inter);
 
     delete generatrice.manager_fonctions;
 
@@ -1658,6 +1665,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
 
 #ifndef NDEBUG
     if (!valide_llvm_ir(module_llvm)) {
+        espace.rapporte_erreur_sans_site("Erreur interne, impossible de générer le code LLVM.");
         return false;
     }
 #endif
