@@ -53,6 +53,10 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         return;
     }
 
+    if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
+        return;
+    }
+
     auto const &nom_broye = nom_broye_type(type);
 
     enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
@@ -243,12 +247,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
                 return;
             }
 
-            enchaineuse << "typedef struct Tableau_" << nom_broye;
-            enchaineuse << "{\n\t";
-            enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
-            enchaineuse << "\n\tlong taille;\n"
-                        << "\tlong " << broye_nom_simple("capacité") << ";\n} " << nom_broye
-                        << ";\n\n";
+            enchaineuse << "typedef struct Tableau_" << nom_broye << ' ' << nom_broye << ";\n";
             break;
         }
         case GenreType::FONCTION:
@@ -313,6 +312,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
             break;
         }
     }
+
+    type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
 /* ************************************************************************** */
@@ -378,80 +379,6 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
     }
 
     enchaineuse << ";\n\n";
-}
-
-/* ************************************************************************** */
-
-static bool peut_etre_dereference(Type *type)
-{
-    return type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::TABLEAU_DYNAMIQUE ||
-           type->genre == GenreType::REFERENCE || type->genre == GenreType::POINTEUR;
-}
-
-/* Nous pourrions utiliser visite_type à la place, mais la mise en place du drapeau pour les
- * structures fait en quelque sorte échouer la génération de typedef, si la structure s'inclue
- * indirectement. */
-static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
-{
-    // À FAIRE(gestion) : les types polymorphiques sont inclus dans le programme final, donc le
-    // type peut être nul.
-    if (!type || (type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
-        return;
-    }
-
-    /* Plante directement le drapeau afin d'éviter les dépassements de pile en cas de cycles (p.e.
-     * pour les listes chainées). */
-    type->drapeaux |= TYPEDEF_FUT_GENERE;
-
-    if (peut_etre_dereference(type)) {
-        auto type_deref = type_dereference_pour(type);
-
-        /* argument variadique fonction externe */
-        if (type_deref == nullptr) {
-            if (type->genre != GenreType::POINTEUR) {
-                return;
-            }
-        }
-        else {
-            if (type_deref->genre == GenreType::VARIADIQUE) {
-                type_deref = type_deref->comme_variadique()->type_pointe;
-
-                /* dans la RI nous créons un pointeur vers le type des arguments ce
-                 * qui peut inclure un pointeur vers un type variadique externe sans
-                 * type */
-                if (type_deref == nullptr) {
-                    return;
-                }
-            }
-
-            genere_typedefs_recursifs(type_deref, enchaineuse);
-        }
-    }
-    /* ajoute les types des paramètres et de retour des fonctions */
-    else if (type->genre == GenreType::FONCTION) {
-        auto type_fonc = type->comme_fonction();
-
-        POUR (type_fonc->types_entrees) {
-            genere_typedefs_recursifs(it, enchaineuse);
-        }
-
-        genere_typedefs_recursifs(type_fonc->type_sortie, enchaineuse);
-    }
-    else if (type->est_variadique()) {
-        if (type->comme_variadique()->type_pointe) {
-            genere_typedefs_recursifs(type->comme_variadique()->type_pointe, enchaineuse);
-        }
-    }
-    else if (type->est_enum()) {
-        auto opaque = type->comme_enum();
-        genere_typedefs_recursifs(opaque->type_donnees, enchaineuse);
-    }
-    else if (type->est_union()) {
-        auto type_union = type->comme_union();
-        genere_typedefs_recursifs(type_union->type_le_plus_grand, enchaineuse);
-    }
-
-    cree_typedef(type, enchaineuse);
 }
 
 // ----------------------------------------------
@@ -1424,10 +1351,6 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         return;
     }
 
-    if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu != nullptr) {
-        return;
-    }
-
     if ((type->drapeaux & CODE_MACHINE_FUT_GENERE) != 0) {
         return;
     }
@@ -1440,8 +1363,8 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         }
 
         type->drapeaux |= CODE_MACHINE_FUT_GENERE;
+        cree_typedef(type, enchaineuse);
         POUR (type_struct->membres) {
-            genere_typedefs_recursifs(it.type, enchaineuse);
             genere_code_pour_type(it.type, enchaineuse);
         }
 
@@ -1456,8 +1379,8 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         }
 
         type->drapeaux |= CODE_MACHINE_FUT_GENERE;
+        cree_typedef(type, enchaineuse);
         POUR (type_tuple->membres) {
-            genere_typedefs_recursifs(it.type, enchaineuse);
             genere_code_pour_type(it.type, enchaineuse);
         }
 
@@ -1482,7 +1405,7 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
     }
     else if (type->est_enum()) {
         auto type_enum = type->comme_enum();
-        genere_typedefs_recursifs(type_enum->type_donnees, enchaineuse);
+        genere_code_pour_type(type_enum->type_donnees, enchaineuse);
     }
     else if (type->est_tableau_fixe()) {
         auto tableau_fixe = type->comme_tableau_fixe();
@@ -1495,7 +1418,23 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
     }
     else if (type->est_tableau_dynamique()) {
         auto tableau_dynamique = type->comme_tableau_dynamique();
-        genere_code_pour_type(tableau_dynamique->type_pointe, enchaineuse);
+        auto type_pointe = tableau_dynamique->type_pointe;
+
+        if (type_pointe == nullptr) {
+            return;
+        }
+
+        genere_code_pour_type(type_pointe, enchaineuse);
+
+        if ((type->drapeaux & CODE_MACHINE_FUT_GENERE) == 0) {
+            auto const &nom_broye = nom_broye_type(type);
+            enchaineuse << "typedef struct Tableau_" << nom_broye;
+            enchaineuse << "{\n\t";
+            enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
+            enchaineuse << "\n\tlong taille;\n"
+                        << "\tlong " << broye_nom_simple("capacité") << ";\n} Tableau_"
+                        << nom_broye << ";\n\n";
+        }
     }
     else if (type->est_opaque()) {
         auto opaque = type->comme_opaque();
@@ -1508,9 +1447,19 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         }
         genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
     }
+    else if (type->est_pointeur()) {
+        genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
+    }
+    else if (type->est_reference()) {
+        genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
+    }
+    else if (type->est_variadique()) {
+        genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
+        genere_code_pour_type(type->comme_variadique()->type_tableau_dyn, enchaineuse);
+    }
 
     type->drapeaux |= CODE_MACHINE_FUT_GENERE;
-    genere_typedefs_recursifs(type, enchaineuse);
+    cree_typedef(type, enchaineuse);
 }
 
 static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
