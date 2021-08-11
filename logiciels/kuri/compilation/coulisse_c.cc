@@ -221,10 +221,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
         }
         case GenreType::TABLEAU_FIXE:
         {
-            auto type_pointe = type->comme_tableau_fixe()->type_pointe;
-            enchaineuse << "typedef struct { " << nom_broye_type(type_pointe);
-            enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
-            enchaineuse << " } " << nom_broye << ";\n\n";
+            enchaineuse << "typedef struct TableauFixe_" << nom_broye << ' ' << nom_broye << ";\n";
             break;
         }
         case GenreType::VARIADIQUE:
@@ -444,10 +441,6 @@ static void genere_typedefs_recursifs(Type *type, Enchaineuse &enchaineuse)
         if (type->comme_variadique()->type_pointe) {
             genere_typedefs_recursifs(type->comme_variadique()->type_pointe, enchaineuse);
         }
-    }
-    else if (type->est_opaque()) {
-        auto opaque = type->comme_opaque();
-        genere_typedefs_recursifs(opaque->type_opacifie, enchaineuse);
     }
     else if (type->est_enum()) {
         auto opaque = type->comme_enum();
@@ -1494,10 +1487,26 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
     else if (type->est_tableau_fixe()) {
         auto tableau_fixe = type->comme_tableau_fixe();
         genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+        auto const &nom_broye = nom_broye_type(type);
+        enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
+                    << nom_broye_type(tableau_fixe->type_pointe);
+        enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
+        enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
     }
     else if (type->est_tableau_dynamique()) {
         auto tableau_dynamique = type->comme_tableau_dynamique();
         genere_code_pour_type(tableau_dynamique->type_pointe, enchaineuse);
+    }
+    else if (type->est_opaque()) {
+        auto opaque = type->comme_opaque();
+        genere_code_pour_type(opaque->type_opacifie, enchaineuse);
+    }
+    else if (type->est_fonction()) {
+        auto type_fonction = type->comme_fonction();
+        POUR (type_fonction->types_entrees) {
+            genere_code_pour_type(it, enchaineuse);
+        }
+        genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
     }
 
     type->drapeaux |= CODE_MACHINE_FUT_GENERE;
