@@ -109,6 +109,22 @@ class ensemble {
         }
     }
 
+    template <typename Rappel>
+    void pour_chaque_element(Rappel &&rappel) const
+    {
+        if (capacite == 0) {
+            return;
+        }
+
+        for (int i = 0; i < capacite; ++i) {
+            if (!occupes[i]) {
+                continue;
+            }
+
+            rappel(cles[i]);
+        }
+    }
+
   private:
     void alloue(long taille)
     {
