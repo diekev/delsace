@@ -37,6 +37,17 @@ class GrapheDependance;
 class OrdonnanceuseTache;
 struct Programme;
 
+struct DonnneesResolutionDependances {
+    DonneesDependance dependances;
+    DonneesDependance dependances_ependues;
+
+    void reinitialise()
+    {
+        dependances.efface();
+        dependances_ependues.efface();
+    }
+};
+
 /* Le GestionnaireCode a pour tâches de gérer la compilation des programmes. Il crée les unités de
  * compilation et veille à ce qu'elles ne progressent pas dans la compilation tant qu'une de leurs
  * attentes n'est pas satisfaite, le gestionnaire étant notifié si une unité a fini son étape
@@ -65,7 +76,7 @@ class GestionnaireCode {
     /* Les dépendances d'une déclaration qui sont rassemblées après la fin du typage, nous ne
      * stockons pas définitivement cette information, ce membre ne sers qu'à réutiliser la mémoire
      * allouée précédemment afin de ne pas trop faire d'allocations dynamiques. */
-    DonneesDependance dependances{};
+    DonnneesResolutionDependances dependances{};
 
   public:
     GestionnaireCode() = default;

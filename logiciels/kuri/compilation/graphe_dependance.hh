@@ -27,9 +27,9 @@
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 
@@ -143,9 +143,11 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-    dls::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
-    dls::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
-    dls::ensemblon<Type *, 16> types_utilises{};
+    kuri::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
+    kuri::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
+    kuri::ensemblon<Type *, 16> types_utilises{};
+
+    void fusionne(DonneesDependance const &autre);
 
     void efface()
     {
@@ -195,7 +197,7 @@ struct GrapheDependance {
 
     void rassemble_fonctions_utilisees(NoeudDependance *racine,
                                        kuri::tableau<AtomeFonction *> &fonctions,
-                                       dls::ensemble<AtomeFonction *> &utilises);
+                                       kuri::ensemble<AtomeFonction *> &utilises);
 
     template <typename Rappel>
     void traverse(NoeudDependance *racine, Rappel rappel)

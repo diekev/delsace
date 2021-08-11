@@ -83,21 +83,21 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
                                             Programme &programme)
 {
     /* Ajoute les fonctions. */
-    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         programme.ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction));
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Ajoute les globales. */
-    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Ajoute les types. */
-    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         programme.ajoute_type(type);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 }
 
@@ -390,23 +390,23 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (!fonction->corps->unite && !fonction->est_externe) {
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         if (!globale->unite) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         auto decl = decl_pour_type(type);
         if (decl && !decl->unite) {
             // Pour les unions anonymes, nous allons directement à la génération de code RI.
@@ -417,7 +417,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                 gestionnaire.requiers_typage(espace, decl);
             }
         }
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 }
 
@@ -425,24 +425,24 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
  * ajoutes les dépedances de ces types aux dépendances.
  * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
  * programmes. */
-static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance &dependances)
+static void epends_dependances_types(GrapheDependance &graphe,
+                                     DonnneesResolutionDependances &donnees_resolution)
 {
-    dls::ensemblon<Type *, 16> types_utilises;
-    dls::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
-    dls::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
+    auto &dependances = donnees_resolution.dependances;
+    auto &dependances_ependues = donnees_resolution.dependances_ependues;
 
     /* Traverse le graphe pour chaque dépendance sur un type. */
-    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        types_utilises.insere(type);
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        dependances_ependues.types_utilises.insere(type);
 
         auto noeud_dependance = graphe.cree_noeud_type(type);
         graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
             if (relation->est_type()) {
-                types_utilises.insere(relation->type());
+                dependances_ependues.types_utilises.insere(relation->type());
             }
         });
 
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Réinitialise le graphe pour les traversées futures. */
@@ -450,24 +450,24 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
         it.fut_visite = false;
     }
 
-    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        fonctions_utilisees.insere(fonction);
-        types_utilises.insere(fonction->type);
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        dependances_ependues.fonctions_utilisees.insere(fonction);
+        dependances_ependues.types_utilises.insere(fonction->type);
 
         auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
         graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
             if (relation->est_fonction()) {
-                fonctions_utilisees.insere(relation->fonction());
+                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
             }
             else if (relation->est_globale()) {
-                globales_utilisees.insere(relation->globale());
+                dependances_ependues.globales_utilisees.insere(relation->globale());
             }
             else if (relation->est_type()) {
-                types_utilises.insere(relation->type());
+                dependances_ependues.types_utilises.insere(relation->type());
             }
         });
 
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Réinitialise le graphe pour les traversées futures. */
@@ -475,24 +475,24 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
         it.fut_visite = false;
     }
 
-    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        globales_utilisees.insere(globale);
-        types_utilises.insere(globale->type);
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        dependances_ependues.globales_utilisees.insere(globale);
+        dependances_ependues.types_utilises.insere(globale->type);
 
         auto noeud_dependance = graphe.cree_noeud_globale(globale);
         graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
             if (relation->est_fonction()) {
-                fonctions_utilisees.insere(relation->fonction());
+                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
             }
             else if (relation->est_globale()) {
-                globales_utilisees.insere(relation->globale());
+                dependances_ependues.globales_utilisees.insere(relation->globale());
             }
             else if (relation->est_type()) {
-                types_utilises.insere(relation->type());
+                dependances_ependues.types_utilises.insere(relation->type());
             }
         });
 
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     /* Réinitialise le graphe pour les traversées futures. */
@@ -500,31 +500,7 @@ static void epends_dependances_types(GrapheDependance &graphe, DonneesDependance
         it.fut_visite = false;
     }
 
-    /* Ajoute les nouveaux types aux dépendances courantes. */
-    dls::pour_chaque_element(types_utilises, [&](auto &type) {
-        if (type->est_type_de_donnees()) {
-            auto type_de_donnees = type->comme_type_de_donnees();
-            if (type_de_donnees->type_connu) {
-                dependances.types_utilises.insere(type_de_donnees->type_connu);
-            }
-        }
-        else {
-            dependances.types_utilises.insere(type);
-        }
-        return dls::DecisionIteration::Continue;
-    });
-
-    /* Ajoute les nouveaux types aux dépendances courantes. */
-    dls::pour_chaque_element(fonctions_utilisees, [&](auto &fonction) {
-        dependances.fonctions_utilisees.insere(fonction);
-        return dls::DecisionIteration::Continue;
-    });
-
-    /* Ajoute les nouveaux types aux dépendances courantes. */
-    dls::pour_chaque_element(globales_utilisees, [&](auto &globale) {
-        dependances.globales_utilisees.insere(globale);
-        return dls::DecisionIteration::Continue;
-    });
+    dependances.fusionne(dependances_ependues);
 }
 
 /* Détermine si nous devons ajouter les dépendances du noeud au programme. */
@@ -556,13 +532,13 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDependance &graphe)
 {
-    dependances.efface();
-    rassemble_dependances(noeud, espace, dependances);
+    dependances.reinitialise();
+    rassemble_dependances(noeud, espace, dependances.dependances);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
-    graphe.ajoute_dependances(*noeud_dependance, dependances);
+    graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
 
     epends_dependances_types(graphe, dependances);
 
@@ -580,14 +556,14 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     auto dependances_ajoutees = false;
     POUR (programmes_en_cours) {
         if (doit_ajouter_les_dependances_au_programme(noeud, it)) {
-            ajoute_dependances_au_programme(dependances, *it);
+            ajoute_dependances_au_programme(dependances.dependances, *it);
             dependances_ajoutees = true;
         }
     }
 
     /* Crée les unités de typage si nécessaire. */
     if (dependances_ajoutees) {
-        garantie_typage_des_dependances(*this, dependances, espace);
+        garantie_typage_des_dependances(*this, dependances.dependances, espace);
     }
 }
 

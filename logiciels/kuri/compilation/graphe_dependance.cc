@@ -157,24 +157,24 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 
 void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees)
 {
-    dls::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
         auto noeud_type = cree_noeud_type(type);
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
-    dls::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
+    kuri::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
         auto noeud_type = cree_noeud_fonction(
             const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
-    dls::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee) {
+    kuri::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee) {
         auto noeud_type = cree_noeud_globale(
             const_cast<NoeudDeclarationVariable *>(globale_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 }
 
@@ -299,7 +299,7 @@ void GrapheDependance::reduction_transitive()
 
 void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
                                                      kuri::tableau<AtomeFonction *> &fonctions,
-                                                     dls::ensemble<AtomeFonction *> &utilises)
+                                                     kuri::ensemble<AtomeFonction *> &utilises)
 {
     traverse(racine, [&](NoeudDependance *noeud) {
         if (noeud->est_fonction()) {
@@ -307,7 +307,7 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
             auto atome_fonction = static_cast<AtomeFonction *>(noeud_fonction->atome);
             assert(atome_fonction);
 
-            if (utilises.trouve(atome_fonction) != utilises.fin()) {
+            if (utilises.possede(atome_fonction)) {
                 return;
             }
 
@@ -330,7 +330,7 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
                 }
 
                 // Il est possible que la fonction fut déjà ajoutée via l'union_originelle.
-                if (utilises.trouve(atome_fonction) != utilises.fin()) {
+                if (utilises.possede(atome_fonction)) {
                     return;
                 }
 
@@ -351,22 +351,51 @@ void imprime_dependances(const DonneesDependance &dependances,
     flux << "Dépendances pour : " << message << '\n';
 
     flux << "fonctions :\n";
-    dls::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         erreur::imprime_site(*espace, fonction);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     flux << "globales :\n";
     /* Requiers le typage de toutes les déclarations utilisées. */
-    dls::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         erreur::imprime_site(*espace, globale);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     flux << "types :\n";
     /* Requiers le typage de tous les types utilisés. */
-    dls::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         flux << chaine_type(type) << '\n';
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
+    });
+}
+
+void DonneesDependance::fusionne(const DonneesDependance &autre)
+{
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    pour_chaque_element(autre.types_utilises, [&](auto &type) {
+        if (type->est_type_de_donnees()) {
+            auto type_de_donnees = type->comme_type_de_donnees();
+            if (type_de_donnees->type_connu) {
+                types_utilises.insere(type_de_donnees->type_connu);
+            }
+        }
+        else {
+            types_utilises.insere(type);
+        }
+        return kuri::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    pour_chaque_element(autre.fonctions_utilisees, [&](auto &fonction) {
+        fonctions_utilisees.insere(fonction);
+        return kuri::DecisionIteration::Continue;
+    });
+
+    /* Ajoute les nouveaux types aux dépendances courantes. */
+    pour_chaque_element(autre.globales_utilisees, [&](auto &globale) {
+        globales_utilisees.insere(globale);
+        return kuri::DecisionIteration::Continue;
     });
 }
