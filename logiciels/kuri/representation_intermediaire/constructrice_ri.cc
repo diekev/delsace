@@ -1844,19 +1844,22 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
             auto alloc = cree_allocation(noeud, type_union, nullptr);
 
-            valeur = cree_transtype(
-                noeud,
-                m_espace->typeuse.type_pointeur_pour(type_union->type_le_plus_grand, false),
-                valeur,
-                TypeTranstypage::BITS);
-            valeur = cree_charge_mem(noeud, valeur);
-
             if (type_union->est_nonsure) {
                 cree_stocke_mem(noeud, alloc, valeur);
             }
             else {
+                /* Pour les unions, nous transtypons le membre vers le type cible afin d'éviter les
+                 * problème de surécriture de mémoire dans le cas où le type du membre est plus
+                 * grand que le type de la valeur. */
+                valeur = cree_charge_mem(noeud, valeur);
+
                 auto acces_membre = cree_reference_membre(noeud, alloc, 0);
-                cree_stocke_mem(noeud, acces_membre, valeur);
+                auto membre_transtype = cree_transtype(
+                    noeud,
+                    m_espace->typeuse.type_pointeur_pour(valeur->type, false),
+                    acces_membre,
+                    TypeTranstypage::BITS);
+                cree_stocke_mem(noeud, membre_transtype, valeur);
 
                 acces_membre = cree_reference_membre(noeud, alloc, 1);
                 auto index = cree_constante_entiere(
