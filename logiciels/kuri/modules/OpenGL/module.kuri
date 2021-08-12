@@ -108,6 +108,7 @@ glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized 
 glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe libGL
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
 glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe libGL
+glUniform1i :: fonc (loc: n32, uniform: z32) -> rien #externe libGL
 
 glGetIntegerv :: fonc (pname: GLenum, data: *GLint) -> GLvoid #externe libGL
 
