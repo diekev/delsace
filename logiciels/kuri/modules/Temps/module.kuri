@@ -199,12 +199,14 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
     initialise_enchaineuse(*enchaineuse)
 
     tantque i < format.taille {
-        si format[i] == '%' {
+        si format[i] != '%' {
+            chn := construit_chaine(*format[i], 1)
+            ajoute_au_tampon(*enchaineuse, chn)
+        }
+        sinon {
             i += 1
 
-            c := format[i]
-
-            discr c {
+            discr format[i] {
                 'A' {
                     ajoute_au_tampon(*enchaineuse, date.année)
                 }
@@ -242,13 +244,7 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
                     continue
                 }
             }
-
-            i += 1
-            continue
         }
-
-        chn := construit_chaine(*format[i], 1)
-        ajoute_au_tampon(*enchaineuse, chn)
 
         i += 1
     }
