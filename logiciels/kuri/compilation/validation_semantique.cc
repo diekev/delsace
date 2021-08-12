@@ -1468,10 +1468,16 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto noeud_expr = noeud->comme_info_de();
             auto expr = noeud_expr->expression;
 
-            if (resoud_type_final(noeud_expr->expression, expr->type) ==
-                CodeRetourValidation::Erreur) {
+            Type *type = nullptr;
+            if (resoud_type_final(expr, type) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
+
+            if ((type->drapeaux & TYPE_FUT_VALIDE) == 0 && type != racine_validation()->type) {
+                return Attente::sur_type(type);
+            }
+
+            expr->type = type;
 
             auto type_info_type = Type::nul();
 
