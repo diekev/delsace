@@ -1809,6 +1809,10 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             }
         }
 
+        if (it->chemin_dynamique) {
+            enchaineuse << " -Wl,-rpath=" << chemin_parent;
+        }
+
         enchaineuse << " -L" << chemin_parent.c_str();
     }
 
