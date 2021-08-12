@@ -1616,7 +1616,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto inst = noeud->comme_info_de();
             auto enfant = inst->expression;
-            auto valeur = cree_info_type(enfant->type);
+            auto valeur = cree_info_type(enfant->type, noeud);
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
@@ -2072,7 +2072,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
             /* copie le pointeur vers les infos du type du eini */
             auto tpe_eini = cree_reference_membre(noeud, alloc_eini, 1);
-            auto info_type = cree_info_type_avec_transtype(noeud->type);
+            auto info_type = cree_info_type_avec_transtype(noeud->type, noeud);
             cree_stocke_mem(noeud, tpe_eini, info_type);
 
             if (place == nullptr) {
@@ -2888,11 +2888,20 @@ struct IDInfoType {
     static constexpr unsigned OPAQUE = 14;
 };
 
-AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
+AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *site)
 {
     if (type->atome_info_type != nullptr) {
         return type->atome_info_type;
     }
+
+#if 0
+    // assert((type->drapeaux & TYPE_FUT_VALIDE) != 0);
+    if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        espace()
+            ->rapporte_erreur(site, "Type non validé lors de la création d'un info type !\n")
+            .ajoute_message("Note : le type est : ", chaine_type(type));
+    }
+#endif
 
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
@@ -2962,7 +2971,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             /* { membres basiques, type_pointé, est_référence } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::POINTEUR, type->taille_octet);
-            valeurs[3] = cree_info_type_avec_transtype(type_deref);
+            valeurs[3] = cree_info_type_avec_transtype(type_deref, site);
             valeurs[4] = cree_constante_booleenne(type->genre == GenreType::REFERENCE);
 
             type->atome_info_type = cree_globale_info_type(
@@ -3050,7 +3059,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
                 auto valeurs = kuri::tableau<AtomeConstante *>(4);
                 valeurs[0] = cree_chaine(it.nom->nom);
-                valeurs[1] = cree_info_type_avec_transtype(it.type);
+                valeurs[1] = cree_info_type_avec_transtype(it.type, site);
                 valeurs[2] = cree_z64(static_cast<uint64_t>(it.decalage));
                 valeurs[3] = cree_z32(static_cast<unsigned>(it.drapeaux));
 
@@ -3069,7 +3078,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
              * est_sûre: bool
              */
             auto info_type_plus_grand = cree_info_type_avec_transtype(
-                type_union->type_le_plus_grand);
+                type_union->type_le_plus_grand, site);
 
             // Pour les références à des globales, nous devons avoir un type pointeur.
             auto type_membre = m_espace->typeuse.type_pointeur_pour(type_struct_membre, false);
@@ -3111,7 +3120,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
                 auto valeurs = kuri::tableau<AtomeConstante *>(4);
                 valeurs[0] = cree_chaine(it.nom->nom);
-                valeurs[1] = cree_info_type_avec_transtype(it.type);
+                valeurs[1] = cree_info_type_avec_transtype(it.type, site);
                 valeurs[2] = cree_z64(static_cast<uint64_t>(it.decalage));
                 valeurs[3] = cree_z32(static_cast<unsigned>(it.drapeaux));
 
@@ -3144,7 +3153,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::TABLEAU, type->taille_octet);
-            valeurs[3] = cree_info_type_avec_transtype(type_deref);
+            valeurs[3] = cree_info_type_avec_transtype(type_deref, site);
             valeurs[4] = cree_constante_booleenne(false);
             valeurs[5] = cree_z32(0);
 
@@ -3159,7 +3168,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             /* { membres basiques, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::TABLEAU, type->taille_octet);
-            valeurs[3] = cree_info_type_avec_transtype(type_tableau->type_pointe);
+            valeurs[3] = cree_info_type_avec_transtype(type_tableau->type_pointe, site);
             valeurs[4] = cree_constante_booleenne(true);
             valeurs[5] = cree_z32(static_cast<unsigned>(type_tableau->taille));
 
@@ -3174,7 +3183,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             kuri::tableau<AtomeConstante *> types_entree;
             types_entree.reserve(type_fonction->types_entrees.taille());
             POUR (type_fonction->types_entrees) {
-                types_entree.ajoute(cree_info_type_avec_transtype(it));
+                types_entree.ajoute(cree_info_type_avec_transtype(it, site));
             }
 
             kuri::tableau<AtomeConstante *> types_sortie;
@@ -3184,12 +3193,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
                 types_sortie.reserve(tuple->membres.taille());
                 POUR (tuple->membres) {
-                    types_sortie.ajoute(cree_info_type_avec_transtype(it.type));
+                    types_sortie.ajoute(cree_info_type_avec_transtype(it.type, site));
                 }
             }
             else {
                 types_sortie.reserve(1);
-                types_sortie.ajoute(cree_info_type_avec_transtype(type_fonction->type_sortie));
+                types_sortie.ajoute(
+                    cree_info_type_avec_transtype(type_fonction->type_sortie, site));
             }
 
             auto type_membre = m_espace->typeuse.type_pointeur_pour(
@@ -3238,7 +3248,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
             remplis_membres_de_bases_info_type(
                 valeurs, IDInfoType::OPAQUE, type_opacifie->taille_octet);
             valeurs[3] = cree_chaine(type_opaque->ident->nom);
-            valeurs[4] = cree_info_type_avec_transtype(type_opacifie);
+            valeurs[4] = cree_info_type_avec_transtype(type_opacifie, site);
 
             type->atome_info_type = cree_globale_info_type(m_espace->typeuse.type_info_type_opaque,
                                                            std::move(valeurs));
@@ -3287,9 +3297,9 @@ AtomeConstante *ConstructriceRI::cree_info_type_entier(unsigned taille_octet, bo
     return cree_globale_info_type(m_espace->typeuse.type_info_type_entier, std::move(valeurs));
 }
 
-AtomeConstante *ConstructriceRI::cree_info_type_avec_transtype(Type *type)
+AtomeConstante *ConstructriceRI::cree_info_type_avec_transtype(Type *type, NoeudExpression *site)
 {
-    auto info_type = cree_info_type(type);
+    auto info_type = cree_info_type(type, site);
     return transtype_base_info_type(info_type);
 }
 

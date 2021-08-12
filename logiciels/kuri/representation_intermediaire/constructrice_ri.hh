@@ -212,7 +212,7 @@ struct ConstructriceRI {
                                                     AtomeConstante *valeur_droite);
     AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
-    AtomeConstante *cree_info_type(Type *type);
+    AtomeConstante *cree_info_type(Type *type, NoeudExpression *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
   private:
@@ -251,7 +251,7 @@ struct ConstructriceRI {
                                             unsigned int taille_octet);
     AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
     AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
-    AtomeConstante *cree_info_type_avec_transtype(Type *type);
+    AtomeConstante *cree_info_type_avec_transtype(Type *type, NoeudExpression *site);
     AtomeConstante *cree_globale_info_type(Type *type_info_type,
                                            kuri::tableau<AtomeConstante *> &&valeurs);
 

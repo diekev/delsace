@@ -1468,13 +1468,100 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto noeud_expr = noeud->comme_info_de();
             auto expr = noeud_expr->expression;
 
-            Type *type = nullptr;
+            Type *type = Type::nul();
             if (resoud_type_final(expr, type) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
-            if ((type->drapeaux & TYPE_FUT_VALIDE) == 0 && type != racine_validation()->type) {
-                return Attente::sur_type(type);
+            /* Visite récursivement le type pour s'assurer que tous les types dépendants sont
+             * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
+             * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
+             * avoir à attendre. */
+            auto visites = kuri::ensemblon<Type *, 16>();
+            auto pile = dls::pile<Type *>();
+            pile.empile(type);
+
+            while (!pile.est_vide()) {
+                auto type_courant = pile.depile();
+
+                if (visites.possede(type_courant)) {
+                    continue;
+                }
+
+                visites.insere(type_courant);
+
+                if ((type_courant->drapeaux & TYPE_FUT_VALIDE) == 0 &&
+                    type_courant != racine_validation()->type) {
+                    return Attente::sur_type(type_courant);
+                }
+
+                switch (type_courant->genre) {
+                    case GenreType::POLYMORPHIQUE:
+                    case GenreType::TUPLE:
+                    case GenreType::EINI:
+                    case GenreType::CHAINE:
+                    case GenreType::RIEN:
+                    case GenreType::BOOL:
+                    case GenreType::OCTET:
+                    case GenreType::TYPE_DE_DONNEES:
+                    case GenreType::REEL:
+                    case GenreType::ENTIER_CONSTANT:
+                    case GenreType::ENTIER_NATUREL:
+                    case GenreType::ENTIER_RELATIF:
+                    case GenreType::ENUM:
+                    case GenreType::ERREUR:
+                    {
+                        break;
+                    }
+                    case GenreType::FONCTION:
+                    {
+                        auto type_fonction = type_courant->comme_fonction();
+                        POUR (type_fonction->types_entrees) {
+                            pile.empile(it);
+                        }
+                        pile.empile(type_fonction->type_sortie);
+                        break;
+                    }
+                    case GenreType::UNION:
+                    case GenreType::STRUCTURE:
+                    {
+                        auto type_compose = static_cast<TypeCompose *>(type_courant);
+                        POUR (type_compose->membres) {
+                            pile.empile(it.type);
+                        }
+                        break;
+                    }
+                    case GenreType::REFERENCE:
+                    {
+                        pile.empile(type_courant->comme_reference()->type_pointe);
+                        break;
+                    }
+                    case GenreType::POINTEUR:
+                    {
+                        pile.empile(type_courant->comme_pointeur()->type_pointe);
+                        break;
+                    }
+                    case GenreType::VARIADIQUE:
+                    {
+                        pile.empile(type_courant->comme_variadique()->type_pointe);
+                        break;
+                    }
+                    case GenreType::TABLEAU_DYNAMIQUE:
+                    {
+                        pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
+                        break;
+                    }
+                    case GenreType::TABLEAU_FIXE:
+                    {
+                        pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
+                        break;
+                    }
+                    case GenreType::OPAQUE:
+                    {
+                        pile.empile(type_courant->comme_opaque()->type_opacifie);
+                        break;
+                    }
+                }
             }
 
             expr->type = type;
