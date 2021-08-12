@@ -226,6 +226,11 @@ struct chaine {
         std::swap(taille_, autre.taille_);
         std::swap(capacite_, autre.capacite_);
     }
+
+    explicit operator bool() const
+    {
+        return taille() != 0;
+    }
 };
 
 bool operator==(chaine const &chn1, chaine const &chn2);
