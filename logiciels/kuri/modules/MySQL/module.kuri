@@ -101,7 +101,9 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	mysql : MYSQL
 	handler := mysql_init(*mysql)
 
-	_ := mysql_set_character_set(*mysql, crée_chaine_c_temp("utf8"))
+	utf8 := crée_chaine_c("utf8")
+    diffère détruit_chaine_c(utf8)
+	_ := mysql_set_character_set(*mysql, utf8)
 
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {
@@ -112,10 +114,14 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	marque := obtiens_marque_stockage_temporaire()
 	diffère { set_marque_stockage_temporaire(marque) }
 
-	hôte := crée_chaine_c_temp(pilote.config.hôte)
-	utilisateur := crée_chaine_c_temp(pilote.config.utilisateur)
-	mot_de_passe := crée_chaine_c_temp(pilote.config.mot_de_passe)
-	base_de_données := crée_chaine_c_temp(pilote.config.base_de_données)
+	hôte := crée_chaine_c(pilote.config.hôte)
+    diffère détruit_chaine_c(hôte)
+	utilisateur := crée_chaine_c(pilote.config.utilisateur)
+    diffère détruit_chaine_c(utilisateur)
+	mot_de_passe := crée_chaine_c(pilote.config.mot_de_passe)
+    diffère détruit_chaine_c(mot_de_passe)
+	base_de_données := crée_chaine_c(pilote.config.base_de_données)
+    diffère détruit_chaine_c(base_de_données)
 
 	CLIENT_MULTI_STATEMENTS : n64 : 0x00010000
 	CLIENT_MULTI_RESULTS : n64 : 0x00020000
@@ -187,7 +193,8 @@ CurseurOuErreur :: union {
 
 exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurOuErreur
 {
-	requête := crée_chaine_c_temp(chaine_requête)
+	requête := crée_chaine_c(chaine_requête)
+    diffère détruit_chaine_c(requête)
 	succès := mysql_query(*connexion.mysql, requête)
 
 	imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête)

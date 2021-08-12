@@ -308,7 +308,8 @@ système_crée_dossier :: fonc (chemin: chaine, mode: z32) -> ErreurFichier
 
     chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
 
-    ptr_chemin := crée_chaine_c_temp(chemin_dossier)
+    ptr_chemin := crée_chaine_c(chemin_dossier)
+    diffère détruit_chaine_c(ptr_chemin)
 
     résultat := mkdir(ptr_chemin, mode)
 
@@ -355,7 +356,8 @@ RésultatFichier :: union {
 // ouvre_fichier_existant_crée_sinon
 ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 {
-   	ptr_chemin := crée_chaine_c_temp(chemin)
+   	ptr_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(ptr_chemin)
 
     desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE, 0o644) piège err {
         retourne err
@@ -369,7 +371,8 @@ ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 
 ouvre_fichier_pour_lecture :: fonc (chemin: chaine) -> RésultatFichier
 {
-    ptr_chemin := crée_chaine_c_temp(chemin)
+    ptr_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(ptr_chemin)
 
     desc := tente système_ouvre(ptr_chemin, LECTURE_SEULE, 0o644) piège err {
         retourne err
@@ -389,7 +392,8 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, drapeaux: z32) -> R
         retourne err
     }
 
-    ptr_chemin := crée_chaine_c_temp(chemin)
+    ptr_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(ptr_chemin)
 
     desc := tente système_ouvre(ptr_chemin, drapeaux, 0o644) piège err {
         retourne err

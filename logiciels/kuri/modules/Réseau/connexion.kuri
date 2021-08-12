@@ -17,7 +17,8 @@ FichierOuErreur :: union {
 
 ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16) -> FichierOuErreur
 {
-    ptr_tampon := crée_chaine_c_temp(hôte)
+    ptr_tampon := crée_chaine_c(hôte)
+    diffère détruit_chaine_c(ptr_tampon)
     he := gethostbyname(ptr_tampon)
 
     si he == nul {

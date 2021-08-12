@@ -106,12 +106,14 @@ ErreurCertificat :: erreur {
 
 charge_certificats_ssl :: fonc(ctx: *ssl_st, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
-    ptr_chemin_certificat := crée_chaine_c_temp(chemin_fichier_certificat)
+    ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat)
+    diffère détruit_chaine_c(ptr_chemin_certificat)
     si SSL_CTX_use_certificate_file(ctx, ptr_chemin_certificat, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCertificationInvalide
     }
 
-    ptr_chemin_clé := crée_chaine_c_temp(chemin_fichier_clé)
+    ptr_chemin_clé := crée_chaine_c(chemin_fichier_clé)
+    diffère détruit_chaine_c(ptr_chemin_clé)
     si SSL_CTX_use_PrivateKey_file(ctx, ptr_chemin_clé, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCléInvalide
     }
