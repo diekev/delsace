@@ -414,6 +414,19 @@ ferme :: fonc (fichier: *Fichier) -> ErreurFichier
     retourne système_ferme(fichier.desc)
 }
 
+copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> bool
+{
+    contenu_source := contenu_fichier_texte(source)
+
+    fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+        retourne faux
+    }
+
+    _ := écris(*fichier_destination, contenu_source)
+    __ := ferme(*fichier_destination)
+    retourne vrai
+}
+
 lis :: fonc (fichier: *Fichier, tampon: chaine) -> RésultatOpérationFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
