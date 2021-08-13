@@ -444,8 +444,7 @@ void UniteCompilation::marque_prete_si_attente_resolue()
     if (m_attente.est<AttenteSurDeclaration>()) {
         auto declaration_attendue = m_attente.declaration();
         if (declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            if (declaration_attendue->est_entete_fonction() &&
-                declaration_attendue->ident == ID::cree_contexte) {
+            if (declaration_attendue == espace->interface_kuri->decl_creation_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
                  * nous faut le code. */
                 mute_attente(
