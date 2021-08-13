@@ -1793,6 +1793,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
                         POUR (type_union->membres) {
+                            if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+                                continue;
+                            }
+
                             if (!membres_rencontres.possede(it.nom)) {
                                 valeurs_manquantes.insere(it.nom->nom);
                             }
