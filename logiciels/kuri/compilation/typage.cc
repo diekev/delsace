@@ -1770,3 +1770,24 @@ const kuri::chaine &TypeOpaque::nom_portable()
     nom_portable_ = ::nom_portable(decl->bloc_parent, ident->nom);
     return nom_portable_;
 }
+
+NoeudDeclaration *decl_pour_type(const Type *type)
+{
+    if (type->est_structure()) {
+        return type->comme_structure()->decl;
+    }
+
+    if (type->est_enum()) {
+        return type->comme_enum()->decl;
+    }
+
+    if (type->est_erreur()) {
+        return type->comme_erreur()->decl;
+    }
+
+    if (type->est_union()) {
+        return type->comme_union()->decl;
+    }
+
+    return nullptr;
+}

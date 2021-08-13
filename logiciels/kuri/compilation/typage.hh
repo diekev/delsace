@@ -686,3 +686,5 @@ bool est_type_conditionnable(Type *type);
 Type *normalise_type(Typeuse &typeuse, Type *type);
 
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
+
+NoeudDeclaration *decl_pour_type(const Type *type);

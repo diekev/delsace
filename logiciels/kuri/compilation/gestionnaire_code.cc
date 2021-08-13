@@ -363,27 +363,6 @@ static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, Graphe
     return nullptr;
 }
 
-static NoeudDeclaration *decl_pour_type(const Type *type)
-{
-    if (type->est_structure()) {
-        return type->comme_structure()->decl;
-    }
-
-    if (type->est_enum()) {
-        return type->comme_enum()->decl;
-    }
-
-    if (type->est_erreur()) {
-        return type->comme_erreur()->decl;
-    }
-
-    if (type->est_union()) {
-        return type->comme_union()->decl;
-    }
-
-    return nullptr;
-}
-
 /* Requiers le typage de toutes les dépendances. */
 static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             DonneesDependance const &dependances,
