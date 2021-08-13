@@ -1845,6 +1845,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
             auto alloc = cree_allocation(noeud, type_union, nullptr);
 
             if (type_union->est_nonsure) {
+                valeur = cree_charge_mem(noeud, valeur);
                 cree_stocke_mem(noeud, alloc, valeur);
             }
             else {
