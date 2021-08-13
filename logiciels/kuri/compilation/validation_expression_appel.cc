@@ -170,11 +170,11 @@ struct Monomorpheuse {
 
                 // le type peut-être celui d'une structure (Polymorphe(T = $T)
                 if (type->est_structure_poly) {
-                    if (!type_courant->est_structure()) {
+                    if (!type_courant->est_structure() && !type_courant->est_union()) {
                         return false;
                     }
 
-                    auto decl_struct = type_courant->comme_structure()->decl;
+                    auto decl_struct = decl_pour_type(type_courant)->comme_structure();
 
                     // À FAIRE : que faire ici?
                     if (!decl_struct->est_monomorphisation) {
@@ -185,11 +185,13 @@ struct Monomorpheuse {
                         return false;
                     }
 
+                    auto type_compose = type_courant->comme_compose();
+
                     for (auto i = 0; i < type->types_constants_structure.taille(); ++i) {
                         auto type1 = type->types_constants_structure[i]->comme_polymorphique();
                         auto type2 = Type::nul();
 
-                        POUR (type_courant->comme_structure()->membres) {
+                        POUR (type_compose->membres) {
                             if (it.nom == type1->ident) {
                                 type2 = it.type->comme_type_de_donnees()->type_connu;
                                 break;
