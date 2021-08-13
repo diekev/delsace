@@ -396,7 +396,7 @@ struct CandidateAppariement {
                               std::move(transformations));
     }
 
-    static CandidateAppariement monomophisation_opaque(
+    static CandidateAppariement monomorphisation_opaque(
         double poids,
         NoeudDeclaration *noeud_decl,
         Type *type,

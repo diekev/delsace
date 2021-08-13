@@ -1327,7 +1327,7 @@ static ResultatAppariement apparie_construction_opaque(
     if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         if (arg->type->est_type_de_donnees()) {
             auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
-            return CandidateAppariement::monomophisation_opaque(
+            return CandidateAppariement::monomorphisation_opaque(
                 1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
         }
 
