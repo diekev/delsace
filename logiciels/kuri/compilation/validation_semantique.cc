@@ -3877,6 +3877,16 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
             auto decl_var = it->comme_declaration_variable();
 
+            if (decl_var->possede_drapeau(EST_CONSTANTE)) {
+                type_compose->membres.ajoute({it->type,
+                                              it->ident,
+                                              0,
+                                              0,
+                                              decl_var->expression,
+                                              TypeCompose::Membre::EST_CONSTANT});
+                continue;
+            }
+
             for (auto &donnees : decl_var->donnees_decl.plage()) {
                 for (auto i = 0; i < donnees.variables.taille(); ++i) {
                     auto var = donnees.variables[i];
