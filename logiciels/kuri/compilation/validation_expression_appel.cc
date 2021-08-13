@@ -1579,7 +1579,6 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     decl->monomorphisations->ajoute(items_monomorphisation, copie);
 
     compilatrice.gestionnaire_code->requiers_typage(&espace, copie);
-    compilatrice.gestionnaire_code->requiers_typage(&espace, copie->corps);
 
     return {copie, true};
 }
