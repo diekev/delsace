@@ -2260,7 +2260,6 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
     auto valeur_expression = depile_valeur();
 
     struct DonneesGenerationCodeTente {
-        Atome *acces_variable{};
         Atome *acces_erreur{};
         Atome *acces_erreur_pour_test{};
 
@@ -2268,13 +2267,11 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         Type *type_variable = nullptr;
     };
 
-    DonneesGenerationCodeTente gen_tente;
-
     if (noeud->expression_appelee->type->genre == GenreType::ERREUR) {
+
+        DonneesGenerationCodeTente gen_tente;
         gen_tente.type_piege = noeud->expression_appelee->type;
-        gen_tente.type_variable = gen_tente.type_piege;
         gen_tente.acces_erreur = valeur_expression;
-        gen_tente.acces_variable = gen_tente.acces_erreur;
         gen_tente.acces_erreur_pour_test = gen_tente.acces_erreur;
 
         auto label_si_vrai = reserve_label(noeud);
@@ -2312,6 +2309,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         return;
     }
     else if (noeud->expression_appelee->type->genre == GenreType::UNION) {
+        DonneesGenerationCodeTente gen_tente;
         auto type_union = noeud->expression_appelee->type->comme_union();
         auto index_membre_erreur = 0;
 
