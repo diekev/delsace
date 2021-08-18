@@ -832,8 +832,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_BRANCHE:
             {
-                auto decalage = LIS_4_OCTETS();
-                frame->pointeur = frame->fonction->chunk.code + decalage;
+                /* frame->pointeur contient le décalage relatif à l'adresse du début de la
+                 * fonction, leur addition nous donne donc le nouveau pointeur. */
+                frame->pointeur = frame->fonction->chunk.code +
+                                  *reinterpret_cast<int *>(frame->pointeur);
                 break;
             }
             case OP_BRANCHE_CONDITION:
