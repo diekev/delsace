@@ -1389,17 +1389,20 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         // stats pour les tableaux
         auto noms_tableaux = dls::ensemble<kuri::chaine>();
 
+        auto cree_nom_tableau = [](kuri::chaine_statique nom_comme,
+                                   kuri::chaine_statique nom_membre) -> kuri::chaine {
+            return enchaine("taille_max_", nom_comme, "_", nom_membre);
+        };
+
         POUR (proteines_struct) {
             if (!it->possede_tableau()) {
                 continue;
             }
 
-            it->pour_chaque_membre_recursif([&it, &os, &noms_tableaux](const Membre &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto nom_tableau = enchaine("taille_max_",
-                                                      it->accede_nom_comme().nom_cpp(),
-                                                      "_",
-                                                      membre.nom.nom_cpp());
+            it->pour_chaque_membre_recursif([&](const Membre &membre) {
+                if (membre.type->est_tableau() || membre.nom.nom_cpp() == "monomorphisations") {
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              membre.nom.nom_cpp());
                     os << "auto " << nom_tableau << " = 0;\n";
                     noms_tableaux.insere(nom_tableau);
                 }
@@ -1419,14 +1422,23 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau()) {
                     const auto nom_membre = membre.nom;
-                    const auto nom_tableau = enchaine("taille_max_",
-                                                      it->accede_nom_comme().nom_cpp(),
-                                                      "_",
-                                                      nom_membre.nom_cpp());
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              nom_membre.nom_cpp());
                     os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille_memoire();\n";
+                }
+                else if (membre.nom.nom_cpp() == "monomorphisations") {
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              membre.nom.nom_cpp());
+
+                    os << "if (noeud.monomorphisations) {\n";
+                    os << "memoire_" << nom_comme
+                       << " += noeud.monomorphisations->memoire_utilisee();\n";
+                    os << nom_tableau << " = std::max(" << nom_tableau
+                       << ", noeud.monomorphisations->nombre_items_max());\n";
+                    os << "}\n";
                 }
             });
             os << "});\n";
