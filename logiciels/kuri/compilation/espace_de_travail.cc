@@ -407,6 +407,7 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
     auto fichiers_ = fichiers.verrou_lecture();
     POUR_TABLEAU_PAGE ((*fichiers_)) {
         auto entree = EntreeFichier();
+        entree.chemin = it.chemin();
         entree.nom = it.nom();
         entree.temps_parsage = it.temps_analyse;
 

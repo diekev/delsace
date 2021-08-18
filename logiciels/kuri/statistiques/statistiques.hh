@@ -61,6 +61,11 @@ struct EntreeNombreMemoire {
         memoire += autre.memoire;
         return *this;
     }
+
+    bool peut_fusionner_avec(EntreeNombreMemoire const &autre) const
+    {
+        return autre.nom == nom;
+    }
 };
 
 struct EntreeTaille {
@@ -72,9 +77,15 @@ struct EntreeTaille {
         taille = std::max(taille, autre.taille);
         return *this;
     }
+
+    bool peut_fusionner_avec(EntreeTaille const &autre) const
+    {
+        return autre.nom == nom;
+    }
 };
 
 struct EntreeFichier {
+    kuri::chaine chemin = "";
     kuri::chaine nom = "";
     long memoire_lexemes = 0;
     long nombre_lexemes = 0;
@@ -97,6 +108,11 @@ struct EntreeFichier {
         memoire_tampons += autre.memoire_tampons;
         return *this;
     }
+
+    bool peut_fusionner_avec(EntreeFichier const &autre) const
+    {
+        return autre.chemin == chemin;
+    }
 };
 
 struct EntreeTemps {
@@ -107,6 +123,11 @@ struct EntreeTemps {
     {
         temps += autre.temps;
         return *this;
+    }
+
+    bool peut_fusionner_avec(EntreeTemps const &autre) const
+    {
+        return autre.nom == nom;
     }
 };
 
@@ -131,7 +152,7 @@ struct EntreesStats {
         totaux += entree;
 
         for (auto &e : entrees) {
-            if (e.nom == entree.nom) {
+            if (e.peut_fusionner_avec(entree)) {
                 e += entree;
                 return;
             }

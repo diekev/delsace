@@ -112,6 +112,7 @@ void SystemeModule::rassemble_stats(Statistiques &stats) const
     auto &stats_fichiers = stats.stats_fichiers;
     POUR_TABLEAU_PAGE (donnees_fichiers) {
         auto entree = EntreeFichier();
+        entree.chemin = it.chemin;
         entree.nom = it.nom;
         entree.nombre_lignes = it.tampon.nombre_lignes();
         entree.memoire_tampons = it.tampon.taille_donnees();
