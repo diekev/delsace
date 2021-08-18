@@ -63,7 +63,6 @@ struct table_hachage {
     {
         auto vieilles_cles = cles;
         auto vieilles_valeurs = valeurs;
-        auto vieilles_empreintes = empreintes;
         auto vieilles_occupes = occupes;
 
         auto nouvelle_taille = capacite * 2;
