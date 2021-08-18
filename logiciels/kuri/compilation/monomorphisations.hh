@@ -139,7 +139,7 @@ struct Monomorphisations {
         int n = 0;
 
         POUR (*monomorphisations.verrou_lecture()) {
-            if (it.premier.taille() > 0) {
+            if (it.premier.taille() > n) {
                 n = it.premier.taille();
             }
         }
