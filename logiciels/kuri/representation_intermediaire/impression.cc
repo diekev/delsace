@@ -341,7 +341,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     auto type_fonction = atome_fonc->type->comme_fonction();
 
-    virgule = ") -> ";
+    os << ") -> ";
     os << chaine_type(type_fonction->type_sortie);
     os << '\n';
 
