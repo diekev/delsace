@@ -47,6 +47,7 @@ struct ensemblon {
     ensemblon &operator=(ensemblon const &autre)
     {
         copie_donnees(autre);
+        return *this;
     }
 
     ensemblon(ensemblon &&autre)
@@ -57,6 +58,7 @@ struct ensemblon {
     ensemblon &operator=(ensemblon &&autre)
     {
         permute(autre);
+        return *this;
     }
 
     ~ensemblon() = default;
