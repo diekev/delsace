@@ -71,9 +71,9 @@ struct InterfaceKuri {
 
 #undef DECLARATION_MEMBRE
 
-    NoeudDeclarationEnteteFonction *declaration_pour_ident(IdentifiantCode *ident);
+    NoeudDeclarationEnteteFonction *declaration_pour_ident(const IdentifiantCode *ident);
 
     void mute_membre(NoeudDeclarationEnteteFonction *noeud);
 };
 
-void renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, Type *type);
+void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type);

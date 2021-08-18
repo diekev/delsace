@@ -28,7 +28,7 @@
 
 #include "typage.hh"
 
-NoeudDeclarationEnteteFonction *InterfaceKuri::declaration_pour_ident(IdentifiantCode *ident)
+NoeudDeclarationEnteteFonction *InterfaceKuri::declaration_pour_ident(const IdentifiantCode *ident)
 {
 #define RETOURNE_SI_APPARIEMENT_IDENT(nom_membre, nom_ident)                                      \
     if (ident == nom_ident) {                                                                     \
@@ -52,7 +52,7 @@ void InterfaceKuri::mute_membre(NoeudDeclarationEnteteFonction *noeud)
 #undef INIT_MEMBRE
 }
 
-void renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, Type *type)
+void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type)
 {
 #define INIT_TYPE(membre, nom)                                                                    \
     if (ident == nom) {                                                                           \

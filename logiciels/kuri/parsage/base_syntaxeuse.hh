@@ -146,7 +146,7 @@ struct BaseSyntaxeuse {
         return chaine_statique_lexeme == chaine;
     }
 
-    inline bool apparie(IdentifiantCode *ident) const
+    inline bool apparie(const IdentifiantCode *ident) const
     {
         return m_lexeme_courant->ident == ident;
     }

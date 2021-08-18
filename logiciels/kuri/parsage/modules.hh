@@ -93,7 +93,7 @@ struct Fichier {
 
     Fichier() = default;
 
-    Fichier(DonneesConstantesFichier *dc) : donnees_constantes(dc)
+    explicit Fichier(DonneesConstantesFichier *dc) : donnees_constantes(dc)
     {
     }
 
@@ -173,7 +173,7 @@ struct Module {
     kuri::chaine chemin_bibliotheque_32bits{};
     kuri::chaine chemin_bibliotheque_64bits{};
 
-    Module(DonneesConstantesModule *dc) : donnees_constantes(dc)
+    explicit Module(DonneesConstantesModule *dc) : donnees_constantes(dc)
     {
         chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
         chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");

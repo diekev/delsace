@@ -116,7 +116,7 @@ struct EntreesStats {
     kuri::tableau<T, int> entrees{};
     T totaux{};
 
-    EntreesStats(kuri::chaine const &nom_) : nom(nom_)
+    explicit EntreesStats(kuri::chaine const &nom_) : nom(nom_)
     {
     }
 

@@ -102,7 +102,7 @@ void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     std::ios::sync_with_stdio(false);
 

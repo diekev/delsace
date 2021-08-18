@@ -92,7 +92,7 @@ struct ConstructriceRI {
 
     double temps_generation = 0.0;
 
-    ConstructriceRI(Compilatrice &compilatrice);
+    explicit ConstructriceRI(Compilatrice &compilatrice);
 
     COPIE_CONSTRUCT(ConstructriceRI);
 
@@ -237,7 +237,7 @@ struct ConstructriceRI {
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
     void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
-    void genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final);
+    void genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final);
     void genere_ri_pour_position_code_source(NoeudExpression *noeud);
     void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 

@@ -92,7 +92,7 @@ struct MachineVirtuelle {
   public:
     bool stop = false;
 
-    MachineVirtuelle(Compilatrice &compilatrice_);
+    explicit MachineVirtuelle(Compilatrice &compilatrice_);
     ~MachineVirtuelle();
 
     COPIE_CONSTRUCT(MachineVirtuelle);

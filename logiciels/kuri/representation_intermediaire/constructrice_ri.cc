@@ -359,7 +359,7 @@ bool est_reference_compatible_pointeur(Type *type_pointeur, Type *type_ref)
     return true;
 }
 
-static bool est_type_opacifie(Type *type_pointe, Type *valeur)
+static bool est_type_opacifie(const Type *type_pointe, const Type *valeur)
 {
     return type_pointe->est_opaque() && type_pointe->comme_opaque()->type_opacifie == valeur;
 }
@@ -2854,7 +2854,7 @@ void ConstructriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, 
     empile_valeur(place);
 }
 
-void ConstructriceRI::genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final)
+void ConstructriceRI::genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
