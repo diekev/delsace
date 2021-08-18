@@ -298,6 +298,14 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
         }
     }
 
+    if (param_contexte == nullptr) {
+        espace()->rapporte_erreur(
+            fonction_pour->decl,
+            "Erreur interne, aucun contexte trouvé pour l'initialisation des globales");
+        this->fonction_courante = nullptr;
+        return nullptr;
+    }
+
     auto param_appel = kuri::tableau<Atome *, int>(1);
     param_appel[0] = cree_charge_mem(nullptr, param_contexte);
 

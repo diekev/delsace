@@ -54,6 +54,10 @@ bool CoulisseMV::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
             &espace, repr_inter.globales, fonction);
 
+        if (!fonc_init) {
+            return false;
+        }
+
         repr_inter.ajoute_fonction(fonc_init);
     }
 
