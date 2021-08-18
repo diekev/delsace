@@ -2025,6 +2025,21 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
         else if (apparie(GenreLexeme::SAUFSI)) {
             noeud->bloc_si_faux = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
         }
+        else if (apparie(GenreLexeme::TANTQUE)) {
+            noeud->bloc_si_faux = analyse_instruction_tantque();
+        }
+        else if (apparie(GenreLexeme::POUR)) {
+            noeud->bloc_si_faux = analyse_instruction_pour();
+        }
+        else if (apparie(GenreLexeme::BOUCLE)) {
+            noeud->bloc_si_faux = analyse_instruction_boucle();
+        }
+        else if (apparie(GenreLexeme::REPETE)) {
+            noeud->bloc_si_faux = analyse_instruction_repete();
+        }
+        else if (apparie(GenreLexeme::DISCR)) {
+            noeud->bloc_si_faux = analyse_instruction_discr();
+        }
         else {
             noeud->bloc_si_faux = analyse_bloc();
         }

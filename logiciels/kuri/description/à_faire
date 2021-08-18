@@ -326,13 +326,6 @@ Ajout de cibles d'appel dans la MV :
 - pour chaque fonction externe
 - quand un appel, vérifie que la cible est atteignable
 
-Permet "tantque", "répète" après un sinon :
-
-si condition {
-}
-sinon tantque !condition {
-}
-
 // --------------------------- Types
 
 unions : utilise le plus petit type possible pour représenter le discriminant
