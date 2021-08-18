@@ -885,11 +885,6 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     auto type = types_unions->ajoute_element();
     type->nom = decl->lexeme->ident;
     type->decl = decl;
-
-    if (type->decl) {
-        type->nom = decl->lexeme->ident;
-    }
-
     return type;
 }
 
