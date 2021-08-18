@@ -23,7 +23,7 @@
 - impossible de convertir implicitement un opaque de pointeur vers un *octet
 - impossible de comparer un opaque de pointeur avec nul
 - impossible d'utiliser les types opaques dans les conditions, si le type opacifié est convertible en bool
-- crash dans les exécutables quand nous prenont l'adresse d'une référence
+- crash dans les exécutables quand nous prenons l'adresse d'une référence
 - crash quand nous paniquons sur un membre non-actif d'une union
 - compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 - erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
@@ -630,7 +630,6 @@ ajoute :: fonc (x: z32, y: z32) -> z32
 
 À faire (32-bits)
 -----------------
-- version des biblithèques sur 32-bit (définir une convention de nommage)
 - proprement définir les types (taille des entiers et des pointeurs)
 
 
