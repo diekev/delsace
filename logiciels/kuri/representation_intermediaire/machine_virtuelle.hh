@@ -147,4 +147,6 @@ struct MachineVirtuelle {
     ResultatInterpretation execute_instructions();
 
     void imprime_trace_appel(NoeudExpression *site);
+
+    ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction, NoeudExpression *site);
 };

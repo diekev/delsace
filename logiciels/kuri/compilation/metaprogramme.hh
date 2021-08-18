@@ -26,6 +26,8 @@
 
 #include "representation_intermediaire/code_binaire.hh"
 
+#include "structures/ensemble.hh"
+
 struct DonneesExecution;
 struct Fichier;
 struct NoeudBloc;
@@ -102,4 +104,16 @@ struct MetaProgramme {
     /* Pour les exécutions. */
     kuri::tableau<unsigned char, int> donnees_globales{};
     kuri::tableau<unsigned char, int> donnees_constantes{};
+
+    /* Ensemble de toutes les fonctions potentiellement appelable lors de l'exécution du
+     * métaprogramme. Ceci est utilisé pour chaque instruction d'appel afin de vérifier que
+     * l'adresse de la fonction est connue et correspond à une adresse d'une fonction du programme
+     * du métaprogramme.
+     *
+     * L'idée est similaire que celle du garde de controle de flux de Microsoft Windows :
+     * https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
+     *
+     * À FAIRE : cibles des branches.
+     */
+    kuri::ensemble<AtomeFonction *> cibles_appels{};
 };

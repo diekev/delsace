@@ -61,6 +61,10 @@ bool CoulisseMV::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         repr_inter.ajoute_fonction(fonc_init);
     }
 
+    POUR (repr_inter.fonctions) {
+        metaprogramme->cibles_appels.insere(it);
+    }
+
     std::unique_lock verrou(espace.mutex_donnees_constantes_executions);
 
     auto convertisseuse_ri = ConvertisseuseRI(&espace, metaprogramme);

@@ -1200,6 +1200,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto taille_argument = LIS_4_OCTETS();
                 // saute l'instruction d'appel
                 frame->pointeur += 8;
@@ -1218,6 +1222,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL_EXTERNE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
 
@@ -1238,6 +1246,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto valeur_inst = LIS_8_OCTETS();
                 auto adresse = depile<void *>(site);
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
                 if (ptr_fonction->est_externe) {
@@ -1389,6 +1401,24 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     for (int i = profondeur_appel - 1; i >= 0; --i) {
         erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
     }
+}
+
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
+    AtomeFonction *ptr_fonction, NoeudExpression *site)
+{
+    if (!m_metaprogramme->cibles_appels.possede(ptr_fonction)) {
+        auto espace = m_metaprogramme->unite->espace;
+        espace
+            ->rapporte_erreur(site,
+                              "Alors que j'exécute un métaprogramme, je rencontre une instruction "
+                              "d'appel vers une fonction ne faisant pas partie du métaprogramme.")
+            .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
+                            static_cast<void *>(ptr_fonction),
+                            "\n");
+        return ResultatInterpretation::ERREUR;
+    }
+
+    return ResultatInterpretation::OK;
 }
 
 void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)

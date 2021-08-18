@@ -320,12 +320,6 @@ ajout de tranches pour les tableaux et les chaines
     chn1 := "une chaine"
     chn2 := chn1[ 4 ... chn.taille - 1 ] // nous donne "chaine"
 
-
-Ajout de cibles d'appel dans la MV :
-- pour chaque pointeur de fonction
-- pour chaque fonction externe
-- quand un appel, vérifie que la cible est atteignable
-
 // --------------------------- Types
 
 unions : utilise le plus petit type possible pour représenter le discriminant
