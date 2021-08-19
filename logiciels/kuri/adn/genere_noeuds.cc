@@ -647,10 +647,10 @@ struct GeneratriceCodeCPP {
 
             os << " {\n";
 
-            // À FAIRE : spécialise le nom du genre, voir aussi adn.cc
             if (!it->accede_nom_genre().est_nul()) {
                 os << "\t" << it->accede_nom_code()
-                   << "() { genre = GenreNoeud::" << it->accede_nom_genre() << "; }\n";
+                   << "() { genre =  " << it->enum_discriminante()->nom()
+                   << "::" << it->accede_nom_genre() << "; }\n";
                 os << "\tCOPIE_CONSTRUCT(" << it->accede_nom_code() << ");\n";
                 os << "\n";
             }

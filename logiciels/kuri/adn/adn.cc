@@ -133,9 +133,9 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         os << " {\n";
 
-        // À FAIRE : spécialise le nom du genre
         if (!accede_nom_genre().est_nul()) {
-            os << "\t" << m_nom << "() { genre = GenreNoeud::" << accede_nom_genre() << "; }\n";
+            os << "\t" << m_nom << "() { genre = " << enum_discriminante()->nom()
+               << "::" << accede_nom_genre() << "; }\n";
             os << "\tCOPIE_CONSTRUCT(" << m_nom << ");\n";
             os << "\n";
         }
@@ -258,9 +258,9 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         os << "\n";
         os << "{\n";
 
-        // À FAIRE : nom_genre_énum
         if (!accede_nom_genre().est_nul()) {
-            os << "\tif (valeur.genre != GenreNoeud::" << accede_nom_genre() << ") {\n";
+            os << "\tif (valeur.genre != " << enum_discriminante()->nom()
+               << "::" << accede_nom_genre() << ") {\n";
             os << "\t\treturn false;\n";
             os << "\t}\n";
         }
