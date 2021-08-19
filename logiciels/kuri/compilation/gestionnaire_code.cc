@@ -39,6 +39,151 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
+#if 0
+#    include "arbre_syntaxique/assembleuse.hh"
+
+void cree_noeud_initialisation_type(Type *type, AssembleuseArbre *assembleuse, Typeuse &typeuse)
+{
+    static Lexeme lexeme_entete = {};
+    static Lexeme lexeme_corps = {};
+    auto entete = assembleuse->cree_entete_fonction(&lexeme_entete);
+    auto corps = assembleuse->cree_corps_fonction(&lexeme_corps);
+
+    corps->entete = entete;
+    entete->corps = corps;
+
+    entete->drapeaux |= FORCE_ENLIGNE;
+
+    assembleuse->bloc_courant(corps->bloc);
+
+    // À FAIRE : type de la fonction
+
+    // À FAIRE : paramètres
+
+    static Lexeme lexeme_decl = {};
+    auto decl_param = assembleuse->cree_declaration_variable(
+        &lexeme_decl, typeuse.type_pointeur_pour(type), ID::pointeur, nullptr);
+
+    auto ref_param = assembleuse->cree_reference_declaration(&lexeme_decl, decl_param);
+
+    switch (type->genre) {
+        case GenreType::RIEN:
+        case GenreType::POLYMORPHIQUE:
+        {
+            break;
+        }
+        case GenreType::EINI:
+        case GenreType::CHAINE:
+        case GenreType::STRUCTURE:
+        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreType::VARIADIQUE:
+        {
+            static Lexeme lexeme = {};
+            auto type_compose = static_cast<TypeCompose *>(type);
+
+            auto index_membre = 0;
+            POUR (type_compose->membres) {
+                if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
+                    // *param.membre;
+                    auto ref_membre = assembleuse->cree_reference_membre(
+                        &lexeme, ref_param, it.type, index_membre);
+                    static Lexeme lexeme_fois_unaire = {};
+                    lexeme_fois_unaire.genre = GenreLexeme::FOIS_UNAIRE;
+                    auto prise_adresse = assembleuse->cree_expression_unaire(&lexeme_fois_unaire);
+                    prise_adresse->operande = ref_membre;
+
+                    // initialise_XXXX(*param.membre);
+
+                    auto appel = assembleuse->cree_appel(&lexeme, , typeuse[TypeBase::RIEN]);
+                }
+                index_membre += 1;
+            }
+
+            break;
+        }
+        case GenreType::BOOL:
+        {
+            static Lexeme litteral_bool = {};
+            litteral_bool.genre = GenreLexeme::FAUX;
+            auto valeur_defaut = assembleuse->cree_litterale_bool(&litteral_bool);
+            break;
+        }
+        case GenreType::OCTET:
+        case GenreType::ENTIER_CONSTANT:
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::TYPE_DE_DONNEES:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = assembleuse->cree_litterale_entier(&litteral, type, 0);
+            break;
+        }
+        case GenreType::REEL:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = assembleuse->cree_litterale_reel(&litteral, type, 0);
+            break;
+        }
+        case GenreType::REFERENCE:
+        {
+            break;
+        }
+        case GenreType::POINTEUR:
+        case GenreType::FONCTION:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = assembleuse->cree_litterale_nul(&litteral);
+            break;
+        }
+        case GenreType::UNION:
+        {
+            break;
+        }
+        case GenreType::TABLEAU_FIXE:
+        {
+            // il nous faut créer une boucle sur la taille du tableau.
+            // pour 0 ... taille - 1 { initialise_(*tableau[it]); }
+            static Lexeme lexeme = {};
+            auto pour = assembleuse->cree_pour(&lexeme);
+            pour->expression = ;
+            pour->bloc = assembleuse->cree_bloc(&lexeme);
+
+            auto mem = assembleuse->cree_memoire(&lexeme);
+            mem->expression = ref_param;
+
+            auto ref_it = assembleuse->cree_reference_declaration(&lexeme);
+            ref_it->ident = ID::it;
+
+            auto indexage = assembleuse->cree_indexage(&lexeme, mem, ref_it, true);
+
+            auto prise_mem = assembleuse->cree_expression_unaire(&lexeme);
+
+            // initialise_XXXX(*tableau[it]);
+            auto appel = assembleuse->cree_appel(&lexeme, , typeuse[TypeBase::RIEN]);
+
+            break;
+        }
+        case GenreType::ENUM:
+        case GenreType::ERREUR:
+        {
+            static Lexeme litteral = {};
+            auto type_enum = static_cast<TypeEnum *>(type);
+            auto valeur_defaut = assembleuse->cree_litterale_entier(
+                &litteral, type_enum->type_donnees, 0);
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            break;
+        }
+    }
+}
+#endif
+
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
     assert(espace->programme);
