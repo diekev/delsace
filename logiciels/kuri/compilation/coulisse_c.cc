@@ -613,7 +613,12 @@ struct GeneratriceCodeC {
                                     virgule_placee = true;
 
                                     resultat << ".";
-                                    resultat << broye_nom_simple(type->membres[i].nom);
+                                    if (type->membres[i].nom == ID::chaine_vide) {
+                                        resultat << "membre_invisible";
+                                    }
+                                    else {
+                                        resultat << broye_nom_simple(type->membres[i].nom);
+                                    }
                                     resultat << " = ";
                                     resultat << genere_code_pour_atome(
                                         tableau_valeur[index_membre], os, pour_globale);
