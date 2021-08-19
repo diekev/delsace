@@ -32,9 +32,28 @@
 
 #include "instructions.hh"
 
-void imprime_atome(Atome const *atome, std::ostream &os)
+static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_operande)
 {
-    if (atome->genre_atome == Atome::Genre::CONSTANTE) {
+    if (atome->genre_atome == Atome::Genre::GLOBALE) {
+        if (atome->ident) {
+            os << "@" << atome->ident->nom;
+        }
+        else {
+            os << "@" << atome;
+        }
+
+        if (!pour_operande) {
+            os << " = globale " << chaine_type(type_dereference_pour(atome->type));
+
+            auto globale = static_cast<AtomeGlobale const *>(atome);
+            if (globale->initialisateur) {
+                os << ' ';
+                imprime_atome_ex(globale->initialisateur, os, true);
+            }
+            os << '\n';
+        }
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE) {
         auto atome_const = static_cast<AtomeConstante const *>(atome);
 
         switch (atome_const->genre) {
@@ -46,7 +65,7 @@ void imprime_atome(Atome const *atome, std::ostream &os)
             {
                 auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
                 os << "  transtype ";
-                imprime_atome(transtype_const->valeur, os);
+                imprime_atome_ex(transtype_const->valeur, os, true);
                 os << " vers " << chaine_type(transtype_const->type) << '\n';
                 break;
             }
@@ -60,6 +79,11 @@ void imprime_atome(Atome const *atome, std::ostream &os)
             }
             case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
             {
+                auto acces = static_cast<AccedeIndexConstant const *>(atome);
+                imprime_atome_ex(acces->accede, os, true);
+                os << '[';
+                imprime_atome_ex(acces->index, os, true);
+                os << ']';
                 break;
             }
             case AtomeConstante::Genre::VALEUR:
@@ -112,9 +136,12 @@ void imprime_atome(Atome const *atome, std::ostream &os)
                         auto index_membre = 0;
 
                         POUR (type->membres) {
+                            if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+                                continue;
+                            }
                             os << virgule;
-                            os << it.nom << " = ";
-                            imprime_atome(tableau_valeur[index_membre], os);
+                            os << it.nom->nom << " = ";
+                            imprime_atome_ex(tableau_valeur[index_membre], os, true);
                             index_membre += 1;
                             virgule = ", ";
                         }
@@ -131,7 +158,7 @@ void imprime_atome(Atome const *atome, std::ostream &os)
 
                         for (auto i = 0; i < taille_tableau; ++i) {
                             os << virgule;
-                            imprime_atome(pointeur_tableau[i], os);
+                            imprime_atome_ex(pointeur_tableau[i], os, true);
                             virgule = ", ";
                         }
 
@@ -171,6 +198,11 @@ void imprime_atome(Atome const *atome, std::ostream &os)
     }
 }
 
+void imprime_atome(Atome const *atome, std::ostream &os)
+{
+    imprime_atome_ex(atome, os, false);
+}
+
 void imprime_instruction(Instruction const *inst, std::ostream &os)
 {
     switch (inst->genre) {
@@ -197,13 +229,13 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_appel = inst->comme_appel();
             os << "  appel " << chaine_type(inst_appel->type) << ' ';
-            imprime_atome(inst_appel->appele, os);
+            imprime_atome_ex(inst_appel->appele, os, true);
 
             auto virgule = "(";
 
             POUR (inst_appel->args) {
                 os << virgule;
-                imprime_atome(it, os);
+                imprime_atome_ex(it, os, true);
                 virgule = ", ";
             }
 
@@ -225,7 +257,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_branche = inst->comme_branche_cond();
             os << "  si ";
-            imprime_atome(inst_branche->condition, os);
+            imprime_atome_ex(inst_branche->condition, os, true);
             os << " alors %" << inst_branche->label_si_vrai->numero << " sinon %"
                << inst_branche->label_si_faux->numero << '\n';
             break;
@@ -267,7 +299,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             }
 
             os << ", " << chaine_type(inst_stocke->valeur->type) << ' ';
-            imprime_atome(inst_stocke->valeur, os);
+            imprime_atome_ex(inst_stocke->valeur, os, true);
             os << '\n';
             break;
         }
@@ -281,7 +313,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_un = inst->comme_op_unaire();
             os << "  " << chaine_pour_genre_op(inst_un->op) << ' ' << chaine_type(inst_un->type);
-            imprime_atome(inst_un->valeur, os);
+            imprime_atome_ex(inst_un->valeur, os, true);
             os << '\n';
             break;
         }
@@ -290,9 +322,9 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             auto inst_bin = inst->comme_op_binaire();
             os << "  " << chaine_pour_genre_op(inst_bin->op) << ' ' << chaine_type(inst_bin->type)
                << ' ';
-            imprime_atome(inst_bin->valeur_gauche, os);
+            imprime_atome_ex(inst_bin->valeur_gauche, os, true);
             os << ", ";
-            imprime_atome(inst_bin->valeur_droite, os);
+            imprime_atome_ex(inst_bin->valeur_droite, os, true);
             os << '\n';
             break;
         }
@@ -305,7 +337,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
                 os << chaine_type(atome->type);
                 os << ' ';
 
-                imprime_atome(atome, os);
+                imprime_atome_ex(atome, os, true);
             }
             os << '\n';
             break;
@@ -314,9 +346,9 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_acces = inst->comme_acces_index();
             os << "  index " << chaine_type(inst_acces->type) << ' ';
-            imprime_atome(inst_acces->accede, os);
+            imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
-            imprime_atome(inst_acces->index, os);
+            imprime_atome_ex(inst_acces->index, os, true);
             os << '\n';
             break;
         }
@@ -324,9 +356,9 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_acces = inst->comme_acces_membre();
             os << "  membre " << chaine_type(inst_acces->type) << ' ';
-            imprime_atome(inst_acces->accede, os);
+            imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
-            imprime_atome(inst_acces->index, os);
+            imprime_atome_ex(inst_acces->index, os, true);
             os << '\n';
             break;
         }
@@ -334,7 +366,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
         {
             auto inst_transtype = inst->comme_transtype();
             os << "  transtype (" << static_cast<int>(inst_transtype->op) << ") ";
-            imprime_atome(inst_transtype->valeur, os);
+            imprime_atome_ex(inst_transtype->valeur, os, true);
             os << " vers " << chaine_type(inst_transtype->type) << '\n';
             break;
         }
