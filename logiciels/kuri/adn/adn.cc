@@ -239,11 +239,6 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                 return;
             }
 
-            // À FAIRE : ostream << spécialisé pour ValeurExpression, TransformationType
-            if (it.type->est_nominal("ValeurExpression", "TransformationType")) {
-                return;
-            }
-
             os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur." << it.nom.nom_cpp()
                << " << '\\n';" << '\n';
         });

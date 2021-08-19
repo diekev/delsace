@@ -483,3 +483,17 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         }
     }
 }
+
+std::ostream &operator<<(std::ostream &os, ValeurExpression valeur)
+{
+    if (valeur.type == TypeExpression::INVALIDE) {
+        os << "invalide";
+    }
+    else if (valeur.type == TypeExpression::REEL) {
+        os << valeur.reel;
+    }
+    else {
+        os << valeur.entier;
+    }
+    return os;
+}

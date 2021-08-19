@@ -125,6 +125,8 @@ struct TransformationType {
     }
 };
 
+std::ostream &operator<<(std::ostream &os, TransformationType type);
+
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
 ResultatTransformation cherche_transformation(EspaceDeTravail &espace,

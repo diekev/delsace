@@ -713,3 +713,8 @@ static constexpr auto table_transformation_type = [] {
 	return table;
 }();
 #endif
+
+std::ostream &operator<<(std::ostream &os, TransformationType type)
+{
+    return os << type.type;
+}

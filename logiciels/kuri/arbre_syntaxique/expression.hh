@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include <iostream>
+
 struct EspaceDeTravail;
 struct NoeudBloc;
 struct NoeudExpression;
@@ -61,6 +63,8 @@ struct ValeurExpression {
     {
     }
 };
+
+std::ostream &operator<<(std::ostream &os, ValeurExpression valeur);
 
 struct ResultatExpression {
     ValeurExpression valeur{};
