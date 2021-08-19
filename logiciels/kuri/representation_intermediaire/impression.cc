@@ -124,12 +124,37 @@ void imprime_atome(Atome const *atome, std::ostream &os)
                     }
                     case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                     {
-                        os << "À FAIRE(tableau fixe) : impression de la valeur pour la RI";
+                        auto pointeur_tableau = valeur_constante->valeur.valeur_tableau.pointeur;
+                        auto taille_tableau = valeur_constante->valeur.valeur_tableau.taille;
+
+                        auto virgule = "[ ";
+
+                        for (auto i = 0; i < taille_tableau; ++i) {
+                            os << virgule;
+                            imprime_atome(pointeur_tableau[i], os);
+                            virgule = ", ";
+                        }
+
+                        os << ((taille_tableau == 0) ? "[]" : " ]");
                         break;
                     }
                     case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
                     {
-                        os << "À FAIRE(ri) : tableau données constantes";
+                        auto pointeur_donnnees = valeur_constante->valeur.valeur_tdc.pointeur;
+                        auto taille_donnees = valeur_constante->valeur.valeur_tdc.taille;
+
+                        auto virgule = "[ ";
+
+                        for (auto i = 0; i < taille_donnees; ++i) {
+                            auto octet = pointeur_donnnees[i];
+                            os << virgule;
+                            os << "0x";
+                            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                            os << dls::num::char_depuis_hex(octet & 0x0f);
+                            virgule = ", ";
+                        }
+
+                        os << ((taille_donnees == 0) ? "[]" : " ]");
                         break;
                     }
                 }
