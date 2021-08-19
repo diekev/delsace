@@ -83,6 +83,7 @@ struct InfoTypeMembreStructure {
 struct InfoTypeStructure : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tableau<InfoTypeMembreStructure *> membres{};
+    kuri::tableau<InfoTypeStructure *> structs_employees{};
 };
 
 struct InfoTypeUnion : public InfoType {

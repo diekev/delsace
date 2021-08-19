@@ -3145,11 +3145,23 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
 
             auto tableau_membre = cree_tableau_global(type_membre, std::move(valeurs_membres));
 
+            kuri::tableau<AtomeConstante *> valeurs_structs_employees;
+            valeurs_structs_employees.reserve(type_struct->types_employes.taille());
+            POUR (type_struct->types_employes) {
+                valeurs_structs_employees.ajoute(cree_info_type(it, site));
+            }
+
+            auto type_pointeur_info_struct = m_espace->typeuse.type_pointeur_pour(type_info_struct,
+                                                                                  false);
+            auto tableau_structs_employees = cree_tableau_global(
+                type_pointeur_info_struct, std::move(valeurs_structs_employees));
+
             /* { membres basiques, nom, membres } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(5);
+            auto valeurs = kuri::tableau<AtomeConstante *>(6);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::STRUCTURE, type->taille_octet);
             valeurs[3] = cree_chaine(type_struct->nom->nom);
             valeurs[4] = tableau_membre;
+            valeurs[5] = tableau_structs_employees;
 
             globale->initialisateur = cree_constante_structure(type_info_struct,
                                                                std::move(valeurs));

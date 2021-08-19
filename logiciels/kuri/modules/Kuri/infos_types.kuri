@@ -62,6 +62,7 @@ InfoTypeStructure :: struct #interface {
 
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
+	structs_employées : []*InfoTypeStructure
 }
 
 InfoTypeUnion :: struct #interface {

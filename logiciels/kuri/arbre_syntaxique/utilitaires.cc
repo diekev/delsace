@@ -2473,6 +2473,13 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type->membres.ajoute(info_type_membre);
             }
 
+            info_type->structs_employees.reserve(type_struct->types_employes.taille());
+            POUR (type_struct->types_employes) {
+                auto info_struct_employe = cree_info_type_pour(it);
+                info_type->structs_employees.ajoute(
+                    static_cast<InfoTypeStructure *>(info_struct_employe));
+            }
+
             break;
         }
         case GenreType::UNION:
