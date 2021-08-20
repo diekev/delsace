@@ -83,9 +83,20 @@ bool CoulisseMV::cree_executable(Compilatrice & /*compilatrice*/,
     /* Liaison du code binaire du métaprogramme (application des patchs). */
     auto &donnees_constantes = espace.donnees_constantes_executions;
 
-    /* nous devons utiliser nos propres données pour les globales */
-    auto ptr_donnees_globales = donnees_constantes.donnees_globales.donnees();
-    auto ptr_donnees_constantes = donnees_constantes.donnees_constantes.donnees();
+    /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire
+     * car le code binaire des fonctions n'est généré qu'une seule fois, mais
+     * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
+     * les globales et les constantes ; pointeurs qui seraient invalidés quand
+     * lors de l'ajout d'autres globales ou constantes. */
+    metaprogramme->donnees_globales = donnees_constantes.donnees_globales;
+    metaprogramme->donnees_constantes = donnees_constantes.donnees_constantes;
+
+    /* Nous devons utiliser nos propres données pour les globales, afin que les pointeurs utilisées
+     * pour les initialisations des globales (`ptr_donnees_globales + decalage` ici-bas)
+     * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_donnees_globales +
+     * globale.adresse` là-bas). */
+    auto ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
+    auto ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
 
     // initialise les globales pour le métaprogramme
     POUR (donnees_constantes.patchs_donnees_constantes) {
@@ -110,12 +121,5 @@ bool CoulisseMV::cree_executable(Compilatrice & /*compilatrice*/,
         // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
     }
 
-    /* copie les tableaux de données pour le métaprogramme, ceci est nécessaire
-     * car le code binaire des fonctions n'est généré qu'une seule fois, mais
-     * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
-     * les globales et les constantes ; pointeurs qui seraient invalidés quand
-     * lors de l'ajout d'autres globales ou constantes */
-    metaprogramme->donnees_globales = donnees_constantes.donnees_globales;
-    metaprogramme->donnees_constantes = donnees_constantes.donnees_constantes;
     return true;
 }
