@@ -48,7 +48,6 @@ struct Messagere {
     bool interception_commencee = false;
 
     Compilatrice *m_compilatrice = nullptr;
-    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     dls::file<Message const *> file_message{};
 
@@ -82,4 +81,5 @@ struct Messagere {
     void termine_interception(EspaceDeTravail *espace);
 
     void purge_messages();
+    void envoie_message(Message *message);
 };

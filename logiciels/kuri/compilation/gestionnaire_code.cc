@@ -766,6 +766,28 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
     unites_en_attente.ajoute(unite);
 }
 
+UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *espace,
+                                                            Message *message)
+{
+    auto unite = unites.ajoute_element(espace);
+
+    unite->mute_raison_d_etre(RaisonDEtre::ENVOIE_MESSAGE);
+    unite->message = message;
+
+    unites_en_attente.ajoute(unite);
+    return unite;
+}
+
+void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud)
+{
+    auto unite = unites.ajoute_element(espace);
+
+    unite->mute_raison_d_etre(RaisonDEtre::CONVERSION_NOEUD_CODE);
+    unite->noeud = noeud;
+
+    unites_en_attente.ajoute(unite);
+}
+
 std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_contexte(
     EspaceDeTravail *espace, Programme *programme, GrapheDependance &graphe)
 {
@@ -1022,6 +1044,9 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
         unites_en_attente.ajoute(unite);
         if (message) {
+            requiers_noeud_code(espace, noeud);
+            auto unite_message = cree_unite_pour_message(espace, message);
+            unite_message->mute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
             unite->mute_attente(Attente::sur_message(message));
         }
     }
@@ -1114,6 +1139,20 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     else {
         espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
         espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+    }
+}
+
+void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
+{
+    auto noeud = unite->noeud;
+
+    POUR (unites_en_attente) {
+        if (it->attend_sur_noeud_code(&noeud->noeud_code)) {
+            assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
+            auto message = it->message;
+            static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
+            it->marque_prete();
+        }
     }
 }
 

@@ -45,11 +45,13 @@ struct Tacheronne;
     O(LEXER, LEXAGE, "lexage", 1)                                                                 \
     O(PARSER, PARSAGE, "parsage", 2)                                                              \
     O(TYPER, TYPAGE, "typage", 3)                                                                 \
-    O(GENERER_RI, GENERATION_RI, "génération RI", 4)                                              \
-    O(EXECUTER, EXECUTION, "exécution", 5)                                                        \
-    O(OPTIMISER, OPTIMISATION, "optimisation", 6)                                                 \
-    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 7)                        \
-    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 8)
+    O(CONVERTIR_NOEUD_CODE, CONVERSION_NOEUD_CODE, "conversion noeud code", 4)                    \
+    O(ENVOYER_MESSAGE, ENVOIE_MESSAGE, "envoie message", 5)                                       \
+    O(GENERER_RI, GENERATION_RI, "génération RI", 6)                                              \
+    O(EXECUTER, EXECUTION, "exécution", 7)                                                        \
+    O(OPTIMISER, OPTIMISATION, "optimisation", 8)                                                 \
+    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 9)                        \
+    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 10)
 
 #define ENUMERE_GENRES_TACHE(O)                                                                   \
     O(DORMIR, DORS, "dormir", 0)                                                                  \
@@ -175,6 +177,8 @@ struct Tacheronne {
 
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
+
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     StatistiquesTypage stats_typage{};
 

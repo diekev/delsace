@@ -534,4 +534,9 @@ void UniteCompilation::marque_prete_si_attente_resolue()
         }
         return;
     }
+
+    if (m_attente.est<AttenteSurNoeudCode>()) {
+        /* Géré dans le GestionnaireCode. */
+        return;
+    }
 }

@@ -32,6 +32,7 @@ struct Fichier;
 struct IdentifiantCode;
 struct Message;
 struct MetaProgramme;
+struct NoeudCode;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionReference;
@@ -68,6 +69,7 @@ using AttenteSurRI = AttenteSur<Atome **>;
 using AttenteSurChargement = AttenteSur<FichierACharger>;
 using AttenteSurLexage = AttenteSur<FichierALexer>;
 using AttenteSurParsage = AttenteSur<FichierAParser>;
+using AttenteSurNoeudCode = AttenteSur<NoeudCode **>;
 
 /* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer
  * son chemin dans la compilation. */
@@ -83,7 +85,8 @@ struct Attente {
                                      AttenteSurRI,
                                      AttenteSurChargement,
                                      AttenteSurLexage,
-                                     AttenteSurParsage>;
+                                     AttenteSurParsage,
+                                     AttenteSurNoeudCode>;
 
     TypeAttente attente{};
 
@@ -161,6 +164,12 @@ struct Attente {
     {
         assert(atome);
         return AttenteSurRI{atome};
+    }
+
+    static Attente sur_noeud_code(NoeudCode **code)
+    {
+        assert(code);
+        return AttenteSurNoeudCode{code};
     }
 
     /* Discrimination. */
@@ -244,5 +253,11 @@ struct Attente {
     {
         assert(est<AttenteSurParsage>());
         return std::get<AttenteSurParsage>(attente).valeur.fichier;
+    }
+
+    NoeudCode **noeud_code() const
+    {
+        assert(est<AttenteSurNoeudCode>());
+        return std::get<AttenteSurNoeudCode>(attente).valeur;
     }
 };

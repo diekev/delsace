@@ -121,6 +121,14 @@ static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
         {
             return OrdonnanceuseTache::FILE_LIAISON_PROGRAMME;
         }
+        case RaisonDEtre::ENVOIE_MESSAGE:
+        {
+            return OrdonnanceuseTache::FILE_ENVOIE_MESSAGE;
+        }
+        case RaisonDEtre::CONVERSION_NOEUD_CODE:
+        {
+            return OrdonnanceuseTache::FILE_CONVERSION_NOEUD_CODE;
+        }
         case RaisonDEtre::AUCUNE:
         {
             return -1;
@@ -436,6 +444,23 @@ void Tacheronne::gere_tache()
                     compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
                 }
                 temps_executable += tache.espace->coulisse->temps_executable;
+                break;
+            }
+            case GenreTache::CONVERSION_NOEUD_CODE:
+            {
+                assert(dls::outils::possede_drapeau(
+                    drapeaux, DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE));
+                auto espace = tache.unite->espace;
+                auto noeud = tache.unite->noeud;
+                convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
+                compilatrice.gestionnaire_code->conversion_noeud_code_terminee(tache.unite);
+                break;
+            }
+            case GenreTache::ENVOIE_MESSAGE:
+            {
+                assert(dls::outils::possede_drapeau(drapeaux,
+                                                    DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
+                compilatrice.messagere->envoie_message(tache.unite->message);
                 break;
             }
         }

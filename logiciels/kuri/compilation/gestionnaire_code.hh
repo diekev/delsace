@@ -137,12 +137,18 @@ class GestionnaireCode {
 
     void liaison_programme_terminee(UniteCompilation *unite);
 
+    void conversion_noeud_code_terminee(UniteCompilation *unite);
+
     void optimisation_terminee(UniteCompilation *unite);
 
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);
 
   private:
+    UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
+
+    void requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
+
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void ajoute_programme(Programme *programme);

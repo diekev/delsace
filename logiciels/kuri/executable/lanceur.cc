@@ -193,7 +193,9 @@ int main(int argc, char *argv[])
             tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
         }
 
-        auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER;
+        auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER |
+                        DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE |
+                        DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE;
 
         for (auto i = 0u; i < nombre_tacheronnes; ++i) {
             tacheronnes[i]->drapeaux |= drapeaux;

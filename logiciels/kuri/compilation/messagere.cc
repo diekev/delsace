@@ -97,17 +97,19 @@ Message *Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExp
         return nullptr;
     }
 
-    convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
-
     auto message = messages_typage_code.ajoute_element();
     message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
     message->espace = espace;
-    message->code = noeud->noeud_code;
 
-    file_message.enfile(message);
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    /* Les messages de typages ne sont pas directement envoyés. */
 
     return message;
+}
+
+void Messagere::envoie_message(Message *message)
+{
+    file_message.enfile(message);
+    pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
 void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
@@ -133,7 +135,6 @@ long Messagere::memoire_utilisee() const
     memoire += messages_typage_code.memoire_utilisee();
     memoire += messages_phase_compilation.memoire_utilisee();
     memoire += pic_de_message * taille_de(void *);
-    memoire += convertisseuse_noeud_code.memoire_utilisee();
     return memoire;
 }
 

@@ -42,6 +42,8 @@ struct Programme;
     O(LEXAGE_FICHIER, lexage_fichier, "lexage fichier")                                           \
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
     O(TYPAGE, typage, "typage")                                                                   \
+    O(CONVERSION_NOEUD_CODE, conversion_noeud_code, "conversion noeud code")                      \
+    O(ENVOIE_MESSAGE, envoie_message, "envoie message")                                           \
     O(GENERATION_RI, generation_ri, "génération RI")                                              \
     O(GENERATION_RI_PRINCIPALE_MP, generation_ri_principale_mp, "génération RI principale mp")    \
     O(EXECUTION, execution, "exécution")                                                          \
@@ -73,6 +75,7 @@ struct UniteCompilation {
     NoeudExpression *noeud = nullptr;
     MetaProgramme *metaprogramme = nullptr;
     Programme *programme = nullptr;
+    Message *message = nullptr;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
@@ -107,9 +110,14 @@ struct UniteCompilation {
         return m_raison_d_etre;
     }
 
-    inline bool attend_sur_message(Message const *message)
+    inline bool attend_sur_message(Message const *message_)
     {
-        return m_attente.est<AttenteSurMessage>() && m_attente.message() == message;
+        return m_attente.est<AttenteSurMessage>() && m_attente.message() == message_;
+    }
+
+    inline bool attend_sur_noeud_code(NoeudCode **code)
+    {
+        return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;
     }
 
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
