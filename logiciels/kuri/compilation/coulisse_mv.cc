@@ -83,11 +83,10 @@ bool CoulisseMV::cree_executable(Compilatrice & /*compilatrice*/,
     /* Liaison du code binaire du métaprogramme (application des patchs). */
     auto &donnees_constantes = espace.donnees_constantes_executions;
 
-    /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire
-     * car le code binaire des fonctions n'est généré qu'une seule fois, mais
-     * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
-     * les globales et les constantes ; pointeurs qui seraient invalidés quand
-     * lors de l'ajout d'autres globales ou constantes. */
+    /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire car le code binaire
+     * des fonctions n'est généré qu'une seule fois, mais l'exécution des métaprogrammes a besoin
+     * de pointeurs valides pour trouver les globales et les constantes ; pointeurs qui seraient
+     * invalidés lors de l'ajout d'autres globales ou constantes. */
     metaprogramme->donnees_globales = donnees_constantes.donnees_globales;
     metaprogramme->donnees_constantes = donnees_constantes.donnees_constantes;
 
