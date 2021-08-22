@@ -203,6 +203,10 @@ kuri::chaine UniteCompilation::commentaire() const
         return "chargement fichier";
     }
 
+    if (m_attente.est<AttenteSurNoeudCode>()) {
+        return "noeud code";
+    }
+
     return "ERREUR COMPILATRICE";
 }
 
