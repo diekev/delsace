@@ -2721,6 +2721,11 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             // À FAIRE
             return nullptr;
         }
+        case GenreInfoType::OPAQUE:
+        {
+            // À FAIRE
+            return nullptr;
+        }
     }
 
     return nullptr;

@@ -49,11 +49,13 @@ enum class GenreInfoType : int {
     OCTET,
     TYPE_DE_DONNEES,
     UNION,
+    OPAQUE,
 };
 
 struct InfoType {
     GenreInfoType genre{};
     uint taille_en_octet = 0;
+    uint index_dans_table_des_types = 0;
 };
 
 struct InfoTypeEntier : public InfoType {
