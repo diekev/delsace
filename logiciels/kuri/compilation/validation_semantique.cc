@@ -3756,7 +3756,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     if (decl->est_corps_texte) {
         /* Nous devons avoir deux passes : une pour créer la fonction du métaprogramme, une autre
-         * une autre pour requérir la compilation dudit métaprogramme. */
+         * pour requérir la compilation dudit métaprogramme. */
         if (!decl->metaprogramme_corps_texte) {
             auto metaprogramme = cree_metaprogramme_corps_texte(
                 decl->bloc, decl->bloc_parent, decl->lexeme);
