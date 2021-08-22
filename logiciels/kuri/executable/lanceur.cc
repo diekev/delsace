@@ -194,7 +194,6 @@ int main(int argc, char *argv[])
         }
 
         auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER |
-                        DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE |
                         DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE;
 
         for (auto i = 0u; i < nombre_tacheronnes; ++i) {
