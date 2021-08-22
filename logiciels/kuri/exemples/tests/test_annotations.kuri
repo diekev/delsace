@@ -1,6 +1,14 @@
 importe Compilatrice
 importe Fondation
 
+imprime_annotations :: fonc (annotations: []AnnotationCode, nom: chaine)
+{
+    imprime("annotations pour % :\n", nom)
+    pour annotations {
+        imprime("-- %\n", it)
+    }
+}
+
 métaprogramme :: fonc ()
 {
     désactive_compilation_espace_défaut()
@@ -32,21 +40,25 @@ métaprogramme :: fonc ()
                 code_entete := code comme *NoeudCodeEntêteFonction
 
                 si code_entete.annotations {
-                    imprime("annotations pour %\n", code_entete.nom)
-
-                    pour code_entete.annotations {
-                        imprime("-- %\n", it)
-                    }
+                    imprime_annotations(code_entete.annotations, code_entete.nom)
                 }
             }
             sinon si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE {
                 code_structure := code comme *NoeudCodeStructure
 
                 si code_structure.annotations {
-                    imprime("annotations pour %\n", code_structure.nom)
+                    imprime_annotations(code_structure.annotations, code_structure.nom)
+                }
 
-                    pour code_structure.annotations {
-                        imprime("-- %\n", it)
+                bloc := code_structure.bloc
+                pour bloc.membres {
+                    saufsi it.genre == GenreNoeud.DÉCLARATION_VARIABLE {
+                        continue
+                    }
+
+                    decl_var := it comme *NoeudCodeDéclarationVariable
+                    si decl_var.annotations {
+                        imprime_annotations(decl_var.annotations, decl_var.nom)
                     }
                 }
             }

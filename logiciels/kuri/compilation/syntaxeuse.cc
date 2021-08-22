@@ -2852,6 +2852,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                         "Attendu une déclaration ou une assignation dans le bloc de la structure");
                 }
 
+                if (noeud->est_declaration_variable()) {
+                    auto decl_membre = noeud->comme_declaration_variable();
+                    analyse_annotations(decl_membre->annotations);
+                }
+
                 expressions.ajoute(noeud);
             }
             else if (apparie_instruction()) {

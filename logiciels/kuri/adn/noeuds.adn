@@ -262,6 +262,8 @@ struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
     NoeudExpression * [] arbre_aplatis
 
     DonneesAssignations [compressé] donnees_decl
+
+  Annotation [] annotations [code copie]
 }
 
 struct NoeudAssignation : NoeudExpression {
