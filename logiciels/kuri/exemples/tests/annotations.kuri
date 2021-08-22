@@ -8,7 +8,19 @@ fonction_annotée_avec_chaine :: fonc ()
 
 } @une_chaine "la chaine en question"
 
+Vec3 :: struct {
+    x: r32
+    y: r32
+    z: r32
+} @GLSL "vec3"
+
+Énumération :: énum {
+    XYZ
+} @quelquechose
+
 principale :: fonc () -> z32
 {
+    v: Vec3
+    e: Énumération
     retourne 0
 }

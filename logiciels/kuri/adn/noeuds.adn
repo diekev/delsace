@@ -473,6 +473,8 @@ struct NoeudStruct : NoeudDéclarationSymbole {
 	Monomorphisations *monomorphisations
 
 	MetaProgramme *metaprogramme_corps_texte
+
+  Annotation [] annotations [code copie]
 }
 
 struct NoeudEnum : NoeudDéclarationSymbole {
@@ -482,6 +484,8 @@ struct NoeudEnum : NoeudDéclarationSymbole {
 
 	NoeudExpression *expression_type [code enfant]
 	NoeudBloc *bloc [code enfant]
+
+  Annotation [] annotations [code copie]
 }
 
 struct NoeudSi : NoeudExpression {

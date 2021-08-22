@@ -2165,6 +2165,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
     consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
+    analyse_annotations(noeud_decl->annotations);
+
     depile_etat();
 
     return noeud_decl;
@@ -2869,6 +2871,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         m_tacheronne.assembleuse->depile_bloc();
         noeud_decl->bloc = bloc;
     }
+
+    analyse_annotations(noeud_decl->annotations);
 
     if (cree_tache) {
         m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_decl);

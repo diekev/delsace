@@ -39,6 +39,28 @@ métaprogramme :: fonc ()
                     }
                 }
             }
+            sinon si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE {
+                code_structure := code comme *NoeudCodeStructure
+
+                si code_structure.annotations {
+                    imprime("annotations pour %\n", code_structure.nom)
+
+                    pour code_structure.annotations {
+                        imprime("-- %\n", it)
+                    }
+                }
+            }
+            sinon si code.genre == GenreNoeud.DÉCLARATION_ÉNUM {
+                code_énum := code comme *NoeudCodeÉnum
+
+                si code_énum.annotations {
+                    imprime("annotations pour %\n", code_énum.nom)
+
+                    pour code_énum.annotations {
+                        imprime("-- %\n", it)
+                    }
+                }
+            }
         }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
