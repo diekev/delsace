@@ -1092,7 +1092,8 @@ struct GeneratriceCodeCPP {
                     }
 
                     if (nom_membre.nom_cpp() == "annotations") {
-                        os << "\t\t\t\tn->annotations.reserve(racine_typee->annotations.taille());"
+                        os << "\t\t\t\tn->annotations.reserve(static_cast<int>(racine_typee->"
+                              "annotations.taille()));"
                               "\n";
                         os << "\t\t\tPOUR (racine_typee->annotations) {\n";
                         os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
