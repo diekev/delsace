@@ -51,7 +51,7 @@ enum {
 // Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
 // dans les données d'exécution des métaprogrammes. Par exemple, les pointeurs des infos types des
 // membres des structures sont écris dans un tableau constant, et le pointeur du tableau constant
-// doit être écris dans la zone mémoire ou se trouve le tableau de membres de l'InfoTypeStructure.
+// doit être écris dans la zone mémoire où se trouve le tableau de membres de l'InfoTypeStructure.
 struct PatchDonneesConstantes {
     int ou;
     int quoi;
