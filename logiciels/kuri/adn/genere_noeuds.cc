@@ -837,6 +837,10 @@ struct GeneratriceCodeCPP {
                 continue;
             }
 
+            if (it->nom().nom_cpp() == "Annotation") {
+                continue;
+            }
+
             os << "\ttableau_page<" << nom_code << "> noeuds_code_" << it->accede_nom_comme()
                << "{};\n";
         }
@@ -848,6 +852,10 @@ struct GeneratriceCodeCPP {
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
             if (nom_code.est_nul()) {
+                continue;
+            }
+
+            if (it->nom().nom_cpp() == "Annotation") {
                 continue;
             }
 
@@ -931,6 +939,13 @@ struct GeneratriceCodeCPP {
                     }
 
                     if (nom_membre.nom_cpp() == "genre") {
+                        return;
+                    }
+
+                    if (nom_membre.nom_cpp() == "annotations") {
+                        os << "\t\t\tPOUR (racine_typee->annotations) {\n";
+                        os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
+                        os << "\t\t\t}\n";
                         return;
                     }
 
@@ -1071,6 +1086,13 @@ struct GeneratriceCodeCPP {
                     }
 
                     if (nom_membre.nom_cpp() == "genre") {
+                        return;
+                    }
+
+                    if (nom_membre.nom_cpp() == "annotations") {
+                        os << "\t\t\tPOUR (racine_typee->annotations) {\n";
+                        os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
+                        os << "\t\t\t}\n";
                         return;
                     }
 

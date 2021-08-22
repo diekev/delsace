@@ -11,6 +11,13 @@
 	@horslignée
 }
 
+struct Annotation {
+  @code AnnotationCode
+
+  chaine_statique nom [code]
+  chaine_statique valeur [code]
+}
+
 struct NoeudExpression {
     @code NoeudCode
 	// définis l'énumération qui devra être utilisée pour discriminé le noeud
@@ -385,7 +392,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 
 	Monomorphisations *monomorphisations
 
-	chaine_statique [] annotations [code copie]
+  Annotation [] annotations [code copie]
 
 	bool est_opérateur [code copie]
 	bool est_coroutine [code copie]

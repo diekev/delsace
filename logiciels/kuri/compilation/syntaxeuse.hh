@@ -26,6 +26,7 @@
 
 #include "parsage/base_syntaxeuse.hh"
 
+struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
@@ -110,6 +111,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
     NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
     NoeudExpression *analyse_instruction_tantque();
+
+    void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 };

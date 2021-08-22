@@ -2082,6 +2082,31 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
     return noeud;
 }
 
+void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
+{
+    while (apparie(GenreLexeme::AROBASE)) {
+        consomme();
+
+        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+            rapporte_erreur("Attendu une chaine de caractère après '@'");
+        }
+
+        auto lexeme_annotation = lexeme_courant();
+        auto annotation = Annotation{};
+        annotation.nom = lexeme_annotation->chaine;
+
+        consomme();
+
+        if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
+            auto chaine = lexeme_courant()->chaine;
+            annotation.valeur = chaine;
+            consomme();
+        }
+
+        annotations.ajoute(annotation);
+    }
+}
+
 NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 {
     auto lexeme = lexeme_courant();
@@ -2469,18 +2494,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             noeud_corps->bloc = analyse_bloc();
             est_dans_fonction = ancien_est_dans_fonction;
 
-            while (apparie(GenreLexeme::AROBASE)) {
-                consomme();
-
-                if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    rapporte_erreur("Attendu une chaine de caractère après '@'");
-                }
-
-                auto lexeme_annotation = lexeme_courant();
-                noeud->annotations.ajoute(lexeme_annotation->chaine);
-
-                consomme();
-            }
+            analyse_annotations(noeud->annotations);
 
             auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
             if (doit_etre_type) {
@@ -2655,18 +2669,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     noeud_corps->bloc = analyse_bloc();
     est_dans_fonction = ancien_est_dans_fonction;
 
-    while (apparie(GenreLexeme::AROBASE)) {
-        consomme();
-
-        if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu une chaine de caractère après '@'");
-        }
-
-        auto lexeme_annotation = lexeme_courant();
-        noeud->annotations.ajoute(lexeme_annotation->chaine);
-
-        consomme();
-    }
+    analyse_annotations(noeud->annotations);
 
     /* dépile le bloc des paramètres */
     m_tacheronne.assembleuse->depile_bloc();
