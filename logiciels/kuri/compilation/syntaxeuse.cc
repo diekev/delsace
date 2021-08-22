@@ -2170,6 +2170,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     return noeud_decl;
 }
 
+// Le macro DIFFERE perturbe le GenreLexem::DIFFERE...
 #include "biblinternes/outils/garde_portee.h"
 
 NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
