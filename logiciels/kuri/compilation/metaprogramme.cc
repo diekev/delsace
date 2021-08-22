@@ -28,12 +28,15 @@
 
 #include "typage.hh"
 
-int DonneesConstantesExecutions::ajoute_globale(Type *type, IdentifiantCode *ident)
+int DonneesConstantesExecutions::ajoute_globale(Type *type,
+                                                IdentifiantCode *ident,
+                                                void *adresse_pour_execution)
 {
     auto globale = Globale{};
     globale.type = type;
     globale.ident = ident;
     globale.adresse = donnees_globales.taille();
+    globale.adresse_pour_execution = adresse_pour_execution;
 
     donnees_globales.redimensionne(donnees_globales.taille() +
                                    static_cast<int>(type->taille_octet));

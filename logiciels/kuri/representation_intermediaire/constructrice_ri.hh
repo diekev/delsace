@@ -30,6 +30,8 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tablet.hh"
 
+#include "arbre_syntaxique/noeud_code.hh"
+
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
@@ -64,6 +66,9 @@ struct ConstructriceRI {
     tableau_page<OpBinaireConstant> op_binaires_constants{};
     tableau_page<OpUnaireConstant> op_unaires_constants{};
     tableau_page<AccedeIndexConstant> accede_index_constants{};
+
+    /* Pour la création des infos types. */
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     Compilatrice &m_compilatrice;
 

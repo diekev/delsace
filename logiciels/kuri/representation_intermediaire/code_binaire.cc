@@ -1696,7 +1696,8 @@ int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
 {
     assert(globale->index == -1);
     auto type_globale = globale->type->comme_pointeur()->type_pointe;
-    auto index = donnees_executions->ajoute_globale(type_globale, globale->ident);
+    auto index = donnees_executions->ajoute_globale(
+        type_globale, globale->ident, globale->adresse_pour_execution);
     globale->index = index;
     return index;
 }
@@ -1712,7 +1713,7 @@ int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
 
     index = ajoute_globale(atome_globale);
 
-    if (atome_globale->est_constante) {
+    if (atome_globale->est_constante && !atome_globale->adresse_pour_execution) {
         auto globale = donnees_executions->globales[index];
         auto initialisateur = atome_globale->initialisateur;
         genere_code_binaire_pour_initialisation_globale(

@@ -292,6 +292,7 @@ struct Globale {
     IdentifiantCode *ident = nullptr;
     Type *type = nullptr;
     int adresse = 0;
+    void *adresse_pour_execution = nullptr;
 };
 
 // À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la

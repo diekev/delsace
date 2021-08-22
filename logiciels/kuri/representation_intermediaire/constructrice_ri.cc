@@ -3278,6 +3278,10 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
         }
     }
 
+    type->info_type = convertisseuse_noeud_code.cree_info_type_pour(type);
+    assert(type->info_type);
+    static_cast<AtomeGlobale *>(type->atome_info_type)->adresse_pour_execution = type->info_type;
+
     return type->atome_info_type;
 }
 

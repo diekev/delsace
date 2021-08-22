@@ -1354,7 +1354,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto index = LIS_4_OCTETS();
                 auto const &globale = donnees_constantes->globales[index];
-                empile(site, &ptr_donnees_globales[globale.adresse]);
+                if (globale.adresse_pour_execution) {
+                    empile(site, globale.adresse_pour_execution);
+                }
+                else {
+                    empile(site, &ptr_donnees_globales[globale.adresse]);
+                }
                 break;
             }
             case OP_REFERENCE_MEMBRE:
