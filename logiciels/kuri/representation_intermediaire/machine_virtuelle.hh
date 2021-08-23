@@ -29,6 +29,7 @@
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/chaine.hh"
+#include "structures/intervalle.hh"
 
 struct AtomeFonction;
 struct Compilatrice;
@@ -80,6 +81,9 @@ struct MachineVirtuelle {
 
     unsigned char *ptr_donnees_constantes = nullptr;
     unsigned char *ptr_donnees_globales = nullptr;
+
+    Intervalle<void *> intervalle_adresses_globales{};
+    Intervalle<void *> intervalle_adresses_pile_execution{};
 
     FrameAppel *frames = nullptr;
     int profondeur_appel = 0;

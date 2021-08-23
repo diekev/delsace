@@ -772,6 +772,13 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
     donnees_constantes = &metaprogramme->unite->espace->donnees_constantes_executions;
 
+    intervalle_adresses_globales.min = ptr_donnees_globales;
+    intervalle_adresses_globales.max = ptr_donnees_globales +
+                                       metaprogramme->donnees_globales.taille();
+
+    intervalle_adresses_pile_execution.min = pile;
+    intervalle_adresses_pile_execution.max = pile + TAILLE_PILE;
+
     assert(pile);
     assert(pointeur_pile);
 
@@ -784,7 +791,7 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     de->profondeur_appel = profondeur_appel;
     de->pointeur_pile = pointeur_pile;
 
-    assert(de->pointeur_pile >= de->pile && de->pointeur_pile < (de->pile + TAILLE_PILE));
+    assert(intervalle_adresses_pile_execution.possede_inclusif(de->pointeur_pile));
 
     profondeur_appel = 0;
     pile = nullptr;
@@ -793,6 +800,8 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     ptr_donnees_constantes = nullptr;
     ptr_donnees_globales = nullptr;
     donnees_constantes = nullptr;
+    intervalle_adresses_globales = {};
+    intervalle_adresses_pile_execution = {};
 
     m_metaprogramme = nullptr;
 }
