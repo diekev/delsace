@@ -281,6 +281,10 @@ UniteCompilation *UniteCompilation::unite_attendue() const
         return nullptr;
     }
 
+    if (m_attente.est<AttenteSurNoeudCode>()) {
+        return nullptr;
+    }
+
     assert(!m_attente.est_valide());
     return nullptr;
 }
