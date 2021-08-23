@@ -66,11 +66,7 @@ métaprogramme :: fonc ()
                 code_énum := code comme *NoeudCodeÉnum
 
                 si code_énum.annotations {
-                    imprime("annotations pour %\n", code_énum.nom)
-
-                    pour code_énum.annotations {
-                        imprime("-- %\n", it)
-                    }
+                    imprime_annotations(code_énum.annotations, code_énum.nom)
                 }
             }
         }
