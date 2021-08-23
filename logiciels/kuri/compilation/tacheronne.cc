@@ -54,6 +54,21 @@ std::ostream &operator<<(std::ostream &os, GenreTache genre)
     return os;
 }
 
+std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
+{
+    const char *virgule = "";
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX)                                            \
+    if (dls::outils::possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << INDEX))) {    \
+        os << virgule << "PEUT_" #VERBE;                                                          \
+        virgule = "|";                                                                            \
+    }
+
+    ENUMERE_TACHES_POSSIBLES(ENUMERE_CAPACITE)
+
+#undef ENUMERE_CAPACITE
+    return os;
+}
+
 Tache Tache::dors(EspaceDeTravail *espace_)
 {
     Tache t;

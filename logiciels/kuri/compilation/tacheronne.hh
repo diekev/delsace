@@ -95,6 +95,8 @@ enum class DrapeauxTacheronne : uint32_t {
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
 
+std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux);
+
 struct OrdonnanceuseTache {
   public:
     enum {
