@@ -165,6 +165,8 @@ struct OrdonnanceuseTache {
         compilation_terminee = true;
     }
 
+    void imprime_donnees_files(std::ostream &os);
+
   private:
     long nombre_de_taches_en_attente() const;
 };

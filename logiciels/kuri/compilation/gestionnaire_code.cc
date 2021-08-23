@@ -1165,6 +1165,14 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
         return;
     }
 
+#undef DEBUG_UNITES_EN_ATTENTES
+
+#ifdef DEBUG_UNITES_EN_ATTENTES
+    std::cerr << "Unités en attente avant la création des tâches : " << unites_en_attente.taille()
+              << '\n';
+    ordonnanceuse.imprime_donnees_files(std::cerr);
+#endif
+
     POUR (unites_en_attente) {
         it->marque_prete_si_attente_resolue();
 
@@ -1193,6 +1201,13 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
     }
 
     unites_en_attente = nouvelles_unites;
+
+#ifdef DEBUG_UNITES_EN_ATTENTES
+    std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
+              << '\n';
+    ordonnanceuse.imprime_donnees_files(std::cerr);
+    std::cerr << "--------------------------------------------------------\n";
+#endif
 }
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()

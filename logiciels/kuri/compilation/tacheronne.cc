@@ -249,6 +249,17 @@ void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTr
     }
 }
 
+void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
+{
+    os << "Nombre de taches dans les files :\n";
+#define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                    \
+    os << "-- " << CHAINE << " : " << taches[INDEX].taille() << '\n';
+
+    ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
+
+#undef IMPRIME_NOMBRE_DE_TACHES
+}
+
 Tacheronne::Tacheronne(Compilatrice &comp)
     : compilatrice(comp),
       assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud)),
