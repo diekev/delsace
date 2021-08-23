@@ -296,6 +296,107 @@ static Coulisse *selectionne_coulisse(Programme *programme)
     return programme->espace()->coulisse;
 }
 
+static std::optional<Attente> attente_sur_type_non_valide(
+    kuri::ensemblon<Type *, 16> const &types_utilises)
+{
+    auto visites = kuri::ensemblon<Type *, 16>();
+    auto pile = dls::pile<Type *>();
+
+    pour_chaque_element(types_utilises, [&pile](auto &type) {
+        pile.empile(type);
+        return kuri::DecisionIteration::Continue;
+    });
+
+    while (!pile.est_vide()) {
+        auto type_courant = pile.depile();
+
+        /* Les types variadiques ou pointeur nul peuvent avoir des types déréférencés nuls. */
+        if (!type_courant) {
+            continue;
+        }
+
+        if (visites.possede(type_courant)) {
+            continue;
+        }
+
+        visites.insere(type_courant);
+
+        if ((type_courant->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_courant);
+        }
+
+        switch (type_courant->genre) {
+            case GenreType::POLYMORPHIQUE:
+            case GenreType::TUPLE:
+            case GenreType::EINI:
+            case GenreType::CHAINE:
+            case GenreType::RIEN:
+            case GenreType::BOOL:
+            case GenreType::OCTET:
+            case GenreType::TYPE_DE_DONNEES:
+            case GenreType::REEL:
+            case GenreType::ENTIER_CONSTANT:
+            case GenreType::ENTIER_NATUREL:
+            case GenreType::ENTIER_RELATIF:
+            case GenreType::ENUM:
+            case GenreType::ERREUR:
+            {
+                break;
+            }
+            case GenreType::FONCTION:
+            {
+                auto type_fonction = type_courant->comme_fonction();
+                POUR (type_fonction->types_entrees) {
+                    pile.empile(it);
+                }
+                pile.empile(type_fonction->type_sortie);
+                break;
+            }
+            case GenreType::UNION:
+            case GenreType::STRUCTURE:
+            {
+                auto type_compose = static_cast<TypeCompose *>(type_courant);
+                POUR (type_compose->membres) {
+                    pile.empile(it.type);
+                }
+                break;
+            }
+            case GenreType::REFERENCE:
+            {
+                pile.empile(type_courant->comme_reference()->type_pointe);
+                break;
+            }
+            case GenreType::POINTEUR:
+            {
+                pile.empile(type_courant->comme_pointeur()->type_pointe);
+                break;
+            }
+            case GenreType::VARIADIQUE:
+            {
+                pile.empile(type_courant->comme_variadique()->type_pointe);
+                break;
+            }
+            case GenreType::TABLEAU_DYNAMIQUE:
+            {
+                pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
+                break;
+            }
+            case GenreType::TABLEAU_FIXE:
+            {
+                pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
+                break;
+            }
+            case GenreType::OPAQUE:
+            {
+                pile.empile(type_courant->comme_opaque()->type_opacifie);
+                break;
+            }
+        }
+    }
+
+    return {};
+}
+
 void Tacheronne::gere_tache()
 {
     auto temps_debut = dls::chrono::compte_seconde();
@@ -479,19 +580,33 @@ void Tacheronne::gere_tache()
                 auto espace = tache.unite->espace;
                 auto noeud = tache.unite->noeud;
 
-                auto type_a_valider = Type::nul();
+                auto types_utilises = kuri::ensemblon<Type *, 16>();
                 visite_noeud(
                     noeud, PreferenceVisiteNoeud::ORIGINAL, [&](NoeudExpression const *racine) {
                         auto type = racine->type;
-                        if (type && (type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            type_a_valider = type;
+                        if (type) {
+                            types_utilises.insere(type);
                         }
+
+                        if (racine->est_entete_fonction()) {
+                            auto entete = racine->comme_entete_fonction();
+
+                            POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+                                if (it->type) {
+                                    types_utilises.insere(it->type);
+                                }
+                            }
+
+                            return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                        }
+
                         return DecisionVisiteNoeud::CONTINUE;
                     });
 
-                if (type_a_valider) {
-                    compilatrice.gestionnaire_code->mets_en_attente(
-                        tache.unite, Attente::sur_type(type_a_valider));
+                auto attente_possible = attente_sur_type_non_valide(types_utilises);
+                if (attente_possible) {
+                    compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
+                                                                    attente_possible.value());
                     break;
                 }
 
