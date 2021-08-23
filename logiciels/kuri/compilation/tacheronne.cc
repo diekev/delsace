@@ -610,6 +610,10 @@ void Tacheronne::gere_tache()
                     break;
                 }
 
+                // À FAIRE(noeuds codes) : ne convertis pas les corps s'ils n'ont pas encore été
+                // validés
+                // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
+                // (créer un NoeudCode prématurément peut se faire)
                 convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
                 compilatrice.gestionnaire_code->conversion_noeud_code_terminee(tache.unite);
                 break;
