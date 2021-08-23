@@ -1359,6 +1359,25 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     return ResultatInterpretation::ERREUR;
                 }
 
+#if 0
+                // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
+                if (!adresse_est_assignable(adresse_de)) {
+                    rapporte_erreur(m_metaprogramme->unite->espace,
+                                    site,
+                                    "Copie depuis une adresse non-chargeable !")
+                        .ajoute_message("L'adresse est : ", adresse_de, "\n");
+                    return ResultatInterpretation::ERREUR;
+                }
+#endif
+
+                if (!adresse_est_assignable(adresse_ou)) {
+                    rapporte_erreur(m_metaprogramme->unite->espace,
+                                    site,
+                                    "Copie vers une adresse non-assignable !")
+                        .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
                 // std::cerr << "Empile " << taille << " octet(s), décalage : " <<
@@ -1428,6 +1447,12 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     for (int i = profondeur_appel - 1; i >= 0; --i) {
         erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
     }
+}
+
+bool MachineVirtuelle::adresse_est_assignable(void *adresse)
+{
+    return intervalle_adresses_globales.possede_inclusif(adresse) ||
+           intervalle_adresses_pile_execution.possede_inclusif(adresse);
 }
 
 MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(

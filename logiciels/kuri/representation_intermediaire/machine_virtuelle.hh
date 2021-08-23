@@ -152,5 +152,7 @@ struct MachineVirtuelle {
 
     void imprime_trace_appel(NoeudExpression *site);
 
+    bool adresse_est_assignable(void *adresse);
+
     ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction, NoeudExpression *site);
 };
