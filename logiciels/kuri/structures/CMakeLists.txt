@@ -36,6 +36,7 @@ set(SOURCES
 	enchaineuse.cc
     ensemble.cc
     ensemblon.cc
+    intervalle.cc
 	table_hachage.cc
 	tableau.cc
 	tableau_compresse.cc
@@ -45,6 +46,7 @@ set(SOURCES
 	enchaineuse.hh
     ensemble.hh
     ensemblon.hh
+    intervalle.hh
 	table_hachage.hh
 	tableau.hh
 	tableau_compresse.hh
