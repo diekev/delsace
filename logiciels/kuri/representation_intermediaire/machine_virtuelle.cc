@@ -1335,6 +1335,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
                         .ajoute_message(
                             "Le type du site  est         : ", chaine_type(site->type), "\n");
+                    return ResultatInterpretation::ERREUR;
+                }
+
+                if (adresse_de == nullptr) {
+                    rapporte_erreur(
+                        m_metaprogramme->unite->espace, site, "Copie depuis une adresse nulle !");
+                    return ResultatInterpretation::ERREUR;
+                }
+
+                if (adresse_ou == nullptr) {
+                    rapporte_erreur(
+                        m_metaprogramme->unite->espace, site, "Copie vers une adresse nulle !");
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
