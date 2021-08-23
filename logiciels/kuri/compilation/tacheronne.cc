@@ -479,7 +479,6 @@ void Tacheronne::gere_tache()
                 auto espace = tache.unite->espace;
                 auto noeud = tache.unite->noeud;
 
-#if 0
                 auto type_a_valider = Type::nul();
                 visite_noeud(
                     noeud, PreferenceVisiteNoeud::ORIGINAL, [&](NoeudExpression const *racine) {
@@ -493,9 +492,9 @@ void Tacheronne::gere_tache()
                 if (type_a_valider) {
                     compilatrice.gestionnaire_code->mets_en_attente(
                         tache.unite, Attente::sur_type(type_a_valider));
-                    return;
+                    break;
                 }
-#endif
+
                 convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
                 compilatrice.gestionnaire_code->conversion_noeud_code_terminee(tache.unite);
                 break;
