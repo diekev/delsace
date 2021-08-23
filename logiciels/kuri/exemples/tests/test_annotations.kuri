@@ -51,6 +51,12 @@ métaprogramme :: fonc ()
                 }
 
                 bloc := code_structure.bloc
+
+                saufsi bloc {
+                    /* bloc peut-être nul pour les structures externes */
+                    continue
+                }
+
                 pour bloc.membres {
                     saufsi it.genre == GenreNoeud.DÉCLARATION_VARIABLE {
                         continue
