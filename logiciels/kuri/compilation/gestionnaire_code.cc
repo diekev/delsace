@@ -1043,12 +1043,13 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         espace->tache_ri_ajoutee(m_compilatrice->messagere);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
         unites_en_attente.ajoute(unite);
-        if (message) {
-            requiers_noeud_code(espace, noeud);
-            auto unite_message = cree_unite_pour_message(espace, message);
-            unite_message->mute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
-            unite->mute_attente(Attente::sur_message(message));
-        }
+    }
+
+    if (message) {
+        requiers_noeud_code(espace, noeud);
+        auto unite_message = cree_unite_pour_message(espace, message);
+        unite_message->mute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
+        unite->mute_attente(Attente::sur_message(message));
     }
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
