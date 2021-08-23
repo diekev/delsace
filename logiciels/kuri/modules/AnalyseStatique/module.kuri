@@ -122,6 +122,10 @@ vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: 
 vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
 {
     // À FAIRE: crash dans la MV si nous avons une discrimination avec juste un sinon
+    saufsi code {
+        retourne
+    }
+
     discr code.genre {
         DÉCLARATION_VARIABLE {
             code_déclaration := code comme *NoeudCodeDéclarationVariable
