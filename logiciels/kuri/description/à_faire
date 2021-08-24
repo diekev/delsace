@@ -63,7 +63,6 @@
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 - travail sur les itérateurs (via macros comme JAI?)
-- annotations pour les membres de structures/unions
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
@@ -94,7 +93,6 @@
 // --------------------------- Compilatrice
 
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
-sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 
 -- ajout d'un état aux validations des appels
     - étape rassemble candidates
@@ -166,7 +164,6 @@ remplace les noeuds de dépendances par des unités de compilations
 -- les types dérivés (pointeurs, références, tableaux, etc.) ne seront plus dans le graphe
 
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
-ajout de la construction des messages dans les tâches
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 
 considère revoir l'arbre syntaxique des références de membres, pour simpilfier la génération de code et économiser de la mémoire
@@ -277,8 +274,6 @@ permet de modifier la valeur des globales via les métaprogrammes, la générati
 vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
-
-- proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 
