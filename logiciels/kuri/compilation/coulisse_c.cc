@@ -746,11 +746,12 @@ struct GeneratriceCodeC {
             {
                 auto inst_appel = inst->comme_appel();
 
-                auto const &lexeme = inst_appel->lexeme;
-                auto fichier = m_espace.fichier(lexeme->fichier);
-                auto pos = position_lexeme(*lexeme);
+                /* La fonction d'initialisation des globales n'a pas de site. */
+                if (!m_fonction_courante->sanstrace && inst_appel->site) {
+                    auto const &lexeme = inst_appel->site->lexeme;
+                    auto fichier = m_espace.fichier(lexeme->fichier);
+                    auto pos = position_lexeme(*lexeme);
 
-                if (!m_fonction_courante->sanstrace) {
                     os << "  DEBUTE_RECORD_TRACE_APPEL(";
                     os << pos.numero_ligne << ",";
                     os << pos.pos << ",";

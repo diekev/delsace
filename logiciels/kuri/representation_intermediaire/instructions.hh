@@ -540,28 +540,20 @@ struct InstructionAppel : public Instruction {
 
     Atome *appele = nullptr;
     kuri::tableau<Atome *, int> args{};
-    /* pour les traces d'appels */
-    Lexeme const *lexeme = nullptr;
-
     InstructionAllocation *adresse_retour = nullptr;
 
     COPIE_CONSTRUCT(InstructionAppel);
 
-    InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_)
-        : InstructionAppel(site_)
+    InstructionAppel(NoeudExpression *site_, Atome *appele_) : InstructionAppel(site_)
     {
         auto type_fonction = appele_->type->comme_fonction();
         this->type = type_fonction->type_sortie;
 
         this->appele = appele_;
-        this->lexeme = lexeme_;
     }
 
-    InstructionAppel(NoeudExpression *site_,
-                     Lexeme const *lexeme_,
-                     Atome *appele_,
-                     kuri::tableau<Atome *, int> &&args_)
-        : InstructionAppel(site_, lexeme_, appele_)
+    InstructionAppel(NoeudExpression *site_, Atome *appele_, kuri::tableau<Atome *, int> &&args_)
+        : InstructionAppel(site_, appele_)
     {
         this->args = std::move(args_);
     }

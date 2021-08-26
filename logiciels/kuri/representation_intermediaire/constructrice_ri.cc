@@ -309,7 +309,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     auto param_appel = kuri::tableau<Atome *, int>(1);
     param_appel[0] = cree_charge_mem(nullptr, param_contexte);
 
-    cree_appel(nullptr, nullptr, fonction, std::move(param_appel));
+    cree_appel(nullptr, fonction, std::move(param_appel));
 
     std::rotate(fonction_pour->instructions.begin() + fonction_pour->decalage_appel_init_globale +
                     1,
@@ -436,27 +436,24 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_,
     return inst;
 }
 
-InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_,
-                                              Lexeme const *lexeme,
-                                              Atome *appele)
+InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_, Atome *appele)
 {
     // incrémente le nombre d'utilisation au cas où nous appelerions une fonction
     // lorsque que nous enlignons une fonction, son nombre d'utilisations sera décrémentée,
     // et si à 0, nous pourrons ignorer la génération de code final pour celle-ci
     appele->nombre_utilisations += 1;
-    auto inst = insts_appel.ajoute_element(site_, lexeme, appele);
+    auto inst = insts_appel.ajoute_element(site_, appele);
     fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
 InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_,
-                                              Lexeme const *lexeme,
                                               Atome *appele,
                                               kuri::tableau<Atome *, int> &&args)
 {
     // voir commentaire plus haut
     appele->nombre_utilisations += 1;
-    auto inst = insts_appel.ajoute_element(site_, lexeme, appele, std::move(args));
+    auto inst = insts_appel.ajoute_element(site_, appele, std::move(args));
     fonction_courante->instructions.ajoute(inst);
     return inst;
 }
@@ -840,7 +837,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 adresse_retour = cree_allocation(nullptr, type_fonction->type_sortie, nullptr);
             }
 
-            auto valeur = cree_appel(expr_appel, noeud->lexeme, atome_fonc, std::move(args));
+            auto valeur = cree_appel(expr_appel, atome_fonc, std::move(args));
             valeur->adresse_retour = adresse_retour;
 
             if (adresse_retour) {
@@ -1095,7 +1092,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     params[0] = cree_charge_mem(noeud, contexte);
                     params[1] = acces_taille;
                     params[2] = valeur_;
-                    cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
+                    cree_appel(noeud, fonction, std::move(params));
 
                     insere_label(label2);
 
@@ -1109,7 +1106,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     params[0] = cree_charge_mem(noeud, contexte);
                     params[1] = acces_taille;
                     params[2] = valeur_;
-                    cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
+                    cree_appel(noeud, fonction, std::move(params));
 
                     insere_label(label4);
                 };
@@ -1908,7 +1905,6 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 auto params = kuri::tableau<Atome *, int>(1);
                 params[0] = cree_charge_mem(noeud, contexte);
                 cree_appel(noeud,
-                           noeud->lexeme,
                            m_espace->trouve_ou_insere_fonction(
                                *this, m_espace->interface_kuri->decl_panique_membre_union),
                            std::move(params));
@@ -2230,7 +2226,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
             auto args = kuri::tableau<Atome *, int>();
             args.ajoute(valeur);
 
-            valeur = cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args));
+            valeur = cree_appel(noeud, atome_fonction, std::move(args));
             break;
         }
         case TypeTransformation::PREND_REFERENCE:
@@ -2297,7 +2293,6 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
             auto params = kuri::tableau<Atome *, int>(1);
             params[0] = cree_charge_mem(noeud, contexte);
             cree_appel(noeud,
-                       noeud->lexeme,
                        m_espace->trouve_ou_insere_fonction(
                            *this, m_espace->interface_kuri->decl_panique_erreur),
                        std::move(params));
@@ -2361,7 +2356,6 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
             auto params = kuri::tableau<Atome *, int>(1);
             params[0] = cree_charge_mem(noeud, contexte);
             cree_appel(noeud,
-                       noeud->lexeme,
                        m_espace->trouve_ou_insere_fonction(
                            *this, m_espace->interface_kuri->decl_panique_erreur),
                        std::move(params));
@@ -2492,7 +2486,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
                     auto params_init = kuri::tableau<Atome *, int>(1);
                     params_init[0] = pointeur;
 
-                    cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(params_init));
+                    cree_appel(noeud, atome_fonction, std::move(params_init));
                 }
                 else {
                     valeur = genere_initialisation_defaut_pour_type(it.type);
@@ -2592,7 +2586,6 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
         auto params = kuri::tableau<Atome *, int>(1);
         params[0] = cree_charge_mem(noeud, contexte);
         cree_appel(noeud,
-                   noeud->lexeme,
                    m_espace->trouve_ou_insere_fonction(
                        *this, m_espace->interface_kuri->decl_panique_membre_union),
                    std::move(params));
@@ -3504,8 +3497,11 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
         "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
     lexeme_appel_principale.ident = ID::principale;
 
+    static NoeudExpression site_appel_principale;
+    site_appel_principale.lexeme = &lexeme_appel_principale;
+
     auto valeur_princ = cree_appel(
-        nullptr, &lexeme_appel_principale, fonc_princ->atome, std::move(params_principale));
+        &site_appel_principale, fonc_princ->atome, std::move(params_principale));
 
     // return
     cree_retour(nullptr, valeur_princ);
@@ -3688,7 +3684,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                     auto params_init = kuri::tableau<Atome *, int>(1);
                     params_init[0] = pointeur;
 
-                    cree_appel(var, var->lexeme, atome_fonction, std::move(params_init));
+                    cree_appel(var, atome_fonction, std::move(params_init));
                 }
                 else {
                     auto valeur = genere_initialisation_defaut_pour_type(type_var);

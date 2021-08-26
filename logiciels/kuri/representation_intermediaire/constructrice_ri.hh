@@ -172,9 +172,8 @@ struct ConstructriceRI {
     InstructionChargeMem *cree_charge_mem(NoeudExpression *site_,
                                           Atome *ou,
                                           bool cree_seulement = false);
-    InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
+    InstructionAppel *cree_appel(NoeudExpression *site_, Atome *appele);
     InstructionAppel *cree_appel(NoeudExpression *site_,
-                                 Lexeme const *lexeme,
                                  Atome *appele,
                                  kuri::tableau<Atome *, int> &&args);
 
