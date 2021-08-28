@@ -655,7 +655,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             break;
         }
-            /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
+        /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
             assert_rappel(false, [&]() {
