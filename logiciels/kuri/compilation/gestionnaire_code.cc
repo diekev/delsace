@@ -514,6 +514,9 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 auto declaration = noeud->comme_declaration_variable();
 
                 POUR (declaration->donnees_decl.plage()) {
+                    for (auto &var : it.variables.plage()) {
+                        ajoute_type(var->type);
+                    }
                     rassemble_dependances(it.expression);
                 }
             }
