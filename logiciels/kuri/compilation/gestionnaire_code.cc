@@ -246,24 +246,6 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
     });
 }
 
-static bool est_type_polymorphique(Type *type)
-{
-    if (type->est_polymorphique()) {
-        return true;
-    }
-
-    if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        return true;
-    }
-
-    auto decl = decl_pour_type(type);
-    if (decl && decl->est_structure() && decl->comme_structure()->est_polymorphe) {
-        return true;
-    }
-
-    return false;
-}
-
 struct RassembleuseDependances {
     DonneesDependance &dependances;
     EspaceDeTravail *espace;
