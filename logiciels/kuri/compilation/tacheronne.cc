@@ -529,8 +529,9 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
-                gere_unite_pour_ri(tache.unite);
-                compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
+                if (gere_unite_pour_ri(tache.unite)) {
+                    compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
+                }
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
             }
@@ -647,14 +648,14 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     compilatrice.gestionnaire_code->typage_termine(unite);
 }
 
-void Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
+bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
 
     if (noeud->type == nullptr) {
         unite->espace->rapporte_erreur(
             noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
-        return;
+        return false;
     }
 
     if (unite->est_pour_generation_ri_principale_mp()) {
@@ -667,6 +668,7 @@ void Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
     noeud->drapeaux |= RI_FUT_GENEREE;
     noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
+    return true;
 }
 
 void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)

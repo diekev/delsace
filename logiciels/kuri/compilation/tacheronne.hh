@@ -90,7 +90,7 @@ enum class DrapeauxTacheronne : uint32_t {
 
 #undef ENUMERE_CAPACITE
 
-    PEUT_TOUT_FAIRE = 0xfffffff,
+        PEUT_TOUT_FAIRE = 0xfffffff,
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
@@ -106,7 +106,7 @@ struct OrdonnanceuseTache {
 
 #undef ENUMERE_FILE
 
-        NOMBRE_FILES,
+            NOMBRE_FILES,
     };
 
   private:
@@ -215,7 +215,7 @@ struct Tacheronne {
 
   private:
     void gere_unite_pour_typage(UniteCompilation *unite);
-    void gere_unite_pour_ri(UniteCompilation *unite);
+    bool gere_unite_pour_ri(UniteCompilation *unite);
     void gere_unite_pour_optimisation(UniteCompilation *unite);
     void gere_unite_pour_execution(UniteCompilation *unite);
 
