@@ -219,24 +219,15 @@ UniteCompilation *UniteCompilation::unite_attendue() const
             return nullptr;
         }
 
-        if (type_attendu->est_structure()) {
-            auto type_structure = type_attendu->comme_structure();
-            return type_structure->decl->unite;
+        assert(m_attente.est_valide());
+        auto decl = decl_pour_type(type_attendu);
+        if (!decl) {
+            /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
+             * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
+            return nullptr;
         }
-        else if (type_attendu->est_union()) {
-            auto type_union = type_attendu->comme_union();
-            return type_union->decl->unite;
-        }
-        else if (type_attendu->est_enum()) {
-            auto type_enum = type_attendu->comme_enum();
-            return type_enum->decl->unite;
-        }
-        else if (type_attendu->est_erreur()) {
-            auto type_erreur = type_attendu->comme_erreur();
-            return type_erreur->decl->unite;
-        }
-        assert(!m_attente.est_valide());
-        return nullptr;
+
+        return decl->unite;
     }
 
     if (m_attente.est<AttenteSurSymbole>()) {
@@ -359,14 +350,14 @@ void UniteCompilation::rapporte_erreur() const
         }
         else {
             auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
-            auto type = expression_operation->operande->type;
+            auto type_operande = expression_operation->operande->type;
             espace
                 ->rapporte_erreur(operateur_attendu,
                                   "Je ne peux pas continuer la compilation car je "
                                   "n'arrive pas à déterminer quel opérateur appeler.",
                                   erreur::Genre::TYPE_INCONNU)
                 .ajoute_message("\nLe type à droite de l'opérateur est ")
-                .ajoute_message(chaine_type(type))
+                .ajoute_message(chaine_type(type_operande))
                 .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
                 .ajoute_conseil("Si vous voulez performer une opération sur des types "
                                 "non-communs, vous pouvez définir vos propres opérateurs avec "

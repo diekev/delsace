@@ -41,6 +41,7 @@ struct Programme;
     O(CHARGEMENT_FICHIER, chargement_fichier, "chargement fichier")                               \
     O(LEXAGE_FICHIER, lexage_fichier, "lexage fichier")                                           \
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
+    O(CREATION_FONCTION_INIT_TYPE, creation_fonction_init_type, "création fonction init type")    \
     O(TYPAGE, typage, "typage")                                                                   \
     O(CONVERSION_NOEUD_CODE, conversion_noeud_code, "conversion noeud code")                      \
     O(ENVOIE_MESSAGE, envoie_message, "envoie message")                                           \
@@ -76,6 +77,7 @@ struct UniteCompilation {
     MetaProgramme *metaprogramme = nullptr;
     Programme *programme = nullptr;
     Message *message = nullptr;
+    Type *type = nullptr;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {

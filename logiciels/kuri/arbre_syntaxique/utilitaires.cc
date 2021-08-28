@@ -30,6 +30,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "compilation/broyage.hh"
+#include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
@@ -2265,6 +2266,11 @@ kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *e
         if (est_metaprogramme) {
             nom_broye_ = enchaine("metaprogramme", this);
         }
+        else if (est_initialisation_type) {
+            auto type_param = params[0]->type->comme_pointeur()->type_pointe;
+            // Ajout du pointeur du type pour différencier les types monomorphisés.
+            nom_broye_ = enchaine("initialise_", type_param);
+        }
         else {
             nom_broye_ = broye_nom_fonction(this, fichier->module->nom()->nom);
         }
@@ -2987,14 +2993,18 @@ void imprime_details_fonction(EspaceDeTravail *espace,
                               std::ostream &os)
 {
     os << "Détail pour " << ordre_fonction(entete) << " " << entete->lexeme->chaine << " :\n";
-    os << "-- Type                 : " << chaine_type(entete->type) << '\n';
-    os << "-- Est polymorphique    : " << std::boolalpha << entete->est_polymorphe << '\n';
-    os << "-- Est #corps_texte     : " << std::boolalpha << entete->corps->est_corps_texte << '\n';
-    os << "-- Entête fut validée   : " << std::boolalpha
+    os << "-- Type                    : " << chaine_type(entete->type) << '\n';
+    os << "-- Est polymorphique       : " << std::boolalpha << entete->est_polymorphe << '\n';
+    os << "-- Est #corps_texte        : " << std::boolalpha << entete->corps->est_corps_texte
+       << '\n';
+    os << "-- Entête fut validée      : " << std::boolalpha
        << entete->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
-    os << "-- Corps fut validé     : " << std::boolalpha
+    os << "-- Corps fut validé        : " << std::boolalpha
        << entete->corps->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
-    os << "-- Est monomorphisation : " << std::boolalpha << entete->est_monomorphisation << '\n';
+    os << "-- Est monomorphisation    : " << std::boolalpha << entete->est_monomorphisation
+       << '\n';
+    os << "-- Est initialisation type : " << std::boolalpha << entete->est_initialisation_type
+       << '\n';
     if (entete->est_monomorphisation) {
         os << "-- Paramètres de monomorphisation :\n";
         POUR ((*entete->bloc_constantes->membres.verrou_lecture())) {
@@ -3005,4 +3015,410 @@ void imprime_details_fonction(EspaceDeTravail *espace,
         os << "-- Site de définition :\n";
         erreur::imprime_site(*espace, entete);
     }
+}
+
+/* Fonctions d'initialisation des types. */
+
+static Lexeme lexeme_sentinel = {};
+
+static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
+    Type *type, Compilatrice &compilatrice, AssembleuseArbre *assembleuse, Typeuse &typeuse)
+{
+    if (!type->fonction_init) {
+        auto type_param = typeuse.type_pointeur_pour(type);
+        if (type->est_union() && !type->comme_union()->est_nonsure) {
+            auto type_normalise = normalise_type(typeuse, type);
+            type_param = typeuse.type_pointeur_pour(type_normalise, false, false);
+        }
+
+        auto types_entrees = dls::tablet<Type *, 6>();
+        types_entrees.ajoute(type_param);
+
+        auto type_fonction = typeuse.type_fonction(types_entrees, typeuse[TypeBase::RIEN], false);
+
+        static Lexeme lexeme_entete = {};
+        auto entete = assembleuse->cree_entete_fonction(&lexeme_entete);
+        entete->est_initialisation_type = true;
+
+        entete->bloc_constantes = assembleuse->cree_bloc_seul(&lexeme_sentinel, nullptr);
+        entete->bloc_parametres = assembleuse->cree_bloc_seul(&lexeme_sentinel,
+                                                              entete->bloc_constantes);
+
+        /* Paramètre d'entrée. */
+        {
+            static Lexeme lexeme_decl = {};
+            auto decl_param = assembleuse->cree_declaration_variable(
+                &lexeme_decl, type_param, ID::pointeur, nullptr);
+
+            decl_param->type = type_param;
+            decl_param->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+            entete->params.ajoute(decl_param);
+        }
+
+        /* Paramètre de sortie. */
+        {
+            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+            auto type_declare = assembleuse->cree_reference_type(&lexeme_rien);
+
+            auto ident = compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+
+            auto ref = assembleuse->cree_reference_declaration(&lexeme_rien);
+            ref->ident = ident;
+            ref->type = typeuse[TypeBase::RIEN];
+
+            auto decl = assembleuse->cree_declaration_variable(ref);
+            decl->expression_type = type_declare;
+            decl->type = ref->type;
+
+            entete->params_sorties.ajoute(decl);
+            entete->param_sortie = entete->params_sorties[0]->comme_declaration_variable();
+        }
+
+        entete->type = type_fonction;
+        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_NULCTX |
+                             FORCE_SANSTRACE);
+
+        type->fonction_init = entete;
+    }
+
+    return type->fonction_init;
+}
+
+static void cree_assignation(AssembleuseArbre *assembleuse,
+                             NoeudExpression *variable,
+                             NoeudExpression *expression)
+{
+    assert(variable->type);
+    assert(expression->type);
+    auto bloc = assembleuse->bloc_courant();
+    auto assignation = assembleuse->cree_assignation_variable(
+        &lexeme_sentinel, variable, expression);
+    assignation->type = expression->type;
+    bloc->expressions->ajoute(assignation);
+}
+
+static void cree_initialisation_defaut_pour_type(Type *type,
+                                                 Compilatrice &compilatrice,
+                                                 AssembleuseArbre *assembleuse,
+                                                 NoeudExpression *ref_param,
+                                                 NoeudExpression *expr_valeur_defaut,
+                                                 Typeuse &typeuse)
+{
+    switch (type->genre) {
+        case GenreType::RIEN:
+        case GenreType::POLYMORPHIQUE:
+        {
+            break;
+        }
+        case GenreType::EINI:
+        case GenreType::CHAINE:
+        case GenreType::STRUCTURE:
+        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreType::VARIADIQUE:
+        case GenreType::UNION:
+        {
+            static Lexeme lexeme_op = {};
+            lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
+            auto prise_adresse = assembleuse->cree_expression_unaire(&lexeme_op);
+            prise_adresse->operande = ref_param;
+            prise_adresse->type = typeuse.type_pointeur_pour(type);
+            auto fonction = cree_entete_pour_initialisation_type(
+                type, compilatrice, assembleuse, typeuse);
+            auto appel = assembleuse->cree_appel(
+                &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
+            appel->parametres_resolus.ajoute(prise_adresse);
+            appel->drapeaux |= FORCE_NULCTX;
+            assembleuse->bloc_courant()->expressions->ajoute(appel);
+            break;
+        }
+        case GenreType::BOOL:
+        {
+            static Lexeme litteral_bool = {};
+            litteral_bool.genre = GenreLexeme::FAUX;
+            auto valeur_defaut = expr_valeur_defaut;
+            if (!valeur_defaut) {
+                valeur_defaut = assembleuse->cree_litterale_bool(&litteral_bool);
+                valeur_defaut->type = type;
+            }
+            cree_assignation(assembleuse, ref_param, valeur_defaut);
+            break;
+        }
+        case GenreType::OCTET:
+        case GenreType::ENTIER_CONSTANT:
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::TYPE_DE_DONNEES:
+        case GenreType::ENUM:
+        case GenreType::ERREUR:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = expr_valeur_defaut;
+            if (!valeur_defaut) {
+                valeur_defaut = assembleuse->cree_litterale_entier(&litteral, type, 0);
+            }
+            cree_assignation(assembleuse, ref_param, valeur_defaut);
+            break;
+        }
+        case GenreType::REEL:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = expr_valeur_defaut;
+            if (!valeur_defaut) {
+                valeur_defaut = assembleuse->cree_litterale_reel(&litteral, type, 0);
+            }
+            cree_assignation(assembleuse, ref_param, valeur_defaut);
+            break;
+        }
+        case GenreType::REFERENCE:
+        {
+            break;
+        }
+        case GenreType::POINTEUR:
+        case GenreType::FONCTION:
+        {
+            static Lexeme litteral = {};
+            auto valeur_defaut = expr_valeur_defaut;
+            if (!valeur_defaut) {
+                valeur_defaut = assembleuse->cree_litterale_nul(&litteral);
+            }
+            valeur_defaut->type = ref_param->type;
+            cree_assignation(assembleuse, ref_param, valeur_defaut);
+            break;
+        }
+        case GenreType::TABLEAU_FIXE:
+        {
+            auto type_tableau = type->comme_tableau_fixe();
+            auto type_pointe = type_tableau->type_pointe;
+
+            auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(type_pointe, false, false);
+
+            /* Toutes les variables doivent être initialisées (ou nous devons nous assurer que tous
+             * les types possibles créés par la compilation ont une fonction d'initalisation). */
+            auto init_it = assembleuse->cree_litterale_nul(&lexeme_sentinel);
+            init_it->type = type_pointeur_type_pointe;
+
+            auto decl_it = assembleuse->cree_declaration_variable(
+                &lexeme_sentinel, type_pointeur_type_pointe, ID::it, init_it);
+            auto ref_it = assembleuse->cree_reference_declaration(&lexeme_sentinel, decl_it);
+
+            assembleuse->bloc_courant()->membres->ajoute(decl_it);
+
+            auto variable = assembleuse->cree_virgule(&lexeme_sentinel);
+            variable->expressions.ajoute(decl_it);
+
+            // il nous faut créer une boucle sur le tableau.
+            // pour * tableau { initialise_type(it); }
+            static Lexeme lexeme = {};
+            auto pour = assembleuse->cree_pour(&lexeme);
+            pour->prend_pointeur = true;
+            pour->expression = ref_param;
+            pour->bloc = assembleuse->cree_bloc(&lexeme);
+            pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
+            pour->variable = variable;
+
+            auto fonction = cree_entete_pour_initialisation_type(
+                type_pointe, compilatrice, assembleuse, typeuse);
+            auto appel = assembleuse->cree_appel(
+                &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
+            appel->drapeaux |= FORCE_NULCTX;
+            appel->parametres_resolus.ajoute(ref_it);
+
+            pour->bloc->expressions->ajoute(appel);
+
+            assembleuse->bloc_courant()->expressions->ajoute(pour);
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto opaque = type->comme_opaque();
+            auto type_opacifie = opaque->type_opacifie;
+
+            // Transtype vers le type opacifié, et crée l'initialisation pour le type opacifié.
+            static Lexeme lexeme_op = {};
+            lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
+            auto prise_adresse = assembleuse->cree_expression_unaire(&lexeme_op);
+            prise_adresse->operande = ref_param;
+            prise_adresse->type = typeuse.type_pointeur_pour(type);
+
+            auto comme = assembleuse->cree_comme(&lexeme_sentinel);
+            comme->expression = prise_adresse;
+            comme->type = typeuse.type_pointeur_pour(type_opacifie);
+            comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, comme->type};
+
+            auto fonc_init = cree_entete_pour_initialisation_type(
+                type_opacifie, compilatrice, assembleuse, typeuse);
+            auto appel = assembleuse->cree_appel(
+                &lexeme_sentinel, fonc_init, typeuse[TypeBase::RIEN]);
+            appel->drapeaux |= FORCE_NULCTX;
+            appel->parametres_resolus.ajoute(comme);
+            assembleuse->bloc_courant()->expressions->ajoute(appel);
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            // Les tuples ne sont que pour représenter les sorties des fonctions, ils ne devraient
+            // pas avoir d'initialisation.
+            break;
+        }
+    }
+}
+
+void cree_noeud_initialisation_type(EspaceDeTravail *espace,
+                                    Type *type,
+                                    AssembleuseArbre *assembleuse)
+{
+    auto &typeuse = espace->typeuse;
+    auto entete = cree_entete_pour_initialisation_type(
+        type, espace->compilatrice(), assembleuse, typeuse);
+
+    auto corps = entete->corps;
+    corps->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
+
+    corps->bloc = assembleuse->cree_bloc_seul(&lexeme_sentinel, entete->bloc_parametres);
+
+    assembleuse->bloc_courant(corps->bloc);
+
+    static Lexeme lexeme_decl = {};
+    auto decl_param = entete->params[0]->comme_declaration_variable();
+    auto ref_param = assembleuse->cree_reference_declaration(&lexeme_decl, decl_param);
+
+    switch (type->genre) {
+        case GenreType::RIEN:
+        case GenreType::POLYMORPHIQUE:
+        {
+            break;
+        }
+        case GenreType::BOOL:
+        case GenreType::OCTET:
+        case GenreType::ENTIER_CONSTANT:
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::TYPE_DE_DONNEES:
+        case GenreType::REEL:
+        case GenreType::REFERENCE:
+        case GenreType::POINTEUR:
+        case GenreType::FONCTION:
+        case GenreType::TABLEAU_FIXE:
+        case GenreType::ENUM:
+        case GenreType::ERREUR:
+        case GenreType::OPAQUE:
+        {
+            auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
+            deref->expression = ref_param;
+            deref->type = type;
+            cree_initialisation_defaut_pour_type(
+                type, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
+            break;
+        }
+        case GenreType::EINI:
+        case GenreType::CHAINE:
+        case GenreType::STRUCTURE:
+        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreType::VARIADIQUE:
+        {
+            static Lexeme lexeme = {};
+            auto type_compose = static_cast<TypeCompose *>(type);
+
+            if (type_compose->est_structure()) {
+                auto decl = type_compose->comme_structure()->decl;
+                if (decl && decl->est_polymorphe) {
+                    espace->rapporte_erreur_sans_site(
+                        "Erreur interne : création d'une fonction d'initialisation pour un type "
+                        "polymorphique !");
+                }
+            }
+
+            auto index_membre = 0;
+            POUR (type_compose->membres) {
+                if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
+                    auto ref_membre = assembleuse->cree_reference_membre(
+                        &lexeme, ref_param, it.type, index_membre);
+                    cree_initialisation_defaut_pour_type(it.type,
+                                                         espace->compilatrice(),
+                                                         assembleuse,
+                                                         ref_membre,
+                                                         it.expression_valeur_defaut,
+                                                         typeuse);
+                }
+                index_membre += 1;
+            }
+
+            break;
+        }
+        case GenreType::UNION:
+        {
+            auto type_union = type->comme_union();
+            auto index_membre = 0;
+            // À FAIRE(union) : test proprement cette logique
+            POUR (type_union->membres) {
+                if (it.type != type_union->type_le_plus_grand) {
+                    index_membre += 1;
+                    continue;
+                }
+
+                if (type_union->est_nonsure) {
+                    /* Stocke directement dans le paramètre. */
+                    auto type_le_plus_grand = type_union->type_le_plus_grand;
+                    auto transtype = assembleuse->cree_comme(&lexeme_sentinel);
+                    transtype->expression = ref_param;
+                    transtype->transformation = TransformationType{
+                        TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                        typeuse.type_pointeur_pour(type_le_plus_grand)};
+                    transtype->type = transtype->transformation.type_cible;
+
+                    auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
+                    deref->expression = transtype;
+                    deref->type = type_le_plus_grand;
+
+                    cree_initialisation_defaut_pour_type(it.type,
+                                                         espace->compilatrice(),
+                                                         assembleuse,
+                                                         deref,
+                                                         it.expression_valeur_defaut,
+                                                         typeuse);
+                }
+                else {
+                    auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
+                    ref_membre->accedee = ref_param;
+                    ref_membre->index_membre = 0;
+                    ref_membre->type = it.type;
+                    ref_membre->aide_generation_code = IGNORE_VERIFICATION;
+                    cree_initialisation_defaut_pour_type(it.type,
+                                                         espace->compilatrice(),
+                                                         assembleuse,
+                                                         ref_membre,
+                                                         it.expression_valeur_defaut,
+                                                         typeuse);
+
+                    ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
+                    ref_membre->accedee = ref_param;
+                    ref_membre->index_membre = 1;
+                    ref_membre->type = typeuse[TypeBase::Z32];
+                    ref_membre->aide_generation_code = IGNORE_VERIFICATION;
+                    cree_initialisation_defaut_pour_type(typeuse[TypeBase::Z32],
+                                                         espace->compilatrice(),
+                                                         assembleuse,
+                                                         ref_membre,
+                                                         nullptr,
+                                                         typeuse);
+                }
+
+                break;
+            }
+
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            // Les tuples ne sont que pour représenter les sorties des fonctions, ils ne devraient
+            // pas avoir d'initialisation.
+            break;
+        }
+    }
+
+    simplifie_arbre(espace, assembleuse, typeuse, entete);
+
+    type->drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
+    corps->drapeaux |= DECLARATION_FUT_VALIDEE;
 }

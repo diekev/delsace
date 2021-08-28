@@ -44,14 +44,15 @@ struct Tacheronne;
     O(CHARGER, CHARGEMENT, "chargement", 0)                                                       \
     O(LEXER, LEXAGE, "lexage", 1)                                                                 \
     O(PARSER, PARSAGE, "parsage", 2)                                                              \
-    O(TYPER, TYPAGE, "typage", 3)                                                                 \
-    O(CONVERTIR_NOEUD_CODE, CONVERSION_NOEUD_CODE, "conversion noeud code", 4)                    \
-    O(ENVOYER_MESSAGE, ENVOIE_MESSAGE, "envoie message", 5)                                       \
-    O(GENERER_RI, GENERATION_RI, "génération RI", 6)                                              \
-    O(EXECUTER, EXECUTION, "exécution", 7)                                                        \
-    O(OPTIMISER, OPTIMISATION, "optimisation", 8)                                                 \
-    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 9)                        \
-    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 10)
+    O(CREER_FONCTION_INIT_TYPE, CREATION_FONCTION_INIT_TYPE, "création fonction init type", 3)    \
+    O(TYPER, TYPAGE, "typage", 4)                                                                 \
+    O(CONVERTIR_NOEUD_CODE, CONVERSION_NOEUD_CODE, "conversion noeud code", 5)                    \
+    O(ENVOYER_MESSAGE, ENVOIE_MESSAGE, "envoie message", 6)                                       \
+    O(GENERER_RI, GENERATION_RI, "génération RI", 7)                                              \
+    O(EXECUTER, EXECUTION, "exécution", 8)                                                        \
+    O(OPTIMISER, OPTIMISATION, "optimisation", 9)                                                 \
+    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 10)                       \
+    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 11)
 
 #define ENUMERE_GENRES_TACHE(O)                                                                   \
     O(DORMIR, DORS, "dormir", 0)                                                                  \

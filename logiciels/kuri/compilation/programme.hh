@@ -88,6 +88,7 @@ struct DiagnostiqueEtatCompilation {
     NoeudDeclaration *declaration_a_valider = nullptr;
 
     Type *ri_type_a_generer = nullptr;
+    Type *fonction_initialisation_type_a_creer = nullptr;
     NoeudDeclaration *ri_declaration_a_generer = nullptr;
 };
 

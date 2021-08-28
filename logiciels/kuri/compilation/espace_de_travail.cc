@@ -310,40 +310,6 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
     return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice,
-                                                               Type *type)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-
-    if (type->fonction_init) {
-        return type->fonction_init;
-    }
-
-    auto nom_fonction = enchaine("initialise_", type);
-
-    SAUVEGARDE_ETAT(constructrice.fonction_courante);
-
-    auto types_entrees = dls::tablet<Type *, 6>(1);
-    types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
-
-    auto type_sortie = typeuse[TypeBase::RIEN];
-
-    auto params = kuri::tableau<Atome *, int>(1);
-    params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
-
-    auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
-
-    auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-    atome_fonc->type = typeuse.type_fonction(types_entrees, type_sortie, false);
-    atome_fonc->param_sortie = param_sortie;
-    atome_fonc->enligne = true;
-    atome_fonc->sanstrace = true;
-
-    type->fonction_init = atome_fonc;
-
-    return atome_fonc;
-}
-
 AtomeGlobale *EspaceDeTravail::cree_globale(Type *type,
                                             AtomeConstante *initialisateur,
                                             bool est_externe,

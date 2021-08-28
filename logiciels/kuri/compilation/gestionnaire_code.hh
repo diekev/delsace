@@ -115,6 +115,8 @@ class GestionnaireCode {
 
     void requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme);
 
+    void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
+
     /* Attente sur quelque chose. */
     void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
 
@@ -138,6 +140,8 @@ class GestionnaireCode {
     void liaison_programme_terminee(UniteCompilation *unite);
 
     void conversion_noeud_code_terminee(UniteCompilation *unite);
+
+    void fonction_initialisation_type_creee(UniteCompilation *unite);
 
     void optimisation_terminee(UniteCompilation *unite);
 

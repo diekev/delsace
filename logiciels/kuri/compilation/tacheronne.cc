@@ -144,6 +144,10 @@ static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
         {
             return OrdonnanceuseTache::FILE_CONVERSION_NOEUD_CODE;
         }
+        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
+        {
+            return OrdonnanceuseTache::FILE_CREATION_FONCTION_INIT_TYPE;
+        }
         case RaisonDEtre::AUCUNE:
         {
             return -1;
@@ -296,8 +300,8 @@ static Coulisse *selectionne_coulisse(Programme *programme)
     return programme->espace()->coulisse;
 }
 
-static std::optional<Attente> attente_sur_type_non_valide(
-    kuri::ensemblon<Type *, 16> const &types_utilises)
+static std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
 {
     auto visites = kuri::ensemblon<Type *, 16>();
     auto pile = dls::pile<Type *>();
@@ -321,7 +325,7 @@ static std::optional<Attente> attente_sur_type_non_valide(
 
         visites.insere(type_courant);
 
-        if ((type_courant->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if ((type_courant->drapeaux & drapeau) == 0) {
             return Attente::sur_type(type_courant);
         }
 
@@ -604,7 +608,8 @@ void Tacheronne::gere_tache()
                         return DecisionVisiteNoeud::CONTINUE;
                     });
 
-                auto attente_possible = attente_sur_type_non_valide(types_utilises);
+                auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
+                                                                             TYPE_FUT_VALIDE);
                 if (attente_possible) {
                     compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
                                                                     attente_possible.value());
@@ -624,6 +629,20 @@ void Tacheronne::gere_tache()
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
                 compilatrice.messagere->envoie_message(tache.unite->message);
+                break;
+            }
+            case GenreTache::CREATION_FONCTION_INIT_TYPE:
+            {
+                assert(dls::outils::possede_drapeau(
+                    drapeaux, DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
+
+                auto unite = tache.unite;
+                auto espace = unite->espace;
+                auto type = unite->type;
+                assert(type);
+
+                cree_noeud_initialisation_type(espace, type, this->assembleuse);
+                compilatrice.gestionnaire_code->fonction_initialisation_type_creee(unite);
                 break;
             }
         }
@@ -648,6 +667,19 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     compilatrice.gestionnaire_code->typage_termine(unite);
 }
 
+static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
+{
+    if (noeud->est_entete_fonction()) {
+        return noeud->comme_entete_fonction();
+    }
+
+    if (noeud->est_corps_fonction()) {
+        return noeud->comme_corps_fonction()->entete;
+    }
+
+    return nullptr;
+}
+
 bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
@@ -656,6 +688,52 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         unite->espace->rapporte_erreur(
             noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
         return false;
+    }
+
+    auto entete_possible = entete_fonction(noeud);
+    if (entete_possible && !entete_possible->est_initialisation_type) {
+        auto types_utilises = kuri::ensemblon<Type *, 16>();
+        visite_noeud(noeud, PreferenceVisiteNoeud::ORIGINAL, [&](NoeudExpression const *racine) {
+            auto type = racine->type;
+            if (type && !est_type_polymorphique(type)) {
+                types_utilises.insere(type);
+            }
+
+            if (racine->est_entete_fonction()) {
+                auto entete = racine->comme_entete_fonction();
+
+                if (entete->bloc_constantes) {
+                    POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+                        if (it->type && !est_type_polymorphique(it->type)) {
+                            types_utilises.insere(it->type);
+                        }
+                    }
+                }
+
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
+            if (noeud->est_declaration_variable()) {
+                auto declaration = noeud->comme_declaration_variable();
+
+                POUR (declaration->donnees_decl.plage()) {
+                    for (auto &var : it.variables.plage()) {
+                        if (!est_type_polymorphique(var->type)) {
+                            types_utilises.insere(var->type);
+                        }
+                    }
+                }
+            }
+
+            return DecisionVisiteNoeud::CONTINUE;
+        });
+
+        auto attente_possible = attente_sur_type_si_drapeau_manquant(
+            types_utilises, INITIALISATION_TYPE_FUT_CREEE);
+        if (attente_possible) {
+            compilatrice.gestionnaire_code->mets_en_attente(unite, attente_possible.value());
+            return false;
+        }
     }
 
     if (unite->est_pour_generation_ri_principale_mp()) {
@@ -667,7 +745,6 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
     noeud->drapeaux |= RI_FUT_GENEREE;
-    noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
     return true;
 }
 

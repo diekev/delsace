@@ -126,7 +126,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
     type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -134,7 +134,7 @@ Type *Type::cree_entier_constant()
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::ENTIER_CONSTANT;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -144,7 +144,7 @@ Type *Type::cree_reel(unsigned taille_octet)
     type->genre = GenreType::REEL;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -153,7 +153,7 @@ Type *Type::cree_rien()
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::RIEN;
     type->taille_octet = 0;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -163,7 +163,7 @@ Type *Type::cree_bool()
     type->genre = GenreType::BOOL;
     type->taille_octet = 1;
     type->alignement = 1;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -173,7 +173,7 @@ Type *Type::cree_octet()
     type->genre = GenreType::OCTET;
     type->taille_octet = 1;
     type->alignement = 1;
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -182,7 +182,7 @@ TypePointeur::TypePointeur(Type *type_pointe_) : TypePointeur()
     this->type_pointe = type_pointe_;
     this->taille_octet = 8;
     this->alignement = 8;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 
     if (type_pointe_) {
         if (type_pointe_->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -200,7 +200,7 @@ TypeReference::TypeReference(Type *type_pointe_) : TypeReference()
     this->type_pointe = type_pointe_;
     this->taille_octet = 8;
     this->alignement = 8;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 
     if (type_pointe_->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -220,7 +220,7 @@ TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie) 
     this->taille_octet = 8;
     this->alignement = 8;
     this->marque_polymorphique();
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
 void TypeFonction::marque_polymorphique()
@@ -290,7 +290,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     this->alignement = alignement_tableau_fixe(type_pointe_->alignement,
                                                static_cast<unsigned>(taille_));
     this->taille_octet = type_pointe_->taille_octet * static_cast<unsigned>(taille_);
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 
     if (type_pointe_->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -309,7 +309,7 @@ TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
     this->type_pointe = type_pointe_;
     this->taille_octet = 24;
     this->alignement = 8;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 
     if (type_pointe_->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -331,7 +331,7 @@ TypeVariadique::TypeVariadique(Type *type_pointe_,
     this->membres = std::move(membres_);
     this->taille_octet = 24;
     this->alignement = 8;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
 TypeTypeDeDonnees::TypeTypeDeDonnees(Type *type_connu_) : TypeTypeDeDonnees()
@@ -341,7 +341,7 @@ TypeTypeDeDonnees::TypeTypeDeDonnees(Type *type_connu_) : TypeTypeDeDonnees()
     this->taille_octet = 8;
     this->alignement = 8;
     this->type_connu = type_connu_;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 
     if (type_connu_) {
         type_connu_->drapeaux |= POSSEDE_TYPE_TYPE_DE_DONNEES;
@@ -351,7 +351,7 @@ TypeTypeDeDonnees::TypeTypeDeDonnees(Type *type_connu_) : TypeTypeDeDonnees()
 TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_) : TypePolymorphique()
 {
     this->ident = ident_;
-    this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    this->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
 TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie) : TypeOpaque()
@@ -522,13 +522,13 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     membres_eini.ajoute({types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
     membres_eini.ajoute({type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
-    type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type_eini->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
     auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
     membres_chaine.ajoute({types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0});
     membres_chaine.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
-    type_chaine->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+    type_chaine->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
     POUR (types_communs) {
         it->drapeaux |= TYPE_EST_NORMALISE;
@@ -765,6 +765,11 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
         type->type_tableau_dyn = tableau_dyn;
     }
+    else {
+        /* Pour les types variadiques externes, nous ne pouvons générer de fonction
+         * d'initialisations, donc marque le type comme ayant eu sa fonction générée. */
+        type->drapeaux |= (INITIALISATION_TYPE_FUT_CREEE | UNITE_POUR_INITIALISATION_FUT_CREE);
+    }
 
     return type;
 }
@@ -877,7 +882,6 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
     auto type = types_enums->ajoute_element();
     type->nom = decl->lexeme->ident;
     type->decl = decl;
-    type->drapeaux |= (RI_TYPE_FUT_GENEREE);
 
     return type;
 }
@@ -1032,7 +1036,7 @@ TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membre
         calcule_taille_type_compose(type, false, 0);
     }
 
-    type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
 
     return type;
 }
@@ -1489,8 +1493,9 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     // dans la coulisse pour chaque monomorphisation.
     type_structure->decl = this->decl;
     type_structure->union_originelle = this;
-    type_structure->drapeaux |= TYPE_FUT_VALIDE;
-    type_structure->drapeaux |= RI_TYPE_FUT_GENEREE;
+    /* L'initialisation est créée avec le type de l'union et non celui de la structure. */
+    type_structure->drapeaux |= (TYPE_FUT_VALIDE | INITIALISATION_TYPE_FUT_CREEE |
+                                 UNITE_POUR_INITIALISATION_FUT_CREE);
 
     typeuse.graphe_->connecte_type_type(this, type_structure);
 }

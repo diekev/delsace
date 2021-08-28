@@ -37,7 +37,6 @@
 #include "operateurs.hh"
 
 struct AtomeConstante;
-struct AtomeFonction;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
@@ -45,6 +44,7 @@ struct Operateurs;
 struct OperateurBinaire;
 struct OperateurUnaire;
 struct NoeudDeclarationVariable;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -180,7 +180,7 @@ enum {
     TYPEDEF_FUT_GENERE = 1,
     TYPE_EST_POLYMORPHIQUE = 2,
     TYPE_FUT_VALIDE = 4,
-    RI_TYPE_FUT_GENEREE = 8,
+    INITIALISATION_TYPE_FUT_CREEE = 8,
     POSSEDE_TYPE_POINTEUR = 16,
     POSSEDE_TYPE_REFERENCE = 32,
     POSSEDE_TYPE_TABLEAU_FIXE = 64,
@@ -189,6 +189,7 @@ enum {
     CODE_BINAIRE_TYPE_FUT_GENERE = 512,
     TYPE_EST_NORMALISE = 1024,
     CODE_MACHINE_FUT_GENERE = 2048,
+    UNITE_POUR_INITIALISATION_FUT_CREE = 4096,
 };
 
 struct Type {
@@ -204,7 +205,7 @@ struct Type {
     AtomeConstante *atome_info_type = nullptr;
     NoeudDependance *noeud_dependance = nullptr;
 
-    AtomeFonction *fonction_init = nullptr;
+    NoeudDeclarationEnteteFonction *fonction_init = nullptr;
 
     TableOperateurs operateurs{};
 
@@ -369,7 +370,6 @@ struct TypeStructure final : public TypeCompose {
 
     TypeUnion *union_originelle = nullptr;
 
-    bool deja_genere = false;
     bool est_anonyme = false;
 
     kuri::chaine const &nom_portable();
@@ -389,7 +389,6 @@ struct TypeUnion final : public TypeCompose {
     NoeudStruct *decl = nullptr;
 
     unsigned decalage_index = 0;
-    bool deja_genere = false;
     bool est_nonsure = false;
     bool est_anonyme = false;
 

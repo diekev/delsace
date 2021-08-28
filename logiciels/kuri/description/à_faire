@@ -339,9 +339,6 @@ typage un peu libre des énumérations
         Type3
     }
 
-constructions de la table de types
-    requiers d'avoir des fonctions d'initialisations pour tous les types
-
 ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via une opacité, mais les chaines seraient brisées)
 
 charge/données personnalisées pour les erreurs afin de transmettre plus de détails à la fonction appelante
@@ -380,14 +377,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
     également dans les expressions des types :
         a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
         b : énum ...
-
-initialisation de tableaux fixes :
--- appel la fonction d'initialisation pour les types membres
------ récursion sur les tableaux de tableaux
-
-    a : [4][4]z32
-    a[0][0] = 0
-    ...
 
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 

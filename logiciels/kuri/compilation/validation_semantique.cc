@@ -1648,12 +1648,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (type->genre != GenreType::STRUCTURE && type->genre != GenreType::UNION) {
-                rapporte_erreur("init_de doit prendre le type d'une structure ou d'une union",
-                                noeud);
-                return CodeRetourValidation::Erreur;
-            }
-
             auto types_entrees = dls::tablet<Type *, 6>(1);
             types_entrees[0] = espace->typeuse.type_pointeur_pour(type);
 

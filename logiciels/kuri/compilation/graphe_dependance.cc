@@ -302,44 +302,30 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
                                                      kuri::ensemble<AtomeFonction *> &utilises)
 {
     traverse(racine, [&](NoeudDependance *noeud) {
+        AtomeFonction *atome_fonction = nullptr;
+
         if (noeud->est_fonction()) {
             auto noeud_fonction = noeud->fonction();
-            auto atome_fonction = static_cast<AtomeFonction *>(noeud_fonction->atome);
-            assert(atome_fonction);
-
-            if (utilises.possede(atome_fonction)) {
-                return;
-            }
-
-            fonctions.ajoute(atome_fonction);
-
-            utilises.insere(atome_fonction);
+            atome_fonction = static_cast<AtomeFonction *>(noeud_fonction->atome);
         }
         else if (noeud->est_type()) {
             auto type = noeud->type();
-
-            if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-                auto atome_fonction = type->fonction_init;
-
-                if (!atome_fonction && type->est_structure()) {
-                    auto type_structure = type->comme_structure();
-
-                    if (type_structure->union_originelle) {
-                        atome_fonction = type_structure->union_originelle->fonction_init;
-                    }
-                }
-
-                // Il est possible que la fonction fut déjà ajoutée via l'union_originelle.
-                if (utilises.possede(atome_fonction)) {
-                    return;
-                }
-
-                assert(atome_fonction);
-                fonctions.ajoute(atome_fonction);
-
-                utilises.insere(atome_fonction);
+            if (!type->fonction_init) {
+                return;
             }
+            atome_fonction = static_cast<AtomeFonction *>(type->fonction_init->atome);
         }
+        else {
+            return;
+        }
+
+        assert(atome_fonction);
+
+        if (utilises.possede(atome_fonction)) {
+            return;
+        }
+        fonctions.ajoute(atome_fonction);
+        utilises.insere(atome_fonction);
     });
 }
 

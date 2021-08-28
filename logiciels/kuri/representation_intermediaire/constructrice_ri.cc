@@ -655,6 +655,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             break;
         }
+            /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
+        case GenreNoeud::DECLARATION_STRUCTURE:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr
+                    << "Erreur interne : une déclaration de structure fut passée à la RI !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
         /* ceux-ci sont simplifiés */
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
@@ -1563,21 +1573,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         continue;
                     }
 
-                    auto valeur = static_cast<Atome *>(nullptr);
+                    auto ptr = cree_reference_membre(it, alloc, index_membre);
 
                     if (it != nullptr) {
-                        genere_ri_pour_expression_droite(it, nullptr);
-                        valeur = depile_valeur();
+                        genere_ri_pour_expression_droite(it, ptr);
                     }
                     else {
-                        valeur = genere_initialisation_defaut_pour_type(
-                            type_struct->membres[index_membre].type);
-                    }
-
-                    // À FAIRE(tableau fixe)
-                    if (valeur) {
-                        auto ptr = cree_reference_membre(it, alloc, index_membre);
-                        cree_stocke_mem(it, ptr, valeur);
+                        auto type_membre = type_struct->membres[index_membre].type;
+                        auto fonc_init = type_membre->fonction_init;
+                        auto atome_fonc_init = espace()->trouve_ou_insere_fonction(*this,
+                                                                                   fonc_init);
+                        auto params = kuri::tableau<Atome *, int>(1);
+                        params[0] = ptr;
+                        cree_appel(expr, atome_fonc_init, std::move(params));
                     }
 
                     index_membre += 1;
@@ -1639,11 +1647,10 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         }
         case GenreNoeud::EXPRESSION_INIT_DE:
         {
-            // @simplifie
             auto type_fonction = noeud->type->comme_fonction();
             auto type_pointeur = type_fonction->types_entrees[0];
             auto type_arg = type_pointeur->comme_pointeur()->type_pointe;
-            empile_valeur(m_espace->trouve_ou_insere_fonction_init(*this, type_arg));
+            empile_valeur(m_espace->trouve_ou_insere_fonction(*this, type_arg->fonction_init));
             break;
         }
         case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -1671,11 +1678,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             }
 
             empile_valeur(cree_charge_mem(noeud, valeur));
-            break;
-        }
-        case GenreNoeud::DECLARATION_STRUCTURE:
-        {
-            genere_ri_pour_declaration_structure(noeud->comme_structure());
             break;
         }
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -2405,116 +2407,6 @@ Atome *ConstructriceRI::depile_valeur()
     return v;
 }
 
-void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
-{
-    auto type = noeud->type;
-
-    if (type->genre == GenreType::UNION && type->comme_union()->deja_genere) {
-        return;
-    }
-    else if (type->genre == GenreType::STRUCTURE && type->comme_structure()->deja_genere) {
-        return;
-    }
-
-    SAUVEGARDE_ETAT(m_pile);
-    SAUVEGARDE_ETAT(fonction_courante);
-    SAUVEGARDE_ETAT(nombre_labels);
-    SAUVEGARDE_ETAT(taille_allouee);
-
-    auto fonction = m_espace->trouve_ou_insere_fonction_init(*this, type);
-    fonction_courante = fonction;
-    cree_label(noeud);
-
-    if (type->genre == GenreType::UNION) {
-        auto type_union = type->comme_union();
-        auto index_membre = 0u;
-        auto pointeur_union = cree_charge_mem(noeud, fonction->params_entrees[0]);
-
-        // À FAIRE(union) : test proprement cette logique
-        POUR (type_union->membres) {
-            if (it.type != type_union->type_le_plus_grand) {
-                index_membre += 1;
-                continue;
-            }
-
-            auto valeur = static_cast<Atome *>(nullptr);
-
-            if (it.expression_valeur_defaut) {
-                genere_ri_pour_expression_droite(it.expression_valeur_defaut, nullptr);
-                valeur = depile_valeur();
-            }
-            else {
-                valeur = genere_initialisation_defaut_pour_type(
-                    normalise_type(m_espace->typeuse, it.type));
-            }
-
-            // valeur peut être nulle pour les initialisations de tableaux fixes
-            if (valeur) {
-                if (type_union->est_nonsure) {
-                    cree_stocke_mem(noeud, pointeur_union, valeur);
-                }
-                else {
-                    auto pointeur = cree_reference_membre(noeud, pointeur_union, 0);
-                    cree_stocke_mem(noeud, pointeur, valeur);
-
-                    pointeur = cree_reference_membre(noeud, pointeur_union, 1);
-                    cree_stocke_mem(noeud, pointeur, cree_z32(index_membre + 1));
-                }
-            }
-
-            break;
-        }
-
-        type_union->deja_genere = true;
-    }
-    else if (type->genre == GenreType::STRUCTURE) {
-        auto type_struct = type->comme_structure();
-        auto index_membre = 0;
-        auto pointeur_struct = cree_charge_mem(noeud, fonction->params_entrees[0]);
-
-        POUR (type_struct->membres) {
-            if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
-                index_membre += 1;
-                continue;
-            }
-
-            auto valeur = static_cast<Atome *>(nullptr);
-            auto pointeur = cree_reference_membre(noeud, pointeur_struct, index_membre);
-
-            if (it.expression_valeur_defaut) {
-                genere_ri_pour_expression_droite(it.expression_valeur_defaut, nullptr);
-                valeur = depile_valeur();
-            }
-            else {
-                if (it.type->genre == GenreType::STRUCTURE || it.type->genre == GenreType::UNION) {
-                    auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, it.type);
-
-                    auto params_init = kuri::tableau<Atome *, int>(1);
-                    params_init[0] = pointeur;
-
-                    cree_appel(noeud, atome_fonction, std::move(params_init));
-                }
-                else {
-                    valeur = genere_initialisation_defaut_pour_type(it.type);
-                }
-            }
-
-            // valeur peut être nulle pour les initialisations de tableaux fixes
-            if (valeur) {
-                cree_stocke_mem(noeud, pointeur, valeur);
-            }
-
-            index_membre += 1;
-        }
-
-        type_struct->deja_genere = true;
-    }
-
-    type->drapeaux |= RI_TYPE_FUT_GENEREE;
-
-    cree_retour(noeud, nullptr);
-}
-
 void ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
 {
     // À FAIRE(ri) : ceci ignore les espaces de noms.
@@ -2652,7 +2544,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
         }
         case GenreType::TABLEAU_FIXE:
         {
-            // À FAIRE(ri) : initialisation défaut pour tableau fixe
+            // À FAIRE(tableau fixe) : initialisation défaut
             return nullptr;
         }
         case GenreType::UNION:
@@ -3680,29 +3572,12 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
             for (auto &var : it.variables.plage()) {
                 auto pointeur = alloc_pointeur(var);
 
-                // À FAIRE: appel pour les opaques étant des structures
                 auto type_var = var->type;
-                if (type_var->est_opaque()) {
-                    type_var = type_var->comme_opaque()->type_opacifie;
-                }
-
-                if (type_var->genre == GenreType::TABLEAU_FIXE) {
-                    // À FAIRE(tableau fixe) : valeur défaut
-                }
-                else if (type_var->genre == GenreType::STRUCTURE ||
-                         type_var->genre == GenreType::UNION) {
-                    auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this,
-                                                                                   var->type);
-
-                    auto params_init = kuri::tableau<Atome *, int>(1);
-                    params_init[0] = pointeur;
-
-                    cree_appel(var, atome_fonction, std::move(params_init));
-                }
-                else {
-                    auto valeur = genere_initialisation_defaut_pour_type(type_var);
-                    cree_stocke_mem(var, pointeur, valeur);
-                }
+                auto fonc_init = type_var->fonction_init;
+                auto atome_fonc_init = espace()->trouve_ou_insere_fonction(*this, fonc_init);
+                auto params = kuri::tableau<Atome *, int>(1);
+                params[0] = pointeur;
+                cree_appel(var, atome_fonc_init, std::move(params));
 
                 static_cast<NoeudDeclarationSymbole *>(
                     var->comme_reference_declaration()->declaration_referee)

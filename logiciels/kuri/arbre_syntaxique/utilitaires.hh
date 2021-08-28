@@ -166,3 +166,7 @@ void aplatis_arbre(NoeudExpression *declaration);
 void imprime_details_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entete,
                               std::ostream &os);
+
+void cree_noeud_initialisation_type(EspaceDeTravail *espace,
+                                    Type *type,
+                                    AssembleuseArbre *assembleuse);

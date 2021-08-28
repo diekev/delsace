@@ -233,7 +233,6 @@ struct ConstructriceRI {
                                           Atome *place,
                                           TransformationType const &transformation);
     void genere_ri_pour_tente(NoeudInstructionTente *noeud);
-    void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
     void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
     void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
     AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);

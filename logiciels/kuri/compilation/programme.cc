@@ -144,7 +144,14 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
     }
 
     POUR (m_types) {
-        if ((it->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
+        /* Ne vérifions pas ici si la fonction_init est non-nulle car les types variadiques
+         * externes n'en ont pas. */
+        if ((it->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
+            diagnostique.fonction_initialisation_type_a_creer = it;
+            return false;
+        }
+
+        if (it->fonction_init && !it->fonction_init->possede_drapeau(RI_FUT_GENEREE)) {
             diagnostique.ri_type_a_generer = it;
             return false;
         }
@@ -501,7 +508,7 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
     /* Extrait les atomes pour les fonctions d'initalisation des types. */
     POUR (programme.types()) {
         if (it->fonction_init) {
-            resultat.fonctions.ajoute(it->fonction_init);
+            resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->fonction_init->atome));
         }
     }
 
@@ -570,8 +577,12 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
         return;
     }
 
+    if (diagnositic.fonction_initialisation_type_a_creer) {
+        std::cerr << "-- fonction d'initialisation non-créée pour le type : "
+                  << chaine_type(diagnositic.ri_type_a_generer) << '\n';
+    }
     if (diagnositic.ri_type_a_generer) {
-        std::cerr << "-- RI non générée pour le type : "
+        std::cerr << "-- RI non générée pour la fonction d'initialisation du type : "
                   << chaine_type(diagnositic.ri_type_a_generer) << '\n';
     }
     if (diagnositic.ri_declaration_a_generer) {

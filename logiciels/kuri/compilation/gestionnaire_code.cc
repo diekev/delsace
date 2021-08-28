@@ -34,155 +34,9 @@
   À FAIRE(gestion) : pour chaque type :
 - création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où
 dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
-- création d'une fonction d'initialisation (TACHE_CREATION_FONCTION_INITIALISATION)
 - avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la
 compilation
  */
-
-#if 0
-#    include "arbre_syntaxique/assembleuse.hh"
-
-void cree_noeud_initialisation_type(Type *type, AssembleuseArbre *assembleuse, Typeuse &typeuse)
-{
-    static Lexeme lexeme_entete = {};
-    static Lexeme lexeme_corps = {};
-    auto entete = assembleuse->cree_entete_fonction(&lexeme_entete);
-    auto corps = assembleuse->cree_corps_fonction(&lexeme_corps);
-
-    corps->entete = entete;
-    entete->corps = corps;
-
-    entete->drapeaux |= FORCE_ENLIGNE;
-
-    assembleuse->bloc_courant(corps->bloc);
-
-    // À FAIRE : type de la fonction
-
-    // À FAIRE : paramètres
-
-    static Lexeme lexeme_decl = {};
-    auto decl_param = assembleuse->cree_declaration_variable(
-        &lexeme_decl, typeuse.type_pointeur_pour(type), ID::pointeur, nullptr);
-
-    auto ref_param = assembleuse->cree_reference_declaration(&lexeme_decl, decl_param);
-
-    switch (type->genre) {
-        case GenreType::RIEN:
-        case GenreType::POLYMORPHIQUE:
-        {
-            break;
-        }
-        case GenreType::EINI:
-        case GenreType::CHAINE:
-        case GenreType::STRUCTURE:
-        case GenreType::TABLEAU_DYNAMIQUE:
-        case GenreType::VARIADIQUE:
-        {
-            static Lexeme lexeme = {};
-            auto type_compose = static_cast<TypeCompose *>(type);
-
-            auto index_membre = 0;
-            POUR (type_compose->membres) {
-                if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
-                    // *param.membre;
-                    auto ref_membre = assembleuse->cree_reference_membre(
-                        &lexeme, ref_param, it.type, index_membre);
-                    static Lexeme lexeme_fois_unaire = {};
-                    lexeme_fois_unaire.genre = GenreLexeme::FOIS_UNAIRE;
-                    auto prise_adresse = assembleuse->cree_expression_unaire(&lexeme_fois_unaire);
-                    prise_adresse->operande = ref_membre;
-
-                    // initialise_XXXX(*param.membre);
-
-                    auto appel = assembleuse->cree_appel(&lexeme, , typeuse[TypeBase::RIEN]);
-                }
-                index_membre += 1;
-            }
-
-            break;
-        }
-        case GenreType::BOOL:
-        {
-            static Lexeme litteral_bool = {};
-            litteral_bool.genre = GenreLexeme::FAUX;
-            auto valeur_defaut = assembleuse->cree_litterale_bool(&litteral_bool);
-            break;
-        }
-        case GenreType::OCTET:
-        case GenreType::ENTIER_CONSTANT:
-        case GenreType::ENTIER_NATUREL:
-        case GenreType::ENTIER_RELATIF:
-        case GenreType::TYPE_DE_DONNEES:
-        {
-            static Lexeme litteral = {};
-            auto valeur_defaut = assembleuse->cree_litterale_entier(&litteral, type, 0);
-            break;
-        }
-        case GenreType::REEL:
-        {
-            static Lexeme litteral = {};
-            auto valeur_defaut = assembleuse->cree_litterale_reel(&litteral, type, 0);
-            break;
-        }
-        case GenreType::REFERENCE:
-        {
-            break;
-        }
-        case GenreType::POINTEUR:
-        case GenreType::FONCTION:
-        {
-            static Lexeme litteral = {};
-            auto valeur_defaut = assembleuse->cree_litterale_nul(&litteral);
-            break;
-        }
-        case GenreType::UNION:
-        {
-            break;
-        }
-        case GenreType::TABLEAU_FIXE:
-        {
-            // il nous faut créer une boucle sur la taille du tableau.
-            // pour 0 ... taille - 1 { initialise_(*tableau[it]); }
-            static Lexeme lexeme = {};
-            auto pour = assembleuse->cree_pour(&lexeme);
-            pour->expression = ;
-            pour->bloc = assembleuse->cree_bloc(&lexeme);
-
-            auto mem = assembleuse->cree_memoire(&lexeme);
-            mem->expression = ref_param;
-
-            auto ref_it = assembleuse->cree_reference_declaration(&lexeme);
-            ref_it->ident = ID::it;
-
-            auto indexage = assembleuse->cree_indexage(&lexeme, mem, ref_it, true);
-
-            auto prise_mem = assembleuse->cree_expression_unaire(&lexeme);
-
-            // initialise_XXXX(*tableau[it]);
-            auto appel = assembleuse->cree_appel(&lexeme, , typeuse[TypeBase::RIEN]);
-
-            break;
-        }
-        case GenreType::ENUM:
-        case GenreType::ERREUR:
-        {
-            static Lexeme litteral = {};
-            auto type_enum = static_cast<TypeEnum *>(type);
-            auto valeur_defaut = assembleuse->cree_litterale_entier(
-                &litteral, type_enum->type_donnees, 0);
-            break;
-        }
-        case GenreType::OPAQUE:
-        {
-            break;
-        }
-        case GenreType::TUPLE:
-        {
-            break;
-        }
-    }
-}
-#endif
 
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
@@ -578,14 +432,17 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         auto decl = decl_pour_type(type);
         if (decl && !decl->unite) {
-            // Pour les unions anonymes, nous allons directement à la génération de code RI.
-            if (type->est_union() && type->comme_union()->est_anonyme) {
-                gestionnaire.requiers_generation_ri(espace, decl);
-            }
-            else {
+            // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
+            // sémantique.
+            if (!(type->est_union() && type->comme_union()->est_anonyme)) {
                 gestionnaire.requiers_typage(espace, decl);
             }
         }
+
+        if ((type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
+            gestionnaire.requiers_initialisation_type(espace, type);
+        }
+
         return kuri::DecisionIteration::Continue;
     });
 }
@@ -826,6 +683,24 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *esp
     return unite;
 }
 
+void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
+{
+    if ((type->drapeaux & UNITE_POUR_INITIALISATION_FUT_CREE) != 0) {
+        return;
+    }
+
+    auto unite = unites.ajoute_element(espace);
+    unite->mute_raison_d_etre(RaisonDEtre::CREATION_FONCTION_INIT_TYPE);
+    unite->type = type;
+    unites_en_attente.ajoute(unite);
+
+    if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        unite->mute_attente(Attente::sur_type(type));
+    }
+
+    type->drapeaux |= UNITE_POUR_INITIALISATION_FUT_CREE;
+}
+
 void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     auto unite = unites.ajoute_element(espace);
@@ -968,6 +843,12 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
         if (decl && decl->unite == nullptr) {
             requiers_typage(espace, decl);
         }
+        /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
+         * RI. */
+        if ((type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0 &&
+            !est_type_polymorphique(type)) {
+            requiers_initialisation_type(espace, type);
+        }
     }
     else if (attente.est<AttenteSurDeclaration>()) {
         NoeudDeclaration *decl = attente.declaration();
@@ -1038,28 +919,11 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
                (!entete->est_polymorphe || entete->est_monomorphisation);
     }
 
-    if (noeud->est_structure()) {
-        auto structure = noeud->comme_structure();
-        // Les déclarations de types polymorphiques sont dans le Programme...
-        if (structure->est_polymorphe) {
-            structure->type->drapeaux |= RI_TYPE_FUT_GENEREE;
-        }
-        return !structure->est_polymorphe;
-    }
-
-    if (noeud->est_enum()) {
-        return true;
-    }
-
-    if (noeud->possede_drapeau(EST_GLOBALE)) {
+    if (noeud->possede_drapeau(EST_GLOBALE) && !noeud->est_structure() && !noeud->est_enum()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
         }
-        return true;
-    }
-
-    if (noeud->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
         return true;
     }
 
@@ -1203,6 +1067,15 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
             it->marque_prete();
         }
     }
+}
+
+void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
+{
+    assert((unite->type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0);
+    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
+    unite->espace->tache_ri_ajoutee(m_compilatrice->messagere);
+    unite->noeud = unite->type->fonction_init;
+    unites_en_attente.ajoute(unite);
 }
 
 void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)

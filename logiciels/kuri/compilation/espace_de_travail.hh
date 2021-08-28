@@ -189,7 +189,6 @@ struct EspaceDeTravail {
     AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
-    AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
 
     AtomeGlobale *cree_globale(Type *type,
                                AtomeConstante *valeur,

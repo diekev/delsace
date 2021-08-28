@@ -2016,9 +2016,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             type_opaque = contexte.espace->typeuse.monomorphe_opaque(type_opaque->decl,
                                                                      candidate->exprs[0]->type);
             expr->type = type_opaque;
-            // À FAIRE(gestion) : noeuds syntaxiques pour les types afin que la génération de RI
-            // soit proprement gérée.
-            expr->type->drapeaux |= RI_TYPE_FUT_GENEREE;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
         }
         else {
