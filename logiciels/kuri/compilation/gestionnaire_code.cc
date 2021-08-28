@@ -246,11 +246,65 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
     });
 }
 
+static bool est_type_polymorphique(Type *type)
+{
+    if (type->est_polymorphique()) {
+        return true;
+    }
+
+    if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        return true;
+    }
+
+    auto decl = decl_pour_type(type);
+    if (decl && decl->est_structure() && decl->comme_structure()->est_polymorphe) {
+        return true;
+    }
+
+    return false;
+}
+
+struct RassembleuseDependances {
+    DonneesDependance &dependances;
+    EspaceDeTravail *espace;
+    NoeudExpression *racine_;
+
+    void ajoute_type(Type *type)
+    {
+        /* Pour les monomorphisations, la visite du noeud syntaxique peut nous amener à visiter les
+         * expressions des types. Or, ces expressions peuvent être celle d'un type à monomorpher
+         * (puisque la monomorphisation est la copie de la version polymorphique), par exemple
+         * `File($T)`. Même si le type de la variable est correctement résolu comme étant celui
+         * d'un monomorphe, l'expression du type est toujours celle d'un type polymorphique. Ces
+         * types-là ne devraient pas dans aucun programme final, donc nous devons les éviter. */
+        if (est_type_polymorphique(type)) {
+            return;
+        }
+
+        dependances.types_utilises.insere(type);
+    }
+
+    void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
+    {
+        dependances.fonctions_utilisees.insere(fonction);
+    }
+
+    void ajoute_globale(NoeudDeclarationVariable *globale)
+    {
+        dependances.globales_utilisees.insere(globale);
+    }
+
+    void rassemble_dependances()
+    {
+        rassemble_dependances(racine_);
+    }
+
+    void rassemble_dependances(NoeudExpression *racine);
+};
+
 /* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
  * globales utilisées. */
-static void rassemble_dependances(NoeudExpression *racine,
-                                  EspaceDeTravail *espace,
-                                  DonneesDependance &dependances)
+void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 {
     visite_noeud(
         racine,
@@ -261,11 +315,11 @@ static void rassemble_dependances(NoeudExpression *racine,
                 if (noeud->type->est_type_de_donnees()) {
                     auto type_de_donnees = noeud->type->comme_type_de_donnees();
                     if (type_de_donnees->type_connu) {
-                        dependances.types_utilises.insere(type_de_donnees->type_connu);
+                        ajoute_type(type_de_donnees->type_connu);
                     }
                 }
                 else {
-                    dependances.types_utilises.insere(noeud->type);
+                    ajoute_type(noeud->type);
                 }
             }
 
@@ -275,11 +329,11 @@ static void rassemble_dependances(NoeudExpression *racine,
                 auto entete = noeud->comme_entete_fonction();
 
                 POUR (entete->params) {
-                    rassemble_dependances(it, espace, dependances);
+                    rassemble_dependances(it);
                 }
 
                 POUR (entete->params_sorties) {
-                    rassemble_dependances(it, espace, dependances);
+                    rassemble_dependances(it);
                 }
 
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
@@ -295,19 +349,18 @@ static void rassemble_dependances(NoeudExpression *racine,
                 }
 
                 if (est_declaration_variable_globale(decl)) {
-                    dependances.globales_utilisees.insere(decl->comme_declaration_variable());
+                    ajoute_globale(decl->comme_declaration_variable());
                 }
                 else if (decl->est_entete_fonction() &&
                          !decl->comme_entete_fonction()->est_polymorphe) {
                     auto decl_fonc = decl->comme_entete_fonction();
-                    dependances.fonctions_utilisees.insere(decl_fonc);
+                    ajoute_fonction(decl_fonc);
                 }
             }
             else if (noeud->est_cuisine()) {
                 auto cuisine = noeud->comme_cuisine();
                 auto expr = cuisine->expression;
-                dependances.fonctions_utilisees.insere(
-                    expr->comme_appel()->expression->comme_entete_fonction());
+                ajoute_fonction(expr->comme_appel()->expression->comme_entete_fonction());
             }
             else if (noeud->est_indexage()) {
                 /* Traite les indexages avant les expressions binaires afin de ne pas les traiter
@@ -316,7 +369,7 @@ static void rassemble_dependances(NoeudExpression *racine,
                 auto indexage = noeud->comme_indexage();
                 /* op peut être nul pour les déclaration de type ([]z32) */
                 if (indexage->op && !indexage->op->est_basique) {
-                    dependances.fonctions_utilisees.insere(indexage->op->decl);
+                    ajoute_fonction(indexage->op->decl);
                 }
 
                 /* Marque les dépendances sur les fonctions d'interface de kuri. */
@@ -334,15 +387,14 @@ static void rassemble_dependances(NoeudExpression *racine,
                     case GenreType::TABLEAU_DYNAMIQUE:
                     {
                         assert(interface->decl_panique_tableau);
-                        dependances.fonctions_utilisees.insere(interface->decl_panique_tableau);
+                        ajoute_fonction(interface->decl_panique_tableau);
                         break;
                     }
                     case GenreType::TABLEAU_FIXE:
                     {
                         assert(interface->decl_panique_tableau);
                         if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                            dependances.fonctions_utilisees.insere(
-                                interface->decl_panique_tableau);
+                            ajoute_fonction(interface->decl_panique_tableau);
                         }
                         break;
                     }
@@ -350,7 +402,7 @@ static void rassemble_dependances(NoeudExpression *racine,
                     {
                         assert(interface->decl_panique_chaine);
                         if (indexage->aide_generation_code != IGNORE_VERIFICATION) {
-                            dependances.fonctions_utilisees.insere(interface->decl_panique_chaine);
+                            ajoute_fonction(interface->decl_panique_chaine);
                         }
                         break;
                     }
@@ -369,23 +421,23 @@ static void rassemble_dependances(NoeudExpression *racine,
                 }
 
                 if (!expression_binaire->op->est_basique) {
-                    dependances.fonctions_utilisees.insere(expression_binaire->op->decl);
+                    ajoute_fonction(expression_binaire->op->decl);
                 }
             }
             else if (noeud->est_discr()) {
                 auto discr = noeud->comme_discr();
                 if (discr->op && !discr->op->est_basique) {
-                    dependances.fonctions_utilisees.insere(discr->op->decl);
+                    ajoute_fonction(discr->op->decl);
                 }
             }
             else if (noeud->est_construction_tableau()) {
                 auto construction_tableau = noeud->comme_construction_tableau();
-                dependances.types_utilises.insere(construction_tableau->type);
+                ajoute_type(construction_tableau->type);
 
                 /* Ajout également du type de pointeur pour la génération de code C. */
                 auto type_feuille = construction_tableau->type->comme_tableau_fixe()->type_pointe;
                 auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
-                dependances.types_utilises.insere(type_ptr);
+                ajoute_type(type_ptr);
             }
             else if (noeud->est_tente()) {
                 auto tente = noeud->comme_tente();
@@ -393,13 +445,13 @@ static void rassemble_dependances(NoeudExpression *racine,
                 if (!tente->expression_piegee) {
                     auto interface = espace->interface_kuri;
                     assert(interface->decl_panique_erreur);
-                    dependances.fonctions_utilisees.insere(interface->decl_panique_erreur);
+                    ajoute_fonction(interface->decl_panique_erreur);
                 }
             }
             else if (noeud->est_reference_membre_union()) {
                 auto interface = espace->interface_kuri;
                 assert(interface->decl_panique_membre_union);
-                dependances.fonctions_utilisees.insere(interface->decl_panique_membre_union);
+                ajoute_fonction(interface->decl_panique_membre_union);
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
@@ -411,15 +463,13 @@ static void rassemble_dependances(NoeudExpression *racine,
                     assert(interface->decl_panique_membre_union);
                     auto type_union = comme->expression->type->comme_union();
                     if (!type_union->est_nonsure) {
-                        dependances.fonctions_utilisees.insere(
-                            interface->decl_panique_membre_union);
+                        ajoute_fonction(interface->decl_panique_membre_union);
                     }
                 }
                 else if (comme->transformation.type == TypeTransformation::FONCTION) {
                     assert(comme->transformation.fonction);
-                    dependances.fonctions_utilisees.insere(
-                        const_cast<NoeudDeclarationEnteteFonction *>(
-                            comme->transformation.fonction));
+                    ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(
+                        comme->transformation.fonction));
                 }
 
                 /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
@@ -427,8 +477,8 @@ static void rassemble_dependances(NoeudExpression *racine,
                 if (comme->transformation.type_cible) {
                     auto type_pointeur = espace->typeuse.type_pointeur_pour(
                         comme->transformation.type_cible, false, false);
-                    dependances.types_utilises.insere(type_pointeur);
-                    dependances.types_utilises.insere(comme->transformation.type_cible);
+                    ajoute_type(type_pointeur);
+                    ajoute_type(comme->transformation.type_cible);
                 }
             }
             else if (noeud->est_appel()) {
@@ -437,10 +487,10 @@ static void rassemble_dependances(NoeudExpression *racine,
 
                 if (appelee) {
                     if (appelee->est_entete_fonction()) {
-                        dependances.fonctions_utilisees.insere(appelee->comme_entete_fonction());
+                        ajoute_fonction(appelee->comme_entete_fonction());
                     }
                     else if (appelee->est_structure()) {
-                        dependances.types_utilises.insere(appelee->type);
+                        ajoute_type(appelee->type);
                     }
                 }
             }
@@ -451,25 +501,33 @@ static void rassemble_dependances(NoeudExpression *racine,
                 auto taille_tableau = args->expressions.taille();
                 auto type_tfixe = espace->typeuse.type_tableau_fixe(
                     args->type, taille_tableau, false);
-                dependances.types_utilises.insere(type_tfixe);
+                ajoute_type(type_tfixe);
             }
             else if (noeud->est_assignation_variable()) {
                 auto assignation = noeud->comme_assignation_variable();
 
                 POUR (assignation->donnees_exprs.plage()) {
-                    rassemble_dependances(it.expression, espace, dependances);
+                    rassemble_dependances(it.expression);
                 }
             }
             else if (noeud->est_declaration_variable()) {
                 auto declaration = noeud->comme_declaration_variable();
 
                 POUR (declaration->donnees_decl.plage()) {
-                    rassemble_dependances(it.expression, espace, dependances);
+                    rassemble_dependances(it.expression);
                 }
             }
 
             return DecisionVisiteNoeud::CONTINUE;
         });
+}
+
+static void rassemble_dependances(NoeudExpression *racine,
+                                  EspaceDeTravail *espace,
+                                  DonneesDependance &dependances)
+{
+    RassembleuseDependances rassembleuse{dependances, espace, racine};
+    rassembleuse.rassemble_dependances();
 }
 
 /* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur vers

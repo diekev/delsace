@@ -1351,9 +1351,9 @@ struct GeneratriceCodeC {
  */
 static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 {
-    // À FAIRE(gestion) : les types polymorphiques sont inclus dans le programme final, donc le
-    // type peut être nul.
     if (!type) {
+        /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls peuvent
+         * être nuls. */
         return;
     }
 
