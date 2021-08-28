@@ -48,6 +48,12 @@
     ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
         reinterpret_cast<Symbole::type_fonction>(fonction)
 
+inline bool adresse_est_nulle(void *adresse)
+{
+    /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
+    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
+}
+
 namespace oper {
 
 #pragma GCC diagnostic push
@@ -1302,6 +1308,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                             "Le type du site  est         : ", chaine_type(site->type), "\n");
                 }
 
+                if (adresse_est_nulle(adresse_de)) {
+                    rapporte_erreur(
+                        m_metaprogramme->unite->espace, site, "Copie depuis une adresse nulle !");
+                    return ResultatInterpretation::ERREUR;
+                }
+
+                if (adresse_est_nulle(adresse_ou)) {
+                    rapporte_erreur(
+                        m_metaprogramme->unite->espace, site, "Copie vers une adresse nulle !");
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 depile(site, taille);
                 break;
@@ -1347,13 +1365,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     return ResultatInterpretation::ERREUR;
                 }
 
-                if (adresse_de == nullptr) {
+                if (adresse_est_nulle(adresse_de)) {
                     rapporte_erreur(
                         m_metaprogramme->unite->espace, site, "Copie depuis une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
-                if (adresse_ou == nullptr) {
+                if (adresse_est_nulle(adresse_ou)) {
                     rapporte_erreur(
                         m_metaprogramme->unite->espace, site, "Copie vers une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
