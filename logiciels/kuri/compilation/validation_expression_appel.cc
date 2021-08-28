@@ -709,7 +709,7 @@ static ResultatAppariement apparie_appel_init_de(
     }
 
     auto type_fonction = expr->type->comme_fonction();
-    auto type_pointeur = type_fonction->types_entrees[1];
+    auto type_pointeur = type_fonction->types_entrees[0];
 
     if (type_pointeur != args[0].expr->type) {
         return ErreurAppariement::metypage_argument(

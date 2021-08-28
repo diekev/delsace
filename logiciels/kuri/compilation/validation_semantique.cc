@@ -1654,9 +1654,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            auto types_entrees = dls::tablet<Type *, 6>(2);
-            types_entrees[0] = espace->typeuse.type_contexte;
-            types_entrees[1] = espace->typeuse.type_pointeur_pour(type);
+            auto types_entrees = dls::tablet<Type *, 6>(1);
+            types_entrees[0] = espace->typeuse.type_pointeur_pour(type);
 
             auto type_fonction = espace->typeuse.type_fonction(types_entrees,
                                                                espace->typeuse[TypeBase::RIEN]);

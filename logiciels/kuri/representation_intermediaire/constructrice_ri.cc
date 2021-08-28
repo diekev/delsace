@@ -1641,7 +1641,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             // @simplifie
             auto type_fonction = noeud->type->comme_fonction();
-            auto type_pointeur = type_fonction->types_entrees[1];
+            auto type_pointeur = type_fonction->types_entrees[0];
             auto type_arg = type_pointeur->comme_pointeur()->type_pointe;
             empile_valeur(m_espace->trouve_ou_insere_fonction_init(*this, type_arg));
             break;
