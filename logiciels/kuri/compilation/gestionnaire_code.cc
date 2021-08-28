@@ -664,8 +664,6 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
     graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
 
-    epends_dependances_types(graphe, dependances);
-
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
         POUR (programmes_en_cours) {
@@ -678,8 +676,13 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajoute les dépendances au programme si nécessaire. */
     auto dependances_ajoutees = false;
+    auto dependances_ependues = false;
     POUR (programmes_en_cours) {
         if (doit_ajouter_les_dependances_au_programme(noeud, it)) {
+            if (!dependances_ependues) {
+                epends_dependances_types(graphe, dependances);
+                dependances_ependues = true;
+            }
             ajoute_dependances_au_programme(dependances.dependances, *it);
             dependances_ajoutees = true;
         }
