@@ -499,9 +499,11 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 
                 /* Création d'un type tableau fixe, pour la génération de code. */
                 auto taille_tableau = args->expressions.taille();
-                auto type_tfixe = espace->typeuse.type_tableau_fixe(
-                    args->type, taille_tableau, false);
-                ajoute_type(type_tfixe);
+                if (taille_tableau != 0) {
+                    auto type_tfixe = espace->typeuse.type_tableau_fixe(
+                        args->type, taille_tableau, false);
+                    ajoute_type(type_tfixe);
+                }
             }
             else if (noeud->est_assignation_variable()) {
                 auto assignation = noeud->comme_assignation_variable();

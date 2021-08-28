@@ -680,6 +680,8 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe)
 {
+    assert(taille);
+
     auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
 
     if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_FIXE) != 0) {

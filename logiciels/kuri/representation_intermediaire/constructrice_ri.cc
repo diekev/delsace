@@ -154,6 +154,12 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(Type *type,
                                                      kuri::tableau<AtomeConstante *> &&valeurs)
 {
     auto taille_tableau = static_cast<int>(valeurs.taille());
+
+    if (taille_tableau == 0) {
+        auto type_tableau_dyn = m_espace->typeuse.type_tableau_dynamique(type);
+        return genere_initialisation_defaut_pour_type(type_tableau_dyn);
+    }
+
     auto type_tableau = m_espace->typeuse.type_tableau_fixe(type, taille_tableau);
     auto tableau_fixe = cree_constante_tableau_fixe(type_tableau, std::move(valeurs));
 
@@ -3409,20 +3415,27 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
 
     auto type_chaine = m_espace->typeuse.type_chaine;
 
-    auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse[TypeBase::Z8],
-                                                            static_cast<int>(chaine.taille()));
-    auto tableau = cree_constante_tableau_donnees_constantes(
-        type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
+    AtomeConstante *constante_chaine;
 
-    auto globale_tableau = cree_globale(type_tableau, tableau, false, true);
-    auto pointeur_chaine = cree_acces_index_constant(globale_tableau, cree_z64(0));
-    auto taille_chaine = cree_z64(static_cast<unsigned long>(chaine.taille()));
+    if (chaine.taille() == 0) {
+        constante_chaine = genere_initialisation_defaut_pour_type(type_chaine);
+    }
+    else {
+        auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse[TypeBase::Z8],
+                                                                static_cast<int>(chaine.taille()));
+        auto tableau = cree_constante_tableau_donnees_constantes(
+            type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
 
-    auto membres = kuri::tableau<AtomeConstante *>(2);
-    membres[0] = pointeur_chaine;
-    membres[1] = taille_chaine;
+        auto globale_tableau = cree_globale(type_tableau, tableau, false, true);
+        auto pointeur_chaine = cree_acces_index_constant(globale_tableau, cree_z64(0));
+        auto taille_chaine = cree_z64(static_cast<unsigned long>(chaine.taille()));
 
-    auto constante_chaine = cree_constante_structure(type_chaine, std::move(membres));
+        auto membres = kuri::tableau<AtomeConstante *>(2);
+        membres[0] = pointeur_chaine;
+        membres[1] = taille_chaine;
+
+        constante_chaine = cree_constante_structure(type_chaine, std::move(membres));
+    }
 
     table_chaines->insere(chaine, constante_chaine);
 
