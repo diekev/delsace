@@ -417,7 +417,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = static_cast<NoeudPousseContexte *>(racine);
 
-            arbre_aplatis.ajoute(expr->expression);
+            aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
             aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
