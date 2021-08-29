@@ -751,39 +751,19 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
+    auto entete = entete_fonction(noeud);
+    assert(entete);
 
-    if (noeud->est_entete_fonction()) {
-        auto entete = noeud->comme_entete_fonction();
-
-        if (entete->est_externe) {
-            return;
-        }
-
-        /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
-        if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
-            return;
-        }
-
-        optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
+    if (entete->est_externe) {
+        return;
     }
-    else if (noeud->est_corps_fonction()) {
-        auto corps = noeud->comme_corps_fonction();
-        auto entete = corps->entete;
 
-        if (entete->est_externe) {
-            return;
-        }
-
-        /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
-        if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
-            return;
-        }
-
-        optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
+    /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
+    if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+        return;
     }
-    else if (noeud->est_structure()) {
-        // À FAIRE(optimisations) : fonctions d'initialisation des types
-    }
+
+    optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
 }
 
 void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
