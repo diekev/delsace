@@ -100,6 +100,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                         case AtomeValeurConstante::Valeur::Genre::CARACTERE:
                         case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
                         case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
                         {
                             /* Pas de sous-atome. */
                             break;

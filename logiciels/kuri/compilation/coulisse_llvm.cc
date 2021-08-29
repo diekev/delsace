@@ -732,6 +732,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                             return llvm::ConstantInt::get(
                                 type_llvm, valeur_const->valeur.type->index_dans_table_types);
                         }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            return llvm::ConstantInt::get(type_llvm,
+                                                          valeur_const->valeur.type->taille_octet);
+                        }
                         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                         {
                             return llvm::ConstantInt::get(type_llvm,

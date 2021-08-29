@@ -134,6 +134,7 @@ struct ConstructriceRI {
     AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
     AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
     AtomeConstante *cree_constante_type(Type *pointeur_type);
+    AtomeConstante *cree_constante_taille_de(Type *pointeur_type);
     AtomeConstante *cree_z32(unsigned long long valeur);
     AtomeConstante *cree_z64(unsigned long long valeur);
     AtomeConstante *cree_constante_nulle(Type *type);
@@ -251,9 +252,9 @@ struct ConstructriceRI {
 
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             unsigned int index,
-                                            unsigned int taille_octet);
-    AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
-    AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
+                                            Type *pour_type);
+    AtomeConstante *cree_info_type_defaut(unsigned index, Type *pour_type);
+    AtomeConstante *cree_info_type_entier(Type *pour_type, bool est_relatif);
     AtomeConstante *cree_info_type_avec_transtype(Type *type, NoeudExpression *site);
     AtomeConstante *cree_globale_info_type(Type *type_info_type,
                                            kuri::tableau<AtomeConstante *> &&valeurs);

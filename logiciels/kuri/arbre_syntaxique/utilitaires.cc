@@ -891,20 +891,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             return;
         }
-        case GenreNoeud::EXPRESSION_TAILLE_DE:
-        {
-            auto expr = noeud->comme_taille_de();
-            auto type = expr->expression->type;
-
-            assert_rappel(type->taille_octet != 0, [&] {
-                std::cerr << "[simplification] : taille octet de 0 pour le type : "
-                          << chaine_type(type) << '\n';
-            });
-
-            noeud->substitution = assem->cree_litterale_entier(
-                noeud->lexeme, expr->type, type->taille_octet);
-            return;
-        }
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto inst = noeud->comme_comme();
@@ -1281,6 +1267,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_ARRETE:
         case GenreNoeud::INSTRUCTION_CONTINUE:
         case GenreNoeud::INSTRUCTION_REPRENDS:
+        /* NOTE : taille_de doit persister jusque dans la RI. */
+        case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
             return;
         }

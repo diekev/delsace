@@ -116,6 +116,10 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
                         {
                             return "";
                         }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            return "";
+                        }
                         case AtomeValeurConstante::Valeur::Genre::REELLE:
                         {
                             return "";

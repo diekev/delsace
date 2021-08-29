@@ -525,6 +525,10 @@ struct GeneratriceCodeC {
                             {
                                 return enchaine(valeur_const->valeur.type->index_dans_table_types);
                             }
+                            case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                            {
+                                return enchaine(valeur_const->valeur.type->taille_octet);
+                            }
                             case AtomeValeurConstante::Valeur::Genre::REELLE:
                             {
                                 auto type = valeur_const->type;

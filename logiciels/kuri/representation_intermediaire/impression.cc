@@ -126,6 +126,11 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                         os << "indéfinie";
                         break;
                     }
+                    case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                    {
+                        os << "taille_de(" << chaine_type(valeur_constante->valeur.type) << ')';
+                        break;
+                    }
                     case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                     {
                         auto type = static_cast<TypeCompose *>(atome->type);

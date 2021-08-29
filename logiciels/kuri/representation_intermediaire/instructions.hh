@@ -156,6 +156,7 @@ struct AtomeValeurConstante : public AtomeConstante {
             TABLEAU_FIXE,
             TABLEAU_DONNEES_CONSTANTES,
             TYPE,
+            TAILLE_DE,
         };
 
         Genre genre{};

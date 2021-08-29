@@ -1233,6 +1233,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                     chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
                     break;
                 }
+                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                {
+                    chunk.emets_constante(valeur_constante->valeur.type->taille_octet);
+                    break;
+                }
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                 {
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
@@ -1427,6 +1432,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     // métaprogrammes
                     *reinterpret_cast<long *>(donnees) = reinterpret_cast<long>(
                         valeur_constante->valeur.type);
+                    break;
+                }
+                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                {
+                    *reinterpret_cast<unsigned int *>(
+                        donnees) = valeur_constante->valeur.type->taille_octet;
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
