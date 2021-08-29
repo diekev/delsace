@@ -339,6 +339,7 @@ AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
 long EspaceDeTravail::memoire_utilisee() const
 {
     auto memoire = 0l;
+    memoire += programme->memoire_utilisee();
 
     memoire += modules->memoire_utilisee();
     memoire += fichiers->memoire_utilisee();
@@ -361,6 +362,7 @@ long EspaceDeTravail::memoire_utilisee() const
 
 void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
+    programme->rassemble_statistiques(stats);
     operateurs->rassemble_statistiques(stats);
     graphe_dependance->rassemble_statistiques(stats);
     gestionnaire_bibliotheques->rassemble_statistiques(stats);

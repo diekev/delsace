@@ -199,6 +199,23 @@ void Programme::change_de_phase(PhaseCompilation phase)
     m_etat_compilation.essaie_d_aller_a(phase);
 }
 
+long Programme::memoire_utilisee() const
+{
+    auto memoire = 0l;
+    memoire += fonctions().taille_memoire();
+    memoire += types().taille_memoire();
+    memoire += globales().taille_memoire();
+    memoire += m_fonctions_utilisees.taille_memoire();
+    memoire += m_types_utilises.taille_memoire();
+    memoire += m_globales_utilisees.taille_memoire();
+    memoire += taille_de(Coulisse);
+    return memoire;
+}
+
+void Programme::rassemble_statistiques(Statistiques & /*stats*/)
+{
+}
+
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const
 {
     diagnostique.tous_les_fichiers_sont_charges = true;

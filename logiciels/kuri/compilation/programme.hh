@@ -38,6 +38,7 @@ struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
+struct Statistiques;
 struct Type;
 
 /* Machine à état pour la PhaseCompilation. */
@@ -201,6 +202,10 @@ struct Programme {
     EtatCompilation ajourne_etat_compilation();
 
     void change_de_phase(PhaseCompilation phase);
+
+    long memoire_utilisee() const;
+
+    void rassemble_statistiques(Statistiques &stats);
 
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;
