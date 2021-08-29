@@ -90,8 +90,3 @@ métaprogramme :: fonc ()
 }
 
 #exécute métaprogramme()
-
-principale :: fonc () -> z32
-{
-    retourne 0
-}
