@@ -77,6 +77,11 @@ class ensemble {
         return nombre_elements;
     }
 
+    long taille_memoire() const
+    {
+        return occupes.taille_memoire() + cles.taille_memoire();
+    }
+
     bool est_vide() const
     {
         return taille() == 0;
