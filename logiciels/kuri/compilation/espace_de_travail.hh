@@ -120,8 +120,6 @@ struct EspaceDeTravail {
     /* Le métaprogramme controlant la compilation dans cette espace. */
     MetaProgramme *metaprogramme = nullptr;
 
-    Coulisse *coulisse = nullptr;
-
     Module *module_kuri = nullptr;
 
     dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;

@@ -291,15 +291,6 @@ Tacheronne::~Tacheronne()
     memoire::deloge("AssembleuseArbre", assembleuse);
 }
 
-static Coulisse *selectionne_coulisse(Programme *programme)
-{
-    if (programme->pour_metaprogramme()) {
-        return programme->coulisse();
-    }
-
-    return programme->espace()->coulisse;
-}
-
 static std::optional<Attente> attente_sur_type_si_drapeau_manquant(
     kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
 {
@@ -557,13 +548,13 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
-                auto coulisse = selectionne_coulisse(programme);
+                auto coulisse = programme->coulisse();
                 if (coulisse->cree_fichier_objet(
                         compilatrice, *tache.unite->espace, programme, constructrice_ri)) {
                     compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);
                 }
-                temps_generation_code += tache.espace->coulisse->temps_generation_code;
-                temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
+                temps_generation_code += coulisse->temps_generation_code;
+                temps_fichier_objet += coulisse->temps_fichier_objet;
                 break;
             }
             case GenreTache::LIAISON_PROGRAMME:
@@ -571,11 +562,11 @@ void Tacheronne::gere_tache()
                 assert(
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
-                auto coulisse = selectionne_coulisse(programme);
+                auto coulisse = programme->coulisse();
                 if (coulisse->cree_executable(compilatrice, *tache.espace, programme)) {
                     compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
                 }
-                temps_executable += tache.espace->coulisse->temps_executable;
+                temps_executable += coulisse->temps_executable;
                 break;
             }
             case GenreTache::CONVERSION_NOEUD_CODE:

@@ -91,7 +91,6 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 {
     auto ops = operateurs.verrou_ecriture();
     enregistre_operateurs_basiques(typeuse, *ops);
-    coulisse = Coulisse::cree_pour_options(options);
     programme = Programme::cree_pour_espace(this);
 
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
@@ -129,7 +128,6 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    Coulisse::detruit(coulisse);
     memoire::deloge("Programme", programme);
 }
 
