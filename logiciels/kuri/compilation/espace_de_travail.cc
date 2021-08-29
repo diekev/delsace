@@ -30,7 +30,6 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -619,14 +618,4 @@ Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
 {
     possede_erreur = true;
     return ::rapporte_erreur_sans_site(this, message, genre);
-}
-
-void EspaceDeTravail::imprime_programme() const
-{
-    std::ofstream os;
-    os.open("/tmp/ri_programme.kr");
-
-    POUR_TABLEAU_PAGE (fonctions) {
-        imprime_fonction(&it, os);
-    }
 }

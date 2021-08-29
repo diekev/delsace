@@ -242,9 +242,6 @@ struct EspaceDeTravail {
     Erreur rapporte_erreur_sans_site(const kuri::chaine &message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 
-    /* Imprime la RI de toutes les fonctions de l'espace de travail. */
-    void imprime_programme() const;
-
     Compilatrice &compilatrice()
     {
         return m_compilatrice;
