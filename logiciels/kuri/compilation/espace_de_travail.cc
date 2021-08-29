@@ -344,6 +344,11 @@ long EspaceDeTravail::memoire_utilisee() const
     memoire += modules->memoire_utilisee();
     memoire += fichiers->memoire_utilisee();
 
+    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
+        memoire += it.programme->memoire_utilisee();
+    }
+
     auto modules_ = modules.verrou_lecture();
     POUR_TABLEAU_PAGE ((*modules_)) {
         memoire += it.fichiers.taille() * taille_de(Fichier *);
@@ -367,6 +372,11 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
     graphe_dependance->rassemble_statistiques(stats);
     gestionnaire_bibliotheques->rassemble_statistiques(stats);
     typeuse.rassemble_statistiques(stats);
+
+    auto metaprogrammes_ = metaprogrammes.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
+        it.programme->rassemble_statistiques(stats);
+    }
 
     auto &stats_fichiers = stats.stats_fichiers;
     auto fichiers_ = fichiers.verrou_lecture();
