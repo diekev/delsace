@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/ensemble.hh"
-
+#include "structures/ensemble.hh"
 #include "structures/tableau.hh"
 
 #include "message.hh"  // pour PhaseCompilation
@@ -100,17 +99,17 @@ void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnositic);
 struct Programme {
   protected:
     kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions{};
-    dls::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
+    kuri::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
 
     kuri::tableau<NoeudDeclarationVariable *> m_globales{};
-    dls::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
+    kuri::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
 
     kuri::tableau<Type *> m_types{};
-    dls::ensemble<Type *> m_types_utilises{};
+    kuri::ensemble<Type *> m_types_utilises{};
 
     /* Tous les fichiers utilisés dans le programme. */
     kuri::tableau<Fichier *> m_fichiers{};
-    dls::ensemble<Fichier *> m_fichiers_utilises{};
+    kuri::ensemble<Fichier *> m_fichiers_utilises{};
 
     EspaceDeTravail *m_espace = nullptr;
 
