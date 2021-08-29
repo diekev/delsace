@@ -90,7 +90,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), m_compilatrice(compilatrice)
 {
     auto ops = operateurs.verrou_ecriture();
-    enregistre_operateurs_basiques(*this, *ops);
+    enregistre_operateurs_basiques(typeuse, *ops);
     coulisse = Coulisse::cree_pour_options(options);
     programme = Programme::cree_pour_espace(this);
 

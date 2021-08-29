@@ -794,30 +794,30 @@ const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
     return nullptr;
 }
 
-void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs)
+void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs)
 {
     Type *types_entiers_naturels[] = {
-        espace.typeuse[TypeBase::N8],
-        espace.typeuse[TypeBase::N16],
-        espace.typeuse[TypeBase::N32],
-        espace.typeuse[TypeBase::N64],
+        typeuse[TypeBase::N8],
+        typeuse[TypeBase::N16],
+        typeuse[TypeBase::N32],
+        typeuse[TypeBase::N64],
     };
 
     Type *types_entiers_relatifs[] = {
-        espace.typeuse[TypeBase::Z8],
-        espace.typeuse[TypeBase::Z16],
-        espace.typeuse[TypeBase::Z32],
-        espace.typeuse[TypeBase::Z64],
+        typeuse[TypeBase::Z8],
+        typeuse[TypeBase::Z16],
+        typeuse[TypeBase::Z32],
+        typeuse[TypeBase::Z64],
     };
 
-    auto type_r32 = espace.typeuse[TypeBase::R32];
-    auto type_r64 = espace.typeuse[TypeBase::R64];
+    auto type_r32 = typeuse[TypeBase::R32];
+    auto type_r64 = typeuse[TypeBase::R64];
 
     Type *types_reels[] = {type_r32, type_r64};
 
-    auto type_entier_constant = espace.typeuse[TypeBase::ENTIER_CONSTANT];
-    auto type_octet = espace.typeuse[TypeBase::OCTET];
-    auto type_bool = espace.typeuse[TypeBase::BOOL];
+    auto type_entier_constant = typeuse[TypeBase::ENTIER_CONSTANT];
+    auto type_octet = typeuse[TypeBase::OCTET];
+    auto type_bool = typeuse[TypeBase::BOOL];
 
     for (auto op : operateurs_entiers_reels) {
         for (auto type : types_entiers_relatifs) {
@@ -1003,7 +1003,7 @@ void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operate
         operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
     }
 
-    auto type_type_de_donnees = espace.typeuse.type_type_de_donnees_;
+    auto type_type_de_donnees = typeuse.type_type_de_donnees_;
 
     operateurs.op_comp_egal_types = operateurs.ajoute_basique(
         GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);

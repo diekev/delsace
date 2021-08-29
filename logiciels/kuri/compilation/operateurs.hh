@@ -209,7 +209,7 @@ OperateurUnaire const *cherche_operateur_unaire(Operateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs);
+void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs);
 
 struct OperateurCandidat {
     OperateurBinaire const *op = nullptr;
