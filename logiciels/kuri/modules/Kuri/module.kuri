@@ -747,7 +747,7 @@ __arguments_ligne_commande : []*z8 = ---
 __tampon_stockage_tamporaire : [16384]z8 = ---
 __table_des_types : []*InfoType
 
-__init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nulctx
+__init_contexte_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nulctx
 {
     __arguments_ligne_commande.taille = argc
     __arguments_ligne_commande.pointeur = argv
@@ -757,9 +757,18 @@ __init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nu
     retourne contexte
 }
 
-__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx
+__init_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 {
-    // rien à faire pour le moment
+    pousse_contexte mémoire(contexte) {
+        // Ici serons ajoutées toutes les expression des directives #ajoute_init.
+    }
+}
+
+__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
+{
+    pousse_contexte mémoire(contexte) {
+        // Ici serons ajoutées toutes les expression des directives #ajoute_fini.
+    }
 }
 
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
@@ -767,7 +776,7 @@ __principale :: fonc (contexte: ContexteProgramme) -> z32 #principale
 
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
 {
-    contexte := __init_exécution_kuri(argc, argv)
+    contexte := __init_contexte_kuri(argc, argv)
 
     // initalise les autres membres du contexte
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
@@ -783,6 +792,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     stockage_temporaire.occupé = 0
     stockage_temporaire.occupation_maximale = 0
     contexte.stockage_temporaire = *stockage_temporaire
+
+    __init_exécution_kuri(contexte)
 
     info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale(contexte)\n")
     trace_appel.info_appel = *info_appel

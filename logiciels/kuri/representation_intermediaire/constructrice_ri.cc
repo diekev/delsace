@@ -673,6 +673,26 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             });
             break;
         }
+        /* Ceux-ci doivent être ajoutés aux fonctions d'initialisation/finition de
+         * l'environnement d'exécution */
+        case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr
+                    << "Erreur interne : une directive #ajoute_fini se retrouve dans la RI !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr
+                    << "Erreur interne : une directive #ajoute_init se retrouve dans la RI !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
         /* ceux-ci sont simplifiés */
         case GenreNoeud::DIRECTIVE_CUISINE:
         {

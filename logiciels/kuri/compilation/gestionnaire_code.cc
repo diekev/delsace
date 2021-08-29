@@ -549,6 +549,10 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
         return programme->possede(noeud->type);
     }
 
+    if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
+        return !programme->pour_metaprogramme();
+    }
+
     return false;
 }
 
@@ -563,8 +567,10 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
-    NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
-    graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
+    if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
+        NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
+        graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
+    }
 
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
@@ -930,6 +936,27 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     return false;
 }
 
+static bool doit_determiner_les_dependances(NoeudExpression *noeud)
+{
+    if (noeud->est_declaration()) {
+        return !(noeud->est_charge() || noeud->est_importe());
+    }
+
+    if (noeud->est_execute()) {
+        return true;
+    }
+
+    if (noeud->est_ajoute_fini()) {
+        return true;
+    }
+
+    if (noeud->est_ajoute_init()) {
+        return true;
+    }
+
+    return false;
+}
+
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
@@ -943,8 +970,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
     auto noeud = unite->noeud;
-    if ((noeud->est_declaration() && !(noeud->est_charge() || noeud->est_importe())) ||
-        noeud->est_corps_fonction() || noeud->est_execute()) {
+    if (doit_determiner_les_dependances(unite->noeud)) {
         determine_dependances(unite->noeud, unite->espace, *graphe);
     }
 

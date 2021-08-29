@@ -144,6 +144,7 @@ set(FICHIERS_TESTS
     exemples/applications/serveuse.kuri
     exemples/applications/serveuse_ssl.kuri
     exemples/applications/sudoku.kuri
+    exemples/demos/demo_ajoute_init_fini.kuri
     exemples/demos/demo_exécution.kuri
     exemples/demos/demo_expansion_argument_variadique.kuri
     exemples/demos/demo_info_type_fonction.kuri

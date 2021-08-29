@@ -57,12 +57,14 @@ struct Typeuse;
             Op(decl_panique_chaine, ID::panique_depassement_limites_chaine)                       \
                 Op(decl_panique_membre_union, ID::panique_membre_union)                           \
                     Op(decl_panique_erreur, ID::panique_erreur_non_geree)                         \
-                        Op(decl_rappel_panique_defaut, ID::__rappel_panique_defaut)               \
-                            Op(decl_dls_vers_r32, ID::DLS_vers_r32)                               \
-                                Op(decl_dls_vers_r64, ID::DLS_vers_r64)                           \
-                                    Op(decl_dls_depuis_r32, ID::DLS_depuis_r32)                   \
-                                        Op(decl_dls_depuis_r64, ID::DLS_depuis_r64)               \
-                                            Op(decl_creation_contexte, ID::cree_contexte)
+                        Op(decl_rappel_panique_defaut,                                            \
+                           ID::__rappel_panique_defaut) Op(decl_dls_vers_r32, ID::DLS_vers_r32)   \
+                            Op(decl_dls_vers_r64, ID::DLS_vers_r64) Op(decl_dls_depuis_r32,       \
+                                                                       ID::DLS_depuis_r32)        \
+                                Op(decl_dls_depuis_r64, ID::DLS_depuis_r64)                       \
+                                    Op(decl_creation_contexte, ID::cree_contexte)                 \
+                                        Op(decl_init_execution_kuri, ID::init_execution_kuri)     \
+                                            Op(decl_fini_execution_kuri, ID::fini_execution_kuri)
 
 struct InterfaceKuri {
 #define DECLARATION_MEMBRE(nom_membre, id) NoeudDeclarationEnteteFonction *nom_membre = nullptr;

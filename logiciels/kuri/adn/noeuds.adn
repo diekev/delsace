@@ -704,3 +704,21 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
 	IdentifiantCode *ident_bibliothèque_dépendante
 	IdentifiantCode *ident_bibliothèque_dépendue
 }
+
+struct NoeudDirectiveAjouteInit : NoeudExpression {
+  @genre DIRECTIVE_AJOUTE_INIT
+  @comme ajoute_init
+  @code NoeudCodeAjouteInit
+
+  NoeudExpression *expression [code enfant]
+  NoeudExpression * [] arbre_aplatis
+}
+
+struct NoeudDirectiveAjouteFini : NoeudExpression {
+  @genre DIRECTIVE_AJOUTE_FINI
+  @comme ajoute_fini
+  @code NoeudCodeAjouteFini
+
+  NoeudExpression *expression [code enfant]
+  NoeudExpression * [] arbre_aplatis
+}

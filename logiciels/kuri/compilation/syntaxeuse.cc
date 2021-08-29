@@ -1039,6 +1039,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
                 return noeud;
             }
+            else if (directive == ID::ajoute_init) {
+                auto noeud = m_tacheronne.assembleuse->cree_ajoute_init(lexeme);
+                noeud->ident = directive;
+                noeud->expression = analyse_expression(
+                    {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                return noeud;
+            }
+            else if (directive == ID::ajoute_fini) {
+                auto noeud = m_tacheronne.assembleuse->cree_ajoute_fini(lexeme);
+                noeud->ident = directive;
+                noeud->expression = analyse_expression(
+                    {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */

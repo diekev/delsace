@@ -102,6 +102,16 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_semantique_noeud(racine_validation());
     }
 
+    if (racine_validation()->est_ajoute_fini()) {
+        auto ajoute_fini = racine_validation()->comme_ajoute_fini();
+        return valide_arbre_aplatis(ajoute_fini, ajoute_fini->arbre_aplatis);
+    }
+
+    if (racine_validation()->est_ajoute_init()) {
+        auto ajoute_init = racine_validation()->comme_ajoute_init();
+        return valide_arbre_aplatis(ajoute_init, ajoute_init->arbre_aplatis);
+    }
+
     unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -133,6 +143,16 @@ static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
     return Attente::sur_operateur(noeud);
 }
 
+static NoeudPousseContexte *trouve_pousse_contexte(NoeudBloc *bloc)
+{
+    POUR ((*bloc->expressions.verrou_ecriture())) {
+        if (it->est_pousse_contexte()) {
+            return it->comme_pousse_contexte();
+        }
+    }
+    return nullptr;
+}
+
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -146,6 +166,44 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_DIFFERE:
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         {
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
+        {
+            auto fini_execution = espace->interface_kuri->decl_fini_execution_kuri;
+            if (fini_execution == nullptr) {
+                return Attente::sur_interface_kuri(ID::fini_execution_kuri);
+            }
+            if (!fini_execution->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(fini_execution);
+            }
+            auto corps = fini_execution->corps;
+            if (!corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(corps);
+            }
+            auto pousse_contexte = trouve_pousse_contexte(corps->bloc);
+            auto ajoute_fini = noeud->comme_ajoute_fini();
+            pousse_contexte->bloc->expressions->ajoute(ajoute_fini->expression);
+            ajoute_fini->drapeaux |= DECLARATION_FUT_VALIDEE;
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
+        {
+            auto init_execution = espace->interface_kuri->decl_init_execution_kuri;
+            if (init_execution == nullptr) {
+                return Attente::sur_interface_kuri(ID::init_execution_kuri);
+            }
+            if (!init_execution->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(init_execution);
+            }
+            auto corps = init_execution->corps;
+            if (!corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(corps);
+            }
+            auto pousse_contexte = trouve_pousse_contexte(corps->bloc);
+            auto ajoute_init = noeud->comme_ajoute_init();
+            pousse_contexte->bloc->expressions->ajoute(ajoute_init->expression);
+            ajoute_init->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::INSTRUCTION_CHARGE:

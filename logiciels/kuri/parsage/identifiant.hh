@@ -136,7 +136,11 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compacte, "compacte")                                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(dependance_bibliotheque, "dépendance_bibliothèque")         \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__table_des_types, "__table_des_types")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__table_des_types, "__table_des_types")                     \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_init, "ajoute_init")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fini, "ajoute_fini")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_execution_kuri, "__init_exécution_kuri")               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fini_execution_kuri, "__fini_exécution_kuri")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

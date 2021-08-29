@@ -59,6 +59,20 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
+        {
+            auto ajoute_init = racine->comme_ajoute_init();
+            aplatis_arbre(ajoute_init->expression, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(ajoute_init);
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
+        {
+            auto ajoute_fini = racine->comme_ajoute_fini();
+            aplatis_arbre(ajoute_fini->expression, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(ajoute_fini);
+            break;
+        }
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
             auto bloc = static_cast<NoeudBloc *>(racine);
@@ -515,6 +529,22 @@ void aplatis_arbre(NoeudExpression *declaration)
         }
         return;
     }
+
+    if (declaration->est_ajoute_fini()) {
+        auto ajoute_fini = declaration->comme_ajoute_fini();
+        if (ajoute_fini->arbre_aplatis.taille() == 0) {
+            aplatis_arbre(ajoute_fini, ajoute_fini->arbre_aplatis, {});
+        }
+        return;
+    }
+
+    if (declaration->est_ajoute_init()) {
+        auto ajoute_init = declaration->comme_ajoute_init();
+        if (ajoute_init->arbre_aplatis.taille() == 0) {
+            aplatis_arbre(ajoute_init, ajoute_init->arbre_aplatis, {});
+        }
+        return;
+    }
 }
 
 struct Simplificatrice {
@@ -564,6 +594,18 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         {
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
+        {
+            auto ajoute_fini = noeud->comme_ajoute_fini();
+            simplifie(ajoute_fini->expression);
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
+        {
+            auto ajoute_init = noeud->comme_ajoute_init();
+            simplifie(ajoute_init->expression);
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
