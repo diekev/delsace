@@ -7,7 +7,6 @@ Directives pour le compilateur
 #opaque                 crée un type depuis un autre, le nouveau type sera héritera des propriétés du type source, mais sera strictement typé (si Entier :: #opaque z32, alors z32 ne peut se faire passer pour Entier)
 #bibliothèque           indique le nom de la bibliothèque à lier à l'identifiant utilisé (p.e. libm :: #bibliothèque "m", liera libm.so à l'identifiant libm, et toute fonction utilisant cette identifant après #externe sera considérer comme faisant partie de libm.so, qui sera alors utilisée lors de la liaison des programmes et métaprogrammes pour trouver le symbole associé)
 #compilatrice           indique qu'une fonction est définie par la compilatrice, ne peut être que dans le module Kuri ou Compilatrice
-#def                    indique une définition de macro pour la coulisse C
 #enligne                indique qu'une fonction doit être considérée pour l'enlignage
 #externe                indique qu'une fonction ou un symbole est défini dans un fichier objet externe, externe peut-être suivie d'une chaine de caractère contenant le nom du symbole dans la bibliothèque statique ou dynamique
 #horsligne              indique qu'une fonction ne doit pas être considérée pour l'enlignage

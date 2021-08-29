@@ -40,8 +40,6 @@
 
 Compilatrice::Compilatrice() : ordonnanceuse(this), messagere(this), gestionnaire_code(this)
 {
-    this->definitions->ajoute("_REENTRANT");
-
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 }
 
@@ -178,8 +176,6 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
 long Compilatrice::memoire_utilisee() const
 {
     auto memoire = taille_de(Compilatrice);
-
-    memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
 
     memoire += ordonnanceuse->memoire_utilisee();
     memoire += table_identifiants->memoire_utilisee();

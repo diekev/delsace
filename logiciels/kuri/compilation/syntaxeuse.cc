@@ -985,15 +985,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             consomme();
 
-            if (directive == ID::def) {
-                auto chaine = lexeme_courant()->chaine;
-                consomme(GenreLexeme::CHAINE_LITTERALE,
-                         "Attendu une chaine littérale après la directive");
-
-                m_compilatrice.definitions->ajoute(chaine);
-            }
-            else if (directive == ID::execute || directive == ID::assert_ ||
-                     directive == ID::test) {
+            if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
                 auto noeud = m_tacheronne.assembleuse->cree_execute(lexeme);
                 noeud->ident = directive;
 

@@ -8,7 +8,6 @@ pthread_once_t :: struct #externe { d: z32; } // z32
 pthread_spinlock_t :: struct #externe { d: z32; } // z32
 
 libpthread :: #bibliothèque "pthread"
-#def "_REENTRANT"
 
 __pthread_rwlock_arch_t :: struct #externe {
 	__readers : n32

@@ -101,7 +101,6 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque, "bibliothèque")                               \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(def, "def")                                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(creation_contexte, "création_contexte")                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cree_contexte, "crée_contexte")                             \

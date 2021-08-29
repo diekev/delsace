@@ -1719,10 +1719,6 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
-        enchaineuse << " -D" << def;
-    }
-
     if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
         enchaineuse << " -o ";
         enchaineuse << ops.nom_sortie;
