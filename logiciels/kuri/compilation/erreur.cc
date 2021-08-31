@@ -325,7 +325,7 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression *b,
                                      long taille_tableau,
-                                     Type *type_tableau,
+                                     Type const *type_tableau,
                                      long index_acces)
 {
     rapporte_erreur(&espace, b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
@@ -366,10 +366,10 @@ static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
 }
 
 void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression *acces,
-                    NoeudExpression * /*structure*/,
-                    NoeudExpression *membre,
-                    TypeCompose *type)
+                    NoeudExpression const *acces,
+                    NoeudExpression const * /*structure*/,
+                    NoeudExpression const *membre,
+                    TypeCompose const *type)
 {
     auto membres = dls::ensemble<kuri::chaine_statique>();
 
@@ -413,7 +413,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
 }
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
-                            NoeudExpression *expression,
+                            NoeudExpression const *expression,
                             dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
     auto e = rapporte_erreur(

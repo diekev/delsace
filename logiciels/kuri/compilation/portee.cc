@@ -30,7 +30,7 @@
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident)
 {
     auto bloc_courant = bloc;
 
@@ -49,7 +49,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration const *decl)
 {
     auto bloc_courant = bloc;
 
@@ -68,7 +68,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression const *noeud)
 {
     auto membres = bloc->membres.verrou_lecture();
     bloc->nombre_recherches += 1;
@@ -86,8 +86,8 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 }
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
-                                             IdentifiantCode *ident,
-                                             Fichier *fichier)
+                                             IdentifiantCode const *ident,
+                                             Fichier const *fichier)
 {
     auto decl = trouve_dans_bloc(bloc, ident);
 
@@ -111,7 +111,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
 
 void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc *bloc,
-                                   IdentifiantCode *ident)
+                                   IdentifiantCode const *ident)
 {
     auto bloc_courant = bloc;
 
@@ -130,8 +130,8 @@ void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarat
 
 void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
                                              NoeudBloc *bloc,
-                                             IdentifiantCode *ident,
-                                             Fichier *fichier)
+                                             IdentifiantCode const *ident,
+                                             Fichier const *fichier)
 {
     trouve_declarations_dans_bloc(declarations, bloc, ident);
 
@@ -142,7 +142,7 @@ void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10>
     });
 }
 
-NoeudExpression *bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
+NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle)
 {
     while (bloc->bloc_parent) {
         if (bloc->appartiens_a_boucle) {
@@ -163,7 +163,7 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_bo
     return nullptr;
 }
 
-NoeudExpression *derniere_instruction(NoeudBloc *b)
+NoeudExpression *derniere_instruction(NoeudBloc const *b)
 {
     auto expressions = b->expressions.verrou_lecture();
     auto taille = expressions->taille();

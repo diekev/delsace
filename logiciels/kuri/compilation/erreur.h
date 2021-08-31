@@ -123,17 +123,17 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression *b,
                                      long taille_tableau,
-                                     Type *type_tableau,
+                                     Type const *type_tableau,
                                      long index_acces);
 
 void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre,
-                    TypeCompose *type);
+                    NoeudExpression const *acces,
+                    NoeudExpression const *structure,
+                    NoeudExpression const *membre,
+                    TypeCompose const *type);
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
-                            NoeudExpression *expression,
+                            NoeudExpression const *expression,
                             const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 
 void fonction_principale_manquante(EspaceDeTravail const &espace);
