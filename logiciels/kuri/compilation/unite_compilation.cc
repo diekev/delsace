@@ -55,19 +55,19 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 
 bool UniteCompilation::est_bloquee() const
 {
-    if (attente_est_bloquee()) {
-        return true;
+    auto toutes_les_unites_attendues_sont_bloquees = attente_est_bloquee();
+
+    if (!toutes_les_unites_attendues_sont_bloquees) {
+        return false;
     }
 
     auto attendue = unite_attendue();
     while (attendue) {
-        if (attendue->attente_est_bloquee()) {
-            return true;
-        }
+        toutes_les_unites_attendues_sont_bloquees &= attendue->attente_est_bloquee();
         attendue = attendue->unite_attendue();
     }
 
-    return false;
+    return toutes_les_unites_attendues_sont_bloquees;
 }
 
 bool UniteCompilation::attente_est_bloquee() const
