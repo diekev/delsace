@@ -1889,7 +1889,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     auto decl_var = trouve_dans_bloc_seul(decl->bloc, expr_paire);
 
                     if (decl_var == nullptr) {
-                        rapporte_erreur_membre_inconnu(noeud, expression, expr_paire, type_union);
+                        rapporte_erreur_membre_inconnu(noeud, expr_paire, type_union);
                         return CodeRetourValidation::Erreur;
                     }
 
@@ -1956,7 +1956,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         }
 
                         if (!nom_trouve) {
-                            rapporte_erreur_membre_inconnu(noeud, expression, f, type_enum);
+                            rapporte_erreur_membre_inconnu(noeud, f, type_enum);
                             return CodeRetourValidation::Erreur;
                         }
 
@@ -2398,7 +2398,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
 
         if (membre_trouve == false) {
-            rapporte_erreur_membre_inconnu(expression_membre, structure, membre, type_compose);
+            rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
@@ -4751,11 +4751,10 @@ void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression 
 }
 
 void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudExpression *acces,
-                                                            NoeudExpression *structure,
                                                             NoeudExpression *membre,
                                                             TypeCompose *type)
 {
-    erreur::membre_inconnu(*espace, acces, structure, membre, type);
+    erreur::membre_inconnu(*espace, acces, membre, type);
 }
 
 void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(

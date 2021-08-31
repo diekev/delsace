@@ -128,7 +128,6 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
 
 void membre_inconnu(EspaceDeTravail const &espace,
                     NoeudExpression const *acces,
-                    NoeudExpression const *structure,
                     NoeudExpression const *membre,
                     TypeCompose const *type);
 

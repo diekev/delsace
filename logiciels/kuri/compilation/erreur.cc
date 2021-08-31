@@ -367,7 +367,6 @@ static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
 
 void membre_inconnu(EspaceDeTravail const &espace,
                     NoeudExpression const *acces,
-                    NoeudExpression const * /*structure*/,
                     NoeudExpression const *membre,
                     TypeCompose const *type)
 {

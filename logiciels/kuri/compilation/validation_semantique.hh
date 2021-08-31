@@ -158,7 +158,6 @@ struct ContexteValidationCode {
                                             TypeTableauFixe *type_tableau,
                                             long index_acces);
     void rapporte_erreur_membre_inconnu(NoeudExpression *acces,
-                                        NoeudExpression *structure,
                                         NoeudExpression *membre,
                                         TypeCompose *type);
     void rapporte_erreur_valeur_manquante_discr(
