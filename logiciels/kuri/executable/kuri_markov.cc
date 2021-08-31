@@ -139,15 +139,15 @@ int main(int argc, const char **argv)
             chemin = std::filesystem::absolute(chemin);
         }
 
-        auto compilatrice = Compilatrice{};
-        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+        auto compilatrice = Compilatrice("");
+        auto donnees_fichier = Fichier();
         auto tampon = charge_contenu_fichier(chemin.c_str());
-        donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+        donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), &donnees_fichier);
         lexeuse.performe_lexage();
 
-        test_markov_id_simple(donnees_fichier->lexemes);
+        test_markov_id_simple(donnees_fichier.lexemes);
     }
 
     return 0;

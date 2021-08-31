@@ -29,7 +29,7 @@
 
 #include "attente.hh"
 
-struct EspaceDeTravail;
+struct Compilatrice;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct Type;
@@ -129,11 +129,11 @@ std::ostream &operator<<(std::ostream &os, TransformationType type);
 
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
-ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
+ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                                               Type *type_de,
                                               Type *type_vers);
 
-ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
+ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
                                                                Type *type_de,
                                                                Type *type_vers);
 
@@ -147,12 +147,12 @@ struct PoidsTransformation {
 using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
                                                   Type *type_arg,
                                                   Type *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
                                                   Type *type_arg,
                                                   Type *type_enf,
                                                   NoeudExpression *enfant);

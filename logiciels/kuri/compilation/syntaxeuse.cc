@@ -1030,11 +1030,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                          "Attendue une chaine de caractère pour définir la bibliothèque dépendue");
 
                 auto espace = m_unite->espace;
-                auto &gestionnaire_bibliotheques = espace->gestionnaire_bibliotheques;
+                auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliotheques;
                 auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
-                    noeud->ident_bibliotheque_dependante);
+                    *espace, noeud->ident_bibliotheque_dependante);
                 auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
-                    noeud->ident_bibliotheque_dependue);
+                    *espace, noeud->ident_bibliotheque_dependue);
                 bib_dependante->dependances.ajoute(bib_dependue);
 
                 return noeud;
@@ -1269,8 +1269,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             lexeme);
                         noeud->ident = gauche->ident;
                         noeud->bibliotheque =
-                            m_unite->espace->gestionnaire_bibliotheques->cree_bibliotheque(
-                                noeud, gauche->ident, chaine_bib);
+                            m_compilatrice.gestionnaire_bibliotheques->cree_bibliotheque(
+                                *m_unite->espace, noeud, gauche->ident, chaine_bib);
                         return noeud;
                     }
 
@@ -2130,12 +2130,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
                                                                       GenreLexeme::INCONNU);
         }
 
-        auto type = m_unite->espace->typeuse.reserve_type_enum(noeud_decl);
+        auto type = m_compilatrice.typeuse.reserve_type_enum(noeud_decl);
         type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
         noeud_decl->type = type;
     }
     else {
-        auto type = m_unite->espace->typeuse.reserve_type_erreur(noeud_decl);
+        auto type = m_compilatrice.typeuse.reserve_type_erreur(noeud_decl);
         type->est_erreur = true;
         noeud_decl->type = type;
     }
@@ -2211,14 +2211,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
         m_unite->espace->fonction_principale = noeud;
         noeud->drapeaux |= EST_RACINE;
-    }
-    else if (noeud->ident == ID::__point_d_entree_systeme) {
-        m_unite->espace->fonction_point_d_entree = noeud;
-
-        // Ne compile le point d'entrée que pour les exécutbables
-        if (m_unite->espace->options.resultat == ResultatCompilation::EXECUTABLE) {
-            noeud->drapeaux |= EST_RACINE;
-        }
     }
 
     auto lexeme_bloc = lexeme_courant();
@@ -2444,13 +2436,13 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud->drapeaux |= FORCE_SANSTRACE;
             }
             else if (ident_directive == ID::interface) {
-                m_unite->espace->interface_kuri->mute_membre(noeud);
+                m_compilatrice.interface_kuri->mute_membre(noeud);
             }
             else if (ident_directive == ID::creation_contexte) {
                 noeud->drapeaux |= FORCE_NULCTX;
                 noeud->drapeaux |= FORCE_SANSTRACE;
                 noeud->drapeaux |= EST_RACINE;
-                m_unite->espace->interface_kuri->decl_creation_contexte = noeud;
+                m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
             }
             else if (ident_directive == ID::compilatrice) {
                 noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
@@ -2521,6 +2513,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     m_tacheronne.assembleuse->depile_bloc();
 
     depile_etat();
+
+    /* Faisons ceci à la fin afin que le corps soit disponible lors de la création de la copie pour
+     * les différents espaces de travail, évitant une potentielle concurrence critique. */
+    if (noeud->ident == ID::__point_d_entree_systeme) {
+        m_compilatrice.fonction_point_d_entree = noeud;
+    }
 
     return noeud;
 }
@@ -2712,13 +2710,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     auto cree_tache = false;
 
     if (gauche->ident == ID::InfoType) {
-        noeud_decl->type = m_unite->espace->typeuse.type_info_type_;
-        auto type_info_type = m_unite->espace->typeuse.type_info_type_->comme_structure();
+        noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
+        auto type_info_type = m_compilatrice.typeuse.type_info_type_->comme_structure();
         type_info_type->decl = noeud_decl;
         type_info_type->nom = noeud_decl->ident;
     }
     else if (gauche->ident == ID::ContexteProgramme) {
-        auto type_contexte = m_unite->espace->typeuse.type_contexte->comme_structure();
+        auto type_contexte = m_compilatrice.typeuse.type_contexte->comme_structure();
         noeud_decl->type = type_contexte;
         type_contexte->decl = noeud_decl;
         type_contexte->nom = noeud_decl->ident;
@@ -2726,10 +2724,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
     else {
         if (noeud_decl->est_union) {
-            noeud_decl->type = m_unite->espace->typeuse.reserve_type_union(noeud_decl);
+            noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
         }
         else {
-            noeud_decl->type = m_unite->espace->typeuse.reserve_type_structure(noeud_decl);
+            noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
         }
     }
 
@@ -2789,8 +2787,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         auto ident_directive = lexeme_courant()->ident;
 
         if (ident_directive == ID::interface) {
-            renseigne_type_interface(
-                m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
+            renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
             cree_tache = true;
         }
         else if (ident_directive == ID::externe) {

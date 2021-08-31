@@ -30,10 +30,12 @@
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/machine_virtuelle.hh"
 
+#include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "metaprogramme.hh"
 #include "programme.hh"
 
-bool CoulisseMV::cree_fichier_objet(Compilatrice & /*compilatrice*/,
+bool CoulisseMV::cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
                                     ConstructriceRI &constructrice_ri)
@@ -65,23 +67,23 @@ bool CoulisseMV::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         metaprogramme->cibles_appels.insere(it);
     }
 
-    std::unique_lock verrou(espace.mutex_donnees_constantes_executions);
+    std::unique_lock verrou(compilatrice.mutex_donnees_constantes_executions);
 
     auto convertisseuse_ri = ConvertisseuseRI(&espace, metaprogramme);
     return convertisseuse_ri.genere_code(repr_inter.fonctions);
 }
 
-bool CoulisseMV::cree_executable(Compilatrice & /*compilatrice*/,
+bool CoulisseMV::cree_executable(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme)
 {
-    std::unique_lock verrou(espace.mutex_donnees_constantes_executions);
+    std::unique_lock verrou(compilatrice.mutex_donnees_constantes_executions);
 
     auto metaprogramme = programme->pour_metaprogramme();
     assert(metaprogramme);
 
     /* Liaison du code binaire du métaprogramme (application des patchs). */
-    auto &donnees_constantes = espace.donnees_constantes_executions;
+    auto &donnees_constantes = compilatrice.donnees_constantes_executions;
 
     /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire car le code binaire
      * des fonctions n'est généré qu'une seule fois, mais l'exécution des métaprogrammes a besoin

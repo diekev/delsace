@@ -519,7 +519,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     NoeudExpression *appelee,
     dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
 {
-    auto fichier = espace.fichier(appelee->lexeme->fichier);
+    auto fichier = espace.compilatrice().fichier(appelee->lexeme->fichier);
 
     if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
         auto declarations = dls::tablet<NoeudDeclaration *, 10>();
@@ -550,7 +550,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
         if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION &&
             fichier->importe_module(accede->ident)) {
-            auto module = espace.module(accede->ident);
+            auto module = espace.compilatrice().module(accede->ident);
             auto declarations = dls::tablet<NoeudDeclaration *, 10>();
             trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 
@@ -642,7 +642,7 @@ static ResultatAppariement apparie_appel_pointeur(
     auto debut_params = 0;
 
     if (type_fonction->types_entrees.taille() != 0 &&
-        type_fonction->types_entrees[0] == espace.typeuse.type_contexte) {
+        type_fonction->types_entrees[0] == espace.compilatrice().typeuse.type_contexte) {
         debut_params = 1;
 
         if (!b->bloc_parent->possede_contexte) {
@@ -676,7 +676,7 @@ static ResultatAppariement apparie_appel_pointeur(
             type_prm = type_dereference_pour(type_prm);
         }
 
-        auto resultat = verifie_compatibilite(espace, type_prm, type_enf, arg);
+        auto resultat = verifie_compatibilite(espace.compilatrice(), type_prm, type_enf, arg);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
@@ -870,7 +870,7 @@ static ResultatAppariement apparie_appel_fonction(
             }
         }
 
-        if (!monomorpheuse.resoud_polymorphes(espace.typeuse)) {
+        if (!monomorpheuse.resoud_polymorphes(espace.compilatrice().typeuse)) {
             return monomorpheuse.erreur;
         }
     }
@@ -889,7 +889,8 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_du_parametre = monomorpheuse.resoud_type_final(espace.typeuse, type_du_parametre);
+            type_du_parametre = monomorpheuse.resoud_type_final(espace.compilatrice().typeuse,
+                                                                type_du_parametre);
         }
 
         if (param->possede_drapeau(EST_VARIADIQUE)) {
@@ -911,7 +912,7 @@ static ResultatAppariement apparie_appel_fonction(
                     auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
                     auto resultat = verifie_compatibilite(
-                        espace, type_deref, type_deref_enf, slot);
+                        espace.compilatrice(), type_deref, type_deref_enf, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
                         return ErreurAppariement::dependance_non_satisfaite(
@@ -932,7 +933,7 @@ static ResultatAppariement apparie_appel_fonction(
                 }
                 else {
                     auto resultat = verifie_compatibilite(
-                        espace, type_deref, type_de_l_expression, slot);
+                        espace.compilatrice(), type_deref, type_de_l_expression, slot);
 
                     if (std::holds_alternative<Attente>(resultat)) {
                         return ErreurAppariement::dependance_non_satisfaite(
@@ -983,7 +984,7 @@ static ResultatAppariement apparie_appel_fonction(
         }
         else {
             auto resultat = verifie_compatibilite(
-                espace, type_du_parametre, type_de_l_expression, slot);
+                espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return ErreurAppariement::dependance_non_satisfaite(arg,
@@ -1162,7 +1163,7 @@ static ResultatAppariement apparie_appel_structure(
                         return ErreurAppariement::metypage_argument(it, param->type, it->type);
                     }
 
-                    auto valeur = evalue_expression(&espace, it->bloc_parent, it);
+                    auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
 
                     if (valeur.est_errone) {
                         rapporte_erreur(&espace, it, "La valeur n'est pas constante");
@@ -1204,7 +1205,7 @@ static ResultatAppariement apparie_appel_structure(
         }
 
         if (est_type_argument_polymorphique) {
-            auto type_poly = espace.typeuse.cree_polymorphique(nullptr);
+            auto type_poly = espace.compilatrice().typeuse.cree_polymorphique(nullptr);
 
             type_poly->est_structure_poly = true;
             type_poly->structure = decl_struct;
@@ -1230,7 +1231,7 @@ static ResultatAppariement apparie_appel_structure(
 
             return CandidateAppariement::type_polymorphique(
                 1.0,
-                espace.typeuse.type_type_de_donnees(type_poly),
+                espace.compilatrice().typeuse.type_type_de_donnees(type_poly),
                 {},
                 {},
                 std::move(items_monomorphisation));
@@ -1280,7 +1281,7 @@ static ResultatAppariement apparie_appel_structure(
 
         auto &membre = type_compose->membres[index_membre];
 
-        auto resultat = verifie_compatibilite(espace, membre.type, it->type, it);
+        auto resultat = verifie_compatibilite(espace.compilatrice(), membre.type, it->type, it);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));
@@ -1338,7 +1339,8 @@ static ResultatAppariement apparie_construction_opaque(
             1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
 
-    auto resultat = verifie_compatibilite(espace, type_opaque->type_opacifie, arg->type);
+    auto resultat = verifie_compatibilite(
+        espace.compilatrice(), type_opaque->type_opacifie, arg->type);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));
@@ -1554,7 +1556,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->ident = it.ident;
-        decl_constante->type = espace.typeuse.type_type_de_donnees(it.type);
+        decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
 
         if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
@@ -1605,10 +1607,10 @@ static NoeudStruct *monomorphise_au_besoin(
     copie->polymorphe_de_base = decl_struct;
 
     if (decl_struct->est_union) {
-        copie->type = espace.typeuse.reserve_type_union(copie);
+        copie->type = espace.compilatrice().typeuse.reserve_type_union(copie);
     }
     else {
-        copie->type = espace.typeuse.reserve_type_structure(copie);
+        copie->type = espace.compilatrice().typeuse.reserve_type_structure(copie);
     }
 
     // À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
@@ -1937,7 +1939,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             auto copie = monomorphise_au_besoin(
                 contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
-            expr->type = espace.typeuse.type_type_de_donnees(copie->type);
+            expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie->type);
 
             /* il est possible d'utiliser un type avant sa validation final, par exemple en
              * paramètre d'une fonction de rappel qui est membre de la structure */
@@ -2006,15 +2008,15 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
-        expr->type = espace.typeuse[TypeBase::RIEN];
+        expr->type = espace.compilatrice().typeuse[TypeBase::RIEN];
         expr->drapeaux |= FORCE_NULCTX;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_opaque();
 
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_opaque = contexte.espace->typeuse.monomorphe_opaque(type_opaque->decl,
-                                                                     candidate->exprs[0]->type);
+            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+                type_opaque->decl, candidate->exprs[0]->type);
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
         }
@@ -2034,11 +2036,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
         if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-            type_opaque = contexte.espace->typeuse.monomorphe_opaque(type_opaque->decl,
-                                                                     type_opacifie->type_connu);
+            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+                type_opaque->decl, type_opacifie->type_connu);
         }
 
-        expr->type = contexte.espace->typeuse.type_type_de_donnees(type_opaque);
+        expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(type_opaque);
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }
 

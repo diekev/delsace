@@ -378,7 +378,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
         case GenreType::EINI:
         {
             /* type = structure { *z8, *InfoType } */
-            auto type_info_type = m_espace.typeuse.type_info_type_;
+            auto type_info_type = m_espace.compilatrice().typeuse.type_info_type_;
 
             std::vector<llvm::Type *> types_membres(2ul);
             types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);
@@ -466,7 +466,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
             // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
             // @Incomplet : LLVM n'a pas de pointeur nul
             if (!type_deref || type_deref->genre == GenreType::RIEN) {
-                type_deref = m_espace.typeuse[TypeBase::Z8];
+                type_deref = m_espace.compilatrice().typeuse[TypeBase::Z8];
             }
 
             auto type_deref_llvm = converti_type_llvm(type_deref);
@@ -542,7 +542,8 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
             // Utilise le type de tableau dynamique afin que le code IR LLVM
             // soit correcte (pointe vers le même type)
             if (type_var->type_pointe != nullptr) {
-                auto type_tabl = m_espace.typeuse.type_tableau_dynamique(type_var->type_pointe);
+                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
+                    type_var->type_pointe);
                 type_llvm = converti_type_llvm(type_tabl);
             }
 
@@ -604,7 +605,8 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *ty
             /* les arguments variadiques sont transformés en un tableau */
             if (!est_externe) {
                 auto type_var = it->comme_variadique();
-                auto type_tabl = m_espace.typeuse.type_tableau_dynamique(type_var->type_pointe);
+                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
+                    type_var->type_pointe);
                 parametres.push_back(converti_type_llvm(type_tabl));
             }
 
@@ -1393,8 +1395,8 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
     }
 
     // @.chn [N x i8] c"...0"
-    auto type_tableau = m_espace.typeuse.type_tableau_fixe(m_espace.typeuse[TypeBase::Z8],
-                                                           static_cast<int>(taille_chaine + 1));
+    auto type_tableau = m_espace.compilatrice().typeuse.type_tableau_fixe(
+        m_espace.compilatrice().typeuse[TypeBase::Z8], static_cast<int>(taille_chaine + 1));
 
     auto constante = llvm::ConstantDataArray::getString(m_contexte_llvm, vers_std_string(chaine));
 
@@ -1416,7 +1418,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
     auto valeur_taille = llvm::ConstantInt::get(
         llvm::Type::getInt64Ty(m_contexte_llvm), static_cast<uint64_t>(chaine.taille()), false);
 
-    auto type_chaine = converti_type_llvm(m_espace.typeuse[TypeBase::CHAINE]);
+    auto type_chaine = converti_type_llvm(m_espace.compilatrice().typeuse[TypeBase::CHAINE]);
 
     auto struct_chaine = llvm::ConstantStruct::get(
         static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);

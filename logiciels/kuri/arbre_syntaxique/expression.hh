@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-struct EspaceDeTravail;
+struct Compilatrice;
 struct NoeudBloc;
 struct NoeudExpression;
 
@@ -77,4 +77,6 @@ struct ResultatExpression {
     COPIE_CONSTRUCT(ResultatExpression);
 };
 
-ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, NoeudExpression *b);
+ResultatExpression evalue_expression(Compilatrice &compilatrice,
+                                     NoeudBloc *bloc,
+                                     NoeudExpression *b);

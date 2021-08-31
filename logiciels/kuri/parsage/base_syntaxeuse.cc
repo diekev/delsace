@@ -28,8 +28,7 @@
 
 #include "modules.hh"
 
-BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier)
-    : m_lexemes(fichier->donnees_constantes->lexemes), m_fichier(fichier)
+BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexemes(fichier->lexemes), m_fichier(fichier)
 {
     if (m_lexemes.taille() > 0) {
         m_lexeme_courant = &m_lexemes[0];

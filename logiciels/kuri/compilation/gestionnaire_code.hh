@@ -29,6 +29,7 @@
 
 #include "structures/tableau.hh"
 
+#include "arbre_syntaxique/allocatrice.hh"
 #include "graphe_dependance.hh"
 #include "unite_compilation.hh"
 
@@ -78,14 +79,17 @@ class GestionnaireCode {
      * allouée précédemment afin de ne pas trop faire d'allocations dynamiques. */
     DonnneesResolutionDependances dependances{};
 
+    AllocatriceNoeud allocatrice_noeud{};
+    AssembleuseArbre *m_assembleuse = nullptr;
+
   public:
     GestionnaireCode() = default;
-    GestionnaireCode(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
-    {
-    }
+    GestionnaireCode(Compilatrice *compilatrice);
 
     GestionnaireCode(GestionnaireCode const &) = delete;
     GestionnaireCode &operator=(GestionnaireCode const &) = delete;
+
+    ~GestionnaireCode();
 
     /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
      * cours de compilation */
@@ -167,4 +171,6 @@ class GestionnaireCode {
     std::optional<Attente> tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
                                                                         Programme *programme,
                                                                         GrapheDependance &graphe);
+
+    void tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace);
 };

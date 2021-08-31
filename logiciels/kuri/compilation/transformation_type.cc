@@ -94,7 +94,7 @@ static bool est_type_de_base(Type *type_de, Type *type_vers)
  * graphe, qui sera sans doute révisée plus tard.
  */
 template <bool POUR_TRANSTYPAGE>
-ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
+ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                                               Type *type_de,
                                               Type *type_vers)
 {
@@ -248,12 +248,12 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32,
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r32,
                                          ID::DLS_vers_r32);
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64,
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r64,
                                          ID::DLS_vers_r64);
             }
 
@@ -263,12 +263,12 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
         /* cas spéciaux pour R16 */
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32,
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r32,
                                          ID::DLS_depuis_r32);
             }
 
             if (type_de->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64,
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r64,
                                          ID::DLS_depuis_r64);
             }
 
@@ -335,7 +335,7 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
             if (it.type == type_vers) {
                 if (!type_union->est_nonsure) {
                     auto decl_panique_membre_union =
-                        espace.interface_kuri->decl_panique_membre_union;
+                        compilatrice.interface_kuri->decl_panique_membre_union;
                     if (decl_panique_membre_union == nullptr) {
                         return Attente::sur_interface_kuri(ID::panique_membre_union);
                     }
@@ -536,25 +536,25 @@ ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
     return TypeTransformation::IMPOSSIBLE;
 }
 
-ResultatTransformation cherche_transformation(EspaceDeTravail &espace,
+ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                                               Type *type_de,
                                               Type *type_vers)
 {
-    return cherche_transformation<false>(espace, type_de, type_vers);
+    return cherche_transformation<false>(compilatrice, type_de, type_vers);
 }
 
-ResultatTransformation cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
+ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
                                                                Type *type_de,
                                                                Type *type_vers)
 {
-    return cherche_transformation<true>(espace, type_de, type_vers);
+    return cherche_transformation<true>(compilatrice, type_de, type_vers);
 }
 
-ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
                                                   Type *type_arg,
                                                   Type *type_enf)
 {
-    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -581,12 +581,12 @@ ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
     return PoidsTransformation{transformation, 0.5};
 }
 
-ResultatPoidsTransformation verifie_compatibilite(EspaceDeTravail &espace,
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
                                                   Type *type_arg,
                                                   Type *type_enf,
                                                   NoeudExpression *enfant)
 {
-    auto resultat = cherche_transformation<false>(espace, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);

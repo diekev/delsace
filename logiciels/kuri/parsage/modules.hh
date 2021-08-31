@@ -52,37 +52,26 @@ struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
 struct Statistiques;
 
-struct DonneesConstantesFichier {
+struct Fichier {
+    double temps_analyse = 0.0;
     double temps_chargement = 0.0;
     double temps_decoupage = 0.0;
     double temps_tampon = 0.0;
 
-    lng::tampon_source tampon{""};
+    lng::tampon_source tampon_{""};
 
     kuri::tableau<Lexeme, int> lexemes{};
 
-    kuri::chaine nom{""};
-    kuri::chaine chemin{""};
+    kuri::chaine nom_{""};
+    kuri::chaine chemin_{""};
 
-    long id = 0;
+    long id_ = 0;
 
     std::mutex mutex{};
     bool fut_lexe = false;
     bool fut_charge = false;
     bool en_chargement = false;
     bool en_lexage = false;
-
-    void charge_tampon(lng::tampon_source &&t)
-    {
-        tampon = std::move(t);
-        fut_charge = true;
-    }
-};
-
-struct Fichier {
-    double temps_analyse = 0.0;
-
-    DonneesConstantesFichier *donnees_constantes = nullptr;
 
     dls::ensemblon<Module *, 16> modules_importes{};
 
@@ -93,10 +82,6 @@ struct Fichier {
 
     Fichier() = default;
 
-    explicit Fichier(DonneesConstantesFichier *dc) : donnees_constantes(dc)
-    {
-    }
-
     COPIE_CONSTRUCT(Fichier);
 
     /**
@@ -106,22 +91,28 @@ struct Fichier {
 
     kuri::chaine const &chemin() const
     {
-        return donnees_constantes->chemin;
+        return chemin_;
     }
 
     kuri::chaine const &nom() const
     {
-        return donnees_constantes->nom;
+        return nom_;
     }
 
     long id() const
     {
-        return donnees_constantes->id;
+        return id_;
     }
 
     lng::tampon_source const &tampon() const
     {
-        return donnees_constantes->tampon;
+        return tampon_;
+    }
+
+    void charge_tampon(lng::tampon_source &&t)
+    {
+        tampon_ = std::move(t);
+        fut_charge = true;
     }
 };
 
@@ -155,14 +146,10 @@ struct tag_pour_donnees<TagPourResultatFichier, FichierNeuf> {
 
 using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFichier>;
 
-struct DonneesConstantesModule {
-    /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
-    IdentifiantCode *nom = nullptr;
-    kuri::chaine chemin{""};
-};
-
 struct Module {
-    DonneesConstantesModule *donnees_constantes = nullptr;
+    /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
+    IdentifiantCode *nom_ = nullptr;
+    kuri::chaine chemin_{""};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
@@ -173,7 +160,7 @@ struct Module {
     kuri::chaine chemin_bibliotheque_32bits{};
     kuri::chaine chemin_bibliotheque_64bits{};
 
-    explicit Module(DonneesConstantesModule *dc) : donnees_constantes(dc)
+    Module(kuri::chaine chm) : chemin_(chm)
     {
         chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
         chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
@@ -183,35 +170,50 @@ struct Module {
 
     kuri::chaine const &chemin() const
     {
-        return donnees_constantes->chemin;
+        return chemin_;
     }
 
     IdentifiantCode *const &nom() const
     {
-        return donnees_constantes->nom;
+        return nom_;
     }
 };
 
 struct SystemeModule {
-    tableau_page<DonneesConstantesModule> donnees_modules{};
-    tableau_page<DonneesConstantesFichier> donnees_fichiers{};
+    tableau_page<Module> modules{};
+    tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, DonneesConstantesFichier *> table_fichiers{};
+    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{};
 
-    DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom,
-                                                   kuri::chaine_statique chemin);
+    Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    DonneesConstantesModule *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
+    Module *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    DonneesConstantesFichier *trouve_ou_cree_fichier(kuri::chaine_statique nom,
-                                                     kuri::chaine_statique chemin);
+    Module *module(const IdentifiantCode *nom) const;
 
-    DonneesConstantesFichier *cree_fichier(kuri::chaine_statique nom,
+    ResultatFichier trouve_ou_cree_fichier(Module *module,
+                                           kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
+
+    FichierNeuf cree_fichier(Module *module,
+                             kuri::chaine_statique nom,
+                             kuri::chaine_statique chemin);
 
     void rassemble_stats(Statistiques &stats) const;
 
     long memoire_utilisee() const;
+
+    Fichier *fichier(long index)
+    {
+        return &fichiers.a_l_index(index);
+    }
+
+    const Fichier *fichier(long index) const
+    {
+        return &fichiers.a_l_index(index);
+    }
+
+    Fichier *fichier(kuri::chaine_statique chemin) const;
 };
 
 void imprime_ligne_avec_message(Enchaineuse &flux,

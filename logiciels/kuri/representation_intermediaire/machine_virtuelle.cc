@@ -612,8 +612,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
-        auto espace = depile<EspaceDeTravail *>(site);
-        auto fichier = espace->fichier(site->lexeme->fichier);
+        auto fichier = compilatrice.fichier(site->lexeme->fichier);
         auto module = fichier->module;
         empile(site, module);
         return;
@@ -776,7 +775,7 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     frames = de->frames;
     ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
     ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
-    donnees_constantes = &metaprogramme->unite->espace->donnees_constantes_executions;
+    donnees_constantes = &compilatrice.donnees_constantes_executions;
 
     intervalle_adresses_globales.min = ptr_donnees_globales;
     intervalle_adresses_globales.max = ptr_donnees_globales +

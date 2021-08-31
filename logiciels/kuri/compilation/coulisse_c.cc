@@ -753,7 +753,7 @@ struct GeneratriceCodeC {
                 /* La fonction d'initialisation des globales n'a pas de site. */
                 if (!m_fonction_courante->sanstrace && inst_appel->site) {
                     auto const &lexeme = inst_appel->site->lexeme;
-                    auto fichier = m_espace.fichier(lexeme->fichier);
+                    auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
                     auto pos = position_lexeme(*lexeme);
 
                     os << "  DEBUTE_RECORD_TRACE_APPEL(";
@@ -1296,7 +1296,7 @@ struct GeneratriceCodeC {
                 os << "INITIALISE_TRACE_APPEL(\"";
 
                 if (atome_fonc->lexeme != nullptr) {
-                    auto fichier = m_espace.fichier(atome_fonc->lexeme->fichier);
+                    auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
                     os << atome_fonc->lexeme->chaine << "\", "
                        << atome_fonc->lexeme->chaine.taille() << ", \"" << fichier->nom()
                        << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
@@ -1583,7 +1583,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
 
-    genere_table_des_types(espace.typeuse, repr_inter_programme, constructrice_ri);
+    genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
 
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale

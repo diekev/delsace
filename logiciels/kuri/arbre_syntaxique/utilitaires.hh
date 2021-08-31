@@ -31,6 +31,7 @@
 #include "structures/tableau_compresse.hh"
 
 struct AssembleuseArbre;
+struct EspaceDeTravail;
 struct NoeudBloc;
 struct NoeudExpression;
 struct Typeuse;

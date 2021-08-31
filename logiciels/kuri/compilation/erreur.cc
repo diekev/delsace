@@ -63,7 +63,7 @@ dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
                                            const NoeudExpression *expr)
 {
     auto lexeme = expr->lexeme;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = calcule_etendue_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
     return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min],
@@ -160,7 +160,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
 
             if (decl != nullptr) {
                 auto const &lexeme_df = decl->lexeme;
-                auto fichier_df = espace.fichier(lexeme_df->fichier);
+                auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
                 auto pos_df = position_lexeme(*lexeme_df);
 
                 e.ajoute_message(' ',
@@ -443,7 +443,7 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
     }
 
     auto lexeme = site->lexeme;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     std::cerr << fichier->chemin() << ':' << lexeme->ligne + 1 << '\n';
 
     Enchaineuse enchaineuse;
@@ -487,7 +487,7 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 {
     assert(espace);
 
-    auto fichier = espace->fichier(site->lexeme->fichier);
+    auto fichier = espace->compilatrice().fichier(site->lexeme->fichier);
 
     imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
     enchaineuse << '\n';
@@ -605,7 +605,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     const Fichier *fichier = nullptr;
 
     if (site) {
-        fichier = espace->fichier(site->lexeme->fichier);
+        fichier = espace->compilatrice().fichier(site->lexeme->fichier);
     }
 
     return genere_entete_erreur_impl(espace, fichier, site, genre, message);
@@ -646,7 +646,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        int ligne,
                        kuri::chaine const &message)
 {
-    const auto fichier = espace->fichier(chemin_fichier);
+    const auto fichier = espace->compilatrice().fichier(chemin_fichier);
     auto erreur = Erreur(espace);
     erreur.enchaineuse << genere_entete_erreur_impl(espace, fichier, ligne, {}, message);
     return erreur;

@@ -4,7 +4,7 @@ fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statiq
 
 fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
 
-fonction compilatrice_module_courant(EspaceDeTravail * espace) -> Module *
+fonction compilatrice_module_courant() -> Module *
 
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 

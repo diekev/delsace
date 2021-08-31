@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/assert.hh"
 
+#include "arbre_syntaxique/assembleuse.hh"
+
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
@@ -37,6 +39,17 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 - avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la
 compilation
  */
+
+GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
+    : m_compilatrice(compilatrice),
+      m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
+{
+}
+
+GestionnaireCode::~GestionnaireCode()
+{
+    memoire::deloge("AssembleuseArbre", m_assembleuse);
+}
 
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
@@ -102,7 +115,7 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
 
 struct RassembleuseDependances {
     DonneesDependance &dependances;
-    EspaceDeTravail *espace;
+    Compilatrice *compilatrice;
     NoeudExpression *racine_;
 
     void ajoute_type(Type *type)
@@ -209,7 +222,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 }
 
                 /* Marque les dépendances sur les fonctions d'interface de kuri. */
-                auto interface = espace->interface_kuri;
+                auto interface = compilatrice->interface_kuri;
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
@@ -272,20 +285,20 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 
                 /* Ajout également du type de pointeur pour la génération de code C. */
                 auto type_feuille = construction_tableau->type->comme_tableau_fixe()->type_pointe;
-                auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
+                auto type_ptr = compilatrice->typeuse.type_pointeur_pour(type_feuille);
                 ajoute_type(type_ptr);
             }
             else if (noeud->est_tente()) {
                 auto tente = noeud->comme_tente();
 
                 if (!tente->expression_piegee) {
-                    auto interface = espace->interface_kuri;
+                    auto interface = compilatrice->interface_kuri;
                     assert(interface->decl_panique_erreur);
                     ajoute_fonction(interface->decl_panique_erreur);
                 }
             }
             else if (noeud->est_reference_membre_union()) {
-                auto interface = espace->interface_kuri;
+                auto interface = compilatrice->interface_kuri;
                 assert(interface->decl_panique_membre_union);
                 ajoute_fonction(interface->decl_panique_membre_union);
             }
@@ -293,7 +306,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 auto comme = noeud->comme_comme();
 
                 /* Marque les dépendances sur les fonctions d'interface de kuri. */
-                auto interface = espace->interface_kuri;
+                auto interface = compilatrice->interface_kuri;
 
                 if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
                     assert(interface->decl_panique_membre_union);
@@ -311,7 +324,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
                  * RI. À FAIRE: généralise pour toutes les variables. */
                 if (comme->transformation.type_cible) {
-                    auto type_pointeur = espace->typeuse.type_pointeur_pour(
+                    auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
                         comme->transformation.type_cible, false, false);
                     ajoute_type(type_pointeur);
                     ajoute_type(comme->transformation.type_cible);
@@ -336,7 +349,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 /* Création d'un type tableau fixe, pour la génération de code. */
                 auto taille_tableau = args->expressions.taille();
                 if (taille_tableau != 0) {
-                    auto type_tfixe = espace->typeuse.type_tableau_fixe(
+                    auto type_tfixe = compilatrice->typeuse.type_tableau_fixe(
                         args->type, taille_tableau, false);
                     ajoute_type(type_tfixe);
                 }
@@ -364,10 +377,10 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 }
 
 static void rassemble_dependances(NoeudExpression *racine,
-                                  EspaceDeTravail *espace,
+                                  Compilatrice *compilatrice,
                                   DonneesDependance &dependances)
 {
-    RassembleuseDependances rassembleuse{dependances, espace, racine};
+    RassembleuseDependances rassembleuse{dependances, compilatrice, racine};
     rassembleuse.rassemble_dependances();
 }
 
@@ -563,7 +576,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                                              GrapheDependance &graphe)
 {
     dependances.reinitialise();
-    rassemble_dependances(noeud, espace, dependances.dependances);
+    rassemble_dependances(noeud, m_compilatrice, dependances.dependances);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
@@ -615,7 +628,7 @@ void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fic
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
-    assert(fichier->donnees_constantes->fut_charge);
+    assert(fichier->fut_charge);
     espace->tache_lexage_ajoutee(m_compilatrice->messagere);
 
     auto unite = unites.ajoute_element(espace);
@@ -627,7 +640,7 @@ void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
-    assert(fichier->donnees_constantes->fut_lexe);
+    assert(fichier->fut_lexe);
     espace->tache_parsage_ajoutee(m_compilatrice->messagere);
 
     auto unite = unites.ajoute_element(espace);
@@ -723,7 +736,7 @@ std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_con
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
      */
-    auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
+    auto decl_creation_contexte = m_compilatrice->interface_kuri->decl_creation_contexte;
 
     if (!decl_creation_contexte) {
         return Attente::sur_interface_kuri(ID::cree_contexte);
@@ -776,7 +789,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
-    auto graphe = espace->graphe_dependance.verrou_ecriture();
+    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
@@ -797,7 +810,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
              * recipiente du #corps_texte sur le parsage du fichier. Nous faisons ça ici pour nous
              * assurer que personne n'essayera de performer le typage du corps recipient avant que
              * les sources du fichiers ne soient générées, lexées, et parsées. */
-            auto fichier = espace->cree_fichier_pour_metaprogramme(metaprogramme);
+            auto fichier = m_compilatrice->cree_fichier_pour_metaprogramme(metaprogramme);
             recipiente->corps->unite->mute_attente(Attente::sur_parsage(fichier));
         }
         else if (metaprogramme->corps_texte_pour_structure) {
@@ -870,7 +883,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
 void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
-    assert(unite->fichier->donnees_constantes->fut_charge);
+    assert(unite->fichier->fut_charge);
 
     auto espace = unite->espace;
     espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
@@ -882,7 +895,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
-    assert(unite->fichier->donnees_constantes->fut_lexe);
+    assert(unite->fichier->fut_lexe);
 
     auto espace = unite->espace;
     espace->tache_lexage_terminee(m_compilatrice->messagere);
@@ -968,7 +981,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto espace = unite->espace;
 
     // rassemble toutes les dépendances de la fonction ou de la globale
-    auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
+    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
     auto noeud = unite->noeud;
     if (doit_determiner_les_dependances(unite->noeud)) {
         determine_dependances(unite->noeud, unite->espace, *graphe);
@@ -981,6 +994,13 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         espace->tache_ri_ajoutee(m_compilatrice->messagere);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
         unites_en_attente.ajoute(unite);
+    }
+
+    /* Le point d'entrée n'est pas appelé, il nous faut requerir le typage du corps manuellement.
+     */
+    if (noeud->ident == ID::__point_d_entree_systeme && noeud->est_entete_fonction() &&
+        noeud != m_compilatrice->fonction_point_d_entree) {
+        requiers_typage(espace, noeud->comme_entete_fonction()->corps);
     }
 
     if (message) {
@@ -1171,6 +1191,8 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
             return true;
         }
 
+        tente_de_garantir_fonction_point_d_entree(espace);
+
         if (it->pour_metaprogramme()) {
             auto etat = it->ajourne_etat_compilation();
 
@@ -1218,4 +1240,28 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
     }
 
     return ok;
+}
+
+void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
+{
+    // Ne compile le point d'entrée que pour les exécutbables
+    if (espace->options.resultat != ResultatCompilation::EXECUTABLE) {
+        return;
+    }
+
+    if (espace->fonction_point_d_entree != nullptr) {
+        return;
+    }
+
+    auto point_d_entree = m_compilatrice->fonction_point_d_entree;
+    if (point_d_entree == nullptr) {
+        return;
+    }
+
+    auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
+    copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
+    copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+    requiers_typage(espace, copie);
+    espace->fonction_point_d_entree = copie->comme_entete_fonction();
 }

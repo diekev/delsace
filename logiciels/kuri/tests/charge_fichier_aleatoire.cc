@@ -51,12 +51,12 @@ int main(int argc, char *argv[])
 
 #if 1
     {
-        auto compilatrice = Compilatrice{};
-        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+        auto compilatrice = Compilatrice("");
+        auto fichier = Fichier();
         auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
-        donnees_fichier->charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
+        fichier.charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), &fichier);
         lexeuse.performe_lexage();
     }
 #else

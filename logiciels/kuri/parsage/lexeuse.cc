@@ -206,10 +206,11 @@ static int longueur_utf8_depuis_premier_caractere[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
     3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-Lexeuse::Lexeuse(ContexteLexage contexte, DonneesConstantesFichier *donnees, int drapeaux)
+Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux)
     : m_gerante_chaine(contexte.gerante_chaine), m_table_identifiants(contexte.table_identifiants),
-      m_donnees(donnees), m_debut_mot(donnees->tampon.debut()), m_debut(donnees->tampon.debut()),
-      m_fin(donnees->tampon.fin()), m_drapeaux(drapeaux), m_rappel_erreur(contexte.rappel_erreur)
+      m_donnees(donnees), m_debut_mot(donnees->tampon().debut()),
+      m_debut(donnees->tampon().debut()), m_fin(donnees->tampon().fin()), m_drapeaux(drapeaux),
+      m_rappel_erreur(contexte.rappel_erreur)
 {
 }
 
@@ -765,10 +766,10 @@ void Lexeuse::rapporte_erreur(const kuri::chaine &quoi)
     m_possede_erreur = true;
 
     // À FAIRE : formatte le message d'erreur selon le standard du langage.
-    auto ligne_courante = m_donnees->tampon[m_compte_ligne];
+    auto ligne_courante = m_donnees->tampon()[m_compte_ligne];
 
     Enchaineuse enchaineuse;
-    enchaineuse << "Erreur : " << m_donnees->chemin << ":" << m_compte_ligne + 1 << ":\n";
+    enchaineuse << "Erreur : " << m_donnees->chemin() << ":" << m_compte_ligne + 1 << ":\n";
     enchaineuse << ligne_courante;
 
     /* La position ligne est en octet, il faut donc compter le nombre d'octets
@@ -795,7 +796,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
     Lexeme lexeme = {mot_courant(),
                      {0ul},
                      identifiant,
-                     static_cast<int>(m_donnees->id),
+                     static_cast<int>(m_donnees->id()),
                      m_compte_ligne,
                      m_pos_mot};
 
@@ -809,7 +810,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
     m_donnees->lexemes.ajoute({mot_courant(),
                                {valeur},
                                identifiant,
-                               static_cast<int>(m_donnees->id),
+                               static_cast<int>(m_donnees->id()),
                                m_compte_ligne,
                                m_pos_mot});
     m_taille_mot_courant = 0;
@@ -1443,7 +1444,7 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
     auto lexeme = Lexeme{};
     lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
     lexeme.valeur_entiere = valeur;
-    lexeme.fichier = static_cast<int>(m_donnees->id);
+    lexeme.fichier = static_cast<int>(m_donnees->id());
     lexeme.colonne = m_pos_mot;
     lexeme.ligne = m_compte_ligne;
     lexeme.chaine = mot_courant();
@@ -1459,7 +1460,7 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
     auto lexeme = Lexeme{};
     lexeme.genre = GenreLexeme::NOMBRE_REEL;
     lexeme.valeur_reelle = valeur;
-    lexeme.fichier = static_cast<int>(m_donnees->id);
+    lexeme.fichier = static_cast<int>(m_donnees->id());
     lexeme.colonne = m_pos_mot;
     lexeme.ligne = m_compte_ligne;
     lexeme.chaine = mot_courant();

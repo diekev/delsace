@@ -30,6 +30,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
@@ -443,7 +444,8 @@ void UniteCompilation::marque_prete_si_attente_resolue()
     if (m_attente.est<AttenteSurDeclaration>()) {
         auto declaration_attendue = m_attente.declaration();
         if (declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            if (declaration_attendue == espace->interface_kuri->decl_creation_contexte) {
+            if (declaration_attendue ==
+                espace->compilatrice().interface_kuri->decl_creation_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
                  * nous faut le code. */
                 mute_attente(
@@ -484,7 +486,8 @@ void UniteCompilation::marque_prete_si_attente_resolue()
 
     if (m_attente.est<AttenteSurInterfaceKuri>()) {
         auto interface_attendue = m_attente.interface_kuri();
-        auto decl = espace->interface_kuri->declaration_pour_ident(interface_attendue);
+        auto decl = espace->compilatrice().interface_kuri->declaration_pour_ident(
+            interface_attendue);
         if (decl && decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
             if (decl->ident == ID::cree_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
@@ -504,7 +507,7 @@ void UniteCompilation::marque_prete_si_attente_resolue()
 
     if (m_attente.est<AttenteSurChargement>()) {
         auto fichier_attendu = m_attente.fichier_a_charger();
-        if (fichier_attendu->donnees_constantes->fut_charge) {
+        if (fichier_attendu->fut_charge) {
             marque_prete();
         }
         return;
@@ -512,7 +515,7 @@ void UniteCompilation::marque_prete_si_attente_resolue()
 
     if (m_attente.est<AttenteSurLexage>()) {
         auto fichier_attendu = m_attente.fichier_a_lexer();
-        if (fichier_attendu->donnees_constantes->fut_lexe) {
+        if (fichier_attendu->fut_lexe) {
             marque_prete();
         }
         return;

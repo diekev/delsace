@@ -86,11 +86,9 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 }
 #endif
 
-static void imprime_fichiers_utilises(std::ostream &os, EspaceDeTravail *espace)
+static void imprime_fichiers_utilises(std::ostream &os, Compilatrice &compilatrice)
 {
-    auto fichiers = espace->fichiers.verrou_ecriture();
-
-    POUR_TABLEAU_PAGE ((*fichiers)) {
+    POUR_TABLEAU_PAGE (compilatrice.sys_module->fichiers) {
         os << it.chemin() << "\n";
     }
 }
@@ -128,7 +126,7 @@ int main(int argc, char *argv[])
     precompile_objet_r16(chemin_racine_kuri);
 
     auto stats = Statistiques();
-    auto compilatrice = Compilatrice{};
+    auto compilatrice = Compilatrice(chemin_racine_kuri);
 
     const char *nom_fichier_utilises = nullptr;
 
@@ -158,11 +156,8 @@ int main(int argc, char *argv[])
 
         auto nom_fichier = chemin.stem();
 
-        compilatrice.racine_kuri = chemin_racine_kuri;
-
         /* Charge d'abord le module basique. */
-        auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
-        compilatrice.espace_de_travail_defaut = espace_defaut;
+        auto espace_defaut = compilatrice.espace_de_travail_defaut;
 
         auto dossier = chemin.parent_path();
         std::filesystem::current_path(dossier);
@@ -170,8 +165,7 @@ int main(int argc, char *argv[])
         os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
            << std::endl;
 
-        auto module = espace_defaut->trouve_ou_cree_module(
-            compilatrice.sys_module, ID::chaine_vide, dossier.c_str());
+        auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier.c_str());
         compilatrice.ajoute_fichier_a_la_compilation(
             espace_defaut, nom_fichier.c_str(), module, {});
 
@@ -241,10 +235,7 @@ int main(int argc, char *argv[])
 
         if (!compilatrice.possede_erreur() && nom_fichier_utilises) {
             std::ofstream fichier_fichiers_utilises(nom_fichier_utilises);
-
-            POUR (*compilatrice.espaces_de_travail.verrou_lecture()) {
-                imprime_fichiers_utilises(fichier_fichiers_utilises, it);
-            }
+            imprime_fichiers_utilises(fichier_fichiers_utilises, compilatrice);
         }
 
         if (!compilatrice.possede_erreur() &&

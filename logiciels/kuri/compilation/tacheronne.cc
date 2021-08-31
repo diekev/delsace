@@ -431,25 +431,24 @@ void Tacheronne::gere_tache()
             case GenreTache::CHARGEMENT:
             {
                 auto fichier = tache.unite->fichier;
-                auto donnees = fichier->donnees_constantes;
 
-                if (!donnees->fut_charge) {
-                    donnees->mutex.lock();
+                if (!fichier->fut_charge) {
+                    fichier->mutex.lock();
 
-                    if (!donnees->fut_charge) {
+                    if (!fichier->fut_charge) {
                         auto debut_chargement = dls::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(dls::chaine(donnees->chemin));
+                        auto texte = charge_contenu_fichier(dls::chaine(fichier->chemin()));
                         temps_chargement += debut_chargement.temps();
 
                         auto debut_tampon = dls::chrono::compte_seconde();
-                        donnees->charge_tampon(lng::tampon_source(std::move(texte)));
+                        fichier->charge_tampon(lng::tampon_source(std::move(texte)));
                         temps_tampons += debut_tampon.temps();
                     }
 
-                    donnees->mutex.unlock();
+                    fichier->mutex.unlock();
                 }
 
-                if (donnees->fut_charge) {
+                if (fichier->fut_charge) {
                     compilatrice.gestionnaire_code->chargement_fichier_termine(tache.unite);
                 }
                 else {
@@ -464,24 +463,23 @@ void Tacheronne::gere_tache()
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
                 auto unite = tache.unite;
                 auto fichier = unite->fichier;
-                auto donnees = fichier->donnees_constantes;
 
-                if (!donnees->fut_lexe) {
-                    donnees->mutex.lock();
+                if (!fichier->fut_lexe) {
+                    fichier->mutex.lock();
 
-                    if (!donnees->en_lexage) {
-                        donnees->en_lexage = true;
+                    if (!fichier->en_lexage) {
+                        fichier->en_lexage = true;
                         auto debut_lexage = dls::chrono::compte_seconde();
-                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees);
+                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), fichier);
                         lexeuse.performe_lexage();
                         temps_lexage += debut_lexage.temps();
-                        donnees->en_lexage = false;
+                        fichier->en_lexage = false;
                     }
 
-                    donnees->mutex.unlock();
+                    fichier->mutex.unlock();
                 }
 
-                if (donnees->fut_lexe) {
+                if (fichier->fut_lexe) {
                     compilatrice.gestionnaire_code->lexage_fichier_termine(tache.unite);
                 }
                 else {
@@ -750,7 +748,7 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
     }
 
     /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
-    if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+    if (entete == compilatrice.interface_kuri->decl_creation_contexte) {
         return;
     }
 
@@ -816,8 +814,7 @@ void Tacheronne::execute_metaprogrammes()
                 auto fichier = it->fichier;
                 assert(it->fichier);
 
-                auto donnees_fichier = fichier->donnees_constantes;
-                donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+                fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
                 compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
@@ -998,7 +995,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::TYPE_DE_DONNEES:
         {
             auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
-            type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
+            type_de_donnees = compilatrice.typeuse.type_type_de_donnees(type_de_donnees);
             return assembleuse->cree_reference_type(lexeme, type_de_donnees);
         }
         case GenreType::FONCTION:
@@ -1060,7 +1057,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             }
 
             /* crée un tableau fixe */
-            auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(
+            auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
                 type_tableau->type_pointe, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_resultat(
                 espace, directive, lexeme, type_tableau_fixe, pointeur_donnees);

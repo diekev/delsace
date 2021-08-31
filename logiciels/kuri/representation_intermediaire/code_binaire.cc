@@ -770,7 +770,7 @@ ffi_type *converti_type_ffi(Type *type)
 /* ************************************************************************** */
 
 ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_)
-    : espace(espace_), donnees_executions(&espace_->donnees_constantes_executions),
+    : espace(espace_), donnees_executions(&espace_->compilatrice().donnees_constantes_executions),
       metaprogramme(metaprogramme_)
 {
 }

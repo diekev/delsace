@@ -2291,7 +2291,7 @@ kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *e
     }
 
     if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
-        auto fichier = espace->fichier(lexeme->fichier);
+        auto fichier = espace->compilatrice().fichier(lexeme->fichier);
 
         if (est_metaprogramme) {
             nom_broye_ = enchaine("metaprogramme", this);
@@ -3298,7 +3298,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse)
 {
-    auto &typeuse = espace->typeuse;
+    auto &typeuse = espace->compilatrice().typeuse;
     auto entete = cree_entete_pour_initialisation_type(
         type, espace->compilatrice(), assembleuse, typeuse);
 

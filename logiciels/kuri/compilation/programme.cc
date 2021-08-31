@@ -30,6 +30,7 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "compilatrice.hh"
 #include "coulisse.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
@@ -65,7 +66,7 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     }
     m_fonctions.ajoute(fonction);
     m_fonctions_utilisees.insere(fonction);
-    ajoute_fichier(m_espace->fichier(fonction->lexeme->fichier));
+    ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
 }
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
@@ -75,7 +76,7 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     }
     m_globales.ajoute(globale);
     m_globales_utilisees.insere(globale);
-    ajoute_fichier(m_espace->fichier(globale->lexeme->fichier));
+    ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
 }
 
 void Programme::ajoute_type(Type *type)
@@ -223,11 +224,11 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &di
     diagnostique.tous_les_fichiers_sont_parses = true;
 
     POUR (m_fichiers) {
-        if (!it->donnees_constantes->fut_charge) {
+        if (!it->fut_charge) {
             diagnostique.tous_les_fichiers_sont_charges = false;
         }
 
-        if (!it->donnees_constantes->fut_lexe) {
+        if (!it->fut_lexe) {
             diagnostique.tous_les_fichiers_sont_lexes = false;
         }
 

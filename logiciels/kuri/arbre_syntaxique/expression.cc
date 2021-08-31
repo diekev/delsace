@@ -29,7 +29,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "compilation/espace_de_travail.hh"
+#include "compilation/compilatrice.hh"
 #include "compilation/portee.hh"
 
 #include "noeud_expression.hh"
@@ -223,7 +223,9 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
  * lors de la compilation.
  */
-ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, NoeudExpression *b)
+ResultatExpression evalue_expression(Compilatrice &compilatrice,
+                                     NoeudBloc *bloc,
+                                     NoeudExpression *b)
 {
     switch (b->genre) {
         default:
@@ -239,7 +241,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         {
             auto res = ResultatExpression();
 
-            auto fichier = espace->fichier(b->lexeme->fichier);
+            auto fichier = compilatrice.fichier(b->lexeme->fichier);
             auto decl = trouve_dans_bloc_ou_module(bloc, b->ident, fichier);
 
             if (decl == nullptr) {
@@ -287,7 +289,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
                 return res;
             }
 
-            return evalue_expression(espace, decl->bloc_parent, decl_var->expression);
+            return evalue_expression(compilatrice, decl->bloc_parent, decl_var->expression);
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
@@ -342,7 +344,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         {
             auto inst = static_cast<NoeudSi *>(b);
 
-            auto res = evalue_expression(espace, bloc, inst->condition);
+            auto res = evalue_expression(compilatrice, bloc, inst->condition);
 
             if (res.est_errone) {
                 return res;
@@ -356,11 +358,11 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
             }
 
             if (res.valeur.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
-                res = evalue_expression(espace, bloc, inst->bloc_si_vrai);
+                res = evalue_expression(compilatrice, bloc, inst->bloc_si_vrai);
             }
             else {
                 if (inst->bloc_si_faux) {
-                    res = evalue_expression(espace, bloc, inst->bloc_si_faux);
+                    res = evalue_expression(compilatrice, bloc, inst->bloc_si_faux);
                 }
             }
 
@@ -369,7 +371,7 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto inst = b->comme_expression_unaire();
-            auto res = evalue_expression(espace, bloc, inst->operande);
+            auto res = evalue_expression(compilatrice, bloc, inst->operande);
 
             if (res.est_errone) {
                 return res;
@@ -387,13 +389,13 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
             auto inst = b->comme_expression_binaire();
-            auto res1 = evalue_expression(espace, bloc, inst->operande_gauche);
+            auto res1 = evalue_expression(compilatrice, bloc, inst->operande_gauche);
 
             if (res1.est_errone) {
                 return res1;
             }
 
-            auto res2 = evalue_expression(espace, bloc, inst->operande_droite);
+            auto res2 = evalue_expression(compilatrice, bloc, inst->operande_droite);
 
             if (res2.est_errone) {
                 return res2;
@@ -429,13 +431,13 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::EXPRESSION_PARENTHESE:
         {
             auto inst = b->comme_parenthese();
-            return evalue_expression(espace, bloc, inst->expression);
+            return evalue_expression(compilatrice, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_COMME:
         {
             /* À FAIRE : transtypage de l'expression constante */
             auto inst = b->comme_comme();
-            return evalue_expression(espace, bloc, inst->expression);
+            return evalue_expression(compilatrice, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         {

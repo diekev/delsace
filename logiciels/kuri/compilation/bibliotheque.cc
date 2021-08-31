@@ -160,17 +160,20 @@ Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *id
     return nullptr;
 }
 
-Bibliotheque *GestionnaireBibliotheques::trouve_ou_cree_bibliotheque(IdentifiantCode *ident)
+Bibliotheque *GestionnaireBibliotheques::trouve_ou_cree_bibliotheque(EspaceDeTravail &espace,
+                                                                     IdentifiantCode *ident)
 {
-    return cree_bibliotheque(nullptr, ident, "");
+    return cree_bibliotheque(espace, nullptr, ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site)
+Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(EspaceDeTravail &espace,
+                                                           NoeudExpression *site)
 {
-    return cree_bibliotheque(site, site->ident, "");
+    return cree_bibliotheque(espace, site, site->ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site,
+Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(EspaceDeTravail &espace,
+                                                           NoeudExpression *site,
                                                            IdentifiantCode *ident,
                                                            kuri::chaine_statique nom)
 {
@@ -182,7 +185,7 @@ Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site
             bibliotheque->site = site;
             bibliotheque->ident = ident;
             bibliotheque->nom = nom;
-            resoud_chemins_bibliotheque(site, bibliotheque);
+            resoud_chemins_bibliotheque(espace, site, bibliotheque);
         }
 
         return bibliotheque;
@@ -192,7 +195,7 @@ Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(NoeudExpression *site
 
     if (nom != "") {
         bibliotheque->nom = nom;
-        resoud_chemins_bibliotheque(site, bibliotheque);
+        resoud_chemins_bibliotheque(espace, site, bibliotheque);
     }
 
     bibliotheque->site = site;
@@ -420,7 +423,8 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
     return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
 }
 
-void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *site,
+void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &espace,
+                                                            NoeudExpression *site,
                                                             Bibliotheque *bibliotheque)
 {
     // regarde soit dans le module courant, soit dans le chemin système
@@ -428,6 +432,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
     //                  /lib/i386-linux-gnu/ pour 32-bit
 
     dls::tablet<kuri::chaine_statique, 4> dossiers;
+    // À FAIRE(bibliotheques) : versions 32-bits, ou 64-bits
     if (espace.options.architecture == ArchitectureCible::X86) {
         dossiers.ajoute("/lib/i386-linux-gnu/");
         dossiers.ajoute("/usr/lib/i386-linux-gnu/");
@@ -435,7 +440,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
         dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
 
         if (site) {
-            const auto fichier = espace.fichier(site->lexeme->fichier);
+            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
             const auto module = fichier->module;
             dossiers.ajoute(module->chemin_bibliotheque_64bits);
         }
@@ -447,7 +452,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(NoeudExpression *sit
         dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
 
         if (site) {
-            const auto fichier = espace.fichier(site->lexeme->fichier);
+            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
             const auto module = fichier->module;
             dossiers.ajoute(module->chemin_bibliotheque_64bits);
         }

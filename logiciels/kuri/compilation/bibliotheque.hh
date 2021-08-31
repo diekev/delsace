@@ -33,6 +33,7 @@
 #include "structures/tableau_compresse.hh"
 
 struct Bibliotheque;
+struct Compilatrice;
 struct EspaceDeTravail;
 struct NoeudExpression;
 struct Statistiques;
@@ -105,20 +106,21 @@ struct Bibliotheque {
 };
 
 struct GestionnaireBibliotheques {
-    EspaceDeTravail &espace;
+    Compilatrice &compilatrice;
     tableau_page<Bibliotheque> bibliotheques{};
 
-    GestionnaireBibliotheques(EspaceDeTravail &espace_) : espace(espace_)
+    GestionnaireBibliotheques(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
     {
     }
 
     Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
-    Bibliotheque *trouve_ou_cree_bibliotheque(IdentifiantCode *ident);
+    Bibliotheque *trouve_ou_cree_bibliotheque(EspaceDeTravail &espace, IdentifiantCode *ident);
 
-    Bibliotheque *cree_bibliotheque(NoeudExpression *site);
+    Bibliotheque *cree_bibliotheque(EspaceDeTravail &espace, NoeudExpression *site);
 
-    Bibliotheque *cree_bibliotheque(NoeudExpression *site,
+    Bibliotheque *cree_bibliotheque(EspaceDeTravail &espace,
+                                    NoeudExpression *site,
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
 
@@ -127,5 +129,7 @@ struct GestionnaireBibliotheques {
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
-    void resoud_chemins_bibliotheque(NoeudExpression *site, Bibliotheque *bibliotheque);
+    void resoud_chemins_bibliotheque(EspaceDeTravail &espace,
+                                     NoeudExpression *site,
+                                     Bibliotheque *bibliotheque);
 };

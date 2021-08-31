@@ -193,12 +193,10 @@ int main(int argc, const char **argv)
     const auto chemin_adn_ipa = argv[3];
 
     auto texte = charge_contenu_fichier(chemin_adn_ipa);
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte.c_str());
 
     auto fichier = Fichier();
-    fichier.donnees_constantes = &donnees_fichier;
-    fichier.donnees_constantes->chemin = chemin_adn_ipa;
+    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.chemin_ = chemin_adn_ipa;
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
@@ -206,7 +204,7 @@ int main(int argc, const char **argv)
 
     auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
 
-    auto lexeuse = Lexeuse(contexte_lexage, &donnees_fichier);
+    auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
     if (lexeuse.possede_erreur()) {

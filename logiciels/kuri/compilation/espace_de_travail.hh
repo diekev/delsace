@@ -33,15 +33,9 @@
 
 #include "parsage/modules.hh"
 
-#include "bibliotheque.hh"
 #include "erreur.h"
-#include "graphe_dependance.hh"
-#include "interface_module_kuri.hh"
 #include "messagere.hh"
-#include "metaprogramme.hh"
-#include "operateurs.hh"
 #include "options.hh"
-#include "typage.hh"
 
 struct Coulisse;
 struct ConstructriceRI;
@@ -75,42 +69,7 @@ struct EspaceDeTravail {
     kuri::chaine nom{};
     OptionsDeCompilation options{};
 
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
-    tableau_page_synchrone<Module> modules{};
-    tableau_page_synchrone<Fichier> fichiers{};
-    tableau_page_synchrone<MetaProgramme> metaprogrammes{};
-
-    kuri::tableau<Fichier *> table_fichiers{};
-
-    dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
-
-    dls::outils::Synchrone<Operateurs> operateurs{};
-
-    Typeuse typeuse;
-
-    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
-
     Programme *programme = nullptr;
-
-    tableau_page<AtomeFonction> fonctions{};
-    tableau_page<AtomeGlobale> globales{};
-
-    struct DonneesConstructeurGlobale {
-        AtomeGlobale *atome = nullptr;
-        NoeudExpression *expression = nullptr;
-        TransformationType transformation{};
-    };
-
-    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
-    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
-
-    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{};
-
-    std::mutex mutex_atomes_fonctions{};
-    std::mutex mutex_atomes_globales{};
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
@@ -120,19 +79,11 @@ struct EspaceDeTravail {
     /* Le métaprogramme controlant la compilation dans cette espace. */
     MetaProgramme *metaprogramme = nullptr;
 
-    Module *module_kuri = nullptr;
-
-    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
-
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
     mutable std::atomic<bool> possede_erreur{false};
 
     Compilatrice &m_compilatrice;
-
-    /* Pour les executions des métaprogrammes. */
-    std::mutex mutex_donnees_constantes_executions{};
-    DonneesConstantesExecutions donnees_constantes_executions{};
 
     EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 
@@ -142,64 +93,9 @@ struct EspaceDeTravail {
 
     POINTEUR_NUL(EspaceDeTravail)
 
-    /**
-     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
-     * Si un tel module n'existe pas, un nouveau module est créé.
-     */
-    Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
-                                  IdentifiantCode *nom_module,
-                                  kuri::chaine_statique chemin);
-
-    /**
-     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-     * module n'a ce nom, retourne nullptr.
-     */
-    Module *module(const IdentifiantCode *nom_module) const;
-
-    /**
-     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-     * fichier ainsi créé ou un pointeur vers un fichier existant.
-     */
-    ResultatFichier trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module,
-                                           Module *module,
-                                           kuri::chaine_statique nom_fichier,
-                                           kuri::chaine_statique chemin,
-                                           bool importe_kuri);
-
-    Fichier *cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
-
-    /**
-     * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
-     * en dehors de portée, le programme crashera.
-     */
-    Fichier *fichier(long index) const;
-
-    /**
-     * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
-     * fichier n'a ce nom, retourne nullptr.
-     */
-    Fichier *fichier(const dls::vue_chaine_compacte &chemin) const;
-
-    AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
-    AtomeFonction *cree_fonction(Lexeme const *lexeme,
-                                 kuri::chaine const &nom_fonction,
-                                 kuri::tableau<Atome *, int> &&params);
-    AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
-                                             NoeudDeclarationEnteteFonction *decl);
-    AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
-
-    AtomeGlobale *cree_globale(Type *type,
-                               AtomeConstante *valeur,
-                               bool initialisateur,
-                               bool est_constante);
-    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
-    AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
-
     long memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
-
-    MetaProgramme *cree_metaprogramme();
 
     void tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
@@ -241,6 +137,11 @@ struct EspaceDeTravail {
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 
     Compilatrice &compilatrice()
+    {
+        return m_compilatrice;
+    }
+
+    Compilatrice &compilatrice() const
     {
         return m_compilatrice;
     }

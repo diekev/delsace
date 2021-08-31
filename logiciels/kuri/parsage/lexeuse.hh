@@ -31,7 +31,7 @@
 
 #include "lexemes.hh"
 
-struct DonneesConstantesFichier;
+struct Fichier;
 struct GeranteChaine;
 struct TableIdentifiant;
 
@@ -50,7 +50,7 @@ struct Lexeuse {
   private:
     dls::outils::Synchrone<GeranteChaine> &m_gerante_chaine;
     dls::outils::Synchrone<TableIdentifiant> &m_table_identifiants;
-    DonneesConstantesFichier *m_donnees;
+    Fichier *m_donnees;
 
     const char *m_debut_mot = nullptr;
     const char *m_debut = nullptr;
@@ -67,7 +67,7 @@ struct Lexeuse {
     bool m_possede_erreur = false;
 
   public:
-    Lexeuse(ContexteLexage contexte, DonneesConstantesFichier *donnees, int drapeaux = 0);
+    Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux = 0);
 
     Lexeuse(Lexeuse const &) = delete;
     Lexeuse &operator=(Lexeuse const &) = delete;

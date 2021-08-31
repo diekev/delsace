@@ -883,6 +883,7 @@ struct GeneratriceCodeCPP {
     void genere_fichier_source_noeud_code(FluxSortieCPP &os)
     {
         os << "#include \"noeud_code.hh\"\n";
+        os << "#include \"compilation/compilatrice.hh\"\n";
         os << "#include \"compilation/espace_de_travail.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/gerante_chaine.hh\"\n";
@@ -1032,7 +1033,7 @@ struct GeneratriceCodeCPP {
         os << "\tconst auto lexeme = racine->lexeme;\n";
         os << "\t// lexeme peut-être nul pour les blocs\n";
         os << "\tif (lexeme) {\n";
-        os << "\t\tconst auto fichier = espace->fichier(lexeme->fichier);\n";
+        os << "\t\tconst auto fichier = espace->compilatrice().fichier(lexeme->fichier);\n";
         os << "\t\tnoeud->chemin_fichier = fichier->chemin();\n";
         os << "\t\tnoeud->nom_fichier = fichier->nom();\n";
         os << "\t\tnoeud->numero_ligne = lexeme->ligne + 1;\n";
@@ -1154,7 +1155,8 @@ struct GeneratriceCodeCPP {
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = convertis_info_type(espace->typeuse, racine_typee->type);\n";
+            os << "\t\t\tn->type = convertis_info_type(espace->compilatrice().typeuse, "
+                  "racine_typee->type);\n";
 
             os << "\t\t\tnoeud = n;\n";
             os << "\t\t\tbreak;\n";
@@ -1601,12 +1603,10 @@ int main(int argc, char **argv)
     auto nom_fichier_sortie = std::filesystem::path(argv[1]);
 
     auto texte = charge_contenu_fichier(chemin_adn);
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte.c_str());
 
     auto fichier = Fichier();
-    fichier.donnees_constantes = &donnees_fichier;
-    fichier.donnees_constantes->chemin = chemin_adn;
+    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.chemin_ = chemin_adn;
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
@@ -1614,7 +1614,7 @@ int main(int argc, char **argv)
 
     auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
 
-    auto lexeuse = Lexeuse(contexte_lexage, &donnees_fichier);
+    auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
     if (lexeuse.possede_erreur()) {

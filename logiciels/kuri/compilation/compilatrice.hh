@@ -30,10 +30,16 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
+#include "bibliotheque.hh"
 #include "gestionnaire_code.hh"
+#include "graphe_dependance.hh"
+#include "interface_module_kuri.hh"
 #include "messagere.hh"
+#include "metaprogramme.hh"
+#include "operateurs.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
+#include "typage.hh"
 
 struct ContexteLexage;
 struct EspaceDeTravail;
@@ -50,6 +56,8 @@ struct Compilatrice {
     dls::outils::Synchrone<Messagere> messagere{};
 
     dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
+
+    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
@@ -70,9 +78,47 @@ struct Compilatrice {
 
     dls::outils::Synchrone<SystemeModule> sys_module{};
 
+    template <typename T>
+    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+
+    tableau_page_synchrone<MetaProgramme> metaprogrammes{};
+
+    dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
+
+    dls::outils::Synchrone<Operateurs> operateurs{};
+
+    Typeuse typeuse;
+
+    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
+    NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+
+    /* Pour les executions des métaprogrammes. */
+    std::mutex mutex_donnees_constantes_executions{};
+    DonneesConstantesExecutions donnees_constantes_executions{};
+
+    tableau_page<AtomeFonction> fonctions{};
+    tableau_page<AtomeGlobale> globales{};
+
+    struct DonneesConstructeurGlobale {
+        AtomeGlobale *atome = nullptr;
+        NoeudExpression *expression = nullptr;
+        TransformationType transformation{};
+    };
+
+    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
+    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
+    dls::outils::Synchrone<TableChaine> table_chaines{};
+
+    std::mutex mutex_atomes_fonctions{};
+    std::mutex mutex_atomes_globales{};
+
+    Module *module_kuri = nullptr;
+
     /* ********************************************************************** */
 
-    Compilatrice();
+    Compilatrice(kuri::chaine chemin_racine_kuri);
 
     /* ********************************************************************** */
 
@@ -107,6 +153,59 @@ struct Compilatrice {
     Module *importe_module(EspaceDeTravail *espace,
                            kuri::chaine const &nom,
                            NoeudExpression const *site);
+
+    /**
+     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
+     * Si un tel module n'existe pas, un nouveau module est créé.
+     */
+    Module *trouve_ou_cree_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
+
+    /**
+     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+     * module n'a ce nom, retourne nullptr.
+     */
+    Module *module(const IdentifiantCode *nom_module) const;
+
+    /**
+     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
+     * fichier ainsi créé ou un pointeur vers un fichier existant.
+     */
+    ResultatFichier trouve_ou_cree_fichier(Module *module,
+                                           kuri::chaine_statique nom_fichier,
+                                           kuri::chaine_statique chemin,
+                                           bool importe_kuri);
+
+    Fichier *cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
+
+    /**
+     * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
+     * en dehors de portée, le programme crashera.
+     */
+    Fichier *fichier(long index);
+    const Fichier *fichier(long index) const;
+
+    /**
+     * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
+     * fichier n'a ce nom, retourne nullptr.
+     */
+    Fichier *fichier(kuri::chaine_statique chemin) const;
+
+    AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
+    AtomeFonction *cree_fonction(Lexeme const *lexeme,
+                                 kuri::chaine const &nom_fonction,
+                                 kuri::tableau<Atome *, int> &&params);
+    AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
+                                             NoeudDeclarationEnteteFonction *decl);
+    AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
+
+    AtomeGlobale *cree_globale(Type *type,
+                               AtomeConstante *valeur,
+                               bool initialisateur,
+                               bool est_constante);
+    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
+
+    MetaProgramme *cree_metaprogramme(EspaceDeTravail *espace);
 
     /* ********************************************************************** */
 
