@@ -828,16 +828,34 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (decl_ref->drapeaux & EST_CONSTANTE) {
                 auto decl_const = decl_ref->comme_declaration_variable();
 
-                if (decl_ref->type->est_reel()) {
-                    expr_ref->substitution = assem->cree_litterale_reel(
-                        expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reel);
+                if (decl_ref->type->est_type_de_donnees()) {
+                    expr_ref->substitution = assem->cree_reference_type(
+                        expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
                     return;
                 }
 
-                expr_ref->substitution = assem->cree_litterale_entier(
-                    expr_ref->lexeme,
-                    decl_ref->type,
-                    static_cast<unsigned long>(decl_const->valeur_expression.entier));
+                if (decl_ref->type->est_reel()) {
+                    expr_ref->substitution = assem->cree_litterale_reel(
+                        expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reelle());
+                    return;
+                }
+
+                if (decl_ref->type->est_bool()) {
+                    expr_ref->substitution = assem->cree_litterale_bool(
+                        expr_ref->lexeme,
+                        decl_ref->type,
+                        decl_const->valeur_expression.booleenne());
+                    return;
+                }
+
+                if (est_type_entier(decl_ref->type) || decl_ref->type->est_entier_constant()) {
+                    expr_ref->substitution = assem->cree_litterale_entier(
+                        expr_ref->lexeme,
+                        decl_ref->type,
+                        static_cast<unsigned long>(decl_const->valeur_expression.entiere()));
+                    return;
+                }
+
                 return;
             }
 
@@ -2939,6 +2957,16 @@ NoeudExpressionLitteraleEntier *AssembleuseArbre::cree_litterale_entier(Lexeme c
                                                                         unsigned long valeur)
 {
     auto lit = cree_litterale_entier(lexeme);
+    lit->type = type;
+    lit->valeur = valeur;
+    return lit;
+}
+
+NoeudExpressionLitteraleBool *AssembleuseArbre::cree_litterale_bool(Lexeme const *lexeme,
+                                                                    Type *type,
+                                                                    bool valeur)
+{
+    auto lit = cree_litterale_bool(lexeme);
     lit->type = type;
     lit->valeur = valeur;
     return lit;

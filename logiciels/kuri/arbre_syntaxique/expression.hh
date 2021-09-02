@@ -27,6 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 
 #include <iostream>
+#include <variant>
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -34,35 +35,89 @@ struct NoeudExpression;
 
 /* ************************************************************************** */
 
-enum class TypeExpression : char {
-    INVALIDE,
-    ENTIER,
-    REEL,
-};
-
 struct ValeurExpression {
-    union {
-        long entier = 0;
-        double reel;
-        bool condition;
-    };
+  private:
+    std::variant<std::monostate, bool, double, long> v{};
 
-    TypeExpression type{};
-
+  public:
     ValeurExpression() = default;
 
-    ValeurExpression(long e) : entier(e), type(TypeExpression::ENTIER)
+    /* Constructions. */
+
+    ValeurExpression(int e) : v(static_cast<long>(e))
     {
     }
 
-    ValeurExpression(double r) : reel(r), type(TypeExpression::REEL)
+    ValeurExpression(unsigned int e) : v(static_cast<long>(e))
     {
     }
 
-    ValeurExpression(bool c) : condition(c), type(TypeExpression::ENTIER)
+    ValeurExpression(long e) : v(e)
     {
+    }
+
+    ValeurExpression(double r) : v(r)
+    {
+    }
+
+    ValeurExpression(bool c) : v(c)
+    {
+    }
+
+    /* Requêtes. */
+
+    inline bool est_valide() const
+    {
+        return v.index() != std::variant_npos && v.index() != 0;
+    }
+
+    inline bool est_entiere() const
+    {
+        return std::holds_alternative<long>(v);
+    }
+
+    inline bool est_booleenne() const
+    {
+        return std::holds_alternative<bool>(v);
+    }
+
+    inline bool est_reelle() const
+    {
+        return std::holds_alternative<double>(v);
+    }
+
+    /* Accès. */
+
+    inline bool booleenne() const
+    {
+        return std::get<bool>(v);
+    }
+
+    inline long entiere() const
+    {
+        return std::get<long>(v);
+    }
+
+    inline double reelle() const
+    {
+        return std::get<double>(v);
+    }
+
+    inline bool est_egale_a(ValeurExpression v2) const
+    {
+        return v == v2.v;
     }
 };
+
+inline bool operator==(ValeurExpression v1, ValeurExpression v2)
+{
+    return v1.est_egale_a(v2);
+}
+
+inline bool operator!=(ValeurExpression v1, ValeurExpression v2)
+{
+    return !(v1 == v2);
+}
 
 std::ostream &operator<<(std::ostream &os, ValeurExpression valeur);
 

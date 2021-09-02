@@ -1368,6 +1368,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
 	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, unsigned long valeur);
+ NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
 	NoeudExpressionLitteraleReel *cree_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
 	NoeudExpression *cree_reference_type(const Lexeme *lexeme, Type *type);
 	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);

@@ -40,52 +40,46 @@
 /* ************************************************************************** */
 
 template <typename T>
-static auto applique_operateur_unaire(GenreLexeme id, T &a)
+static auto applique_operateur_unaire(GenreLexeme id, T a)
 {
     switch (id) {
         case GenreLexeme::EXCLAMATION:
         {
-            a = !a;
-            break;
+            return T(!a);
         }
         case GenreLexeme::TILDE:
         {
-            a = ~a;
-            break;
+            return ~a;
         }
         case GenreLexeme::PLUS_UNAIRE:
         {
-            break;
+            return a;
         }
         case GenreLexeme::MOINS_UNAIRE:
         {
-            a = -a;
-            break;
+            return -a;
         }
         default:
         {
-            a = 0;
-            break;
+            return T(0);
         }
     }
 }
 
-static auto applique_operateur_unaire(GenreLexeme id, double &a)
+static auto applique_operateur_unaire(GenreLexeme id, double a)
 {
     switch (id) {
         case GenreLexeme::PLUS_UNAIRE:
         {
-            break;
+            return a;
         }
         case GenreLexeme::MOINS_UNAIRE:
         {
-            a = -a;
-            break;
+            return -a;
         }
         default:
         {
-            a = 0;
-            break;
+            return 0.0;
         }
     }
 }
@@ -262,7 +256,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
 
             auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
-            if (decl_var->valeur_expression.type != TypeExpression::INVALIDE) {
+            if (decl_var->valeur_expression.est_valide()) {
                 res.est_errone = false;
                 res.valeur = decl_var->valeur_expression;
                 return res;
@@ -274,8 +268,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
 
                     POUR (type_enum->membres) {
                         if (it.nom == decl_var->ident) {
-                            res.valeur.entier = it.valeur;
-                            res.valeur.type = TypeExpression::ENTIER;
+                            res.valeur = it.valeur;
                             res.est_errone = false;
                             return res;
                         }
@@ -297,8 +290,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             auto type = expr_taille_de->expression->type;
 
             auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = type->taille_octet;
+            res.valeur = type->taille_octet;
             res.est_errone = false;
 
             return res;
@@ -306,8 +298,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
         {
             auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = b->lexeme->chaine == "vrai";
+            res.valeur = b->lexeme->chaine == "vrai";
             res.est_errone = false;
 
             return res;
@@ -315,8 +306,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
             auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
+            res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
             res.est_errone = false;
 
             return res;
@@ -324,8 +314,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
             auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
+            res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
             res.est_errone = false;
 
             return res;
@@ -333,8 +322,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
             auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::REEL;
-            res.valeur.reel = b->lexeme->valeur_reelle;
+            res.valeur = b->lexeme->valeur_reelle;
             res.est_errone = false;
 
             return res;
@@ -350,14 +338,14 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 return res;
             }
 
-            if (res.valeur.type != TypeExpression::ENTIER) {
+            if (!res.valeur.est_booleenne()) {
                 res.est_errone = true;
                 res.noeud_erreur = b;
                 res.message_erreur = "L'expression n'est pas de type booléen !";
                 return res;
             }
 
-            if (res.valeur.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
+            if (res.valeur.booleenne() == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
                 res = evalue_expression(compilatrice, bloc, inst->bloc_si_vrai);
             }
             else {
@@ -377,11 +365,11 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 return res;
             }
 
-            if (res.valeur.type == TypeExpression::REEL) {
-                applique_operateur_unaire(inst->lexeme->genre, res.valeur.reel);
+            if (res.valeur.est_reelle()) {
+                res.valeur = applique_operateur_unaire(inst->lexeme->genre, res.valeur.reelle());
             }
-            else {
-                applique_operateur_unaire(inst->lexeme->genre, res.valeur.entier);
+            else if (res.valeur.est_entiere()) {
+                res.valeur = applique_operateur_unaire(inst->lexeme->genre, res.valeur.entiere());
             }
 
             return res;
@@ -402,27 +390,26 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             }
 
             auto res = ResultatExpression();
-            res.valeur.type = res1.valeur.type;
             res.est_errone = false;
 
             if (est_operateur_bool(inst->lexeme->genre)) {
-                if (res.valeur.type == TypeExpression::REEL) {
-                    res.valeur.condition = applique_operateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
+                if (res.valeur.est_reelle()) {
+                    res.valeur = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
                 else {
-                    res.valeur.condition = applique_operateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
+                    res.valeur = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
                 }
             }
             else {
-                if (res.valeur.type == TypeExpression::REEL) {
-                    res.valeur.reel = applique_operateur_binaire(
-                        inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
+                if (res.valeur.est_reelle()) {
+                    res.valeur = applique_operateur_binaire(
+                        inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
                 else {
-                    res.valeur.entier = applique_operateur_binaire(
-                        inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
+                    res.valeur = applique_operateur_binaire(
+                        inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
                 }
             }
 
@@ -449,8 +436,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 auto res = ResultatExpression();
                 res.est_errone = false;
-                res.valeur.entier = valeur_enum;
-                res.valeur.type = TypeExpression::ENTIER;
+                res.valeur = valeur_enum;
                 return res;
             }
 
@@ -470,8 +456,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 if (ref_decl_membre->ident->nom == "taille") {
                     auto res = ResultatExpression();
                     res.est_errone = false;
-                    res.valeur.entier = type_accede->comme_tableau_fixe()->taille;
-                    res.valeur.type = TypeExpression::ENTIER;
+                    res.valeur = type_accede->comme_tableau_fixe()->taille;
                     return res;
                 }
             }
@@ -488,14 +473,17 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
 
 std::ostream &operator<<(std::ostream &os, ValeurExpression valeur)
 {
-    if (valeur.type == TypeExpression::INVALIDE) {
-        os << "invalide";
+    if (valeur.est_booleenne()) {
+        os << valeur.booleenne();
     }
-    else if (valeur.type == TypeExpression::REEL) {
-        os << valeur.reel;
+    else if (valeur.est_entiere()) {
+        os << valeur.entiere();
+    }
+    else if (valeur.est_reelle()) {
+        os << valeur.reelle();
     }
     else {
-        os << valeur.entier;
+        os << "invalide";
     }
     return os;
 }

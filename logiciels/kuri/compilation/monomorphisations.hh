@@ -55,11 +55,7 @@ struct ItemMonomorphisation {
         }
 
         if (!est_type) {
-            if (valeur.type != autre.valeur.type) {
-                return false;
-            }
-
-            if (valeur.entier != autre.valeur.entier) {
+            if (valeur != autre.valeur) {
                 return false;
             }
         }

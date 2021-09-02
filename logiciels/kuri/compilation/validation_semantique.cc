@@ -539,20 +539,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return CodeRetourValidation::Erreur;
                     }
 
-                    if (res.valeur.type != TypeExpression::ENTIER) {
+                    if (!res.valeur.est_entiere()) {
                         rapporte_erreur("L'expression n'est pas de type entier",
                                         expression_taille);
                         return CodeRetourValidation::Erreur;
                     }
 
-                    if (res.valeur.entier == 0) {
+                    if (res.valeur.entiere() == 0) {
                         espace->rapporte_erreur(
                             expression_taille,
                             "Impossible de définir un tableau fixe de taille 0 !\n");
                         return CodeRetourValidation::Erreur;
                     }
 
-                    taille_tableau = res.valeur.entier;
+                    taille_tableau = res.valeur.entiere();
                 }
 
                 if (taille_tableau != 0) {
@@ -926,10 +926,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
 
-                    if (!res.est_errone) {
-                        if (res.valeur.entier >= type_tabl->taille) {
+                    if (!res.est_errone && res.valeur.est_entiere()) {
+                        if (res.valeur.entiere() >= type_tabl->taille) {
                             rapporte_erreur_acces_hors_limites(
-                                enfant2, type_tabl, res.valeur.entier);
+                                enfant2, type_tabl, res.valeur.entiere());
                             return CodeRetourValidation::Erreur;
                         }
 
@@ -1100,7 +1100,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto condition_est_vraie = res.valeur.entier != 0;
+                if (!res.valeur.est_booleenne()) {
+                    rapporte_erreur("L'expression d'un #si doit être de type booléenne", noeud);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                auto condition_est_vraie = res.valeur.booleenne();
                 inst->condition_est_vraie = condition_est_vraie;
 
                 if (!condition_est_vraie) {
@@ -3544,6 +3549,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
     auto derniere_valeur = ValeurExpression();
+    assert(!derniere_valeur.est_valide());
 
     auto &membres = type_enum->membres;
     membres.reserve(decl->bloc->expressions->taille());
@@ -3589,6 +3595,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
         it->ident = var->ident;
 
         auto valeur = ValeurExpression();
+        assert(!valeur.est_valide());
 
         if (expr != nullptr) {
             auto res = evalue_expression(m_compilatrice, decl->bloc, expr);
@@ -3599,7 +3606,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
             }
 
             if (N == VALIDE_ENUM_ERREUR) {
-                if (res.valeur.entier == 0) {
+                if (res.valeur.entiere() == 0) {
                     espace->rapporte_erreur(
                         expr,
                         "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette "
@@ -3608,7 +3615,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                 }
             }
 
-            if (res.valeur.type != TypeExpression::ENTIER) {
+            if (!res.valeur.est_entiere()) {
                 espace->rapporte_erreur(expr,
                                         "L'expression d'une énumération doit être de type entier");
                 return CodeRetourValidation::Erreur;
@@ -3617,18 +3624,15 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
             valeur = res.valeur;
         }
         else {
-            /* TypeExpression::INVALIDE indique que nous sommes dans la première itération. */
-            if (derniere_valeur.type == TypeExpression::INVALIDE) {
-                valeur.type = TypeExpression::ENTIER;
-                valeur.entier = (N == VALIDE_ENUM_DRAPEAU || N == VALIDE_ENUM_ERREUR) ? 1 : 0;
+            /* Une expression invalide indique que nous sommes dans la première itération. */
+            if (!derniere_valeur.est_valide()) {
+                valeur = (N == VALIDE_ENUM_DRAPEAU || N == VALIDE_ENUM_ERREUR) ? 1 : 0;
             }
             else {
-                valeur.type = derniere_valeur.type;
-
                 if (N == VALIDE_ENUM_DRAPEAU) {
-                    valeur.entier = derniere_valeur.entier * 2;
+                    valeur = derniere_valeur.entiere() * 2;
 
-                    if (!est_puissance_de_2(valeur.entier)) {
+                    if (!est_puissance_de_2(valeur.entiere())) {
                         espace->rapporte_erreur(decl_expr,
                                                 "La valeur implicite d'une énumération drapeau "
                                                 "doit être une puissance de 2 !");
@@ -3636,12 +3640,12 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                     }
                 }
                 else {
-                    valeur.entier = derniere_valeur.entier + 1;
+                    valeur = derniere_valeur.entiere() + 1;
                 }
             }
         }
 
-        if (est_hors_des_limites(valeur.entier, type_enum->type_donnees)) {
+        if (est_hors_des_limites(valeur.entiere(), type_enum->type_donnees)) {
             auto e = espace->rapporte_erreur(
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
@@ -3652,18 +3656,18 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                              " et ",
                              valeur_max(type_enum->type_donnees),
                              ".\n");
-            e.ajoute_message("Or, la valeur courante est de ", valeur.entier, ".\n");
+            e.ajoute_message("Or, la valeur courante est de ", valeur.entiere(), ".\n");
             return CodeRetourValidation::Erreur;
         }
 
-        valeur_enum_min = std::min(valeur.entier, valeur_enum_min);
-        valeur_enum_max = std::max(valeur.entier, valeur_enum_max);
+        valeur_enum_min = std::min(valeur.entiere(), valeur_enum_min);
+        valeur_enum_max = std::max(valeur.entiere(), valeur_enum_max);
 
         if (N == VALIDE_ENUM_DRAPEAU) {
-            valeurs_legales |= valeur.entier;
+            valeurs_legales |= valeur.entiere();
         }
 
-        membres.ajoute({type_enum, var->ident, 0, static_cast<int>(valeur.entier)});
+        membres.ajoute({type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
 
         derniere_valeur = valeur;
     }
