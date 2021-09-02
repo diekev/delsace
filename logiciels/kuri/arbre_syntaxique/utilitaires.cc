@@ -828,6 +828,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (decl_ref->drapeaux & EST_CONSTANTE) {
                 auto decl_const = decl_ref->comme_declaration_variable();
 
+                if (decl_ref->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
+                    expr_ref->substitution = assem->cree_reference_type(
+                        expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
+                    return;
+                }
+
                 if (decl_ref->type->est_type_de_donnees()) {
                     expr_ref->substitution = assem->cree_reference_type(
                         expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
