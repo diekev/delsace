@@ -549,6 +549,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         espace->rapporte_erreur(
                             expression_taille,
                             "Impossible de définir un tableau fixe de taille 0 !\n");
+                        return CodeRetourValidation::Erreur;
                     }
 
                     taille_tableau = res.valeur.entier;
