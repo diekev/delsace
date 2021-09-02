@@ -327,6 +327,13 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
 
             return res;
         }
+        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        {
+            auto res = ResultatExpression();
+            res.valeur = b->comme_litterale_chaine();
+            res.est_errone = false;
+            return res;
+        }
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {

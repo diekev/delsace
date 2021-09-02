@@ -32,12 +32,13 @@
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudExpression;
+struct NoeudExpressionLitteraleChaine;
 
 /* ************************************************************************** */
 
 struct ValeurExpression {
   private:
-    std::variant<std::monostate, bool, double, long> v{};
+    std::variant<std::monostate, bool, double, long, NoeudExpressionLitteraleChaine *> v{};
 
   public:
     ValeurExpression() = default;
@@ -86,6 +87,11 @@ struct ValeurExpression {
         return std::holds_alternative<double>(v);
     }
 
+    inline bool est_chaine() const
+    {
+        return std::holds_alternative<NoeudExpressionLitteraleChaine *>(v);
+    }
+
     /* Accès. */
 
     inline bool booleenne() const
@@ -101,6 +107,11 @@ struct ValeurExpression {
     inline double reelle() const
     {
         return std::get<double>(v);
+    }
+
+    inline NoeudExpressionLitteraleChaine *chaine() const
+    {
+        return std::get<NoeudExpressionLitteraleChaine *>(v);
     }
 
     inline bool est_egale_a(ValeurExpression v2) const
