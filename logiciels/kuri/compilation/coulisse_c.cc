@@ -1515,12 +1515,12 @@ static void genere_table_des_types(Typeuse &typeuse,
 {
     auto index_type = 0u;
     POUR (repr_inter_programme.types) {
+        it->index_dans_table_types = index_type++;
+
         if (!it->atome_info_type) {
             // constructrice_ri.cree_info_type(it);
             continue;
         }
-
-        it->index_dans_table_types = index_type++;
 
         auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
         auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
