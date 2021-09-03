@@ -523,7 +523,15 @@ struct GeneratriceCodeC {
                             }
                             case AtomeValeurConstante::Valeur::Genre::TYPE:
                             {
-                                return enchaine(valeur_const->valeur.type->index_dans_table_types);
+                                auto type = valeur_const->valeur.type;
+                                if (type->est_type_de_donnees()) {
+                                    auto type_de_donnees = type->comme_type_de_donnees();
+                                    if (type_de_donnees->type_connu) {
+                                        return enchaine(
+                                            type_de_donnees->type_connu->index_dans_table_types);
+                                    }
+                                }
+                                return enchaine(type->index_dans_table_types);
                             }
                             case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
                             {
