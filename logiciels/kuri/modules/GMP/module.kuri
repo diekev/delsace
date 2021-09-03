@@ -1,0 +1,184 @@
+importe Fondation
+importe GlibC
+
+charge "interface_gmp"
+
+NombreRéel :: mpf_t
+
+crée_nombre_réel :: fonc (op: r64) -> NombreRéel
+{
+    résultat: NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_set_d(résultat, op)
+    retourne résultat
+}
+
+crée_nombre_réel :: fonc (chn: chaine) -> NombreRéel
+{
+    résultat: NombreRéel = ---
+    __gmpf_init(résultat)
+
+    chn_c := crée_chaine_c(chn)
+    diffère détruit_chaine_c(chn_c)
+
+    err := __gmpf_set_str(résultat, chn_c, 10)
+
+    si err == -1 {
+        imprime("Impossible de convertir la chaine vers un NombreRéel !\n")
+    }
+
+    retourne résultat
+}
+
+chaine_depuis_nombre_réel :: fonc (n: NombreRéel) -> chaine, mp_exp_t
+{
+    exposant : mp_exp_t
+    chn_c := __gmpf_get_str(nul, *exposant, 10, 0, n)
+    diffère détruit_chaine_c(chn_c)
+    retourne convertis_chaine_c(chn_c), exposant
+}
+
+opérateur + :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+{
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_add(résultat, n1, n2)
+    retourne résultat
+}
+
+opérateur - :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+{
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_sub(résultat, n1, n2)
+    retourne résultat
+}
+
+opérateur * :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+{
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_mul(résultat, n1, n2)
+    retourne résultat
+}
+
+opérateur * :: fonc (n1: NombreRéel, n2: r64) -> NombreRéel
+{
+    n2r := crée_nombre_réel(n2)
+    diffère __gmpf_clear(n2r)
+
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_mul(résultat, n1, n2r)
+    retourne résultat
+}
+
+opérateur / :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+{
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_div(résultat, n1, n2)
+    retourne résultat
+}
+
+opérateur / :: fonc (n1: r64, n2: NombreRéel) -> NombreRéel
+{
+    n1r := crée_nombre_réel(n1)
+    diffère __gmpf_clear(n1r)
+
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_div(résultat, n1r, n2)
+    retourne résultat
+}
+
+opérateur / :: fonc (n1: NombreRéel, n2: r64) -> NombreRéel
+{
+    n2r := crée_nombre_réel(n2)
+    diffère __gmpf_clear(n2r)
+
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_div(résultat, n1, n2r)
+    retourne résultat
+}
+
+racine_carrée :: fonc (n1: NombreRéel) -> NombreRéel
+{
+    résultat : NombreRéel = ---
+    __gmpf_init(résultat)
+    __gmpf_sqrt(résultat, n1)
+    retourne résultat
+}
+
+imprime_nombre_réel :: fonc (n1: NombreRéel, message: chaine)
+{
+    chn, exposant := chaine_depuis_nombre_réel(n1)
+    diffère déloge(chn)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, message, " : ")
+
+    si exposant < 0 {
+        ajoute_au_tampon(*enchaineuse, "0.")
+        pour -exposant {
+            ajoute_au_tampon(*enchaineuse, "0")
+        }
+        ajoute_au_tampon(*enchaineuse, chn)
+    }
+    sinon {
+        si exposant < chn.taille {
+            tmp := chn
+            pour exposant {
+                ajoute_au_tampon(*enchaineuse, tmp[0])
+                tmp = avance(tmp, 1)
+            }
+
+            ajoute_au_tampon(*enchaineuse, ".", tmp)
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, chn)
+
+            pour (exposant - chn.taille) {
+                ajoute_au_tampon(*enchaineuse, "0")
+            }
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    chn_ := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn_)
+    imprime("%", chn_)
+}
+
+loge_gmp :: fonc (taille: n64) -> *rien #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
+    }
+}
+
+reloge_gmp :: fonc (ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    }
+}
+
+déloge_gmp :: fonc (pointeur: *rien, taille: n64) -> rien #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
+    }
+}
+
+initialise_nombre_réel :: fonc ()
+{
+    __gmp_set_memory_functions(loge_gmp, reloge_gmp, déloge_gmp)
+}
+
+#ajoute_init initialise_nombre_réel()
