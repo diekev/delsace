@@ -1344,9 +1344,10 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         case GenreType::TYPE_DE_DONNEES:
         {
             auto type_de_donnees = type->comme_type_de_donnees();
-            enchaineuse << ((type_de_donnees->type_connu) ?
-                                chaine_type(type_de_donnees->type_connu) :
-                                "type_de_données");
+            enchaineuse << "type_de_données";
+            if (type_de_donnees->type_connu) {
+                enchaineuse << '(' << chaine_type(type_de_donnees->type_connu) << ')';
+            }
             return;
         }
         case GenreType::POLYMORPHIQUE:
