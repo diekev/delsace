@@ -112,11 +112,6 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_arbre_aplatis(ajoute_init, ajoute_init->arbre_aplatis);
     }
 
-    if (racine_validation()->est_pre_executable()) {
-        auto pre_executable = racine_validation()->comme_pre_executable();
-        return valide_arbre_aplatis(pre_executable, pre_executable->arbre_aplatis);
-    }
-
     unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
