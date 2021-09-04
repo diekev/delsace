@@ -232,7 +232,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
     taille_tampon : z64 = 0
 
     double_points := '\0'
-    caractères_hex := "0123456789abcdef"
+    caractères_hex :: "0123456789abcdef"
 
     pour 0 ... séquence_la_plus_longue.index_début - 1 {
         tampon[taille_tampon] = double_points

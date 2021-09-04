@@ -263,7 +263,7 @@ signPow :: fonc (value: r32, exp: r32) -> r32
 
 encode_int :: fonc (value: z32, length: z32, destination: *z8) -> *z8
 {
-    characters := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
+    characters :: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
 
 	divisor := 1
 

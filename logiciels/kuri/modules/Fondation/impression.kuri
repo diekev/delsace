@@ -337,7 +337,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 	assert(base >= 2)
 	assert(base <= 64)
 
-	chiffres_base_64 := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
+	chiffres_base_64 :: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
 
 	résultat : [64]z8
 
@@ -487,7 +487,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 	frac := x - part_entière comme r32
 
-	chiffres := "0123456789"
+	chiffres :: "0123456789"
 
 	p := format.précision
 

@@ -2,8 +2,8 @@
 
 importe Fondation
 
-// table     := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-// table_url := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+table_défaut :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+table_url :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
 est_base64_url :: fonc(c : z8) -> bool
 {
@@ -103,14 +103,12 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 
 encode_base64 :: fonc(chn: chaine) -> chaine
 {
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	retourne encode_base64_impl(chn, table)
+	retourne encode_base64_impl(chn, table_défaut)
 }
 
 encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 {
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	retourne encode_base64_impl(chn, table)
+	retourne encode_base64_impl(chn, table_url)
 }
 
 //#######################################
@@ -202,8 +200,7 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 
 est_caractère_réservé_url :: fonc (c: z8) -> bool
 {
-    chn := "&$+,/:;=?@"
-
+    chn :: "&$+,/:;=?@"
     pour chn {
         si it == c {
             retourne vrai
@@ -215,8 +212,7 @@ est_caractère_réservé_url :: fonc (c: z8) -> bool
 
 est_caractère_nonsûr_url :: fonc (c: z8) -> bool
 {
-    chn := " \"<>#%{}|\\^~[]`"
-
+    chn :: " \"<>#%{}|\\^~[]`"
     pour chn {
         si it == c {
             retourne vrai
@@ -226,17 +222,19 @@ est_caractère_nonsûr_url :: fonc (c: z8) -> bool
     retourne faux
 }
 
+caractères_hex_minuscules :: "0123456789abcdef"
+caractères_hex_majuscules :: "0123456789ABCDEF"
+
 encode_format_url :: fonc (texte: chaine) -> chaine
 {
     résultat : chaine
 
-    caractères_hex___ := "0123456789abcdef"
 
     pour texte {
         si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
             chaine_ajoute(*résultat, '%')
-            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) / 16)])
-            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) % 16)])
+            chaine_ajoute(*résultat, caractères_hex_minuscules[((it comme z32) / 16)])
+            chaine_ajoute(*résultat, caractères_hex_minuscules[((it comme z32) % 16)])
         }
         sinon {
             chaine_ajoute(*résultat, it)
@@ -250,9 +248,8 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
 {
     //caractères_réservés := "\r\n !#$&'()*+,/:;=?@[]"
 
-    caractères_non_réservés := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    caractères_non_réservés :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 
-    hex := "0123456789ABCDEF"
 
     pour texte {
         si it == ' ' {
@@ -271,8 +268,8 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
                 b := (it comme n8) % 16
                 // À FAIRE(enchaineuse, langage) : type pour les caractères
                 ajoute_au_tampon(enchaineuse, "%")
-                ajoute_au_tampon(enchaineuse, hex[a])
-                ajoute_au_tampon(enchaineuse, hex[b])
+                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[a])
+                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[b])
             }
         }
     }
@@ -424,14 +421,12 @@ encode_hexadécimal :: fonc (entrée: []octet) -> chaine
 {
     résultat : chaine
 
-    caractère_hexadécimal := "0123456789abcdef"
-
     pour entrée {
         a := (it >> 4) & 0xf
         b := it & 0xf
 
-        chaine_ajoute(*résultat, caractère_hexadécimal[a])
-        chaine_ajoute(*résultat, caractère_hexadécimal[b])
+        chaine_ajoute(*résultat, caractères_hex_minuscules[a])
+        chaine_ajoute(*résultat, caractères_hex_minuscules[b])
     }
 
     retourne résultat
