@@ -1017,6 +1017,10 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
     espace->tache_typage_terminee(m_compilatrice->messagere);
+
+    if (noeud->est_entete_fonction()) {
+        m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
+    }
 }
 
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)

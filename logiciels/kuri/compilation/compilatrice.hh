@@ -43,6 +43,7 @@
 
 struct ContexteLexage;
 struct EspaceDeTravail;
+struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
 struct Statistiques;
 
@@ -115,6 +116,10 @@ struct Compilatrice {
     std::mutex mutex_atomes_globales{};
 
     Module *module_kuri = nullptr;
+
+    /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
+     * disponible. */
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     /* ********************************************************************** */
 
@@ -253,6 +258,8 @@ struct Compilatrice {
     EspaceDeTravail *espace_defaut_compilation();
     kuri::tableau_statique<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
+
+    kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

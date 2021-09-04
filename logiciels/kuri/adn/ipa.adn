@@ -36,3 +36,5 @@ fonction démarre_un_espace_de_travail(chaine_statique nom, OptionsDeCompilation
 fonction espace_défaut_compilation() -> EspaceDeTravail *
 
 fonction compilatrice_possède_erreur(EspaceDeTravail * espace) -> bool
+
+fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []

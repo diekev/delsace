@@ -498,6 +498,21 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_sta
     return converti_tableau_lexemes(donnees_fichier->lexemes);
 }
 
+kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
+    EspaceDeTravail *espace)
+{
+    auto entetes = gestionnaire_code->fonctions_parsees();
+    auto resultat = kuri::tableau_statique<NoeudCodeEnteteFonction *>::cree(entetes.taille());
+    POUR (entetes) {
+        if (it->est_operateur || it->est_coroutine || it->est_polymorphe) {
+            continue;
+        }
+        auto code_entete = convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, it);
+        resultat.ajoute(code_entete->comme_entete_fonction());
+    }
+    return resultat;
+}
+
 Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,
                                             kuri::chaine_statique chemin)
 {

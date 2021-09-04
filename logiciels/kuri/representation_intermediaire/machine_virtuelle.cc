@@ -624,6 +624,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsees)) {
+        auto espace = m_metaprogramme->unite->espace;
+        auto fonctions = compilatrice.fonctions_parsees(espace);
+        empile(site, fonctions);
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 

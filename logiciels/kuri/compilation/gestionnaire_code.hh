@@ -82,6 +82,10 @@ class GestionnaireCode {
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *m_assembleuse = nullptr;
 
+    /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
+     * typage_termine. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
+    kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions_parsees{};
+
   public:
     GestionnaireCode() = default;
     GestionnaireCode(Compilatrice *compilatrice);
@@ -151,6 +155,11 @@ class GestionnaireCode {
 
     /* Remplis les tâches. */
     void cree_taches(OrdonnanceuseTache &ordonnanceuse);
+
+    const kuri::tableau<NoeudDeclarationEnteteFonction *> &fonctions_parsees() const
+    {
+        return m_fonctions_parsees;
+    }
 
   private:
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
