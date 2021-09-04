@@ -475,6 +475,13 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
 
             return res;
         }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        {
+            auto res = ResultatExpression();
+            res.est_errone = false;
+            res.valeur = b->comme_construction_tableau();
+            return res;
+        }
     }
 }
 

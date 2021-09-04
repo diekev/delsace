@@ -33,12 +33,19 @@ struct Compilatrice;
 struct NoeudBloc;
 struct NoeudExpression;
 struct NoeudExpressionLitteraleChaine;
+struct NoeudExpressionConstructionTableau;
 
 /* ************************************************************************** */
 
 struct ValeurExpression {
   private:
-    std::variant<std::monostate, bool, double, long, NoeudExpressionLitteraleChaine *> v{};
+    using TypeVariant = std::variant<std::monostate,
+                                     bool,
+                                     double,
+                                     long,
+                                     NoeudExpressionLitteraleChaine *,
+                                     NoeudExpressionConstructionTableau *>;
+    TypeVariant v{};
 
   public:
     ValeurExpression() = default;
@@ -62,6 +69,10 @@ struct ValeurExpression {
     }
 
     ValeurExpression(bool c) : v(c)
+    {
+    }
+
+    ValeurExpression(NoeudExpressionConstructionTableau *t) : v(t)
     {
     }
 
@@ -92,6 +103,11 @@ struct ValeurExpression {
         return std::holds_alternative<NoeudExpressionLitteraleChaine *>(v);
     }
 
+    inline bool est_tableau_fixe() const
+    {
+        return std::holds_alternative<NoeudExpressionConstructionTableau *>(v);
+    }
+
     /* Accès. */
 
     inline bool booleenne() const
@@ -112,6 +128,11 @@ struct ValeurExpression {
     inline NoeudExpressionLitteraleChaine *chaine() const
     {
         return std::get<NoeudExpressionLitteraleChaine *>(v);
+    }
+
+    inline NoeudExpressionConstructionTableau *tableau_fixe() const
+    {
+        return std::get<NoeudExpressionConstructionTableau *>(v);
     }
 
     inline bool est_egale_a(ValeurExpression v2) const

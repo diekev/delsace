@@ -4154,8 +4154,6 @@ static bool peut_etre_type_constante(Type *type)
 {
     switch (type->genre) {
         /* Possible mais non supporté pour le moment. */
-        case GenreType::TABLEAU_FIXE:
-        /* Possible mais non supporté pour le moment. */
         case GenreType::STRUCTURE:
         /* Il n'est pas encore clair comment prendre le pointeur de la constante pour les tableaux
          * dynamiques. */
