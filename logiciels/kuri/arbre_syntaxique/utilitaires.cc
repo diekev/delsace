@@ -1316,6 +1316,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(inst->expression);
             return;
         }
+        case GenreNoeud::EXPRESSION_PLAGE:
+        {
+            auto plage = noeud->comme_plage();
+            simplifie(plage->debut);
+            simplifie(plage->fin);
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::EXPANSION_VARIADIQUE:
@@ -1328,7 +1335,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         case GenreNoeud::EXPRESSION_MEMOIRE:
-        case GenreNoeud::EXPRESSION_PLAGE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         case GenreNoeud::INSTRUCTION_EMPL:
@@ -1373,6 +1379,7 @@ static OperateurBinaire const *operateur_pour_lexeme(GenreLexeme lexeme_op, Type
 
 void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 {
+    simplifie(inst->expression);
     simplifie(inst->bloc);
     simplifie(inst->bloc_sansarret);
     simplifie(inst->bloc_sinon);
@@ -1469,8 +1476,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE ||
                 inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
-                simplifie(expression_iteree);
-
                 // 0 ... expr - 1
                 expr_debut = assem->cree_litterale_entier(
                     expression_iteree->lexeme, expression_iteree->type, 0);
@@ -1484,9 +1489,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             }
             else {
                 auto expr_plage = expression_iteree->comme_plage();
-                simplifie(expr_plage->debut);
-                simplifie(expr_plage->fin);
-
                 expr_debut = expr_plage->debut;
                 expr_fin = expr_plage->fin;
             }
