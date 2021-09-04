@@ -60,8 +60,17 @@ bool UniteCompilation::est_bloquee() const
         return false;
     }
 
+    auto visitees = kuri::ensemblon<UniteCompilation const *, 16>();
+    visitees.insere(this);
+
     auto attendue = unite_attendue();
     while (attendue) {
+        if (visitees.possede(attendue)) {
+            /* La dépendance cyclique sera rapportée via le message d'erreur qui appelera
+             * « chaine_attente_recursive() ». */
+            return true;
+        }
+        visitees.insere(attendue);
         toutes_les_unites_attendues_sont_bloquees &= attendue->attente_est_bloquee();
         attendue = attendue->unite_attendue();
     }
@@ -390,7 +399,8 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
-    kuri::ensemble<UniteCompilation *> unite_visite;
+    kuri::ensemble<UniteCompilation const *> unite_visite;
+    unite_visite.insere(unite);
 
     while (attendue) {
         if (attendue->est_prete()) {
