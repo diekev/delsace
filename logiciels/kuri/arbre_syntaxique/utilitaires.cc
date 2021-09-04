@@ -862,6 +862,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
+                if (decl_ref->type->est_chaine()) {
+                    expr_ref->substitution = decl_const->expression;
+                    return;
+                }
+
                 return;
             }
 
