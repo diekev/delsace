@@ -314,6 +314,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             module->directive_pre_executable = pre_executable;
             /* NOTE : le métaprogramme ne sera exécuté qu'à la fin de la génération de code. */
             cree_metaprogramme_pour_directive(pre_executable);
+            pre_executable->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
