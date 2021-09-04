@@ -4150,6 +4150,42 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     return CodeRetourValidation::OK;
 }
 
+static bool peut_etre_type_constante(Type *type)
+{
+    switch (type->genre) {
+        /* Possible mais non supporté pour le moment. */
+        case GenreType::TABLEAU_FIXE:
+        /* Possible mais non supporté pour le moment. */
+        case GenreType::STRUCTURE:
+        /* Il n'est pas encore clair comment prendre le pointeur de la constante pour les tableaux
+         * dynamiques. */
+        case GenreType::TABLEAU_DYNAMIQUE:
+        /* Sémantiquement, les variadiques ne peuvent être utilisées que pour les paramètres de
+         * fonctions. */
+        case GenreType::VARIADIQUE:
+        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un membre
+         * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
+         * lieu d'utilisation. */
+        case GenreType::UNION:
+        /* Un eini doit avoir une info-type, et prendre une valeur par pointeur, qui n'est pas
+         * encore supporté pour les constantes. */
+        case GenreType::EINI:
+        /* Les tuples ne sont que pour les retours de fonctions. */
+        case GenreType::TUPLE:
+        case GenreType::REFERENCE:
+        case GenreType::POINTEUR:
+        case GenreType::POLYMORPHIQUE:
+        case GenreType::RIEN:
+        {
+            return false;
+        }
+        default:
+        {
+            return true;
+        }
+    }
+}
+
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
@@ -4297,6 +4333,13 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
 
         if (decl->drapeaux & EST_CONSTANTE && !type_de_l_expression->est_type_de_donnees()) {
+            if (!peut_etre_type_constante(type_de_l_expression)) {
+                rapporte_erreur("L'expression de la constante n'a pas un type pouvant être celui "
+                                "d'une expression constante",
+                                expression);
+                return CodeRetourValidation::Erreur;
+            }
+
             auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
 
             if (res_exec.est_errone) {
