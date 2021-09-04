@@ -24,8 +24,6 @@
 
 #include "unite_compilation.hh"
 
-#include "biblinternes/structures/ensemble.hh"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -392,7 +390,7 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
-    dls::ensemble<UniteCompilation *> unite_visite;
+    kuri::ensemble<UniteCompilation *> unite_visite;
 
     while (attendue) {
         if (attendue->est_prete()) {
@@ -400,7 +398,7 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
             break;
         }
 
-        if (unite_visite.trouve(attendue) != unite_visite.fin()) {
+        if (unite_visite.possede(attendue)) {
             fc << "    erreur : dépendance cyclique !\n";
             break;
         }

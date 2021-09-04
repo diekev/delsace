@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/ensemble.hh"
-
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
+#include "structures/ensemble.hh"
 
 #include "validation_expression_appel.hh"
 
@@ -133,7 +132,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,
-                            const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
+                            const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 
 void fonction_principale_manquante(EspaceDeTravail const &espace);
 }  // namespace erreur

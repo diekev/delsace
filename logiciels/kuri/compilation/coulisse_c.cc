@@ -1501,10 +1501,10 @@ static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
 }
 
 static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibliotheques,
-                                             dls::ensemble<Bibliotheque *> &utilisees,
+                                             kuri::ensemble<Bibliotheque *> &utilisees,
                                              Bibliotheque *bibliotheque)
 {
-    if (utilisees.trouve(bibliotheque) != utilisees.fin()) {
+    if (utilisees.possede(bibliotheque)) {
         return;
     }
 
@@ -1604,7 +1604,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
     atome_fonc->nom = "main";
 
-    dls::ensemble<Bibliotheque *> bibliotheques_utilisees;
+    kuri::ensemble<Bibliotheque *> bibliotheques_utilisees;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->est_externe && it->decl->symbole) {
             rassemble_bibliotheques_utilisee(

@@ -390,7 +390,7 @@ struct ApparieuseParams {
   private:
     dls::tablet<IdentifiantCode *, 10> m_noms{};
     dls::tablet<NoeudExpression *, 10> m_slots{};
-    dls::ensemblon<IdentifiantCode *, 10> args_rencontres{};
+    kuri::ensemblon<IdentifiantCode *, 10> args_rencontres{};
     bool m_arguments_nommes = false;
     bool m_dernier_argument_est_variadique = false;
     bool m_est_variadique = false;
@@ -747,7 +747,7 @@ static ResultatAppariement apparie_appel_fonction(
                 expr, bloc_constantes->membres->taille(), args.taille());
         }
 
-        auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
         kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         POUR (args) {

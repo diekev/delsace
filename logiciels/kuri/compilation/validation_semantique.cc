@@ -1796,7 +1796,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto type_union = type->comme_union();
                 inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
 
-                auto membres_rencontres = dls::ensemblon<Type *, 16>();
+                auto membres_rencontres = kuri::ensemblon<Type *, 16>();
 
                 noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -1846,11 +1846,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
+                auto membres_rencontres = kuri::ensemblon<IdentifiantCode *, 16>();
 
                 auto valide_presence_membres =
                     [&membres_rencontres, &type_union, this, &expression]() {
-                        auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
+                        auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
                         POUR (type_union->membres) {
                             if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
@@ -1936,7 +1936,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto type_enum = static_cast<TypeEnum *>(type);
                 inst->op = type_enum->operateur_egt;
 
-                auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
+                auto membres_rencontres = kuri::ensemblon<IdentifiantCode *, 16>();
                 noeud->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
 
                 for (int i = 0; i < inst->paires_discr.taille(); ++i) {
@@ -1979,7 +1979,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (inst->bloc_sinon == nullptr) {
-                    auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
+                    auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
                     POUR (type_enum->membres) {
                         if (!membres_rencontres.possede(it.nom) &&
@@ -2504,7 +2504,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
     {
         CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
                       "valide_type_fonction (validation paramètres)");
-        auto noms = dls::ensemblon<IdentifiantCode *, 16>();
+        auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
         auto dernier_est_variadic = false;
 
         for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -3546,7 +3546,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
     m_compilatrice.operateurs->ajoute_operateur_basique_enum(m_compilatrice.typeuse, type_enum);
 
-    auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
+    auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 
     auto derniere_valeur = ValeurExpression();
     assert(!derniere_valeur.est_valide());
@@ -4774,7 +4774,7 @@ void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudExpression *acc
 }
 
 void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(
-    NoeudExpression *expression, dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
+    NoeudExpression *expression, kuri::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
     erreur::valeur_manquante_discr(*espace, expression, valeurs_manquantes);
 }

@@ -25,11 +25,12 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/file_fixe.hh"
 #include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+
+#include "structures/ensemble.hh"
 
 struct Compilatrice;
 struct Lexeme;
@@ -162,7 +163,7 @@ struct ContexteValidationCode {
                                         TypeCompose *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
-        const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
+        const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
     void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc,
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);

@@ -41,10 +41,10 @@ bool Fichier::importe_module(IdentifiantCode *nom_module) const
     pour_chaque_element(modules_importes, [nom_module, &importe](Module *module_) {
         if (module_->nom() == nom_module) {
             importe = true;
-            return dls::DecisionIteration::Arrete;
+            return kuri::DecisionIteration::Arrete;
         }
 
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
     return importe;
 }

@@ -27,7 +27,6 @@
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
-#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
@@ -36,6 +35,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
+#include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 
@@ -73,7 +73,7 @@ struct Fichier {
     bool en_chargement = false;
     bool en_lexage = false;
 
-    dls::ensemblon<Module *, 16> modules_importes{};
+    kuri::ensemblon<Module *, 16> modules_importes{};
 
     bool fut_parse = false;
 

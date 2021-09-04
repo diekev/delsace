@@ -49,9 +49,9 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 
+#include "structures/ensemble.hh"
 #include "structures/tableau.hh"
 
 using dls::outils::est_element;
@@ -1080,7 +1080,7 @@ struct Convertisseuse {
 
     dico_typedefs typedefs{};
 
-    dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
+    kuri::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
 
     dls::chaine pour_bibliotheque{};
 
@@ -2377,9 +2377,9 @@ int main(int argc, char **argv)
     if (convertisseuse.cursors_non_pris_en_charges.taille() != 0) {
         std::cerr << "Les cursors non pris en charges sont :\n";
 
-        for (auto kind : convertisseuse.cursors_non_pris_en_charges) {
+        convertisseuse.cursors_non_pris_en_charges.pour_chaque_element([&](auto kind) {
             std::cerr << '\t' << clang_getCursorKindSpelling(kind) << " (" << kind << ')' << '\n';
-        }
+        });
     }
 
     clang_disposeTranslationUnit(unit);

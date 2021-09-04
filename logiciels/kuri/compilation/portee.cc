@@ -96,14 +96,14 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
     }
 
     /* cherche dans les modules importés */
-    dls::pour_chaque_element(fichier->modules_importes, [&](auto &module) {
+    pour_chaque_element(fichier->modules_importes, [&](auto &module) {
         decl = trouve_dans_bloc(module->bloc, ident);
 
         if (decl != nullptr) {
-            return dls::DecisionIteration::Arrete;
+            return kuri::DecisionIteration::Arrete;
         }
 
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 
     return decl;
@@ -136,9 +136,9 @@ void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10>
     trouve_declarations_dans_bloc(declarations, bloc, ident);
 
     /* cherche dans les modules importés */
-    dls::pour_chaque_element(fichier->modules_importes, [&](auto &module) {
+    pour_chaque_element(fichier->modules_importes, [&](auto &module) {
         trouve_declarations_dans_bloc(declarations, module->bloc, ident);
-        return dls::DecisionIteration::Continue;
+        return kuri::DecisionIteration::Continue;
     });
 }
 

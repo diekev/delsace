@@ -346,13 +346,13 @@ struct CandidatMembre {
     kuri::chaine_statique chaine = "";
 };
 
-static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
+static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres,
                             kuri::chaine_statique const &nom_donne)
 {
     auto candidat = CandidatMembre{};
     candidat.distance = 1000;
 
-    for (auto const &nom_membre : membres) {
+    membres.pour_chaque_element([&](kuri::chaine_statique nom_membre) {
         auto candidat_possible = CandidatMembre();
         candidat_possible.distance = distance_levenshtein(nom_donne, nom_membre);
         candidat_possible.chaine = nom_membre;
@@ -360,7 +360,7 @@ static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
         if (candidat_possible.distance < candidat.distance) {
             candidat = candidat_possible;
         }
-    }
+    });
 
     return candidat;
 }
@@ -370,7 +370,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
                     NoeudExpression const *membre,
                     TypeCompose const *type)
 {
-    auto membres = dls::ensemble<kuri::chaine_statique>();
+    auto membres = kuri::ensemble<kuri::chaine_statique>();
 
     POUR (type->membres) {
         membres.insere(it.nom->nom);
@@ -403,9 +403,8 @@ void membre_inconnu(EspaceDeTravail const &espace,
     else {
         e.ajoute_message("Les membres ", message, " sont :\n");
 
-        POUR (membres) {
-            e.ajoute_message("\t", it, "\n");
-        }
+        membres.pour_chaque_element(
+            [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
     }
@@ -413,7 +412,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,
-                            dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
+                            kuri::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
     auto e = rapporte_erreur(
         &espace, expression, "Dans l'expression de discrimination", Genre::NORMAL);
@@ -425,9 +424,8 @@ void valeur_manquante_discr(EspaceDeTravail const &espace,
         e.ajoute_message("Plusieurs valeurs ne sont pas prises en compte :\n");
     }
 
-    POUR (valeurs_manquantes) {
-        e.ajoute_message('\t', it, '\n');
-    }
+    valeurs_manquantes.pour_chaque_element(
+        [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
 }
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)

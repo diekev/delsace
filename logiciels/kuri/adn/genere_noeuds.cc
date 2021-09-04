@@ -28,7 +28,6 @@
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/conditions.h"
-#include "biblinternes/structures/ensemble.hh"
 
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"
@@ -37,6 +36,7 @@
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "structures/ensemble.hh"
 #include "structures/table_hachage.hh"
 
 #include "adn.hh"
@@ -114,7 +114,7 @@ struct GeneratriceCodeCPP {
               "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
 
         // Prodéclarations des structures
-        dls::ensemble<kuri::chaine> noms_struct;
+        kuri::ensemble<kuri::chaine> noms_struct;
 
         POUR (proteines) {
             if (it->comme_struct()) {
@@ -145,9 +145,8 @@ struct GeneratriceCodeCPP {
             }
         }
 
-        POUR (noms_struct) {
-            os << "struct " << it << ";\n";
-        }
+        noms_struct.pour_chaque_element(
+            [&](kuri::chaine_statique it) { os << "struct " << it << ";\n"; });
         os << "\n";
 
         // Les structures C++
@@ -603,7 +602,7 @@ struct GeneratriceCodeCPP {
         os << "struct Statistiques;\n";
 
         // Prodéclarations des structures
-        dls::ensemble<kuri::chaine> noms_struct;
+        kuri::ensemble<kuri::chaine> noms_struct;
 
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
@@ -612,9 +611,8 @@ struct GeneratriceCodeCPP {
             }
         }
 
-        POUR (noms_struct) {
-            os << "struct " << it << ";\n";
-        }
+        noms_struct.pour_chaque_element(
+            [&](kuri::chaine_statique it) { os << "struct " << it << ";\n"; });
         os << "struct GeranteChaine;\n";
         os << "\n";
 
@@ -1417,7 +1415,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         // stats pour les tableaux
-        auto noms_tableaux = dls::ensemble<kuri::chaine>();
+        auto noms_tableaux = kuri::ensemble<kuri::chaine>();
 
         auto cree_nom_tableau = [](kuri::chaine_statique nom_comme,
                                    kuri::chaine_statique nom_membre) -> kuri::chaine {
@@ -1479,9 +1477,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         os << "auto &stats_tableaux = stats.stats_tableaux;\n";
-        POUR (noms_tableaux) {
+        noms_tableaux.pour_chaque_element([&](kuri::chaine_statique it) {
             os << "stats_tableaux.fusionne_entree({\"" << it << "\", " << it << "});\n";
-        }
+        });
 
         os << "}\n";
     }

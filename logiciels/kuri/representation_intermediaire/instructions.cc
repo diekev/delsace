@@ -24,8 +24,6 @@
 
 #include "instructions.hh"
 
-#include "biblinternes/structures/ensemble.hh"
-
 Instruction *AtomeFonction::derniere_instruction() const
 {
     return instructions[instructions.taille() - 1];
