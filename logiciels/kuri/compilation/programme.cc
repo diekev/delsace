@@ -210,6 +210,7 @@ long Programme::memoire_utilisee() const
     memoire += m_types_utilises.taille_memoire();
     memoire += m_globales_utilisees.taille_memoire();
     memoire += taille_de(Coulisse);
+    memoire += m_fichiers.taille_memoire();
     return memoire;
 }
 
