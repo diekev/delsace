@@ -73,6 +73,13 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(ajoute_fini);
             break;
         }
+        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        {
+            auto pre_executable = racine->comme_pre_executable();
+            aplatis_arbre(pre_executable->expression, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(pre_executable);
+            break;
+        }
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
             auto bloc = static_cast<NoeudBloc *>(racine);
@@ -593,6 +600,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
+        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
         {
             break;
         }

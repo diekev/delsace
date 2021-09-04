@@ -112,6 +112,11 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_arbre_aplatis(ajoute_init, ajoute_init->arbre_aplatis);
     }
 
+    if (racine_validation()->est_pre_executable()) {
+        auto pre_executable = racine_validation()->comme_pre_executable();
+        return valide_arbre_aplatis(pre_executable, pre_executable->arbre_aplatis);
+    }
+
     unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -151,6 +156,93 @@ static NoeudPousseContexte *trouve_pousse_contexte(NoeudBloc *bloc)
         }
     }
     return nullptr;
+}
+
+MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
+    NoeudDirectiveExecute *directive)
+{
+    // crée une fonction pour l'exécution
+    auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(directive->lexeme);
+    auto decl_corps = decl_entete->corps;
+
+    decl_entete->bloc_parent = directive->bloc_parent;
+    decl_corps->bloc_parent = directive->bloc_parent;
+
+    /* Le contexte sera ajouté via decl_creation_contexte de l'interface kuri. */
+    decl_entete->drapeaux |= FORCE_NULCTX;
+    decl_entete->est_metaprogramme = true;
+
+    // le type de la fonction est fonc () -> (type_expression)
+    auto expression = directive->expression;
+    auto type_expression = expression->type;
+
+    if (type_expression->est_tuple()) {
+        auto tuple = type_expression->comme_tuple();
+
+        POUR (tuple->membres) {
+            auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
+                directive->lexeme);
+            decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
+                "__ret0");
+            decl_sortie->type = it.type;
+            decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+            decl_entete->params_sorties.ajoute(decl_sortie);
+        }
+
+        decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
+            directive->lexeme);
+        decl_entete->param_sortie->ident =
+            m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
+        decl_entete->param_sortie->type = type_expression;
+    }
+    else {
+        auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(directive->lexeme);
+        decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+        decl_sortie->type = type_expression;
+        decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+        decl_entete->params_sorties.ajoute(decl_sortie);
+        decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
+            directive->lexeme);
+        decl_entete->param_sortie->type = type_expression;
+    }
+
+    auto types_entrees = dls::tablet<Type *, 6>(0);
+
+    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
+    decl_entete->type = type_fonction;
+
+    decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(directive->lexeme, nullptr);
+
+    static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
+    auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
+
+    simplifie_arbre(espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, expression);
+
+    if (type_expression != m_compilatrice.typeuse[TypeBase::RIEN]) {
+        expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
+        expr_ret->expression = expression;
+
+        /* besoin de valider pour mettre en place les informations de retour */
+        auto ancienne_racine = unite->noeud;
+        unite->noeud = decl_entete;
+        valide_expression_retour(expr_ret);
+        unite->noeud = ancienne_racine;
+    }
+    else {
+        decl_corps->bloc->expressions->ajoute(expression);
+    }
+
+    decl_corps->bloc->expressions->ajoute(expr_ret);
+
+    decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
+    decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+    auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
+    metaprogramme->fonction = decl_entete;
+    metaprogramme->directive = directive;
+    directive->metaprogramme = metaprogramme;
+    return metaprogramme;
 }
 
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
@@ -204,6 +296,24 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto ajoute_init = noeud->comme_ajoute_init();
             pousse_contexte->bloc->expressions->ajoute(ajoute_init->expression);
             ajoute_init->drapeaux |= DECLARATION_FUT_VALIDEE;
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        {
+            auto pre_executable = noeud->comme_pre_executable();
+            auto fichier = m_compilatrice.fichier(pre_executable->lexeme->fichier);
+            auto module = fichier->module;
+            if (module->directive_pre_executable) {
+                espace
+                    ->rapporte_erreur(
+                        noeud, "Le module possède déjà une directive d'exécution pré-exécutable")
+                    .ajoute_message("La première directive fut déclarée ici :")
+                    .ajoute_site(module->directive_pre_executable);
+                return CodeRetourValidation::Erreur;
+            }
+            module->directive_pre_executable = pre_executable;
+            /* NOTE : le métaprogramme ne sera exécuté qu'à la fin de la génération de code. */
+            cree_metaprogramme_pour_directive(pre_executable);
             break;
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
@@ -355,94 +465,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto noeud_directive = noeud->comme_execute();
 
-            // crée une fonction pour l'exécution
-            auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(noeud->lexeme);
-            auto decl_corps = decl_entete->corps;
-
-            decl_entete->bloc_parent = noeud->bloc_parent;
-            decl_corps->bloc_parent = noeud->bloc_parent;
-
-            /* Le contexte sera ajouté via decl_creation_contexte de l'interface kuri. */
-            decl_entete->drapeaux |= FORCE_NULCTX;
-            decl_entete->est_metaprogramme = true;
-
-            // le type de la fonction est fonc () -> (type_expression)
-
-            auto type_expression = noeud_directive->expression->type;
-
-            if (type_expression->est_tuple()) {
-                auto tuple = type_expression->comme_tuple();
-
-                POUR (tuple->membres) {
-                    auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-                        noeud->lexeme);
-                    decl_sortie->ident =
-                        m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-                    decl_sortie->type = it.type;
-                    decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
-                    decl_entete->params_sorties.ajoute(decl_sortie);
-                }
-
-                decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->lexeme);
-                decl_entete->param_sortie->ident =
-                    m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
-                decl_entete->param_sortie->type = type_expression;
-            }
-            else {
-                auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->lexeme);
-                decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
-                    "__ret0");
-                decl_sortie->type = type_expression;
-                decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-                decl_entete->params_sorties.ajoute(decl_sortie);
-                decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->lexeme);
-                decl_entete->param_sortie->type = type_expression;
-            }
-
-            auto types_entrees = dls::tablet<Type *, 6>(0);
-
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
-                                                                      type_expression);
-            decl_entete->type = type_fonction;
-
-            decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(noeud->lexeme, nullptr);
-
-            static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
-            auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
-
-            simplifie_arbre(espace,
-                            m_tacheronne.assembleuse,
-                            m_compilatrice.typeuse,
-                            noeud_directive->expression);
-
-            if (type_expression != m_compilatrice.typeuse[TypeBase::RIEN]) {
-                expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
-                expr_ret->expression = noeud_directive->expression;
-
-                /* besoin de valider pour mettre en place les informations de retour */
-                auto ancienne_racine = unite->noeud;
-                unite->noeud = decl_entete;
-                valide_expression_retour(expr_ret);
-                unite->noeud = ancienne_racine;
-            }
-            else {
-                decl_corps->bloc->expressions->ajoute(noeud_directive->expression);
-            }
-
-            decl_corps->bloc->expressions->ajoute(expr_ret);
-
-            decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
-            decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
-            metaprogramme->directive = noeud_directive;
-            metaprogramme->fonction = decl_entete;
-
-            noeud_directive->metaprogramme = metaprogramme;
+            auto metaprogramme = cree_metaprogramme_pour_directive(noeud_directive);
 
             m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                                  metaprogramme);

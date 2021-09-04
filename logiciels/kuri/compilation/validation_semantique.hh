@@ -181,4 +181,6 @@ struct ContexteValidationCode {
     MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
                                                   const Lexeme *lexeme);
+
+    MetaProgramme *cree_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 };

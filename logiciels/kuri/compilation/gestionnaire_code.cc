@@ -967,6 +967,10 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
         return true;
     }
 
+    if (noeud->est_pre_executable()) {
+        return true;
+    }
+
     return false;
 }
 
@@ -1209,9 +1213,22 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
                                             PhaseCompilation::COMPILATION_TERMINEE);
                 }
                 else if (espace->peut_generer_code_final()) {
-                    espace->change_de_phase(m_compilatrice->messagere,
-                                            PhaseCompilation::AVANT_GENERATION_OBJET);
-                    requiers_generation_code_machine(espace, espace->programme);
+                    auto modules = it->modules_utilises();
+                    auto executions_requises = false;
+                    modules.pour_chaque_element([&](Module *module) {
+                        auto execute = module->directive_pre_executable;
+                        if (execute && !module->execution_directive_requise) {
+                            requiers_compilation_metaprogramme(espace, execute->metaprogramme);
+                            module->execution_directive_requise = true;
+                            executions_requises = true;
+                        }
+                    });
+
+                    if (!executions_requises) {
+                        espace->change_de_phase(m_compilatrice->messagere,
+                                                PhaseCompilation::AVANT_GENERATION_OBJET);
+                        requiers_generation_code_machine(espace, espace->programme);
+                    }
                 }
             }
         }

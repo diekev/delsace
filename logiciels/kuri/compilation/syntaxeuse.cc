@@ -1055,6 +1055,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
                 return noeud;
             }
+            else if (directive == ID::pre_executable) {
+                auto noeud = m_tacheronne.assembleuse->cree_pre_executable(lexeme);
+                noeud->ident = directive;
+                noeud->expression = analyse_expression(
+                    {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */

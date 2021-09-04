@@ -695,6 +695,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             });
             break;
         }
+        case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr
+                    << "Erreur interne : une directive #pré_exécutable se retrouve dans la RI !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
         /* ceux-ci sont simplifiés */
         case GenreNoeud::DIRECTIVE_CUISINE:
         {

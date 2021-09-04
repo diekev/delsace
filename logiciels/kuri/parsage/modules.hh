@@ -50,6 +50,7 @@ struct Module;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDirectivePreExecutable;
 struct Statistiques;
 
 struct Fichier {
@@ -159,6 +160,9 @@ struct Module {
 
     kuri::chaine chemin_bibliotheque_32bits{};
     kuri::chaine chemin_bibliotheque_64bits{};
+
+    NoeudDirectivePreExecutable *directive_pre_executable = nullptr;
+    bool execution_directive_requise = false;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
