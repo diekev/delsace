@@ -251,8 +251,8 @@ struct Compilatrice {
     void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
     const Message *attend_message();
     EspaceDeTravail *espace_defaut_compilation();
-    kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
-                                             const NoeudExpression *site);
+    kuri::tableau_statique<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
+                                                      const NoeudExpression *site);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

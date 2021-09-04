@@ -445,21 +445,18 @@ EspaceDeTravail *Compilatrice::espace_defaut_compilation()
     return espace_de_travail_defaut;
 }
 
-static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(
+static kuri::tableau_statique<kuri::Lexeme> converti_tableau_lexemes(
     kuri::tableau<Lexeme, int> const &lexemes)
 {
-    auto resultat = kuri::tableau<kuri::Lexeme>();
-    resultat.reserve(lexemes.taille());
-
+    auto resultat = kuri::tableau_statique<kuri::Lexeme>::cree(lexemes.taille());
     POUR (lexemes) {
         resultat.ajoute({static_cast<int>(it.genre), it.chaine});
     }
-
     return resultat;
 }
 
-kuri::tableau<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne,
-                                                       NoeudExpression const *site)
+kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne,
+                                                                NoeudExpression const *site)
 {
     auto espace = espace_de_travail_defaut;
     auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
