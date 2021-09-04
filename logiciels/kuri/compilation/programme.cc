@@ -218,6 +218,15 @@ void Programme::rassemble_statistiques(Statistiques & /*stats*/)
 {
 }
 
+kuri::ensemble<Module *> Programme::modules_utilises() const
+{
+    kuri::ensemble<Module *> modules;
+    POUR (m_fichiers) {
+        modules.insere(it->module);
+    }
+    return modules;
+}
+
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const
 {
     diagnostique.tous_les_fichiers_sont_charges = true;

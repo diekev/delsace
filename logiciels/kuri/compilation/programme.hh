@@ -207,6 +207,8 @@ struct Programme {
 
     void rassemble_statistiques(Statistiques &stats);
 
+    kuri::ensemble<Module *> modules_utilises() const;
+
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;
 
