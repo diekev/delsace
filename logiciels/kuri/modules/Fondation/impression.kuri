@@ -960,6 +960,9 @@ exécute_pré_exécutable :: fonc ()
     // Il nous faut les modules.
     ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
 
+	modules_importés : []chaine
+	tableau_ajoute(*modules_importés, "Fondation")
+
     /* Création des enveloppes pour les fonctions de parsage. */
     pour fonctions_de_parsage {
         // valide les types
@@ -982,7 +985,15 @@ exécute_pré_exécutable :: fonc ()
 
 		nom_module := compilatrice_module_pour_code(it)
 		si nom_module {
-			ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
+			pour module_importé dans modules_importés {
+				si module_importé == nom_module {
+					arrête
+				}
+			}
+			sansarrêt {
+				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
+				tableau_ajoute(*modules_importés, nom_module)
+			}
 		}
 
         ajoute_au_tampon(*enchaineuse, "enveloppe_format_", it.nom, " :: fonc (enchaineuse: *Enchaineuse, e: eini)\n")
