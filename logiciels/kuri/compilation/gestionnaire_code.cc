@@ -930,6 +930,13 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
     if (noeud->est_corps_fonction()) {
         auto entete = noeud->comme_corps_fonction()->entete;
+
+        /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
+         * attendre la génération de code final avant de générer la RI pour ces fonctions. */
+        if (entete->ident == ID::init_execution_kuri || entete->ident == ID::fini_execution_kuri) {
+            return false;
+        }
+
         /* Pour les métaprogrammes, la RI doit se faire via requiers_compilation_metaprogramme. Il
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
@@ -1293,7 +1300,26 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
         return;
     }
 
-    /* Tous les métaprogrammes furent exécutés, nous pouvons générer le code machine. */
+    /* Requiers la génération de RI pour les fonctions ajoute_fini et ajoute_init. */
+    auto decl_ajoute_fini = m_compilatrice->interface_kuri->decl_fini_execution_kuri;
+    auto decl_ajoute_init = m_compilatrice->interface_kuri->decl_init_execution_kuri;
+
+    auto ri_requise = false;
+    if (!decl_ajoute_fini->corps->possede_drapeau(RI_FUT_GENEREE)) {
+        requiers_generation_ri(espace, decl_ajoute_fini);
+        ri_requise = true;
+    }
+    if (!decl_ajoute_init->corps->possede_drapeau(RI_FUT_GENEREE)) {
+        requiers_generation_ri(espace, decl_ajoute_init);
+        ri_requise = true;
+    }
+
+    if (ri_requise) {
+        return;
+    }
+
+    /* Tous les métaprogrammes furent exécutés, et la RI pour les fonctions
+     * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
     espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_GENERATION_OBJET);
     requiers_generation_code_machine(espace, espace->programme);
 }

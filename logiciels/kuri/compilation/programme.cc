@@ -127,7 +127,8 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
     }
 
     POUR (m_fonctions) {
-        if (!it->possede_drapeau(RI_FUT_GENEREE)) {
+        if (!it->possede_drapeau(RI_FUT_GENEREE) && it->ident != ID::init_execution_kuri &&
+            it->ident != ID::fini_execution_kuri) {
             assert_rappel(it->unite, [&]() {
                 std::cerr << "Aucune unité pour de compilation pour :\n";
                 erreur::imprime_site(*m_espace, it);
