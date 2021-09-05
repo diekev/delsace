@@ -926,10 +926,10 @@ issitialise_formattage_impression :: fonc ()
 
 exécute_pré_exécutable :: fonc ()
 {
-    fonctions_de_parsage := fonctions_parsées_avec_annotation("FormattageImpression")
-    diffère déloge(fonctions_de_parsage)
+    fonctions_de_formattage := fonctions_parsées_avec_annotation("FormattageImpression")
+    diffère déloge(fonctions_de_formattage)
 
-    saufsi fonctions_de_parsage {
+    saufsi fonctions_de_formattage {
         retourne
     }
 
@@ -944,7 +944,7 @@ exécute_pré_exécutable :: fonc ()
 	tableau_ajoute(*modules_importés, "Fondation")
 
     /* Création des enveloppes pour les fonctions de parsage. */
-    pour fonctions_de_parsage {
+    pour fonctions_de_formattage {
         // valide les types
         si it.params.taille != 2 {
             compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : *Enchaineuse, et *TypeÀFormatter")
@@ -989,7 +989,7 @@ exécute_pré_exécutable :: fonc ()
     ajoute_au_tampon(*enchaineuse, "initialise_formattage_impression :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
-    pour fonctions_de_parsage {
+    pour fonctions_de_formattage {
         type_deuxième_paramètre := it.params[1].type comme *InfoTypePointeur
         ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_formattage(info_de(")
         imprime_type(*enchaineuse, type_deuxième_paramètre.type_pointé)
