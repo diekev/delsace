@@ -111,49 +111,43 @@ racine_carrée :: fonc (n1: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-imprime_nombre_réel :: fonc (n1: NombreRéel, message: chaine)
+formatte_nombre_réel :: fonc (enchaineuse: *Enchaineuse, ptr: *NombreRéel)
 {
+    saufsi ptr {
+        retourne
+    }
+
+    n1 := mémoire(ptr)
+
     chn, exposant := chaine_depuis_nombre_réel(n1)
     diffère déloge(chn)
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
-
-    ajoute_au_tampon(*enchaineuse, message, " : ")
-
     si exposant < 0 {
-        ajoute_au_tampon(*enchaineuse, "0.")
+        ajoute_au_tampon(enchaineuse, "0.")
         pour -exposant {
-            ajoute_au_tampon(*enchaineuse, "0")
+            ajoute_au_tampon(enchaineuse, "0")
         }
-        ajoute_au_tampon(*enchaineuse, chn)
+        ajoute_au_tampon(enchaineuse, chn)
     }
     sinon {
         si exposant < chn.taille {
             tmp := chn
             pour exposant {
-                ajoute_au_tampon(*enchaineuse, tmp[0])
+                ajoute_au_tampon(enchaineuse, tmp[0])
                 tmp = avance(tmp, 1)
             }
 
-            ajoute_au_tampon(*enchaineuse, ".", tmp)
+            ajoute_au_tampon(enchaineuse, ".", tmp)
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, chn)
+            ajoute_au_tampon(enchaineuse, chn)
 
             pour (exposant - chn.taille) {
-                ajoute_au_tampon(*enchaineuse, "0")
+                ajoute_au_tampon(enchaineuse, "0")
             }
         }
     }
-
-    ajoute_au_tampon(*enchaineuse, "\n")
-
-    chn_ := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(chn_)
-    imprime("%", chn_)
-}
+} @FormattageImpression
 
 loge_gmp :: fonc (taille: n64) -> *rien #nulctx
 {

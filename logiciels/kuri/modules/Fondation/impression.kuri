@@ -504,6 +504,12 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn : bool) -> rien
 {
+	fonction_de_formattage := trouve_fonction_de_formattage(valeur.info)
+	si fonction_de_formattage {
+		fonction_de_formattage.fonction(enchaineuse, valeur)
+		retourne
+	}
+
     discr valeur.info.id {
 		OCTET {
 			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur, base = 16))
@@ -894,3 +900,119 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
     imprime("%:% : l'assertion a échoué !\n", pos.fichier, pos.ligne)
     panique("Une assertion a échoué")
 }
+
+// ------------------------------------
+// Fonctions de formattages
+
+importe Compilatrice
+
+TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
+__fonctions_formattages_impression : []FonctionInstrospection(TypeFonctionFormattage)
+
+ajoute_fonction_de_formattage :: fonc (info: *InfoType, fonction: TypeFonctionFormattage)
+{
+	ajoute_fonction(*__fonctions_formattages_impression, info, fonction)
+}
+
+trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
+{
+	retourne trouve_fonction_pour_type(__fonctions_formattages_impression, info)
+}
+
+issitialise_formattage_impression :: fonc ()
+{
+	déloge(__fonctions_formattages_impression)
+}
+
+est_fonction_parsage_ghtml :: fonc (code: *NoeudCodeEntêteFonction) -> bool
+{
+    pour code.annotations {
+        si it.nom == "FormattageImpression" {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+exécute_pré_exécutable :: fonc ()
+{
+    fonctions := compilatrice_fonctions_parsées()
+    fonctions_de_parsage: []*NoeudCodeEntêteFonction
+    diffère déloge(fonctions_de_parsage)
+
+    pour fonctions {
+        si !est_fonction_parsage_ghtml(it) {
+            continue
+        }
+
+        tableau_ajoute(*fonctions_de_parsage, it)
+    }
+
+    saufsi fonctions_de_parsage {
+        retourne
+    }
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    // Il nous faut les modules.
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
+
+    /* Création des enveloppes pour les fonctions de parsage. */
+    pour fonctions_de_parsage {
+        // valide les types
+        si it.params.taille != 2 {
+            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : *Enchaineuse, et *TypeÀFormatter")
+            retourne
+        }
+
+        type_premier_paramètre := it.params[0].type
+        type_deuxième_paramètre := it.params[1].type
+        si type_premier_paramètre != info_de(*Enchaineuse) {
+            compilatrice_rapporte_erreur(it.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *Enchaineuse ».")
+            retourne
+        }
+
+        si type_deuxième_paramètre.id != id_info.POINTEUR {
+            compilatrice_rapporte_erreur(it.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
+            retourne
+        }
+
+		nom_module := compilatrice_module_pour_code(it)
+		si nom_module {
+			ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
+		}
+
+        ajoute_au_tampon(*enchaineuse, "enveloppe_format_", it.nom, " :: fonc (enchaineuse: *Enchaineuse, e: eini)\n")
+        ajoute_au_tampon(*enchaineuse, "{\n")
+        ajoute_au_tampon(*enchaineuse, "\tvaleur := e.pointeur comme ")
+        imprime_type(*enchaineuse, type_deuxième_paramètre)
+        ajoute_au_tampon(*enchaineuse, "\n")
+        ajoute_au_tampon(*enchaineuse, "\t", it.nom, "(enchaineuse, valeur)\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    /* Création de la fonction d'initialisation. */
+    ajoute_au_tampon(*enchaineuse, "initialise_formattage_impression :: fonc ()\n")
+    ajoute_au_tampon(*enchaineuse, "{\n")
+
+    pour fonctions_de_parsage {
+        type_deuxième_paramètre := it.params[1].type comme *InfoTypePointeur
+        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_formattage(info_de(")
+        imprime_type(*enchaineuse, type_deuxième_paramètre.type_pointé)
+        ajoute_au_tampon(*enchaineuse, "), enveloppe_format_", it.nom, ")\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_formattage_impression()\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_formattage_impression()\n")
+
+    sources := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(sources)
+
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+}
+
+#pré_exécutable exécute_pré_exécutable()
