@@ -8,6 +8,8 @@ fonction compilatrice_module_courant() -> Module *
 
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 
+fonction compilatrice_module_pour_code(NoeudCode * code) -> chaine_statique
+
 fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
 fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void
