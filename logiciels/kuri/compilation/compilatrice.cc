@@ -412,7 +412,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto resultat = this->trouve_ou_cree_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);
 
-    assert(result.est<FichierNeuf>());
+    assert(resultat.est<FichierNeuf>());
 
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
     fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
