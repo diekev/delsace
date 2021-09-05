@@ -116,6 +116,7 @@ struct Compilatrice {
     std::mutex mutex_atomes_globales{};
 
     Module *module_kuri = nullptr;
+    Module *module_racine_compilation = nullptr;
 
     /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
      * disponible. */

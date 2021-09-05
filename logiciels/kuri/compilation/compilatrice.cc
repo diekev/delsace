@@ -394,8 +394,7 @@ void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
 
 void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
-    auto module = this->trouve_ou_cree_module(ID::chaine_vide, "");
-    ajoute_chaine_au_module(espace, module, c);
+    ajoute_chaine_au_module(espace, module_racine_compilation, c);
 }
 
 void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,

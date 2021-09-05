@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
            << std::endl;
 
         auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier.c_str());
+        compilatrice.module_racine_compilation = module;
         compilatrice.ajoute_fichier_a_la_compilation(
             espace_defaut, nom_fichier.c_str(), module, {});
 
