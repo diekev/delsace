@@ -145,6 +145,24 @@ est_valide :: fonc (chn_utf32: ChaineUTF32) -> bool
     retourne vrai
 }
 
+imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
+{
+    saufsi chn {
+        retourne
+    }
+
+    séquence : [4]n8
+    pour chn.points_de_code {
+        taille := point_de_code_vers_utf8(it, *séquence[0])
+
+        tmp : chaine = ---
+        tmp.pointeur = *séquence[0] comme *z8
+        tmp.taille = taille
+
+        ajoute_au_tampon(enchaineuse, tmp)
+    }
+} @FormattageImpression
+
 /*
 principale :: fonc () -> z32
 {

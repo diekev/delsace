@@ -604,3 +604,11 @@ formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: &FluxSortie)
     }
 }
 
+imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
+{
+    saufsi chn {
+        retourne
+    }
+    flux_sortie := crée_flux_sortie(enchaineuse)
+    formatte_chaine_utf16(chn, flux_sortie)
+} @FormattageImpression
