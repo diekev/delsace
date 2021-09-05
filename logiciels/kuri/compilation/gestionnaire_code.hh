@@ -182,4 +182,7 @@ class GestionnaireCode {
                                                                         GrapheDependance &graphe);
 
     void tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace);
+
+    void finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
+                                                          Programme *programme);
 };

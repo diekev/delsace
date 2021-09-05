@@ -1212,28 +1212,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         else {
             if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
                 it->ri_generees()) {
-                if (espace->options.resultat == ResultatCompilation::RIEN) {
-                    espace->change_de_phase(m_compilatrice->messagere,
-                                            PhaseCompilation::COMPILATION_TERMINEE);
-                }
-                else if (espace->peut_generer_code_final()) {
-                    auto modules = it->modules_utilises();
-                    auto executions_requises = false;
-                    modules.pour_chaque_element([&](Module *module) {
-                        auto execute = module->directive_pre_executable;
-                        if (execute && !module->execution_directive_requise) {
-                            requiers_compilation_metaprogramme(espace, execute->metaprogramme);
-                            module->execution_directive_requise = true;
-                            executions_requises = true;
-                        }
-                    });
-
-                    if (!executions_requises) {
-                        espace->change_de_phase(m_compilatrice->messagere,
-                                                PhaseCompilation::AVANT_GENERATION_OBJET);
-                        requiers_generation_code_machine(espace, espace->programme);
-                    }
-                }
+                finalise_programme_avant_generation_code_machine(espace, it);
             }
         }
     }
@@ -1285,4 +1264,36 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
 
     requiers_typage(espace, copie);
     espace->fonction_point_d_entree = copie->comme_entete_fonction();
+}
+
+void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
+                                                                        Programme *programme)
+{
+    if (espace->options.resultat == ResultatCompilation::RIEN) {
+        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+        return;
+    }
+
+    if (!espace->peut_generer_code_final()) {
+        return;
+    }
+
+    auto modules = programme->modules_utilises();
+    auto executions_requises = false;
+    modules.pour_chaque_element([&](Module *module) {
+        auto execute = module->directive_pre_executable;
+        if (execute && !module->execution_directive_requise) {
+            requiers_compilation_metaprogramme(espace, execute->metaprogramme);
+            module->execution_directive_requise = true;
+            executions_requises = true;
+        }
+    });
+
+    if (executions_requises) {
+        return;
+    }
+
+    /* Tous les métaprogrammes furent exécutés, nous pouvons générer le code machine. */
+    espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_GENERATION_OBJET);
+    requiers_generation_code_machine(espace, espace->programme);
 }
