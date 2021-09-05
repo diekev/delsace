@@ -924,30 +924,10 @@ issitialise_formattage_impression :: fonc ()
 	déloge(__fonctions_formattages_impression)
 }
 
-est_fonction_parsage_ghtml :: fonc (code: *NoeudCodeEntêteFonction) -> bool
-{
-    pour code.annotations {
-        si it.nom == "FormattageImpression" {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
 exécute_pré_exécutable :: fonc ()
 {
-    fonctions := compilatrice_fonctions_parsées()
-    fonctions_de_parsage: []*NoeudCodeEntêteFonction
+    fonctions_de_parsage := fonctions_parsées_avec_annotation("FormattageImpression")
     diffère déloge(fonctions_de_parsage)
-
-    pour fonctions {
-        si !est_fonction_parsage_ghtml(it) {
-            continue
-        }
-
-        tableau_ajoute(*fonctions_de_parsage, it)
-    }
 
     saufsi fonctions_de_parsage {
         retourne

@@ -77,3 +77,33 @@ compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionC
 
 	déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }
+
+// ---------------------------------------------------------------------------------------
+// Fonctions auxilliaires pour travailler sur les fonctions parsées lors de la compilation
+
+fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotation: chaine) -> bool
+{
+    pour code.annotations {
+        si it.nom == annotation {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeEntêteFonction
+{
+	fonctions := compilatrice_fonctions_parsées()
+    résultat: []*NoeudCodeEntêteFonction
+
+    pour fonctions {
+        si !fonction_possède_annotation(it, annotation) {
+            continue
+        }
+
+        tableau_ajoute(*résultat, it)
+    }
+
+	retourne résultat
+}
