@@ -405,15 +405,18 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 
     chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
 
-    auto resultat = this->trouve_ou_cree_fichier(module, "métaprogramme", "", importe_kuri);
+    /* Les fichiers sont comparés selon leurs chemins, donc il nous faut un chemin unique pour
+     * chaque nouvelle chaine. */
+    auto nom_fichier = enchaine("chaine_ajoutée", chaines_ajoutees_a_la_compilation->taille());
+    auto chemin_fichier = enchaine(".", nom_fichier);
+    auto resultat = this->trouve_ou_cree_fichier(
+        module, nom_fichier, chemin_fichier, importe_kuri);
 
-    if (resultat.est<FichierNeuf>()) {
-        auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
-        if (!donnees_fichier->fut_charge) {
-            donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
-        }
-        gestionnaire_code->requiers_lexage(espace, resultat.resultat<FichierNeuf>().fichier);
-    }
+    assert(result.est<FichierNeuf>());
+
+    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
+    gestionnaire_code->requiers_lexage(espace, fichier);
 }
 
 void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
