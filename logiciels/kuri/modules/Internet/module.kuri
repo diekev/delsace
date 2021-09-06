@@ -150,6 +150,20 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
 chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 {
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    formatte_ipv6(*enchaineuse, *ipv6)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
+{
+    saufsi ptr_ipv6 {
+        retourne
+    }
+
+    ipv6 := mémoire(ptr_ipv6)
+
     // les champs doivent être écrits sans 0 au début
     // OK     : 2001:db8::1
     // Pas OK : 2001:0db8::0001
@@ -219,7 +233,8 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
     }
 
     si séquence_la_plus_longue.nombre_zéros == 8 {
-        retourne copie_chaine("::")
+        ajoute_au_tampon(enchaineuse, "::")
+        retourne
     }
 
     si séquence_la_plus_longue.nombre_zéros < 2 {
@@ -336,10 +351,11 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
         ptr_tampon += 1
     }
 
-    résultat := loge_chaine(taille_tampon)
-    copie_mem_nonsur(src = ptr_tampon, dst = résultat.pointeur, taille = taille_tampon)
-    retourne résultat
-}
+    chn : chaine = ---
+    chn.pointeur = ptr_tampon
+    chn.taille = taille_tampon
+    ajoute_au_tampon(enchaineuse, chn)
+} @FormattageImpression
 
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 {
@@ -389,6 +405,19 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 
 chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
 {
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    formatte_ipv6(*enchaineuse, *ipv6)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
+{
+    saufsi ptr_ipv4 {
+        retourne
+    }
+
+    ipv4 := mémoire(ptr_ipv4)
     tampon : [15]z8
     taille_tampon := 0
 
@@ -419,10 +448,11 @@ chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
         }
     }
 
-    résultat := loge_chaine(taille_tampon)
-    copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur, taille = taille_tampon)
-    retourne résultat
-}
+    chn : chaine = ---
+    chn.pointeur = *tampon[0]
+    chn.taille = taille_tampon
+    ajoute_au_tampon(enchaineuse, chn)
+} @FormattageImpression
 
 ErreurConversionIP :: erreur {
     AdresseIPv6NEstPasIPv4
