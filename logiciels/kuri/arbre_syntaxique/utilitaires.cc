@@ -2659,6 +2659,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             auto type_opaque = type->comme_opaque();
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
+            info_type->genre = GenreInfoType::OPAQUE;
             info_type->nom = type_opaque->ident->nom;
             info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
 
