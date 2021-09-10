@@ -96,5 +96,9 @@ Date hui_systeme()
     date.seconde = static_cast<int>(seconde);
     date.jour_semaine = static_cast<int>(jour_semaine);
 
+    if (date.heure >= 24) {
+        date.heure -= 24;
+    }
+
     return date;
 }
