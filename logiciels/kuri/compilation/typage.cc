@@ -1665,7 +1665,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
             auto type_membre = it.type;
             auto taille = type_membre->taille_octet;
-            max_alignement = std::max(taille, max_alignement);
+            max_alignement = std::max(type_membre->alignement, max_alignement);
 
             assert_rappel(it.type->alignement != 0, [&] {
                 std::cerr << "Dans le calcul de la taille du type : " << chaine_type(type) << '\n';
