@@ -1181,6 +1181,15 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             continue;
         }
 
+        /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
+         * et bien dans la phase pour la génération de code. */
+        if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
+            it->programme == it->espace->programme) {
+            if (it->espace->phase_courante() != PhaseCompilation::AVANT_GENERATION_OBJET) {
+                continue;
+            }
+        }
+
         ordonnanceuse.cree_tache_pour_unite(it);
     }
 
