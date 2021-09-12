@@ -112,10 +112,10 @@ void Messagere::envoie_message(Message *message)
     pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
+Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 {
     if (!interception_commencee) {
-        return;
+        return nullptr;
     }
 
     auto message = messages_phase_compilation.ajoute_element();
@@ -123,8 +123,10 @@ void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
     message->espace = espace;
     message->phase = espace->phase_courante();
 
-    file_message.enfile({nullptr, message});
+    file_message.enfile(message);
     pic_de_message = std::max(file_message.taille(), pic_de_message);
+
+    return message;
 }
 
 long Messagere::memoire_utilisee() const

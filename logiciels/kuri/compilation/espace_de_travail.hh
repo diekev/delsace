@@ -118,8 +118,8 @@ struct EspaceDeTravail {
     bool peut_generer_code_final() const;
     bool parsage_termine() const;
 
-    void change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
-                         PhaseCompilation nouvelle_phase);
+    Message *change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+                             PhaseCompilation nouvelle_phase);
     PhaseCompilation phase_courante() const;
 
     void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;

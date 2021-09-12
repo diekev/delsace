@@ -119,7 +119,8 @@ class GestionnaireCode {
 
     void requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
-    void requiers_generation_code_machine(EspaceDeTravail *espace, Programme *programme);
+    UniteCompilation *requiers_generation_code_machine(EspaceDeTravail *espace,
+                                                       Programme *programme);
 
     void requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme);
 

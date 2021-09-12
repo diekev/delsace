@@ -832,13 +832,14 @@ void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme
     unites_en_attente.ajoute(unite);
 }
 
-void GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
-                                                        Programme *programme)
+UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
+                                                                     Programme *programme)
 {
     auto unite = unites.ajoute_element(espace);
     unite->mute_raison_d_etre(RaisonDEtre::GENERATION_CODE_MACHINE);
     unite->programme = programme;
     unites_en_attente.ajoute(unite);
+    return unite;
 }
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
@@ -1320,6 +1321,10 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
 
     /* Tous les métaprogrammes furent exécutés, et la RI pour les fonctions
      * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
-    espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_GENERATION_OBJET);
-    requiers_generation_code_machine(espace, espace->programme);
+    auto message = espace->change_de_phase(m_compilatrice->messagere,
+                                           PhaseCompilation::AVANT_GENERATION_OBJET);
+    auto unite_code_machine = requiers_generation_code_machine(espace, espace->programme);
+    if (message) {
+        unite_code_machine->mute_attente(Attente::sur_message(message));
+    }
 }

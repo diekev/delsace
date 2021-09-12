@@ -65,7 +65,7 @@ struct Messagere {
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
     Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void ajoute_message_phase_compilation(EspaceDeTravail *espace);
+    Message *ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
     long memoire_utilisee() const;
 

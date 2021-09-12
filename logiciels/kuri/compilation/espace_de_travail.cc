@@ -226,11 +226,11 @@ void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
     os << "nombre_taches_optimisation : " << nombre_taches_optimisation << '\n';
 }
 
-void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
-                                      PhaseCompilation nouvelle_phase)
+Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+                                          PhaseCompilation nouvelle_phase)
 {
     phase = nouvelle_phase;
-    messagere->ajoute_message_phase_compilation(this);
+    return messagere->ajoute_message_phase_compilation(this);
 }
 
 PhaseCompilation EspaceDeTravail::phase_courante() const
