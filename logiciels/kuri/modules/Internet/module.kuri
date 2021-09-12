@@ -407,7 +407,7 @@ chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    formatte_ipv6(*enchaineuse, *ipv6)
+    formatte_ipv4(*enchaineuse, *ipv4)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
