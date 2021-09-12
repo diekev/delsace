@@ -76,17 +76,11 @@ est_valide :: fonc (courriel: &AdresseCourriel) -> bool
 }
 
 /* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
-parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
+parse_courriel_pour_info_type :: fonc (chn: chaine) -> bool, AdresseCourriel
 {
     courriel := crée_adresse_courriel(chn)
-
-    saufsi courriel.est_valide() {
-        retourne faux
-    }
-
-    copie_mem(src = courriel, dst = tampon, taille = tampon.taille)
-    retourne vrai
-}
+    retourne courriel.est_valide(), courriel
+} @ParsageURL
 
 // -----------------------------------------------------
 

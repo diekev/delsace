@@ -309,7 +309,7 @@ prépare_message_pour_parseuse :: fonc (texte: chaine) -> chaine
     retourne texte
 }
 
-parse_contenu_message_url_encoded :: fonc (parseuse: *ParseuseFormatURL, message: &MessageClienteHTTP, $T: type_de_données) -> bool, T
+parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> bool, T
 {
     //  À FAIRE : message.parse_contenu() -> Contenu(type_contenu, chaine) | Rien
     si !possède_entête(message, "Content-Length") {
@@ -336,7 +336,7 @@ parse_contenu_message_url_encoded :: fonc (parseuse: *ParseuseFormatURL, message
         retourne faux, T()
     }
 
-    raison, résultat_parsage, info := parse_texte_format_url(parseuse, message.contenu, T)
+    raison, résultat_parsage, info := parse_texte_format_url(message.contenu, T)
 
     si raison != RésultatParsage.Succès {
         retourne faux, T()
