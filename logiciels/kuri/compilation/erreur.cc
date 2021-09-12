@@ -360,6 +360,8 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres
         if (candidat_possible.distance < candidat.distance) {
             candidat = candidat_possible;
         }
+
+        return kuri::DecisionIteration::Continue;
     });
 
     return candidat;
@@ -424,8 +426,10 @@ void valeur_manquante_discr(EspaceDeTravail const &espace,
         e.ajoute_message("Plusieurs valeurs ne sont pas prises en compte :\n");
     }
 
-    valeurs_manquantes.pour_chaque_element(
-        [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
+    valeurs_manquantes.pour_chaque_element([&](kuri::chaine_statique it) {
+        e.ajoute_message("\t", it, "\n");
+        return kuri::DecisionIteration::Continue;
+    });
 }
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)

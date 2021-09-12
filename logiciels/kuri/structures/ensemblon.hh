@@ -177,8 +177,6 @@ struct ensemblon {
     }
 };
 
-enum class DecisionIteration { Arrete, Continue };
-
 template <typename T, unsigned long TAILLE_INITIALE, typename Rappel>
 void pour_chaque_element(ensemblon<T, TAILLE_INITIALE> const &ens, Rappel rappel)
 {

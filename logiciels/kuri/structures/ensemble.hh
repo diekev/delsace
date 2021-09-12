@@ -28,6 +28,8 @@
 
 namespace kuri {
 
+enum class DecisionIteration { Arrete, Continue };
+
 template <typename T>
 class ensemble {
   private:
@@ -126,7 +128,9 @@ class ensemble {
                 continue;
             }
 
-            rappel(cles[i]);
+            if (rappel(cles[i]) == DecisionIteration::Arrete) {
+                break;
+            }
         }
     }
 
