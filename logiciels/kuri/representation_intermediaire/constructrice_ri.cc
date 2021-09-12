@@ -280,22 +280,39 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     this->m_pile.efface();
 
     auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
+    auto trouve_constructeur_pour =
+        [&constructeurs](
+            AtomeGlobale *globale) -> const Compilatrice::DonneesConstructeurGlobale * {
+        for (auto &constructeur : *constructeurs) {
+            if (globale == constructeur.atome) {
+                return &constructeur;
+            }
+        }
+        return nullptr;
+    };
 
     POUR (globales) {
-        for (auto &constructeur : *constructeurs) {
-            if (it != constructeur.atome) {
-                continue;
-            }
-
+        if (it->adresse_pour_execution) {
+            // À FAIRE : ignore également les globales utilisées uniquement dans celles-ci.
+            continue;
+        }
+        auto constructeur = trouve_constructeur_pour(it);
+        if (constructeur) {
             genere_ri_transformee_pour_noeud(
-                constructeur.expression, nullptr, constructeur.transformation);
+                constructeur->expression, nullptr, constructeur->transformation);
             auto valeur = depile_valeur();
-
             if (!valeur) {
                 continue;
             }
-
             cree_stocke_mem(nullptr, it, valeur);
+        }
+        // À FAIRE : it->ident est utilisé car les globales générées par la compilatrice font
+        // crasher l'exécution dans la MV. Sans doute, les expressions constantes n'ont pas de
+        // place allouée sur la pile, donc l'assignation dépile de la mémoire appartenant à
+        // quelqu'un d'autres. Il faudra également avoir un bon système pour garantir un site à
+        // imprimer.
+        else if (it->initialisateur && it->ident) {
+            cree_stocke_mem(nullptr, it, it->initialisateur);
         }
     }
 
