@@ -1,11 +1,11 @@
 importe Fondation
 importe JSON
 importe GlibC
+importe Internet
 importe Introspection
 
 ConfigurationMySQL :: struct {
-	// @note : l'hôte doit être une adresse IP
-	hôte : chaine
+	hôte : AdresseIP
 	utilisateur : chaine
 	mot_de_passe : chaine
 	base_de_données : chaine
@@ -22,7 +22,6 @@ PiloteMySQL :: struct {
 détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
 {
 	si détruit_config {
-		déloge(pilote.config.hôte)
 		déloge(pilote.config.utilisateur)
 		déloge(pilote.config.mot_de_passe)
 		déloge(pilote.config.base_de_données)
@@ -104,7 +103,9 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	marque := obtiens_marque_stockage_temporaire()
 	diffère { set_marque_stockage_temporaire(marque) }
 
-	hôte := crée_chaine_c(pilote.config.hôte)
+	chaine_ip := chaine_depuis_ip(pilote.config.hôte)
+	diffère déloge(chaine_ip)
+	hôte := crée_chaine_c(chaine_ip)
     diffère détruit_chaine_c(hôte)
 	utilisateur := crée_chaine_c(pilote.config.utilisateur)
     diffère détruit_chaine_c(utilisateur)
