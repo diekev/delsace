@@ -232,7 +232,14 @@ void TypeFonction::marque_polymorphique()
         }
     }
 
-    if (type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+    // À FAIRE(architecture) : il est possible que le type_sortie soit nul car ce peut être une
+    // union non encore validée, donc son type_le_plus_grand ou type_structure n'est pas encore
+    // généré. Il y a plusieurs problèmes à résoudre :
+    // - une unité de compilation ne doit aller en RI tant qu'une de ses dépendances n'est pas
+    // encore validée (requiers de se débarrasser du graphe et utiliser les unités comme « noeud »)
+    // - la gestion des types polymorphiques est à revoir, notamment la manière ils sont stockés
+    // - nous ne devrions pas marquée comme polymorphique lors de la génération de RI
+    if (type_sortie && type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
     }
 }
@@ -838,7 +845,10 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees,
         graphe->connecte_type_type(type, it);
     }
 
-    graphe->connecte_type_type(type, type_sortie);
+    // À FAIRE(architecture) : voir commentaire dans TypeFonction::marque_polymorphique()
+    if (type_sortie) {
+        graphe->connecte_type_type(type, type_sortie);
+    }
 
     //	std::cerr << "appariements : " << nombre_types_apparies << '\n';
     //	std::cerr << "appels       : " << nombre_appels << '\n';
