@@ -369,7 +369,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 			valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
 			valeur_membre.info = membre.id
 
-			fonction := trouve_fonction_pour_type(table.pilote.fonctions_parsage, membre.id)
+			fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, membre.id)
 
 			saufsi fonction {
 				déloge(résultat)
@@ -493,7 +493,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 			valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
 			valeur_membre.info = membre.id
 
-			fonction := trouve_fonction_pour_type(pilote.fonctions_parsage, membre.id)
+			fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
 
 			saufsi fonction {
 				déloge(résultat)
