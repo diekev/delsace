@@ -2,7 +2,6 @@ importe Fondation
 importe JSON
 importe GlibC
 importe Introspection
-importe Temps // pour parser les dates
 
 ConfigurationMySQL :: struct {
 	// @note : l'hôte doit être une adresse IP
@@ -18,13 +17,10 @@ ErreurPiloteMySQL :: erreur {
 
 PiloteMySQL :: struct {
 	config: ConfigurationMySQL
-	fonctions_parsage : []FonctionParsage
 }
 
 détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
 {
-	déloge(pilote.fonctions_parsage)
-
 	si détruit_config {
 		déloge(pilote.config.hôte)
 		déloge(pilote.config.utilisateur)
@@ -63,14 +59,8 @@ crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPilot
 
 	pilote : PiloteMySQL
 	pilote.config = config
-	initalise_types_base(*pilote.fonctions_parsage)
 
 	retourne pilote
-}
-
-ajoute_fonction_parsage :: fonc (pilote: &PiloteMySQL, info: *InfoType, rappel: fonc(chaine, []octet)(bool))
-{
-	ajoute_fonction(*pilote.fonctions_parsage, info, rappel)
 }
 
 /* Retourne les noms des tables dans la base de données du pilote. */
@@ -529,12 +519,6 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
 fonctions_parsages_mysql : []FonctionParsage
 
-initialise_mysql :: fonc ()
-{
-    initalise_types_base(*fonctions_parsages_mysql)
-    ajoute_fonction(*fonctions_parsages_mysql, info_de(Date), parse_date_depuis_mysql)
-}
-
 parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Résultat(T)
 {
     #assert info_de(T).id == id_info.STRUCTURE
@@ -612,3 +596,116 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 
 	retourne vrai
 }
+
+// -------------------------------------------------------
+// Parsage & Formattage
+
+ajoute_fonction_de_parsage_mysql :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
+{
+    ajoute_fonction(*fonctions_parsages_mysql, info, fonction)
+}
+
+issitialise_mysql :: fonc ()
+{
+	déloge(fonctions_parsages_mysql)
+}
+
+importe Compilatrice
+
+génère_initialisation_mysql :: fonc ()
+{
+    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageMySQL")
+    diffère déloge(fonctions_de_parsage)
+
+    saufsi fonctions_de_parsage {
+        retourne
+    }
+
+	/*
+		modèle fonction de parsage : fonc (chaine, []octet) (bool)
+	 */
+
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+	diffère détruit_tampons(*enchaineuse)
+
+    // Il nous faut les modules.
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
+    ajoute_au_tampon(*enchaineuse, "importe MySQL\n")
+
+	modules_importés : []chaine
+	tableau_ajoute(*modules_importés, "Fondation")
+
+	/* Création des enveloppes pour les fonctions de parsage. */
+    pour fonctions_de_parsage {
+        // valide les types
+        si it.params.taille != 1 {
+            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre")
+            retourne
+        }
+
+        type_premier_paramètre := it.params[0].type
+        si type_premier_paramètre != info_de(chaine) {
+            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».")
+            retourne
+        }
+
+		si it.params_sorties.taille != 2 {
+            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+            retourne
+		}
+
+		type_première_sortie := it.params_sorties[0].type
+		type_deuxième_sortie := it.params_sorties[1].type
+
+		si type_première_sortie != info_de(bool) {
+            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage MySQL invalide, le première paramètre de sortie doit être de type « bool ».")
+            retourne
+		}
+
+		nom_module := compilatrice_module_pour_code(it)
+		si nom_module {
+			pour module_importé dans modules_importés {
+				si module_importé == nom_module {
+					arrête
+				}
+			}
+			sansarrêt {
+				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
+				tableau_ajoute(*modules_importés, nom_module)
+			}
+		}
+
+        ajoute_au_tampon(*enchaineuse, "parsage_mysql_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+        ajoute_au_tampon(*enchaineuse, "{\n")
+        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
+		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    /* Création de la fonction d'initialisation. */
+    ajoute_au_tampon(*enchaineuse, "initialise_mysql :: fonc ()\n")
+    ajoute_au_tampon(*enchaineuse, "{\n")
+    ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*fonctions_parsages_mysql)\n")
+
+    pour fonctions_de_parsage {
+        type_deuxième_paramètre := it.params_sorties[1].type
+        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_mysql(info_de(")
+        imprime_type(*enchaineuse, type_deuxième_paramètre)
+        ajoute_au_tampon(*enchaineuse, "), parsage_mysql_", it.nom, ")\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_mysql()\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_mysql()\n")
+
+    sources := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(sources)
+
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+}
+
+#pré_exécutable génère_initialisation_mysql()
