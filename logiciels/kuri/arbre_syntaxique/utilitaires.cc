@@ -2542,6 +2542,10 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->membres.reserve(type_struct->membres.taille());
 
             POUR (type_struct->membres) {
+                if (it.nom == ID::chaine_vide) {
+                    continue;
+                }
+
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = cree_info_type_pour(it.type);
