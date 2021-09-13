@@ -146,6 +146,12 @@ void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &m
 
     if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
         change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
+
+        /* Il est possible que les dernières tâches de typages soient pour des choses qui n'ont pas
+         * de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
+        if (nombre_taches_ri == 0) {
+            change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+        }
     }
 }
 
