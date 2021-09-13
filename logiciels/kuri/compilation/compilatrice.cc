@@ -429,8 +429,7 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::cha
         return;
     }
 
-    auto module = this->trouve_ou_cree_module(ID::chaine_vide, "");
-    ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
+    ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module_racine_compilation, {});
 }
 
 Message const *Compilatrice::attend_message()
