@@ -167,6 +167,18 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
+    si info.membres.taille == 0 {
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans membre : ")
+        imprime_type(*enchaineuse, info)
+        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des membres afin de pouvoir générer le corps.")
+
+        message := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(message)
+
+        compilatrice_rapporte_erreur(message)
+        retourne ""
+    }
+
     pour info.membres {
         ajoute_au_tampon(*enchaineuse, it.nom)
         ajoute_au_tampon(*enchaineuse, ":= faux\n")
