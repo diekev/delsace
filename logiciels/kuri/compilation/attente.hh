@@ -75,7 +75,8 @@ using AttenteSurNoeudCode = AttenteSur<NoeudCode **>;
  * son chemin dans la compilation. */
 struct Attente {
   protected:
-    using TypeAttente = std::variant<AttenteSurType,
+    using TypeAttente = std::variant<std::monostate,
+                                     AttenteSurType,
                                      AttenteSurInterfaceKuri,
                                      AttenteSurMetaProgramme,
                                      AttenteSurDeclaration,
