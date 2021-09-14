@@ -64,6 +64,7 @@ struct UniteCompilation {
     int index_courant = 0;
     int index_precedent = 0;
     int cycle = 0;
+    bool tag = false;
 
   private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
