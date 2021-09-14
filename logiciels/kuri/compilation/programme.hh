@@ -132,6 +132,11 @@ struct Programme {
     static Programme *cree_pour_metaprogramme(EspaceDeTravail *espace,
                                               MetaProgramme *metaprogramme);
 
+    void change_d_espace(EspaceDeTravail *espace_)
+    {
+        m_espace = espace_;
+    }
+
     /* Modifications. */
 
     void ajoute_fonction(NoeudDeclarationEnteteFonction *fonction);
