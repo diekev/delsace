@@ -1,0 +1,440 @@
+importe Compilatrice
+importe Fondation
+
+/* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
+ * faire le pont entre les fonctions de routages et la logique du service.
+ *
+ * Les fonctions exposées au service doivent avoir une annotation "chemin" donnant le
+ * chemin de l'url correspondant à la fonction.
+ *
+ * Les paramètres de la fonction détermine ce que le genre de route ("get", ou "post")
+ * ainsi que ce qu'il faut extraire depuis le message afin d'avoir une requête correcte.
+ *
+ * Toutes les fonctions doivent prendre en premier paramètre le type de la Serveuse, comme
+ * pointeur.
+ *
+ * Une fonction ayant un paramètre formulaire (dont le type est à renseigner dans les
+ * ParamètresGénérationInterface), sont considérer comme répondant à des méthodes POST.
+ */
+
+ParamètresGénérationInterface :: struct {
+    nom_serveuse : chaine
+    type_serveuse : chaine
+    type_données_prise : chaine
+
+    /* Le type définissant un formulaire. Sa présence indique que la fonction répond aux requêtes POST du chemin. */
+    type_formulaire: *InfoTypeStructure
+
+    /* Pour les résultats */
+    nom_type_résultat: chaine
+    type_redirection: *InfoTypeStructure
+    type_rendu_page: *InfoTypeStructure
+
+    données_fonctions: []DonnéesCréationPointDEntréePage
+}
+
+génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInterface, fichier_racine: chaine)
+{
+    options := OptionsDeCompilation()
+    options.résultat = RésultatCompilation.RIEN
+
+    espace := démarre_un_espace_de_travail("Génération Interface Serveuse", *options)
+
+    compilatrice_commence_interception(espace)
+    diffère compilatrice_termine_interception(espace)
+
+    ajoute_fichier_à_la_compilation(espace, fichier_racine)
+
+    boucle {
+        message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
+
+        si message.espace != espace {
+            continue
+        }
+
+        si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+            message_typage := message comme *MessageTypageCodeTerminé
+            code := message_typage.code
+
+            saufsi code {
+                continue
+            }
+
+            si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+                entête := code comme *NoeudCodeEntêteFonction
+
+                pour entête.annotations {
+                    si it.nom == "chemin" {
+                        crée_interface_pour_fonction(paramètres, espace, entête)
+                        arrête
+                    }
+                }
+            }
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                crée_interface_pour_initialisations_routes(paramètres, espace)
+                arrête
+            }
+        }
+    }
+}
+
+DonnéesCréationPointDEntréePage :: struct {
+    méthode : chaine
+
+    type_fonction: *InfoTypeFonction
+    nom_fonction: chaine
+
+    chemin: chaine
+    type_paramètres_chemin: *InfoTypeStructure
+
+    type_données_post: *InfoTypeStructure
+
+    type_résultat: *InfoTypeUnion
+}
+
+nouvelle_ligne :: fonc (enchaineuse: *Enchaineuse)
+{
+    enchaineuse.ajoute_au_tampon("\n")
+}
+
+construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: &DonnéesCréationPointDEntréePage)
+{
+    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n", données.méthode, données.nom_fonction)
+    enchaineuse.ajoute_au_tampon("{\n")
+
+    // extrait les données de la prise
+    enchaineuse.imprime_dans_enchaineuse("\t% := prise.contexte_.données_utilisateur(%)\n", paramètres.nom_serveuse, paramètres.type_serveuse)
+    enchaineuse.ajoute_au_tampon("\tdonnées_prise := prise.données_utilisateur(", paramètres.type_données_prise, ")\n")
+    enchaineuse.nouvelle_ligne()
+
+    // prend les paramètres d'entrée
+    si données.type_paramètres_chemin {
+        enchaineuse.imprime_dans_enchaineuse("\tparamètres_chemin, réussite_paramètres_chemin := extrait_paramètres_chemin(message.uri.chemin, %)\n", chaine_pour_type(données.type_paramètres_chemin))
+
+        enchaineuse.ajoute_au_tampon("\tsaufsi réussite_paramètres_chemin {\n")
+        enchaineuse.ajoute_au_tampon("\t\tretourne page_non_trouvée()\n")
+        enchaineuse.ajoute_au_tampon("\t}\n")
+        enchaineuse.nouvelle_ligne()
+    }
+
+    si données.type_données_post {
+        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chaine_pour_type(données.type_données_post))
+
+        enchaineuse.ajoute_au_tampon("\tsaufsi résultat_parsage == RésultatParsage.Succès {\n")
+        enchaineuse.ajoute_au_tampon("\t\tretourne mauvaise_requête()\n")
+        enchaineuse.ajoute_au_tampon("\t}\n")
+        enchaineuse.nouvelle_ligne()
+    }
+
+    requiers_utilisateur_connecté := détermine_permission_accès_page(données.type_fonction) == PermissionAccèsPage.UTILISATEUR_CONNECTÉ
+
+    si requiers_utilisateur_connecté {
+        enchaineuse.ajoute_au_tampon("\tsaufsi données_prise.connecté {\n")
+        enchaineuse.ajoute_au_tampon("\t\tretourne redirige(\"/connexion/\")\n")
+        enchaineuse.ajoute_au_tampon("\t)\n")
+        enchaineuse.nouvelle_ligne()
+        enchaineuse.ajoute_au_tampon("\tutilisateur_connecté : UtilisateurConnecté\n")
+        enchaineuse.nouvelle_ligne()
+    }
+
+    // appel la fonction
+    enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%", données.nom_fonction, paramètres.nom_serveuse)
+
+    si requiers_utilisateur_connecté {
+        enchaineuse.ajoute_au_tampon(", utilisateur_connecté")
+    }
+
+    si données.type_paramètres_chemin {
+        enchaineuse.ajoute_au_tampon(", paramètres_chemin")
+    }
+
+    si données.type_données_post {
+        enchaineuse.ajoute_au_tampon(", paramètres_post")
+    }
+
+    enchaineuse.ajoute_au_tampon(")")
+    enchaineuse.nouvelle_ligne()
+
+    // si erreur, retourne erreur
+    enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n")
+
+    pour données.type_résultat.membres {
+        si it.nom == "sinon_" {
+            continue
+        }
+
+        // À FAIRE(langage) : "." à droite de "comme" échoue
+        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
+        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+            continue
+        }
+
+        type_membre := it.id
+
+        enchaineuse.imprime_dans_enchaineuse("\t\t% {\n", it.nom)
+        enchaineuse.imprime_dans_enchaineuse("\t\t\t__valeur := résultat.%\n", it.nom)
+
+        si type_membre == paramètres.type_redirection {
+            // crée une redirection
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne redirige(__valeur.chemin_redirection)\n")
+        }
+        sinon si est_type_rendu_page(paramètres, type_membre) {
+            // rends les données pour une page HTML
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
+        }
+
+        enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
+    }
+
+    enchaineuse.imprime_dans_enchaineuse("\t\tsinon {\n")
+    enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne erreur_interne()\n")
+    enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
+    enchaineuse.imprime_dans_enchaineuse("\t}")
+    enchaineuse.nouvelle_ligne()
+
+    enchaineuse.ajoute_au_tampon("}\n")
+}
+
+PermissionAccèsPage :: énum {
+    UTILISATEUR_CONNECTÉ
+    VISITEUR
+}
+
+détermine_permission_accès_page :: fonc (type_fonction: *InfoTypeFonction) -> PermissionAccèsPage
+{
+    /*
+    À FAIRE : utilisateur connecté
+    type_référence_utilisateur_connecté := info_de(type_de(&UtilisateurConnecté))
+    // type_pointeur_utilisateur_connecté := info_de(type_de(*UtilisateurConnecté))
+
+    pour type_fonction.types_entrée {
+        si it == type_référence_utilisateur_connecté {
+            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ
+        }
+    }
+    */
+
+    retourne PermissionAccèsPage.VISITEUR
+}
+
+/*
+
+    CONVENTION :
+    - si une fonction ne possède pas d'UtilisateurConnecté, redirige vers l'acceuil
+
+ */
+
+est_résultat :: fonc (info: *InfoType) -> bool
+{
+    saufsi info.id == id_info.UNION {
+        retourne faux
+    }
+
+    info_union := info comme *InfoTypeUnion
+
+    saufsi info_union.nom == "Résultat" {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+est_formulaire :: fonc (paramètres: *ParamètresGénérationInterface, info: *InfoTypeStructure) -> bool
+{
+    si info == paramètres.type_formulaire {
+        retourne vrai
+    }
+
+    pour info.structs_employées {
+        si it == paramètres.type_formulaire {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> DonnéesCréationPointDEntréePage
+{
+    type_fonction := fonction.type comme *InfoTypeFonction
+
+    /* Parse les types en entrée. */
+    type_formulaire : *InfoTypeStructure
+    requiers_formulaire := faux
+    pour type_fonction.types_entrée {
+        si it.id == id_info.STRUCTURE {
+            info_struct := it comme *InfoTypeStructure
+            requiers_formulaire = est_formulaire(paramètres, info_struct)
+            si requiers_formulaire {
+                type_formulaire = info_struct
+            }
+        }
+    }
+
+    /* Parse le type en sortie. */
+    si type_fonction.types_sortie.taille == 0 {
+        compilatrice_rapporte_erreur("Aucune valeur de sortie pour la fonction !")
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
+    si type_fonction.types_sortie.taille > 1 {
+        compilatrice_rapporte_erreur("La fonction possède trop de sortie !")
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
+    si !est_type_résultat(paramètres, type_fonction.types_sortie[0]) {
+        compilatrice_rapporte_erreur("La fonction ne retourne pas une valeur du type de résultat attendu !")
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
+    type_résultat := type_fonction.types_sortie[0] comme *InfoTypeUnion
+
+    chemin : chaine
+    pour fonction.annotations {
+        si it.nom == "chemin" {
+            chemin = it.valeur
+            arrête
+        }
+    }
+    sansarrêt {
+        compilatrice_rapporte_erreur("La fonction n'est pas annotée avec un chemin !\n")
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
+    /* Crée les données. */
+    données: DonnéesCréationPointDEntréePage
+
+    données.méthode = si requiers_formulaire {
+        "post"
+    }
+    sinon {
+        "get"
+    }
+
+    données.nom_fonction = fonction.nom
+    données.type_fonction = type_fonction
+    données.type_données_post = type_formulaire
+    données.type_résultat = type_résultat
+    données.chemin = chemin
+
+    retourne données
+}
+
+est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> bool
+{
+    si type.id != id_info.UNION {
+        retourne faux
+    }
+
+    type_union := type comme *InfoTypeUnion
+    si type_union.nom != paramètres.nom_type_résultat {
+        retourne faux
+    }
+
+    /* Vérifie que les types de tous les membres sont connus. */
+    pour type_union.membres {
+        si it.nom == "sinon_" {
+            continue
+        }
+
+        // À FAIRE(langage) : "." à droite de "comme" échoue
+        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
+        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+            continue
+        }
+
+        type_membre := it.id
+
+        si type_membre == paramètres.type_redirection {
+            continue
+        }
+
+        si est_type_rendu_page(paramètres, type_membre) {
+            continue
+        }
+
+        compilatrice_rapporte_erreur("Type membre du résultat inconnu !\n")
+    }
+
+    retourne vrai
+}
+
+est_type_rendu_page :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> bool
+{
+    si paramètres.type_rendu_page == type {
+        retourne vrai
+    }
+
+    si type.id != id_info.STRUCTURE {
+        retourne faux
+    }
+
+    type_struct := type comme *InfoTypeStructure
+
+    pour type_struct.structs_employées {
+        si it == paramètres.type_rendu_page {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+type_depuis_résultat :: fonc (info: *InfoType) -> *InfoTypeStructure
+{
+    info_union := info comme *InfoTypeUnion
+    retourne info_union.type_le_plus_grand comme *InfoTypeStructure //  À FAIRE : ce peut ne pas être une structure
+}
+
+crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, fonction: *NoeudCodeEntêteFonction)
+{
+    données := parse_fonction(paramètres, fonction)
+
+    tableau_ajoute(*paramètres.données_fonctions, données)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    // Il nous faut les modules
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n", "importe ConnexionTCP\n", "importe Réseau\n", "importe BazimaInterne\n", "importe ServeuseHTTP\n")
+
+    construit_interface(*enchaineuse, paramètres, données)
+
+    interface := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(interface)
+
+    ajoute_chaine_à_la_compilation(espace, interface)
+}
+
+crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    // Il nous faut les modules
+    ajoute_au_tampon(*enchaineuse, "importe ServeuseHTTP\n")
+
+    imprime_dans_enchaineuse(*enchaineuse, "initialise_routes :: fonc (serveuse: *ServeuseHTTP.ServeuseHTTP)\n")
+    ajoute_au_tampon(*enchaineuse, "{\n")
+
+    pour paramètres.données_fonctions {
+        si it.méthode == "get" {
+            imprime_dans_enchaineuse(*enchaineuse, "\tserveuse.ajoute_route_get(\"%\", get_%)\n", it.chemin, it.nom_fonction)
+        }
+        sinon si it.méthode == "post" {
+            imprime_dans_enchaineuse(*enchaineuse, "\tserveuse.ajoute_route_post(\"%\", post_%)\n", it.chemin, it.nom_fonction)
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+
+    interface := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(interface)
+
+    ajoute_chaine_à_la_compilation(espace, interface)
+}
