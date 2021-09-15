@@ -1,6 +1,10 @@
 importe Compilatrice
 importe Fondation
 
+Redirection :: struct {
+    chemin_redirection: chaine
+}
+
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.
  *
@@ -15,6 +19,9 @@ importe Fondation
  *
  * Une fonction ayant un paramètre formulaire (dont le type est à renseigner dans les
  * ParamètresGénérationInterface), sont considérer comme répondant à des méthodes POST.
+ *
+ * Pour gérer les connexions, un type pour définir un utilisateur doit être définis, ainsi
+ * qu'une méthode "utilisateur_connecté" prenant le type de connexion spécifique au programme.
  */
 
 ParamètresGénérationInterface :: struct {
@@ -30,7 +37,12 @@ ParamètresGénérationInterface :: struct {
     type_redirection: *InfoTypeStructure
     type_rendu_page: *InfoTypeStructure
 
+    type_utilisateur_connecté: *InfoTypeStructure
+    chemin_connexion: chaine
+
     données_fonctions: []DonnéesCréationPointDEntréePage
+
+    module_à_importer: chaine
 }
 
 génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInterface, fichier_racine: chaine)
@@ -131,22 +143,28 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.nouvelle_ligne()
     }
 
-    requiers_utilisateur_connecté := détermine_permission_accès_page(données.type_fonction) == PermissionAccèsPage.UTILISATEUR_CONNECTÉ
+    chaine_utilisateur_connecté : chaine
 
-    si requiers_utilisateur_connecté {
-        enchaineuse.ajoute_au_tampon("\tsaufsi données_prise.connecté {\n")
-        enchaineuse.ajoute_au_tampon("\t\tretourne redirige(\"/connexion/\")\n")
-        enchaineuse.ajoute_au_tampon("\t)\n")
-        enchaineuse.nouvelle_ligne()
-        enchaineuse.ajoute_au_tampon("\tutilisateur_connecté : UtilisateurConnecté\n")
-        enchaineuse.nouvelle_ligne()
+    permission := détermine_permission_accès_page(paramètres, données.type_fonction)
+
+    si permission == PermissionAccèsPage.UTILISATEUR_CONNECTÉ {
+        enchaineuse.ajoute_au_tampon("\t__utilisateur_connecté := données_prise.utilisateur_connecté()")
+        enchaineuse.ajoute_au_tampon("\tsaufsi __utilisateur_connecté {")
+        enchaineuse.ajoute_au_tampon("\t\tretourne redirige(\"", paramètres.chemin_connexion, "\")\n")
+        enchaineuse.ajoute_au_tampon("\t}\n")
+
+        chaine_utilisateur_connecté = "mémoire(__utilisateur_connecté)"
+    }
+    sinon si permission == PermissionAccèsPage.UTILISATEUR_CONNECTÉ_OU_VISITEUR {
+        enchaineuse.ajoute_au_tampon("\t__utilisateur_connecté := données_prise.utilisateur_connecté()\n")
+        chaine_utilisateur_connecté = "__utilisateur_connecté"
     }
 
     // appel la fonction
     enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%", données.nom_fonction, paramètres.nom_serveuse)
 
-    si requiers_utilisateur_connecté {
-        enchaineuse.ajoute_au_tampon(", utilisateur_connecté")
+    si chaine_utilisateur_connecté {
+        enchaineuse.ajoute_au_tampon(", ", chaine_utilisateur_connecté)
     }
 
     si données.type_paramètres_chemin {
@@ -202,22 +220,26 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
 
 PermissionAccèsPage :: énum {
     UTILISATEUR_CONNECTÉ
+    UTILISATEUR_CONNECTÉ_OU_VISITEUR
     VISITEUR
 }
 
-détermine_permission_accès_page :: fonc (type_fonction: *InfoTypeFonction) -> PermissionAccèsPage
+détermine_permission_accès_page :: fonc (paramètres: *ParamètresGénérationInterface, type_fonction: *InfoTypeFonction) -> PermissionAccèsPage
 {
-    /*
-    À FAIRE : utilisateur connecté
-    type_référence_utilisateur_connecté := info_de(type_de(&UtilisateurConnecté))
-    // type_pointeur_utilisateur_connecté := info_de(type_de(*UtilisateurConnecté))
-
     pour type_fonction.types_entrée {
-        si it == type_référence_utilisateur_connecté {
+        si it == paramètres.type_utilisateur_connecté {
             retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ
         }
+
+        /* Une référence est un pointeur non-nul, donc nous devons avoir un utilisateur connecté. */
+        si est_référence_vers(it, paramètres.type_utilisateur_connecté) {
+            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ
+        }
+
+        si est_pointeur_vers(it, paramètres.type_utilisateur_connecté) {
+            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ_OU_VISITEUR
+        }
     }
-    */
 
     retourne PermissionAccèsPage.VISITEUR
 }
@@ -244,21 +266,6 @@ est_résultat :: fonc (info: *InfoType) -> bool
     retourne vrai
 }
 
-est_formulaire :: fonc (paramètres: *ParamètresGénérationInterface, info: *InfoTypeStructure) -> bool
-{
-    si info == paramètres.type_formulaire {
-        retourne vrai
-    }
-
-    pour info.structs_employées {
-        si it == paramètres.type_formulaire {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
 parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> DonnéesCréationPointDEntréePage
 {
     type_fonction := fonction.type comme *InfoTypeFonction
@@ -269,7 +276,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
     pour type_fonction.types_entrée {
         si it.id == id_info.STRUCTURE {
             info_struct := it comme *InfoTypeStructure
-            requiers_formulaire = est_formulaire(paramètres, info_struct)
+            requiers_formulaire = est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire)
             si requiers_formulaire {
                 type_formulaire = info_struct
             }
@@ -401,7 +408,11 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n", "importe ConnexionTCP\n", "importe Réseau\n", "importe BazimaInterne\n", "importe ServeuseHTTP\n")
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n", "importe ConnexionTCP\n", "importe Réseau\n", "importe ServeuseHTTP\n")
+
+    si paramètres.module_à_importer {
+        ajoute_au_tampon(*enchaineuse, "importe ", paramètres.module_à_importer, "\n")
+    }
 
     construit_interface(*enchaineuse, paramètres, données)
 
