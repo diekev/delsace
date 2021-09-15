@@ -3087,6 +3087,10 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             kuri::tableau<AtomeConstante *> valeurs_membres;
 
             POUR (type_struct->membres) {
+                if (it.nom == ID::chaine_vide) {
+                    continue;
+                }
+
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
                 auto valeurs = kuri::tableau<AtomeConstante *>(4);
                 valeurs[0] = cree_chaine(it.nom->nom);
