@@ -58,7 +58,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto fichier = Fichier();
         fichier.charge_tampon(lng::tampon_source(std::move(texte)));
 
-        Lexeuse lexeuse(compilatrice.contexte_lexage(), &fichier);
+        Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
         lexeuse.performe_lexage();
 
         auto tacheronne = Tacheronne(compilatrice);

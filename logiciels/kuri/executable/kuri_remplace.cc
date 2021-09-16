@@ -137,7 +137,7 @@ static void reecris_fichier(std::filesystem::path &chemin, Configuration const &
         auto tampon = charge_contenu_fichier(chemin.c_str());
         donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(),
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr),
                                &donnees_fichier,
                                INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
         lexeuse.performe_lexage();

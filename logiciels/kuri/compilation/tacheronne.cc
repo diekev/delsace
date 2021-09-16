@@ -470,7 +470,8 @@ void Tacheronne::gere_tache()
                     if (!fichier->en_lexage) {
                         fichier->en_lexage = true;
                         auto debut_lexage = dls::chrono::compte_seconde();
-                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), fichier);
+                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unite->espace),
+                                               fichier);
                         lexeuse.performe_lexage();
                         temps_lexage += debut_lexage.temps();
                         fichier->en_lexage = false;

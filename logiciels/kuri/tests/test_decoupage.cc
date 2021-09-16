@@ -145,7 +145,7 @@ Lexeuse lexeuse(str, str + len);
 
     auto compilatrice = Compilatrice("");
 
-    Lexeuse lexeuse(compilatrice.contexte_lexage(), &donnees_fichier);
+    Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
     lexeuse.performe_lexage();
 
     return verifie_lexemes(donnees_fichier.lexemes.begin(),

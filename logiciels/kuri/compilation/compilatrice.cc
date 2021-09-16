@@ -367,10 +367,10 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
     return espace;
 }
 
-ContexteLexage Compilatrice::contexte_lexage()
+ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 {
-    auto rappel_erreur = [this](kuri::chaine message) {
-        this->rapporte_erreur(nullptr, message, erreur::Genre::LEXAGE);
+    auto rappel_erreur = [this, espace](kuri::chaine message) {
+        this->rapporte_erreur(espace, message, erreur::Genre::LEXAGE);
     };
 
     return {gerante_chaine, table_identifiants, rappel_erreur};
@@ -493,7 +493,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_sta
     donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     auto lexeuse = Lexeuse(
-        contexte_lexage(), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+        contexte_lexage(espace), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
     return converti_tableau_lexemes(donnees_fichier->lexemes);

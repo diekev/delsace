@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
         fichier.charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), &fichier);
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
         lexeuse.performe_lexage();
     }
 #else

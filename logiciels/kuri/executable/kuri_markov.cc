@@ -144,7 +144,7 @@ int main(int argc, const char **argv)
         auto tampon = charge_contenu_fichier(chemin.c_str());
         donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), &donnees_fichier);
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
         lexeuse.performe_lexage();
 
         test_markov_id_simple(donnees_fichier.lexemes);

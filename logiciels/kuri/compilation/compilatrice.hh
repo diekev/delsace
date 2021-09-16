@@ -227,7 +227,7 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    ContexteLexage contexte_lexage();
+    ContexteLexage contexte_lexage(EspaceDeTravail *espace);
 
     long memoire_utilisee() const;
 
