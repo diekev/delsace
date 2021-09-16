@@ -26,6 +26,7 @@
 
 #include "structures/enchaineuse.hh"
 
+#include "lexeuse.hh"
 #include "modules.hh"
 
 BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexemes(fichier->lexemes), m_fichier(fichier)
@@ -76,10 +77,12 @@ kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
     enchaineuse << m_fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
 
     POUR (m_donnees_etat_syntaxage) {
-        imprime_ligne_avec_message(enchaineuse, m_fichier, it.lexeme, it.message);
+        auto site = SiteSource::cree(m_fichier, it.lexeme);
+        imprime_ligne_avec_message(enchaineuse, site, it.message);
     }
 
-    imprime_ligne_avec_message(enchaineuse, m_fichier, lexeme, message);
+    auto site = SiteSource::cree(m_fichier, lexeme);
+    imprime_ligne_avec_message(enchaineuse, site, message);
     return enchaineuse.chaine();
 }
 

@@ -26,13 +26,15 @@
 
 #include <fstream>
 
+#include "parsage/identifiant.hh"
+#include "parsage/lexeuse.hh"
+
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
-#include "parsage/identifiant.hh"
 #include "programme.hh"
 #include "statistiques/statistiques.hh"
 
@@ -244,6 +246,17 @@ PhaseCompilation EspaceDeTravail::phase_courante() const
     return phase;
 }
 
+SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
+{
+    if (!noeud) {
+        return {};
+    }
+
+    auto const lexeme = noeud->lexeme;
+    auto const fichier = compilatrice().fichier(lexeme->fichier);
+    return SiteSource::cree(fichier, lexeme);
+}
+
 void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
@@ -273,10 +286,19 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
 
 Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier,
                                         int ligne,
-                                        kuri::chaine const &message) const
+                                        kuri::chaine const &message,
+                                        erreur::Genre genre) const
 {
     possede_erreur = true;
-    return ::rapporte_erreur(this, fichier, ligne, message);
+    return ::rapporte_erreur(this, fichier, ligne, message, genre);
+}
+
+Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
+                                        kuri::chaine const &message,
+                                        erreur::Genre genre) const
+{
+    possede_erreur = true;
+    return ::rapporte_erreur(this, site, message, genre);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,

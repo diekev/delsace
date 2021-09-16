@@ -40,6 +40,7 @@
 struct Coulisse;
 struct ConstructriceRI;
 struct Programme;
+struct SiteSource;
 
 /* IPA :
  * - crée_un_espace_de_travail
@@ -122,6 +123,8 @@ struct EspaceDeTravail {
                              PhaseCompilation nouvelle_phase);
     PhaseCompilation phase_courante() const;
 
+    SiteSource site_source_pour(NoeudExpression const *noeud) const;
+
     void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
     void rapporte_avertissement(kuri::chaine const &fichier,
                                 int ligne,
@@ -132,7 +135,11 @@ struct EspaceDeTravail {
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
     Erreur rapporte_erreur(kuri::chaine const &fichier,
                            int ligne,
-                           kuri::chaine const &message) const;
+                           kuri::chaine const &message,
+                           erreur::Genre genre = erreur::Genre::NORMAL) const;
+    Erreur rapporte_erreur(SiteSource site,
+                           kuri::chaine const &message,
+                           erreur::Genre genre = erreur::Genre::NORMAL) const;
     Erreur rapporte_erreur_sans_site(const kuri::chaine &message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 

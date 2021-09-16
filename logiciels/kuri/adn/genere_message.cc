@@ -92,9 +92,7 @@ int main(int argc, const char **argv)
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto rappel_erreur = [](kuri::chaine message) { std::cerr << message << '\n'; };
-
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
+    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();

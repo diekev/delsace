@@ -369,8 +369,13 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
 
 ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 {
-    auto rappel_erreur = [this, espace](kuri::chaine message) {
-        this->rapporte_erreur(espace, message, erreur::Genre::LEXAGE);
+    auto rappel_erreur = [this, espace](SiteSource site, kuri::chaine message) {
+        if (espace) {
+            espace->rapporte_erreur(site, message, erreur::Genre::LEXAGE);
+        }
+        else {
+            this->rapporte_erreur(espace, message, erreur::Genre::LEXAGE);
+        }
     };
 
     return {gerante_chaine, table_identifiants, rappel_erreur};

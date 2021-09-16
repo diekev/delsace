@@ -32,6 +32,7 @@
 
 #include "parsage/identifiant.hh"
 #include "parsage/lexemes.hh"
+#include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
@@ -488,12 +489,8 @@ Erreur &Erreur::ajoute_message(const kuri::chaine &m)
 Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 {
     assert(espace);
-
-    auto fichier = espace->compilatrice().fichier(site->lexeme->fichier);
-
-    imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
+    imprime_ligne_avec_message(enchaineuse, espace->site_source_pour(site), "");
     enchaineuse << '\n';
-
     return *this;
 }
 
@@ -536,27 +533,8 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-enum class TagPourSiteOuLigne {
-    INVALIDE,
-    SITE,
-    LIGNE,
-};
-
-template <>
-struct tag_pour_donnees<TagPourSiteOuLigne, const NoeudExpression *> {
-    static constexpr auto tag = TagPourSiteOuLigne::SITE;
-};
-
-template <>
-struct tag_pour_donnees<TagPourSiteOuLigne, int> {
-    static constexpr auto tag = TagPourSiteOuLigne::LIGNE;
-};
-
-using SiteOuLigne = Resultat<const NoeudExpression *, int, TagPourSiteOuLigne>;
-
 static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
-                                              Fichier const *fichier,
-                                              SiteOuLigne site_ou_ligne,
+                                              SiteSource site,
                                               erreur::Genre genre,
                                               const kuri::chaine_statique message)
 {
@@ -579,18 +557,8 @@ static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
         flux << "\nAvertissement : ";
     }
 
-    if (fichier) {
-        if (site_ou_ligne.est<const NoeudExpression *>()) {
-            const auto site = site_ou_ligne.resultat<const NoeudExpression *>();
-            imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
-            flux << '\n';
-        }
-        else if (site_ou_ligne.est<int>()) {
-            const auto ligne = site_ou_ligne.resultat<int>();
-            imprime_ligne_avec_message(flux, fichier, ligne, "");
-            flux << '\n';
-        }
-    }
+    imprime_ligne_avec_message(flux, site, "");
+    flux << '\n';
 
     flux << message;
     flux << '\n';
@@ -604,13 +572,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message)
 {
-    const Fichier *fichier = nullptr;
-
-    if (site) {
-        fichier = espace->compilatrice().fichier(site->lexeme->fichier);
-    }
-
-    return genere_entete_erreur_impl(espace, fichier, site, genre, message);
+    return genere_entete_erreur_impl(espace, espace->site_source_pour(site), genre, message);
 }
 
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
@@ -619,7 +581,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message)
 {
-    return genere_entete_erreur_impl(espace, fichier, ligne, genre, message);
+    return genere_entete_erreur_impl(espace, SiteSource(fichier, ligne), genre, message);
 }
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
@@ -646,10 +608,22 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        kuri::chaine const &chemin_fichier,
                        int ligne,
-                       kuri::chaine const &message)
+                       kuri::chaine const &message,
+                       erreur::Genre genre)
 {
     const auto fichier = espace->compilatrice().fichier(chemin_fichier);
     auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur_impl(espace, fichier, ligne, {}, message);
+    erreur.enchaineuse << genere_entete_erreur_impl(
+        espace, SiteSource(fichier, ligne), genre, message);
+    return erreur;
+}
+
+Erreur rapporte_erreur(EspaceDeTravail const *espace,
+                       SiteSource site,
+                       kuri::chaine const &message,
+                       erreur::Genre genre)
+{
+    auto erreur = Erreur(espace);
+    erreur.enchaineuse << genere_entete_erreur_impl(espace, site, genre, message);
     return erreur;
 }

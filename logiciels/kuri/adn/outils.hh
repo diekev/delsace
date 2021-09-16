@@ -31,6 +31,8 @@ struct chaine;
 struct chaine_statique;
 }  // namespace kuri
 
+struct SiteSource;
+
 kuri::chaine supprime_accents(kuri::chaine_statique avec_accent);
 bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement);
 
@@ -42,3 +44,5 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique nom,
                               kuri::chaine_statique espace,
                               kuri::chaine_statique param_gabarit);
+
+void imprime_erreur(SiteSource site, kuri::chaine message);

@@ -24,7 +24,13 @@
 
 #include "outils.hh"
 
+#include "biblinternes/langage/erreur.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
+
 #include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
 
 bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
 {
@@ -93,4 +99,35 @@ void prodeclare_struct_espace(std::ostream &os,
     }
     os << "struct " << nom << ";\n";
     os << "}\n";
+}
+
+void imprime_erreur(SiteSource site, kuri::chaine message)
+{
+    auto fichier = site.fichier;
+    auto index_ligne = site.index_ligne;
+    auto index_colonne = site.index_colonne;
+
+    auto ligne_courante = fichier->tampon()[index_ligne];
+
+    Enchaineuse enchaineuse;
+    enchaineuse << "Erreur : " << fichier->chemin() << ":" << index_ligne + 1 << ":\n";
+    enchaineuse << ligne_courante;
+
+    /* La position ligne est en octet, il faut donc compter le nombre d'octets
+     * de chaque point de code pour bien formater l'erreur. */
+    for (auto i = 0l; i < index_colonne;) {
+        if (ligne_courante[i] == '\t') {
+            enchaineuse << '\t';
+        }
+        else {
+            enchaineuse << ' ';
+        }
+
+        i += lng::decalage_pour_caractere(ligne_courante, i);
+    }
+
+    enchaineuse << "^~~~\n";
+    enchaineuse << message;
+
+    std::cerr << enchaineuse.chaine();
 }

@@ -34,6 +34,7 @@ struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
 struct NoeudExpression;
+struct SiteSource;
 struct Type;
 struct TypeCompose;
 
@@ -201,7 +202,13 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        const kuri::chaine &fichier,
                        int ligne,
-                       const kuri::chaine &message);
+                       const kuri::chaine &message,
+                       erreur::Genre genre = erreur::Genre::NORMAL);
+
+Erreur rapporte_erreur(EspaceDeTravail const *espace,
+                       SiteSource site,
+                       const kuri::chaine &message,
+                       erreur::Genre genre = erreur::Genre::NORMAL);
 
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                                   NoeudExpression const *site,

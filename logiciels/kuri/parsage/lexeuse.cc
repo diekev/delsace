@@ -765,30 +765,15 @@ void Lexeuse::rapporte_erreur(const kuri::chaine &quoi)
 {
     m_possede_erreur = true;
 
-    // À FAIRE : formatte le message d'erreur selon le standard du langage.
-    auto ligne_courante = m_donnees->tampon()[m_compte_ligne];
+    SiteSource site;
+    site.fichier = m_donnees;
+    site.index_ligne = m_compte_ligne;
+    site.index_colonne = m_position_ligne;
+    // À FAIRE : plage de l'erreur.
+    site.index_colonne_min = m_position_ligne;
+    site.index_colonne_max = m_position_ligne;
 
-    Enchaineuse enchaineuse;
-    enchaineuse << "Erreur : " << m_donnees->chemin() << ":" << m_compte_ligne + 1 << ":\n";
-    enchaineuse << ligne_courante;
-
-    /* La position ligne est en octet, il faut donc compter le nombre d'octets
-     * de chaque point de code pour bien formater l'erreur. */
-    for (auto i = 0l; i < m_position_ligne;) {
-        if (ligne_courante[i] == '\t') {
-            enchaineuse << '\t';
-        }
-        else {
-            enchaineuse << ' ';
-        }
-
-        i += lng::decalage_pour_caractere(ligne_courante, i);
-    }
-
-    enchaineuse << "^~~~\n";
-    enchaineuse << quoi;
-
-    m_rappel_erreur(enchaineuse.chaine());
+    m_rappel_erreur(site, quoi);
 }
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
@@ -1469,4 +1454,15 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
 
     m_taille_mot_courant = 0;
     m_dernier_id = GenreLexeme::NOMBRE_REEL;
+}
+
+SiteSource SiteSource::cree(const Fichier *fichier, const Lexeme *lexeme)
+{
+    SiteSource site;
+    site.fichier = fichier;
+    site.index_ligne = lexeme->ligne;
+    site.index_colonne = lexeme->colonne;
+    site.index_colonne_min = site.index_colonne;
+    site.index_colonne_max = static_cast<int>(site.index_colonne + lexeme->chaine.taille());
+    return site;
 }

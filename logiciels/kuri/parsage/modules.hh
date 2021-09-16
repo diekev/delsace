@@ -51,6 +51,7 @@ struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDirectivePreExecutable;
+struct SiteSource;
 struct Statistiques;
 
 struct Fichier {
@@ -220,15 +221,7 @@ struct SystemeModule {
     Fichier *fichier(kuri::chaine_statique chemin) const;
 };
 
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                Lexeme const *lexeme,
-                                kuri::chaine_statique message);
-
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                int ligne,
-                                kuri::chaine_statique message);
+void imprime_ligne_avec_message(Enchaineuse &flux, SiteSource site, kuri::chaine_statique message);
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */

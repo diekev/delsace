@@ -33,6 +33,8 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "lexeuse.hh"
+
 /* ************************************************************************** */
 
 bool Fichier::importe_module(IdentifiantCode *nom_module) const
@@ -169,44 +171,45 @@ Fichier *SystemeModule::fichier(kuri::chaine_statique chemin) const
     return nullptr;
 }
 
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                Lexeme const *lexeme,
-                                kuri::chaine_statique message)
+static dls::vue_chaine sous_chaine(dls::vue_chaine chaine, int debut, int fin)
 {
-    flux << fichier->chemin() << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
-    flux << message << "\n";
-
-    auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
-
-    for (auto i = 0; i < 5 - nc; ++i) {
-        flux << ' ';
-    }
-
-    flux << lexeme->ligne + 1 << " | " << fichier->tampon()[lexeme->ligne];
-    flux << "      | ";
-
-    lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon()[lexeme->ligne]);
-    flux << '^';
-    lng::erreur::imprime_tilde(flux, lexeme->chaine);
-    flux << '\n';
+    return {&chaine[debut], fin - debut};
 }
 
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                int ligne,
+void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
+                                SiteSource site,
                                 kuri::chaine_statique message)
 {
-    flux << fichier->chemin() << ':' << ligne << " : ";
-    flux << message << "\n";
+    auto const fichier = site.fichier;
 
-    auto nc = dls::num::nombre_de_chiffres(ligne);
-
-    for (auto i = 0; i < 5 - nc; ++i) {
-        flux << ' ';
+    if (fichier == nullptr) {
+        /* Il est possible que le fichier soit nul dans certains cas, par exemple quand une erreur
+         * est rapportée sans site. */
+        return;
     }
 
-    flux << ligne << " | " << fichier->tampon()[ligne - 1];
+    auto const index_ligne = site.index_ligne;
+    auto const numero_ligne = site.index_ligne + 1;
+    auto const index_colonne = site.index_colonne;
+    auto const texte_ligne = fichier->tampon()[index_ligne];
+
+    enchaineuse << fichier->chemin() << ':' << numero_ligne << ':' << index_colonne << " : ";
+    enchaineuse << message << "\n";
+
+    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numero_ligne); ++i) {
+        enchaineuse << ' ';
+    }
+
+    enchaineuse << numero_ligne << " | " << texte_ligne;
+
+    if (index_colonne != -1) {
+        enchaineuse << "      | ";
+        lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne);
+        enchaineuse << '^';
+        lng::erreur::imprime_tilde(
+            enchaineuse, sous_chaine(texte_ligne, index_colonne, site.index_colonne_max));
+        enchaineuse << '\n';
+    }
 }
 
 dls::chaine charge_contenu_fichier(const dls::chaine &chemin)
