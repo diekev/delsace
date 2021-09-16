@@ -456,10 +456,10 @@ static kuri::tableau_statique<kuri::Lexeme> converti_tableau_lexemes(
     return resultat;
 }
 
-kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(kuri::chaine_statique chemin_donne,
+kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail *espace,
+                                                                kuri::chaine_statique chemin_donne,
                                                                 NoeudExpression const *site)
 {
-    auto espace = espace_de_travail_defaut;
     auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
 
     if (!std::filesystem::exists(chemin.c_str())) {

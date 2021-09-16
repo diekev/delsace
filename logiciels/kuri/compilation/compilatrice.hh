@@ -257,7 +257,8 @@ struct Compilatrice {
     void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
     const Message *attend_message();
     EspaceDeTravail *espace_defaut_compilation();
-    kuri::tableau_statique<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
+    kuri::tableau_statique<kuri::Lexeme> lexe_fichier(EspaceDeTravail *espace,
+                                                      kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
     kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);

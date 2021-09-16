@@ -534,7 +534,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
         auto chemin_recu = depile<kuri::chaine_statique>(site);
-        auto lexemes = compilatrice.lexe_fichier(chemin_recu, site);
+        auto espace = m_metaprogramme->unite->espace;
+        auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
         empile(site, lexemes);
         return;
     }
