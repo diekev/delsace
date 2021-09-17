@@ -111,7 +111,7 @@ struct Lexeuse {
   private:
     ENLIGNE_TOUJOURS bool fini() const
     {
-        return !m_possede_erreur && m_debut >= m_fin;
+        return m_possede_erreur || m_debut >= m_fin;
     }
 
     template <int N>
