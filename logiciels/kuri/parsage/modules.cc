@@ -204,7 +204,16 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
     if (index_colonne != -1) {
         enchaineuse << "      | ";
-        lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne);
+
+        if (site.index_colonne_min != -1 && site.index_colonne_min != site.index_colonne) {
+            lng::erreur::imprime_caractere_vide(enchaineuse, site.index_colonne_min, texte_ligne);
+            lng::erreur::imprime_tilde(
+                enchaineuse, sous_chaine(texte_ligne, site.index_colonne_min, index_colonne + 1));
+        }
+        else {
+            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne);
+        }
+
         enchaineuse << '^';
         lng::erreur::imprime_tilde(
             enchaineuse, sous_chaine(texte_ligne, index_colonne, site.index_colonne_max));
