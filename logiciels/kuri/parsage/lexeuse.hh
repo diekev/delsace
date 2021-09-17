@@ -135,7 +135,7 @@ struct Lexeuse {
 
     dls::vue_chaine_compacte mot_courant() const;
 
-    void rapporte_erreur(const kuri::chaine &quoi);
+    void rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max);
 
     ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
     {
