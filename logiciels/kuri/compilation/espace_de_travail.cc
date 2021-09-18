@@ -260,7 +260,8 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
 void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
-    std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
+    std::cerr << genere_entete_erreur(
+        this, site_source_pour(site), erreur::Genre::AVERTISSEMENT, message);
 }
 
 void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
@@ -268,7 +269,8 @@ void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
                                              kuri::chaine const &message) const
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
-    std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
+    std::cerr << genere_entete_erreur(
+        this, SiteSource(f, ligne), erreur::Genre::AVERTISSEMENT, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,

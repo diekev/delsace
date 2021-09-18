@@ -211,12 +211,6 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        erreur::Genre genre = erreur::Genre::NORMAL);
 
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  NoeudExpression const *site,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message);
-
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  const Fichier *fichier,
-                                  int ligne,
+                                  SiteSource site,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message);

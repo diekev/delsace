@@ -533,10 +533,10 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
-                                              SiteSource site,
-                                              erreur::Genre genre,
-                                              const kuri::chaine_statique message)
+kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
+                                  SiteSource site,
+                                  erreur::Genre genre,
+                                  const kuri::chaine_statique message)
 {
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(genre);
@@ -567,30 +567,14 @@ static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
     return flux.chaine();
 }
 
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  NoeudExpression const *site,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message)
-{
-    return genere_entete_erreur_impl(espace, espace->site_source_pour(site), genre, message);
-}
-
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  const Fichier *fichier,
-                                  int ligne,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message)
-{
-    return genere_entete_erreur_impl(espace, SiteSource(fichier, ligne), genre, message);
-}
-
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        NoeudExpression const *site,
                        const kuri::chaine &message,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
+    erreur.enchaineuse << genere_entete_erreur(
+        espace, espace->site_source_pour(site), genre, message);
     erreur.genre_erreur(genre);
     return erreur;
 }
@@ -600,7 +584,7 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
                                  erreur::Genre genre)
 {
     auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(espace, nullptr, genre, message);
+    erreur.enchaineuse << genere_entete_erreur(espace, {}, genre, message);
     erreur.genre_erreur(genre);
     return erreur;
 }
@@ -613,8 +597,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
 {
     const auto fichier = espace->compilatrice().fichier(chemin_fichier);
     auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur_impl(
-        espace, SiteSource(fichier, ligne), genre, message);
+    erreur.enchaineuse << genere_entete_erreur(espace, SiteSource(fichier, ligne), genre, message);
     return erreur;
 }
 
@@ -624,6 +607,6 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur_impl(espace, site, genre, message);
+    erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
     return erreur;
 }
