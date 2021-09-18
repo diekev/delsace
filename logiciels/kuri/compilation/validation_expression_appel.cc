@@ -32,7 +32,6 @@
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilatrice.hh"
-#include "erreur.h"
 #include "espace_de_travail.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
@@ -1166,7 +1165,7 @@ static ResultatAppariement apparie_appel_structure(
                     auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
 
                     if (valeur.est_errone) {
-                        rapporte_erreur(&espace, it, "La valeur n'est pas constante");
+                        espace.rapporte_erreur(it, "La valeur n'est pas constante");
                     }
 
                     items_monomorphisation.ajoute(
@@ -1756,10 +1755,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     });
 
     if (candidates.taille() > 1 && (candidates[0].poids_args == candidates[1].poids_args)) {
-        auto e = rapporte_erreur(&espace,
-                                 expr,
-                                 "Je ne peux pas déterminer quelle fonction appeler car "
-                                 "plusieurs fonctions correspondent à l'expression d'appel.");
+        auto e = espace.rapporte_erreur(
+            expr,
+            "Je ne peux pas déterminer quelle fonction appeler car "
+            "plusieurs fonctions correspondent à l'expression d'appel.");
 
         if (candidates[0].noeud_decl && candidates[1].noeud_decl) {
             e.ajoute_message("Candidate possible :\n");
@@ -1855,12 +1854,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
         if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
-            rapporte_erreur(
-                &espace,
-                expr,
-                "La valeur de retour de la fonction n'est pas utilisée. Il est important de "
-                "toujours utiliser les valeurs retournées par les fonctions, par exemple pour ne "
-                "pas oublier de vérifier si une erreur existe.")
+            espace
+                .rapporte_erreur(
+                    expr,
+                    "La valeur de retour de la fonction n'est pas utilisée. Il est important de "
+                    "toujours utiliser les valeurs retournées par les fonctions, par exemple pour "
+                    "ne "
+                    "pas oublier de vérifier si une erreur existe.")
                 .ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
                 .ajoute_site(decl_fonction_appelee)
                 .ajoute_conseil(
@@ -1962,11 +1962,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
 
             if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
-                rapporte_erreur(&espace,
-                                expr,
-                                "La valeur de l'expression de construction de structure n'est pas "
-                                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
-                                "ou l'utiliser comme type ?");
+                espace.rapporte_erreur(
+                    expr,
+                    "La valeur de l'expression de construction de structure n'est pas "
+                    "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
+                    "ou l'utiliser comme type ?");
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -1990,12 +1990,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
         if (expr->type->genre != GenreType::RIEN && expr_gauche) {
-            rapporte_erreur(
-                &espace,
-                expr,
-                "La valeur de retour du pointeur de fonction n'est pas utilisée. Il est important "
-                "de toujours utiliser les valeurs retournées par les fonctions, par exemple pour "
-                "ne pas oublier de vérifier si une erreur existe.")
+            espace
+                .rapporte_erreur(expr,
+                                 "La valeur de retour du pointeur de fonction n'est pas utilisée. "
+                                 "Il est important "
+                                 "de toujours utiliser les valeurs retournées par les fonctions, "
+                                 "par exemple pour "
+                                 "ne pas oublier de vérifier si une erreur existe.")
                 .ajoute_message("Le type de retour du pointeur de fonctions est : ")
                 .ajoute_message(chaine_type(expr->type))
                 .ajoute_message("\n")

@@ -36,7 +36,6 @@
 
 #include "broyage.hh"
 #include "compilatrice.hh"
-#include "erreur.h"
 #include "espace_de_travail.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
@@ -2040,11 +2039,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (meilleur_candidat == nullptr) {
-                    ::rapporte_erreur(unite->espace,
-                                      noeud,
-                                      "Je ne peux pas valider l'expression de discrimination car "
-                                      "je n'arrive à trouver un opérateur de comparaison pour le "
-                                      "type de l'expression. ")
+                    unite->espace
+                        ->rapporte_erreur(
+                            noeud,
+                            "Je ne peux pas valider l'expression de discrimination car "
+                            "je n'arrive à trouver un opérateur de comparaison pour le "
+                            "type de l'expression. ")
                         .ajoute_message("Le type de l'expression est : ")
                         .ajoute_message(chaine_type(type))
                         .ajoute_message(".\n\n")
@@ -2299,9 +2299,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             if (type_employe->genre != GenreType::STRUCTURE) {
-                ::rapporte_erreur(unite->espace,
-                                  decl,
-                                  "Impossible d'employer une variable n'étant pas une structure.")
+                unite->espace
+                    ->rapporte_erreur(
+                        decl, "Impossible d'employer une variable n'étant pas une structure.")
                     .ajoute_message("Le type de la variable est : ")
                     .ajoute_message(chaine_type(type_employe))
                     .ajoute_message(".\n\n");

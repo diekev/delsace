@@ -30,7 +30,6 @@
 
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
-#include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
@@ -519,8 +518,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         if (espace_recu->metaprogramme != m_metaprogramme) {
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
-            rapporte_erreur(
-                m_metaprogramme->unite->espace,
+            m_metaprogramme->unite->espace->rapporte_erreur(
                 site,
                 "Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
         }
@@ -1320,10 +1318,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
                     taille) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Erreur interne : superposition de la copie dans la machine "
-                                    "virtuelle lors d'une assignation !")
+                    m_metaprogramme->unite->espace
+                        ->rapporte_erreur(
+                            site,
+                            "Erreur interne : superposition de la copie dans la machine "
+                            "virtuelle lors d'une assignation !")
                         .ajoute_message("La taille à copier est de    : ", taille, ".\n")
                         .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
                         .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
@@ -1332,14 +1331,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace, site, "Copie depuis une adresse nulle !");
+                    m_metaprogramme->unite->espace->rapporte_erreur(
+                        site, "Copie depuis une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace, site, "Copie vers une adresse nulle !");
+                    m_metaprogramme->unite->espace->rapporte_erreur(
+                        site, "Copie vers une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1359,10 +1358,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 // static_cast<int>(pointeur_pile - pile) << '\n';
 
                 if (type->taille_octet == 0) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace,
-                        site,
-                        "Erreur interne : allocation d'un type de taille 0 dans la MV !")
+                    m_metaprogramme->unite->espace
+                        ->rapporte_erreur(
+                            site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
                         .ajoute_message("La type est : ", chaine_type(type), ".\n");
                 }
 
@@ -1376,10 +1374,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
                     taille) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Erreur interne : superposition de la copie dans la machine "
-                                    "virtuelle lors d'un chargement !")
+                    m_metaprogramme->unite->espace
+                        ->rapporte_erreur(
+                            site,
+                            "Erreur interne : superposition de la copie dans la machine "
+                            "virtuelle lors d'un chargement !")
                         .ajoute_message("La taille à copier est de    : ", taille, ".\n")
                         .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
                         .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
@@ -1389,14 +1388,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace, site, "Copie depuis une adresse nulle !");
+                    m_metaprogramme->unite->espace->rapporte_erreur(
+                        site, "Copie depuis une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace, site, "Copie vers une adresse nulle !");
+                    m_metaprogramme->unite->espace->rapporte_erreur(
+                        site, "Copie vers une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1412,9 +1411,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 #endif
 
                 if (!adresse_est_assignable(adresse_ou)) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Copie vers une adresse non-assignable !")
+                    m_metaprogramme->unite->espace
+                        ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
                         .ajoute_message("L'adresse est : ", adresse_ou, "\n");
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1469,9 +1467,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             default:
             {
-                rapporte_erreur(m_metaprogramme->unite->espace,
-                                dernier_site,
-                                "Erreur interne : Opération inconnue dans la MV !");
+                m_metaprogramme->unite->espace->rapporte_erreur(
+                    dernier_site, "Erreur interne : Opération inconnue dans la MV !");
                 return ResultatInterpretation::ERREUR;
             }
         }

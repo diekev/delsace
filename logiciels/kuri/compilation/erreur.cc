@@ -76,15 +76,16 @@ void lance_erreur(const kuri::chaine &quoi,
                   const NoeudExpression *site,
                   Genre type)
 {
-    rapporte_erreur(&espace, site, quoi, type);
+    espace.rapporte_erreur(site, quoi, type);
 }
 
 void redefinition_fonction(EspaceDeTravail const &espace,
                            const NoeudExpression *site_redefinition,
                            const NoeudExpression *site_original)
 {
-    rapporte_erreur(
-        &espace, site_redefinition, "Redéfinition de la fonction !", Genre::FONCTION_REDEFINIE)
+    espace
+        .rapporte_erreur(
+            site_redefinition, "Redéfinition de la fonction !", Genre::FONCTION_REDEFINIE)
         .ajoute_message("La fonction fut déjà définie ici :\n\n")
         .ajoute_site(site_original);
 }
@@ -93,8 +94,8 @@ void redefinition_symbole(EspaceDeTravail const &espace,
                           const NoeudExpression *site_redefinition,
                           const NoeudExpression *site_original)
 {
-    rapporte_erreur(
-        &espace, site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
+    espace
+        .rapporte_erreur(site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
         .ajoute_message("Le symbole fut déjà défini ici :\n\n")
         .ajoute_site(site_original);
 }
@@ -105,10 +106,10 @@ void lance_erreur_transtypage_impossible(const Type *type_cible,
                                          const NoeudExpression *site_expression,
                                          const NoeudExpression *site)
 {
-    rapporte_erreur(&espace,
-                    site,
-                    "Aucune conversion connue pour transformer vers le type cible",
-                    Genre::TYPE_ARGUMENT)
+    espace
+        .rapporte_erreur(site,
+                         "Aucune conversion connue pour transformer vers le type cible",
+                         Genre::TYPE_ARGUMENT)
         .ajoute_message("Le type de l'expression '",
                         chaine_expression(espace, site_expression),
                         "' ne peut être transformer vers le type cible !\n")
@@ -121,10 +122,9 @@ void lance_erreur_assignation_type_differents(const Type *type_gauche,
                                               EspaceDeTravail const &espace,
                                               const NoeudExpression *site)
 {
-    rapporte_erreur(&espace,
-                    site,
-                    "Ne peut pas assigner des types différents !",
-                    Genre::ASSIGNATION_MAUVAIS_TYPE)
+    espace
+        .rapporte_erreur(
+            site, "Ne peut pas assigner des types différents !", Genre::ASSIGNATION_MAUVAIS_TYPE)
         .ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
@@ -134,7 +134,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
                                  EspaceDeTravail const &espace,
                                  const NoeudExpression *site)
 {
-    rapporte_erreur(&espace, site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
+    espace.rapporte_erreur(site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
         .ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
@@ -143,8 +143,8 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *b,
                                     dls::tablet<ErreurAppariement, 10> const &erreurs)
 {
-    auto e = rapporte_erreur(
-        &espace, b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
+    auto e = espace.rapporte_erreur(
+        b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
 
     if (erreurs.est_vide()) {
         e.ajoute_message("\nFonction inconnue : aucune candidate trouvée\n");
@@ -308,10 +308,11 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *decl_fonc,
                                   NoeudExpression const *decl_appel)
 {
-    rapporte_erreur(&espace,
-                    appl_fonc,
-                    "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !",
-                    Genre::APPEL_INVALIDE)
+    espace
+        .rapporte_erreur(
+            appl_fonc,
+            "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !",
+            Genre::APPEL_INVALIDE)
         .ajoute_message("Note : la fonction est appelée dans « ",
                         decl_fonc->ident->nom,
                         " » qui fut déclarée sans contexte via #!nulctx.\n\n")
@@ -329,7 +330,7 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      Type const *type_tableau,
                                      long index_acces)
 {
-    rapporte_erreur(&espace, b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
+    espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
                         taille_tableau,
                         " (de type : ",
@@ -396,8 +397,8 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
     auto candidat = trouve_candidat(membres, membre->ident->nom);
 
-    auto e = rapporte_erreur(
-        &espace, acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
+    auto e = espace.rapporte_erreur(
+        acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
     e.ajoute_message("Le membre « ", membre->ident->nom, " » est inconnu !\n\n");
 
     if (membres.taille() == 0) {
@@ -417,8 +418,8 @@ void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,
                             kuri::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
-    auto e = rapporte_erreur(
-        &espace, expression, "Dans l'expression de discrimination", Genre::NORMAL);
+    auto e = espace.rapporte_erreur(
+        expression, "Dans l'expression de discrimination", Genre::NORMAL);
 
     if (valeurs_manquantes.taille() == 1) {
         e.ajoute_message("Une valeur n'est pas prise en compte :\n");

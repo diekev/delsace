@@ -26,7 +26,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
 
 #include "impression.hh"
 #include "instructions.hh"
@@ -70,9 +70,8 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
             else {
                 std::cerr << "La dernière instruction est nulle !\n";
             }
-            rapporte_erreur(&espace,
-                            const_cast<NoeudDeclarationEnteteFonction *>(decl),
-                            "Instruction de retour manquante");
+            espace.rapporte_erreur(const_cast<NoeudDeclarationEnteteFonction *>(decl),
+                                   "Instruction de retour manquante");
         }
     }
 }
