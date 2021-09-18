@@ -88,6 +88,10 @@ kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 
 void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
 {
+    if (m_possede_erreur) {
+        return;
+    }
+
     m_possede_erreur = true;
     gere_erreur_rapportee(cree_message_erreur(message));
 }
