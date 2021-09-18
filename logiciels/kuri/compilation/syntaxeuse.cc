@@ -924,7 +924,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             noeud->expression = analyse_expression(
                 {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::INCONNU);
 
-            consomme(GenreLexeme::PARENTHESE_FERMANTE, "attenud une parenthèse fermante");
+            consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 
             return noeud;
         }
@@ -1808,7 +1808,8 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
     copie_tablet_tableau(params, noeud->parametres);
 
-    consomme(GenreLexeme::PARENTHESE_FERMANTE, "attenu ')' à la fin des argument de l'appel");
+    consomme(GenreLexeme::PARENTHESE_FERMANTE,
+             "attendu ')' à la fin des arguments de l'expression d'appel");
 
     return noeud;
 }
