@@ -133,7 +133,7 @@ struct EspaceDeTravail {
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
-    Erreur rapporte_erreur(kuri::chaine const &fichier,
+    Erreur rapporte_erreur(kuri::chaine const &chemin_fichier,
                            int ligne,
                            kuri::chaine const &message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;

@@ -569,40 +569,6 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
 }
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       NoeudExpression const *site,
-                       const kuri::chaine &message,
-                       erreur::Genre genre)
-{
-    auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(
-        espace, espace->site_source_pour(site), genre, message);
-    erreur.genre_erreur(genre);
-    return erreur;
-}
-
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
-                                 const kuri::chaine &message,
-                                 erreur::Genre genre)
-{
-    auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(espace, {}, genre, message);
-    erreur.genre_erreur(genre);
-    return erreur;
-}
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       kuri::chaine const &chemin_fichier,
-                       int ligne,
-                       kuri::chaine const &message,
-                       erreur::Genre genre)
-{
-    const auto fichier = espace->compilatrice().fichier(chemin_fichier);
-    auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(espace, SiteSource(fichier, ligne), genre, message);
-    return erreur;
-}
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
                        kuri::chaine const &message,
                        erreur::Genre genre)

@@ -283,16 +283,17 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
         return rapporte_erreur_sans_site(message, genre);
     }
 
-    return ::rapporte_erreur(this, site, message, genre);
+    return ::rapporte_erreur(this, site_source_pour(site), message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier,
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &chemin_fichier,
                                         int ligne,
                                         kuri::chaine const &message,
                                         erreur::Genre genre) const
 {
     possede_erreur = true;
-    return ::rapporte_erreur(this, fichier, ligne, message, genre);
+    auto fichier = compilatrice().fichier(chemin_fichier);
+    return ::rapporte_erreur(this, SiteSource(fichier, ligne), message, genre);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
@@ -307,5 +308,5 @@ Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
                                                   erreur::Genre genre) const
 {
     possede_erreur = true;
-    return ::rapporte_erreur_sans_site(this, message, genre);
+    return ::rapporte_erreur(this, {}, message, genre);
 }

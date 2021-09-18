@@ -191,21 +191,6 @@ struct Erreur {
 };
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       NoeudExpression const *site,
-                       kuri::chaine const &message,
-                       erreur::Genre genre = erreur::Genre::NORMAL);
-
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
-                                 const kuri::chaine &message,
-                                 erreur::Genre genre = erreur::Genre::NORMAL);
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       const kuri::chaine &fichier,
-                       int ligne,
-                       const kuri::chaine &message,
-                       erreur::Genre genre = erreur::Genre::NORMAL);
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
                        const kuri::chaine &message,
                        erreur::Genre genre = erreur::Genre::NORMAL);
