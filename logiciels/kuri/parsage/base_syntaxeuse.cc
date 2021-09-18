@@ -71,16 +71,15 @@ void BaseSyntaxeuse::depile_etat()
 kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 {
     auto enchaineuse = Enchaineuse();
-    auto lexeme = lexeme_courant();
-
-    enchaineuse << "\n";
-    enchaineuse << m_fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
+    enchaineuse << '\n';
 
     POUR (m_donnees_etat_syntaxage) {
         auto site = SiteSource::cree(m_fichier, it.lexeme);
         imprime_ligne_avec_message(enchaineuse, site, it.message);
+        enchaineuse << '\n';
     }
 
+    auto lexeme = lexeme_courant();
     auto site = SiteSource::cree(m_fichier, lexeme);
     imprime_ligne_avec_message(enchaineuse, site, message);
     return enchaineuse.chaine();

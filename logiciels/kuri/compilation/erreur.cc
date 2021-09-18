@@ -514,7 +514,7 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
         }
         case erreur::Genre::SYNTAXAGE:
         {
-            return "ERREUR DE LEXAGE";
+            return "ERREUR DE SYNTAXAGE";
         }
         case erreur::Genre::TYPE_INCONNU:
         case erreur::Genre::TYPE_DIFFERENTS:
@@ -561,8 +561,11 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     imprime_ligne_avec_message(flux, site, "");
     flux << '\n';
 
-    flux << message;
-    flux << '\n';
+    if (message) {
+        flux << message;
+        flux << '\n';
+    }
+
     flux << '\n';
 
     return flux.chaine();
