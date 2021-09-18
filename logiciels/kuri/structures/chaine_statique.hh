@@ -71,6 +71,11 @@ struct chaine_statique {
     {
         return taille_;
     }
+
+    operator bool() const
+    {
+        return taille() != 0;
+    }
 };
 
 bool operator<(chaine_statique const &c1, chaine_statique const &c2);
