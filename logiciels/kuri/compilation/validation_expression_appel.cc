@@ -37,17 +37,6 @@
 #include "portee.hh"
 #include "validation_semantique.hh"
 
-/* À FAIRE : il est possible que les symboles non-définis passent la validation, mais génère tout
- * de même une erreur ? par exemple
- *
- * fonction_quelconque :: fonc () -> UneStructure
- * {
- *  retourne UneAutreStructure(x = 5, y = 10)
- * }
- *
- * UneAutreStructure n'étant jamais définie.
- */
-
 using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
 
 struct Monomorpheuse {
