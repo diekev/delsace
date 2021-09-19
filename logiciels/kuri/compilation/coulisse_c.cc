@@ -1383,11 +1383,23 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
         type->drapeaux |= CODE_MACHINE_FUT_GENERE;
         cree_typedef(type, enchaineuse);
         POUR (type_struct->membres) {
+            if (it.type->est_pointeur()) {
+                cree_typedef(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                cree_typedef(it.type, enchaineuse);
+                continue;
+            }
             genere_code_pour_type(it.type, enchaineuse);
         }
 
         auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
         genere_declaration_structure(enchaineuse, type_struct, quoi);
+
+        POUR (type_struct->membres) {
+            if (it.type->est_pointeur()) {
+                genere_code_pour_type(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                continue;
+            }
+        }
     }
     else if (type->est_tuple()) {
         auto type_tuple = type->comme_tuple();
@@ -1467,6 +1479,10 @@ static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
     }
     else if (type->est_pointeur()) {
         genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
+        //        auto type_pointe = type->comme_pointeur()->type_pointe;
+        //        if (type_pointe) {
+        //            cree_typedef(type_pointe, enchaineuse);
+        //        }
     }
     else if (type->est_reference()) {
         genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
