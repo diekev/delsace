@@ -1216,6 +1216,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
+            assert(type_gauche->genre != GenreType::CHAINE);
+
             break;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:

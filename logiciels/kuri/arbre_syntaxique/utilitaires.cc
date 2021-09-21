@@ -584,6 +584,22 @@ struct Simplificatrice {
     NoeudExpression *cree_expression_pour_op_chainee(
         kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexeme *lexeme_op_logique);
 
+    NoeudExpression *cree_indexage(const Lexeme *lexeme,
+                                   NoeudExpression *expr1,
+                                   NoeudExpression *expr2)
+    {
+        if (expr1->type->est_chaine()) {
+            auto op = expr1->type->operateur_indexage;
+
+            auto appel = assem->cree_appel(lexeme, op->decl, op->type_resultat);
+            appel->parametres_resolus.ajoute(expr1);
+            appel->parametres_resolus.ajoute(expr2);
+            return appel;
+        }
+
+        return assem->cree_indexage(lexeme, expr1, expr2, true);
+    }
+
     /* remplace la dernière expression d'un bloc par une assignation afin de pouvoir simplifier les
      * conditions à droite des assigations */
     void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
@@ -1587,7 +1603,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto type_compose = type_itere->comme_compose();
 
             if (type_itere->est_tableau_fixe()) {
-                auto indexage = assem->cree_indexage(inst->lexeme, expression_iteree, zero, true);
+                auto indexage = cree_indexage(inst->lexeme, expression_iteree, zero);
 
                 static const Lexeme lexeme_adresse = {",", {}, GenreLexeme::FOIS_UNAIRE, 0, 0, 0};
                 auto prise_adresse = assem->cree_expression_unaire(&lexeme_adresse);
@@ -1595,6 +1611,9 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 prise_adresse->type = typeuse.type_pointeur_pour(indexage->type);
 
                 expr_pointeur = prise_adresse;
+            }
+            else if (type_itere->est_chaine()) {
+                expr_pointeur = expression_iteree;
             }
             else {
                 expr_pointeur = assem->cree_reference_membre(
@@ -1613,7 +1632,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                     assem->cree_litterale_entier(ref_index->lexeme, ref_index->type, 1));
             }
 
-            auto indexage = assem->cree_indexage(inst->lexeme, expr_pointeur, expr_index, true);
+            auto indexage = cree_indexage(inst->lexeme, expr_pointeur, expr_index);
             NoeudExpression *expression_assignee = indexage;
 
             if (inst->prend_reference || inst->prend_pointeur) {

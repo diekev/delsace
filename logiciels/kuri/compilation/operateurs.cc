@@ -556,6 +556,10 @@ void Operateurs::ajoute_perso(GenreLexeme id,
     op->est_basique = false;
     op->decl = decl;
     type1->operateurs.ajoute(id, op);
+
+    if (id == GenreLexeme::CROCHET_OUVRANT) {
+        type1->operateur_indexage = op;
+    }
 }
 
 void Operateurs::ajoute_perso_unaire(GenreLexeme id,

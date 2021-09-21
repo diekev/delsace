@@ -224,6 +224,7 @@ struct Type {
     OperateurBinaire *operateur_mul = nullptr;
     OperateurBinaire *operateur_div = nullptr;
     OperateurUnaire *operateur_non = nullptr;
+    OperateurBinaire *operateur_indexage = nullptr;
 
     /* À FAIRE: déplace ceci dans une table? */
     TypePointeur *type_pointeur = nullptr;
