@@ -968,13 +968,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->type = type_dereference_pour(type1);
                     break;
                 }
-                case GenreType::CHAINE:
-                {
-                    expr->type = m_compilatrice.typeuse[TypeBase::Z8];
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_chaine,
-                                                   ID::panique_depassement_limites_chaine);
-                    break;
-                }
                 default:
                 {
                     auto candidats = dls::tablet<OperateurCandidat, 10>();

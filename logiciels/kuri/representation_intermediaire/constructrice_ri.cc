@@ -1216,20 +1216,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            if (type_gauche->genre == GenreType::CHAINE) {
-                if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
-                    auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
-                    genere_protection_limites(
-                        acces_taille,
-                        valeur,
-                        m_compilatrice.trouve_ou_insere_fonction(
-                            *this, m_compilatrice.interface_kuri->decl_panique_chaine));
-                }
-                pointeur = cree_reference_membre(noeud, pointeur, 0);
-                empile_valeur(cree_acces_index(noeud, pointeur, valeur));
-                return;
-            }
-
             break;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:

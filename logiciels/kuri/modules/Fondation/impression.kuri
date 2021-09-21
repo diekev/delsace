@@ -348,7 +348,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 		chiffre := v % base
 		v /= base
 
-		résultat[index_début] = chiffres_base_64[chiffre]
+		résultat[index_début] = chiffres_base_64[chiffre comme z64]
 		index_début -= 1
 	}
 

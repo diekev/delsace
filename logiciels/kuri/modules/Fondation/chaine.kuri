@@ -1,5 +1,14 @@
 // Fonctions de manipulation de chaines.
 
+opérateur [] :: fonc (chn: chaine, index: z64) -> z8
+{
+    si index < 0 || index >= chn.taille {
+       panique_dépassement_limites_chaine(chn.taille, index)
+    }
+
+    retourne chn.pointeur[index]
+}
+
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)
 {
