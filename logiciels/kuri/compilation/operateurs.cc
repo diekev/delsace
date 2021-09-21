@@ -731,15 +731,15 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
 
         auto poids = poids1.poids * poids2.poids;
 
-        if (poids != 0.0) {
-            auto candidat = OperateurCandidat{};
-            candidat.op = op;
-            candidat.poids = poids;
-            candidat.transformation_type1 = poids1.transformation;
-            candidat.transformation_type2 = poids2.transformation;
+        /* Nous ajoutons également les opérateurs ayant un poids de 0 afin de pouvoir donner des
+         * détails dans les messages d'erreurs. */
+        auto candidat = OperateurCandidat{};
+        candidat.op = op;
+        candidat.poids = poids;
+        candidat.transformation_type1 = poids1.transformation;
+        candidat.transformation_type2 = poids2.transformation;
 
-            candidats.ajoute(candidat);
-        }
+        candidats.ajoute(candidat);
 
         if (op->est_commutatif && poids != 1.0) {
             auto poids3_ou_attente = verifie_compatibilite(
@@ -762,17 +762,14 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
 
             poids = poids3.poids * poids4.poids;
 
-            if (poids != 0.0) {
-                auto candidat = OperateurCandidat{};
-                candidat.op = op;
-                candidat.poids = poids;
-                // N'oublions pas de permuter les transformations.
-                candidat.transformation_type1 = poids4.transformation;
-                candidat.transformation_type2 = poids3.transformation;
-                candidat.permute_operandes = true;
+            candidat.op = op;
+            candidat.poids = poids;
+            // N'oublions pas de permuter les transformations.
+            candidat.transformation_type1 = poids4.transformation;
+            candidat.transformation_type2 = poids3.transformation;
+            candidat.permute_operandes = true;
 
-                candidats.ajoute(candidat);
-            }
+            candidats.ajoute(candidat);
         }
     }
 

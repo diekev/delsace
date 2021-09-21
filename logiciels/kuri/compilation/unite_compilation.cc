@@ -341,20 +341,52 @@ void UniteCompilation::rapporte_erreur() const
             auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
             auto type1 = expression_operation->operande_gauche->type;
             auto type2 = expression_operation->operande_droite->type;
-            espace
-                ->rapporte_erreur(operateur_attendu,
-                                  "Je ne peux pas continuer la compilation car je "
-                                  "n'arrive pas à déterminer quel opérateur appeler.",
-                                  erreur::Genre::TYPE_INCONNU)
-                .ajoute_message("Le type à gauche de l'opérateur est ")
-                .ajoute_message(chaine_type(type1))
-                .ajoute_message("\nLe type à droite de l'opérateur est ")
-                .ajoute_message(chaine_type(type2))
-                .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
-                .ajoute_conseil("Si vous voulez performer une opération sur des types "
-                                "non-communs, vous pouvez définir vos propres opérateurs avec "
-                                "la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: "
-                                "type2) -> type_retour\n{\n\t...\n}\n");
+
+            auto candidats = dls::tablet<OperateurCandidat, 10>();
+            auto resultat = cherche_candidats_operateurs(
+                *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
+
+            Erreur e = espace->rapporte_erreur(operateur_attendu,
+                                               "Je ne peux pas continuer la compilation car je "
+                                               "n'arrive pas à déterminer quel opérateur appeler.",
+                                               erreur::Genre::TYPE_INCONNU);
+
+            if (!resultat.has_value()) {
+                POUR (candidats) {
+                    auto op = it.op;
+                    if (!op || !op->decl) {
+                        continue;
+                    }
+
+                    e.ajoute_message("Candidat :\n");
+                    e.ajoute_site(it.op->decl);
+
+                    if (it.transformation_type1.type == TypeTransformation::IMPOSSIBLE) {
+                        e.ajoute_message(
+                            "Impossible de convertir implicitement le type à gauche (qui est ",
+                            chaine_type(type1),
+                            ") vers ",
+                            chaine_type(it.op->type1),
+                            '\n');
+                    }
+
+                    if (it.transformation_type2.type == TypeTransformation::IMPOSSIBLE) {
+                        e.ajoute_message(
+                            "Impossible de convertir implicitement le type à droite (qui est ",
+                            chaine_type(type2),
+                            ") vers ",
+                            chaine_type(it.op->type2),
+                            '\n');
+                    }
+
+                    e.ajoute_message('\n');
+                }
+            }
+
+            e.ajoute_conseil("Si vous voulez performer une opération sur des types "
+                             "non-communs, vous pouvez définir vos propres opérateurs avec "
+                             "la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: "
+                             "type2) -> type_retour\n{\n\t...\n}\n");
         }
         else {
             auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
