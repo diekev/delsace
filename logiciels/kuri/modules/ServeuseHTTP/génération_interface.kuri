@@ -140,6 +140,8 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.nouvelle_ligne()
     }
 
+    enchaineuse.ajoute_au_tampon("\tmessage_serveuse : MessageServeuseHTTP = ---\n")
+
     // appel la fonction
     enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%, données_prise", données.nom_fonction, paramètres.nom_serveuse)
 
@@ -175,22 +177,24 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
 
         si type_membre == paramètres.type_redirection {
             // crée une redirection
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne redirige(__valeur.chemin_redirection)\n")
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection)\n")
         }
         sinon si est_type_rendu_page(paramètres, type_membre) {
             // rends les données pour une page HTML
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
         }
 
         enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
     }
 
     enchaineuse.imprime_dans_enchaineuse("\t\tsinon {\n")
-    enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne erreur_interne()\n")
+    enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = erreur_interne()\n")
     enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
-    enchaineuse.imprime_dans_enchaineuse("\t}")
+    enchaineuse.imprime_dans_enchaineuse("\t}\n")
     enchaineuse.nouvelle_ligne()
 
+    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, message_serveuse)\n")
+    enchaineuse.ajoute_au_tampon("\tretourne message_serveuse\n")
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
