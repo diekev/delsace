@@ -19,9 +19,6 @@ Redirection :: struct {
  *
  * Une fonction ayant un paramètre formulaire (dont le type est à renseigner dans les
  * ParamètresGénérationInterface), sont considérer comme répondant à des méthodes POST.
- *
- * Pour gérer les connexions, un type pour définir un utilisateur doit être définis, ainsi
- * qu'une méthode "utilisateur_connecté" prenant le type de connexion spécifique au programme.
  */
 
 ParamètresGénérationInterface :: struct {
@@ -36,9 +33,6 @@ ParamètresGénérationInterface :: struct {
     nom_type_résultat: chaine
     type_redirection: *InfoTypeStructure
     type_rendu_page: *InfoTypeStructure
-
-    type_utilisateur_connecté: *InfoTypeStructure
-    chemin_connexion: chaine
 
     données_fonctions: []DonnéesCréationPointDEntréePage
 
@@ -124,6 +118,9 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.ajoute_au_tampon("\tdonnées_prise := prise.données_utilisateur(", paramètres.type_données_prise, ")\n")
     enchaineuse.nouvelle_ligne()
 
+    enchaineuse.ajoute_au_tampon("\tinitialise_données_connexion_depuis_message(", paramètres.nom_serveuse, ", données_prise, message)\n")
+    enchaineuse.nouvelle_ligne()
+
     // prend les paramètres d'entrée
     si données.type_paramètres_chemin {
         enchaineuse.imprime_dans_enchaineuse("\tparamètres_chemin, réussite_paramètres_chemin := extrait_paramètres_chemin(message.uri.chemin, %)\n", chaine_pour_type(données.type_paramètres_chemin))
@@ -143,29 +140,10 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.nouvelle_ligne()
     }
 
-    chaine_utilisateur_connecté : chaine
-
-    permission := détermine_permission_accès_page(paramètres, données.type_fonction)
-
-    si permission == PermissionAccèsPage.UTILISATEUR_CONNECTÉ {
-        enchaineuse.ajoute_au_tampon("\t__utilisateur_connecté := données_prise.utilisateur_connecté()")
-        enchaineuse.ajoute_au_tampon("\tsaufsi __utilisateur_connecté {")
-        enchaineuse.ajoute_au_tampon("\t\tretourne redirige(\"", paramètres.chemin_connexion, "\")\n")
-        enchaineuse.ajoute_au_tampon("\t}\n")
-
-        chaine_utilisateur_connecté = "mémoire(__utilisateur_connecté)"
-    }
-    sinon si permission == PermissionAccèsPage.UTILISATEUR_CONNECTÉ_OU_VISITEUR {
-        enchaineuse.ajoute_au_tampon("\t__utilisateur_connecté := données_prise.utilisateur_connecté()\n")
-        chaine_utilisateur_connecté = "__utilisateur_connecté"
-    }
+    enchaineuse.ajoute_au_tampon("\tmessage_serveuse : MessageServeuseHTTP = ---\n")
 
     // appel la fonction
-    enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%", données.nom_fonction, paramètres.nom_serveuse)
-
-    si chaine_utilisateur_connecté {
-        enchaineuse.ajoute_au_tampon(", ", chaine_utilisateur_connecté)
-    }
+    enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%, données_prise", données.nom_fonction, paramètres.nom_serveuse)
 
     si données.type_paramètres_chemin {
         enchaineuse.ajoute_au_tampon(", paramètres_chemin")
@@ -199,57 +177,26 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
 
         si type_membre == paramètres.type_redirection {
             // crée une redirection
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne redirige(__valeur.chemin_redirection)\n")
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection)\n")
         }
         sinon si est_type_rendu_page(paramètres, type_membre) {
             // rends les données pour une page HTML
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
         }
 
         enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
     }
 
     enchaineuse.imprime_dans_enchaineuse("\t\tsinon {\n")
-    enchaineuse.imprime_dans_enchaineuse("\t\t\tretourne erreur_interne()\n")
+    enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = erreur_interne()\n")
     enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
-    enchaineuse.imprime_dans_enchaineuse("\t}")
+    enchaineuse.imprime_dans_enchaineuse("\t}\n")
     enchaineuse.nouvelle_ligne()
 
+    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, message_serveuse)\n")
+    enchaineuse.ajoute_au_tampon("\tretourne message_serveuse\n")
     enchaineuse.ajoute_au_tampon("}\n")
 }
-
-PermissionAccèsPage :: énum {
-    UTILISATEUR_CONNECTÉ
-    UTILISATEUR_CONNECTÉ_OU_VISITEUR
-    VISITEUR
-}
-
-détermine_permission_accès_page :: fonc (paramètres: *ParamètresGénérationInterface, type_fonction: *InfoTypeFonction) -> PermissionAccèsPage
-{
-    pour type_fonction.types_entrée {
-        si it == paramètres.type_utilisateur_connecté {
-            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ
-        }
-
-        /* Une référence est un pointeur non-nul, donc nous devons avoir un utilisateur connecté. */
-        si est_référence_vers(it, paramètres.type_utilisateur_connecté) {
-            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ
-        }
-
-        si est_pointeur_vers(it, paramètres.type_utilisateur_connecté) {
-            retourne PermissionAccèsPage.UTILISATEUR_CONNECTÉ_OU_VISITEUR
-        }
-    }
-
-    retourne PermissionAccèsPage.VISITEUR
-}
-
-/*
-
-    CONVENTION :
-    - si une fonction ne possède pas d'UtilisateurConnecté, redirige vers l'acceuil
-
- */
 
 est_résultat :: fonc (info: *InfoType) -> bool
 {
