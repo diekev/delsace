@@ -685,7 +685,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            assert_rappel(false, [&]() {
+            /* Il est possible d'avoir des déclarations de structures dans les fonctions, donc il
+             * est possible d'en avoir une ici. */
+            assert_rappel(fonction_courante, [&]() {
                 std::cerr
                     << "Erreur interne : une déclaration de structure fut passée à la RI !\n";
                 erreur::imprime_site(*m_espace, noeud);
