@@ -337,7 +337,7 @@ void UniteCompilation::rapporte_erreur() const
     }
     else if (m_attente.est<AttenteSurOperateur>()) {
         auto operateur_attendu = m_attente.operateur();
-        if (operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
+        if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
             auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
             auto type1 = expression_operation->operande_gauche->type;
             auto type2 = expression_operation->operande_droite->type;
