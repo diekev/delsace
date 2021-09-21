@@ -72,7 +72,7 @@ struct chaine_statique {
         return taille_;
     }
 
-    operator bool() const
+    explicit operator bool() const
     {
         return taille() != 0;
     }
