@@ -224,7 +224,7 @@ fini :: fonc(lexeuse : &Lexeuse) -> bool
 
 avance :: fonc(lexeuse : &Lexeuse, n : z32) -> rien
 {
-	pour i dans 0 ... n - 1 {
+	pour n {
 		si (lexeuse.caractère_courant() == '\n') {
 			lexeuse.compte_ligne += 1
 			lexeuse.position_ligne = 0

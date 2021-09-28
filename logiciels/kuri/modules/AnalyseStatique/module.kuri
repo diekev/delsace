@@ -194,13 +194,13 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             vérifie_bloc_fonction(vérificatrice, paren.opérande)
         }
         EXPRESSION_APPEL {
-            appel := code comme *NoeudCodeAppel
+            // appel := code comme *NoeudCodeAppel
 
-            ident := appel.expression comme *NoeudCodeRéférenceDéclaration
+            // ident := appel.expression comme *NoeudCodeRéférenceDéclaration
 
-            si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+            // si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
 
-            }
+            // }
 
             // vérifie_bloc_fonction(vérificatrice, appel.expression)
 

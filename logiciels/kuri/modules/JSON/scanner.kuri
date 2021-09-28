@@ -281,7 +281,7 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             si c == 'u' {
                 scanner.avance()
 
-                pour i dans 0 ... 3 {
+                pour 4 {
                     c = scanner.caractère_courant()
 
                     si est_hexadécimal(c) {
@@ -643,8 +643,6 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             scanner.rapporte_erreur_parsage("Attendu un nombre réel pour le membre de la structure")
             retourne LexèmeJSON.INVALIDE
         }
-
-        taille_en_octet := valeur.info.taille_en_octet
 
         si valeur.est_r16() {
             valeur.assigne_r16(scanner.nombre_réel)
