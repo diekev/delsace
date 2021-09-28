@@ -3310,6 +3310,11 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
+            /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser. */
+            if (noeud->est_si_statique()) {
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
             if (!noeud->est_declaration()) {
                 return DecisionVisiteNoeud::CONTINUE;
             }
@@ -3317,6 +3322,21 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
             /* Ignore les variables implicites des boucles « pour ». */
             if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
                 return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas utilisée,
+             * bien que ceci ne soit pas en score formalisé dans le langage. */
+            if (noeud->ident && noeud->ident->nom == "_") {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            if (noeud->est_declaration_variable()) {
+                auto const decl_var = noeud->comme_declaration_variable();
+                /* Les déclarations multiples comme « a, b := ... » ont les déclarations ajoutées
+                 * séparément aux membres du bloc. */
+                if (decl_var->valeur->est_virgule()) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
             }
 
             if (!noeud->possede_drapeau(EST_UTILISEE)) {
