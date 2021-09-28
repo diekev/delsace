@@ -270,7 +270,7 @@ void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
     std::cerr << genere_entete_erreur(
-        this, SiteSource(f, ligne), erreur::Genre::AVERTISSEMENT, message);
+        this, SiteSource(f, ligne - 1), erreur::Genre::AVERTISSEMENT, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
