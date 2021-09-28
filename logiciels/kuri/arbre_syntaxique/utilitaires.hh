@@ -64,6 +64,7 @@ enum DrapeauxNoeud : unsigned int {
     EST_DECLARATION_TYPE_OPAQUE = (1 << 23),     // decl var
     ACCES_EST_ENUM_DRAPEAU = (1 << 24),          // accès membre
     DROITE_CONDITION = (1 << 25),
+    EST_UTILISEE = (1 << 26),  // decl var
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

@@ -3195,6 +3195,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION ||
                    decl->est_declaration_module());
             expr->declaration_referee = decl;
+            decl->drapeaux |= EST_UTILISEE;
             expr->type = decl->type;
 
             /* si nous avons une valeur polymorphique, crée un type de données
@@ -3285,6 +3286,45 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
     }
 
     return nullptr;
+}
+
+static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
+                                             NoeudDeclarationEnteteFonction const &entete)
+{
+    if (entete.est_externe) {
+        return;
+    }
+
+    for (int i = 0; i < entete.params.taille(); ++i) {
+        auto decl_param = entete.parametre_entree(i);
+        if (!decl_param->possede_drapeau(EST_UTILISEE)) {
+            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé");
+        }
+    }
+
+    auto const &corps = *entete.corps;
+
+    visite_noeud(
+        corps.bloc, PreferenceVisiteNoeud::ORIGINAL, [&espace](const NoeudExpression *noeud) {
+            if (noeud->est_structure()) {
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
+            if (!noeud->est_declaration()) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            /* Ignore les variables implicites des boucles « pour ». */
+            if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            if (!noeud->possede_drapeau(EST_UTILISEE)) {
+                espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
+            }
+
+            return DecisionVisiteNoeud::CONTINUE;
+        });
 }
 
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
@@ -3391,6 +3431,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+    avertis_declarations_inutilisees(*espace, *entete);
+
     return CodeRetourValidation::OK;
 }
 
