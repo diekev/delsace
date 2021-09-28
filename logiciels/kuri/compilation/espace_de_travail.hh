@@ -125,7 +125,7 @@ struct EspaceDeTravail {
 
     SiteSource site_source_pour(NoeudExpression const *noeud) const;
 
-    void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
+    void rapporte_avertissement(const NoeudExpression *site, kuri::chaine_statique message) const;
     void rapporte_avertissement(kuri::chaine const &fichier,
                                 int ligne,
                                 kuri::chaine const &message) const;

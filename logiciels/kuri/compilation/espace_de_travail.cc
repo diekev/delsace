@@ -257,7 +257,7 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
     return SiteSource::cree(fichier, lexeme);
 }
 
-void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
+void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
     std::cerr << genere_entete_erreur(
