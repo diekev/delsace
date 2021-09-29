@@ -593,31 +593,31 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
  * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
 initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 {
-    rappel_vide_quand_ouverture :: fonc (prise: *Prise)
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_lecture :: fonc (prise: *Prise)
+    rappel_vide_quand_lecture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_écriture :: fonc (prise: *Prise)
+    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_fermeture :: fonc (prise: *Prise)
+    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_timeout :: fonc (prise: *Prise)
+    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_fin :: fonc (prise: *Prise)
+    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise)
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée)
     {
     }
 
