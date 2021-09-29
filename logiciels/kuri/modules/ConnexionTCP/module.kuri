@@ -588,9 +588,10 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
     }
 }
 
-// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
-// utile pour les développements.
-crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+/* Initialise les fonctions de rappels pour un contexte « vide », c'est-à-dire qui ne fait rien.
+ * Ceci nous sers principalement pour nous assurer que les pointeurs de fonction du contexte sont
+ * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
+initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 {
     rappel_vide_quand_ouverture :: fonc (prise: *Prise)
     {
@@ -620,7 +621,6 @@ crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données)
     {
     }
 
-    ctx := crée_contexte(boucle_évènements, T)
     ctx.quand_ouverture = rappel_vide_quand_ouverture
     ctx.quand_lecture = rappel_vide_quand_lecture
     ctx.quand_écriture = rappel_vide_quand_écriture
@@ -628,5 +628,13 @@ crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données)
     ctx.quand_timeout = rappel_vide_quand_timeout
     ctx.quand_fin = rappel_vide_quand_fin
     ctx.quand_erreur_connexion = rappel_vide_quand_erreur_connexion
+}
+
+// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
+// utile pour les développements.
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+{
+    ctx := crée_contexte(boucle_évènements, T)
+    initialise_rappels_pour_contexte_vide(ctx)
     retourne ctx
 }
