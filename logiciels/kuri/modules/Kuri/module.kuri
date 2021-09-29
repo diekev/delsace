@@ -54,8 +54,8 @@ allocatrice_défaut :: fonc(
     ancienne_taille : z64,
     ancien_pointeur : *rien,
     données : *BaseAllocatrice,
-    info : *InfoType,
-    pos : PositionCodeSource) -> *rien
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
 {
     discr mode {
         ALLOUE {
@@ -301,7 +301,12 @@ ContexteProgramme :: struct {
     données_rappel_panique : *rien
 }
 
-__logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien {}
+__logueur_défaut :: fonc (message: chaine  @inutilisée,
+                          ident: chaine  @inutilisée,
+                          mode: ModeLogage  @inutilisée,
+                          données: *rien  @inutilisée) -> rien
+{
+}
 
 __rappel_panique_défaut :: fonc () -> rien {}
 
