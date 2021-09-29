@@ -3323,6 +3323,11 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                 return DecisionVisiteNoeud::CONTINUE;
             }
 
+            /* Le contexte peut ne pas être utilisé. */
+            if (noeud->ident == ID::contexte) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
             /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas utilisée,
              * bien que ceci ne soit pas en score formalisé dans le langage. */
             if (noeud->ident && noeud->ident->nom == "_") {
@@ -3338,8 +3343,20 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                 }
             }
 
+            /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas marqués
+             * comme utilisés car seules les entêtes le sont. Évitons d'émettre un avertissement
+             * pour rien. */
+            if (noeud->est_corps_fonction()) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
             if (!noeud->possede_drapeau(EST_UTILISEE)) {
-                espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
+                if (noeud->est_entete_fonction()) {
+                    espace.rapporte_avertissement(noeud, "Fonction inutilisée");
+                }
+                else {
+                    espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
+                }
             }
 
             return DecisionVisiteNoeud::CONTINUE;
