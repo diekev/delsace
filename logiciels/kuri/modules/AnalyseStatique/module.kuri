@@ -130,8 +130,6 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
         DÉCLARATION_VARIABLE {
             code_déclaration := code comme *NoeudCodeDéclarationVariable
 
-            ident := code_déclaration.valeur comme *NoeudCodeRéférenceDéclaration
-
             si code_déclaration.expression {
                 vérifie_bloc_fonction(vérificatrice, code_déclaration.expression)
             }
@@ -187,7 +185,6 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
         }
         EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-            ident := code comme *NoeudCodeRéférenceDéclaration
         }
         EXPRESSION_PARENTHÈSE {
             paren := code comme *NoeudCodeExpressionUnaire
@@ -216,7 +213,6 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             }
         }
         EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-            lit := code comme *NoeudCodeLittéraleRéel
         }
         EXPRESSION_COMME {
             expr_comme := code comme *NoeudCodeComme
