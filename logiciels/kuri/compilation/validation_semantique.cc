@@ -3192,8 +3192,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         else {
             // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
             // polymorphiques
-            assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION ||
-                   decl->est_declaration_module());
+            assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
             expr->declaration_referee = decl;
             decl->drapeaux |= EST_UTILISEE;
             expr->type = decl->type;
