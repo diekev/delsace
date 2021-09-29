@@ -2285,7 +2285,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 if (it->est_declaration_variable()) {
                     m_unite->espace->rapporte_erreur(it,
                                                      "Obtenu la déclaration d'une variable dans "
-                                                     "la déclartion d'un type de fonction");
+                                                     "la déclaration d'un type de fonction");
                 }
             }
         }
