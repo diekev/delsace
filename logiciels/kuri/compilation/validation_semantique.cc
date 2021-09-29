@@ -3287,6 +3287,17 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
     return nullptr;
 }
 
+static bool possede_annotation_inutilisee(NoeudDeclarationVariable const *decl)
+{
+    POUR (decl->annotations) {
+        if (it.nom == "inutilisée") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                                              NoeudDeclarationEnteteFonction const &entete)
 {
@@ -3296,6 +3307,10 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
+        if (possede_annotation_inutilisee(decl_param)) {
+            continue;
+        }
+
         if (!decl_param->possede_drapeau(EST_UTILISEE)) {
             espace.rapporte_avertissement(decl_param, "Paramètre inutilisé");
         }
@@ -3339,6 +3354,10 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                 /* Les déclarations multiples comme « a, b := ... » ont les déclarations ajoutées
                  * séparément aux membres du bloc. */
                 if (decl_var->valeur->est_virgule()) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
+
+                if (possede_annotation_inutilisee(decl_var)) {
                     return DecisionVisiteNoeud::CONTINUE;
                 }
             }
