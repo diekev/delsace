@@ -846,10 +846,9 @@ génère_initialisation_json :: fonc ()
 		}
 
 		type_première_sortie := it.params_sorties[0].type
-		type_deuxième_sortie := it.params_sorties[1].type
 
 		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage JSON invalide, le première paramètre de sortie doit être de type « bool ».")
+            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
             retourne
 		}
 
