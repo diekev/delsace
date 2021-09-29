@@ -1283,10 +1283,18 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
 
                     if (directive == ID::opaque) {
-                        m_est_declaration_type_opaque = true;
                         consomme();
+                        auto noeud = m_tacheronne.assembleuse->cree_type_opaque(gauche->lexeme);
+                        m_est_declaration_type_opaque = true;
+                        noeud->expression_type = analyse_expression(
+                            donnees_precedence, racine_expression, lexeme_final);
+                        m_est_declaration_type_opaque = false;
+                        noeud->bloc_parent->membres->ajoute(noeud);
+                        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                        return noeud;
                     }
-                    else if (directive == ID::nulctx) {
+
+                    if (directive == ID::nulctx) {
                         consomme();
 
                         if (lexeme_courant()->genre != GenreLexeme::FONC) {
@@ -1332,12 +1340,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 donnees_precedence, racine_expression, lexeme_final);
             noeud->drapeaux |= EST_CONSTANTE;
             gauche->drapeaux |= EST_CONSTANTE;
-
-            if (m_est_declaration_type_opaque) {
-                noeud->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
-                gauche->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
-                m_est_declaration_type_opaque = false;
-            }
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;

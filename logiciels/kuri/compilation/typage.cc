@@ -361,7 +361,7 @@ TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_) : TypePolymorphiqu
     this->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
-TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie) : TypeOpaque()
+TypeOpaque::TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie) : TypeOpaque()
 {
     this->decl = decl_;
     this->ident = decl_->ident;
@@ -980,7 +980,7 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
     return types_polymorphiques_->ajoute_element(ident);
 }
 
-TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie)
+TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie)
 {
     auto type = types_opaques->ajoute_element(decl, type_opacifie);
     if (type_opacifie) {
@@ -989,7 +989,7 @@ TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opac
     return type;
 }
 
-TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique)
+TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique)
 {
     auto types_opaques_ = types_opaques.verrou_ecriture();
 

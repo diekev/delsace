@@ -110,21 +110,26 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(racine);
             break;
         }
+        case GenreNoeud::DECLARATION_OPAQUE:
+        {
+            auto opaque = racine->comme_type_opaque();
+            /* Évite les déclarations de types polymorphiques car cela gène la validation puisque
+             * la déclaration n'est dans aucun bloc. */
+            if (!opaque->expression_type->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+                aplatis_arbre(opaque->expression_type, arbre_aplatis, drapeau);
+            }
+            arbre_aplatis.ajoute(racine);
+            break;
+        }
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             auto expr = static_cast<NoeudDeclarationVariable *>(racine);
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
-            // Évite également les déclaration de types polymorphiques, cela gène la validation car
-            // la déclaration n'est dans aucun bloc.
-            if (!expr->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE) ||
-                !expr->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-                aplatis_arbre(
-                    expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-                aplatis_arbre(expr->expression_type,
-                              arbre_aplatis,
-                              drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-            }
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(
+                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 
             arbre_aplatis.ajoute(expr);
 
@@ -552,6 +557,14 @@ void aplatis_arbre(NoeudExpression *declaration)
         }
         return;
     }
+
+    if (declaration->est_type_opaque()) {
+        auto opaque = declaration->comme_type_opaque();
+        if (opaque->arbre_aplatis.taille() == 0) {
+            aplatis_arbre(opaque, opaque->arbre_aplatis, {});
+        }
+        return;
+    }
 }
 
 struct Simplificatrice {
@@ -835,12 +848,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (decl_ref->drapeaux & EST_CONSTANTE) {
                 auto decl_const = decl_ref->comme_declaration_variable();
-
-                if (decl_ref->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
-                    expr_ref->substitution = assem->cree_reference_type(
-                        expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
-                    return;
-                }
 
                 if (decl_ref->type->est_type_de_donnees()) {
                     expr_ref->substitution = assem->cree_reference_type(
@@ -1335,6 +1342,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPANSION_VARIADIQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:

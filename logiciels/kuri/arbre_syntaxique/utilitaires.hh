@@ -61,10 +61,9 @@ enum DrapeauxNoeud : unsigned int {
     EST_PARAMETRE = (1 << 20),                   // decl var
     EST_VALEUR_POLYMORPHIQUE = (1 << 21),        // decl var
     POUR_CUISSON = (1 << 22),                    // appel
-    EST_DECLARATION_TYPE_OPAQUE = (1 << 23),     // decl var
-    ACCES_EST_ENUM_DRAPEAU = (1 << 24),          // accès membre
-    DROITE_CONDITION = (1 << 25),
-    EST_UTILISEE = (1 << 26),  // decl var
+    ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
+    DROITE_CONDITION = (1 << 24),
+    EST_UTILISEE = (1 << 25),  // decl var
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

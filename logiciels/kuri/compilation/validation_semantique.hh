@@ -137,6 +137,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
     ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
                                                     NoeudBloc *bloc_recherche);
+    ResultatValidation valide_type_opaque(NoeudDeclarationTypeOpaque *decl);
 
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);

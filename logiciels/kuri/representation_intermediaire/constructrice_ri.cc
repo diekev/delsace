@@ -671,6 +671,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPRESSION_PLAGE:
         case GenreNoeud::EXPRESSION_VIRGULE:
         case GenreNoeud::INSTRUCTION_CHARGE:

@@ -80,10 +80,6 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
         return false;
     }
 
-    if (noeud->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
-        return false;
-    }
-
     if (noeud->possede_drapeau(EST_CONSTANTE)) {
         return false;
     }

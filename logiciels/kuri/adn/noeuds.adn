@@ -496,6 +496,15 @@ struct NoeudEnum : NoeudDéclarationType {
   Annotation [] annotations [code copie]
 }
 
+struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
+  @genre DÉCLARATION_OPAQUE
+  @comme type_opaque
+  @code  NoeudCodeTypeOpaque
+
+  NoeudExpression * [] arbre_aplatis
+  NoeudExpression *expression_type [code enfant]
+}
+
 struct NoeudSi : NoeudExpression {
 	@genre INSTRUCTION_SI
 	@comme si

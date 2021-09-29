@@ -1439,6 +1439,14 @@ static std::optional<Attente> apparies_candidates(
                 resultat.resultats.ajoute(
                     apparie_appel_structure(espace, expr, decl_struct, args));
             }
+            else if (decl->est_type_opaque()) {
+                auto decl_opaque = decl->comme_type_opaque();
+                if (!decl_opaque->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                    return Attente::sur_declaration(decl_opaque);
+                }
+                resultat.resultats.ajoute(apparie_construction_opaque(
+                    espace, expr, decl_opaque->type->comme_opaque(), args));
+            }
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
 

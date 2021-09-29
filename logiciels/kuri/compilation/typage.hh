@@ -45,6 +45,7 @@ struct OperateurBinaire;
 struct OperateurUnaire;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeOpaque;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -495,11 +496,11 @@ struct TypeOpaque : public Type {
         genre = GenreType::OPAQUE;
     }
 
-    TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie);
+    TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie);
 
     COPIE_CONSTRUCT(TypeOpaque);
 
-    NoeudDeclarationVariable *decl = nullptr;
+    NoeudDeclarationTypeOpaque *decl = nullptr;
     IdentifiantCode *ident = nullptr;
     Type *type_opacifie = nullptr;
     kuri::chaine nom_portable_ = "";
@@ -655,9 +656,9 @@ struct Typeuse {
 
     TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
 
-    TypeOpaque *cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie);
+    TypeOpaque *cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie);
 
-    TypeOpaque *monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique);
+    TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
     TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
 

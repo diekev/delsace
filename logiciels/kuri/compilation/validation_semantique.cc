@@ -87,6 +87,11 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_structure(structure);
     }
 
+    if (racine_validation()->est_type_opaque()) {
+        auto opaque = racine_validation()->comme_type_opaque();
+        return valide_arbre_aplatis(opaque, opaque->arbre_aplatis);
+    }
+
     if (racine_validation()->est_declaration_variable()) {
         auto decl = racine_validation()->comme_declaration_variable();
         return valide_arbre_aplatis(decl, decl->arbre_aplatis);
@@ -503,6 +508,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             return valide_declaration_variable(noeud->comme_declaration_variable());
+        }
+        case GenreNoeud::DECLARATION_OPAQUE:
+        {
+            return valide_type_opaque(noeud->comme_type_opaque());
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
@@ -3166,6 +3175,10 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 
     if (decl->est_declaration_type() && expr->aide_generation_code != EST_NOEUD_ACCES) {
+        if (decl->est_type_opaque() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            return Attente::sur_declaration(decl);
+        }
+
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
     }
@@ -3182,26 +3195,19 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
-        if (decl->type && decl->type->est_opaque() && decl->est_declaration_variable() &&
-            (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE)) {
-            expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
-            expr->declaration_referee = decl;
-        }
-        else {
-            // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
-            // polymorphiques
-            assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
-            expr->declaration_referee = decl;
-            decl->drapeaux |= EST_UTILISEE;
-            expr->type = decl->type;
+        // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
+        // polymorphiques
+        assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
+        expr->declaration_referee = decl;
+        decl->drapeaux |= EST_UTILISEE;
+        expr->type = decl->type;
 
-            /* si nous avons une valeur polymorphique, crée un type de données
-             * temporaire pour que la validation soit contente, elle sera
-             * remplacée par une constante appropriée lors de la validation
-             * de l'appel */
-            if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                expr->type = m_compilatrice.typeuse.type_type_de_donnees(expr->type);
-            }
+        /* si nous avons une valeur polymorphique, crée un type de données
+         * temporaire pour que la validation soit contente, elle sera
+         * remplacée par une constante appropriée lors de la validation
+         * de l'appel */
+        if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            expr->type = m_compilatrice.typeuse.type_type_de_donnees(expr->type);
         }
     }
 
@@ -3213,6 +3219,30 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
+{
+    auto type_opacifie = Type::nul();
+
+    if (!decl->expression_type->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+        if (resoud_type_final(decl->expression_type, type_opacifie) ==
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+
+        if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_opacifie);
+        }
+    }
+    else {
+        type_opacifie = m_compilatrice.typeuse.cree_polymorphique(decl->expression_type->ident);
+    }
+
+    auto type_opaque = m_compilatrice.typeuse.cree_opaque(decl, type_opacifie);
+    decl->type = type_opaque;
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
@@ -4300,29 +4330,6 @@ static bool peut_etre_type_constante(Type *type)
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
-    if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
-        auto type_opacifie = Type::nul();
-
-        if (!decl->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-            if (resoud_type_final(decl->expression, type_opacifie) ==
-                CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_opacifie);
-            }
-        }
-        else {
-            type_opacifie = m_compilatrice.typeuse.cree_polymorphique(decl->expression->ident);
-        }
-
-        auto type_opaque = m_compilatrice.typeuse.cree_opaque(decl, type_opacifie);
-        decl->type = type_opaque;
-        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-        return CodeRetourValidation::OK;
-    }
-
     auto &ctx = m_tacheronne.contexte_validation_declaration;
     ctx.variables.efface();
     ctx.donnees_temp.efface();
