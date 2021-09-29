@@ -412,7 +412,7 @@ static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, Graphe
         return graphe.cree_noeud_fonction(metaprogramme->fonction);
     }
 
-    if (noeud->est_enum() || noeud->est_structure()) {
+    if (noeud->est_declaration_type()) {
         return graphe.cree_noeud_type(noeud->type);
     }
 

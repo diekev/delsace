@@ -882,9 +882,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (dls::outils::est_element(decl_ref->genre,
-                                         GenreNoeud::DECLARATION_ENUM,
-                                         GenreNoeud::DECLARATION_STRUCTURE)) {
+            if (decl_ref->est_declaration_type()) {
                 expr_ref->substitution = assem->cree_reference_type(
                     expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
                 return;

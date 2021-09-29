@@ -3165,9 +3165,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 
-    if (dls::outils::est_element(
-            decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) &&
-        expr->aide_generation_code != EST_NOEUD_ACCES) {
+    if (decl->est_declaration_type() && expr->aide_generation_code != EST_NOEUD_ACCES) {
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
     }
@@ -4045,8 +4043,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         type_union->est_nonsure = decl->est_nonsure;
 
         POUR (*decl->bloc->membres.verrou_ecriture()) {
-            if (dls::outils::est_element(
-                    it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+            if (it->est_declaration_type()) {
                 // utilisation d'un type de données afin de pouvoir automatiquement déterminer un
                 // type
                 auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
@@ -4132,8 +4129,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto type_struct = type_compose->comme_structure();
 
     POUR (*decl->bloc->membres.verrou_lecture()) {
-        if (dls::outils::est_element(
-                it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+        if (it->est_declaration_type()) {
             // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
             auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
             type_compose->membres.ajoute(

@@ -448,7 +448,12 @@ struct NoeudExpressionConstructionStructure : NoeudExpressionAppel {
 	@code  NoeudCodeConstructionStructure
 }
 
-struct NoeudStruct : NoeudDéclarationSymbole {
+struct NoeudDéclarationType : NoeudDéclarationSymbole {
+  @comme déclaration_type
+  @code  NoeudCodeDéclarationType
+}
+
+struct NoeudStruct : NoeudDéclarationType {
 	@genre DÉCLARATION_STRUCTURE
 	@comme structure
 	@code  NoeudCodeStructure
@@ -480,7 +485,7 @@ struct NoeudStruct : NoeudDéclarationSymbole {
   Annotation [] annotations [code copie]
 }
 
-struct NoeudEnum : NoeudDéclarationSymbole {
+struct NoeudEnum : NoeudDéclarationType {
 	@genre DÉCLARATION_ÉNUM
 	@comme énum
 	@code  NoeudCodeÉnum
