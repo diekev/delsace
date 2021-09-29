@@ -2257,6 +2257,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
 
             eu_declarations = true;
+
+            analyse_annotations(decl_var->annotations);
         }
         else {
             params.ajoute(param);
