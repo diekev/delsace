@@ -318,6 +318,15 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     retourne uri
 }
 
+parse_uri_depuis_chaine :: fonc (chn: chaine) -> bool, URI
+{
+    uri := tente parse_uri_standard(chn) piège err {
+        retourne faux, URI()
+    }
+
+    retourne vrai, uri
+} @ParsageJSON
+
 parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
 	uri : URI
