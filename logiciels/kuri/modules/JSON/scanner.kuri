@@ -284,12 +284,14 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
                 pour 4 {
                     c = scanner.caractère_courant()
 
-                    si est_hexadécimal(c) {
+                    si !est_hexadécimal(c) {
                         retourne LexèmeJSON.INVALIDE
                     }
 
                     scanner.avance()
                 }
+
+                continue
             }
             sinon si !est_caractère_échappé_valide(c) {
                 retourne LexèmeJSON.INVALIDE
