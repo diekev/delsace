@@ -66,7 +66,7 @@ ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
 ResultatValidation ContexteValidationCode::valide()
 {
     if (racine_validation()->est_entete_fonction()) {
-        return valide_type_fonction(racine_validation()->comme_entete_fonction());
+        return valide_entete_fonction(racine_validation()->comme_entete_fonction());
     }
 
     if (racine_validation()->est_corps_fonction()) {
@@ -375,7 +375,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto decl = noeud->comme_entete_fonction();
 
             if (!decl->est_declaration_type) {
-                return valide_type_fonction(decl);
+                return valide_entete_fonction(decl);
             }
 
             aplatis_arbre(decl);
@@ -2489,7 +2489,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     return CodeRetourValidation::Erreur;
 }
 
-ResultatValidation ContexteValidationCode::valide_type_fonction(
+ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
 #ifdef STATISTIQUES_DETAILLEES

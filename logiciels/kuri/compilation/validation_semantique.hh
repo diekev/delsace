@@ -120,7 +120,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-    ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_entete_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
