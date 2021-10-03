@@ -526,7 +526,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 
 void Syntaxeuse::quand_commence()
 {
-    /* Nous faisons ça ici afin de ne pas trop avoir de mépridictions de branches
+    /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
     if (!m_fichier->metaprogramme_corps_texte) {
