@@ -1,97 +1,172 @@
+importe Compilatrice
 importe ConnexionTCP
 importe Fondation
+importe Introspection
 importe Réseau
 
 TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
-DonnéesAppelRoute :: struct {
-    rappel: TypeRappelRoute
-    données: []DonnéesAppariement
-}
-
-Route :: struct {
-    chemin: chaine
-    rappel: TypeRappelRoute
-
-    règles_routage: []RègleRoutage
-
-    priorité : z32
-}
-
-NouvelleRouteuse :: struct {
-    routes_get: []Route
-    routes_post: []Route
-}
-
-ajoute_route :: fonc (routes: *[]Route, chemin: chaine, rappel: TypeRappelRoute) -> rien
+/* Fonction pour parser une chaine de caractère selon les types trouvées lors
+ * de la compilation du programme parent.
+ */
+parse_paramètre_routage_pour_type :: fonc (chn: chaine, valeur: eini) -> bool
 {
-    route : Route = ---
-    route.chemin = chemin
-    route.rappel = rappel
+    fonction := trouve_fonction_pour_type(valeur.info)
+    saufsi fonction {
+        retourne faux
+    }
+    retourne fonction.rappel(chn, tampon_pour_eini(valeur))
+}
 
-    route.règles_routage = tente parse_règles(chemin) piège err {
-        retourne
+/* Type pour définir des erreurs. */
+ErreurHTTP :: struct {
+    code: CodeÉtatHTTP
+    message: chaine
+}
+
+CodeEtContenuHTPP :: struct {
+    code: CodeÉtatHTTP
+    contenu: ContenuHTTP
+}
+
+message_depuis_erreur_http :: fonc (erreur_http: ErreurHTTP) -> MessageServeuseHTTP
+{ 
+    retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message))
+}
+
+erreur_ressource_non_trouvée :: fonc (message := "") -> ErreurHTTP
+{
+    saufsi message {
+        message = "ressource non trouvée"
     }
 
-    route.priorité = 0
-    pour route.règles_routage {
+    retourne ErreurHTTP(CodeÉtatHTTP.NOT_FOUND, message)
+}
+
+erreur_interne_serveur :: fonc (message := "") -> ErreurHTTP
+{
+    saufsi message {
+        message = "erreur interne du serveur"
+    }
+
+    retourne ErreurHTTP(CodeÉtatHTTP.INTERNAL_SERVER_ERROR, message)
+}
+
+erreur_requête_malformée :: fonc (message := "") -> ErreurHTTP
+{
+    saufsi message {
+        message = "requête malformée"
+    }
+
+    retourne ErreurHTTP(CodeÉtatHTTP.BAD_REQUEST, message)
+}
+
+/* Structure de base pour les paramètres des requêtes des URI.
+ * Ces paramètres sont les paires nom-valeur suivant le point d'interrogation ('?')
+ * dans un URI :
+ * vidéos.fr/regarder/?vidéo=IDVIDÉO
+ */
+ParamètresRequête :: struct {
+}
+
+/* Structure de base pour les paramètres de routage. Ces paramètres peuvent être
+ * définis dans les routes via un nom entourée par des chevrons :
+ * "/<id>/"
+ * défini un paramètre de entier nommé « id ».
+
+ * Cette route sera appariée à tous les chemins ayant une chaine de caractère
+ * représentant un entier comme première, et seule dans l'exemple, branche :
+ * /123456/ prendra cette route, alors que /123def/ ne la prendra pas.
+ */
+ParamètresRoutage :: struct {
+}
+
+règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
+{
+    pour règles {
         si it.action != ActionRègleRoutage.ApparieChaineLittérale {
-            route.priorité += 1
+            retourne vrai
         }
     }
 
-    tableau_ajoute(routes, route)
+    retourne faux
+}
+
+apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *InfoType) -> bool
+{
+    si infos.id != id_info.STRUCTURE {
+        retourne faux
+    }
+
+    info_structure := infos comme *InfoTypeStructure
+
+    nombre_paramètres := 0
+
+    pour règles {
+        saufsi it.action == ActionRègleRoutage.ApparieParamètre {
+            continue
+        }
+
+        nombre_paramètres += 1
+
+        si !possède_membre(info_structure, it.chn) {
+            retourne faux
+        }
+
+        // À FAIRE : typage
+    }
+
+    si nombre_paramètres != info_structure.membres.taille {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
+{
+    priorité := 0
+
+    pour règles {
+        si it.action != ActionRègleRoutage.ApparieChaineLittérale {
+            priorité += 1
+        }
+    }
+
+    retourne priorité
+}
+
+NouvelleRouteuse :: struct {
+    apparie_routes_get: fonc(&NouvelleRouteuse, chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+    apparie_routes_post: fonc(&NouvelleRouteuse, chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+
+    // À FAIRE
+    rappel_page_non_trouvée: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 }
 
 détruit_routeuse :: fonc (routeuse: &NouvelleRouteuse) -> rien
 {
-    pour & routeuse.routes_get {
-        déloge(it.règles_routage)
-    }
-
-    pour & routeuse.routes_post {
-        déloge(it.règles_routage)
-    }
-
-    déloge(routeuse.routes_get)
-    déloge(routeuse.routes_post)
 }
 
-apparie_route :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, méthode: chaine) -> DonnéesAppelRoute
+apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
-    si méthode == "GET" {
-        retourne apparie_route(routeuse.routes_get, chemin)
+    méthode := message.méthode
+    // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
+    chemin := message.uri.chemin
+
+    si routeuse.apparie_routes_get && méthode == "GET" {
+        retourne routeuse.apparie_routes_get(routeuse, chemin, prise, message)
     }
 
-    si méthode == "POST" {
-        retourne apparie_route(routeuse.routes_post, chemin)
+    si routeuse.apparie_routes_post && méthode == "POST" {
+        retourne routeuse.apparie_routes_post(routeuse, chemin, prise, message)
     }
 
-    retourne DonnéesAppelRoute()
+    retourne méthode_non_autorisée()
 }
 
 // --------------------------------
 // #portée_fichier
-
-apparie_route :: fonc (routes: []Route, chemin: chaine) -> DonnéesAppelRoute
-{
-    résultat : DonnéesAppelRoute
-    priorité := 1000
-
-    pour routes {
-        données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {
-            continue
-        }
-
-        si it.priorité < priorité {
-            priorité = it.priorité
-            résultat.rappel = it.rappel
-            résultat.données = données
-        }
-    }
-
-    retourne résultat
-}
 
 divise_url :: fonc (ligne: chaine) -> []chaine
 {
@@ -140,15 +215,17 @@ divise_url :: fonc (ligne: chaine) -> []chaine
 
 ActionRègleRoutage :: énum {
     Invalide
+    /* Apparie la chaine telle que données dans le chemin, par exemple
+     * /accueil/ devra apparier "accueil". */
     ApparieChaineLittérale
-    ApparieChaine
-    ApparieNombreEntier
+    /* Apparie un paramètre du nom données entre les chevrons, par exemple /<id>/
+     * devra apparier un membre de la structure associée nommée "id". */
+    ApparieParamètre
 }
 
 RègleRoutage :: struct {
     action: ActionRègleRoutage
     chn: chaine
-    nom_données: chaine
 }
 
 ErreurParsage :: erreur {
@@ -174,40 +251,22 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
         règle : RègleRoutage
 
         si it[0] == '<' {
-            pos_double_points := trouve_caractère_depuis_le_début(it, ':')
-
-            si pos_double_points == -1 {
-                déloge(résultat)
-                retourne ErreurParsage.RègleDénuéeDeNom
-            }
-
             si it[it.taille - 1] != '>' {
                 déloge(résultat)
                 retourne ErreurParsage.ChevronFermantManquant
             }
 
-            nom_données := it.sous_chaine(1, pos_double_points)
-            type_action := it.sous_chaine(pos_double_points + 1, it.taille - 1)
-
-            si type_action == "entier" {
-                règle.action = ActionRègleRoutage.ApparieNombreEntier
-            }
-            sinon si type_action == "chaine" {
-                règle.action = ActionRègleRoutage.ApparieChaine
-            }
-            sinon {
-                déloge(résultat)
-                retourne ErreurParsage.TypeActionInconnue
-            }
+            nom_données := it.sous_chaine(1, it.taille - 1)
 
             pour r dans résultat {
-                si r.nom_données == nom_données {
+                si r.chn == nom_données {
                     déloge(résultat)
                     retourne ErreurParsage.NomRègleRedéfini
                 }
             }
 
-            règle.nom_données = nom_données
+            règle.chn = nom_données
+            règle.action = ActionRègleRoutage.ApparieParamètre
         }
         sinon {
             // ceci est également utilisé pour la racine "/"
@@ -221,87 +280,115 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
     retourne résultat
 }
 
-est_seulement_nombre :: fonc (chn: chaine) -> bool
+// ---------------------------------------------------------------------
+// Rassemblement des fonctions de parsage pour les paramètres de routage
+
+__fonctions_parsage_routes : []FonctionParsage
+
+ajoute_fonction_de_parsage_routes :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
 {
-    pour chn {
-        si !est_nombre_décimal(it) {
-            retourne faux
-        }
-    }
-
-    retourne vrai
+    ajoute_fonction(*__fonctions_parsage_routes, info, fonction)
 }
 
-ErreurAppariement :: erreur {
-    RègleInvalide
-    ÉlémentDoitÊtreUnNombre
-    ÉlémentDoitÊtreUneChaine
-    RègleEtRouteOntTaillesDifférentes
-}
-
-DonnéesAppariement :: struct {
-    nom: chaine
-    données: chaine
-}
-
-DonnéesRouteOuErreur :: union {
-    e: ErreurAppariement
-    d: []DonnéesAppariement
-}
-
-apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRouteOuErreur
+trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 {
-    éléments := divise_url(route)
-    diffère { déloge(éléments) }
-
-    si règles.taille != éléments.taille {
-        retourne ErreurAppariement.RègleEtRouteOntTaillesDifférentes
-    }
-
-    résultat : []DonnéesAppariement
-
-    pour éléments {
-        règle := règles[index_it]
-
-        discr règle.action {
-            Invalide {
-                déloge(résultat)
-                retourne ErreurAppariement.RègleInvalide
-            }
-            ApparieChaine {
-                // RÀF comme vérification, nous pourrions avoir une fonction de rappel
-                données : DonnéesAppariement
-                données.nom = règle.nom_données
-                données.données = it
-
-                tableau_ajoute(*résultat, données)
-            }
-            ApparieChaineLittérale {
-                si it != règle.chn {
-                    déloge(résultat)
-                    retourne ErreurAppariement.ÉlémentDoitÊtreUneChaine
-                }
-
-                données : DonnéesAppariement
-                données.nom = règle.nom_données
-                données.données = it
-
-                tableau_ajoute(*résultat, données)
-            }
-            ApparieNombreEntier {
-                si !est_seulement_nombre(it) {
-                    déloge(résultat)
-                    retourne ErreurAppariement.ÉlémentDoitÊtreUnNombre
-                }
-
-                données : DonnéesAppariement
-                données.nom = règle.nom_données
-                données.données = it
-
-                tableau_ajoute(*résultat, données)
-            }
-        }
-    }
-
-    retourne résultat
+    retourne trouve_fonction_pour_type(__fonctions_parsage_routes, info)
 }
+
+issitialise_routes :: fonc ()
+{
+	déloge(__fonctions_parsage_routes)
+}
+
+génère_initialisation_routes :: fonc ()
+{
+    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageRouteHTTP")
+    diffère déloge(fonctions_de_parsage)
+
+    saufsi fonctions_de_parsage {
+        retourne
+    }
+
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+	diffère détruit_tampons(*enchaineuse)
+
+    // Il nous faut les modules.
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
+    ajoute_au_tampon(*enchaineuse, "importe ServeuseHTTP\n")
+
+	modules_importés : []chaine
+	tableau_ajoute(*modules_importés, "Fondation")
+
+	/* Création des enveloppes pour les fonctions de parsage. */
+    pour fonctions_de_parsage {
+        // valide les types
+        si it.params.taille != 1 {
+            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre")
+            retourne
+        }
+
+        type_premier_paramètre := it.params[0].type
+        si type_premier_paramètre != info_de(chaine) {
+            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».")
+            retourne
+        }
+
+		si it.params_sorties.taille != 2 {
+            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+            retourne
+		}
+
+		type_première_sortie := it.params_sorties[0].type
+
+		si type_première_sortie != info_de(bool) {
+            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
+            retourne
+		}
+
+		nom_module := compilatrice_module_pour_code(it)
+		si nom_module {
+			pour module_importé dans modules_importés {
+				si module_importé == nom_module {
+					arrête
+				}
+			}
+			sansarrêt {
+				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
+				tableau_ajoute(*modules_importés, nom_module)
+			}
+		}
+
+        ajoute_au_tampon(*enchaineuse, "parsage_routes_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+        ajoute_au_tampon(*enchaineuse, "{\n")
+        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
+		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    /* Création de la fonction d'initialisation. */
+    ajoute_au_tampon(*enchaineuse, "initialise_routes_http :: fonc ()\n")
+    ajoute_au_tampon(*enchaineuse, "{\n")
+    ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*__fonctions_parsage_routes)\n")
+
+    pour fonctions_de_parsage {
+        type_deuxième_paramètre := it.params_sorties[1].type
+        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_routes(info_de(")
+        imprime_type(*enchaineuse, type_deuxième_paramètre)
+        ajoute_au_tampon(*enchaineuse, "), parsage_routes_", it.nom, ")\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_routes_http()\n")
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_routes_http()\n")
+
+    sources := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(sources)
+
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+}
+
+#pré_exécutable génère_initialisation_routes()
