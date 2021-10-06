@@ -35,6 +35,15 @@ message_depuis_erreur_http :: fonc (erreur_http: ErreurHTTP) -> MessageServeuseH
     retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message))
 }
 
+erreur_autorisation :: fonc (message := "") -> ErreurHTTP
+{
+    saufsi message {
+        message = "autorisation requise"
+    }
+
+    retourne ErreurHTTP(CodeÉtatHTTP.UNAUTHORIZED, message)
+}
+
 erreur_ressource_non_trouvée :: fonc (message := "") -> ErreurHTTP
 {
     saufsi message {
