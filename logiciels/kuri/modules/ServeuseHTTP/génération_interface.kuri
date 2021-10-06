@@ -231,7 +231,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.ajoute_au_tampon(")")
     enchaineuse.nouvelle_ligne()
 
-    // si erreur, retourne erreur
+    // À FAIRE : ce serait bien d'extraire ceci dans une fonction commune, mais les types résultat peuvent être uniques à cause des gabarits
     enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n")
 
     pour données.type_résultat.membres {
