@@ -488,6 +488,16 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     retourne serveuse
 }
 
+// À FAIRE : dossier
+ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
+{
+    si extension != ".css" && extension != ".png" {
+        retourne
+    }
+
+    serveuse.routeuse.apparie_fichiers(extension)
+}
+
 lance :: fonc (serveuse: *ServeuseHTTP)
 {
     serveuse.boucle_évènements.lance()
@@ -777,13 +787,9 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message
 }
 
-// À FAIRE: généralise
-get_fichier_css :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+sers_fichier :: fonc (prise: *Prise, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
 {
-    // enlève le premier slash
-    chemin_fichier := avance(message.requête, 1)
-    chm := construit_chemin(chemin_fichier)
-
+    chm := chemin_pour_fichier(message.requête)
     contenu := contenu_fichier_texte(chm)
 
     saufsi contenu {
@@ -794,27 +800,7 @@ get_fichier_css :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> Message
     réponse.version = "HTTP/1.1"
     réponse.code_état = CodeÉtatHTTP.OK
     réponse.contenu = contenu
-    ajoute_entête(*réponse, "Content-Type", "text/css; charset=utf-8")
-    retourne réponse
-}
-
-get_image_png :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
-{
-    // enlève le premier slash
-    chemin_fichier := avance(message.requête, 1)
-    chm := construit_chemin(chemin_fichier)
-
-    contenu := contenu_fichier_texte(chm)
-
-    saufsi contenu {
-        retourne ressource_non_trouvée()
-    }
-
-    réponse : MessageServeuseHTTP
-    réponse.version = "HTTP/1.1"
-    réponse.code_état = CodeÉtatHTTP.OK
-    réponse.contenu = contenu
-    ajoute_entête(*réponse, "Content-Type", "image/png")
+    ajoute_entête(*réponse, "Content-Type", type_mime)
     retourne réponse
 }
 

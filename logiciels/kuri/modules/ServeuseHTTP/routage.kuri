@@ -3,6 +3,7 @@ importe ConnexionTCP
 importe Fondation
 importe Introspection
 importe Réseau
+importe SysFichier
 
 TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
@@ -142,10 +143,24 @@ NouvelleRouteuse :: struct {
 
     // À FAIRE
     rappel_page_non_trouvée: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+
+    extension_fichiers: []chaine
+}
+
+apparie_fichiers :: fonc (routeuse: &NouvelleRouteuse, extension: chaine)
+{
+    pour routeuse.extension_fichiers {
+        si it == extension {
+            retourne
+        }
+    }
+
+    tableau_ajoute(*routeuse.extension_fichiers, extension)
 }
 
 détruit_routeuse :: fonc (routeuse: &NouvelleRouteuse) -> rien
 {
+    déloge(routeuse.extension_fichiers)
 }
 
 apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
@@ -155,6 +170,10 @@ apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &Mes
     chemin := message.uri.chemin
 
     si routeuse.apparie_routes_get && méthode == "GET" {
+        si est_chemin_fichier_supporté(routeuse, chemin) {
+            retourne apparie_fichier(routeuse, chemin, prise, message)
+        }
+
         retourne routeuse.apparie_routes_get(routeuse, chemin, prise, message)
     }
 
@@ -163,6 +182,49 @@ apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &Mes
     }
 
     retourne méthode_non_autorisée()
+}
+
+chemin_pour_fichier :: fonc (chemin: chaine) -> CheminFichier
+{
+    // enlève le premier slash
+    chemin_fichier := avance(chemin, 1)
+    retourne construit_chemin(chemin_fichier)
+}
+
+est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine) -> bool
+{
+    chm := chemin_pour_fichier(chemin)
+
+    si fichier_existe(chm) {
+        extension := chm.extension()
+
+        pour routeuse.extension_fichiers {
+            si it == extension {
+                retourne vrai
+            }
+        }
+    }
+
+    retourne faux
+}
+
+apparie_fichier :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+{
+    chm := chemin_pour_fichier(chemin)
+
+    si chm.extension() == ".css" {
+        retourne sers_fichier(prise, message, "text/css; charset=utf-8")
+    }
+
+    si chm.extension() == ".png" {
+        retourne sers_fichier(prise, message, "image/png")
+    }
+
+    si chm.extension() == ".js" {
+        retourne sers_fichier(prise, message, "text/javascript; charset=utf-8")
+    }
+
+    retourne ressource_non_trouvée()
 }
 
 // --------------------------------
