@@ -1082,7 +1082,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     else {
         espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
-        if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
+        if (espace->options.resultat != ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
             requiers_liaison_executable(espace, unite->programme);

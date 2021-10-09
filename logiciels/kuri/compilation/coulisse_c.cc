@@ -1591,6 +1591,18 @@ static void genere_table_des_types(Typeuse &typeuse,
     repr_inter_programme.types.ajoute(type_tableau_fixe);
 }
 
+static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_programme,
+                                              kuri::tableau<Bibliotheque *> &bibliotheques)
+{
+    kuri::ensemble<Bibliotheque *> bibliotheques_utilisees;
+    POUR (repr_inter_programme.fonctions) {
+        if (it->decl && it->decl->est_externe && it->decl->symbole) {
+            rassemble_bibliotheques_utilisee(
+                bibliotheques, bibliotheques_utilisees, it->decl->symbole->bibliotheque);
+        }
+    }
+}
+
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1620,13 +1632,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
     atome_fonc->nom = "main";
 
-    kuri::ensemble<Bibliotheque *> bibliotheques_utilisees;
-    POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->est_externe && it->decl->symbole) {
-            rassemble_bibliotheques_utilisee(
-                bibliotheques, bibliotheques_utilisees, it->decl->symbole->bibliotheque);
-        }
-    }
+    rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
     genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
     return true;
@@ -1635,6 +1641,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    EspaceDeTravail &espace,
                                                    Programme *programme,
+                                                   kuri::tableau<Bibliotheque *> &bibliotheques,
                                                    std::ostream &fichier_sortie)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
@@ -1654,6 +1661,8 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         return false;
     }
 
+    rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
+
     genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
     return true;
 }
@@ -1669,7 +1678,9 @@ static bool genere_code_C(Compilatrice &compilatrice,
         return genere_code_C_depuis_fonction_principale(
             compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
     }
-    return genere_code_C_depuis_fonctions_racines(compilatrice, espace, programme, fichier_sortie);
+
+    return genere_code_C_depuis_fonctions_racines(
+        compilatrice, espace, programme, bibliotheques, fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1709,6 +1720,10 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
 {
     Enchaineuse enchaineuse;
     enchaineuse << "/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ";
+
+    if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        enchaineuse << " -fPIC ";
+    }
 
     // À FAIRE : comment lié les tables pour un fichier objet ?
     //	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
@@ -1810,6 +1825,10 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     Enchaineuse enchaineuse;
     enchaineuse << "/usr/bin/g++-9 ";
 
+    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        enchaineuse << " -shared -fPIC ";
+    }
+
     if (espace.options.compilation_pour == CompilationPour::PROFILAGE) {
         enchaineuse << " -pg ";
     }
@@ -1868,7 +1887,13 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     }
 
     enchaineuse << " -o ";
-    enchaineuse << espace.options.nom_sortie;
+
+    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        enchaineuse << espace.options.nom_sortie << ".so";
+    }
+    else {
+        enchaineuse << espace.options.nom_sortie;
+    }
 
     auto commande = enchaineuse.chaine();
 

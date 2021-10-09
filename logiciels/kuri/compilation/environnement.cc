@@ -40,7 +40,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
             const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
             Enchaineuse enchaineuse;
-            enchaineuse << "/usr/bin/g++-9 -c ";
+            enchaineuse << "/usr/bin/g++-9 -c  -fPIC ";
             enchaineuse << chemin_fichier.c_str();
             enchaineuse << " -o ";
             enchaineuse << chemin_objet;
