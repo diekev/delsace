@@ -1725,7 +1725,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << " -fPIC ";
     }
 
-    // À FAIRE : comment lié les tables pour un fichier objet ?
+    // À FAIRE : comment lier les tables pour un fichier objet ?
     //	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
     //		enchaineuse << "/tmp/tables_r16.o ";
     //	}

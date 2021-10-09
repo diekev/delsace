@@ -772,7 +772,7 @@ __init_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 __fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 {
     pousse_contexte mémoire(contexte) {
-        // Ici serons ajoutées toutes les expression des directives #ajoute_fini.
+        // Ici seront ajoutées toutes les expression des directives #ajoute_fini.
     }
 }
 
