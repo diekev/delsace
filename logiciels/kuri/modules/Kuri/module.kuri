@@ -779,6 +779,19 @@ __fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc (contexte: ContexteProgramme) -> z32 #principale
 
+__initialise_contexte_extra :: fonc (contexte: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice : *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #nulctx
+{
+    contexte.trace_appel = trace_appel
+
+    contexte.données_allocatrice = base_allocatrice
+
+    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
+    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
+    stockage_temporaire.occupé = 0
+    stockage_temporaire.occupation_maximale = 0
+    contexte.stockage_temporaire = stockage_temporaire
+}
+
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
 {
     contexte := __init_contexte_kuri(argc, argv)
@@ -786,17 +799,11 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     // initalise les autres membres du contexte
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
-    contexte.trace_appel = *trace_appel
 
     base_allocatrice : BaseAllocatrice
-    contexte.données_allocatrice = *base_allocatrice
-
     stockage_temporaire : StockageTemporaire = ---
-    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
-    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
-    stockage_temporaire.occupé = 0
-    stockage_temporaire.occupation_maximale = 0
-    contexte.stockage_temporaire = *stockage_temporaire
+
+    __initialise_contexte_extra(contexte, *trace_appel, *base_allocatrice, *stockage_temporaire)
 
     __init_exécution_kuri(contexte)
 
