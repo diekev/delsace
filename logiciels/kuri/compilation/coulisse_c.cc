@@ -1161,7 +1161,14 @@ struct GeneratriceCodeC {
 
             auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
-            os << "static const " << nom_broye_type(type) << ' ';
+            if (valeur_globale->est_externe) {
+                os << "extern ";
+            }
+            else {
+                os << "static const ";
+            }
+
+            os << nom_broye_type(type) << ' ';
 
             if (valeur_globale->ident) {
                 auto nom_globale = broye_nom_simple(valeur_globale->ident);
@@ -1224,7 +1231,6 @@ struct GeneratriceCodeC {
         // définis ensuite les globales
         POUR (globales) {
             auto valeur_globale = it;
-
             auto valeur_initialisateur = kuri::chaine();
 
             if (valeur_globale->initialisateur) {
@@ -1234,10 +1240,15 @@ struct GeneratriceCodeC {
 
             auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
-            os << "static ";
+            if (valeur_globale->est_externe) {
+                os << "extern ";
+            }
+            else {
+                os << "static ";
 
-            if (valeur_globale->est_constante) {
-                os << "const ";
+                if (valeur_globale->est_constante) {
+                    os << "const ";
+                }
             }
 
             os << nom_broye_type(type) << ' ';
@@ -1253,7 +1264,7 @@ struct GeneratriceCodeC {
                 table_globales.insere(valeur_globale, enchaine("&", nom_globale));
             }
 
-            if (valeur_globale->initialisateur) {
+            if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
                 os << " = " << valeur_initialisateur;
             }
 
