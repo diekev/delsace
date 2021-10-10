@@ -2507,7 +2507,17 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto ancien_est_dans_fonction = est_dans_fonction;
             est_dans_fonction = true;
-            noeud_corps->bloc = analyse_bloc();
+            if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
+                empile_etat("dans l'analyse du bloc", lexeme_courant());
+                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+                auto pousse_contexte = analyse_instruction_pousse_contexte();
+                noeud_corps->bloc->expressions->ajoute(pousse_contexte);
+                m_tacheronne.assembleuse->depile_bloc();
+                depile_etat();
+            }
+            else {
+                noeud_corps->bloc = analyse_bloc();
+            }
             est_dans_fonction = ancien_est_dans_fonction;
 
             analyse_annotations(noeud->annotations);
