@@ -1,0 +1,245 @@
+// Interface pour la bibliothèque du langage Python permettant de définir des modules.
+
+importe GlibC
+
+libpython :: #bibliothèque "python3.7m"
+
+Py_ssize_t :: z64
+// #if PYLONG_BITS_IN_DIGIT == 30
+digit :: n32
+
+PyTypeObject :: struct #externe {
+    ob_base: PyVarObject
+
+    /*
+    const char *tp_name; /* For printing, in format "<module>.<name>" */
+    Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
+
+    /* Methods to implement standard operations */
+
+    destructor tp_dealloc;
+    Py_ssize_t tp_vectorcall_offset;
+    getattrfunc tp_getattr;
+    setattrfunc tp_setattr;
+    PyAsyncMethods *tp_as_async; /* formerly known as tp_compare (Python 2)
+                                    or tp_reserved (Python 3) */
+    reprfunc tp_repr;
+
+    /* Method suites for standard classes */
+
+    PyNumberMethods *tp_as_number;
+    PySequenceMethods *tp_as_sequence;
+    PyMappingMethods *tp_as_mapping;
+
+    /* More standard operations (here for binary compatibility) */
+
+    hashfunc tp_hash;
+    ternaryfunc tp_call;
+    reprfunc tp_str;
+    getattrofunc tp_getattro;
+    setattrofunc tp_setattro;
+
+    /* Functions to access object as input/output buffer */
+    PyBufferProcs *tp_as_buffer;
+
+    /* Flags to define presence of optional/expanded features */
+    unsigned long tp_flags;
+
+    const char *tp_doc; /* Documentation string */
+
+    /* Assigned meaning in release 2.0 */
+    /* call function for all accessible objects */
+    traverseproc tp_traverse;
+
+    /* delete references to contained objects */
+    inquiry tp_clear;
+
+    /* Assigned meaning in release 2.1 */
+    /* rich comparisons */
+    richcmpfunc tp_richcompare;
+
+    /* weak reference enabler */
+    Py_ssize_t tp_weaklistoffset;
+
+    /* Iterators */
+    getiterfunc tp_iter;
+    iternextfunc tp_iternext;
+
+    /* Attribute descriptor and subclassing stuff */
+    struct PyMethodDef *tp_methods;
+    struct PyMemberDef *tp_members;
+    struct PyGetSetDef *tp_getset;
+    struct _typeobject *tp_base;
+    PyObject *tp_dict;
+    descrgetfunc tp_descr_get;
+    descrsetfunc tp_descr_set;
+    Py_ssize_t tp_dictoffset;
+    initproc tp_init;
+    allocfunc tp_alloc;
+    newfunc tp_new;
+    freefunc tp_free; /* Low-level free-memory routine */
+    inquiry tp_is_gc; /* For PyObject_IS_GC */
+    PyObject *tp_bases;
+    PyObject *tp_mro; /* method resolution order */
+    PyObject *tp_cache;
+    PyObject *tp_subclasses;
+    PyObject *tp_weaklist;
+    destructor tp_del;
+
+    /* Type attribute cache version tag. Added in version 2.6 */
+    unsigned int tp_version_tag;
+
+    destructor tp_finalize;
+    vectorcallfunc tp_vectorcall;
+    */
+}
+
+PyObject :: struct #externe {
+    ob_refcnt: z64
+    ob_type: *PyTypeObject
+}
+
+PyVarObject :: struct {
+    ob_base: PyObject
+    ob_size: Py_ssize_t /* Number of items in variable part */
+}
+
+PyMethodDef :: struct {
+    ml_name : ChaineC
+    ml_meth : #nulctx fonc(*PyObject, *PyObject)(*PyObject)
+    ml_flag: z32
+    ml_doc : ChaineC
+}
+
+PyModuleDef_Base :: struct {
+  ob_base: PyObject
+  m_init: #nulctx fonc (rien)(*PyObject)
+  m_index: z64
+  m_copy: *PyObject
+}
+
+PyModuleDef_Slot :: struct #externe
+
+PyModuleDef :: struct {
+    m_base: PyModuleDef_Base
+    m_name: ChaineC
+    m_doc: ChaineC
+    m_size: z64
+    m_methods: *PyMethodDef
+    m_slots: *PyModuleDef_Slot
+    m_traverse: #nulctx fonc(*PyObject, *rien, *rien)(z32) // le premier *rien est une fonction "visitproc"
+    m_clear: #nulctx fonc(*PyObject)(z32)
+    m_free: #nulctx fonc(*rien)(rien)
+}
+
+/* Flag passed to newmethodobject */
+/* METH_OLDARGS  0x0000   -- unsupported now */
+METH_VARARGS  :: 0x0001
+METH_KEYWORDS :: 0x0002
+/* METH_NOARGS and METH_O must not be combined with the flags above. */
+METH_NOARGS   :: 0x0004
+METH_O        :: 0x0008
+
+/* METH_CLASS and METH_STATIC are a little different; these control
+   the construction of methods for a class.  These cannot be used for
+   functions in modules. */
+METH_CLASS    :: 0x0010
+// #ifndef Py_LIMITED_API
+METH_STATIC   :: 0x0020
+
+/* METH_COEXIST allows a method to be entered even though a slot has
+   already filled the entry.  When defined, the flag allows a separate
+   method, "__contains__" for example, to coexist with a defined
+   slot like sq_contains. */
+
+METH_COEXIST   :: 0x0040
+METH_FASTCALL  :: 0x0080
+
+/* This bit is preserved for Stackless Python */
+// #ifdef PYTHON_STACKLESS
+METH_STACKLESS :: 0x0100
+
+/* METH_METHOD means the function stores an
+ * additional reference to the class that defines it;
+ * both self and class are passed to it.
+ * It uses PyCMethodObject instead of PyCFunctionObject.
+ * May not be combined with METH_NOARGS, METH_O, METH_CLASS or METH_STATIC.
+ */
+
+//#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03090000
+METH_METHOD 0x0200
+
+PYTHON_API_VERSION :: 1013
+
+externe _Py_NoneStruct : PyObject
+Py_None : *PyObject = *_Py_NoneStruct
+
+python_retourne_rien :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_None)
+    retourne Py_None
+}
+
+externe PyBool_Type : PyTypeObject
+
+_longobject :: struct {
+    ob_base: PyVarObject
+    ob_digit: [1]digit;
+}
+
+externe _Py_FalseStruct: PyObject // À FAIRE _longobject
+Py_False : *PyObject = *_Py_FalseStruct
+
+python_retourne_faux :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_False)
+    retourne Py_False
+}
+
+externe _Py_TrueStruct : PyObject // À FAIRE _longobject
+Py_True : *PyObject = *_Py_TrueStruct
+
+python_retourne_true :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_True)
+    retourne Py_True
+}
+
+PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
+
+PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
+
+// ---------------------------------------------------
+// Références
+
+_Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
+
+Py_INCREF :: fonc (ob: *PyObject) #nulctx
+{
+    ob.ob_refcnt += 1
+}
+
+Py_DECREF :: fonc (ob: *PyObject) #nulctx
+{
+    ob.ob_refcnt -= 1
+    si ob.ob_refcnt == 0 {
+        _Py_Dealloc(ob)
+    }
+}
+
+Py_XDECREF :: fonc (ob: *PyObject) #nulctx
+{
+    saufsi ob {
+        retourne
+    }
+
+    Py_DECREF(ob)
+}
+
+// ---------------------------------------------------
+// Module
+
+PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
+
+PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
+PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython

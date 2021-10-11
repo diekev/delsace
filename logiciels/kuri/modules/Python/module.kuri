@@ -1,0 +1,421 @@
+/*
+
+Génération de code Kuri pour créer un module Python depuis du code Kuri.
+
+*/
+
+importe Compilatrice
+importe Fondation
+importe SysFichier
+
+// À FAIRE : gère proprement les chaines, les chaines C ne sont jamais détruites !
+
+/*
+
+    Création de type/class Python depuis les types du langage.
+
+    1. Il faudra créer une structure pour ce type :
+        Structure :: struct {
+            x: z32
+        }
+
+        StructurePourPython {
+            empl base: PyObject
+
+            x: z32
+        }
+
+    2. Il faudra une fonction de conversion :
+       Structure_depuis_StructurePourPython :: fonc (ob: *PyObject) -> *Structure
+       {
+           // vérifie que le type est correct
+           // extrait les données
+       }
+
+    3. Il faudra une fonction de création, sans doute
+       StructurePourPython_depuis_Structure :: fonc (ob: *PyObject) -> *StructurePourPython
+       {
+           // crée un PyObject pour StructurePourPython
+       }
+
+    4. Il faudra une fonction de discrimination
+        si PyObject_TypeCheck(ob, ob_type)
+
+    5. Il faudra créer un objet pour Python
+        a. une globale : externe NomDuType : PyTypeObject
+        b. initialisation :
+            NomDuType.ob_refcnt = 1;
+            NomDuType.ob_size = 0;
+            NomDuType.tp_name = name;
+            NomDuType.tp_basicsize = sizeof(ctype)
+            NomDuType.tp_base = *BaseDuType; // peut être nul?
+            NomDuType.tp_flags = Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE;
+            NomDuType.tp_init = init_StructurePourPython;
+            NomDuType.tp_getset = accède_mute_StructurePourPython;
+            NomDuType.tp_methods = méthodes_StructurePourPython;
+
+            si PyType_Ready(*NomDuType) == -1 {
+                // erreur
+            }
+
+ */
+
+ModulePython :: struct {
+    nom: chaine
+    méthodes : []MéthodePython
+    constantes_nombre_entier : []ConstanteNombreEntier
+    constantes_chaine : []ConstanteChaine
+}
+
+ConstanteNombreEntier :: struct {
+    nom: chaine
+    valeur: z64
+}
+
+ConstanteChaine :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+ajoute_constante_nombre_entier :: fonc (module: &ModulePython, nom: chaine, valeur: z64)
+{
+    tableau_ajoute(*module.constantes_nombre_entier, ConstanteNombreEntier(nom, valeur))
+}
+
+ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: chaine)
+{
+    tableau_ajoute(*module.constantes_chaine, ConstanteChaine(nom, valeur))
+}
+
+TypePython :: énum {
+    /* Un nombre entier. */
+    LONG
+    /* Un nombre décimal. */
+    DOUBLE
+    /* Un PyObject */
+    OBJET
+    /* Une chaine, qui devrat être convertis depuis et vers Python. */
+    CHAINE
+    /* Pour None. */
+    RIEN
+    /* Ceci est pour les objets que nous allouons sur la pile, et que l'on via PyLong_AsVoidPtr, etc. */
+    POINTEUR_QUELCONQUE
+}
+
+/* Chaine de caractère pour le type Kuri utilisé dans l'IPA C de Python. */
+chaine_pour_type_python :: fonc (type: TypePython) -> chaine
+{
+    discr type {
+        LONG {
+            retourne "z32"
+        }
+        DOUBLE {
+            retourne "r64"
+        }
+        CHAINE {
+            retourne "*z8"
+        }
+        RIEN,
+        OBJET,
+        POINTEUR_QUELCONQUE {
+            retourne "*PyObject"
+        }
+    }
+
+    retourne "invalide"
+}
+
+/* Retourne le format à utiliser pour PyArg_ParseTuple selon le type. */
+format_extraction_type_python :: fonc (type: TypePython) -> chaine
+{
+    discr type {
+        LONG {
+            retourne "i"
+        }
+        DOUBLE {
+            retourne "d"
+        }
+        CHAINE {
+            retourne "s"
+        }
+        RIEN,
+        OBJET,
+        POINTEUR_QUELCONQUE {
+            retourne "O"
+        }
+    }
+
+    retourne "invalide"
+}
+
+ParamètreMéthodePython :: struct {
+    nom: chaine
+    type: TypePython
+    type_kuri: *InfoType
+}
+
+MéthodePython :: struct {
+    nom: chaine
+    paramètres_entrée: []ParamètreMéthodePython
+    paramètres_sortie: []ParamètreMéthodePython
+}
+
+ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
+{
+    saufsi méthode.paramètres_sortie {
+        retourne vrai
+    }
+
+    premier_param := méthode.paramètres_sortie[0]
+    retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == TypePython.RIEN
+}
+
+convertis_paramètre :: fonc (param: *NoeudCode) -> ParamètreMéthodePython
+{
+    résultat: ParamètreMéthodePython
+    résultat.nom = param.nom
+    résultat.type_kuri = param.type
+
+    type_kuri := param.type
+
+    discr type_kuri.id {
+        ENTIER {
+            résultat.type = TypePython.LONG
+        }
+        RÉEL {
+            résultat.type = TypePython.DOUBLE
+        }
+        CHAINE {
+            résultat.type = TypePython.CHAINE
+        }
+        RIEN {
+            résultat.type = TypePython.RIEN
+        }
+        sinon {
+            résultat.type = TypePython.POINTEUR_QUELCONQUE
+        }
+    }
+
+    retourne résultat
+}
+
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction) -> MéthodePython
+{
+    résultat: MéthodePython
+    résultat.nom = entête.nom
+
+    pour entête.params {
+        /* Ignore le contexte implicite, seuls les vrais paramètres devraient être convertis. */
+        si it.type == info_de(ContexteProgramme) {
+            continue
+        }
+
+        param := convertis_paramètre(it)
+        tableau_ajoute(*résultat.paramètres_entrée, param)
+    }
+
+    pour entête.params_sorties {
+        param := convertis_paramètre(it)
+        tableau_ajoute(*résultat.paramètres_sortie, param)
+    }
+
+    retourne résultat
+}
+
+ajoute_fonction :: fonc (module: &ModulePython, fonction: *NoeudCodeEntêteFonction)
+{
+    méthode := méthode_python_depuis_entête(fonction)
+    tableau_ajoute(*module.méthodes, méthode)
+}
+
+génère_interface_python :: fonc (module: &ModulePython) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "importe Python\n")
+    ajoute_au_tampon(*enchaineuse, "importe GlibC\n") // Pour ChaineC
+
+    pour module.méthodes {
+        génère_interface_fonction(*enchaineuse, it)
+    }
+
+    génère_initialisation_module(*enchaineuse, module)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+génère_code_pour_compilatrice :: fonc (module: &ModulePython, espace: *EspaceDeTravail)
+{
+    source := module.génère_interface_python()
+    diffère déloge(source)
+    ajoute_chaine_à_la_compilation(espace, source)
+}
+
+génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython)
+{
+    // À FAIRE : conversion de type paramètres
+    // À FAIRE : initialisation des variables globales de kuri
+
+    // À FAIRE : self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet
+    self_inutilisé := "@inutilisée"
+    args_inutilisés := ""
+    saufsi méthode.paramètres_entrée {
+        args_inutilisés = "@inutilisée"
+    }
+
+    enchaineuse.imprime_dans_enchaineuse("enveloppe_python_% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject #nulctx\n", méthode.nom, self_inutilisé, args_inutilisés)
+    enchaineuse.ajoute_au_tampon("pousse_contexte __contexte_fil_principal {\n")
+
+    /* Extrait les paramètres des arguments passés à la fonction. Pour le moment ces arguments
+     * ont des types conforment à Python. */
+    si méthode.paramètres_entrée {
+        pour méthode.paramètres_entrée {
+            chaine_type_python := chaine_pour_type_python(it.type)
+            enchaineuse.imprime_dans_enchaineuse("    pyobject_%: %\n", it.nom, chaine_type_python)
+        }
+
+        enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, crée_chaine_c(\"")
+        pour méthode.paramètres_entrée {
+            enchaineuse.ajoute_au_tampon(format_extraction_type_python(it.type))
+        }
+        enchaineuse.ajoute_au_tampon("\")")
+        virgule := ", "
+        pour méthode.paramètres_entrée {
+            enchaineuse.ajoute_au_tampon(virgule, "*pyobject_", it.nom)
+        }
+        enchaineuse.ajoute_au_tampon(") {\n")
+        enchaineuse.ajoute_au_tampon("        retourne nul\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
+
+    /* Convertis les paramètres de fonction. */
+    si méthode.paramètres_entrée {
+        // À FAIRE : convertis les types python
+        pour méthode.paramètres_entrée {
+            enchaineuse.imprime_dans_enchaineuse("    %: ", it.nom)
+            imprime_type(enchaineuse, it.type_kuri)
+            enchaineuse.ajoute_au_tampon(" = pyobject_", it.nom, "\n")
+        }
+    }
+
+    /* Appel la fonction. */
+    possède_retour := !méthode.ne_retourne_rien()
+
+    enchaineuse.ajoute_au_tampon("    ")
+    si possède_retour {
+        enchaineuse.ajoute_au_tampon("résultat := ")
+    }
+
+    enchaineuse.ajoute_au_tampon(méthode.nom)
+    virgule := "("
+    saufsi méthode.paramètres_entrée {
+        enchaineuse.ajoute_au_tampon(virgule)
+    }
+    sinon pour méthode.paramètres_entrée {
+        enchaineuse.ajoute_au_tampon(virgule, it.nom)
+        virgule = ", "
+    }
+    enchaineuse.ajoute_au_tampon(")\n")
+
+    si possède_retour {
+        enchaineuse.ajoute_au_tampon("    retourne PyLong_FromLong(résultat)\n")
+    }
+    sinon {
+        enchaineuse.ajoute_au_tampon("    retourne python_retourne_rien()\n")
+    }
+
+    enchaineuse.ajoute_au_tampon("}\n")
+}
+
+génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython)
+{
+    /* Déclare le tableau de méthodes. Il y a une méthode supplémentaire nulle comme sentinelle. */
+    enchaineuse.imprime_dans_enchaineuse("méthodes_du_module : [%]PyMethodDef\n", module.méthodes.taille + 1)
+
+    /* Fonction d'initialisation pour les méthodes. */
+    enchaineuse.ajoute_au_tampon("initialise_méthodes :: fonc () #nulctx\n")
+    enchaineuse.ajoute_au_tampon("pousse_contexte __contexte_fil_principal {\n")
+
+    pour module.méthodes {
+        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_name = crée_chaine_c(\"%\")\n", index_it, it.nom)
+        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_meth = enveloppe_python_%\n", index_it, it.nom)
+
+        drapeaux_méthode := ""
+        si it.paramètres_entrée {
+            drapeaux_méthode = "METH_VARARGS"
+        }
+        sinon {
+            drapeaux_méthode = "METH_NOARGS"
+        }
+
+        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_flag = %\n", index_it, drapeaux_méthode)
+        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_doc = ChaineC(nul)\n", index_it)
+    }
+
+    /* Sentienelle */
+    index_it_ := module.méthodes.taille
+    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_name = ChaineC(nul)\n", index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_meth = nul\n", index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_flag = 0\n", index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_doc = ChaineC(nul)\n", index_it_)
+
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    /* Déclaration de la globale pour la définition du module. */
+    enchaineuse.ajoute_au_tampon("définition_module: PyModuleDef\n")
+
+    /* Fonction d'initialisation pour la définition du module. */
+    enchaineuse.ajoute_au_tampon("initialise_définition_module :: fonc () #nulctx\n")
+    enchaineuse.ajoute_au_tampon("pousse_contexte __contexte_fil_principal {\n")
+    enchaineuse.imprime_dans_enchaineuse("    définition_module.m_name = crée_chaine_c(\"%\")\n", module.nom)
+    enchaineuse.ajoute_au_tampon("    définition_module.m_doc = ChaineC(nul)\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_size = -1\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_methods = *méthodes_du_module[0]\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_slots = nul\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_traverse = nul\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_clear = nul\n")
+    enchaineuse.ajoute_au_tampon("    définition_module.m_free = nul\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    /* La fonction d'initialisation du module doit avoir la signature : PyInit_nom_module :: fonc () -> *PyObject */
+    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #nulctx #racine #sansbroyage\n", module.nom)
+    enchaineuse.ajoute_au_tampon("{\n")
+
+    /* Nous devons tout d'abord initialiser le contexte. */
+    code_initialisation_contexte := «
+    init_de(ContexteProgramme)(*__contexte_fil_principal)
+    info_trace_appel := InfoFonctionTraceAppel(nom = "PyInit", fichier = "", adresse = nul)
+    trace_appel := TraceAppel(info_fonction = *info_trace_appel)
+
+    base_allocatrice : BaseAllocatrice
+    stockage_temporaire : StockageTemporaire = ---
+
+    __initialise_contexte_extra(*__contexte_fil_principal, *trace_appel, *base_allocatrice, *stockage_temporaire)»
+
+    enchaineuse.ajoute_au_tampon(code_initialisation_contexte, "\n")
+
+    // À FAIRE : supprimer ceci quand les globales seront proprement initialisées
+    enchaineuse.ajoute_au_tampon("    Py_None = *_Py_NoneStruct")
+    enchaineuse.ajoute_au_tampon("    Py_True = *_Py_TrueStruct")
+    enchaineuse.ajoute_au_tampon("    Py_False = *_Py_FalseStruct")
+    enchaineuse.ajoute_au_tampon("    initialise_méthodes()\n")
+    enchaineuse.ajoute_au_tampon("    initialise_définition_module()\n")
+
+    enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
+
+    pour module.constantes_nombre_entier {
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, crée_chaine_c(\"%\"), %) == -1 {\n", it.nom, it.valeur)
+        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
+
+    pour module.constantes_chaine {
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, crée_chaine_c(\"%\"), crée_chaine_c(\"%\")) == -1 {\n", it.nom, it.valeur)
+        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
+
+    enchaineuse.ajoute_au_tampon("    retourne module_pyobject\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+}
