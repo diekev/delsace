@@ -1,0 +1,3 @@
+[submodule "logiciels/kuri/modules/JSON/JSONTestSuite"]
+	path = logiciels/kuri/modules/JSON/JSONTestSuite
+	url = https://github.com/nst/JSONTestSuite.git
