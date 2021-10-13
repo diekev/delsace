@@ -65,30 +65,30 @@ ErreurURI :: erreur {
 
 URI :: struct {
     // la chaine originale
-	uri : chaine
+	uri : chaine  // @privé
 
     // les différents composants de l'URI
-    schéma : chaine
-	autorité : chaine
-	chemin_complet : chaine
+    schéma : chaine  // @accessible
+	autorité : chaine  // @accessible
+	chemin_complet : chaine  // @accessible
 
     // les différents composants du chemin
-    chemin : chaine
-	requête : chaine
-	fragment : chaine
+    chemin : chaine  // @accessible
+	requête : chaine  // @accessible
+	fragment : chaine  // @accessible
 
     // les différents composants de l'autorité
-	nom_utilisateur : chaine
-    mot_de_passe : chaine
-	hôte : chaine
-	port : chaine
+	nom_utilisateur : chaine  // @accessible
+    mot_de_passe : chaine  // @accessible
+	hôte : chaine  // @accessible
+	port : chaine  // @accessible
 
     // un composant est défini si son séparateur est présent, mais il peut tout de même
     // être vide
-    schéma_est_défini := faux
-    autorité_est_définie := faux
-    requête_est_définie := faux
-    fragment_est_défini := faux
+    schéma_est_défini := faux  // @privé
+    autorité_est_définie := faux  // @privé
+    requête_est_définie := faux  // @privé
+    fragment_est_défini := faux  // @privé
 }
 
 RésultatURI :: union {
@@ -611,4 +611,59 @@ importe Compilatrice
 	compilatrice_vérifie_égalité(uri.chemin, "")
 	compilatrice_vérifie_égalité(uri.requête, "")
 	compilatrice_vérifie_égalité(uri.fragment, "")
+}
+
+test_validité_uri :: fonc (chn: chaine)
+{
+    uri := tente parse_uri_standard(chn) piège err {
+        imprime("L'uri % est invalide !\n", chn)
+        retourne
+    }
+
+    si !uri.est_valide() {
+        imprime("L'uri % est invalide !\n", chn)
+        retourne
+    }
+
+    imprime("L'URI est valide :\n%\n", uri)
+}
+
+test_ssrf :: fonc ()
+{
+    // Tests de https://www.youtube.com/watch?v=voTHFdL9S2k
+    // https://github.com/orangetw/Tiny-URL-Fuzzer
+
+    // Le port doit être 80
+    test_validité_uri("http://127.0.0.1:11211:80/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://google.com#@evil.com/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://foo@evil.com@google.com/")
+
+    // Nous devons aller sur google.com, même test qu'avant mais une espace est présente
+    test_validité_uri("http://foo@evil.com @google.com/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://foo@127.0.0.1:11211@google.com:80/")
+
+    // Technique d'obfuscation en utilisant des \ pour tromper GlibC (gethostbyname supprimera les \ qui ne sont pas suivis pas des nombres).
+    // Dans notre cas, les \ sont considérer comme des caractères de séparation, donc l'URL sera parsé, mais sans doute invalide (l'hôte sera vide).
+    test_validité_uri("http://\\g\\o\\o\\g\\l\\e.\\c\\o\\m/")
+
+    // Ici, de même, mais l'URI est invalide, le parsage échouera. Pourquoi ?
+    test_validité_uri("http://or\\097nge.tw/")
+
+    // Certaines attaques peuvent avoir des nouvelles lignes ou des espaces dans l'hôte
+    // Attention, getaddrinfo retournera une bonne adresse !
+    test_validité_uri("http://127.0.0.1 google.com/")
+    test_validité_uri("http://127.0.0.1\r\ngoogle.com/")
+    test_validité_uri("http://127.0.0.1\tgoogle.com/")
+    test_validité_uri("http://127.0.0.1%09google.com/")
+    test_validité_uri("http://127.0.0.1%2509google.com/")
+
+    // avec UTF-16, la séquence FF2E (le caractère latin N en pleine largeure, ou peu importe la traduction française), peut
+    // dans certains parseurs ne supportant pas cette séquence être convertie en un '.', donc deux à la suite permettrait d'accéder au dossier parent "..".
+    // test_validité_uri("http://orange.tw/\uFF2E\uFF2E/passwd")
 }
