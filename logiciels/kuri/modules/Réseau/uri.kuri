@@ -290,7 +290,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 
     nombre_slashs := compte_consécutifs_si(chn, est_slash_uri)
 
-    // l'autorité doit commencé par deux slashs
+    // l'autorité doit commencer par deux slashs
     si nombre_slashs == 2 {
         après_slashs := avance(chn, nombre_slashs)
         fin_autorité := trouve_position_si(après_slashs, est_terminateur_autorité)
@@ -596,7 +596,7 @@ importe Compilatrice
 }
 
 #test {
-    /* L'hôte peut également être la valeur décimal de l'adresse IPv4 :
+    /* L'hôte peut également être la valeur décimale de l'adresse IPv4 :
      * pour l'adresse 167.216.133.33, la valeur décimale est 167*256^3+216*256^2+133*256+33 = 2815984929
      *
      * À FAIRE : tests dans IPv4
