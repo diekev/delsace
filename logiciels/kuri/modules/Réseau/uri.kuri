@@ -340,6 +340,16 @@ parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 	retourne uri
 }
 
+est_valide :: fonc (uri: URI) -> bool
+{
+    saufsi uri.hôte {
+        // Seul le schéma "file" peut avoir un hôte vide.
+        retourne uri.schéma == "file"
+    }
+
+    retourne vrai
+}
+
 // Retourne une chaine contenant la recomposition de l'URI depuis ses composants.
 // Voir RFC3986, section 5.3
 recompose_uri :: fonc (uri: *URI) -> chaine
