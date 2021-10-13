@@ -8,91 +8,115 @@ Py_ssize_t :: z64
 // #if PYLONG_BITS_IN_DIGIT == 30
 digit :: n32
 
-PyTypeObject :: struct #externe {
-    ob_base: PyVarObject
+PyAsyncMethods :: struct #externe
+PyNumberMethods :: struct #externe
+PySequenceMethods :: struct #externe
+PyMappingMethods :: struct #externe
+PyBufferProcs :: struct #externe
+PyMemberDef :: struct #externe
 
-    /*
-    const char *tp_name; /* For printing, in format "<module>.<name>" */
-    Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
+PyGetSetDef :: struct #externe {
+    name: ChaineC
+    get: #nulctx fonc(*PyObject, *rien)(*PyObject)
+    set: #nulctx fonc(*PyObject, *PyObject, *rien)(*PyObject)
+    doc: ChaineC
+    closure: *rien
+}
+
+_typeobject :: PyTypeObject
+
+PyTypeObject :: struct #externe {
+    empl ob_base: PyVarObject
+
+    tp_name: ChaineC /* For printing, in format "<module>.<name>" */
+
+    /* For allocation */
+    tp_basicsize: Py_ssize_t
+    tp_itemsize: Py_ssize_t
 
     /* Methods to implement standard operations */
 
-    destructor tp_dealloc;
-    Py_ssize_t tp_vectorcall_offset;
-    getattrfunc tp_getattr;
-    setattrfunc tp_setattr;
-    PyAsyncMethods *tp_as_async; /* formerly known as tp_compare (Python 2)
+    tp_dealloc: *rien // À FAIRE: pointeur de fonction
+    tp_vectorcall_offset: Py_ssize_t
+    tp_getattr: *rien // À FAIRE: pointeur de fonction
+    tp_setattr: *rien // À FAIRE: pointeur de fonction
+
+    tp_as_async: *PyAsyncMethods /* formerly known as tp_compare (Python 2)
                                     or tp_reserved (Python 3) */
-    reprfunc tp_repr;
+    tp_repr: #nulctx fonc(*PyObject)(*PyObject)
 
     /* Method suites for standard classes */
 
-    PyNumberMethods *tp_as_number;
-    PySequenceMethods *tp_as_sequence;
-    PyMappingMethods *tp_as_mapping;
+    tp_as_number: *PyNumberMethods
+    tp_as_sequence: *PySequenceMethods
+    tp_as_mapping: *PyMappingMethods
 
     /* More standard operations (here for binary compatibility) */
 
-    hashfunc tp_hash;
-    ternaryfunc tp_call;
-    reprfunc tp_str;
-    getattrofunc tp_getattro;
-    setattrofunc tp_setattro;
+    tp_hash: *rien // À FAIRE: pointeur de fonction hashfunc
+    tp_call: *rien // À FAIRE: pointeur de fonction ternaryfunc
+    tp_str: #nulctx fonc(*PyObject)(*PyObject)
+    tp_getattro: *rien // À FAIRE: pointeur de fonction getattrofunc
+    tp_setattro: *rien // À FAIRE: pointeur de fonction setattrofunc
 
     /* Functions to access object as input/output buffer */
-    PyBufferProcs *tp_as_buffer;
+    tp_as_buffer: *PyBufferProcs
 
     /* Flags to define presence of optional/expanded features */
-    unsigned long tp_flags;
+    tp_flags: n64
 
-    const char *tp_doc; /* Documentation string */
+    tp_doc: ChaineC /* Documentation string */
 
     /* Assigned meaning in release 2.0 */
     /* call function for all accessible objects */
-    traverseproc tp_traverse;
+    tp_traverse: *rien // À FAIRE: pointeur de fonction traverseproc
 
     /* delete references to contained objects */
-    inquiry tp_clear;
+    tp_clear: *rien // À FAIRE: pointeur de fonction inquiry
 
     /* Assigned meaning in release 2.1 */
     /* rich comparisons */
-    richcmpfunc tp_richcompare;
+    tp_richcompare: *rien // À FAIRE: pointeur de fonction richcmpfunc
 
     /* weak reference enabler */
-    Py_ssize_t tp_weaklistoffset;
+    tp_weaklistoffset: Py_ssize_t
 
     /* Iterators */
-    getiterfunc tp_iter;
-    iternextfunc tp_iternext;
+    tp_iter: *rien // À FAIRE: pointeur de fonction getiterfunc
+    tp_iternext: *rien // À FAIRE: pointeur de fonction iternextfunc
 
     /* Attribute descriptor and subclassing stuff */
-    struct PyMethodDef *tp_methods;
-    struct PyMemberDef *tp_members;
-    struct PyGetSetDef *tp_getset;
-    struct _typeobject *tp_base;
-    PyObject *tp_dict;
-    descrgetfunc tp_descr_get;
-    descrsetfunc tp_descr_set;
-    Py_ssize_t tp_dictoffset;
-    initproc tp_init;
-    allocfunc tp_alloc;
-    newfunc tp_new;
-    freefunc tp_free; /* Low-level free-memory routine */
-    inquiry tp_is_gc; /* For PyObject_IS_GC */
-    PyObject *tp_bases;
-    PyObject *tp_mro; /* method resolution order */
-    PyObject *tp_cache;
-    PyObject *tp_subclasses;
-    PyObject *tp_weaklist;
-    destructor tp_del;
+    tp_methods: *PyMethodDef
+    tp_members: *PyMemberDef
+    tp_getset: *PyGetSetDef
+    tp_base: *_typeobject
+    tp_dict: *PyObject
+    tp_descr_get: *rien // À FAIRE: pointeur de descrgetfunc
+    tp_descr_set: *rien // À FAIRE: pointeur de descrsetfunc
+    tp_dictoffset: Py_ssize_t
+    tp_init: *rien // À FAIRE: pointeur de fonctioninitproc
+    tp_alloc: #nulctx fonc (*PyTypeObject, Py_ssize_t)(*PyObject)
+    tp_new: #nulctx fonc (*PyTypeObject, *PyObject, *PyObject)(*PyObject) // PyObject *tp_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
+    tp_free: *rien // À FAIRE: pointeur de fonctionfreefunc /* Low-level free-memory routine */
+    tp_is_gc: *rien // À FAIRE: pointeur de fonctioninquiry /* For PyObject_IS_GC */
+    tp_bases: *PyGetSetDef
+    tp_mro: *PyGetSetDef /* method resolution order */
+    tp_cache: *PyGetSetDef
+    tp_subclasses: *PyGetSetDef
+    tp_weaklist: *PyGetSetDef
+    tp_del: *rien // À FAIRE: pointeur de fonctiondestructor
 
     /* Type attribute cache version tag. Added in version 2.6 */
-    unsigned int tp_version_tag;
+    tp_version_tag: n32
 
-    destructor tp_finalize;
-    vectorcallfunc tp_vectorcall;
-    */
+    tp_finalize: *rien // À FAIRE: pointeur de fonctiondestructor
+    tp_vectorcall: *rien // À FAIRE: pointeur de fonctionvectorcallfunc
 }
+
+/* Déclaration du "object" dont les classes Python hérite par défaut. */
+externe PyBaseObject_Type: PyTypeObject
+
+PyType_Ready :: fonc (type: *PyTypeObject) -> z32 #externe libpython
 
 PyObject :: struct #externe {
     ob_refcnt: z64
@@ -100,7 +124,7 @@ PyObject :: struct #externe {
 }
 
 PyVarObject :: struct {
-    ob_base: PyObject
+    empl ob_base: PyObject
     ob_size: Py_ssize_t /* Number of items in variable part */
 }
 
@@ -207,8 +231,6 @@ python_retourne_true :: fonc () -> *PyObject #nulctx
 
 PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
 
-PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
-
 // ---------------------------------------------------
 // Références
 
@@ -241,5 +263,54 @@ Py_XDECREF :: fonc (ob: *PyObject) #nulctx
 
 PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
 
+PyModule_AddObject :: fonc (module: *PyObject, name: ChaineC, value: *PyObject) #externe libpython
 PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
 PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython
+
+// ---------------------------------------------------
+// Objet
+
+PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
+
+_Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+{
+    retourne ob.ob_type == type
+}
+
+PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+{
+    retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
+}
+
+// ---------------------------------------------------
+// Objet Entier/Long
+
+PyLong_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
+PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
+
+// ---------------------------------------------------
+// Objet Réel/Double
+
+PyFloat_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
+PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
+
+// ---------------------------------------------------
+// Objet Unicode
+
+PyUnicode_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+PyUnicode_FromStringAndSize :: fonc (str: *z8, taille: Py_ssize_t) -> *PyObject #externe libpython
+PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: Py_ssize_t) -> *z8 #externe libpython
+
+python_extrait_chaine :: fonc (unicode: *PyObject) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille)
+    retourne résultat
+}
+
+PyUnicode_DepuisChaine :: fonc (chn: chaine) -> *PyObject #nulctx
+{
+    retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
+}
