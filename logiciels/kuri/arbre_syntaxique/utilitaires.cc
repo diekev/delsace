@@ -85,7 +85,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto bloc = static_cast<NoeudBloc *>(racine);
 
             POUR (*bloc->expressions.verrou_lecture()) {
-                aplatis_arbre(it, arbre_aplatis, drapeau);
+                aplatis_arbre(it, arbre_aplatis, DrapeauxNoeud::AUCUN);
             }
 
             // Il nous faut le bloc pour savoir quoi différer
