@@ -175,6 +175,11 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto expression = directive->expression;
     auto type_expression = expression->type;
 
+    /* Le type peut être nul pour les #tests. */
+    if (!type_expression && directive->ident == ID::test) {
+        type_expression = m_compilatrice.typeuse[TypeBase::RIEN];
+    }
+
     if (type_expression->est_tuple()) {
         auto tuple = type_expression->comme_tuple();
 
