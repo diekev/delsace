@@ -347,6 +347,21 @@ est_valide :: fonc (uri: URI) -> bool
         retourne uri.schéma == "file"
     }
 
+    // Un URI ne peut avoir d'informations d'identité ou de port si :
+    // - l'hôte est vide
+    // - le schéma est "file"
+    // - si son drapeau 'ne-peut-être-une-base' est vrai
+    // Source : https://url.spec.whatwg.org/#cannot-have-a-username-password-port
+    si possède_informations_identité(uri) || uri.port != "" {
+        si uri.schéma == "file" {
+            retourne faux
+        }
+
+        si uri.hôte == "" {
+            retourne faux
+        }
+    }
+
     retourne vrai
 }
 
@@ -422,6 +437,49 @@ port_pour_uri :: fonc(uri : &URI) -> n16
     retourne extrait_nombre_entier(uri.port) comme n16
 }
 
+port_par_défaut :: fonc (uri: &URI) -> n16
+{
+    discr uri.schéma {
+        "file" {
+            retourne 0
+        }
+        "ftp" {
+            retourne 21
+        }
+        "http", "ws" {
+            retourne 80
+        }
+        "https", "wss" {
+            retourne 443
+        }
+        sinon {
+            retourne 0
+        }
+    }
+}
+
+est_spécial :: fonc (uri: &URI) -> bool
+{
+    discr uri.schéma {
+        "file",
+        "ftp",
+        "http",
+        "https",
+        "ws",
+        "wss" {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+possède_informations_identité :: fonc (uri: &URI) -> bool
+{
+    retourne uri.nom_utilisateur != "" || uri.mot_de_passe != ""
+}
+
 /* Crée un chemin URL avec des paramètres provenant d'une structure :
  *
  * /mon/chemin/?membre1=valeur1&membre2=valeur2
@@ -460,6 +518,143 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+
+/*
+// https://url.spec.whatwg.org/
+
+Domaine :: #opaque chaine // chaine ASCII identifiant un royaume dans le réseau
+HôteOpaque :: #opaque chaine // chaine ASCII non-vide devant être encore traitée (par exemple, c'utilise un encodage-pourcent).
+HôteVide :: #opaque chaine
+
+Hôte :: union {
+    domaine: Domaine
+    ipv4: AdresseIPv4
+    ipv6: AdresseIPv6
+    hôte_opaque: HôteOpaque
+    hôte_vide: HôteVide
+}
+
+parse_hôte :: fonc (texte: chaine, n_est_pas_spécial := faux) -> Hôte | bool
+{
+    saufsi texte {
+        retourne faux
+    }
+
+    si texte[0] == '[' {
+        si texte[texte.taille - 1] != ']' {
+            retourne faux
+        }
+
+        // parse_ipv6
+    }
+
+    si n_est_pas_spécial {
+        retourne pase_hôte_opaque(texte)
+    }
+}
+
+sérialise :: fonc (enchaineuse: &Enchaineuse, hôte: Hôte)
+{
+    discr hôte {
+        domaine {
+            enchaineuse.ajoute_au_tampon(hôte.domaine)
+        }
+        hôte_opaque {
+            enchaineuse.ajoute_au_tampon(hôte.hôte_opaque)
+        }
+        hôte_vide {
+            enchaineuse.ajoute_au_tampon(hôte.hôte_vide)
+        }
+        ipv4 {
+
+        }
+        ipv6 {
+
+        }
+    }
+}
+
+OrigineOpaque :: #opaque z32
+OrigineTuple :: struct {
+    schéma: chaine
+    hôte: Hôte
+    port: n16
+    domaine: Domaine
+}
+
+Origine :: union {
+    opaque: OrigineOpaque
+    tuple: OrigineTuple
+}
+
+DomaineEffectif :: union {
+    domaine: Domaine
+    hôte: Hôte
+}
+
+domaine_effectif :: fonc (origine: Origine) -> DomaineEffectif
+{
+    discr origine {
+        opaque {
+            retourne DomaineEffectif()
+        }
+        tuple {
+            t := origine.tuple
+
+            si t.domaine != "" {
+                retourne t.domaine
+            }
+
+            retourne t.hôte
+        }
+    }
+}
+
+sérialise :: fonc (enchaineuse: &Enchaineuse, origine: Origine)
+{
+    discr origine {
+        opaque {
+            enchaineuse.ajoute_au_tampon("null")
+        }
+        tuple {
+            t := origine.t
+            enchaineuse.ajoute_au_tampon(t.schéma, "://")
+            sérialise(enchaineuse, t.hôte)
+            si t.port {
+                enchaineuse.ajoute_au_tampon(":", t.port)
+            }
+        }
+    }
+}
+
+origine :: fonc (uri: &URI) -> Origine
+{
+    discr uri.schéma {
+        "blob" {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+        "ftp",
+        "http",
+        "https",
+        "ws",
+        "wss" {
+            tuple: OrigineTuple
+            tuple.schéma = uri.schéma
+            tuple.hôte = uri.hôte
+            tuple.port = uri.port
+            retourne tuple
+        }
+        "file" {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+        sinon {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+    }
+}
+*/
+
 
 // -----------------------------------------------
 // tests unitaires
