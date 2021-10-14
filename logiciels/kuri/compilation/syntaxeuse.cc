@@ -2751,6 +2751,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         }
         else {
             noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
+            if (gauche->ident == ID::AnnotationCode) {
+                m_compilatrice.typeuse.type_annotation = noeud_decl->type;
+            }
         }
     }
 

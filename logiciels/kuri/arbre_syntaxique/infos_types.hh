@@ -73,6 +73,12 @@ struct InfoTypeTableau : public InfoType {
     int taille_fixe = 0;
 };
 
+// À FAIRE : déduplique avec AnnotationCode
+struct AnnotationMembre {
+    kuri::chaine_statique nom;
+    kuri::chaine_statique valeur;
+};
+
 struct InfoTypeMembreStructure {
     // Les Drapeaux sont définis dans TypeCompose::Membre
 
@@ -80,6 +86,7 @@ struct InfoTypeMembreStructure {
     InfoType *info = nullptr;
     long decalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
+    kuri::tableau<AnnotationMembre> annotations{};
 };
 
 struct InfoTypeStructure : public InfoType {

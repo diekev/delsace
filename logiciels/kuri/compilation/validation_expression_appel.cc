@@ -345,10 +345,10 @@ struct Monomorpheuse {
 
                 POUR (tuple->membres) {
                     if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                        membres.ajoute({resoud_type_final(typeuse, it.type)});
+                        membres.ajoute({nullptr, resoud_type_final(typeuse, it.type)});
                     }
                     else {
-                        membres.ajoute({it.type});
+                        membres.ajoute({nullptr, it.type});
                     }
                 }
             }

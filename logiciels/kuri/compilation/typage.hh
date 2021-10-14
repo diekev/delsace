@@ -318,6 +318,7 @@ struct TypeCompose : public Type {
             EST_IMPLICITE = (1 << 1),
         };
 
+        NoeudDeclarationVariable *decl = nullptr;
         Type *type = nullptr;
         IdentifiantCode *nom = nullptr;
         unsigned decalage = 0;
@@ -605,6 +606,7 @@ struct Typeuse {
     Type *type_base_allocatrice = nullptr;
     Type *type_info_appel_trace_appel = nullptr;
     Type *type_stockage_temporaire = nullptr;
+    Type *type_annotation = nullptr;
     // séparés car nous devons désalloué selon la bonne taille et ce sont plus des types « simples
     // »
     TypeCompose *type_eini = nullptr;

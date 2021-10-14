@@ -2860,6 +2860,25 @@ struct IDInfoType {
     static constexpr unsigned OPAQUE = 14;
 };
 
+AtomeConstante *ConstructriceRI::cree_tableau_annotations_pour_info_membre(
+    kuri::tableau<Annotation, int> const &annotations)
+{
+    kuri::tableau<AtomeConstante *> valeurs_annotations;
+    valeurs_annotations.reserve(annotations.taille());
+
+    auto type_annotation = m_compilatrice.typeuse.type_annotation;
+
+    POUR (annotations) {
+        kuri::tableau<AtomeConstante *> valeurs(2);
+        valeurs[0] = cree_chaine(it.nom);
+        valeurs[1] = cree_chaine(it.valeur);
+        auto valeur = cree_globale_info_type(type_annotation, std::move(valeurs));
+        valeurs_annotations.ajoute(valeur);
+    }
+
+    return cree_tableau_global(type_annotation, std::move(valeurs_annotations));
+}
+
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *site)
 {
     if (type->atome_info_type != nullptr) {
@@ -3029,11 +3048,18 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
 
             POUR (type_union->membres) {
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-                auto valeurs = kuri::tableau<AtomeConstante *>(4);
+                auto valeurs = kuri::tableau<AtomeConstante *>(5);
                 valeurs[0] = cree_chaine(it.nom->nom);
                 valeurs[1] = cree_info_type_avec_transtype(it.type, site);
                 valeurs[2] = cree_z64(static_cast<uint64_t>(it.decalage));
                 valeurs[3] = cree_z32(static_cast<unsigned>(it.drapeaux));
+
+                if (it.decl) {
+                    valeurs[4] = cree_tableau_annotations_pour_info_membre(it.decl->annotations);
+                }
+                else {
+                    valeurs[4] = cree_tableau_annotations_pour_info_membre({});
+                }
 
                 /* Création d'un InfoType globale. */
                 auto globale_membre = cree_globale_info_type(type_struct_membre,
@@ -3095,11 +3121,18 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
                 }
 
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-                auto valeurs = kuri::tableau<AtomeConstante *>(4);
+                auto valeurs = kuri::tableau<AtomeConstante *>(5);
                 valeurs[0] = cree_chaine(it.nom->nom);
                 valeurs[1] = cree_info_type_avec_transtype(it.type, site);
                 valeurs[2] = cree_z64(static_cast<uint64_t>(it.decalage));
                 valeurs[3] = cree_z32(static_cast<unsigned>(it.drapeaux));
+
+                if (it.decl) {
+                    valeurs[4] = cree_tableau_annotations_pour_info_membre(it.decl->annotations);
+                }
+                else {
+                    valeurs[4] = cree_tableau_annotations_pour_info_membre({});
+                }
 
                 /* Création d'un InfoType globale. */
                 auto globale_membre = cree_globale_info_type(type_struct_membre,

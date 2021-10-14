@@ -430,7 +430,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return Attente::sur_type(type_sortie);
                     }
 
-                    membres.ajoute({type_sortie});
+                    membres.ajoute({nullptr, type_sortie});
                 }
 
                 type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
@@ -658,8 +658,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         }
 
                         auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
-                        membres[0] = {type_type1->type_connu, ID::_0};
-                        membres[1] = {type_type2->type_connu, ID::_1};
+                        membres[0] = {nullptr, type_type1->type_connu, ID::_0};
+                        membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 
                         auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
                         expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
@@ -2638,7 +2638,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                     return Attente::sur_type(type_sortie);
                 }
 
-                membres.ajoute({type_sortie});
+                membres.ajoute({nullptr, type_sortie});
             }
 
             type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
@@ -3817,24 +3817,27 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
             valeurs_legales |= valeur.entiere();
         }
 
-        membres.ajoute({type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
+        membres.ajoute({nullptr, type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
 
         derniere_valeur = valeur;
     }
 
-    membres.ajoute({m_compilatrice.typeuse[TypeBase::Z32],
+    membres.ajoute({nullptr,
+                    m_compilatrice.typeuse[TypeBase::Z32],
                     ID::nombre_elements,
                     0,
                     membres.taille(),
                     nullptr,
                     TypeCompose::Membre::EST_IMPLICITE});
-    membres.ajoute({type_enum,
+    membres.ajoute({nullptr,
+                    type_enum,
                     ID::min,
                     0,
                     static_cast<int>(valeur_enum_min),
                     nullptr,
                     TypeCompose::Membre::EST_IMPLICITE});
-    membres.ajoute({type_enum,
+    membres.ajoute({nullptr,
+                    type_enum,
                     ID::max,
                     0,
                     static_cast<int>(valeur_enum_max),
@@ -3842,13 +3845,15 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                     TypeCompose::Membre::EST_IMPLICITE});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
-        membres.ajoute({type_enum,
+        membres.ajoute({nullptr,
+                        type_enum,
                         ID::valeurs_legales,
                         0,
                         static_cast<int>(valeurs_legales),
                         nullptr,
                         TypeCompose::Membre::EST_IMPLICITE});
-        membres.ajoute({type_enum,
+        membres.ajoute({nullptr,
+                        type_enum,
                         ID::valeurs_illegales,
                         0,
                         static_cast<int>(~valeurs_legales),
@@ -4069,7 +4074,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        type_compose->membres.ajoute({enfant->type, enfant->ident, 0, 0, expr_valeur});
+        type_compose->membres.ajoute({enfant->comme_reference_declaration()
+                                          ->declaration_referee->comme_declaration_variable(),
+                                      enfant->type,
+                                      enfant->ident,
+                                      0,
+                                      0,
+                                      expr_valeur});
         return CodeRetourValidation::OK;
     };
 
@@ -4082,7 +4093,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 // utilisation d'un type de données afin de pouvoir automatiquement déterminer un
                 // type
                 auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-                type_compose->membres.ajoute({type_de_donnees,
+                type_compose->membres.ajoute({nullptr,
+                                              type_de_donnees,
                                               it->ident,
                                               0,
                                               0,
@@ -4094,7 +4106,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             auto decl_var = it->comme_declaration_variable();
 
             if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-                type_compose->membres.ajoute({it->type,
+                type_compose->membres.ajoute({decl_var,
+                                              it->type,
                                               it->ident,
                                               0,
                                               0,
@@ -4167,8 +4180,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if (it->est_declaration_type()) {
             // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
             auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-            type_compose->membres.ajoute(
-                {type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT});
+            type_compose->membres.ajoute({nullptr,
+                                          type_de_donnees,
+                                          it->ident,
+                                          0,
+                                          0,
+                                          nullptr,
+                                          TypeCompose::Membre::EST_CONSTANT});
             continue;
         }
 
@@ -4185,7 +4203,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         auto decl_var = it->comme_declaration_variable();
 
         if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-            type_compose->membres.ajoute({it->type,
+            type_compose->membres.ajoute({decl_var,
+                                          it->type,
                                           it->ident,
                                           0,
                                           0,
@@ -4275,7 +4294,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if (!decl->est_externe) {
             /* Ajoute un membre, d'un octet de taille. */
             type_compose->membres.ajoute(
-                {m_compilatrice.typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr});
+                {nullptr, m_compilatrice.typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr});
             calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
         }
     }

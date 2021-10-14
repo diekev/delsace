@@ -1,5 +1,7 @@
 // Structures de bases pour contenir les informations d'un type.
 
+importe Compilatrice // Pour AnnotationCode
+
 id_info :: énum z32 {
     ENTIER          :: 0
 	RÉEL            :: 1
@@ -55,6 +57,7 @@ InfoTypeMembreStructure :: struct #interface {
 	id : *InfoType
 	décalage : z64 // décalage en octets dans la structure
 	drapeaux : Drapeaux
+	annotations: []AnnotationCode
 }
 
 InfoTypeStructure :: struct #interface {

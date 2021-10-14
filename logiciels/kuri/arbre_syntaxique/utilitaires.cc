@@ -2559,6 +2559,12 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->nom = it.nom->nom;
                 info_type_membre->drapeaux = it.drapeaux;
 
+                if (it.decl) {
+                    for (auto annotation : it.decl->annotations) {
+                        info_type_membre->annotations.ajoute({annotation.nom, annotation.valeur});
+                    }
+                }
+
                 info_type->membres.ajoute(info_type_membre);
             }
 
