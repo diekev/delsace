@@ -144,3 +144,26 @@ est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeSt
 
     retourne faux
 }
+
+est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
+{
+    si info == nul {
+        retourne nul
+    }
+
+    si info.id != id_info.POINTEUR {
+        retourne nul
+    }
+
+    info_pointeur := info comme *InfoTypePointeur
+    si info_pointeur.est_référence {
+        retourne nul
+    }
+
+    type_pointé := info_pointeur.type_pointé
+    si type_pointé.id != id_info.STRUCTURE {
+        retourne nul
+    }
+
+    retourne type_pointé comme *InfoTypeStructure
+}
