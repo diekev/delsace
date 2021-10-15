@@ -107,3 +107,45 @@ fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeE
 
 	retourne résultat
 }
+
+// ---------------------------------------------------------------------------------------
+// Fonctions auxilliaires pour travailler sur les fonctions
+
+fonction_n_a_qu_un_seul_paramètre :: fonc (fonction: *NoeudCodeEntêteFonction) -> bool
+{
+    si fonction.params.taille == 0 {
+        retourne faux
+    }
+
+    si fonction.params[0].type == info_de(ContexteProgramme) {
+        retourne fonction.params.taille == 2
+    }
+
+    retourne fonction.params.taille == 1
+}
+
+fonction_ne_retourne_que :: fonc (fonction: *NoeudCodeEntêteFonction, type_à_retourner: *InfoType) -> bool
+{
+    si fonction.params_sorties.taille != 1 {
+        retourne faux
+    }
+
+    retourne fonction.params_sorties[0].type == type_à_retourner
+}
+
+type_premier_paramètre_sans_contexte :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoType
+{
+    si entête.params.taille == 0 {
+        retourne nul
+    }
+
+    si entête.params[0].type != info_de(ContexteProgramme) {
+        retourne entête.params[0].type
+    }
+
+    si entête.params.taille < 2 {
+        retourne nul
+    }
+
+    retourne entête.params[1].type
+}
