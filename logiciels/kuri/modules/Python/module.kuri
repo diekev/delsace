@@ -35,6 +35,7 @@ TypePython :: struct {
 
     méthodes: []MéthodePython
 
+    new: MéthodePython
     init: MéthodePython
     repr: MéthodePython
     str: MéthodePython
@@ -77,6 +78,11 @@ ajoute_méthode :: fonc (type: &TypePython, fonction: *NoeudCodeEntêteFonction)
 {
     méthode := méthode_python_depuis_entête(fonction)
     tableau_ajoute(*type.méthodes, méthode)
+}
+
+ajoute_méthode_new :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+{
+    type.new = méthode_python_depuis_entête(fonction, vrai)
 }
 
 ajoute_méthode_init :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
@@ -431,7 +437,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: &T
 
 génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: &TypePython) -> chaine
 {
-    méthode := type.init
+    méthode := type.new
 
     saufsi méthode.nom {
         retourne copie_chaine("")
@@ -537,6 +543,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
 
     fonction_new := génère_fonction_new(enchaineuse, type)
     diffère déloge(fonction_new)
+
+    // À FAIRE __init__
+    // fonction_init := génère_fonction_init(enchaineuse, type)
+    // diffère déloge(fonction_init)
 
     fonction_str := génère_fonction_str(enchaineuse, type)
     diffère déloge(fonction_str)
