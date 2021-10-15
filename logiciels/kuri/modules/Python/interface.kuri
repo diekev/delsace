@@ -283,6 +283,24 @@ PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
 }
 
 // ---------------------------------------------------
+// Objet Bool
+
+PyBool_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+
+PyBool_AsBool :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne ob == Py_True
+}
+
+PyBool_FromBool :: fonc (valeur: bool) -> *PyObject #nulctx
+{
+    si valeur {
+        retourne python_retourne_true()
+    }
+    retourne python_retourne_faux()
+}
+
+// ---------------------------------------------------
 // Objet Entier/Long
 
 PyLong_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
@@ -303,14 +321,14 @@ PyUnicode_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
 PyUnicode_FromStringAndSize :: fonc (str: *z8, taille: Py_ssize_t) -> *PyObject #externe libpython
 PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: Py_ssize_t) -> *z8 #externe libpython
 
-python_extrait_chaine :: fonc (unicode: *PyObject) -> chaine
+PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 {
     résultat : chaine = ---
     résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille)
     retourne résultat
 }
 
-PyUnicode_DepuisChaine :: fonc (chn: chaine) -> *PyObject #nulctx
+PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject #nulctx
 {
     retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
 }

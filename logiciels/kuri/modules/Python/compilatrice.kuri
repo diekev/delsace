@@ -178,10 +178,133 @@ annotation_pour_python :: fonc (entête: *NoeudCodeEntêteFonction) -> Annotatio
     retourne annotation_trouvée
 }
 
+// ---------------------------------------------------
+
+/* À FAIRE : les structures contenant des pointeurs ne pourront stocker la valeur extraite...
+ */
+SystèmeType :: struct {
+    types: []*TypePython
+}
+
+ajoute_type :: fonc (système: &SystèmeType, info: *InfoType)
+{
+    _ := convertis_vers_type_python(système, info)
+}
+
+crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine) -> *TypePython
+{
+    type_python := loge(TypePython)
+    type_python.nom = nom
+    type_python.type_kuri = info
+    tableau_ajoute(*système.types, type_python)
+    retourne type_python
+}
+
+trouve_type :: fonc (système: &SystèmeType, info: *InfoType) -> *TypePython
+{
+    pour système.types {
+        si it.type_kuri == info {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) -> *TypePython
+{
+    type_python := système.trouve_type(info)
+    si type_python {
+        retourne type_python
+    }
+
+    discr info.id {
+        ENTIER {
+            type_python = système.crée_type_python_pour(info, "z32")
+            type_python.est_basique = vrai
+            init_fonctions_type_entier(type_python.fonctions)
+        }
+        RÉEL {
+            type_python = système.crée_type_python_pour(info, "r64")
+            type_python.est_basique = vrai
+            init_fonctions_type_réel(type_python.fonctions)
+        }
+        BOOLÉEN {
+            /* Pour le formattage, et l'extraction, les booléens sont des nombres entiers. */
+            type_python = système.crée_type_python_pour(info, "z32")
+            type_python.est_basique = vrai
+            init_fonctions_type_bool(type_python.fonctions)
+        }
+        OCTET {
+            type_python = système.crée_type_python_pour(info, "z32")
+            type_python.est_basique = vrai
+            init_fonctions_type_entier(type_python.fonctions)
+        }
+        CHAINE {
+            type_python = système.crée_type_python_pour(info, "*z8")
+            type_python.est_basique = vrai
+            init_fonctions_type_chaine(type_python.fonctions)
+        }
+        STRUCTURE {
+            info_struct := info comme *InfoTypeStructure
+            type_python = système.crée_type_python_pour(info, info_struct.nom)
+            init_fonctions_type_structure(type_python.fonctions, info_struct.nom)
+
+            pour info_struct.membres {
+                confidentialité := confidentialité_pour_annotation(it.annotations)
+
+                si confidentialité == ConfidentialitéType.OPAQUE {
+                    continue
+                }
+
+                membre : MembreType
+                membre.nom = it.nom
+                membre.confidentialité = confidentialité
+                membre.type = système.convertis_vers_type_python(it.id)
+
+                tableau_ajoute(*type_python.membres, membre)
+            }
+        }
+        UNION {
+            // non supporté pour le moment
+        }
+        POINTEUR {
+            // non supporté pour le moment
+        }
+        FONCTION {
+            // non supporté pour le moment
+        }
+        OPAQUE {
+            // non supporté pour le moment
+        }
+        TABLEAU {
+            // non supporté pour le moment
+        }
+        RIEN {
+            // non supporté pour le moment
+        }
+        TYPE_DE_DONNÉES {
+            // non supporté pour le moment
+        }
+        ÉNUM {
+            // non supporté pour le moment
+        }
+        EINI {
+            // non supporté pour le moment
+        }
+    }
+
+    retourne type_python
+}
+
+// ---------------------------------------------------
+
 /* Compilatrice, et logique de compilation (validation, parsage) des fonctions et types Kuri vers Python. */
 
 CompilatriceModulePython :: struct {
     module: ModulePython
+
+    système_type: SystèmeType
 
     /* Les modules kuri qu'il faudra importer dans le code généré.
      * À FAIRE : les infos-types n'ont pas d'information pour les modules.
@@ -216,9 +339,9 @@ ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, nom_module:
     tableau_ajoute(*compilatrice.modules_kuri_à_importer, nom_module)
 }
 
-ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoTypeStructure, confidentialité: ConfidentialitéType)
+ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType)
 {
-    compilatrice.module.ajoute_type(type_kuri, confidentialité)
+    compilatrice.système_type.ajoute_type(type_kuri)
 }
 
 ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
@@ -272,7 +395,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         retourne
     }
 
-    type_python := compilatrice.module.type_python_pour(type_structure)
+    type_python := compilatrice.système_type.trouve_type(type_structure)
     saufsi type_python {
         rapporte_erreur(CodeErreurCompilationPython.TYPE_INCONNU_DE_PYTHON, ContexteErreurPython(fonction, type_structure))
         retourne
@@ -340,7 +463,11 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
 
     module := compilatrice.module
 
-    pour & module.types {
+    pour compilatrice.système_type.types {
+        si it.est_basique {
+            continue
+        }
+
         génère_déclaration_type_python(*enchaineuse, module, it)
     }
 
@@ -348,7 +475,7 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
         génère_interface_fonction(*enchaineuse, it)
     }
 
-    génère_initialisation_module(*enchaineuse, module)
+    génère_initialisation_module(*enchaineuse, module, compilatrice.système_type.types)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
