@@ -115,6 +115,83 @@ PyTypeObject :: struct #externe {
     tp_vectorcall: *rien // À FAIRE: pointeur de fonctionvectorcallfunc
 }
 
+/*
+Type flags (tp_flags)
+
+These flags are used to change expected features and behavior for a
+particular type.
+
+Arbitration of the flag bit positions will need to be coordinated among
+all extension writers who publicly release their extensions (this will
+be fewer than you might expect!).
+
+Most flags were removed as of Python 3.0 to make room for new flags.  (Some
+flags are not for backwards compatibility but to indicate the presence of an
+optional feature; these flags remain of course.)
+
+Type definitions should use Py_TPFLAGS_DEFAULT for their tp_flags value.
+
+Code can use PyType_HasFeature(type_ob, flag_value) to test whether the
+given type object has a specified feature.
+*/
+
+/* Set if the type object is dynamically allocated */
+Py_TPFLAGS_HEAPTYPE : n64 : 1 << 9
+
+/* Set if the type allows subclassing */
+Py_TPFLAGS_BASETYPE : n64 : 1 << 10
+
+/* Set if the type implements the vectorcall protocol (PEP 590) */
+// #ifndef Py_LIMITED_API
+Py_TPFLAGS_HAVE_VECTORCALL : n64 : 1 << 11
+
+/* Set if the type is 'ready' -- fully initialized */
+Py_TPFLAGS_READY : n64 : 1 << 12
+
+/* Set while the type is being 'readied', to prevent recursive ready calls */
+Py_TPFLAGS_READYING : n64 : 1 << 13
+
+/* Objects support garbage collection (see objimpl.h) */
+Py_TPFLAGS_HAVE_GC : n64 : 1 << 14
+
+/* These two bits are preserved for Stackless Python, next after this is 17 */
+// #ifdef STACKLESS
+// Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 3 << 15
+Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 0
+
+/* Objects behave like an unbound method */
+Py_TPFLAGS_METHOD_DESCRIPTOR : n64 : 1  << 17
+
+/* Objects support type attribute cache */
+Py_TPFLAGS_HAVE_VERSION_TAG : n64 : 1  << 18
+Py_TPFLAGS_VALID_VERSION_TAG : n64 : 1  << 19
+
+/* Type is abstract and cannot be instantiated */
+Py_TPFLAGS_IS_ABSTRACT : n64 : 1  << 20
+
+/* These flags are used to determine if a type is a subclass. */
+Py_TPFLAGS_LONG_SUBCLASS : n64 : 1  << 24
+Py_TPFLAGS_LIST_SUBCLASS : n64 : 1  << 25
+Py_TPFLAGS_TUPLE_SUBCLASS : n64 : 1  << 26
+Py_TPFLAGS_BYTES_SUBCLASS : n64 : 1  << 27
+Py_TPFLAGS_UNICODE_SUBCLASS : n64 : 1  << 28
+Py_TPFLAGS_DICT_SUBCLASS : n64 : 1  << 29
+Py_TPFLAGS_BASE_EXC_SUBCLASS : n64 : 1  << 30
+Py_TPFLAGS_TYPE_SUBCLASS : n64 : 1  << 31
+
+Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERSION_TAG
+
+/* NOTE: The following flags reuse lower bits (removed as part of the
+ * Python 3.0 transition). */
+
+/* The following flag is kept for compatibility. Starting with 3.8,
+ * binary compatibility of C extensions across feature releases of
+ * Python is not supported anymore, except when using the stable ABI.
+ */
+
+/* Type structure has tp_finalize member (3.4) */
+Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0
+
 /* Déclaration du "object" dont les classes Python hérite par défaut. */
 externe PyBaseObject_Type: PyTypeObject
 
@@ -274,6 +351,17 @@ PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: Cha
 
 PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
 
+PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+{
+    flags := type.tp_flags
+    retourne (flags & feature) != 0
+}
+
+PyType_FastSubclass :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+{
+    retourne PyType_HasFeature(type, feature)
+}
+
 _Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
 {
     retourne ob.ob_type == type
@@ -289,7 +377,10 @@ PyObject_HashNotImplemented :: fonc (o: *PyObject) -> Py_hash_t #externe libpyth
 // ---------------------------------------------------
 // Objet Bool
 
-PyBool_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+PyBool_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyBool_Type)
+}
 
 PyBool_AsBool :: fonc (ob: *PyObject) -> bool #nulctx
 {
@@ -307,23 +398,44 @@ PyBool_FromBool :: fonc (valeur: bool) -> *PyObject #nulctx
 // ---------------------------------------------------
 // Objet Entier/Long
 
-PyLong_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+PyLong_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS)
+}
+
 PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
 PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
 
 // ---------------------------------------------------
 // Objet Réel/Double
 
-PyFloat_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+externe PyFloat_Type : PyTypeObject
+
+PyFloat_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyFloat_Type)
+}
+
 PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
 PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
 
 // ---------------------------------------------------
 // Objet Unicode
 
-PyUnicode_Check :: fonc (ob: *PyObject) -> z32 #externe libpython
+externe PyUnicode_Type : PyTypeObject
+
+PyUnicode_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS)
+}
+
+PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyUnicode_Type)
+}
+
 PyUnicode_FromStringAndSize :: fonc (str: *z8, taille: Py_ssize_t) -> *PyObject #externe libpython
-PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: Py_ssize_t) -> *z8 #externe libpython
+PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: *Py_ssize_t) -> *z8 #externe libpython
 
 PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 {
@@ -336,3 +448,60 @@ PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject #nulctx
 {
     retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
 }
+
+// ---------------------------------------------------
+// Exceptions
+
+externe PyExc_BaseException: *PyObject
+externe PyExc_Exception: *PyObject
+externe PyExc_ArithmeticError: *PyObject
+externe PyExc_AssertionError: *PyObject
+externe PyExc_AttributeError: *PyObject
+externe PyExc_BlockingIOError: *PyObject
+externe PyExc_BrokenPipeError: *PyObject
+externe PyExc_BufferError: *PyObject
+externe PyExc_ChildProcessError: *PyObject
+externe PyExc_ConnectionAbortedError: *PyObject
+externe PyExc_ConnectionError: *PyObject
+externe PyExc_ConnectionRefusedError: *PyObject
+externe PyExc_ConnectionResetError: *PyObject
+externe PyExc_EOFError: *PyObject
+externe PyExc_FileExistsError: *PyObject
+externe PyExc_FileNotFoundError: *PyObject
+externe PyExc_FloatingPointError: *PyObject
+externe PyExc_GeneratorExit: *PyObject
+externe PyExc_ImportError: *PyObject
+externe PyExc_IndentationError: *PyObject
+externe PyExc_IndexError: *PyObject
+externe PyExc_InterruptedError: *PyObject
+externe PyExc_IsADirectoryError: *PyObject
+externe PyExc_KeyError: *PyObject
+externe PyExc_KeyboardInterrupt: *PyObject
+externe PyExc_LookupError: *PyObject
+externe PyExc_MemoryError: *PyObject
+externe PyExc_ModuleNotFoundError: *PyObject
+externe PyExc_NameError: *PyObject
+externe PyExc_NotADirectoryError: *PyObject
+externe PyExc_NotImplementedError: *PyObject
+externe PyExc_OSError: *PyObject
+externe PyExc_OverflowError: *PyObject
+externe PyExc_PermissionError: *PyObject
+externe PyExc_ProcessLookupError: *PyObject
+externe PyExc_RecursionError: *PyObject
+externe PyExc_ReferenceError: *PyObject
+externe PyExc_RuntimeError: *PyObject
+externe PyExc_StopAsyncIteration: *PyObject
+externe PyExc_StopIteration: *PyObject
+externe PyExc_SyntaxError: *PyObject
+externe PyExc_SystemError: *PyObject
+externe PyExc_SystemExit: *PyObject
+externe PyExc_TabError: *PyObject
+externe PyExc_TimeoutError: *PyObject
+externe PyExc_TypeError: *PyObject
+externe PyExc_UnboundLocalError: *PyObject
+externe PyExc_UnicodeDecodeError: *PyObject
+externe PyExc_UnicodeEncodeError: *PyObject
+externe PyExc_UnicodeError: *PyObject
+externe PyExc_UnicodeTranslateError: *PyObject
+externe PyExc_ValueError: *PyObject
+externe PyExc_ZeroDivisionError: *PyObject

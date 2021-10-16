@@ -379,7 +379,7 @@ ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fo
 ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
-    compilatrice.module.ajoute_fonction(fonction)
+    compilatrice.module.ajoute_fonction(compilatrice.système_type, fonction)
 }
 
 /* Ajoute une fonction clé pour un type (__init__, __repr__, etc.).
@@ -407,7 +407,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        type_python.ajoute_méthode_init(fonction)
+        type_python.ajoute_méthode_init(compilatrice.système_type, fonction)
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_NEW_REQUIERS_STRUCTURE {
         saufsi fonction_ne_retourne_que(fonction, info_de(bool)) {
@@ -415,7 +415,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        type_python.ajoute_méthode_new(fonction)
+        type_python.ajoute_méthode_new(compilatrice.système_type, fonction)
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_REPR_REQUIERS_STRUCTURE {
         saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
@@ -428,7 +428,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        type_python.ajoute_méthode_repr(fonction)
+        type_python.ajoute_méthode_repr(compilatrice.système_type, fonction)
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_STR_REQUIERS_STRUCTURE {
         saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
@@ -441,7 +441,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        type_python.ajoute_méthode_str(fonction)
+        type_python.ajoute_méthode_str(compilatrice.système_type, fonction)
     }
 
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))

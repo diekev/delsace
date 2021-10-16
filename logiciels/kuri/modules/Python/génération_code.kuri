@@ -2,52 +2,6 @@ importe Fondation
 
 /* Génération du code Kuri à partir des données du module. */
 
-/* Chaine de caractère pour le type Kuri utilisé dans l'IPA C de Python. */
-chaine_pour_genre_type_python :: fonc (type: GenreTypePython) -> chaine
-{
-    discr type {
-        LONG {
-            retourne "z32"
-        }
-        DOUBLE {
-            retourne "r64"
-        }
-        CHAINE {
-            retourne "*z8"
-        }
-        RIEN,
-        OBJET,
-        POINTEUR_QUELCONQUE {
-            retourne "*PyObject"
-        }
-    }
-
-    retourne "invalide"
-}
-
-/* Retourne le format à utiliser pour PyArg_ParseTuple selon le type. */
-format_extraction_genre_type_python :: fonc (type: GenreTypePython) -> chaine
-{
-    discr type {
-        LONG {
-            retourne "i"
-        }
-        DOUBLE {
-            retourne "d"
-        }
-        CHAINE {
-            retourne "s"
-        }
-        RIEN,
-        OBJET,
-        POINTEUR_QUELCONQUE {
-            retourne "O"
-        }
-    }
-
-    retourne "invalide"
-}
-
 /* Génère les méthodes pour accéder et muter les membres du type. Retourne la globales où les méthodes sont initialisés. */
 génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
@@ -308,13 +262,12 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
     }
 
     pour méthode.paramètres_entrée {
-        chaine_type_python := chaine_pour_genre_type_python(it.type)
-        enchaineuse.imprime_dans_enchaineuse("    pyobject_%: %\n", it.nom, chaine_type_python)
+        enchaineuse.imprime_dans_enchaineuse("    pyobject_%: *PyObject\n", it.nom)
     }
 
     enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, crée_chaine_c(\"")
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon(format_extraction_genre_type_python(it.type))
+        enchaineuse.ajoute_au_tampon("O")
     }
     enchaineuse.ajoute_au_tampon("\")")
     virgule := ", "
@@ -324,26 +277,27 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
     enchaineuse.ajoute_au_tampon(") {\n")
     enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
     enchaineuse.ajoute_au_tampon("    }\n")
+
+    /* Vérifie que les types sont ceux attendus. */
+    pour méthode.paramètres_entrée {
+        enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n")
+        enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
 }
 
 /* Convertis les paramètres de fonction vers des objets de type Kuri natif (les types du programme). */
 génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython)
 {
-    saufsi méthode.paramètres_entrée {
-        retourne
-    }
-
-    // À FAIRE : convertis les types python
     pour méthode.paramètres_entrée {
-        enchaineuse.imprime_dans_enchaineuse("    %: ", it.nom)
-        imprime_type(enchaineuse, it.type_kuri)
+        enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")")
 
-        si it.type == GenreTypePython.CHAINE {
-            enchaineuse.ajoute_au_tampon(" = convertis_chaine_c(ChaineC(pyobject_", it.nom, "))\n")
+        // À FAIRE(type Python) : meilleure gestion des types entiers, et réels.
+        si it.type.nom == "z32" {
+            enchaineuse.ajoute_au_tampon(" comme z32")
         }
-        sinon {
-            enchaineuse.ajoute_au_tampon(" = pyobject_", it.nom, "\n")
-        }
+
+        enchaineuse.ajoute_au_tampon("\n")
     }
 }
 
@@ -368,7 +322,6 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
 
 génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython)
 {
-    // À FAIRE : conversion de type paramètres
     // À FAIRE : initialisation des variables globales de kuri
 
     // À FAIRE : self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet

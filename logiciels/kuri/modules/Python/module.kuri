@@ -37,46 +37,9 @@ ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: cha
     tableau_ajoute(*module.constantes_chaine, ConstanteChaine(nom, valeur))
 }
 
-GenreTypePython :: énum {
-    /* Un nombre entier. */
-    LONG
-    /* Un nombre décimal. */
-    DOUBLE
-    /* Un PyObject */
-    OBJET
-    /* Une chaine, qui devrat être convertis depuis et vers Python. */
-    CHAINE
-    /* Pour None. */
-    RIEN
-    /* Ceci est pour les objets que nous allouons sur la pile, et que l'on via PyLong_AsVoidPtr, etc. */
-    POINTEUR_QUELCONQUE
-}
-
-genre_type_python_pour_info_type :: fonc (info: *InfoType) -> GenreTypePython
-{
-    discr info.id {
-        ENTIER {
-            retourne GenreTypePython.LONG
-        }
-        RÉEL {
-            retourne GenreTypePython.DOUBLE
-        }
-        CHAINE {
-            retourne GenreTypePython.CHAINE
-        }
-        RIEN {
-            retourne GenreTypePython.RIEN
-        }
-        sinon {
-            retourne GenreTypePython.POINTEUR_QUELCONQUE
-        }
-    }
-}
-
 ParamètreMéthodePython :: struct {
     nom: chaine
-    type: GenreTypePython
-    type_kuri: *InfoType
+    type: *TypePython
 }
 
 MéthodePython :: struct {
@@ -92,22 +55,21 @@ ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
     }
 
     premier_param := méthode.paramètres_sortie[0]
-    retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == GenreTypePython.RIEN
+    retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == nul
 }
 
-convertis_paramètre :: fonc (param: *NoeudCode) -> ParamètreMéthodePython
+convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -> ParamètreMéthodePython
 {
     résultat: ParamètreMéthodePython
     résultat.nom = param.nom
-    résultat.type_kuri = param.type
-    résultat.type = genre_type_python_pour_info_type(param.type)
+    résultat.type = système_type.convertis_vers_type_python(param.type)
     retourne résultat
 }
 
 // ignore_premier_paramètre_après_contexte est pour les fonctions d'allocation, etc.,
 // qui doivent prendre un paramètre du type dans kuri, mais qui peuvent ne pas prendre
 // l'objet en paramètre dans Python.
-méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, ignore_premier_paramètre_après_contexte := faux) -> MéthodePython
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre_après_contexte := faux) -> MéthodePython
 {
     résultat: MéthodePython
     résultat.nom = entête.nom
@@ -126,21 +88,21 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, igno
             continue
         }
 
-        param := convertis_paramètre(it)
+        param := convertis_paramètre(it, système_type)
         tableau_ajoute(*résultat.paramètres_entrée, param)
     }
 
     pour entête.params_sorties {
-        param := convertis_paramètre(it)
+        param := convertis_paramètre(it, système_type)
         tableau_ajoute(*résultat.paramètres_sortie, param)
     }
 
     retourne résultat
 }
 
-ajoute_fonction :: fonc (module: &ModulePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_fonction :: fonc (module: &ModulePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    méthode := méthode_python_depuis_entête(fonction)
+    méthode := méthode_python_depuis_entête(fonction, système_type)
     tableau_ajoute(*module.méthodes, méthode)
 }
 
@@ -251,28 +213,28 @@ TypePython :: struct {
     nom_globale_type: chaine
 }
 
-ajoute_méthode :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    méthode := méthode_python_depuis_entête(fonction)
+    méthode := méthode_python_depuis_entête(fonction, système_type)
     tableau_ajoute(*type.méthodes, méthode)
 }
 
-ajoute_méthode_new :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_new :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    type.new = méthode_python_depuis_entête(fonction, vrai)
+    type.new = méthode_python_depuis_entête(fonction, système_type, vrai)
 }
 
-ajoute_méthode_init :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_init :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    type.init = méthode_python_depuis_entête(fonction, vrai)
+    type.init = méthode_python_depuis_entête(fonction, système_type, vrai)
 }
 
-ajoute_méthode_repr :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_repr :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    type.repr = méthode_python_depuis_entête(fonction)
+    type.repr = méthode_python_depuis_entête(fonction, système_type)
 }
 
-ajoute_méthode_str :: fonc (type: *TypePython, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_str :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    type.str = méthode_python_depuis_entête(fonction)
+    type.str = méthode_python_depuis_entête(fonction, système_type)
 }
