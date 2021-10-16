@@ -51,8 +51,8 @@ importe Temps
 /* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
 AdresseCourriel :: struct {
     chn: chaine
-    nom: chaine
-    hôte: chaine
+    nom: chaine @accessible
+    hôte: chaine @accessible
 }
 
 crée_adresse_courriel :: fonc (chn: chaine) -> AdresseCourriel
