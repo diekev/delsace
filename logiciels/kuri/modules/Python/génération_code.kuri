@@ -286,6 +286,15 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
         enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_getset = *", globale_getset, "[0]\n")
     }
 
+    /* À FAIRE(type Python) : calcul d'empreinte
+     * PyObject_HashNotImplemented doit être utilisé afin de pouvoir bloquer l'héritage
+     * de la fonction de hachage des parents, et permet d'utiliser correctement
+     * isinstance(o, collections.Hashable).
+     *
+     * Source : https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_hash
+     */
+    enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_hash = PyObject_HashNotImplemented\n")
+
     enchaineuse.ajoute_au_tampon("    retourne PyType_Ready(*", nom_globale_type, ") != -1\n")
     enchaineuse.ajoute_au_tampon("}\n")
 }

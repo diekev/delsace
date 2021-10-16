@@ -5,6 +5,8 @@ importe GlibC
 libpython :: #bibliothèque "python3.7m"
 
 Py_ssize_t :: z64
+Py_hash_t :: Py_ssize_t
+
 // #if PYLONG_BITS_IN_DIGIT == 30
 digit :: n32
 
@@ -53,7 +55,7 @@ PyTypeObject :: struct #externe {
 
     /* More standard operations (here for binary compatibility) */
 
-    tp_hash: *rien // À FAIRE: pointeur de fonction hashfunc
+    tp_hash: #nulctx fonc(*PyObject)(Py_hash_t)
     tp_call: *rien // À FAIRE: pointeur de fonction ternaryfunc
     tp_str: #nulctx fonc(*PyObject)(*PyObject)
     tp_getattro: *rien // À FAIRE: pointeur de fonction getattrofunc
@@ -281,6 +283,8 @@ PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
 {
     retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
 }
+
+PyObject_HashNotImplemented :: fonc (o: *PyObject) -> Py_hash_t #externe libpython
 
 // ---------------------------------------------------
 // Objet Bool
