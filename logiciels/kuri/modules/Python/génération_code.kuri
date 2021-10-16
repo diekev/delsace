@@ -492,6 +492,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
         enchaineuse.ajoute_au_tampon("    }\n")
     }
 
+    /* Initialisation des types. */
     pour types {
         si it.est_basique {
             continue
@@ -501,6 +502,18 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
         enchaineuse.ajoute_au_tampon("        Py_DECREF(module_pyobject)\n")
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
         enchaineuse.ajoute_au_tampon("    }\n")
+    }
+
+    /* Après que tous les types furent initialisés, ajoutons-les au module.
+     * Nous faisons cela séparement afin que le Py_DECREF utilisé en cas d'erreur
+     * d'initialisation détruise correctement le module (jusqu'ici son compte
+     * de référence est de 1, il sera incrémenté pour chaque type).
+     */
+    pour types {
+        si it.est_basique {
+            continue
+        }
+
         enchaineuse.ajoute_au_tampon("    Py_INCREF(*", it.nom_globale_type, ")\n")
         // crée_chaine_c requiers un contexte
         enchaineuse.ajoute_au_tampon("    PyModule_AddObject(module_pyobject, ChaineC(\"", it.nom, "\\0\".pointeur), *", it.nom_globale_type, ")\n")
