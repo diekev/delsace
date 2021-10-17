@@ -4074,13 +4074,19 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        type_compose->membres.ajoute({enfant->comme_reference_declaration()
-                                          ->declaration_referee->comme_declaration_variable(),
-                                      enfant->type,
-                                      enfant->ident,
-                                      0,
-                                      0,
-                                      expr_valeur});
+        auto decl_var_enfant = NoeudDeclarationVariable::nul();
+        if (enfant->est_declaration_variable()) {
+            decl_var_enfant = enfant->comme_declaration_variable();
+        }
+        else if (enfant->est_reference_declaration()) {
+            auto ref = enfant->comme_reference_declaration();
+            if (ref->declaration_referee->est_declaration_variable()) {
+                decl_var_enfant = ref->declaration_referee->comme_declaration_variable();
+            }
+        }
+
+        type_compose->membres.ajoute(
+            {decl_var_enfant, enfant->type, enfant->ident, 0, 0, expr_valeur});
         return CodeRetourValidation::OK;
     };
 
