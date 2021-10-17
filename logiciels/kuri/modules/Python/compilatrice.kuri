@@ -63,7 +63,7 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
         FONCTION_REPR_REQUIERS_STRUCTURE,
         FONCTION_STR_REQUIERS_STRUCTURE {
             nom_méthode := chaine_méthode_python_pour_code_erreur(code_erreur)
-            imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python requiers un pointeur de structure comme premier paramètre.\n", nom_méthode)
+            imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python requiers un pointeur de structure ou d'union comme premier paramètre.\n", nom_méthode)
 
             type := type_premier_paramètre_sans_contexte(ctx.fonction)
             si type == nul {
@@ -266,7 +266,29 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             }
         }
         UNION {
-            // non supporté pour le moment
+            info_union := info comme *InfoTypeUnion
+            type_python = système.crée_type_python_pour(info, info_union.nom)
+            init_fonctions_type_structure(type_python.fonctions, info_union.nom)
+
+            // À FAIRE(langage) : type_python.drapeaux.TYPE_EST_UNION = vrai échoue
+            drapeaux: DrapeauxType
+            drapeaux.TYPE_EST_UNION = vrai
+            type_python.drapeaux = drapeaux
+
+            pour info_union.membres {
+                confidentialité := confidentialité_pour_annotation(it.annotations)
+
+                si confidentialité == ConfidentialitéType.OPAQUE {
+                    continue
+                }
+
+                membre : MembreType
+                membre.nom = it.nom
+                membre.confidentialité = confidentialité
+                membre.type = système.convertis_vers_type_python(it.id)
+
+                tableau_ajoute(*type_python.membres, membre)
+            }
         }
         POINTEUR {
             // non supporté pour le moment
@@ -388,7 +410,7 @@ ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython
 ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erreur: CodeErreurCompilationPython, fonction: *NoeudCodeEntêteFonction)
 {
     type_paramètre := type_premier_paramètre_sans_contexte(fonction)
-    type_structure := est_pointeur_de_structure(type_paramètre)
+    type_structure := est_pointeur_de_structure_ou_union(type_paramètre)
 
     si type_structure == nul {
         rapporte_erreur(code_erreur, ContexteErreurPython(fonction))

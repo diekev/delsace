@@ -17,18 +17,32 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         // get : fonc (*PyObject, *rien)(*PyObject)
 
         enchaineuse.ajoute_au_tampon("get_", type.nom, "_", it.nom, " :: fonc (instance: *PyObject, closure: *rien@inutilisée) -> *PyObject #nulctx\n")
-        enchaineuse.ajoute_au_tampon("{\n")
+        enchaineuse.ajoute_au_tampon("pousse_contexte __contexte_fil_principal {\n")
         enchaineuse.ajoute_au_tampon("    notre_instance := (instance comme *", type.nom, "PourPython).notre_instance\n")
-        enchaineuse.ajoute_au_tampon("    membre := notre_instance.", it.nom, "\n")
-        enchaineuse.ajoute_au_tampon("    retourne ", type_membre.fonctions.pour_construction, "(membre)\n")
+
+        si (type.drapeaux & DrapeauxType.TYPE_EST_UNION) != 0 {
+            enchaineuse.ajoute_au_tampon("    discr notre_instance {\n")
+            enchaineuse.ajoute_au_tampon("        ", it.nom, " {\n")
+            enchaineuse.ajoute_au_tampon("            membre := notre_instance.", it.nom, "\n")
+            enchaineuse.ajoute_au_tampon("            retourne ", type_membre.fonctions.pour_construction, "(membre)\n")
+            enchaineuse.ajoute_au_tampon("        }\n")
+            enchaineuse.ajoute_au_tampon("        sinon {\n")
+            enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n")
+            enchaineuse.ajoute_au_tampon("        }\n")
+            enchaineuse.ajoute_au_tampon("    }\n")
+        }
+        sinon {
+            enchaineuse.ajoute_au_tampon("    membre := notre_instance.", it.nom, "\n")
+            enchaineuse.ajoute_au_tampon("    retourne ", type_membre.fonctions.pour_construction, "(membre)\n")
+        }
         enchaineuse.ajoute_au_tampon("}\n")
 
         si type.confidentialité == ConfidentialitéType.MUTABLE {
             // set : fonc (*PyObject, *PyObject, *rien)(z32)
             // retourne 0 pour un succès
             // retourne -1 pour une erreur
-            enchaineuse.ajoute_au_tampon("get_", type.nom, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32 #nulctx\n")
-            enchaineuse.ajoute_au_tampon("{\n")
+            enchaineuse.ajoute_au_tampon("set_", type.nom, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32 #nulctx\n")
+            enchaineuse.ajoute_au_tampon("pousse_contexte __contexte_fil_principal {\n")
 
             enchaineuse.ajoute_au_tampon("    saufsi ", type_membre.fonctions.pour_discrimination, "(valeur) {\n")
             // À FAIRE : erreur -> attendu un objet de type "type attendu", obtenu un "type reçu"

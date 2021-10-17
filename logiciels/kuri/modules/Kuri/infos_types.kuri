@@ -145,7 +145,7 @@ est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeSt
     retourne faux
 }
 
-est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
+est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
 {
     si info == nul {
         retourne nul
@@ -160,10 +160,35 @@ est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
         retourne nul
     }
 
-    type_pointé := info_pointeur.type_pointé
+    retourne info_pointeur.type_pointé
+}
+
+est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
+{
+	type_pointé := est_pointeur_de(info)
+
+	si !type_pointé {
+		retourne nul
+	}
+
     si type_pointé.id != id_info.STRUCTURE {
         retourne nul
     }
 
     retourne type_pointé comme *InfoTypeStructure
+}
+
+est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
+{
+	type_pointé := est_pointeur_de(info)
+
+	si !type_pointé {
+		retourne nul
+	}
+
+    si type_pointé.id != id_info.STRUCTURE && type_pointé.id != id_info.UNION {
+        retourne nul
+    }
+
+    retourne type_pointé
 }

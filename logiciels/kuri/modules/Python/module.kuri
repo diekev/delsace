@@ -187,12 +187,18 @@ MembreType :: struct {
     type: *TypePython
 }
 
+DrapeauxType :: énum_drapeau {
+    TYPE_EST_UNION
+}
+
 TypePython :: struct {
     nom: chaine
     type_kuri: *InfoType
 
     /* Si le type est un type de base, qui ne doit avoir un PyTypeObject associé. */
     est_basique: bool
+
+    drapeaux: DrapeauxType
 
     fonctions : FonctionsTypePython
 
