@@ -1247,12 +1247,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 for (auto var : it.variables.plage()) {
                     if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
                         auto ref_membre = var->comme_reference_membre();
-                        auto ref_var = ref_membre->accedee;
 
                         // À FAIRE : référence
-                        auto nouvelle_ref = assem->cree_reference_declaration(
-                            ref_var->lexeme,
-                            ref_var->comme_reference_declaration()->declaration_referee);
+                        // Nous prenons ref_membre->accedee directement car ce ne sera pas
+                        // simplifié, et qu'il faut prendre en compte les accés d'accés, les
+                        // expressions entre parenthèses, etc. Donc faire ceci est plus simple.
+                        auto nouvelle_ref = ref_membre->accedee;
                         var->substitution = nouvelle_ref;
 
                         auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
@@ -3527,4 +3527,44 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 
     type->drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
     corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+}
+
+/* Retourne la référence de déclaration de l'expression racine pour l'expression à droite d'une
+ * référence de membre. Par exemple, pour « x.y.z », retourne « x » si nous sommes sur « y.z ». */
+NoeudExpressionReference *reference_declaration_acces_accedee(NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        return expr->comme_reference_declaration();
+    }
+
+    if (expr->est_reference_membre()) {
+        auto ref_membre = expr->comme_reference_membre();
+        return reference_declaration_acces_membre(ref_membre->accedee);
+    }
+
+    if (expr->est_parenthese()) {
+        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
+    }
+
+    return nullptr;
+}
+
+/* Retourne la référence de déclaration du membre pour l'expression à droite d'une référence de
+ * membre. Par exemple, pour « x.y.z », retourne « y » si nous sommes sur « y.z ». */
+NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        return expr->comme_reference_declaration();
+    }
+
+    if (expr->est_reference_membre()) {
+        auto ref_membre = expr->comme_reference_membre();
+        return reference_declaration_acces_membre(ref_membre->membre);
+    }
+
+    if (expr->est_parenthese()) {
+        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
+    }
+
+    return nullptr;
 }

@@ -2427,6 +2427,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         auto index_membre = 0;
         auto membre_est_constant = false;
         auto membre_est_implicite = false;
+        auto decl_membre = NoeudDeclarationVariable::nul();
 
         POUR (type_compose->membres) {
             if (it.nom == membre->ident) {
@@ -2434,6 +2435,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 membre_trouve = true;
                 membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
                 membre_est_implicite = it.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
+                decl_membre = it.decl;
                 break;
             }
 
@@ -2444,6 +2446,8 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
+
+        membre->comme_reference_declaration()->declaration_referee = decl_membre;
 
         expression_membre->index_membre = index_membre;
 
@@ -2459,8 +2463,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
              * compilation
              * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
              */
-            if (structure->est_reference_declaration() &&
-                !structure->comme_reference_declaration()->declaration_referee->est_enum() &&
+            auto ref_decl = reference_declaration_acces_membre(structure);
+            if (ref_decl && ref_decl->declaration_referee &&
+                !ref_decl->declaration_referee->est_enum() &&
                 !expression_membre->type->est_type_de_donnees()) {
                 if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
                     expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;

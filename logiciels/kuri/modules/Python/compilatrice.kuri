@@ -269,11 +269,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             info_union := info comme *InfoTypeUnion
             type_python = système.crée_type_python_pour(info, info_union.nom)
             init_fonctions_type_structure(type_python.fonctions, info_union.nom)
-
-            // À FAIRE(langage) : type_python.drapeaux.TYPE_EST_UNION = vrai échoue
-            drapeaux: DrapeauxType
-            drapeaux.TYPE_EST_UNION = vrai
-            type_python.drapeaux = drapeaux
+            type_python.drapeaux.TYPE_EST_UNION = vrai
 
             pour info_union.membres {
                 confidentialité := confidentialité_pour_annotation(it.annotations)

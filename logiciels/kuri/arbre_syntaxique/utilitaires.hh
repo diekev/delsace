@@ -171,3 +171,5 @@ void imprime_details_fonction(EspaceDeTravail *espace,
 void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
+
+NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr);
