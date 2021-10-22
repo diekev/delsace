@@ -142,6 +142,12 @@ struct ContexteValidationCode {
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
 
+    ResultatValidation valide_operateur_binaire(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_chaine(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_type(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_generique(NoeudExpressionBinaire *expr);
+
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, NoeudExpression *noeud);

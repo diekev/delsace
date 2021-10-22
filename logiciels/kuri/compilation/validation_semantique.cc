@@ -539,310 +539,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             break;
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
+        {
+            return valide_operateur_binaire(static_cast<NoeudExpressionBinaire *>(noeud));
+        }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
-            auto expr = static_cast<NoeudExpressionBinaire *>(noeud);
-            expr->genre_valeur = GenreValeur::DROITE;
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
-
-            auto enfant1 = expr->operande_gauche;
-            auto enfant2 = expr->operande_droite;
-
-            if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
-                auto expression_taille = enfant1;
-                auto expression_type = enfant2;
-
-                auto type2 = expression_type->type;
-
-                if (type2->genre != GenreType::TYPE_DE_DONNEES) {
-                    rapporte_erreur(
-                        "Attendu une expression de type après la déclaration de type tableau",
-                        enfant2);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto type_de_donnees = type2->comme_type_de_donnees();
-                auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
-                                                                type_de_donnees;
-
-                auto taille_tableau = 0l;
-
-                if (expression_taille) {
-                    auto res = evalue_expression(
-                        m_compilatrice, expression_taille->bloc_parent, expression_taille);
-
-                    if (res.est_errone) {
-                        rapporte_erreur("Impossible d'évaluer la taille du tableau",
-                                        expression_taille);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (!res.valeur.est_entiere()) {
-                        rapporte_erreur("L'expression n'est pas de type entier",
-                                        expression_taille);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (res.valeur.entiere() == 0) {
-                        espace->rapporte_erreur(
-                            expression_taille,
-                            "Impossible de définir un tableau fixe de taille 0 !\n");
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    taille_tableau = res.valeur.entiere();
-                }
-
-                if (taille_tableau != 0) {
-                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-                    // via un membre
-                    if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                        return Attente::sur_type(type_connu);
-                    }
-
-                    auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-                        type_connu, static_cast<int>(taille_tableau));
-                    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-                }
-                else {
-                    auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
-                    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-                }
-
-                return CodeRetourValidation::OK;
-            }
-
-            auto type_op = expr->lexeme->genre;
-
-            auto assignation_composee = est_assignation_composee(type_op);
-
-            auto type1 = enfant1->type;
-            auto type2 = enfant2->type;
-
-            if (type1->genre == GenreType::TYPE_DE_DONNEES) {
-                if (type2->genre != GenreType::TYPE_DE_DONNEES) {
-                    rapporte_erreur("Opération impossible entre un type et autre chose", expr);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto type_type1 = type1->comme_type_de_donnees();
-                auto type_type2 = type2->comme_type_de_donnees();
-
-                switch (expr->lexeme->genre) {
-                    default:
-                    {
-                        rapporte_erreur("Opérateur inapplicable sur des types", expr);
-                        return CodeRetourValidation::Erreur;
-                    }
-                    case GenreLexeme::BARRE:
-                    {
-                        if (type_type1->type_connu == nullptr) {
-                            rapporte_erreur("Opération impossible car le type n'est pas connu",
-                                            noeud);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if (type_type2->type_connu == nullptr) {
-                            rapporte_erreur("Opération impossible car le type n'est pas connu",
-                                            noeud);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if (type_type1->type_connu == type_type2->type_connu) {
-                            rapporte_erreur(
-                                "Impossible de créer une union depuis des types similaires\n",
-                                expr);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(type_type1->type_connu);
-                        }
-
-                        if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(type_type2->type_connu);
-                        }
-
-                        auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
-                        membres[0] = {nullptr, type_type1->type_connu, ID::_0};
-                        membres[1] = {nullptr, type_type2->type_connu, ID::_1};
-
-                        auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
-                        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
-
-                        // @concurrence critique
-                        if (type_union->decl == nullptr) {
-                            static Lexeme lexeme_union = {
-                                "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-                            auto decl_struct = m_tacheronne.assembleuse->cree_structure(
-                                &lexeme_union);
-                            decl_struct->type = type_union;
-                            type_union->decl = decl_struct;
-                        }
-
-                        return CodeRetourValidation::OK;
-                    }
-                    case GenreLexeme::EGALITE:
-                    {
-                        // XXX - aucune raison de prendre un verrou ici
-                        auto op = m_compilatrice.operateurs->op_comp_egal_types;
-                        expr->type = op->type_resultat;
-                        expr->op = op;
-                        return CodeRetourValidation::OK;
-                    }
-                    case GenreLexeme::DIFFERENCE:
-                    {
-                        // XXX - aucune raison de prendre un verrou ici
-                        auto op = m_compilatrice.operateurs->op_comp_diff_types;
-                        expr->type = op->type_resultat;
-                        expr->op = op;
-                        return CodeRetourValidation::OK;
-                    }
-                }
-            }
-
-            /* détecte a comp b comp c */
-            if (est_operateur_comparaison(type_op) &&
-                est_operateur_comparaison(enfant1->lexeme->genre)) {
-                expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-                expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
-
-                auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
-                type1 = enfant_expr->operande_droite->type;
-
-                auto candidats = dls::tablet<OperateurCandidat, 10>();
-                auto resultat = cherche_candidats_operateurs(
-                    *espace, type1, type2, type_op, candidats);
-                if (resultat.has_value()) {
-                    return resultat.value();
-                }
-                auto meilleur_candidat = OperateurCandidat::nul_const();
-                auto poids = 0.0;
-
-                for (auto const &candidat : candidats) {
-                    if (candidat.poids > poids) {
-                        poids = candidat.poids;
-                        meilleur_candidat = &candidat;
-                    }
-                }
-
-                if (meilleur_candidat == nullptr) {
-                    return attente_sur_operateur_ou_type(expr);
-                }
-
-                expr->op = meilleur_candidat->op;
-                transtype_si_necessaire(expr->operande_gauche,
-                                        meilleur_candidat->transformation_type1);
-                transtype_si_necessaire(expr->operande_droite,
-                                        meilleur_candidat->transformation_type2);
-            }
-            else if (dls::outils::est_element(
-                         noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-                if (!est_expression_convertible_en_bool(enfant1)) {
-                    espace->rapporte_erreur(
-                        enfant1,
-                        "Expression non conditionnable à gauche de l'opérateur logique !");
-                }
-
-                if (!est_expression_convertible_en_bool(enfant2)) {
-                    espace->rapporte_erreur(
-                        enfant2,
-                        "Expression non conditionnable à droite de l'opérateur logique !");
-                }
-
-                /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
-                 * car nous ne pouvons déterminer le bon ordre d'exécution. */
-                if (noeud->lexeme->genre == GenreLexeme::BARRE_BARRE) {
-                    if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
-                        espace
-                            ->rapporte_erreur(
-                                enfant1,
-                                "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
-                            .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                            "l'ordre des comparisons.");
-                    }
-
-                    if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
-                        espace
-                            ->rapporte_erreur(
-                                enfant2,
-                                "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
-                            .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                            "l'ordre des comparisons.");
-                    }
-                }
-
-                noeud->type = m_compilatrice.typeuse[TypeBase::BOOL];
-            }
-            else {
-                bool type_gauche_est_reference = false;
-                if (assignation_composee) {
-                    type_op = operateur_pour_assignation_composee(type_op);
-
-                    if (type1->est_reference()) {
-                        type_gauche_est_reference = true;
-                        type1 = type1->comme_reference()->type_pointe;
-                        transtype_si_necessaire(expr->operande_gauche,
-                                                TypeTransformation::DEREFERENCE);
-                    }
-                }
-
-                auto candidats = dls::tablet<OperateurCandidat, 10>();
-                auto resultat = cherche_candidats_operateurs(
-                    *espace, type1, type2, type_op, candidats);
-                if (resultat.has_value()) {
-                    return resultat.value();
-                }
-
-                auto meilleur_candidat = OperateurCandidat::nul_const();
-                auto poids = 0.0;
-
-                for (auto const &candidat : candidats) {
-                    if (candidat.poids > poids) {
-                        poids = candidat.poids;
-                        meilleur_candidat = &candidat;
-                    }
-                }
-
-                if (meilleur_candidat == nullptr) {
-                    return attente_sur_operateur_ou_type(expr);
-                }
-
-                expr->type = meilleur_candidat->op->type_resultat;
-                expr->op = meilleur_candidat->op;
-                expr->permute_operandes = meilleur_candidat->permute_operandes;
-
-                if (type_gauche_est_reference &&
-                    meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
-                    espace->rapporte_erreur(expr->operande_gauche,
-                                            "Impossible de transtyper la valeur à gauche pour une "
-                                            "assignation composée.");
-                }
-
-                transtype_si_necessaire(expr->operande_gauche,
-                                        meilleur_candidat->transformation_type1);
-                transtype_si_necessaire(expr->operande_droite,
-                                        meilleur_candidat->transformation_type2);
-
-                if (assignation_composee) {
-                    expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
-
-                    auto resultat_tfm = cherche_transformation(m_compilatrice, expr->type, type1);
-
-                    if (std::holds_alternative<Attente>(resultat_tfm)) {
-                        return std::get<Attente>(resultat_tfm);
-                    }
-
-                    auto transformation = std::get<TransformationType>(resultat_tfm);
-
-                    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-                        rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-            }
-
-            break;
+            /* Nous devrions être ici uniquement si nous avions une attente. */
+            return valide_operateur_binaire_chaine(static_cast<NoeudExpressionBinaire *>(noeud));
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
@@ -5068,4 +4771,328 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
     expression = noeud_comme;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpressionBinaire *expr)
+{
+    expr->genre_valeur = GenreValeur::DROITE;
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
+
+    if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
+        return valide_operateur_binaire_tableau(expr);
+    }
+
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+
+    if (type1->genre == GenreType::TYPE_DE_DONNEES) {
+        return valide_operateur_binaire_type(expr);
+    }
+
+    auto type_op = expr->lexeme->genre;
+
+    /* détecte a comp b comp c */
+    if (est_operateur_comparaison(type_op) && est_operateur_comparaison(enfant1->lexeme->genre)) {
+        return valide_operateur_binaire_chaine(expr);
+    }
+
+    if (dls::outils::est_element(type_op, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
+        if (!est_expression_convertible_en_bool(enfant1)) {
+            espace->rapporte_erreur(
+                enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
+        }
+
+        if (!est_expression_convertible_en_bool(enfant2)) {
+            espace->rapporte_erreur(
+                enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
+        }
+
+        /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
+         * car nous ne pouvons déterminer le bon ordre d'exécution. */
+        if (expr->lexeme->genre == GenreLexeme::BARRE_BARRE) {
+            if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
+                espace
+                    ->rapporte_erreur(
+                        enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
+                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                    "l'ordre des comparisons.");
+            }
+
+            if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
+                espace
+                    ->rapporte_erreur(
+                        enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
+                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                    "l'ordre des comparisons.");
+            }
+        }
+
+        expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+        return CodeRetourValidation::OK;
+    }
+
+    return valide_operateur_binaire_generique(expr);
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
+    NoeudExpressionBinaire *expr)
+{
+    auto type_op = expr->lexeme->genre;
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
+    expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+
+    auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
+    type1 = enfant_expr->operande_droite->type;
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->op = meilleur_candidat->op;
+    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
+    NoeudExpressionBinaire *expr)
+{
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto expression_taille = enfant1;
+    auto expression_type = enfant2;
+
+    auto type2 = expression_type->type;
+
+    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+        rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
+                        enfant2);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type2->comme_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+
+    auto taille_tableau = 0l;
+
+    if (expression_taille) {
+        auto res = evalue_expression(
+            m_compilatrice, expression_taille->bloc_parent, expression_taille);
+
+        if (res.est_errone) {
+            rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (!res.valeur.est_entiere()) {
+            rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (res.valeur.entiere() == 0) {
+            espace->rapporte_erreur(expression_taille,
+                                    "Impossible de définir un tableau fixe de taille 0 !\n");
+            return CodeRetourValidation::Erreur;
+        }
+
+        taille_tableau = res.valeur.entiere();
+    }
+
+    if (taille_tableau != 0) {
+        // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+        // via un membre
+        if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_connu);
+        }
+
+        auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
+            type_connu, static_cast<int>(taille_tableau));
+        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    }
+    else {
+        auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
+        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
+    NoeudExpressionBinaire *expr)
+{
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+
+    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+        rapporte_erreur("Opération impossible entre un type et autre chose", expr);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_type1 = type1->comme_type_de_donnees();
+    auto type_type2 = type2->comme_type_de_donnees();
+
+    switch (expr->lexeme->genre) {
+        default:
+        {
+            rapporte_erreur("Opérateur inapplicable sur des types", expr);
+            return CodeRetourValidation::Erreur;
+        }
+        case GenreLexeme::BARRE:
+        {
+            if (type_type1->type_connu == nullptr) {
+                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_type2->type_connu == nullptr) {
+                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_type1->type_connu == type_type2->type_connu) {
+                rapporte_erreur("Impossible de créer une union depuis des types similaires\n",
+                                expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_type1->type_connu);
+            }
+
+            if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_type2->type_connu);
+            }
+
+            auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
+            membres[0] = {nullptr, type_type1->type_connu, ID::_0};
+            membres[1] = {nullptr, type_type2->type_connu, ID::_1};
+
+            auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
+            expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
+
+            // @concurrence critique
+            if (type_union->decl == nullptr) {
+                static Lexeme lexeme_union = {
+                    "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
+                auto decl_struct = m_tacheronne.assembleuse->cree_structure(&lexeme_union);
+                decl_struct->type = type_union;
+                type_union->decl = decl_struct;
+            }
+
+            return CodeRetourValidation::OK;
+        }
+        case GenreLexeme::EGALITE:
+        {
+            // XXX - aucune raison de prendre un verrou ici
+            auto op = m_compilatrice.operateurs->op_comp_egal_types;
+            expr->type = op->type_resultat;
+            expr->op = op;
+            return CodeRetourValidation::OK;
+        }
+        case GenreLexeme::DIFFERENCE:
+        {
+            // XXX - aucune raison de prendre un verrou ici
+            auto op = m_compilatrice.operateurs->op_comp_diff_types;
+            expr->type = op->type_resultat;
+            expr->op = op;
+            return CodeRetourValidation::OK;
+        }
+    }
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
+    NoeudExpressionBinaire *expr)
+{
+    auto type_op = expr->lexeme->genre;
+    auto assignation_composee = est_assignation_composee(type_op);
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+
+    bool type_gauche_est_reference = false;
+    if (assignation_composee) {
+        type_op = operateur_pour_assignation_composee(type_op);
+
+        if (type1->est_reference()) {
+            type_gauche_est_reference = true;
+            type1 = type1->comme_reference()->type_pointe;
+            transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+        }
+    }
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->type = meilleur_candidat->op->type_resultat;
+    expr->op = meilleur_candidat->op;
+    expr->permute_operandes = meilleur_candidat->permute_operandes;
+
+    if (type_gauche_est_reference &&
+        meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
+        espace->rapporte_erreur(expr->operande_gauche,
+                                "Impossible de transtyper la valeur à gauche pour une "
+                                "assignation composée.");
+    }
+
+    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+
+    if (assignation_composee) {
+        expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
+
+        auto resultat_tfm = cherche_transformation(m_compilatrice, expr->type, type1);
+
+        if (std::holds_alternative<Attente>(resultat_tfm)) {
+            return std::get<Attente>(resultat_tfm);
+        }
+
+        auto transformation = std::get<TransformationType>(resultat_tfm);
+
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    return CodeRetourValidation::OK;
 }
