@@ -30,6 +30,11 @@ intervalle_intersecté :: fonc (intervalle0: Intervalle, intervalle1: Intervalle
     retourne Intervalle(min_val, max_val)
 }
 
+est_dans_l_intervalle :: fonc (intervalle: Intervalle, valeur: r32) -> bool
+{
+    retourne intervalle.min <= valeur <= intervalle.max
+}
+
 // --------------------------------------------
 // Opérations arithmétiques sur des intervalles
 // Références :
