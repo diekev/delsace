@@ -1474,7 +1474,7 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_st
     noms.ajoute(type->comme_polymorphique()->ident->nom);
 }
 
-bool est_type_conditionnable(Type *type)
+bool est_type_booleen_implicite(Type *type)
 {
     return dls::outils::est_element(type->genre,
                                     GenreType::BOOL,

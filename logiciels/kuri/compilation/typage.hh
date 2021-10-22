@@ -683,7 +683,7 @@ inline bool est_type_entier(Type const *type)
     return type->genre == GenreType::ENTIER_NATUREL || type->genre == GenreType::ENTIER_RELATIF;
 }
 
-bool est_type_conditionnable(Type *type);
+bool est_type_booleen_implicite(Type *type);
 
 Type *normalise_type(Typeuse &typeuse, Type *type);
 

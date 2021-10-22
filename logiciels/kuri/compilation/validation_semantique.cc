@@ -251,7 +251,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
 
 static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
 {
-    return est_type_conditionnable(expression->type) ||
+    return est_type_booleen_implicite(expression->type) ||
            expression->possede_drapeau(ACCES_EST_ENUM_DRAPEAU);
 }
 
