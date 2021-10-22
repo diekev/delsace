@@ -249,6 +249,12 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     return metaprogramme;
 }
 
+static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
+{
+    return est_type_conditionnable(expression->type) ||
+           expression->possede_drapeau(ACCES_EST_ENUM_DRAPEAU);
+}
+
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -732,15 +738,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             else if (dls::outils::est_element(
                          noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-                if (!est_type_conditionnable(enfant1->type) &&
-                    !enfant1->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+                if (!est_expression_convertible_en_bool(enfant1)) {
                     espace->rapporte_erreur(
                         enfant1,
                         "Expression non conditionnable à gauche de l'opérateur logique !");
                 }
 
-                if (!est_type_conditionnable(enfant2->type) &&
-                    !enfant2->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+                if (!est_expression_convertible_en_bool(enfant2)) {
                     espace->rapporte_erreur(
                         enfant2,
                         "Expression non conditionnable à droite de l'opérateur logique !");
@@ -1084,8 +1088,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!est_type_conditionnable(type_condition) &&
-                !inst->condition->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+            if (!est_expression_convertible_en_bool(inst->condition)) {
                 rapporte_erreur("Impossible de conditionner le type de l'expression 'si'",
                                 inst->condition,
                                 erreur::Genre::TYPE_DIFFERENTS);
