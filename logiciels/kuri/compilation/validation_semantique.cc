@@ -3864,6 +3864,8 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                         static_cast<int>(~valeurs_legales),
                         nullptr,
                         TypeCompose::Membre::EST_IMPLICITE});
+        membres.ajoute(
+            {nullptr, type_enum, ID::zero, 0, 0, nullptr, TypeCompose::Membre::EST_IMPLICITE});
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
