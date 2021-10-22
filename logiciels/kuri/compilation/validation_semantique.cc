@@ -896,7 +896,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->type = m_compilatrice.typeuse.type_pointeur_pour(type);
                 }
                 else if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
-                    if (!est_type_conditionnable(enfant->type)) {
+                    if (!est_expression_convertible_en_bool(enfant)) {
                         rapporte_erreur(
                             "Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
                             enfant);
