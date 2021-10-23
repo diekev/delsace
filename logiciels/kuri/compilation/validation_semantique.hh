@@ -147,6 +147,10 @@ struct ContexteValidationCode {
     ResultatValidation valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_type(NoeudExpressionBinaire *expr);
     ResultatValidation valide_operateur_binaire_generique(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_comparaison_enum_drapeau_bool(
+        NoeudExpressionBinaire *expr,
+        NoeudExpressionMembre *expr_acces_enum,
+        NoeudExpressionLitteraleBool *expr_bool);
 
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 

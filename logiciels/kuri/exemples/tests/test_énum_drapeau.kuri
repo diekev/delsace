@@ -16,6 +16,53 @@ Normal :: énum z32 {
     FE
 }
 
+test_comparaisons :: fonc ()
+{
+    a := Drapeau.FA
+
+    si a.FA {
+        imprime("OK: a.FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a.FA !\n")
+    }
+
+    si !a.FA {
+        imprime("PAS OK: a.FA !\n")
+    }
+    sinon {
+        imprime("OK: a.FA !\n")
+    }
+
+    si a.FA == vrai {
+        imprime("OK: a.FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a.FA !\n")
+    }
+
+    si a.FA == faux {
+        imprime("PAS OK: a.FA !\n")
+    }
+    sinon {
+        imprime("OK: a.FA !\n")
+    }
+
+    si vrai == a.FA {
+        imprime("OK: a.FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a.FA !\n")
+    }
+
+    si faux == a.FA {
+        imprime("PAS OK: a.FA !\n")
+    }
+    sinon {
+        imprime("OK: a.FA !\n")
+    }
+}
+
 principale :: fonc () -> z32
 {
     drapeau : Drapeau
@@ -48,6 +95,8 @@ principale :: fonc () -> z32
     normal |= Normal.FC
 
     imprime("normal = %\n", normal)
+
+    test_comparaisons()
 
     retourne 0
 }

@@ -4832,6 +4832,16 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
         return CodeRetourValidation::OK;
     }
 
+    if (enfant1->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && enfant2->est_litterale_bool()) {
+        return valide_comparaison_enum_drapeau_bool(
+            expr, enfant1->comme_reference_membre(), enfant2->comme_litterale_bool());
+    }
+
+    if (enfant2->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && enfant1->est_litterale_bool()) {
+        return valide_comparaison_enum_drapeau_bool(
+            expr, enfant2->comme_reference_membre(), enfant1->comme_litterale_bool());
+    }
+
     return valide_operateur_binaire_generique(expr);
 }
 
@@ -5094,5 +5104,47 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         }
     }
 
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
+    NoeudExpressionBinaire *expr,
+    NoeudExpressionMembre * /*expr_acces_enum*/,
+    NoeudExpressionLitteraleBool *expr_bool)
+{
+    auto type_op = expr->lexeme->genre;
+
+    if (type_op != GenreLexeme::EGALITE && type_op != GenreLexeme::DIFFERENCE) {
+        espace->rapporte_erreur(expr,
+                                "Une comparaison entre une valeur d'énumération drapeau et une "
+                                "littérale booléenne doit se faire via « == » ou « != »");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_bool = expr_bool->type;
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(
+        *espace, type_bool, type_bool, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->op = meilleur_candidat->op;
+    expr->type = type_bool;
     return CodeRetourValidation::OK;
 }
