@@ -831,6 +831,11 @@ apparie_un_de :: fonc (parseuse: *ParseuseChaine, chns: ...chaine) -> z64
     retourne -1
 }
 
+caractère_courant :: fonc (parseuse: *ParseuseChaine) -> z8
+{
+    retourne parseuse.chn[parseuse.curseur]
+}
+
 apparie :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
 {
     si parseuse.curseur >= parseuse.chn.taille {
@@ -945,6 +950,10 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
 
 sous_chaine_jusque_index :: fonc (parseuse: *ParseuseChaine, index: z64) -> chaine
 {
+    si parseuse.fini() {
+        retourne ""
+    }
+
     retourne sous_chaine(parseuse.chn, parseuse.curseur, index)
 }
 
