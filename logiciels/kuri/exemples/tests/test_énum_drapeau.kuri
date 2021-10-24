@@ -16,7 +16,7 @@ Normal :: énum z32 {
     FE
 }
 
-test_comparaisons :: fonc ()
+test_expressions_booléennes :: fonc ()
 {
     a := Drapeau.FA
 
@@ -63,7 +63,90 @@ test_comparaisons :: fonc ()
     }
 }
 
-principale :: fonc () -> z32
+test_expressions_booléennes_tableau :: fonc ()
+{
+    a := [Drapeau.FA]
+
+    si a[0].FA {
+        imprime("OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+
+    si !a[0].FA {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("OK: a[0].FA !\n")
+    }
+
+    si a[0].FA == vrai {
+        imprime("OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+
+    si a[0].FA == faux {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("OK: a[0].FA !\n")
+    }
+
+    si vrai == a[0].FA {
+        imprime("OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+
+    si faux == a[0].FA {
+        imprime("PAS OK: a[0].FA !\n")
+    }
+    sinon {
+        imprime("OK: a[0].FA !\n")
+    }
+}
+
+test_raccourcis_assignation_énumération_drapeau :: fonc ()
+{
+    {
+        a : Drapeau
+        a.FA = vrai
+
+        saufsi a.FA {
+            imprime("PAS OK: a.FA est faux !\n")
+            retourne
+        }
+
+        a.FA = faux
+        si a.FA {
+            imprime("PAS OK: a.FA est vrai !\n")
+            retourne
+        }
+    }
+    {
+        a : [1]Drapeau
+        a[0].FA = vrai
+
+        saufsi a[0].FA {
+            imprime("PAS OK: a.FA est faux !\n")
+            retourne
+        }
+
+        a[0].FA = faux
+        si a[0].FA {
+            imprime("PAS OK: a.FA est vrai !\n")
+            retourne
+        }
+    }
+
+    imprime("SUCCÈS de test_raccourcis_assignation_énumération_drapeau !\n")
+}
+
+tests_activations_drapeaux :: fonc ()
 {
     drapeau : Drapeau
 
@@ -81,7 +164,10 @@ principale :: fonc () -> z32
     drapeau |= Drapeau.FD
 
     imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
+}
 
+test_conjonction_énum_simple :: fonc ()
+{
     normal : Normal
 
     imprime("normal = %\n", normal)
@@ -95,8 +181,14 @@ principale :: fonc () -> z32
     normal |= Normal.FC
 
     imprime("normal = %\n", normal)
+}
 
-    test_comparaisons()
-
+principale :: fonc () -> z32
+{
+    test_expressions_booléennes()
+    test_expressions_booléennes_tableau()
+    test_raccourcis_assignation_énumération_drapeau()
+    tests_activations_drapeaux()
+    test_conjonction_énum_simple()
     retourne 0
 }
