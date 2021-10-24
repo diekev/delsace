@@ -2173,13 +2173,10 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
              * compilation
              * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
              */
-            auto ref_decl = reference_declaration_acces_membre(structure);
-            if (ref_decl && ref_decl->declaration_referee &&
-                !ref_decl->declaration_referee->est_enum() &&
-                !expression_membre->type->est_type_de_donnees()) {
+            if (structure->type->est_enum() && structure->genre_valeur != GenreValeur::DROITE) {
                 if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
-                    expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                     if (!membre_est_implicite) {
+                        expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                         expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
                     }
                 }
@@ -2894,13 +2891,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 
-    if (decl->est_declaration_type() && expr->aide_generation_code != EST_NOEUD_ACCES) {
+    if (decl->est_declaration_type()) {
         if (decl->est_type_opaque() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
             return Attente::sur_declaration(decl);
         }
 
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
+        expr->genre_valeur = GenreValeur::DROITE;
     }
     else {
         if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {

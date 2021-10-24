@@ -195,7 +195,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->drapeaux |= drapeau;
 
             aplatis_arbre(expr->accedee, arbre_aplatis, drapeau);
-            expr->accedee->aide_generation_code = EST_NOEUD_ACCES;
             // n'ajoute pas le membre, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation

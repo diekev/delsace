@@ -88,8 +88,6 @@ enum {
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
-
-    EST_NOEUD_ACCES,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
