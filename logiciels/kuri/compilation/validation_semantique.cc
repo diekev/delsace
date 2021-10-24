@@ -792,9 +792,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             if (!est_expression_convertible_en_bool(inst->condition)) {
-                rapporte_erreur("Impossible de conditionner le type de l'expression 'si'",
-                                inst->condition,
-                                erreur::Genre::TYPE_DIFFERENTS);
+                espace
+                    ->rapporte_erreur(inst->condition,
+                                      "Impossible de convertir implicitement l'expression vers "
+                                      "une expression booléenne",
+                                      erreur::Genre::TYPE_DIFFERENTS)
+                    .ajoute_message(
+                        "Le type de l'expression est ", chaine_type(type_condition), "\n");
                 return CodeRetourValidation::Erreur;
             }
 
