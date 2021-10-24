@@ -825,7 +825,7 @@ ContexteKuri :: struct {
 	deloge_memoire : #nulctx fonc (*ContexteKuri,*rien,n64)(rien)
 }
 
-loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, taille: n64) -> *rien #nulctx
+loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien #nulctx
 {
     pointeur : *rien
 
@@ -836,7 +836,7 @@ loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, taille: n64) -> *ri
     retourne pointeur
 }
 
-reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
+reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
 {
     pointeur : *rien
 
@@ -847,7 +847,7 @@ reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: 
     retourne pointeur
 }
 
-déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64) -> rien #nulctx
+déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64) -> rien #nulctx
 {
     pousse_contexte __contexte_fil_principal {
         déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
