@@ -3298,6 +3298,19 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 
             auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(type_pointe, false, false);
 
+            /* NOTE: pour les tableaux fixes, puisque le déréférencement de pointeur est compliqué
+             * avec les indexages, nous passons par une variable locale temporaire et copierons la
+             * variable initialisée dans la mémoire pointée par le paramètre. */
+            auto valeur_resultat = assembleuse->cree_declaration_variable(
+                &lexeme_sentinel,
+                type_tableau,
+                ID::resultat,
+                assembleuse->cree_non_initialisation(&lexeme_sentinel));
+            assembleuse->bloc_courant()->membres->ajoute(valeur_resultat);
+            assembleuse->bloc_courant()->expressions->ajoute(valeur_resultat);
+            auto ref_resultat = assembleuse->cree_reference_declaration(&lexeme_sentinel,
+                                                                        valeur_resultat);
+
             /* Toutes les variables doivent être initialisées (ou nous devons nous assurer que tous
              * les types possibles créés par la compilation ont une fonction d'initalisation). */
             auto init_it = assembleuse->cree_litterale_nul(&lexeme_sentinel);
@@ -3317,7 +3330,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             static Lexeme lexeme = {};
             auto pour = assembleuse->cree_pour(&lexeme);
             pour->prend_pointeur = true;
-            pour->expression = ref_param;
+            pour->expression = ref_resultat;
             pour->bloc = assembleuse->cree_bloc(&lexeme);
             pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
@@ -3332,6 +3345,10 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             pour->bloc->expressions->ajoute(appel);
 
             assembleuse->bloc_courant()->expressions->ajoute(pour);
+
+            auto assignation_resultat = assembleuse->cree_assignation_variable(
+                &lexeme_sentinel, ref_param, ref_resultat);
+            assembleuse->bloc_courant()->expressions->ajoute(assignation_resultat);
             break;
         }
         case GenreType::OPAQUE:

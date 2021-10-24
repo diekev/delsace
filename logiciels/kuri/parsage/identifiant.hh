@@ -143,7 +143,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fini_execution_kuri, "__fini_exécution_kuri")               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pre_executable, "pré_exécutable")                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(AnnotationCode, "AnnotationCode")                           \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(zero, "zéro")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(zero, "zéro")                                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(resultat, "résultat")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

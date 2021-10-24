@@ -84,10 +84,6 @@ ParseAdresseCourriel :: énum {
 construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
 {
     table_caractères : [256]DrapeauxCaractères
-    // À FAIRE (langage) : ceci n'est pas initialisé
-    pour & table_caractères {
-        it = DrapeauxCaractères.zéro
-    }
 
     /* Selon RFC5322, section 3.2.3
      * https://datatracker.ietf.org/doc/html/rfc5322.html#section-3.2.3
