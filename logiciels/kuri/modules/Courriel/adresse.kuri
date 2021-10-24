@@ -93,17 +93,22 @@ construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
      * https://datatracker.ietf.org/doc/html/rfc5322.html#section-3.2.3
      */
 
-/* À FAIRE (langage) : a[x].DRAPEAU = vrai
     pour "abcdefghijklmnopqrstuvwxyz" {
         table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
     }
 
     pour "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
         table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
     }
 
     pour "0123456789" {
         table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
     }
 
     pour "!#$%&'*+-/=?^_`{|}~" {
@@ -114,6 +119,7 @@ construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
         table_caractères[it comme n8].EST_CARACTÈRE_SPÉCIAL = vrai
     }
 
+    table_caractères['-'].PEUT_ÊTRE_DANS_LABEL = vrai
     table_caractères['@'].EST_AROBASE = vrai
     table_caractères['.'].EST_POINT = vrai
     table_caractères[','].EST_SÉPARATEUR_RELAI = vrai
@@ -124,44 +130,6 @@ construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
     table_caractères['\\'].EST_ÉCHAPPEMENT = vrai
     table_caractères['@'].EST_SÉPARATEUR_ATOME = vrai
     table_caractères['.'].EST_SÉPARATEUR_ATOME = vrai
-    */
-    pour "abcdefghijklmnopqrstuvwxyz" {
-        table_caractères[it comme n8] |= DrapeauxCaractères.EST_CARACTÈRE_LOCAL_VALIDE
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_COMMENCER_OU_TERMINER_LABEL
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_ÊTRE_DANS_LABEL
-    }
-
-    pour "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
-        table_caractères[it comme n8] |= DrapeauxCaractères.EST_CARACTÈRE_LOCAL_VALIDE
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_COMMENCER_OU_TERMINER_LABEL
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_ÊTRE_DANS_LABEL
-    }
-
-    pour "0123456789" {
-        table_caractères[it comme n8] |= DrapeauxCaractères.EST_CARACTÈRE_LOCAL_VALIDE
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_COMMENCER_OU_TERMINER_LABEL
-        table_caractères[it comme n8] |= DrapeauxCaractères.PEUT_ÊTRE_DANS_LABEL
-    }
-
-    pour "!#$%&'*+-/=?^_`{|}~" {
-        table_caractères[it comme n8] |= DrapeauxCaractères.EST_CARACTÈRE_LOCAL_VALIDE
-    }
-
-    pour "()<>[]:;@\\,.\"" {
-        table_caractères[it comme n8] |= DrapeauxCaractères.EST_CARACTÈRE_SPÉCIAL
-    }
-
-    table_caractères['-'] |= DrapeauxCaractères.PEUT_ÊTRE_DANS_LABEL
-    table_caractères['@'] |= DrapeauxCaractères.EST_AROBASE
-    table_caractères['.'] |= DrapeauxCaractères.EST_POINT
-    table_caractères[','] |= DrapeauxCaractères.EST_SÉPARATEUR_RELAI
-    table_caractères[':'] |= DrapeauxCaractères.EST_SÉPARATEUR_RELAI
-    table_caractères['['] |= DrapeauxCaractères.EST_CROCHET_OUVRANT
-    table_caractères[']'] |= DrapeauxCaractères.EST_CROCHET_FERMANT
-    table_caractères['"'] |= DrapeauxCaractères.EST_GUILLEMET
-    table_caractères['\\'] |= DrapeauxCaractères.EST_ÉCHAPPEMENT
-    table_caractères['@'] |= DrapeauxCaractères.EST_SÉPARATEUR_ATOME
-    table_caractères['.'] |= DrapeauxCaractères.EST_SÉPARATEUR_ATOME
 
     retourne table_caractères
 }
