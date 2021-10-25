@@ -4403,11 +4403,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         auto transformation = TransformationType();
 
-        if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && expression->type->est_bool()) {
-            if (!expression->est_litterale_bool()) {
-                espace->rapporte_erreur(expression,
-                                        "L'assignation d'une valeur d'une énum_drapeau doit être "
-                                        "une littérale booléenne");
+        if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+            if (!expression->type->est_bool()) {
+                espace
+                    ->rapporte_erreur(expression,
+                                      "L'assignation d'une valeur d'une énum_drapeau doit être "
+                                      "une valeur booléenne")
+                    .ajoute_message(
+                        "Le type de l'expression est ", chaine_type(expression->type), "\n");
                 return CodeRetourValidation::Erreur;
             }
 

@@ -590,6 +590,9 @@ struct Simplificatrice {
     void simplifie_retiens(NoeudRetiens *retiens);
     void simplifie_retour(NoeudRetour *inst);
 
+    NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
+                                                        NoeudExpression *expression);
+
     NoeudExpression *simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,
                                                  bool pour_operande);
     NoeudSi *cree_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
@@ -1245,37 +1248,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 for (auto var : it.variables.plage()) {
                     if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                        auto ref_membre = var->comme_reference_membre();
-
-                        // À FAIRE : référence
-                        // Nous prenons ref_membre->accedee directement car ce ne sera pas
-                        // simplifié, et qu'il faut prendre en compte les accés d'accés, les
-                        // expressions entre parenthèses, etc. Donc faire ceci est plus simple.
-                        auto nouvelle_ref = ref_membre->accedee;
-                        var->substitution = nouvelle_ref;
-
-                        auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
-                        auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-
-                        if (it.expression->comme_litterale_bool()->valeur) {
-                            // a.DRAPEAU = vrai -> a = a | DRAPEAU
-                            auto valeur_lit_enum = assem->cree_litterale_entier(
-                                noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
-                            auto op = type_enum->operateur_oub;
-                            auto ou = assem->cree_expression_binaire(
-                                noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
-                            it.expression->substitution = ou;
-                        }
-                        else {
-                            // a.DRAPEAU = faux -> a = a & ~DRAPEAU
-                            auto valeur_lit_enum = assem->cree_litterale_entier(
-                                noeud->lexeme, type_enum, ~static_cast<unsigned>(valeur_enum));
-                            auto op = type_enum->operateur_etb;
-                            auto et = assem->cree_expression_binaire(
-                                noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
-                            it.expression->substitution = et;
-                        }
-
+                        /* NOTE : pour le moment nous ne pouvons déclarer de nouvelle variables ici
+                         * pour les valeurs temporaires, et puisque nous ne pouvons pas utiliser
+                         * l'expression dans sa substitution, nous modifions l'expression
+                         * directement. Ceci est plus ou moins correcte, puisque donnees_expr n'est
+                         * censé être que pour la génération de code.
+                         */
+                        it.expression = simplifie_assignation_enum_drapeau(var, it.expression);
                         expression_fut_simplifiee = true;
                     }
                 }
@@ -1892,6 +1871,113 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 
     inst->substitution = bloc;
     return;
+}
+
+NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpression *var,
+                                                                     NoeudExpression *expression)
+{
+    auto lexeme = var->lexeme;
+    auto ref_membre = var->comme_reference_membre();
+
+    // À FAIRE : référence
+    // Nous prenons ref_membre->accedee directement car ce ne sera pas
+    // simplifié, et qu'il faut prendre en compte les accés d'accés, les
+    // expressions entre parenthèses, etc. Donc faire ceci est plus simple.
+    auto nouvelle_ref = ref_membre->accedee;
+    var->substitution = nouvelle_ref;
+
+    /* Crée la conjonction d'un drapeau avec la variable (a | DRAPEAU) */
+    auto cree_conjonction_drapeau =
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
+            auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, valeur_enum);
+            auto op = type_enum->operateur_oub;
+            return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
+        };
+
+    /* Crée la disjonction d'un drapeau avec la variable (a & ~DRAPEAU) */
+    auto cree_disjonction_drapeau =
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
+            auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, ~valeur_enum);
+            auto op = type_enum->operateur_etb;
+            return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
+        };
+
+    auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
+    auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+
+    if (expression->est_litterale_bool()) {
+        /* Nous avons une expression littérale, donc nous pouvons choisir la bonne instruction. */
+        if (expression->comme_litterale_bool()->valeur) {
+            // a.DRAPEAU = vrai -> a = a | DRAPEAU
+            return cree_conjonction_drapeau(
+                nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+        }
+        // a.DRAPEAU = faux -> a = a & ~DRAPEAU
+        return cree_disjonction_drapeau(
+            nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+    }
+    /* Transforme en une expression « ternaire » sans branche (similaire à a = b ? c : d en
+     * C/C++) :
+     * v1 = (a | DRAPEAU)
+     * v2 = (a & ~DRAPEAU)
+     * (-(b comme T) & v1) | (((b comme T) - 1) & v2)
+     */
+
+    auto v1 = cree_conjonction_drapeau(
+        nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+    auto v2 = cree_disjonction_drapeau(
+        nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+
+    /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
+     * l'énumération. */
+    auto type_sous_jacent = type_enum->type_donnees;
+    auto ref_b = expression;
+
+    auto comme = assem->cree_comme(var->lexeme);
+    comme->type = type_sous_jacent;
+    comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    comme->expression = ref_b;
+    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_sous_jacent};
+
+    /* -b */
+    auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_donnees, 0);
+    auto moins_b_type_sous_jacent = assem->cree_expression_binaire(
+        lexeme, type_sous_jacent->operateur_sst, zero, comme);
+
+    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
+     * type.
+     */
+    auto moins_b = assem->cree_comme(var->lexeme);
+    moins_b->type = type_enum;
+    moins_b->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    moins_b->expression = moins_b_type_sous_jacent;
+    moins_b->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_enum};
+
+    /* b - 1 */
+    auto un = assem->cree_litterale_entier(lexeme, type_sous_jacent, 1);
+    auto b_moins_un_type_sous_jacent = assem->cree_expression_binaire(
+        lexeme, type_sous_jacent->operateur_sst, comme, un);
+
+    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
+     * type.
+     */
+    auto b_moins_un = assem->cree_comme(var->lexeme);
+    b_moins_un->type = type_enum;
+    b_moins_un->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    b_moins_un->expression = b_moins_un_type_sous_jacent;
+    b_moins_un->transformation = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                                    type_enum};
+
+    /* -b & v1 */
+    auto moins_b_et_v1 = assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_etb, moins_b, v1);
+    /* (b - 1) & v2 */
+    auto b_moins_un_et_v2 = assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_etb, b_moins_un, v2);
+
+    /* (-(b comme T) & v1) | (((b comme T) - 1) & v2) */
+    return assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_oub, moins_b_et_v1, b_moins_un_et_v2);
 }
 
 NoeudExpression *Simplificatrice::simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,

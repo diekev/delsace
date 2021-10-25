@@ -4,7 +4,6 @@ importe Fondation
 // x.DRAPEAU | bool (|=)
 // x.DRAPEAU & bool (&=)
 // x.DRAPEAU ^ bool (^=)
-// permet l'utilisation d'expressions booléennes non littérales (voir opérateur ternaire)
 // opérateur + -> opérateur |
 // opérateur - -> opérateur & ~
 // opérateur || -> x.DRAPEAU1 || x.DRAPEAU2 -> (x & (DRAPEAU1 | DRAPEAU2)) != 0
@@ -71,6 +70,27 @@ test_expressions_booléennes :: fonc ()
     sinon {
         imprime("OK: a.FA !\n")
     }
+}
+
+test_expressions_booléennes_variables :: fonc ()
+{
+    b := faux
+    d : Drapeau
+
+    d.FA = b
+    si d.FA {
+        imprime("PAS OK: d.FA doit être faux !\n")
+        retourne
+    }
+
+    b = vrai
+    d.FA = b
+    saufsi d.FA {
+        imprime("PAS OK: d.FA doit être vrai !\n")
+        retourne
+    }
+
+    imprime("SUCCÈS de test_expressions_booléennes_variables !\n")
 }
 
 test_expressions_booléennes_tableau :: fonc ()
@@ -195,6 +215,7 @@ test_conjonction_énum_simple :: fonc ()
 
 principale :: fonc () -> z32
 {
+    test_expressions_booléennes_variables()
     test_expressions_booléennes()
     test_expressions_booléennes_tableau()
     test_raccourcis_assignation_énumération_drapeau()
