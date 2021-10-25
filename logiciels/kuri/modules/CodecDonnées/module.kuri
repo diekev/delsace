@@ -479,7 +479,7 @@ encode_base96 :: fonc (message: []octet) -> chaine
     base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»
 
     résultat : chaine
-    index := 0
+    index : n64 = 0
 
     pour message {
         index %= 6
