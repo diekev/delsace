@@ -1,5 +1,15 @@
 importe Fondation
 
+// À FAIRE(langage) : opérations sur les énums drapeaux
+// x.DRAPEAU | bool (|=)
+// x.DRAPEAU & bool (&=)
+// x.DRAPEAU ^ bool (^=)
+// permet l'utilisation d'expressions booléennes non littérales (voir opérateur ternaire)
+// opérateur + -> opérateur |
+// opérateur - -> opérateur & ~
+// opérateur || -> x.DRAPEAU1 || x.DRAPEAU2 -> (x & (DRAPEAU1 | DRAPEAU2)) != 0
+// opérateur && -> x.DRAPEAU1 && x.DRAPEAU2 -> (x & (DRAPEAU1 | DRAPEAU2)) == (DRAPEAU1 | DRAPEAU2)
+
 Drapeau :: énum_drapeau n32 {
     FA
     FB
