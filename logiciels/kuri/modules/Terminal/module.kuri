@@ -22,22 +22,38 @@ lis_réponse_utilisateur :: fonc () -> chaine
     retourne réponse
 }
 
+DécisionBoucleLEIB :: énum {
+    Continue
+    Arrête
+}
+
 // Lis Exécute Imprime Boucle
 // Read Execute Print Loop
 LEIB :: struct {
-    chaine_prompt : chaine
-    exécute : fonc(chaine)(chaine)
+    rappel_chaine_prompt : fonc(*LEIB)(chaine)
+    rappel_exécute : fonc(*LEIB, chaine)(DécisionBoucleLEIB)
 }
 
-lance :: fonc (leib: LEIB)
+lance :: fonc (leib: *LEIB)
 {
+    saufsi leib.rappel_exécute {
+        retourne
+    }
+
     boucle {
-        demande_utilisateur(leib.chaine_prompt)
+        chaine_prompt := ""
+        si leib.rappel_chaine_prompt {
+            chaine_prompt = leib.rappel_chaine_prompt(leib)
+        }
+
+        demande_utilisateur(chaine_prompt)
         entrée := lis_réponse_utilisateur()
 
-        résultat := leib.exécute(entrée)
+        décision := leib.rappel_exécute(leib, entrée)
 
-        imprime("%", résultat)
+        si décision == DécisionBoucleLEIB.Arrête {
+            arrête
+        }
     }
 }
 
