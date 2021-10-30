@@ -3,6 +3,78 @@
 importe Fondation
 importe SysFichier
 
+CouleurTerminal :: énum {
+    BLANC
+    BLEU
+    CYAN
+    GRIS
+    JAUNE
+    MAGENTA
+    ROUGE
+    VERT
+}
+
+StyleTexte :: énum {
+    RÉINIT
+    GRAS
+    FONCÉ
+    ITALIC
+    SOUSLIGNÉ
+    CLIGNOTE
+    INVERSE
+    CACHE
+    CROISÉ
+}
+
+chaine_style_texte :: fonc (style: StyleTexte) -> chaine
+{
+    discr style {
+        RÉINIT    { retourne "\xb1[00m" }
+        GRAS      { retourne "\xb1[1m" }
+        FONCÉ     { retourne "\xb1[2m" }
+        ITALIC    { retourne "\xb1[3m" }
+        SOUSLIGNÉ { retourne "\xb1[4m" }
+        CLIGNOTE  { retourne "\xb1[5m" }
+        INVERSE   { retourne "\xb1[7m" }
+        CACHE     { retourne "\xb1[8m" }
+        CROISÉ    { retourne "\xb1[9m" }
+    }
+
+    retourne ""
+}
+
+chaine_pour_avant_plan :: fonc (couleur: CouleurTerminal) -> chaine
+{
+    discr couleur {
+        GRIS    { retourne "\xb1[30m" }
+        ROUGE   { retourne "\xb1[31m" }
+        VERT    { retourne "\xb1[32m" }
+        JAUNE   { retourne "\xb1[33m" }
+        BLEU    { retourne "\xb1[34m" }
+        MAGENTA { retourne "\xb1[35m" }
+        CYAN    { retourne "\xb1[36m" }
+        BLANC   { retourne "\xb1[37m" }
+    }
+
+    retourne ""
+}
+
+chaine_pour_arrière_plan :: fonc (couleur: CouleurTerminal) -> chaine
+{
+    discr couleur {
+        GRIS    { retourne "\xb1[40m" }
+        ROUGE   { retourne "\xb1[41m" }
+        VERT    { retourne "\xb1[42m" }
+        JAUNE   { retourne "\xb1[43m" }
+        BLEU    { retourne "\xb1[44m" }
+        MAGENTA { retourne "\xb1[45m" }
+        CYAN    { retourne "\xb1[46m" }
+        BLANC   { retourne "\xb1[47m" }
+    }
+
+    retourne ""
+}
+
 // --------------------------------------------
 
 demande_utilisateur :: fonc (message: chaine)
