@@ -1,3 +1,21 @@
+/*
+
+    Module de formattage et d'impression de données sous forme de tableaux.
+
+    Par exemple :
+
+    +---------------+----------------+
+    | Ma donnée 1   | Ma donnée 2    |
+    +---------------|----------------+
+    | Valeur 1a     | Valeur 2a      |
+    | Valeur 1b     | Valeur 2b      |
+    | Valeur 1c     | Valeur 2c      |
+    | Valeur 1d     | Valeur 2d      |
+    | Valeur 1e     | Valeur 2e      |
+    +---------------|----------------+
+
+ */
+
 importe Fondation
 
 LigneTabuleuse :: struct {

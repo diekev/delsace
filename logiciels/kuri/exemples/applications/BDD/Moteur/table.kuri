@@ -1,6 +1,7 @@
 importe Fondation
 importe GlibC
 importe Sérialisation
+importe Tabulation
 
 // --------------------------------------------------------
 
