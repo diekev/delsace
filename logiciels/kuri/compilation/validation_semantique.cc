@@ -366,7 +366,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                         ->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                         ->comme_declaration_module();
                 noeud_module->module = module;
-                noeud_module->ident = inst->expression->ident;
+                noeud_module->ident = module->nom();
                 noeud_module->bloc_parent = inst->bloc_parent;
                 noeud_module->bloc_parent->membres->ajoute(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
