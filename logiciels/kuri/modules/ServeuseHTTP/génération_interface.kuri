@@ -239,9 +239,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
             continue
         }
 
-        // À FAIRE(langage) : "." à droite de "comme" échoue
-        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
-        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+        si it.drapeaux.EST_CONSTANT {
             continue
         }
 
@@ -550,9 +548,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type
             continue
         }
 
-        // À FAIRE(langage) : "." à droite de "comme" échoue
-        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
-        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+        si it.drapeaux.EST_CONSTANT {
             continue
         }
 
