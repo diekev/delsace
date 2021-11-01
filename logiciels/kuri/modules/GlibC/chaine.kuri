@@ -6,8 +6,7 @@ ChaineC :: #opaque *z8
 
 crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 {
-    // À FAIRE(langage) : les opaques ne sont pas initialisés ?
-    résultat := ChaineC(nul)
+    résultat : ChaineC
 
     saufsi chn {
         retourne résultat

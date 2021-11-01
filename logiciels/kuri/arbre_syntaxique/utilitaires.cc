@@ -3510,13 +3510,31 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::TABLEAU_FIXE:
         case GenreType::ENUM:
         case GenreType::ERREUR:
-        case GenreType::OPAQUE:
         {
             auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
             deref->expression = ref_param;
             deref->type = type;
             cree_initialisation_defaut_pour_type(
                 type, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto type_opacifie = type->comme_opaque()->type_opacifie;
+            auto type_pointeur_opacifie = typeuse.type_pointeur_pour(type_opacifie);
+
+            auto comme_type_opacifie = assembleuse->cree_comme(&lexeme_sentinel);
+            comme_type_opacifie->expression = ref_param;
+            comme_type_opacifie->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                                   type_pointeur_opacifie};
+            comme_type_opacifie->type = type_pointeur_opacifie;
+
+            auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
+            deref->expression = comme_type_opacifie;
+            deref->type = type_opacifie;
+
+            cree_initialisation_defaut_pour_type(
+                type_opacifie, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
             break;
         }
         case GenreType::EINI:
