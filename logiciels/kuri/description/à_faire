@@ -37,6 +37,7 @@
     struct MaStructure :: struct {
 
     }
+- "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
 
 // -----------------------------------
 // Architecture/Qualité de code
