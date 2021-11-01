@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe POSIX
 importe Structures
 
 /*
@@ -56,6 +57,18 @@ construit_chemin :: fonc(chn : chaine) -> CheminFichier
     chemin := CheminFichier( chn = chn )
     retourne chemin
 }
+
+détruit_chemin :: fonc (chemin: &CheminFichier)
+{
+    déloge(chemin.chn)
+}
+
+imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
+{
+    si chemin {
+        ajoute_au_tampon(enchaineuse, chemin.chn)
+    }
+} @FormattageImpression
 
 obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
@@ -446,6 +459,35 @@ chemin_courant :: fonc(chemin : CheminFichier) -> rien
     chdir(ptr_chemin)
 }
 
+chemin_répertoire_personnel :: fonc () -> CheminFichier
+{
+    via_environnement := chaine_environnement("HOME")
+
+    si via_environnement {
+        retourne CheminFichier(via_environnement)
+    }
+
+    retourne CheminFichier()
+}
+
+chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
+{
+    tampon : [TAILLE_MAX_CHEMIN]z8
+    ptr_tampon := *tampon[0]
+
+    chn_c_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c_chemin)
+
+    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon))
+
+    si résultat comme *z8 == nul {
+        // À FAIRE : errno
+        retourne CheminFichier()
+    }
+
+    retourne CheminFichier(convertis_chaine_c(résultat))
+}
+
 // À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
 
 //###############################################################################
@@ -550,6 +592,16 @@ opérateur != :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 opérateur != :: fonc (chemin: CheminFichier, chn: chaine) -> bool
 {
     retourne chemin.chn != chn
+}
+
+opérateur / :: fonc (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+{
+    retourne crée_chemin_absolu(chemin_base, feuille)
+}
+
+opérateur / :: fonc (chemin_base: CheminFichier, feuille: chaine) -> CheminFichier
+{
+    retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille))
 }
 
 chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
