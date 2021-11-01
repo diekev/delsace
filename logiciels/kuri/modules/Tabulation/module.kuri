@@ -17,6 +17,7 @@
  */
 
 importe Fondation
+importe SysFichier
 
 LigneTabuleuse :: struct {
     colonnes: []chaine
@@ -188,11 +189,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 
 	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
 
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
-
-    imprime("%\n", chn)
-
-    déloge(chn)
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
 imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, tailles_max_colonnes: []z64) -> rien
