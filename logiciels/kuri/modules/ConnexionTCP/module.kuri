@@ -472,8 +472,8 @@ lance :: fonc (boucle_prises: *Boucle)
 
             // events &= us_poll_events(poll);
 
-            // À FAIRE : conditions pour les énumérations
-            si évènements != 0 comme EPOLL_EVENTS || erreurs != 0 comme EPOLL_EVENTS {
+            // À FAIRE(langage) : conditions pour les énumérations
+            si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
                 dispatch_évènement(prise, évènements, erreurs)
             }
         }
@@ -500,8 +500,8 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             }
         }
         SEMI_PRISE {
-            si (évènements & EPOLL_EVENTS.EPOLLOUT) != 0 comme EPOLL_EVENTS {
-                si erreurs != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLOUT {
+                si erreurs != EPOLL_EVENTS.zéro {
                     prise.contexte_.quand_erreur_connexion(prise)
                     prise.ferme_connexion_en_cours()
                 }
@@ -559,12 +559,12 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             }
         }
         PRISE {
-            si erreurs != 0 comme EPOLL_EVENTS {
+            si erreurs != EPOLL_EVENTS.zéro {
                 prise.ferme()
                 retourne
             }
 
-            si (évènements & EPOLL_EVENTS.EPOLLOUT) != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLOUT {
                 // À FAIRE: last write failed
 
                 prise.contexte_.quand_écriture(prise)
@@ -578,7 +578,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
             }
 
-            si (évènements & EPOLL_EVENTS.EPOLLIN) != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLIN {
                 prise.contexte_.quand_lecture(prise)
 
                 //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)
