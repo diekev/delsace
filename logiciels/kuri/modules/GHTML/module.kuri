@@ -133,16 +133,11 @@ génère_page :: fonc(
             idx_enfant := 0
 
             si évalue_condition(valeur) {
-                idx_enfant = 1
-            }
-            sinon si noeud.enfants.taille > 2 {
-                idx_enfant = 2
+                retourne génère_page(données, noeud.enfants[1], enchaineuse)
             }
 
-            erreur_ := génère_page(données, noeud.enfants[idx_enfant], enchaineuse)
-
-            si erreur_ {
-                retourne erreur_
+            si noeud.enfants.taille > 2 {
+                retourne génère_page(données, noeud.enfants[2], enchaineuse)
             }
         }
         ACCÈS_MEMBRE {
