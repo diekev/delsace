@@ -548,8 +548,6 @@ quand_lecture :: fonc (prise: *Prise)
         retourne
     }
 
-    diffère parseuse.réinitialise()
-
     message : MessageClienteHTTP
     réponse : MessageServeuseHTTP = ---
     diffère détruit_message(*réponse)
@@ -576,6 +574,7 @@ quand_lecture :: fonc (prise: *Prise)
     sinon {
         // délai en cas de non-lecture
         prise.mute_délai(10)
+        parseuse.réinitialise()
     }
 }
 
