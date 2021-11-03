@@ -63,6 +63,26 @@ ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
     retourne faux
 }
 
+ensemble_possède_retourne_index :: fonc (ensemble: *[]$T, donnée: T) -> z64
+{
+    si ensemble.taille == 0 {
+        retourne -1
+    }
+
+    début := ensemble.pointeur
+    fin   := début + ensemble.taille
+
+    limite := limite_basse(début, fin, donnée)
+
+    si limite < fin {
+        si mémoire(limite) == donnée {
+            retourne distance(début, limite)
+        }
+    }
+
+    retourne -1
+}
+
 RésultatRecherche :: struct {
     index: z64
     partiel := faux
