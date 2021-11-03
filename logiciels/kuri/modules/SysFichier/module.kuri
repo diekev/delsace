@@ -604,6 +604,26 @@ opérateur / :: fonc (chemin_base: CheminFichier, feuille: chaine) -> CheminFich
     retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille))
 }
 
+opérateur < :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+{
+    retourne chm1.chn < chm2.chn
+}
+
+opérateur <= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+{
+    retourne chm1.chn <= chm2.chn
+}
+
+opérateur > :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+{
+    retourne chm1.chn > chm2.chn
+}
+
+opérateur >= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+{
+    retourne chm1.chn >= chm2.chn
+}
+
 chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
     chemin1_normalisé := chemin_normalisé(chemin1)
