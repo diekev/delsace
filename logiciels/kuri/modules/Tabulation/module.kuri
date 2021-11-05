@@ -197,7 +197,7 @@ imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonn
     pour taille dans tailles_max_colonnes {
 		ajoute_au_tampon(enchaineuse, "+-")
 
-        pour i dans 0 ... taille - 1 {
+        pour taille {
 	        ajoute_au_tampon(enchaineuse, "-")
 		}
 
@@ -213,7 +213,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 	    ajoute_au_tampon(enchaineuse, "| ")
 
 		si tabuleuse.alignements[i] == Alignement.DROITE {
-            pour j dans 0 ... tailles_max_colonnes[i] - colonne.taille_unicode() - 1 {
+            pour tailles_max_colonnes[i] - colonne.taille_unicode() {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
 		}
@@ -221,7 +221,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
         ajoute_au_tampon(enchaineuse, colonne)
 
 		si tabuleuse.alignements[i] == Alignement.GAUCHE {
-            pour j dans colonne.taille_unicode() ... tailles_max_colonnes[i] - 1 {
+            pour tailles_max_colonnes[i] - colonne.taille_unicode() {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
 		}
@@ -232,7 +232,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
     pour i dans ligne.colonnes.taille ... tailles_max_colonnes.taille - 1 {
 	    ajoute_au_tampon(enchaineuse, "| ")
 
-		pour j dans 0 ... tailles_max_colonnes[i] - 1 {
+		pour tailles_max_colonnes[i] {
 	        ajoute_au_tampon(enchaineuse, " ")
 		}
 
