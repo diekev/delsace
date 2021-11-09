@@ -738,11 +738,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->operande_droite,
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
+            else if (type_index->genre == GenreType::ENUM) {
+                transtype_si_necessaire(
+                    expr->operande_droite,
+                    {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
+            }
             else {
-                if (type_index->genre == GenreType::ENUM) {
-                    type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
-                }
-
                 auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite,
                                                                         type_cible);
                 if (!est_ok(resultat_transtype)) {
