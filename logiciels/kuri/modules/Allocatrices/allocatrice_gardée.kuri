@@ -60,7 +60,7 @@ EntêteMémoire :: struct {
 
     traces : []TraceAppel
 
-    pad: [2]z32
+    est_désynchronisée : z64
 }
 
 pointeur_depuis_entête :: fonc (entête: *EntêteMémoire) -> *rien #enligne
@@ -119,7 +119,12 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
 		entête := entête_depuis_lien(premier)
         chn_type := chaine_pour_type(entête.info)
         diffère déloge(chn_type)
-        imprime_dans_enchaineuse(*enchaineuse, "Fuite de mémoire : bloc de % octets non-libéré pour le type %\n", entête.taille, chn_type)
+        si entête.est_désynchronisée {
+            imprime_dans_enchaineuse(*enchaineuse, "Désynchronisation : le bloc de % octets fut délogé avec une taille de % octets pour le type %\n", entête.taille, entête.taille + entête.est_désynchronisée, chn_type)
+        }
+        sinon {
+            imprime_dans_enchaineuse(*enchaineuse, "Fuite de mémoire : bloc de % octets non-libéré pour le type %\n", entête.taille, chn_type)
+        }
         imprime_trace(entête.traces, *enchaineuse)
 		premier = entête.suivante
 	}
@@ -230,21 +235,17 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
 
 	entête := entête_depuis_pointeur(ancien_pointeur)
 
-/*
-	if (entete->taille != taille) {
-		std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du délogement !\n";
-		std::cerr << "La taille du logement était de " << entete->taille << ", mais la taille reçue est de " << taille << " !\n";
-	}
-*/
-
     // À FAIRE: mutex
-    enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+    si entête.taille == taille_allouée {
+        /* Si les tailles diffèrent, ne libère pas la mémoire, pour générer un rapport. */
+        enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
+        libère_tableau_trace_appels(entête.traces)
+        free(entête)
+    }
+    sinon {
+        entête.est_désynchronisée = (taille_allouée - entête.taille)
+    }
 
-    libère_tableau_trace_appels(entête.traces)
-	free(entête)
-
-	//enleve_memoire(taille);
-	//nombre_deallocations += 1;
     retourne nul
 }
 
