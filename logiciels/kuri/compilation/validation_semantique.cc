@@ -255,6 +255,28 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
            expression->possede_drapeau(ACCES_EST_ENUM_DRAPEAU);
 }
 
+/* Décide si le type peut être utilisé pour les expressions d'indexages basiques du langage.
+ * NOTE : les entiers relatifs ne sont pas considérées ici car nous utilisons cette décision pour
+ * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
+static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
+{
+    if (type->est_entier_naturel()) {
+        return true;
+    }
+
+    if (type->est_octet()) {
+        return true;
+    }
+
+    if (type->est_enum()) {
+        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
+         * arbitrairement large. */
+        return !type->comme_enum()->est_drapeau;
+    }
+
+    return false;
+}
+
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -733,12 +755,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_cible = m_compilatrice.typeuse[TypeBase::Z64];
             auto type_index = enfant2->type;
 
-            if (type_index->est_entier_naturel() || type_index->est_octet()) {
-                transtype_si_necessaire(
-                    expr->operande_droite,
-                    {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
-            }
-            else if (type_index->genre == GenreType::ENUM) {
+            if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
                 transtype_si_necessaire(
                     expr->operande_droite,
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
