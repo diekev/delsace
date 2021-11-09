@@ -274,6 +274,15 @@ static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
         return !type->comme_enum()->est_drapeau;
     }
 
+    if (type->est_bool()) {
+        return true;
+    }
+
+    if (type->est_opaque()) {
+        return est_type_implicitement_utilisable_pour_indexage(
+            type->comme_opaque()->type_opacifie);
+    }
+
     return false;
 }
 
