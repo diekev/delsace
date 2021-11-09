@@ -270,7 +270,7 @@ static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
 
     if (type->est_enum()) {
         /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
-         * arbitrairement large. */
+         * arbitrairement larges. */
         return !type->comme_enum()->est_drapeau;
     }
 
