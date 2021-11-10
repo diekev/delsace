@@ -491,7 +491,7 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
 // À FAIRE : dossier
 ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
 {
-    si extension != ".css" && extension != ".png" {
+    si extension != ".css" && extension != ".js" && extension != ".jsx" && extension != ".png" {
         retourne
     }
 

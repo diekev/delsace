@@ -229,7 +229,7 @@ apparie_fichier :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, prise: *Pr
         retourne sers_fichier(prise, message, "image/png")
     }
 
-    si chm.extension() == ".js" {
+    si chm.extension() == ".js" || chm.extension() == ".jsx" {
         retourne sers_fichier(prise, message, "text/javascript; charset=utf-8")
     }
 
