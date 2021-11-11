@@ -681,6 +681,18 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
+tableau_supprime_valeur :: fonc (tabl: *[]$T, valeur: T)
+{
+    tmp := mémoire(tabl)
+
+    pour tmp {
+        si it == valeur {
+            tableau_supprime_index(tabl, index_it)
+            arrête
+        }
+    }
+}
+
 /**
  * Retourne un tableau ayant les mêmes valeurs que le tableau en paramètre, et réinitialise
  * ce dernier. Ceci est utile pour transférer la propriété d'un tableau.
