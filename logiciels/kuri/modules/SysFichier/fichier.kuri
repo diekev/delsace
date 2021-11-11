@@ -297,17 +297,8 @@ crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFich
 }
 
 // À FAIRE : tests
-système_crée_dossier :: fonc (chemin: chaine, mode: z32) -> ErreurFichier
+système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> ErreurFichier
 {
-    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin, '/')
-
-    si pos_dossier_parent <= 0 {
-        // Nous avons un fichier relatif au dossier courant.
-        retourne 0 comme ErreurFichier
-    }
-
-    chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
-
     ptr_chemin := crée_chaine_c(chemin_dossier)
     diffère détruit_chaine_c(ptr_chemin)
 
@@ -388,8 +379,13 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, drapeaux: z32) -> R
 {
     drapeaux |= CREATION
 
-    tente système_crée_dossier(chemin, 0o755) piège err {
-        retourne err
+    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin, '/')
+
+    si pos_dossier_parent > 0 {
+        chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
+        tente système_crée_dossier(chemin_dossier, 0o755) piège err {
+            retourne err
+        }
     }
 
     ptr_chemin := crée_chaine_c(chemin)
