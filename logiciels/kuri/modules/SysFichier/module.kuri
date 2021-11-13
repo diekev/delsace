@@ -187,6 +187,24 @@ ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
 }
 
+espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
+{
+	ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    s : struct_statvfs
+    résultat := statvfs(ptr_chemin, *s)
+
+    // À FAIRE : erreur
+    // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
+    si résultat == -1 {
+        retourne 0
+    }
+
+    // À FAIRE : on peut avoir un compte différent pour les utilisateurs privilégiés.
+    retourne s.f_bavail * s.f_bsize
+}
+
 ferme_fichier :: fonc(desc : z32) -> rien
 {
 	si desc == -1 {
