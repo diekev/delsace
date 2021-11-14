@@ -602,7 +602,7 @@ tableau_redimensionne :: fonc (tabl: &[]$T, taille: z64) -> rien
 
 tableau_copie :: fonc(tabl: []$T) -> []T
 {
-	tmp := loge_tableau(T, tabl.capacité)
+	tmp := loge_tableau(T, tabl.taille)
     //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
 
     pour tabl {
