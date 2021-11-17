@@ -120,3 +120,45 @@ nombre_threads_total :: fonc () -> z64
 {
     retourne sysconf(SysConf.NPROCESSORS_CONF)
 }
+
+// ---------------------------------------------------
+// Informations.
+
+InformationMémoireVive :: struct {
+    disponible: n64
+    totale: n64
+}
+
+requiers_information_mémoire_vive :: fonc () -> InformationMémoireVive
+{
+    résultat : InformationMémoireVive = ---
+    résultat.disponible = mémoire_vive_disponible()
+    résultat.totale = mémoire_vive_totale()
+    retourne résultat
+}
+
+InformationProcesseur :: struct {
+    threads_totaux: n16
+    threads_disponibles: n16
+}
+
+requiers_information_processeur :: fonc () -> InformationProcesseur
+{
+    résultat : InformationProcesseur = ---
+    résultat.threads_totaux = nombre_threads_total() comme n16
+    résultat.threads_disponibles = nombre_threads_disponible() comme n16
+    retourne résultat
+}
+
+InformationSystème :: struct {
+    mémoire_vive: InformationMémoireVive
+    processeur: InformationProcesseur
+}
+
+requiers_information_système :: fonc () -> InformationSystème
+{
+    résultat : InformationSystème = ---
+    résultat.mémoire_vive = requiers_information_mémoire_vive()
+    résultat.processeur = requiers_information_processeur()
+    retourne résultat
+}
