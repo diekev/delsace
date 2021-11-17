@@ -3,6 +3,8 @@
 importe Fondation
 importe GlibC
 
+charge "confname"
+
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
@@ -105,3 +107,5 @@ struct_statvfs :: struct #externe {
 */
 
 statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
+
+sysconf :: fonc (nom: SysConf) -> z64 #externe libc
