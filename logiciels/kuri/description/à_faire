@@ -361,6 +361,8 @@ normalisation de tous les types pour supprimer les unions et les entiers constan
     -- mention dans Internet/module.kuri
     -- // u : anonyme4 dans MySQL/mysql.kuri
     - passe en revue les initialisations des unions
+    - déplace la normalisation dans une passe secondaire après la génération de RI, le code courant est bien trop complexe
+        -- une analyse de la RI pourra mieux se faire avant la normalisation
 
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
