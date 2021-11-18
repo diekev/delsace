@@ -3,6 +3,8 @@
 importe Fondation
 importe GlibC
 
+charge "confname"
+
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
@@ -10,9 +12,17 @@ usleep :: fonc (µsec: n32) -> z32 #externe libc
 symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
 mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
 
+realpath :: fonc (path: ChaineC, resolved_path: ChaineC) -> ChaineC #externe libc
+
+/* PATH_MAX, limits.h */
+TAILLE_MAX_CHEMIN :: 4096
+
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
-    chn := getenv(ChaineC(nom.pointeur))
+    chn_c_nom := crée_chaine_c(nom)
+    diffère détruit_chaine_c(chn_c_nom)
+
+    chn := getenv(chn_c_nom)
 
     saufsi (chn comme *z8) {
         retourne ""
@@ -60,3 +70,42 @@ dors_millisecondes :: fonc (millisecondes: z32)
 
     _ := usleep((millisecondes * 1000) comme n32)
 }
+
+fsblkcnt_t :: n64
+
+struct_statvfs :: struct #externe {
+    f_bsize: n64;    /* filesystem block size */
+    f_frsize: n64;   /* fragment size */
+    f_blocks: fsblkcnt_t;   /* size of fs in f_frsize units */
+    f_bfree: fsblkcnt_t;    /* # free blocks */
+    f_bavail: fsblkcnt_t;   /* # free blocks for unprivileged users */
+    f_files: fsblkcnt_t;    /* # inodes */
+    f_ffree: fsblkcnt_t;    /* # free inodes */
+    f_favail: fsblkcnt_t;   /* # free inodes for unprivileged users */
+    f_fsid: n64;     /* filesystem ID */
+    f_flag: n64;     /* mount flags */
+    f_namemax: n64;  /* maximum filename length */
+    __f_spare: [6]z32;
+}
+
+/*
+ unsigned long int f_bsize;
+    unsigned long int f_frsize;
+    __fsblkcnt_t f_blocks;
+    __fsblkcnt_t f_bfree;
+    __fsblkcnt_t f_bavail;
+    __fsfilcnt_t f_files;
+    __fsfilcnt_t f_ffree;
+    __fsfilcnt_t f_favail;
+    unsigned long int f_fsid;
+#ifdef _STATVFSBUF_F_UNUSED
+    int __f_unused;
+#endif
+    unsigned long int f_flag;
+    unsigned long int f_namemax;
+    int __f_spare[6];
+*/
+
+statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
+
+sysconf :: fonc (nom: SysConf) -> z64 #externe libc

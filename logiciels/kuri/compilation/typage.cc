@@ -361,7 +361,7 @@ TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_) : TypePolymorphiqu
     this->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
-TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie) : TypeOpaque()
+TypeOpaque::TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie) : TypeOpaque()
 {
     this->decl = decl_;
     this->ident = decl_->ident;
@@ -526,14 +526,17 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     type_info_type_ = reserve_type_structure(nullptr);
 
     auto membres_eini = kuri::tableau<TypeCompose::Membre, int>();
-    membres_eini.ajoute({types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
-    membres_eini.ajoute({type_pointeur_pour(type_info_type_), ID::info, 8});
+    membres_eini.ajoute(
+        {nullptr, types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
+    membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
     type_eini->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
     auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
-    membres_chaine.ajoute({types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0});
-    membres_chaine.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
+    membres_chaine.ajoute(
+        {nullptr, types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0});
+    membres_chaine.ajoute(
+        {nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
     type_chaine->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
@@ -701,8 +704,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
-    membres.ajoute({type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0});
+    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0});
 
     auto type = types_tableaux_fixes_->ajoute_element(type_pointe, taille, std::move(membres));
 
@@ -729,9 +732,9 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     }
 
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
-    membres.ajoute({type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
+    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_tableaux_dynamiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -756,9 +759,9 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     }
 
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
-    membres.ajoute({type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
+    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_variadiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -980,7 +983,7 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
     return types_polymorphiques_->ajoute_element(ident);
 }
 
-TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie)
+TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie)
 {
     auto type = types_opaques->ajoute_element(decl, type_opacifie);
     if (type_opacifie) {
@@ -989,7 +992,7 @@ TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opac
     return type;
 }
 
-TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique)
+TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique)
 {
     auto types_opaques_ = types_opaques.verrou_ecriture();
 
@@ -1471,7 +1474,7 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_st
     noms.ajoute(type->comme_polymorphique()->ident->nom);
 }
 
-bool est_type_conditionnable(Type *type)
+bool est_type_booleen_implicite(Type *type)
 {
     return dls::outils::est_element(type->genre,
                                     GenreType::BOOL,
@@ -1491,8 +1494,8 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     assert(!est_nonsure);
 
     auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
-    membres_[0] = {type_le_plus_grand, ID::valeur, 0};
-    membres_[1] = {typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
+    membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
+    membres_[1] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
 
     type_structure = typeuse.reserve_type_structure(nullptr);
     type_structure->membres = std::move(membres_);
@@ -1589,7 +1592,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
         auto types_membres = dls::tablet<TypeCompose::Membre, 6>();
 
         POUR (type_tuple->membres) {
-            types_membres.ajoute({normalise_type(typeuse, it.type)});
+            types_membres.ajoute({nullptr, normalise_type(typeuse, it.type)});
         }
 
         resultat = typeuse.cree_tuple(types_membres);

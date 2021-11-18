@@ -104,7 +104,7 @@ ajourne :: fonc (hacheuse: *HACHEUSE, message: $T)
 condensat :: fonc (hacheuse: *HACHEUSE) -> chaine
 {
     résultat := loge_chaine(taille_condensat(hacheuse))
-    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.pointeur)
+    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.pointeur comme *n8)
     retourne résultat
 }
 

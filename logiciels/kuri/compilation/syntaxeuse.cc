@@ -526,7 +526,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 
 void Syntaxeuse::quand_commence()
 {
-    /* Nous faisons ça ici afin de ne pas trop avoir de mépridictions de branches
+    /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
     if (!m_fichier->metaprogramme_corps_texte) {
@@ -1283,10 +1283,18 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
 
                     if (directive == ID::opaque) {
-                        m_est_declaration_type_opaque = true;
                         consomme();
+                        auto noeud = m_tacheronne.assembleuse->cree_type_opaque(gauche->lexeme);
+                        m_est_declaration_type_opaque = true;
+                        noeud->expression_type = analyse_expression(
+                            donnees_precedence, racine_expression, lexeme_final);
+                        m_est_declaration_type_opaque = false;
+                        noeud->bloc_parent->membres->ajoute(noeud);
+                        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                        return noeud;
                     }
-                    else if (directive == ID::nulctx) {
+
+                    if (directive == ID::nulctx) {
                         consomme();
 
                         if (lexeme_courant()->genre != GenreLexeme::FONC) {
@@ -1332,12 +1340,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 donnees_precedence, racine_expression, lexeme_final);
             noeud->drapeaux |= EST_CONSTANTE;
             gauche->drapeaux |= EST_CONSTANTE;
-
-            if (m_est_declaration_type_opaque) {
-                noeud->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
-                gauche->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
-                m_est_declaration_type_opaque = false;
-            }
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -2257,6 +2259,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
 
             eu_declarations = true;
+
+            analyse_annotations(decl_var->annotations);
         }
         else {
             params.ajoute(param);
@@ -2285,7 +2289,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 if (it->est_declaration_variable()) {
                     m_unite->espace->rapporte_erreur(it,
                                                      "Obtenu la déclaration d'une variable dans "
-                                                     "la déclartion d'un type de fonction");
+                                                     "la déclaration d'un type de fonction");
                 }
             }
         }
@@ -2503,7 +2507,17 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto ancien_est_dans_fonction = est_dans_fonction;
             est_dans_fonction = true;
-            noeud_corps->bloc = analyse_bloc();
+            if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
+                empile_etat("dans l'analyse du bloc", lexeme_courant());
+                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+                auto pousse_contexte = analyse_instruction_pousse_contexte();
+                noeud_corps->bloc->expressions->ajoute(pousse_contexte);
+                m_tacheronne.assembleuse->depile_bloc();
+                depile_etat();
+            }
+            else {
+                noeud_corps->bloc = analyse_bloc();
+            }
             est_dans_fonction = ancien_est_dans_fonction;
 
             analyse_annotations(noeud->annotations);
@@ -2737,6 +2751,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         }
         else {
             noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
+            if (gauche->ident == ID::AnnotationCode) {
+                m_compilatrice.typeuse.type_annotation = noeud_decl->type;
+            }
         }
     }
 

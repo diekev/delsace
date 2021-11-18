@@ -50,6 +50,9 @@ RésultatParsage :: énum {
 
     /* Texte malformé, une valeur peut manqué, ou le texte contient un caractère '&' final. */
     TexteMalformé
+
+    /* Redéfinition d'un membre. */
+    RenommageParamètre
 }
 
 /* Parse une chaine au format URL pour le type T précisé et retourne une structure de ce type
@@ -69,6 +72,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
     #assert info_de(T).id == id_info.STRUCTURE
 
     parseuse := ParseuseChaine(texte)
+    // À FAIRE : vérifier que la chaine peut être surécrite
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
@@ -128,6 +132,11 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
 
         saufsi id {
             retourne RésultatParsage.MembreInconnu, données, résultat
+        }
+
+        // Vérifions que nous n'avons pas encore parsé ce membre.
+        si mémoire(id.ptr_données) {
+            retourne RésultatParsage.RenommageParamètre, données, résultat
         }
 
         fonction_parsage := trouve_fonction_pour_type(id.info.id)
@@ -226,6 +235,83 @@ InformationConnexion :: struct {
 }
 */
 
+/*
+
+À FAIRE(tests) : les fonctions de parsages ne sont pas disponibles dans les métaprogrammes...
+
+TransertDeFond :: struct {
+    /* La personne qui envoie de l'argent. */
+    de: chaine
+    /* La personne qui reçoie de l'argent. */
+    à: chaine
+    /* Le montant de la transaction. */
+    montant: n32
+}
+
+est_transfert_correcte :: fonc (texte: chaine) -> bool
+{
+    texte_copié := copie_chaine(texte)
+    raison, champs_renseignés, résultat := parse_texte_format_url(texte_copié, TransertDeFond)
+
+    si raison != RésultatParsage.Succès {
+        retourne faux
+    }
+
+    si !tous_les_champs_sont_renseignés(champs_renseignés) {
+        retourne faux
+    }
+
+    si résultat.de != "kévin" {
+        retourne faux
+    }
+
+    si résultat.à != "magdalena" {
+        retourne faux
+    }
+
+    si résultat.montant != 1000 {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+#test {
+    // Test pour se prémunir contre les renommage de paramètres.
+    // Idée tirée de https://www.paulosyibelo.com/2014/08/facebook-http-parameter-renaming-0day.html
+    // Il est possible de renomer les paramètres URL pour tromper les entreprises utilisant PHP, ou une version non patchée.
+    // Nous devons faire en sorte que seuls les paramètres présent dans la structure sont présent, et en un seul exemplaire.
+    //
+    // Ce test est pour transférer 1000 € de Kévin à Magdalena.
+
+    saufsi est_transfert_correcte("de=kévin&à=magdalena&montant=1000") {
+       compilatrice_rapporte_erreur("Erreur, ce transfert est sensé être correcte !\n")
+    }
+
+    si est_transfert_correcte("de=kévin&à=magdalena&montant=1000&de=magdalena&à=kévin") {
+        compilatrice_rapporte_erreur("Erreur, ce transfert n'est pas sensé être correcte !\n")
+    }
+
+    // Une accolade ouvrante est ajoutée dans le second "de". Dans le parseur PHP, ceci était supprimé, car il n'y a pas d'accolade ouvrante.
+    // Notre parseur le rejettera, car le nom ne sera pas présent dans la structure.
+    // Ce test est inclus pour se prémunir de tout problème dans le future, si nous acceptons d'avoir des tableaux comme membre.
+    si est_transfert_correcte("de=kévin&à=magdalena&montant=1000&d[e=magdalena&à=kévin") {
+        compilatrice_rapporte_erreur("Erreur, ce transfert n'est pas sensé être correcte !\n")
+    }
+
+    // Un octet nul est ajouté dans le deuxième "de". Ceci vérifie que notre parseur comprend tous les octets.
+    si est_transfert_correcte("de=kévin&à=magdalena&montant=1000&d\0e=magdalena&à=kévin") {
+        compilatrice_rapporte_erreur("Erreur, ce transfert n'est pas sensé être correcte !\n")
+    }
+
+    // Une autre version, plus ancienne, où une valeur négative inverse le transfert.
+    // Ce test ne fait que vérifier la sûreté de type du parseur.
+    si est_transfert_correcte("de=kévin&à=magdalena&montant=-1000") {
+        compilatrice_rapporte_erreur("Erreur, ce transfert n'est pas sensé être correcte !\n")
+    }
+}
+*/
+
 // ------------------------------------
 // Fonctions de parsage
 
@@ -294,10 +380,9 @@ génère_initialisation_parsage_url :: fonc ()
 		}
 
 		type_première_sortie := it.params_sorties[0].type
-		type_deuxième_sortie := it.params_sorties[1].type
 
 		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage URL invalide, le première paramètre de sortie doit être de type « bool ».")
+            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».")
             retourne
 		}
 

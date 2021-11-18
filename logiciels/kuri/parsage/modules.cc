@@ -193,8 +193,13 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     auto const index_colonne = site.index_colonne;
     auto const texte_ligne = fichier->tampon()[index_ligne];
 
-    enchaineuse << fichier->chemin() << ':' << numero_ligne << ':' << index_colonne << " : ";
-    enchaineuse << message << "\n";
+    enchaineuse << fichier->chemin() << ':' << numero_ligne;
+
+    if (index_colonne != -1) {
+        enchaineuse << ':' << index_colonne;
+    }
+
+    enchaineuse << " : " << message << "\n";
 
     for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numero_ligne); ++i) {
         enchaineuse << ' ';

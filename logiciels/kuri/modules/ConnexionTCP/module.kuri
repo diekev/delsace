@@ -472,8 +472,8 @@ lance :: fonc (boucle_prises: *Boucle)
 
             // events &= us_poll_events(poll);
 
-            // À FAIRE : conditions pour les énumérations
-            si évènements != 0 comme EPOLL_EVENTS || erreurs != 0 comme EPOLL_EVENTS {
+            // À FAIRE(langage) : conditions pour les énumérations
+            si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
                 dispatch_évènement(prise, évènements, erreurs)
             }
         }
@@ -500,8 +500,8 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             }
         }
         SEMI_PRISE {
-            si (évènements & EPOLL_EVENTS.EPOLLOUT) != 0 comme EPOLL_EVENTS {
-                si erreurs != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLOUT {
+                si erreurs != EPOLL_EVENTS.zéro {
                     prise.contexte_.quand_erreur_connexion(prise)
                     prise.ferme_connexion_en_cours()
                 }
@@ -559,12 +559,12 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             }
         }
         PRISE {
-            si erreurs != 0 comme EPOLL_EVENTS {
+            si erreurs != EPOLL_EVENTS.zéro {
                 prise.ferme()
                 retourne
             }
 
-            si (évènements & EPOLL_EVENTS.EPOLLOUT) != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLOUT {
                 // À FAIRE: last write failed
 
                 prise.contexte_.quand_écriture(prise)
@@ -578,7 +578,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
             }
 
-            si (évènements & EPOLL_EVENTS.EPOLLIN) != 0 comme EPOLL_EVENTS {
+            si évènements.EPOLLIN {
                 prise.contexte_.quand_lecture(prise)
 
                 //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)
@@ -588,39 +588,39 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
     }
 }
 
-// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
-// utile pour les développements.
-crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+/* Initialise les fonctions de rappels pour un contexte « vide », c'est-à-dire qui ne fait rien.
+ * Ceci nous sers principalement pour nous assurer que les pointeurs de fonction du contexte sont
+ * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
+initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 {
-    rappel_vide_quand_ouverture :: fonc (prise: *Prise)
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_lecture :: fonc (prise: *Prise)
+    rappel_vide_quand_lecture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_écriture :: fonc (prise: *Prise)
+    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_fermeture :: fonc (prise: *Prise)
+    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_timeout :: fonc (prise: *Prise)
+    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_fin :: fonc (prise: *Prise)
+    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise)
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée)
     {
     }
 
-    ctx := crée_contexte(boucle_évènements, T)
     ctx.quand_ouverture = rappel_vide_quand_ouverture
     ctx.quand_lecture = rappel_vide_quand_lecture
     ctx.quand_écriture = rappel_vide_quand_écriture
@@ -628,5 +628,13 @@ crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données)
     ctx.quand_timeout = rappel_vide_quand_timeout
     ctx.quand_fin = rappel_vide_quand_fin
     ctx.quand_erreur_connexion = rappel_vide_quand_erreur_connexion
+}
+
+// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
+// utile pour les développements.
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+{
+    ctx := crée_contexte(boucle_évènements, T)
+    initialise_rappels_pour_contexte_vide(ctx)
     retourne ctx
 }

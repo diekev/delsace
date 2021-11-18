@@ -8,17 +8,29 @@ Redirection :: struct {
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.
  *
+ * Le métaprogramme générera les fonctions de routages pour sélectionner la fonction
+ * à appeler lors d'une requête, ainsi que des enveloppes pour faire le pont entre
+ * l'interface de la serveuse et ladite fonction.
+ *
  * Les fonctions exposées au service doivent avoir une annotation "chemin" donnant le
  * chemin de l'url correspondant à la fonction.
  *
- * Les paramètres de la fonction détermine ce que le genre de route ("get", ou "post")
+ * Les paramètres de la fonction détermine la méthode de la route ("get", ou "post")
  * ainsi que ce qu'il faut extraire depuis le message afin d'avoir une requête correcte.
  *
- * Toutes les fonctions doivent prendre en premier paramètre le type de la Serveuse, comme
- * pointeur.
+ * Les paramètres doivent être :
+ * - en premier, un pointeur vers le type du programme
+ * - en deuxième, un pointeur vers le type du programme représentant une connexion
+ * - ensuite, sans ordre particulier,
+ *    - un type de formulaire, si présent, la fonction aura une méthode "POST"
+ *    - un type de paramètre de routage (dérivant de ParamètreRoutage)
  *
- * Une fonction ayant un paramètre formulaire (dont le type est à renseigner dans les
- * ParamètresGénérationInterface), sont considérer comme répondant à des méthodes POST.
+ * Si un paramètre de type ParamètreRoutage est présent, le chemin devra avoir des
+ * paramètres dont les noms correspondent aux membres du type.
+ *
+ * Pour pouvoir extraire des données depuis les prises de chaque connexion, l'application
+ * devra fournir un type de connexion, et deux interfaces pour transférer les données
+ * entre la prise et le type application correspondant.
  */
 
 ParamètresGénérationInterface :: struct {
@@ -89,6 +101,24 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
     }
 }
 
+InfoParamètreFonctionRappel :: struct {
+    type: *InfoTypeStructure
+    index: z64
+}
+
+InformationParamètres :: struct {
+    /* Valide si la fonction prend la serveuse en paramètre. */
+    serveuse: InfoParamètreFonctionRappel
+    /* Valide si la fonction prend la connexion en paramètre. */
+    connexion: InfoParamètreFonctionRappel
+    /* Valide si la fonction possède un formulaire, ce qui en fait une fonction "POST". */
+    formulaire: InfoParamètreFonctionRappel
+    /* Valide si le chemin possède des paramètres. */
+    paramètres_route: InfoParamètreFonctionRappel
+    /* Valide si la fonction prend une requête (après '?' dans l'uri). */
+    paramètres_requête: InfoParamètreFonctionRappel
+}
+
 DonnéesCréationPointDEntréePage :: struct {
     méthode : chaine
 
@@ -96,9 +126,9 @@ DonnéesCréationPointDEntréePage :: struct {
     nom_fonction: chaine
 
     chemin: chaine
-    type_paramètres_chemin: *InfoTypeStructure
+    règles_routage: []RègleRoutage
 
-    type_données_post: *InfoTypeStructure
+    infos_paramètres: InformationParamètres
 
     type_résultat: *InfoTypeUnion
 }
@@ -110,7 +140,14 @@ nouvelle_ligne :: fonc (enchaineuse: *Enchaineuse)
 
 construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: &DonnéesCréationPointDEntréePage)
 {
-    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n", données.méthode, données.nom_fonction)
+    infos_paramètres := données.infos_paramètres
+    possède_paramètres_routage := règles_ont_au_moins_un_paramètre(données.règles_routage)
+
+    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: &MessageClienteHTTP", données.méthode, données.nom_fonction)
+    si possède_paramètres_routage {
+        enchaineuse.imprime_dans_enchaineuse(", paramètres_routage: %", infos_paramètres.paramètres_route.type.nom)
+    }
+    enchaineuse.ajoute_au_tampon(") -> MessageServeuseHTTP\n")
     enchaineuse.ajoute_au_tampon("{\n")
 
     // extrait les données de la prise
@@ -121,18 +158,8 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.ajoute_au_tampon("\tinitialise_données_connexion_depuis_message(", paramètres.nom_serveuse, ", données_prise, message)\n")
     enchaineuse.nouvelle_ligne()
 
-    // prend les paramètres d'entrée
-    si données.type_paramètres_chemin {
-        enchaineuse.imprime_dans_enchaineuse("\tparamètres_chemin, réussite_paramètres_chemin := extrait_paramètres_chemin(message.uri.chemin, %)\n", chaine_pour_type(données.type_paramètres_chemin))
-
-        enchaineuse.ajoute_au_tampon("\tsaufsi réussite_paramètres_chemin {\n")
-        enchaineuse.ajoute_au_tampon("\t\tretourne page_non_trouvée()\n")
-        enchaineuse.ajoute_au_tampon("\t}\n")
-        enchaineuse.nouvelle_ligne()
-    }
-
-    si données.type_données_post {
-        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chaine_pour_type(données.type_données_post))
+    si infos_paramètres.formulaire.type != nul {
+        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chaine_pour_type(infos_paramètres.formulaire.type))
 
         enchaineuse.ajoute_au_tampon("\tsaufsi résultat_parsage == RésultatParsage.Succès {\n")
         enchaineuse.ajoute_au_tampon("\t\tretourne mauvaise_requête()\n")
@@ -140,23 +167,71 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.nouvelle_ligne()
     }
 
+    si infos_paramètres.paramètres_requête.type != nul {
+        nom_type_paramètre_requête := infos_paramètres.paramètres_requête.type.nom
+
+        chaine_extraction_paramètres_requête := «
+        paramètres_requête : %
+
+        si message.uri.requête {
+            raison, champs_renseignés, paramètres := parse_texte_format_url(message.uri.requête, %)
+
+            si raison != RésultatParsage.Succès {
+                retourne mauvaise_requête("la requête est malformée")
+            }
+
+            saufsi paramètres.projet {
+                retourne mauvaise_requête("la requête est malformée")
+            }
+
+            paramètres_requête = paramètres
+        }
+        »
+
+        enchaineuse.imprime_dans_enchaineuse(chaine_extraction_paramètres_requête, nom_type_paramètre_requête, nom_type_paramètre_requête)
+    }
+
     enchaineuse.ajoute_au_tampon("\tmessage_serveuse : MessageServeuseHTTP = ---\n")
 
     // appel la fonction
-    enchaineuse.imprime_dans_enchaineuse("\trésultat := %(%, données_prise", données.nom_fonction, paramètres.nom_serveuse)
+    paramètres_appel: [5]chaine
+    nombre_paramètres := 0
 
-    si données.type_paramètres_chemin {
-        enchaineuse.ajoute_au_tampon(", paramètres_chemin")
+    si infos_paramètres.serveuse.type != nul {
+        paramètres_appel[infos_paramètres.serveuse.index] = paramètres.nom_serveuse
+        nombre_paramètres += 1
     }
 
-    si données.type_données_post {
-        enchaineuse.ajoute_au_tampon(", paramètres_post")
+    si infos_paramètres.connexion.type != nul {
+        paramètres_appel[infos_paramètres.connexion.index] = "données_prise"
+        nombre_paramètres += 1
     }
 
+    si infos_paramètres.paramètres_route.type != nul {
+        paramètres_appel[infos_paramètres.paramètres_route.index] = "paramètres_routage"
+        nombre_paramètres += 1
+    }
+
+    si infos_paramètres.formulaire.type != nul {
+        paramètres_appel[infos_paramètres.formulaire.index] = "paramètres_post"
+        nombre_paramètres += 1
+    }
+
+    si infos_paramètres.paramètres_requête.type != nul {
+        paramètres_appel[infos_paramètres.paramètres_requête.index] = "paramètres_requête"
+        nombre_paramètres += 1
+    }
+
+    enchaineuse.imprime_dans_enchaineuse("\trésultat := %", données.nom_fonction)
+    virgule := "("
+    pour nombre_paramètres {
+        enchaineuse.ajoute_au_tampon(virgule, paramètres_appel[it])
+        virgule = ", "
+    }
     enchaineuse.ajoute_au_tampon(")")
     enchaineuse.nouvelle_ligne()
 
-    // si erreur, retourne erreur
+    // À FAIRE : ce serait bien d'extraire ceci dans une fonction commune, mais les types résultat peuvent être uniques à cause des gabarits
     enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n")
 
     pour données.type_résultat.membres {
@@ -164,9 +239,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
             continue
         }
 
-        // À FAIRE(langage) : "." à droite de "comme" échoue
-        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
-        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+        si it.drapeaux.EST_CONSTANT {
             continue
         }
 
@@ -183,6 +256,12 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
             // rends les données pour une page HTML
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
         }
+        sinon si type_membre == info_de(ErreurHTTP) {
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_erreur_http(__valeur)\n")
+        }
+        sinon si type_membre == info_de(CodeEtContenuHTPP) {
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu)\n")
+        }
 
         enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
     }
@@ -193,7 +272,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.imprime_dans_enchaineuse("\t}\n")
     enchaineuse.nouvelle_ligne()
 
-    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, message_serveuse)\n")
+    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, *message_serveuse)\n")
     enchaineuse.ajoute_au_tampon("\tretourne message_serveuse\n")
     enchaineuse.ajoute_au_tampon("}\n")
 }
@@ -213,22 +292,189 @@ est_résultat :: fonc (info: *InfoType) -> bool
     retourne vrai
 }
 
-parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> DonnéesCréationPointDEntréePage
+// ------------------------------------------------------
+// Validation des paramètres pour les fonctions à appeler
+
+ClassificationParamètre :: énum {
+    EST_INCONNU
+    EST_TYPE_CONTEXTE_PROGRAMME
+    EST_TYPE_SERVEUSE
+    EST_TYPE_CONNEXION
+    EST_TYPE_PARAMÈTRE_ROUTAGE
+    EST_TYPE_PARAMÈTRE_REQUÊTE
+    EST_TYPE_FORMULAIRE
+}
+
+classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> ClassificationParamètre
 {
+    si type.id == id_info.STRUCTURE {
+        info_struct := type comme *InfoTypeStructure
+
+        si est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire) {
+            retourne ClassificationParamètre.EST_TYPE_FORMULAIRE
+        }
+
+        si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRoutage)) {
+            retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_ROUTAGE
+        }
+
+        si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRequête)) {
+            retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_REQUÊTE
+        }
+
+        si est_struct_ou_employeuse_de(info_struct, info_de(ContexteProgramme)) {
+            retourne ClassificationParamètre.EST_TYPE_CONTEXTE_PROGRAMME
+        }
+    }
+    sinon si type.id == id_info.POINTEUR {
+        type_pointeur := type comme *InfoTypePointeur
+
+        si type_pointeur.est_référence {
+            retourne ClassificationParamètre.EST_INCONNU
+        }
+
+        type_pointé := type_pointeur.type_pointé
+
+        si type_pointé.id != id_info.STRUCTURE {
+            retourne ClassificationParamètre.EST_INCONNU
+        }
+
+        type_struct := type_pointé comme *InfoTypeStructure
+
+        si type_struct.nom == paramètres.type_serveuse {
+            retourne ClassificationParamètre.EST_TYPE_SERVEUSE
+        }
+
+        si type_struct.nom == paramètres.type_données_prise {
+            retourne ClassificationParamètre.EST_TYPE_CONNEXION
+        }
+    }
+
+    retourne ClassificationParamètre.EST_INCONNU
+}
+
+parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> bool, InformationParamètres
+{
+    infos_paramètres : InformationParamètres
     type_fonction := fonction.type comme *InfoTypeFonction
 
-    /* Parse les types en entrée. */
-    type_formulaire : *InfoTypeStructure
-    requiers_formulaire := faux
+    // NOTE : les index doivent être décalés de 1 car le ContexteProgramme est également présent.
+
     pour type_fonction.types_entrée {
-        si it.id == id_info.STRUCTURE {
-            info_struct := it comme *InfoTypeStructure
-            requiers_formulaire = est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire)
-            si requiers_formulaire {
-                type_formulaire = info_struct
+        classification := classifie_paramètre(paramètres, it)
+
+        discr classification {
+            EST_INCONNU {
+                compilatrice_rapporte_erreur(fonction, "Type de paramètre non-supporté")
+                retourne faux, infos_paramètres
+            }
+            EST_TYPE_CONTEXTE_PROGRAMME {
+                continue
+            }
+            EST_TYPE_SERVEUSE {
+                info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
+
+                si infos_paramètres.serveuse.type != nul {
+                    compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs serveuses en paramètre !")
+                    retourne faux, infos_paramètres
+                }
+
+                infos_paramètres.serveuse.type = info_struct
+                infos_paramètres.serveuse.index = index_it - 1
+            }
+            EST_TYPE_CONNEXION {
+                info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
+
+                si infos_paramètres.connexion.type != nul {
+                    compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs connexions en paramètre !")
+                    retourne faux, infos_paramètres
+                }
+
+                infos_paramètres.connexion.type = info_struct
+                infos_paramètres.connexion.index = index_it - 1
+            }
+            EST_TYPE_PARAMÈTRE_ROUTAGE {
+                info_struct := it comme *InfoTypeStructure
+
+                si infos_paramètres.paramètres_route.type != nul {
+                    compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs paramètres de routage !")
+                    retourne faux, infos_paramètres
+                }
+
+                infos_paramètres.paramètres_route.type = info_struct
+                infos_paramètres.paramètres_route.index = index_it - 1
+            }
+            EST_TYPE_PARAMÈTRE_REQUÊTE {
+                info_struct := it comme *InfoTypeStructure
+
+                si infos_paramètres.paramètres_requête.type != nul {
+                    compilatrice_rapporte_erreur(fonction, "La fonction prend plusieurs paramètres de requêtes !")
+                }
+
+                infos_paramètres.paramètres_requête.type = info_struct
+                infos_paramètres.paramètres_requête.index = index_it - 1
+            }
+            EST_TYPE_FORMULAIRE {
+                info_struct := it comme *InfoTypeStructure
+
+                si infos_paramètres.formulaire.type != nul {
+                    compilatrice_rapporte_erreur(fonction, "La fonction prend plus de 1 formulaire !")
+                    retourne faux, infos_paramètres
+                }
+
+                infos_paramètres.formulaire.type = info_struct
+                infos_paramètres.formulaire.index = index_it - 1
             }
         }
     }
+
+    retourne vrai, infos_paramètres
+}
+
+// -----------------------------------------
+// Validation des chemins pour les routes
+
+valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> bool, []RègleRoutage
+{
+    règles_ou_erreur := parse_règles(route)
+    règles : []RègleRoutage
+    discr règles_ou_erreur {
+        e {
+            compilatrice_rapporte_erreur(fonction, "La route n'est pas valide")
+            retourne faux, règles
+        }
+        r {
+            règles = règles_ou_erreur.r
+        }
+    }
+
+    si règles_ont_au_moins_un_paramètre(règles) {
+        si type_paramètres == nul {
+            compilatrice_rapporte_erreur(fonction, "Le chemin possède des paramètres, mais la fonction n'a pas de paramètres !")
+            retourne faux, règles
+        }
+
+        si !apparie_paramètres_à_la_structure(règles, type_paramètres) {
+            compilatrice_rapporte_erreur(fonction, "Les paramètres de la route ne correspondent pas aux membres de la structure")
+            retourne faux, règles
+        }
+    }
+    sinon si type_paramètres != nul {
+        compilatrice_rapporte_erreur(fonction, "La fonction requiers des paramètres de routage, mais le chemin n'est pas paramétré !")
+        retourne faux, règles
+    }
+
+    retourne vrai, règles
+}
+
+parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> DonnéesCréationPointDEntréePage
+{
+    entrées_valides, infos_paramètres := parse_informations_paramètres(paramètres, fonction)
+    saufsi entrées_valides {
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
+    type_fonction := fonction.type comme *InfoTypeFonction
 
     /* Parse le type en sortie. */
     si type_fonction.types_sortie.taille == 0 {
@@ -260,10 +506,15 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
         retourne DonnéesCréationPointDEntréePage()
     }
 
+    chemin_est_valide, règles_routage := valide_chemin(fonction, chemin, infos_paramètres.paramètres_route.type)
+    saufsi chemin_est_valide {
+        retourne DonnéesCréationPointDEntréePage()
+    }
+
     /* Crée les données. */
     données: DonnéesCréationPointDEntréePage
 
-    données.méthode = si requiers_formulaire {
+    données.méthode = si infos_paramètres.formulaire.type != nul {
         "post"
     }
     sinon {
@@ -271,10 +522,11 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
     }
 
     données.nom_fonction = fonction.nom
+    données.infos_paramètres = infos_paramètres
     données.type_fonction = type_fonction
-    données.type_données_post = type_formulaire
     données.type_résultat = type_résultat
     données.chemin = chemin
+    données.règles_routage = règles_routage
 
     retourne données
 }
@@ -296,9 +548,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type
             continue
         }
 
-        // À FAIRE(langage) : "." à droite de "comme" échoue
-        // À FAIRE(langage) : si it.drapeaux.EST_CONSTANT
-        si (it.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 comme (InfoTypeMembreStructure.Drapeaux) {
+        si it.drapeaux.EST_CONSTANT {
             continue
         }
 
@@ -309,6 +559,14 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type
         }
 
         si est_type_rendu_page(paramètres, type_membre) {
+            continue
+        }
+
+        si type_membre == info_de(CodeEtContenuHTPP) {
+            continue
+        }
+
+        si type_membre == info_de(ErreurHTTP) {
             continue
         }
 
@@ -371,28 +629,117 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
 
 crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
 {
+    si paramètres.données_fonctions.taille == 0 {
+        retourne
+    }
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
     ajoute_au_tampon(*enchaineuse, "importe ServeuseHTTP\n")
+    ajoute_au_tampon(*enchaineuse, "importe Réseau\n")
+    ajoute_au_tampon(*enchaineuse, "importe ConnexionTCP\n")
 
-    imprime_dans_enchaineuse(*enchaineuse, "initialise_routes :: fonc (serveuse: *ServeuseHTTP.ServeuseHTTP)\n")
+    génère_fonction_appariement_routes(*enchaineuse, paramètres.données_fonctions)
+
+    ajoute_au_tampon(*enchaineuse, "initialise_routes :: fonc (serveuse: *ServeuseHTTP.ServeuseHTTP)\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
-
-    pour paramètres.données_fonctions {
-        si it.méthode == "get" {
-            imprime_dans_enchaineuse(*enchaineuse, "\tserveuse.ajoute_route_get(\"%\", get_%)\n", it.chemin, it.nom_fonction)
-        }
-        sinon si it.méthode == "post" {
-            imprime_dans_enchaineuse(*enchaineuse, "\tserveuse.ajoute_route_post(\"%\", post_%)\n", it.chemin, it.nom_fonction)
-        }
-    }
-
+    ajoute_au_tampon(*enchaineuse, "\tserveuse.routeuse.apparie_routes_get = apparie_routes_get\n")
+    ajoute_au_tampon(*enchaineuse, "\tserveuse.routeuse.apparie_routes_post = apparie_routes_post\n")
     ajoute_au_tampon(*enchaineuse, "}\n")
 
     interface := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(interface)
 
     ajoute_chaine_à_la_compilation(espace, interface)
+}
+
+// -----------------------------------------
+// Appariements des routes
+
+génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données_fonction: DonnéesCréationPointDEntréePage)
+{
+    règles := données_fonction.règles_routage
+    nom_fonction_rappel := données_fonction.nom_fonction
+    chemin_route := données_fonction.chemin
+    type_paramètres_route := données_fonction.infos_paramètres.paramètres_route.type
+
+    /* Cas simple, si la route n'a pas de paramètres, fait une comparaison sur la chaine directement. */
+    // À FAIRE : slash de fin
+    saufsi règles_ont_au_moins_un_paramètre(règles) {
+        imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool\n", données_fonction.méthode, nom_fonction_rappel)
+        imprime_dans_enchaineuse(enchaineuse, "{\n")
+        imprime_dans_enchaineuse(enchaineuse, "\tretourne chemin == \"%\"\n", chemin_route)
+        imprime_dans_enchaineuse(enchaineuse, "}\n")
+        retourne
+    }
+
+    // À FAIRE : sors les éléments des fonctions, et passe les en paramètres afin d'éviter la redondance ; compare directement le premier élément avec "/"
+
+    imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool, %\n", données_fonction.méthode, nom_fonction_rappel, type_paramètres_route.nom)
+    imprime_dans_enchaineuse(enchaineuse, "{\n")
+    imprime_dans_enchaineuse(enchaineuse, "\tparamètres : % = ---\n", type_paramètres_route.nom)
+    imprime_dans_enchaineuse(enchaineuse, "\téléments := divise_url(chemin)\n");
+    imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments.taille == % { retourne faux, paramètres }\n", règles.taille)
+
+    pour règles {
+        si it.action == ActionRègleRoutage.ApparieChaineLittérale {
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments[%] == \"%\" { retourne faux, paramètres }\n", index_it, it.chn)
+        }
+        sinon {
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi parse_paramètre_routage_pour_type(éléments[%], paramètres.%) { retourne faux, paramètres }\n", index_it, it.chn)
+        }
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "\tretourne vrai, paramètres\n")
+    imprime_dans_enchaineuse(enchaineuse, "}\n")
+}
+
+génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: []DonnéesCréationPointDEntréePage)
+{
+    pour données_fonctions {
+        génère_fonction_appariement_route(enchaineuse, it)
+    }
+
+    // À FAIRE : précédence des routes : les routes ayant des paramètres doivent être considérer après celles sans.
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    imprime_dans_enchaineuse(enchaineuse, "{\n")
+    pour données_fonctions {
+        si it.méthode != "get" {
+            continue
+        }
+        génère_corps_fonction_appariement(enchaineuse, it)
+    }
+    enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
+    imprime_dans_enchaineuse(enchaineuse, "}\n")
+
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    imprime_dans_enchaineuse(enchaineuse, "{\n")
+    pour données_fonctions {
+        si it.méthode != "post" {
+            continue
+        }
+        génère_corps_fonction_appariement(enchaineuse, it)
+    }
+    enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
+    imprime_dans_enchaineuse(enchaineuse, "}\n")
+}
+
+génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données_fonction: DonnéesCréationPointDEntréePage)
+{
+    nom_fonction_rappel := données_fonction.nom_fonction
+
+    imprime_dans_enchaineuse(enchaineuse, "\t{\n")
+    si règles_ont_au_moins_un_paramètre(données_fonction.règles_routage) {
+        imprime_dans_enchaineuse(enchaineuse, "\t\tsuccès, paramètres := apparie_route_%_%(chemin)\n", données_fonction.méthode, nom_fonction_rappel)
+        imprime_dans_enchaineuse(enchaineuse, "\t\tsi succès {\n")
+        imprime_dans_enchaineuse(enchaineuse, "\t\t\tretourne %_%(prise, message, paramètres)\n", données_fonction.méthode, nom_fonction_rappel)
+    }
+    sinon {
+        imprime_dans_enchaineuse(enchaineuse, "\t\tsi apparie_route_%_%(chemin) {\n", données_fonction.méthode, nom_fonction_rappel)
+        imprime_dans_enchaineuse(enchaineuse, "\t\t\tretourne %_%(prise, message)\n", données_fonction.méthode, nom_fonction_rappel)
+    }
+    imprime_dans_enchaineuse(enchaineuse, "\t\t}\n")
+    imprime_dans_enchaineuse(enchaineuse, "\t}\n")
 }

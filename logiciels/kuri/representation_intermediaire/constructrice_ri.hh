@@ -272,6 +272,9 @@ struct ConstructriceRI {
     void empile_valeur(Atome *valeur);
     Atome *depile_valeur();
 
+    AtomeConstante *cree_tableau_annotations_pour_info_membre(
+        const kuri::tableau<Annotation, int> &annotations);
+
     /* pour pouvoir accéder aux tableaux d'instructions */
     friend struct CopieuseInstruction;
 };

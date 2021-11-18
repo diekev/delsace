@@ -66,7 +66,7 @@ ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
 ResultatValidation ContexteValidationCode::valide()
 {
     if (racine_validation()->est_entete_fonction()) {
-        return valide_type_fonction(racine_validation()->comme_entete_fonction());
+        return valide_entete_fonction(racine_validation()->comme_entete_fonction());
     }
 
     if (racine_validation()->est_corps_fonction()) {
@@ -85,6 +85,11 @@ ResultatValidation ContexteValidationCode::valide()
     if (racine_validation()->est_structure()) {
         auto structure = racine_validation()->comme_structure();
         return valide_structure(structure);
+    }
+
+    if (racine_validation()->est_type_opaque()) {
+        auto opaque = racine_validation()->comme_type_opaque();
+        return valide_arbre_aplatis(opaque, opaque->arbre_aplatis);
     }
 
     if (racine_validation()->est_declaration_variable()) {
@@ -170,6 +175,11 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto expression = directive->expression;
     auto type_expression = expression->type;
 
+    /* Le type peut être nul pour les #tests. */
+    if (!type_expression && directive->ident == ID::test) {
+        type_expression = m_compilatrice.typeuse[TypeBase::RIEN];
+    }
+
     if (type_expression->est_tuple()) {
         auto tuple = type_expression->comme_tuple();
 
@@ -237,6 +247,43 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     metaprogramme->directive = directive;
     directive->metaprogramme = metaprogramme;
     return metaprogramme;
+}
+
+static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
+{
+    return est_type_booleen_implicite(expression->type) ||
+           expression->possede_drapeau(ACCES_EST_ENUM_DRAPEAU);
+}
+
+/* Décide si le type peut être utilisé pour les expressions d'indexages basiques du langage.
+ * NOTE : les entiers relatifs ne sont pas considérées ici car nous utilisons cette décision pour
+ * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
+static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
+{
+    if (type->est_entier_naturel()) {
+        return true;
+    }
+
+    if (type->est_octet()) {
+        return true;
+    }
+
+    if (type->est_enum()) {
+        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
+         * arbitrairement larges. */
+        return !type->comme_enum()->est_drapeau;
+    }
+
+    if (type->est_bool()) {
+        return true;
+    }
+
+    if (type->est_opaque()) {
+        return est_type_implicitement_utilisable_pour_indexage(
+            type->comme_opaque()->type_opacifie);
+    }
+
+    return false;
 }
 
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
@@ -350,7 +397,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                                         ->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                         ->comme_declaration_module();
                 noeud_module->module = module;
-                noeud_module->ident = inst->expression->ident;
+                noeud_module->ident = module->nom();
                 noeud_module->bloc_parent = inst->bloc_parent;
                 noeud_module->bloc_parent->membres->ajoute(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -370,7 +417,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto decl = noeud->comme_entete_fonction();
 
             if (!decl->est_declaration_type) {
-                return valide_type_fonction(decl);
+                return valide_entete_fonction(decl);
             }
 
             aplatis_arbre(decl);
@@ -420,7 +467,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return Attente::sur_type(type_sortie);
                     }
 
-                    membres.ajoute({type_sortie});
+                    membres.ajoute({nullptr, type_sortie});
                 }
 
                 type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
@@ -504,6 +551,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             return valide_declaration_variable(noeud->comme_declaration_variable());
         }
+        case GenreNoeud::DECLARATION_OPAQUE:
+        {
+            return valide_type_opaque(noeud->comme_type_opaque());
+        }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
@@ -519,312 +570,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             break;
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
+        {
+            return valide_operateur_binaire(static_cast<NoeudExpressionBinaire *>(noeud));
+        }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
-            auto expr = static_cast<NoeudExpressionBinaire *>(noeud);
-            expr->genre_valeur = GenreValeur::DROITE;
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
-
-            auto enfant1 = expr->operande_gauche;
-            auto enfant2 = expr->operande_droite;
-
-            if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
-                auto expression_taille = enfant1;
-                auto expression_type = enfant2;
-
-                auto type2 = expression_type->type;
-
-                if (type2->genre != GenreType::TYPE_DE_DONNEES) {
-                    rapporte_erreur(
-                        "Attendu une expression de type après la déclaration de type tableau",
-                        enfant2);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto type_de_donnees = type2->comme_type_de_donnees();
-                auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu :
-                                                                type_de_donnees;
-
-                auto taille_tableau = 0l;
-
-                if (expression_taille) {
-                    auto res = evalue_expression(
-                        m_compilatrice, expression_taille->bloc_parent, expression_taille);
-
-                    if (res.est_errone) {
-                        rapporte_erreur("Impossible d'évaluer la taille du tableau",
-                                        expression_taille);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (!res.valeur.est_entiere()) {
-                        rapporte_erreur("L'expression n'est pas de type entier",
-                                        expression_taille);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (res.valeur.entiere() == 0) {
-                        espace->rapporte_erreur(
-                            expression_taille,
-                            "Impossible de définir un tableau fixe de taille 0 !\n");
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    taille_tableau = res.valeur.entiere();
-                }
-
-                if (taille_tableau != 0) {
-                    // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
-                    // via un membre
-                    if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                        return Attente::sur_type(type_connu);
-                    }
-
-                    auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-                        type_connu, static_cast<int>(taille_tableau));
-                    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-                }
-                else {
-                    auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
-                    expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
-                }
-
-                return CodeRetourValidation::OK;
-            }
-
-            auto type_op = expr->lexeme->genre;
-
-            auto assignation_composee = est_assignation_composee(type_op);
-
-            auto type1 = enfant1->type;
-            auto type2 = enfant2->type;
-
-            if (type1->genre == GenreType::TYPE_DE_DONNEES) {
-                if (type2->genre != GenreType::TYPE_DE_DONNEES) {
-                    rapporte_erreur("Opération impossible entre un type et autre chose", expr);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto type_type1 = type1->comme_type_de_donnees();
-                auto type_type2 = type2->comme_type_de_donnees();
-
-                switch (expr->lexeme->genre) {
-                    default:
-                    {
-                        rapporte_erreur("Opérateur inapplicable sur des types", expr);
-                        return CodeRetourValidation::Erreur;
-                    }
-                    case GenreLexeme::BARRE:
-                    {
-                        if (type_type1->type_connu == nullptr) {
-                            rapporte_erreur("Opération impossible car le type n'est pas connu",
-                                            noeud);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if (type_type2->type_connu == nullptr) {
-                            rapporte_erreur("Opération impossible car le type n'est pas connu",
-                                            noeud);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if (type_type1->type_connu == type_type2->type_connu) {
-                            rapporte_erreur(
-                                "Impossible de créer une union depuis des types similaires\n",
-                                expr);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(type_type1->type_connu);
-                        }
-
-                        if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(type_type2->type_connu);
-                        }
-
-                        auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
-                        membres[0] = {type_type1->type_connu, ID::_0};
-                        membres[1] = {type_type2->type_connu, ID::_1};
-
-                        auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
-                        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
-
-                        // @concurrence critique
-                        if (type_union->decl == nullptr) {
-                            static Lexeme lexeme_union = {
-                                "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-                            auto decl_struct = m_tacheronne.assembleuse->cree_structure(
-                                &lexeme_union);
-                            decl_struct->type = type_union;
-                            type_union->decl = decl_struct;
-                        }
-
-                        return CodeRetourValidation::OK;
-                    }
-                    case GenreLexeme::EGALITE:
-                    {
-                        // XXX - aucune raison de prendre un verrou ici
-                        auto op = m_compilatrice.operateurs->op_comp_egal_types;
-                        expr->type = op->type_resultat;
-                        expr->op = op;
-                        return CodeRetourValidation::OK;
-                    }
-                    case GenreLexeme::DIFFERENCE:
-                    {
-                        // XXX - aucune raison de prendre un verrou ici
-                        auto op = m_compilatrice.operateurs->op_comp_diff_types;
-                        expr->type = op->type_resultat;
-                        expr->op = op;
-                        return CodeRetourValidation::OK;
-                    }
-                }
-            }
-
-            /* détecte a comp b comp c */
-            if (est_operateur_comparaison(type_op) &&
-                est_operateur_comparaison(enfant1->lexeme->genre)) {
-                expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-                expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
-
-                auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
-                type1 = enfant_expr->operande_droite->type;
-
-                auto candidats = dls::tablet<OperateurCandidat, 10>();
-                auto resultat = cherche_candidats_operateurs(
-                    *espace, type1, type2, type_op, candidats);
-                if (resultat.has_value()) {
-                    return resultat.value();
-                }
-                auto meilleur_candidat = OperateurCandidat::nul_const();
-                auto poids = 0.0;
-
-                for (auto const &candidat : candidats) {
-                    if (candidat.poids > poids) {
-                        poids = candidat.poids;
-                        meilleur_candidat = &candidat;
-                    }
-                }
-
-                if (meilleur_candidat == nullptr) {
-                    return attente_sur_operateur_ou_type(expr);
-                }
-
-                expr->op = meilleur_candidat->op;
-                transtype_si_necessaire(expr->operande_gauche,
-                                        meilleur_candidat->transformation_type1);
-                transtype_si_necessaire(expr->operande_droite,
-                                        meilleur_candidat->transformation_type2);
-            }
-            else if (dls::outils::est_element(
-                         noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-                if (!est_type_conditionnable(enfant1->type) &&
-                    !enfant1->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                    espace->rapporte_erreur(
-                        enfant1,
-                        "Expression non conditionnable à gauche de l'opérateur logique !");
-                }
-
-                if (!est_type_conditionnable(enfant2->type) &&
-                    !enfant2->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                    espace->rapporte_erreur(
-                        enfant2,
-                        "Expression non conditionnable à droite de l'opérateur logique !");
-                }
-
-                /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
-                 * car nous ne pouvons déterminer le bon ordre d'exécution. */
-                if (noeud->lexeme->genre == GenreLexeme::BARRE_BARRE) {
-                    if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
-                        espace
-                            ->rapporte_erreur(
-                                enfant1,
-                                "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
-                            .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                            "l'ordre des comparisons.");
-                    }
-
-                    if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
-                        espace
-                            ->rapporte_erreur(
-                                enfant2,
-                                "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
-                            .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                            "l'ordre des comparisons.");
-                    }
-                }
-
-                noeud->type = m_compilatrice.typeuse[TypeBase::BOOL];
-            }
-            else {
-                bool type_gauche_est_reference = false;
-                if (assignation_composee) {
-                    type_op = operateur_pour_assignation_composee(type_op);
-
-                    if (type1->est_reference()) {
-                        type_gauche_est_reference = true;
-                        type1 = type1->comme_reference()->type_pointe;
-                        transtype_si_necessaire(expr->operande_gauche,
-                                                TypeTransformation::DEREFERENCE);
-                    }
-                }
-
-                auto candidats = dls::tablet<OperateurCandidat, 10>();
-                auto resultat = cherche_candidats_operateurs(
-                    *espace, type1, type2, type_op, candidats);
-                if (resultat.has_value()) {
-                    return resultat.value();
-                }
-
-                auto meilleur_candidat = OperateurCandidat::nul_const();
-                auto poids = 0.0;
-
-                for (auto const &candidat : candidats) {
-                    if (candidat.poids > poids) {
-                        poids = candidat.poids;
-                        meilleur_candidat = &candidat;
-                    }
-                }
-
-                if (meilleur_candidat == nullptr) {
-                    return attente_sur_operateur_ou_type(expr);
-                }
-
-                expr->type = meilleur_candidat->op->type_resultat;
-                expr->op = meilleur_candidat->op;
-                expr->permute_operandes = meilleur_candidat->permute_operandes;
-
-                if (type_gauche_est_reference &&
-                    meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
-                    espace->rapporte_erreur(expr->operande_gauche,
-                                            "Impossible de transtyper la valeur à gauche pour une "
-                                            "assignation composée.");
-                }
-
-                transtype_si_necessaire(expr->operande_gauche,
-                                        meilleur_candidat->transformation_type1);
-                transtype_si_necessaire(expr->operande_droite,
-                                        meilleur_candidat->transformation_type2);
-
-                if (assignation_composee) {
-                    expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
-
-                    auto resultat_tfm = cherche_transformation(m_compilatrice, expr->type, type1);
-
-                    if (std::holds_alternative<Attente>(resultat_tfm)) {
-                        return std::get<Attente>(resultat_tfm);
-                    }
-
-                    auto transformation = std::get<TransformationType>(resultat_tfm);
-
-                    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-                        rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-            }
-
-            break;
+            /* Nous devrions être ici uniquement si nous avions une attente. */
+            return valide_operateur_binaire_chaine(static_cast<NoeudExpressionBinaire *>(noeud));
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
@@ -878,7 +630,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->type = m_compilatrice.typeuse.type_pointeur_pour(type);
                 }
                 else if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
-                    if (!est_type_conditionnable(enfant->type)) {
+                    if (!est_expression_convertible_en_bool(enfant)) {
                         rapporte_erreur(
                             "Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
                             enfant);
@@ -1005,16 +757,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_cible = m_compilatrice.typeuse[TypeBase::Z64];
             auto type_index = enfant2->type;
 
-            if (type_index->est_entier_naturel() || type_index->est_octet()) {
+            if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
                 transtype_si_necessaire(
                     expr->operande_droite,
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
             else {
-                if (type_index->genre == GenreType::ENUM) {
-                    type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
-                }
-
                 auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite,
                                                                         type_cible);
                 if (!est_ok(resultat_transtype)) {
@@ -1063,11 +811,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (!est_type_conditionnable(type_condition) &&
-                !inst->condition->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                rapporte_erreur("Impossible de conditionner le type de l'expression 'si'",
-                                inst->condition,
-                                erreur::Genre::TYPE_DIFFERENTS);
+            if (!est_expression_convertible_en_bool(inst->condition)) {
+                espace
+                    ->rapporte_erreur(inst->condition,
+                                      "Impossible de convertir implicitement l'expression vers "
+                                      "une expression booléenne",
+                                      erreur::Genre::TYPE_DIFFERENTS)
+                    .ajoute_message(
+                        "Le type de l'expression est ", chaine_type(type_condition), "\n");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -2406,6 +2157,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         auto index_membre = 0;
         auto membre_est_constant = false;
         auto membre_est_implicite = false;
+        auto decl_membre = NoeudDeclarationVariable::nul();
 
         POUR (type_compose->membres) {
             if (it.nom == membre->ident) {
@@ -2413,6 +2165,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 membre_trouve = true;
                 membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
                 membre_est_implicite = it.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
+                decl_membre = it.decl;
                 break;
             }
 
@@ -2423,6 +2176,8 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
+
+        membre->comme_reference_declaration()->declaration_referee = decl_membre;
 
         expression_membre->index_membre = index_membre;
 
@@ -2438,12 +2193,10 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
              * compilation
              * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
              */
-            if (structure->est_reference_declaration() &&
-                !structure->comme_reference_declaration()->declaration_referee->est_enum() &&
-                !expression_membre->type->est_type_de_donnees()) {
+            if (structure->type->est_enum() && structure->genre_valeur != GenreValeur::DROITE) {
                 if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
-                    expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                     if (!membre_est_implicite) {
+                        expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                         expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
                     }
                 }
@@ -2473,7 +2226,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     return CodeRetourValidation::Erreur;
 }
 
-ResultatValidation ContexteValidationCode::valide_type_fonction(
+ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
 #ifdef STATISTIQUES_DETAILLEES
@@ -2617,7 +2370,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(
                     return Attente::sur_type(type_sortie);
                 }
 
-                membres.ajoute({type_sortie});
+                membres.ajoute({nullptr, type_sortie});
             }
 
             type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
@@ -3158,11 +2911,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 
-    if (dls::outils::est_element(
-            decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) &&
-        expr->aide_generation_code != EST_NOEUD_ACCES) {
+    if (decl->est_declaration_type()) {
+        if (decl->est_type_opaque() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            return Attente::sur_declaration(decl);
+        }
+
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
+        expr->genre_valeur = GenreValeur::DROITE;
     }
     else {
         if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
@@ -3177,26 +2933,19 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
-        if (decl->type && decl->type->est_opaque() && decl->est_declaration_variable() &&
-            (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE)) {
-            expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
-            expr->declaration_referee = decl;
-        }
-        else {
-            // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
-            // polymorphiques
-            assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION ||
-                   decl->est_declaration_module());
-            expr->declaration_referee = decl;
-            expr->type = decl->type;
+        // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
+        // polymorphiques
+        assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
+        expr->declaration_referee = decl;
+        decl->drapeaux |= EST_UTILISEE;
+        expr->type = decl->type;
 
-            /* si nous avons une valeur polymorphique, crée un type de données
-             * temporaire pour que la validation soit contente, elle sera
-             * remplacée par une constante appropriée lors de la validation
-             * de l'appel */
-            if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                expr->type = m_compilatrice.typeuse.type_type_de_donnees(expr->type);
-            }
+        /* si nous avons une valeur polymorphique, crée un type de données
+         * temporaire pour que la validation soit contente, elle sera
+         * remplacée par une constante appropriée lors de la validation
+         * de l'appel */
+        if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            expr->type = m_compilatrice.typeuse.type_type_de_donnees(expr->type);
         }
     }
 
@@ -3208,6 +2957,30 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
+{
+    auto type_opacifie = Type::nul();
+
+    if (!decl->expression_type->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+        if (resoud_type_final(decl->expression_type, type_opacifie) ==
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+
+        if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_opacifie);
+        }
+    }
+    else {
+        type_opacifie = m_compilatrice.typeuse.cree_polymorphique(decl->expression_type->ident);
+    }
+
+    auto type_opaque = m_compilatrice.typeuse.cree_opaque(decl, type_opacifie);
+    decl->type = type_opaque;
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
@@ -3278,6 +3051,101 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
     }
 
     return nullptr;
+}
+
+static bool possede_annotation_inutilisee(NoeudDeclarationVariable const *decl)
+{
+    POUR (decl->annotations) {
+        if (it.nom == "inutilisée") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
+                                             NoeudDeclarationEnteteFonction const &entete)
+{
+    if (entete.est_externe) {
+        return;
+    }
+
+    for (int i = 0; i < entete.params.taille(); ++i) {
+        auto decl_param = entete.parametre_entree(i);
+        if (possede_annotation_inutilisee(decl_param)) {
+            continue;
+        }
+
+        if (!decl_param->possede_drapeau(EST_UTILISEE)) {
+            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé");
+        }
+    }
+
+    auto const &corps = *entete.corps;
+
+    visite_noeud(
+        corps.bloc, PreferenceVisiteNoeud::ORIGINAL, [&espace](const NoeudExpression *noeud) {
+            if (noeud->est_structure()) {
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
+            /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser. */
+            if (noeud->est_si_statique()) {
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
+            if (!noeud->est_declaration()) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            /* Ignore les variables implicites des boucles « pour ». */
+            if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            /* Le contexte peut ne pas être utilisé. */
+            if (noeud->ident == ID::contexte) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas utilisée,
+             * bien que ceci ne soit pas en score formalisé dans le langage. */
+            if (noeud->ident && noeud->ident->nom == "_") {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            if (noeud->est_declaration_variable()) {
+                auto const decl_var = noeud->comme_declaration_variable();
+                /* Les déclarations multiples comme « a, b := ... » ont les déclarations ajoutées
+                 * séparément aux membres du bloc. */
+                if (decl_var->valeur->est_virgule()) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
+
+                if (possede_annotation_inutilisee(decl_var)) {
+                    return DecisionVisiteNoeud::CONTINUE;
+                }
+            }
+
+            /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas marqués
+             * comme utilisés car seules les entêtes le sont. Évitons d'émettre un avertissement
+             * pour rien. */
+            if (noeud->est_corps_fonction()) {
+                return DecisionVisiteNoeud::CONTINUE;
+            }
+
+            if (!noeud->possede_drapeau(EST_UTILISEE)) {
+                if (noeud->est_entete_fonction()) {
+                    espace.rapporte_avertissement(noeud, "Fonction inutilisée");
+                }
+                else {
+                    espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
+                }
+            }
+
+            return DecisionVisiteNoeud::CONTINUE;
+        });
 }
 
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
@@ -3384,6 +3252,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+    avertis_declarations_inutilisees(*espace, *entete);
+
     return CodeRetourValidation::OK;
 }
 
@@ -3679,24 +3550,27 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
             valeurs_legales |= valeur.entiere();
         }
 
-        membres.ajoute({type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
+        membres.ajoute({nullptr, type_enum, var->ident, 0, static_cast<int>(valeur.entiere())});
 
         derniere_valeur = valeur;
     }
 
-    membres.ajoute({m_compilatrice.typeuse[TypeBase::Z32],
+    membres.ajoute({nullptr,
+                    m_compilatrice.typeuse[TypeBase::Z32],
                     ID::nombre_elements,
                     0,
                     membres.taille(),
                     nullptr,
                     TypeCompose::Membre::EST_IMPLICITE});
-    membres.ajoute({type_enum,
+    membres.ajoute({nullptr,
+                    type_enum,
                     ID::min,
                     0,
                     static_cast<int>(valeur_enum_min),
                     nullptr,
                     TypeCompose::Membre::EST_IMPLICITE});
-    membres.ajoute({type_enum,
+    membres.ajoute({nullptr,
+                    type_enum,
                     ID::max,
                     0,
                     static_cast<int>(valeur_enum_max),
@@ -3704,18 +3578,22 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                     TypeCompose::Membre::EST_IMPLICITE});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
-        membres.ajoute({type_enum,
+        membres.ajoute({nullptr,
+                        type_enum,
                         ID::valeurs_legales,
                         0,
                         static_cast<int>(valeurs_legales),
                         nullptr,
                         TypeCompose::Membre::EST_IMPLICITE});
-        membres.ajoute({type_enum,
+        membres.ajoute({nullptr,
+                        type_enum,
                         ID::valeurs_illegales,
                         0,
                         static_cast<int>(~valeurs_legales),
                         nullptr,
                         TypeCompose::Membre::EST_IMPLICITE});
+        membres.ajoute(
+            {nullptr, type_enum, ID::zero, 0, 0, nullptr, TypeCompose::Membre::EST_IMPLICITE});
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -3931,7 +3809,19 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        type_compose->membres.ajoute({enfant->type, enfant->ident, 0, 0, expr_valeur});
+        auto decl_var_enfant = NoeudDeclarationVariable::nul();
+        if (enfant->est_declaration_variable()) {
+            decl_var_enfant = enfant->comme_declaration_variable();
+        }
+        else if (enfant->est_reference_declaration()) {
+            auto ref = enfant->comme_reference_declaration();
+            if (ref->declaration_referee->est_declaration_variable()) {
+                decl_var_enfant = ref->declaration_referee->comme_declaration_variable();
+            }
+        }
+
+        type_compose->membres.ajoute(
+            {decl_var_enfant, enfant->type, enfant->ident, 0, 0, expr_valeur});
         return CodeRetourValidation::OK;
     };
 
@@ -3940,12 +3830,12 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         type_union->est_nonsure = decl->est_nonsure;
 
         POUR (*decl->bloc->membres.verrou_ecriture()) {
-            if (dls::outils::est_element(
-                    it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+            if (it->est_declaration_type()) {
                 // utilisation d'un type de données afin de pouvoir automatiquement déterminer un
                 // type
                 auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-                type_compose->membres.ajoute({type_de_donnees,
+                type_compose->membres.ajoute({nullptr,
+                                              type_de_donnees,
                                               it->ident,
                                               0,
                                               0,
@@ -3957,7 +3847,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             auto decl_var = it->comme_declaration_variable();
 
             if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-                type_compose->membres.ajoute({it->type,
+                type_compose->membres.ajoute({decl_var,
+                                              it->type,
                                               it->ident,
                                               0,
                                               0,
@@ -4027,12 +3918,16 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto type_struct = type_compose->comme_structure();
 
     POUR (*decl->bloc->membres.verrou_lecture()) {
-        if (dls::outils::est_element(
-                it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+        if (it->est_declaration_type()) {
             // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
             auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-            type_compose->membres.ajoute(
-                {type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT});
+            type_compose->membres.ajoute({nullptr,
+                                          type_de_donnees,
+                                          it->ident,
+                                          0,
+                                          0,
+                                          nullptr,
+                                          TypeCompose::Membre::EST_CONSTANT});
             continue;
         }
 
@@ -4049,7 +3944,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         auto decl_var = it->comme_declaration_variable();
 
         if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-            type_compose->membres.ajoute({it->type,
+            type_compose->membres.ajoute({decl_var,
+                                          it->type,
                                           it->ident,
                                           0,
                                           0,
@@ -4139,7 +4035,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if (!decl->est_externe) {
             /* Ajoute un membre, d'un octet de taille. */
             type_compose->membres.ajoute(
-                {m_compilatrice.typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr});
+                {nullptr, m_compilatrice.typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr});
             calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
         }
     }
@@ -4199,29 +4095,6 @@ static bool peut_etre_type_constante(Type *type)
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
 {
-    if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
-        auto type_opacifie = Type::nul();
-
-        if (!decl->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-            if (resoud_type_final(decl->expression, type_opacifie) ==
-                CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_opacifie);
-            }
-        }
-        else {
-            type_opacifie = m_compilatrice.typeuse.cree_polymorphique(decl->expression->ident);
-        }
-
-        auto type_opaque = m_compilatrice.typeuse.cree_opaque(decl, type_opacifie);
-        decl->type = type_opaque;
-        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-        return CodeRetourValidation::OK;
-    }
-
     auto &ctx = m_tacheronne.contexte_validation_declaration;
     ctx.variables.efface();
     ctx.donnees_temp.efface();
@@ -4550,11 +4423,14 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         auto transformation = TransformationType();
 
-        if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && expression->type->est_bool()) {
-            if (!expression->est_litterale_bool()) {
-                espace->rapporte_erreur(expression,
-                                        "L'assignation d'une valeur d'une énum_drapeau doit être "
-                                        "une littérale booléenne");
+        if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+            if (!expression->type->est_bool()) {
+                espace
+                    ->rapporte_erreur(expression,
+                                      "L'assignation d'une valeur d'une énum_drapeau doit être "
+                                      "une valeur booléenne")
+                    .ajoute_message(
+                        "Le type de l'expression est ", chaine_type(expression->type), "\n");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4920,4 +4796,380 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
     expression = noeud_comme;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpressionBinaire *expr)
+{
+    expr->genre_valeur = GenreValeur::DROITE;
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
+
+    if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
+        return valide_operateur_binaire_tableau(expr);
+    }
+
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+
+    if (type1->genre == GenreType::TYPE_DE_DONNEES) {
+        return valide_operateur_binaire_type(expr);
+    }
+
+    auto type_op = expr->lexeme->genre;
+
+    /* détecte a comp b comp c */
+    if (est_operateur_comparaison(type_op) && est_operateur_comparaison(enfant1->lexeme->genre)) {
+        return valide_operateur_binaire_chaine(expr);
+    }
+
+    if (dls::outils::est_element(type_op, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
+        if (!est_expression_convertible_en_bool(enfant1)) {
+            espace->rapporte_erreur(
+                enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
+        }
+
+        if (!est_expression_convertible_en_bool(enfant2)) {
+            espace->rapporte_erreur(
+                enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
+        }
+
+        /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
+         * car nous ne pouvons déterminer le bon ordre d'exécution. */
+        if (expr->lexeme->genre == GenreLexeme::BARRE_BARRE) {
+            if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
+                espace
+                    ->rapporte_erreur(
+                        enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
+                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                    "l'ordre des comparisons.");
+            }
+
+            if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
+                espace
+                    ->rapporte_erreur(
+                        enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
+                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                    "l'ordre des comparisons.");
+            }
+        }
+
+        expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+        return CodeRetourValidation::OK;
+    }
+
+    if (enfant1->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && enfant2->est_litterale_bool()) {
+        return valide_comparaison_enum_drapeau_bool(
+            expr, enfant1->comme_reference_membre(), enfant2->comme_litterale_bool());
+    }
+
+    if (enfant2->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && enfant1->est_litterale_bool()) {
+        return valide_comparaison_enum_drapeau_bool(
+            expr, enfant2->comme_reference_membre(), enfant1->comme_litterale_bool());
+    }
+
+    return valide_operateur_binaire_generique(expr);
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
+    NoeudExpressionBinaire *expr)
+{
+    auto type_op = expr->lexeme->genre;
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
+    expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+
+    auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
+    type1 = enfant_expr->operande_droite->type;
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->op = meilleur_candidat->op;
+    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
+    NoeudExpressionBinaire *expr)
+{
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto expression_taille = enfant1;
+    auto expression_type = enfant2;
+
+    auto type2 = expression_type->type;
+
+    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+        rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
+                        enfant2);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_de_donnees = type2->comme_type_de_donnees();
+    auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
+
+    auto taille_tableau = 0l;
+
+    if (expression_taille) {
+        auto res = evalue_expression(
+            m_compilatrice, expression_taille->bloc_parent, expression_taille);
+
+        if (res.est_errone) {
+            rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (!res.valeur.est_entiere()) {
+            rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (res.valeur.entiere() == 0) {
+            espace->rapporte_erreur(expression_taille,
+                                    "Impossible de définir un tableau fixe de taille 0 !\n");
+            return CodeRetourValidation::Erreur;
+        }
+
+        taille_tableau = res.valeur.entiere();
+    }
+
+    if (taille_tableau != 0) {
+        // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
+        // via un membre
+        if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_connu);
+        }
+
+        auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
+            type_connu, static_cast<int>(taille_tableau));
+        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    }
+    else {
+        auto type_tableau = m_compilatrice.typeuse.type_tableau_dynamique(type_connu);
+        expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_tableau);
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
+    NoeudExpressionBinaire *expr)
+{
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+
+    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+        rapporte_erreur("Opération impossible entre un type et autre chose", expr);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_type1 = type1->comme_type_de_donnees();
+    auto type_type2 = type2->comme_type_de_donnees();
+
+    switch (expr->lexeme->genre) {
+        default:
+        {
+            rapporte_erreur("Opérateur inapplicable sur des types", expr);
+            return CodeRetourValidation::Erreur;
+        }
+        case GenreLexeme::BARRE:
+        {
+            if (type_type1->type_connu == nullptr) {
+                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_type2->type_connu == nullptr) {
+                rapporte_erreur("Opération impossible car le type n'est pas connu", expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_type1->type_connu == type_type2->type_connu) {
+                rapporte_erreur("Impossible de créer une union depuis des types similaires\n",
+                                expr);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_type1->type_connu);
+            }
+
+            if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_type2->type_connu);
+            }
+
+            auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
+            membres[0] = {nullptr, type_type1->type_connu, ID::_0};
+            membres[1] = {nullptr, type_type2->type_connu, ID::_1};
+
+            auto type_union = m_compilatrice.typeuse.union_anonyme(membres);
+            expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
+
+            // @concurrence critique
+            if (type_union->decl == nullptr) {
+                static Lexeme lexeme_union = {
+                    "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
+                auto decl_struct = m_tacheronne.assembleuse->cree_structure(&lexeme_union);
+                decl_struct->type = type_union;
+                type_union->decl = decl_struct;
+            }
+
+            return CodeRetourValidation::OK;
+        }
+        case GenreLexeme::EGALITE:
+        {
+            // XXX - aucune raison de prendre un verrou ici
+            auto op = m_compilatrice.operateurs->op_comp_egal_types;
+            expr->type = op->type_resultat;
+            expr->op = op;
+            return CodeRetourValidation::OK;
+        }
+        case GenreLexeme::DIFFERENCE:
+        {
+            // XXX - aucune raison de prendre un verrou ici
+            auto op = m_compilatrice.operateurs->op_comp_diff_types;
+            expr->type = op->type_resultat;
+            expr->op = op;
+            return CodeRetourValidation::OK;
+        }
+    }
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
+    NoeudExpressionBinaire *expr)
+{
+    auto type_op = expr->lexeme->genre;
+    auto assignation_composee = est_assignation_composee(type_op);
+    auto enfant1 = expr->operande_gauche;
+    auto enfant2 = expr->operande_droite;
+    auto type1 = enfant1->type;
+    auto type2 = enfant2->type;
+
+    bool type_gauche_est_reference = false;
+    if (assignation_composee) {
+        type_op = operateur_pour_assignation_composee(type_op);
+
+        if (type1->est_reference()) {
+            type_gauche_est_reference = true;
+            type1 = type1->comme_reference()->type_pointe;
+            transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+        }
+    }
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->type = meilleur_candidat->op->type_resultat;
+    expr->op = meilleur_candidat->op;
+    expr->permute_operandes = meilleur_candidat->permute_operandes;
+
+    if (type_gauche_est_reference &&
+        meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
+        espace->rapporte_erreur(expr->operande_gauche,
+                                "Impossible de transtyper la valeur à gauche pour une "
+                                "assignation composée.");
+    }
+
+    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+
+    if (assignation_composee) {
+        expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
+
+        auto resultat_tfm = cherche_transformation(m_compilatrice, expr->type, type1);
+
+        if (std::holds_alternative<Attente>(resultat_tfm)) {
+            return std::get<Attente>(resultat_tfm);
+        }
+
+        auto transformation = std::get<TransformationType>(resultat_tfm);
+
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
+    NoeudExpressionBinaire *expr,
+    NoeudExpressionMembre * /*expr_acces_enum*/,
+    NoeudExpressionLitteraleBool *expr_bool)
+{
+    auto type_op = expr->lexeme->genre;
+
+    if (type_op != GenreLexeme::EGALITE && type_op != GenreLexeme::DIFFERENCE) {
+        espace->rapporte_erreur(expr,
+                                "Une comparaison entre une valeur d'énumération drapeau et une "
+                                "littérale booléenne doit se faire via « == » ou « != »");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_bool = expr_bool->type;
+
+    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto resultat = cherche_candidats_operateurs(
+        *espace, type_bool, type_bool, type_op, candidats);
+    if (resultat.has_value()) {
+        return resultat.value();
+    }
+
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        return attente_sur_operateur_ou_type(expr);
+    }
+
+    expr->op = meilleur_candidat->op;
+    expr->type = type_bool;
+    return CodeRetourValidation::OK;
 }

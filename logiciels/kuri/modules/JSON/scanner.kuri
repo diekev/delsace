@@ -91,23 +91,33 @@ initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: ei
     scanner.lis()
 }
 
+imprime_progression :: fonc (scanner: *ScannerJSON)
+{
+    position_r32 := scanner.position comme r32
+    taille_r32 := scanner.script.taille comme r32
+
+    pourcentage := position_r32 * 100.0 / taille_r32
+
+    imprime("pourcent fini : %\n", pourcentage)
+}
+
 détruit_scanner :: fonc (scanner: *ScannerJSON)
 {
     détruit(scanner.pile)
     déloge(scanner.erreurs)
 }
 
-empile :: fonc (scanner: *ScannerJSON, valeur: eini)
+empile :: fonc (scanner: *ScannerJSON, valeur: eini) #enligne
 {
     empile(scanner.pile, valeur)
 }
 
-dépile :: fonc (scanner: *ScannerJSON)
+dépile :: fonc (scanner: *ScannerJSON) #enligne
 {
     _ := dépile(scanner.pile)
 }
 
-object_courant :: fonc (scanner: *ScannerJSON) -> eini
+object_courant :: fonc (scanner: *ScannerJSON) -> eini #enligne
 {
     retourne tête(scanner.pile)
 }
@@ -139,12 +149,12 @@ rapporte_erreur_valeur :: fonc (scanner: *ScannerJSON, format: chaine, args: ...
     scanner.rapporte_erreur(TypeErreur.Valeur, format, ...args)
 }
 
-enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien
+enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien #enligne
 {
     scanner.position_mot = scanner.position
 }
 
-mot_courant :: fonc (scanner: *ScannerJSON) -> chaine
+mot_courant :: fonc (scanner: *ScannerJSON) -> chaine #enligne
 {
     retourne construit_chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
 }
@@ -166,17 +176,17 @@ saute_espaces_blancs :: fonc (scanner : *ScannerJSON) -> rien
     }
 }
 
-avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien
+avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien #enligne
 {
     scanner.position += n
 }
 
-fini :: fonc (scanner: *ScannerJSON) -> bool
+fini :: fonc (scanner: *ScannerJSON) -> bool #enligne
 {
     retourne scanner.position >= scanner.script.taille
 }
 
-caractère_courant :: fonc (scanner: *ScannerJSON) -> z8
+caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
 {
     retourne scanner.script[scanner.position]
 }
@@ -281,15 +291,17 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             si c == 'u' {
                 scanner.avance()
 
-                pour i dans 0 ... 3 {
+                pour 4 {
                     c = scanner.caractère_courant()
 
-                    si est_hexadécimal(c) {
+                    si !est_hexadécimal(c) {
                         retourne LexèmeJSON.INVALIDE
                     }
 
                     scanner.avance()
                 }
+
+                continue
             }
             sinon si !est_caractère_échappé_valide(c) {
                 retourne LexèmeJSON.INVALIDE
@@ -644,8 +656,6 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        taille_en_octet := valeur.info.taille_en_octet
-
         si valeur.est_r16() {
             valeur.assigne_r16(scanner.nombre_réel)
         }
@@ -848,10 +858,9 @@ génère_initialisation_json :: fonc ()
 		}
 
 		type_première_sortie := it.params_sorties[0].type
-		type_deuxième_sortie := it.params_sorties[1].type
 
 		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage JSON invalide, le première paramètre de sortie doit être de type « bool ».")
+            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
             retourne
 		}
 

@@ -47,8 +47,6 @@ valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) 
     retourne entête_pour_nom.valeur
 }
 
-importe ServeuseHTTP // À FAIRE: déplace tout ça dans un seul module
-
 MessageClienteHTTP :: struct {
     empl base: MessageHTTP
 
@@ -56,8 +54,6 @@ MessageClienteHTTP :: struct {
     requête: chaine
 
     uri: URI
-
-    données_appariements: []DonnéesAppariement
 }
 
 ContenuHTTP :: struct {

@@ -85,8 +85,6 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
 {
     tampon_courant := *enchaineuse.tampon
 
-    curseur : z64 = 0
-
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé
         src := *tampon_courant.données[0]
@@ -392,7 +390,7 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
 	}
 
 	si format.ajoute_zéros_début {
-		pour i dans 0 ... format.nombre_zéros - 1 {
+		pour format.nombre_zéros {
 			ajoute_au_tampon(enchaineuse, '0')
 		}
 	}

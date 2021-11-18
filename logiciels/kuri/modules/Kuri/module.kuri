@@ -54,8 +54,8 @@ allocatrice_défaut :: fonc(
     ancienne_taille : z64,
     ancien_pointeur : *rien,
     données : *BaseAllocatrice,
-    info : *InfoType,
-    pos : PositionCodeSource) -> *rien
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
 {
     discr mode {
         ALLOUE {
@@ -301,7 +301,12 @@ ContexteProgramme :: struct {
     données_rappel_panique : *rien
 }
 
-__logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien {}
+__logueur_défaut :: fonc (message: chaine  @inutilisée,
+                          ident: chaine  @inutilisée,
+                          mode: ModeLogage  @inutilisée,
+                          données: *rien  @inutilisée) -> rien
+{
+}
 
 __rappel_panique_défaut :: fonc () -> rien {}
 
@@ -597,7 +602,7 @@ tableau_redimensionne :: fonc (tabl: &[]$T, taille: z64) -> rien
 
 tableau_copie :: fonc(tabl: []$T) -> []T
 {
-	tmp := loge_tableau(T, tabl.capacité)
+	tmp := loge_tableau(T, tabl.taille)
     //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
 
     pour tabl {
@@ -674,6 +679,18 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
     tmp.taille -= 1
 
     mémoire(tabl) = tmp
+}
+
+tableau_supprime_valeur :: fonc (tabl: *[]$T, valeur: T)
+{
+    tmp := mémoire(tabl)
+
+    pour tmp {
+        si it == valeur {
+            tableau_supprime_index(tabl, index_it)
+            arrête
+        }
+    }
 }
 
 /**
@@ -767,12 +784,25 @@ __init_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 __fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx #interface
 {
     pousse_contexte mémoire(contexte) {
-        // Ici serons ajoutées toutes les expression des directives #ajoute_fini.
+        // Ici seront ajoutées toutes les expression des directives #ajoute_fini.
     }
 }
 
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc (contexte: ContexteProgramme) -> z32 #principale
+
+__initialise_contexte_extra :: fonc (contexte: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice : *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #nulctx
+{
+    contexte.trace_appel = trace_appel
+
+    contexte.données_allocatrice = base_allocatrice
+
+    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
+    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
+    stockage_temporaire.occupé = 0
+    stockage_temporaire.occupation_maximale = 0
+    contexte.stockage_temporaire = stockage_temporaire
+}
 
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
 {
@@ -781,17 +811,11 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     // initalise les autres membres du contexte
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
-    contexte.trace_appel = *trace_appel
 
     base_allocatrice : BaseAllocatrice
-    contexte.données_allocatrice = *base_allocatrice
-
     stockage_temporaire : StockageTemporaire = ---
-    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
-    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
-    stockage_temporaire.occupé = 0
-    stockage_temporaire.occupation_maximale = 0
-    contexte.stockage_temporaire = *stockage_temporaire
+
+    __initialise_contexte_extra(contexte, *trace_appel, *base_allocatrice, *stockage_temporaire)
 
     __init_exécution_kuri(contexte)
 
@@ -813,7 +837,7 @@ ContexteKuri :: struct {
 	deloge_memoire : #nulctx fonc (*ContexteKuri,*rien,n64)(rien)
 }
 
-loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, taille: n64) -> *rien #nulctx
+loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien #nulctx
 {
     pointeur : *rien
 
@@ -824,7 +848,7 @@ loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, taille: n64) -> *ri
     retourne pointeur
 }
 
-reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
+reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien #nulctx
 {
     pointeur : *rien
 
@@ -835,7 +859,7 @@ reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: 
     retourne pointeur
 }
 
-déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64) -> rien #nulctx
+déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64) -> rien #nulctx
 {
     pousse_contexte __contexte_fil_principal {
         déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, PositionCodeSource())

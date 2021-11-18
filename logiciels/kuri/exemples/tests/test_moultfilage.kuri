@@ -2,6 +2,7 @@
 
 importe Fondation
 importe GlibC
+importe Ordinatrice
 importe PThread
 
 //#####################################################################################
@@ -91,17 +92,6 @@ fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
 	retourne nul
 }
 
-ValeurSysConf :: énum z32 {
-    _SC_NPROCESSORS_ONLN :: 84
-}
-
-sysconf :: fonc (nom: ValeurSysConf) -> z64 #externe libc
-
-nombre_threads_système :: fonc () -> z64
-{
-    retourne sysconf(ValeurSysConf._SC_NPROCESSORS_ONLN)
-}
-
 Tâche :: struct {
     id_tâche : pthread_t
 
@@ -148,7 +138,7 @@ SystèmeTâche :: struct {
 
 principale :: fonc () -> z32
 {
-    imprime("Il y a sur le système % threads\n", nombre_threads_système());
+    imprime("Il y a sur le système % threads\n", nombre_threads_disponible());
 
     //retourne 0
 

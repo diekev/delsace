@@ -65,30 +65,30 @@ ErreurURI :: erreur {
 
 URI :: struct {
     // la chaine originale
-	uri : chaine
+	uri : chaine  // @privé
 
     // les différents composants de l'URI
-    schéma : chaine
-	autorité : chaine
-	chemin_complet : chaine
+    schéma : chaine  // @accessible
+	autorité : chaine  // @accessible
+	chemin_complet : chaine  // @accessible
 
     // les différents composants du chemin
-    chemin : chaine
-	requête : chaine
-	fragment : chaine
+    chemin : chaine  // @accessible
+	requête : chaine  // @accessible
+	fragment : chaine  // @accessible
 
     // les différents composants de l'autorité
-	nom_utilisateur : chaine
-    mot_de_passe : chaine
-	hôte : chaine
-	port : chaine
+	nom_utilisateur : chaine  // @accessible
+    mot_de_passe : chaine  // @accessible
+	hôte : chaine  // @accessible
+	port : chaine  // @accessible
 
     // un composant est défini si son séparateur est présent, mais il peut tout de même
     // être vide
-    schéma_est_défini := faux
-    autorité_est_définie := faux
-    requête_est_définie := faux
-    fragment_est_défini := faux
+    schéma_est_défini := faux  // @privé
+    autorité_est_définie := faux  // @privé
+    requête_est_définie := faux  // @privé
+    fragment_est_défini := faux  // @privé
 }
 
 RésultatURI :: union {
@@ -290,7 +290,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 
     nombre_slashs := compte_consécutifs_si(chn, est_slash_uri)
 
-    // l'autorité doit commencé par deux slashs
+    // l'autorité doit commencer par deux slashs
     si nombre_slashs == 2 {
         après_slashs := avance(chn, nombre_slashs)
         fin_autorité := trouve_position_si(après_slashs, est_terminateur_autorité)
@@ -318,6 +318,15 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     retourne uri
 }
 
+parse_uri_depuis_chaine :: fonc (chn: chaine) -> bool, URI
+{
+    uri := tente parse_uri_standard(chn) piège err {
+        retourne faux, URI()
+    }
+
+    retourne vrai, uri
+} @ParsageJSON
+
 parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
 	uri : URI
@@ -329,6 +338,31 @@ parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 	}
 
 	retourne uri
+}
+
+est_valide :: fonc (uri: URI) -> bool
+{
+    saufsi uri.hôte {
+        // Seul le schéma "file" peut avoir un hôte vide.
+        retourne uri.schéma == "file"
+    }
+
+    // Un URI ne peut avoir d'informations d'identité ou de port si :
+    // - l'hôte est vide
+    // - le schéma est "file"
+    // - si son drapeau 'ne-peut-être-une-base' est vrai
+    // Source : https://url.spec.whatwg.org/#cannot-have-a-username-password-port
+    si possède_informations_identité(uri) || uri.port != "" {
+        si uri.schéma == "file" {
+            retourne faux
+        }
+
+        si uri.hôte == "" {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 // Retourne une chaine contenant la recomposition de l'URI depuis ses composants.
@@ -403,6 +437,49 @@ port_pour_uri :: fonc(uri : &URI) -> n16
     retourne extrait_nombre_entier(uri.port) comme n16
 }
 
+port_par_défaut :: fonc (uri: &URI) -> n16
+{
+    discr uri.schéma {
+        "file" {
+            retourne 0
+        }
+        "ftp" {
+            retourne 21
+        }
+        "http", "ws" {
+            retourne 80
+        }
+        "https", "wss" {
+            retourne 443
+        }
+        sinon {
+            retourne 0
+        }
+    }
+}
+
+est_spécial :: fonc (uri: &URI) -> bool
+{
+    discr uri.schéma {
+        "file",
+        "ftp",
+        "http",
+        "https",
+        "ws",
+        "wss" {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+possède_informations_identité :: fonc (uri: &URI) -> bool
+{
+    retourne uri.nom_utilisateur != "" || uri.mot_de_passe != ""
+}
+
 /* Crée un chemin URL avec des paramètres provenant d'une structure :
  *
  * /mon/chemin/?membre1=valeur1&membre2=valeur2
@@ -441,6 +518,143 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+
+/*
+// https://url.spec.whatwg.org/
+
+Domaine :: #opaque chaine // chaine ASCII identifiant un royaume dans le réseau
+HôteOpaque :: #opaque chaine // chaine ASCII non-vide devant être encore traitée (par exemple, c'utilise un encodage-pourcent).
+HôteVide :: #opaque chaine
+
+Hôte :: union {
+    domaine: Domaine
+    ipv4: AdresseIPv4
+    ipv6: AdresseIPv6
+    hôte_opaque: HôteOpaque
+    hôte_vide: HôteVide
+}
+
+parse_hôte :: fonc (texte: chaine, n_est_pas_spécial := faux) -> Hôte | bool
+{
+    saufsi texte {
+        retourne faux
+    }
+
+    si texte[0] == '[' {
+        si texte[texte.taille - 1] != ']' {
+            retourne faux
+        }
+
+        // parse_ipv6
+    }
+
+    si n_est_pas_spécial {
+        retourne pase_hôte_opaque(texte)
+    }
+}
+
+sérialise :: fonc (enchaineuse: &Enchaineuse, hôte: Hôte)
+{
+    discr hôte {
+        domaine {
+            enchaineuse.ajoute_au_tampon(hôte.domaine)
+        }
+        hôte_opaque {
+            enchaineuse.ajoute_au_tampon(hôte.hôte_opaque)
+        }
+        hôte_vide {
+            enchaineuse.ajoute_au_tampon(hôte.hôte_vide)
+        }
+        ipv4 {
+
+        }
+        ipv6 {
+
+        }
+    }
+}
+
+OrigineOpaque :: #opaque z32
+OrigineTuple :: struct {
+    schéma: chaine
+    hôte: Hôte
+    port: n16
+    domaine: Domaine
+}
+
+Origine :: union {
+    opaque: OrigineOpaque
+    tuple: OrigineTuple
+}
+
+DomaineEffectif :: union {
+    domaine: Domaine
+    hôte: Hôte
+}
+
+domaine_effectif :: fonc (origine: Origine) -> DomaineEffectif
+{
+    discr origine {
+        opaque {
+            retourne DomaineEffectif()
+        }
+        tuple {
+            t := origine.tuple
+
+            si t.domaine != "" {
+                retourne t.domaine
+            }
+
+            retourne t.hôte
+        }
+    }
+}
+
+sérialise :: fonc (enchaineuse: &Enchaineuse, origine: Origine)
+{
+    discr origine {
+        opaque {
+            enchaineuse.ajoute_au_tampon("null")
+        }
+        tuple {
+            t := origine.t
+            enchaineuse.ajoute_au_tampon(t.schéma, "://")
+            sérialise(enchaineuse, t.hôte)
+            si t.port {
+                enchaineuse.ajoute_au_tampon(":", t.port)
+            }
+        }
+    }
+}
+
+origine :: fonc (uri: &URI) -> Origine
+{
+    discr uri.schéma {
+        "blob" {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+        "ftp",
+        "http",
+        "https",
+        "ws",
+        "wss" {
+            tuple: OrigineTuple
+            tuple.schéma = uri.schéma
+            tuple.hôte = uri.hôte
+            tuple.port = uri.port
+            retourne tuple
+        }
+        "file" {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+        sinon {
+            retourne OrigineOpaque(0) // À FAIRE
+        }
+    }
+}
+*/
+
 
 // -----------------------------------------------
 // tests unitaires
@@ -577,7 +791,7 @@ importe Compilatrice
 }
 
 #test {
-    /* L'hôte peut également être la valeur décimal de l'adresse IPv4 :
+    /* L'hôte peut également être la valeur décimale de l'adresse IPv4 :
      * pour l'adresse 167.216.133.33, la valeur décimale est 167*256^3+216*256^2+133*256+33 = 2815984929
      *
      * À FAIRE : tests dans IPv4
@@ -592,4 +806,59 @@ importe Compilatrice
 	compilatrice_vérifie_égalité(uri.chemin, "")
 	compilatrice_vérifie_égalité(uri.requête, "")
 	compilatrice_vérifie_égalité(uri.fragment, "")
+}
+
+test_validité_uri :: fonc (chn: chaine)
+{
+    uri := tente parse_uri_standard(chn) piège err {
+        imprime("L'uri % est invalide !\n", chn)
+        retourne
+    }
+
+    si !uri.est_valide() {
+        imprime("L'uri % est invalide !\n", chn)
+        retourne
+    }
+
+    imprime("L'URI est valide :\n%\n", uri)
+}
+
+test_ssrf :: fonc ()
+{
+    // Tests de https://www.youtube.com/watch?v=voTHFdL9S2k
+    // https://github.com/orangetw/Tiny-URL-Fuzzer
+
+    // Le port doit être 80
+    test_validité_uri("http://127.0.0.1:11211:80/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://google.com#@evil.com/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://foo@evil.com@google.com/")
+
+    // Nous devons aller sur google.com, même test qu'avant mais une espace est présente
+    test_validité_uri("http://foo@evil.com @google.com/")
+
+    // Nous devons aller sur google.com
+    test_validité_uri("http://foo@127.0.0.1:11211@google.com:80/")
+
+    // Technique d'obfuscation en utilisant des \ pour tromper GlibC (gethostbyname supprimera les \ qui ne sont pas suivis pas des nombres).
+    // Dans notre cas, les \ sont considérer comme des caractères de séparation, donc l'URL sera parsé, mais sans doute invalide (l'hôte sera vide).
+    test_validité_uri("http://\\g\\o\\o\\g\\l\\e.\\c\\o\\m/")
+
+    // Ici, de même, mais l'URI est invalide, le parsage échouera. Pourquoi ?
+    test_validité_uri("http://or\\097nge.tw/")
+
+    // Certaines attaques peuvent avoir des nouvelles lignes ou des espaces dans l'hôte
+    // Attention, getaddrinfo retournera une bonne adresse !
+    test_validité_uri("http://127.0.0.1 google.com/")
+    test_validité_uri("http://127.0.0.1\r\ngoogle.com/")
+    test_validité_uri("http://127.0.0.1\tgoogle.com/")
+    test_validité_uri("http://127.0.0.1%09google.com/")
+    test_validité_uri("http://127.0.0.1%2509google.com/")
+
+    // avec UTF-16, la séquence FF2E (le caractère latin N en pleine largeure, ou peu importe la traduction française), peut
+    // dans certains parseurs ne supportant pas cette séquence être convertie en un '.', donc deux à la suite permettrait d'accéder au dossier parent "..".
+    // test_validité_uri("http://orange.tw/\uFF2E\uFF2E/passwd")
 }

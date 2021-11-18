@@ -60,6 +60,12 @@ temps_écoulé_secondes :: fonc (inst: Instantané) -> z64
     retourne m - inst.seconde
 }
 
+temps_écoulé_millisecondes :: fonc (inst: Instantané) -> z64
+{
+    m := maintenant_précis().millisecondes()
+    retourne m - millisecondes(inst)
+}
+
 temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
 {
     m := maintenant_précis().microsecondes()

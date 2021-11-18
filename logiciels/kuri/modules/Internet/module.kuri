@@ -1,13 +1,28 @@
 importe Fondation
 importe Numérique
 
-// Module de travail sur les adresses IP v4 et v6
-// RFCs pour IPv6 :
-// https://tools.ietf.org/html/rfc4291
-// https://tools.ietf.org/html/rfc5952
+/*
+    Bibliothèque de parsage et formattage d'adresses IP v4 et v6.
 
-// À FAIRE : représenter les adresses IPv4 dans les chaines IPv6
-// À FAIRE : parser les adresses IPv4 et IPv6 avec préfixes
+    Les adresses IP v4 supportées sont de formes :
+    - point-canoniques : a.b.c.d
+    - nombre 32-bits : n, où n = a*256^3 + b*256^2 + c*256 + d
+
+    Les adresses IP v6 supportées sont de formes :
+    - canoniques, avec raccourcis ("::" peut se trouver dans la chaine)
+    - avec adresse IP v4 à la fin (1:2:3:4:5:6:a.b.c.d)
+    - l'adresses IP v4 doit se conformer aux formes d'adresses IP v4 supportées
+
+    RFCs pour IPv6 :
+    - https://tools.ietf.org/html/rfc4291
+    - https://tools.ietf.org/html/rfc5952
+
+
+    À FAIRE : représenter les adresses IPv4 dans les chaines IPv6
+    À FAIRE : parser les adresses IPv4 et IPv6 avec préfixes
+    À FAIRE : parser les adresses IP avec des masques de sous-réseau
+    À FAIRE : voir les cas spéciaux IPv4 https://blog.dave.tf/post/ip-addr-parsing/
+ */
 
 ErreurParsageIP :: erreur {
     NombreÉlémentsIncorrect
@@ -173,46 +188,25 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
+// Structure pour tenir des informations sur les séquences de '0' d'une adresse IPv6
+// Par exemple : 1:0:0:0:1:0:0:1:1 possède 2 séquences.
+// index_début et index_fin sont les position dans les éléments de la séquence.
+// nombre_de_zéros est pour la taille de la taille de séquence.
+SéquenceDeZéros :: struct {
+    index_début  : z64
+    index_fin    : z64
+    nombre_zéros : z32
+}
+
+// il ne peut y avoir qu'au maximum 4 séquences de 1 zéros :
+// 1:0:1:0:1:0:1:0
+// 0:1:0:1:0:1:0:1
+détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> [4]SéquenceDeZéros, z64
 {
-    saufsi ptr_ipv6 {
-        retourne
-    }
-
-    ipv6 := mémoire(ptr_ipv6)
-
-    // les champs doivent être écrits sans 0 au début
-    // OK     : 2001:db8::1
-    // Pas OK : 2001:0db8::0001
-
-    // les caractères doivent être en minuscule
-
-    // les suites de zéros doivent être raccourcis
-    // 2001:db8:0:0:0:0:2:1 -> 2001:db8::2:1 mais non 2001:db8::0:1
-
-    // on ne peut raccourcir un seul 0
-    // 2001:db8:0:1:1:1:1:1 n'est pas changé -> 2001:db8::1:1:1:1:1 est incorrect
-
-    // s'il y a plusieurs série de zéros, seule la plus longue devrait être remplacée par ::
-    // 2001:0:0:1:0:0:0:1 -> 2001:0:0:1::1 et non 2001::1:0:0:0:1
-
-    // s'il y a plusieurs séquences de zéros de même taille, la première doit être raccourcie
-    // 2001:db8:0:0:1:0:0:1 -> 2001:db8::1:0:0:1
-
-    Séquence :: struct {
-        index_début  : z64
-        index_fin    : z64
-        nombre_zéros : z32
-    }
-
-    // il ne peut y avoir qu'au maximum 4 séquences de 1 zéros :
-    // 1:0:1:0:1:0:1:0
-    // 0:1:0:1:0:1:0:1
-    séquences : [4]Séquence
-
+    séquences : [4]SéquenceDeZéros
     nombre_zéros := 0
 
-    séquence : Séquence
+    séquence : SéquenceDeZéros
     nombre_de_séquences : z64 = 0
 
     pour ipv6 {
@@ -241,6 +235,11 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
         nombre_de_séquences += 1
     }
 
+    retourne séquences, nombre_de_séquences
+}
+
+détermine_séquence_la_plus_longue :: fonc (séquences: [4]SéquenceDeZéros, nombre_de_séquences: z64) -> SéquenceDeZéros
+{
     séquence_la_plus_longue := séquences[0]
 
     pour 1 ... nombre_de_séquences - 1 {
@@ -249,129 +248,131 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
         }
     }
 
-    si séquence_la_plus_longue.nombre_zéros == 8 {
-        ajoute_au_tampon(enchaineuse, "::")
-        retourne
-    }
-
     si séquence_la_plus_longue.nombre_zéros < 2 {
         séquence_la_plus_longue.nombre_zéros = 0
         séquence_la_plus_longue.index_début = 0
         séquence_la_plus_longue.index_fin = 0
     }
 
-    tampon : [39]z8
-    taille_tampon : z64 = 0
+    retourne séquence_la_plus_longue
+}
 
-    double_points := '\0'
+// À FAIRE : généralise
+Tamponet :: struct {
+    données: [39]z8
+    taille: z64
+}
+
+ajoute_au_tampon :: fonc (tampon: &Tamponet, c: z8)
+{
+    tampon.données[tampon.taille] = c
+    tampon.taille += 1
+}
+
+chaine_depuis_tamponet :: fonc (tampon: &Tamponet) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = *tampon.données[0]
+    résultat.taille = tampon.taille
+    retourne résultat
+}
+
+/* Auxilliaire pour le formattage d'une adresse IPv6. */
+formatte_champs :: fonc (tampon: &Tamponet, champs: n16)
+{
+    si champs == 0 {
+        ajoute_au_tampon(tampon, '0')
+        retourne
+    }
+
     caractères_hex :: "0123456789abcdef"
 
-    pour 0 ... séquence_la_plus_longue.index_début - 1 {
-        tampon[taille_tampon] = double_points
-        taille_tampon += 1
-
-        v := ipv6[it]
-
-        si v == 0 {
-            tampon[taille_tampon] = '0'
-            taille_tampon += 1
-            double_points = ':'
-            continue
-        }
-
-        a := (v >> 12) & 0xf
-
-        si a != 0 {
-            tampon[taille_tampon] = caractères_hex[a comme z64]
-            taille_tampon += 1
-        }
-
-        b := (v >> 8) & 0xf
-
-        si b != 0 || a != 0 {
-            tampon[taille_tampon] = caractères_hex[b comme z64]
-            taille_tampon += 1
-        }
-
-        c := (v >> 4) & 0xf
-
-        si c != 0 || b != 0 || a != 0 {
-            tampon[taille_tampon] = caractères_hex[c comme z64]
-            taille_tampon += 1
-        }
-
-        d := v & 0xf
-
-        tampon[taille_tampon] = caractères_hex[d comme z64]
-        taille_tampon += 1
-
-        double_points = ':'
+    a := (champs >> 12) & 0xf
+    si a != 0 {
+        ajoute_au_tampon(tampon, caractères_hex[a comme z64])
     }
 
-    si séquence_la_plus_longue.nombre_zéros != 0 {
-        double_points = ':'
-        tampon[taille_tampon] = double_points
-        taille_tampon += 1
+    b := (champs >> 8) & 0xf
+    si b != 0 || a != 0 {
+        ajoute_au_tampon(tampon, caractères_hex[b comme z64])
     }
 
+    c := (champs >> 4) & 0xf
+    si c != 0 || b != 0 || a != 0 {
+        ajoute_au_tampon(tampon, caractères_hex[c comme z64])
+    }
+
+    d := champs & 0xf
+    ajoute_au_tampon(tampon, caractères_hex[d comme z64])
+}
+
+/* Les champs doivent être écrits sans 0 au début
+ * OK     : 2001:db8::1
+ * Pas OK : 2001:0db8::0001
+ *
+ * les caractères doivent être en minuscule
+ *
+ * les suites de zéros doivent être raccourcis
+ * 2001:db8:0:0:0:0:2:1 -> 2001:db8::2:1 mais non 2001:db8::0:1
+ *
+ * on ne peut raccourcir un seul 0
+ * 2001:db8:0:1:1:1:1:1 n'est pas changé -> 2001:db8::1:1:1:1:1 est incorrect
+ *
+ * s'il y a plusieurs série de zéros, seule la plus longue devrait être remplacée par ::
+ * 2001:0:0:1:0:0:0:1 -> 2001:0:0:1::1 et non 2001::1:0:0:0:1
+ *
+ * s'il y a plusieurs séquences de zéros de même taille, la première doit être raccourcie
+ * 2001:db8:0:0:1:0:0:1 -> 2001:db8::1:0:0:1
+ */
+formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
+{
+    saufsi ptr_ipv6 {
+        retourne
+    }
+
+    ipv6 := mémoire(ptr_ipv6)
+
+    séquences, nombre_de_séquences := détermine_séquences_de_zéros(ipv6)
+    séquence_la_plus_longue := détermine_séquence_la_plus_longue(séquences, nombre_de_séquences)
+
+    /* S'il n'existe qu'une seule séquence, raccourcissons toute l'adresse. */
+    si séquence_la_plus_longue.nombre_zéros == 8 {
+        ajoute_au_tampon(enchaineuse, "::")
+        retourne
+    }
+
+    tampon : Tamponet
+
+    /* Ignore la séquence de zéros (remplace par un simple ':'). */
+    si séquence_la_plus_longue.index_début == 0 && séquence_la_plus_longue.nombre_zéros > 1 {
+        ajoute_au_tampon(tampon, ':')
+    }
+    /* Formatte jusqu'au début de la séquence de zéros. */
+    sinon pour séquence_la_plus_longue.index_début {
+        si it != 0 {
+            ajoute_au_tampon(tampon, ':')
+        }
+        formatte_champs(tampon, ipv6[it])
+    }
+
+    /* Ignore les séquences entre deux séquences non-égales à zéro (remplace par un simple ':'). */
+    si séquence_la_plus_longue.index_début != 0 && séquence_la_plus_longue.nombre_zéros != 0 {
+        ajoute_au_tampon(tampon, ':')
+    }
+
+    /* Ignore la séquence de zéros (remplace par un simple ':'). */
     si séquence_la_plus_longue.index_fin == 8 {
-        tampon[taille_tampon] = double_points
-        taille_tampon += 1
+        ajoute_au_tampon(tampon, ':')
+    }
+    /* Formatte depuis la fin de la séquence de zéros. */
+    sinon pour séquence_la_plus_longue.index_fin ... 7 {
+        si it != 0 {
+            ajoute_au_tampon(tampon, ':')
+        }
+        formatte_champs(tampon, ipv6[it])
     }
 
-    pour séquence_la_plus_longue.index_fin ... 7 {
-        tampon[taille_tampon] = double_points
-        taille_tampon += 1
-
-        v := ipv6[it]
-
-        si v == 0 {
-            tampon[taille_tampon] = '0'
-            taille_tampon += 1
-            double_points = ':'
-            continue
-        }
-
-        a := (v >> 12) & 0xf
-
-        si a != 0 {
-            tampon[taille_tampon] = caractères_hex[a comme z64]
-            taille_tampon += 1
-        }
-
-        b := (v >> 8) & 0xf
-
-        si b != 0 || a != 0 {
-            tampon[taille_tampon] = caractères_hex[b comme z64]
-            taille_tampon += 1
-        }
-
-        c := (v >> 4) & 0xf
-
-        si c != 0 || b != 0 || a != 0 {
-            tampon[taille_tampon] = caractères_hex[c comme z64]
-            taille_tampon += 1
-        }
-
-        d := v & 0xf
-
-        tampon[taille_tampon] = caractères_hex[d comme z64]
-        taille_tampon += 1
-
-        double_points = ':'
-    }
-
-    ptr_tampon := *tampon[0]
-
-    si tampon[0] == '\0' {
-        taille_tampon -= 1
-        ptr_tampon += 1
-    }
-
-    chn : chaine = ---
-    chn.pointeur = ptr_tampon
-    chn.taille = taille_tampon
-    ajoute_au_tampon(enchaineuse, chn)
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon))
 } @FormattageImpression
 
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
@@ -380,7 +381,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
     diffère { déloge(morceaux) }
 
     // il est possible d'obtenir des chaines contenant l'adresse au format décimale :
-    // x * 256 ^ 3 + y * 256 ^ 2 + z ^ 256 + w
+    // x * 256 ^ 3 + y * 256 ^ 2 + z * 256 + w
     si morceaux.taille == 1 {
         valeur := tente extrait_n32(chn) piège err {
             retourne ErreurParsageIP.CaractèreInvalide
@@ -435,40 +436,31 @@ formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
     }
 
     ipv4 := mémoire(ptr_ipv4)
-    tampon : [15]z8
-    taille_tampon := 0
+    tampon : Tamponet // 15 valeurs maximales
 
     pour ipv4 {
         d := it
-        centaine := it / 100
 
+        centaine := it / 100
         si centaine != 0 {
-            tampon[taille_tampon] = (centaine + 0x30) comme z8
-            taille_tampon += 1
+            ajoute_au_tampon(tampon, (centaine + 0x30) comme z8)
             d %= 100
         }
 
         dizaine := d / 10
-
         si dizaine != 0 || centaine != 0 {
-            tampon[taille_tampon] = (dizaine + 0x30) comme z8
-            taille_tampon += 1
+            ajoute_au_tampon(tampon, (dizaine + 0x30) comme z8)
             d %= 10
         }
 
-        tampon[taille_tampon] = (d + 0x30) comme z8
-        taille_tampon += 1
+        ajoute_au_tampon(tampon, (d + 0x30) comme z8)
 
         si index_it < 3 {
-            tampon[taille_tampon] = '.'
-            taille_tampon += 1
+            ajoute_au_tampon(tampon, '.')
         }
     }
 
-    chn : chaine = ---
-    chn.pointeur = *tampon[0]
-    chn.taille = taille_tampon
-    ajoute_au_tampon(enchaineuse, chn)
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon))
 } @FormattageImpression
 
 ErreurConversionIP :: erreur {
@@ -537,7 +529,7 @@ test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := Po
     }
 
     chn_ipv6 := chaine_depuis_ipv6(ipv6)
-    compilatrice_vérifie_égalité(chn_ipv6, attendue)
+    compilatrice_vérifie_égalité(chn_ipv6, attendue, pos)
     déloge(chn_ipv6)
 }
 

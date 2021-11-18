@@ -120,7 +120,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-    ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_entete_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
@@ -137,9 +137,20 @@ struct ContexteValidationCode {
     ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
     ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
                                                     NoeudBloc *bloc_recherche);
+    ResultatValidation valide_type_opaque(NoeudDeclarationTypeOpaque *decl);
 
     template <typename TypeControleBoucle>
     CodeRetourValidation valide_controle_boucle(TypeControleBoucle *inst);
+
+    ResultatValidation valide_operateur_binaire(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_chaine(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_tableau(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_type(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_operateur_binaire_generique(NoeudExpressionBinaire *expr);
+    ResultatValidation valide_comparaison_enum_drapeau_bool(
+        NoeudExpressionBinaire *expr,
+        NoeudExpressionMembre *expr_acces_enum,
+        NoeudExpressionLitteraleBool *expr_bool);
 
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 

@@ -1,0 +1,246 @@
+/*
+
+Génération de code Kuri pour créer un module Python depuis du code Kuri.
+
+*/
+
+importe Compilatrice
+importe Fondation
+importe SysFichier
+
+// À FAIRE : gère proprement les chaines, les chaines C ne sont jamais détruites !
+
+ModulePython :: struct {
+    nom: chaine
+    méthodes : []MéthodePython
+    constantes_nombre_entier : []ConstanteNombreEntier
+    constantes_chaine : []ConstanteChaine
+}
+
+ConstanteNombreEntier :: struct {
+    nom: chaine
+    valeur: z64
+}
+
+ConstanteChaine :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+ajoute_constante_nombre_entier :: fonc (module: &ModulePython, nom: chaine, valeur: z64)
+{
+    tableau_ajoute(*module.constantes_nombre_entier, ConstanteNombreEntier(nom, valeur))
+}
+
+ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: chaine)
+{
+    tableau_ajoute(*module.constantes_chaine, ConstanteChaine(nom, valeur))
+}
+
+ParamètreMéthodePython :: struct {
+    nom: chaine
+    type: *TypePython
+}
+
+MéthodePython :: struct {
+    nom: chaine
+    paramètres_entrée: []ParamètreMéthodePython
+    paramètres_sortie: []ParamètreMéthodePython
+}
+
+ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
+{
+    saufsi méthode.paramètres_sortie {
+        retourne vrai
+    }
+
+    premier_param := méthode.paramètres_sortie[0]
+    retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == nul
+}
+
+convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -> ParamètreMéthodePython
+{
+    résultat: ParamètreMéthodePython
+    résultat.nom = param.nom
+    résultat.type = système_type.convertis_vers_type_python(param.type)
+    retourne résultat
+}
+
+// ignore_premier_paramètre_après_contexte est pour les fonctions d'allocation, etc.,
+// qui doivent prendre un paramètre du type dans kuri, mais qui peuvent ne pas prendre
+// l'objet en paramètre dans Python.
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre_après_contexte := faux) -> MéthodePython
+{
+    résultat: MéthodePython
+    résultat.nom = entête.nom
+
+    après_contexte := vrai
+
+    pour entête.params {
+        /* Ignore le contexte implicite, seuls les vrais paramètres devraient être convertis. */
+        si it.type == info_de(ContexteProgramme) {
+            après_contexte = vrai
+            continue
+        }
+
+        si après_contexte && ignore_premier_paramètre_après_contexte {
+            après_contexte = faux
+            continue
+        }
+
+        param := convertis_paramètre(it, système_type)
+        tableau_ajoute(*résultat.paramètres_entrée, param)
+    }
+
+    pour entête.params_sorties {
+        param := convertis_paramètre(it, système_type)
+        tableau_ajoute(*résultat.paramètres_sortie, param)
+    }
+
+    retourne résultat
+}
+
+ajoute_fonction :: fonc (module: &ModulePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    méthode := méthode_python_depuis_entête(fonction, système_type)
+    tableau_ajoute(*module.méthodes, méthode)
+}
+
+// ---------------------------------------------------
+
+/* Pour chaque type Python, nous enregistrons certaines fonctions permettant de les convertir ou discriminer. */
+FonctionsTypePython :: struct {
+    pour_discrimination: chaine // PyLong_Check, etc.
+    pour_extraction_valeur: chaine // PyLong_AsLong, etc.
+    pour_construction: chaine // PyLong_FromLong, etc.
+}
+
+init_fonctions_type_entier :: fonc (fonctions: &FonctionsTypePython)
+{
+    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
+    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsLong")
+    fonctions.pour_construction = copie_chaine("PyLong_FromLong")
+}
+
+init_fonctions_type_bool :: fonc (fonctions: &FonctionsTypePython)
+{
+    fonctions.pour_discrimination = copie_chaine("PyBool_Check")
+    fonctions.pour_extraction_valeur = copie_chaine("PyBool_AsBool")
+    fonctions.pour_construction = copie_chaine("PyBool_FromBool")
+}
+
+init_fonctions_type_réel :: fonc (fonctions: &FonctionsTypePython)
+{
+    fonctions.pour_discrimination = copie_chaine("PyFloat_Check")
+    fonctions.pour_extraction_valeur = copie_chaine("PyFloat_AsDouble")
+    fonctions.pour_construction = copie_chaine("PyFloat_FromDouble")
+}
+
+init_fonctions_type_chaine :: fonc (fonctions: &FonctionsTypePython)
+{
+    fonctions.pour_discrimination = copie_chaine("PyUnicode_Check")
+    fonctions.pour_extraction_valeur = copie_chaine("PyUnicode_AsChaine")
+    fonctions.pour_construction = copie_chaine("PyUnicode_FromChaine")
+}
+
+init_fonctions_type_structure :: fonc (fonctions: &FonctionsTypePython, nom: chaine)
+{
+    fonctions.pour_discrimination = enchaine("Py", nom, "_Check")
+    fonctions.pour_extraction_valeur = enchaine("Py", nom, "_As", nom)
+    fonctions.pour_construction = enchaine("Py", nom, "_From", nom)
+}
+
+// ---------------------------------------------------
+
+ConfidentialitéType :: énum {
+    /* Les membres du type peuvent être accédés. */
+    ACCESSIBLE
+    /* Les membres du type peuvent être mutés, ceci implique qu'ils sont également ACCESSIBLE. */
+    MUTABLE
+    /* Les membres du type ne sont pas ni accessible, ni mutable. */
+    OPAQUE
+}
+
+confidentialité_pour_annotation :: fonc (annotations: []AnnotationCode) -> ConfidentialitéType
+{
+    pour annotations {
+        si it.nom == "privé" {
+            retourne ConfidentialitéType.OPAQUE
+        }
+
+        si it.nom == "mutable" {
+            retourne ConfidentialitéType.MUTABLE
+        }
+
+        si it.nom == "accessible" {
+            retourne ConfidentialitéType.MUTABLE
+        }
+    }
+
+    /* Par défaut, les membres sont opaques. */
+    retourne ConfidentialitéType.OPAQUE
+}
+
+MembreType :: struct {
+    nom: chaine
+    confidentialité: ConfidentialitéType
+    type: *TypePython
+}
+
+DrapeauxType :: énum_drapeau {
+    TYPE_EST_UNION
+}
+
+TypePython :: struct {
+    nom: chaine
+    type_kuri: *InfoType
+
+    /* Si le type est un type de base, qui ne doit avoir un PyTypeObject associé. */
+    est_basique: bool
+
+    drapeaux: DrapeauxType
+
+    fonctions : FonctionsTypePython
+
+    confidentialité: ConfidentialitéType
+
+    membres: []MembreType
+
+    méthodes: []MéthodePython
+
+    new: MéthodePython
+    init: MéthodePython
+    repr: MéthodePython
+    str: MéthodePython
+
+    /* Données pour la génération de code, mises en place lors de celle-ci. */
+
+    /* Le nom de la globale qui défini les informations sur le PyTypeObject correspondant. */
+    nom_globale_type: chaine
+}
+
+ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    méthode := méthode_python_depuis_entête(fonction, système_type)
+    tableau_ajoute(*type.méthodes, méthode)
+}
+
+ajoute_méthode_new :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.new = méthode_python_depuis_entête(fonction, système_type, vrai)
+}
+
+ajoute_méthode_init :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.init = méthode_python_depuis_entête(fonction, système_type, vrai)
+}
+
+ajoute_méthode_repr :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.repr = méthode_python_depuis_entête(fonction, système_type)
+}
+
+ajoute_méthode_str :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.str = méthode_python_depuis_entête(fonction, système_type)
+}

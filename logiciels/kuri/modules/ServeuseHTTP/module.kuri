@@ -488,6 +488,16 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     retourne serveuse
 }
 
+// À FAIRE : dossier
+ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
+{
+    si extension != ".css" && extension != ".js" && extension != ".jsx" && extension != ".png" {
+        retourne
+    }
+
+    serveuse.routeuse.apparie_fichiers(extension)
+}
+
 lance :: fonc (serveuse: *ServeuseHTTP)
 {
     serveuse.boucle_évènements.lance()
@@ -499,16 +509,6 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
     détruit_boucle(serveuse.boucle_évènements)
     détruit_contexte(serveuse.ctx)
     déloge(serveuse)
-}
-
-ajoute_route_get :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
-{
-    ajoute_route(*serveuse.routeuse.routes_get, chemin, rappel)
-}
-
-ajoute_route_post :: fonc (serveuse: *ServeuseHTTP, chemin: chaine, rappel: TypeRappelRoute)
-{
-    ajoute_route(*serveuse.routeuse.routes_post, chemin, rappel)
 }
 
 quand_ouverture :: fonc (prise: *Prise)
@@ -548,8 +548,6 @@ quand_lecture :: fonc (prise: *Prise)
         retourne
     }
 
-    diffère parseuse.réinitialise()
-
     message : MessageClienteHTTP
     réponse : MessageServeuseHTTP = ---
     diffère détruit_message(*réponse)
@@ -576,34 +574,41 @@ quand_lecture :: fonc (prise: *Prise)
     sinon {
         // délai en cas de non-lecture
         prise.mute_délai(10)
+        parseuse.réinitialise()
     }
 }
 
 gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+    retourne apparie_route(serveuse.routeuse, prise, message)
+}
 
-    // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
-    rappel_route := apparie_route(serveuse.routeuse, message.uri.chemin, message.méthode)
-
-    saufsi rappel_route.rappel {
-        si serveuse.rappel_page_non_trouvée {
-            retourne serveuse.rappel_page_non_trouvée(prise, message)
-        }
-
-        retourne ressource_non_trouvée()
+compare_ascii_insensible_à_la_casse :: fonc (c1: z8, c2: z8) -> bool #enligne
+{
+    si c1 == c2 {
+        retourne vrai
     }
 
-    si serveuse.intergiciel {
-        réponse_intergiciel := serveuse.intergiciel(prise, message)
+    retourne en_minuscule(c1) == en_minuscule(c2)
+}
 
-        si réponse_intergiciel.code_état != CodeÉtatHTTP.OK {
-            retourne réponse_intergiciel
+compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> bool
+{
+    si chn1.taille != chn2.taille {
+        retourne faux
+    }
+
+    pour chn1.taille {
+        c1 := chn1[index_it]
+        c2 := chn2[index_it]
+
+        saufsi compare_ascii_insensible_à_la_casse(c1, c2) {
+            retourne faux
         }
     }
 
-    message.données_appariements = rappel_route.données
-    retourne rappel_route.rappel(prise, message)
+    retourne vrai
 }
 
 doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> bool
@@ -612,11 +617,11 @@ doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &Messa
     connection_message := message.entête("Connection")
     connection_réponse := réponse.entête("Connection")
 
-    cliente_veut_fermer_la_connexion := connection_message && connection_message.valeur == "close"
-    serveuse_veut_fermer_la_connexion := connection_réponse && connection_réponse.valeur == "close"
+    cliente_veut_fermer_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "close")
+    serveuse_veut_fermer_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "close")
 
-    cliente_veut_garder_la_connexion := connection_message && connection_message.valeur == "keep-alive"
-    serveuse_veut_garder_la_connexion := connection_réponse && connection_réponse.valeur == "keep-alive"
+    cliente_veut_garder_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "keep-alive")
+    serveuse_veut_garder_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "keep-alive")
 
     doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
 
@@ -808,13 +813,9 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message
 }
 
-// À FAIRE: généralise
-get_fichier_css :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+sers_fichier :: fonc (prise: *Prise, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
 {
-    // enlève le premier slash
-    chemin_fichier := avance(message.requête, 1)
-    chm := construit_chemin(chemin_fichier)
-
+    chm := chemin_pour_fichier(message.requête)
     contenu := contenu_fichier_texte(chm)
 
     saufsi contenu {
@@ -825,27 +826,7 @@ get_fichier_css :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> Message
     réponse.version = "HTTP/1.1"
     réponse.code_état = CodeÉtatHTTP.OK
     réponse.contenu = contenu
-    ajoute_entête(*réponse, "Content-Type", "text/css; charset=utf-8")
-    retourne réponse
-}
-
-get_image_png :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
-{
-    // enlève le premier slash
-    chemin_fichier := avance(message.requête, 1)
-    chm := construit_chemin(chemin_fichier)
-
-    contenu := contenu_fichier_texte(chm)
-
-    saufsi contenu {
-        retourne ressource_non_trouvée()
-    }
-
-    réponse : MessageServeuseHTTP
-    réponse.version = "HTTP/1.1"
-    réponse.code_état = CodeÉtatHTTP.OK
-    réponse.contenu = contenu
-    ajoute_entête(*réponse, "Content-Type", "image/png")
+    ajoute_entête(*réponse, "Content-Type", type_mime)
     retourne réponse
 }
 

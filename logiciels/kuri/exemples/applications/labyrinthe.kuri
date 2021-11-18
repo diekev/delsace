@@ -51,7 +51,7 @@ imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
     pour c dans labyrinthe.ligne {
         imprime(" ")
 
-        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+        si c.position_mur.DROITE {
             imprime("x")
         }
         sinon {
@@ -62,14 +62,14 @@ imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
 
     imprime("x")
     pour c dans labyrinthe.ligne {
-        si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+        si c.position_mur.BAS {
             imprime("x")
         }
         sinon {
             imprime(" ")
         }
 
-        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+        si c.position_mur.DROITE {
             imprime("x")
         }
         sinon {
@@ -131,7 +131,7 @@ principale :: fonc () -> z32
             imprime_ligne(*labyrinthe)
 
             pour & c dans labyrinthe.ligne {
-                si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+                si c.position_mur.BAS {
                     c.groupe = 0
                 }
 

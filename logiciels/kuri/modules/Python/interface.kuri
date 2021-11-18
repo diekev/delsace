@@ -1,0 +1,507 @@
+// Interface pour la bibliothèque du langage Python permettant de définir des modules.
+
+importe GlibC
+
+libpython :: #bibliothèque "python3.7m"
+
+Py_ssize_t :: z64
+Py_hash_t :: Py_ssize_t
+
+// #if PYLONG_BITS_IN_DIGIT == 30
+digit :: n32
+
+PyAsyncMethods :: struct #externe
+PyNumberMethods :: struct #externe
+PySequenceMethods :: struct #externe
+PyMappingMethods :: struct #externe
+PyBufferProcs :: struct #externe
+PyMemberDef :: struct #externe
+
+PyGetSetDef :: struct #externe {
+    name: ChaineC
+    get: #nulctx fonc(*PyObject, *rien)(*PyObject)
+    set: #nulctx fonc(*PyObject, *PyObject, *rien)(*PyObject)
+    doc: ChaineC
+    closure: *rien
+}
+
+_typeobject :: PyTypeObject
+
+PyTypeObject :: struct #externe {
+    empl ob_base: PyVarObject
+
+    tp_name: ChaineC /* For printing, in format "<module>.<name>" */
+
+    /* For allocation */
+    tp_basicsize: Py_ssize_t
+    tp_itemsize: Py_ssize_t
+
+    /* Methods to implement standard operations */
+
+    tp_dealloc: *rien // À FAIRE: pointeur de fonction
+    tp_vectorcall_offset: Py_ssize_t
+    tp_getattr: *rien // À FAIRE: pointeur de fonction
+    tp_setattr: *rien // À FAIRE: pointeur de fonction
+
+    tp_as_async: *PyAsyncMethods /* formerly known as tp_compare (Python 2)
+                                    or tp_reserved (Python 3) */
+    tp_repr: #nulctx fonc(*PyObject)(*PyObject)
+
+    /* Method suites for standard classes */
+
+    tp_as_number: *PyNumberMethods
+    tp_as_sequence: *PySequenceMethods
+    tp_as_mapping: *PyMappingMethods
+
+    /* More standard operations (here for binary compatibility) */
+
+    tp_hash: #nulctx fonc(*PyObject)(Py_hash_t)
+    tp_call: *rien // À FAIRE: pointeur de fonction ternaryfunc
+    tp_str: #nulctx fonc(*PyObject)(*PyObject)
+    tp_getattro: *rien // À FAIRE: pointeur de fonction getattrofunc
+    tp_setattro: *rien // À FAIRE: pointeur de fonction setattrofunc
+
+    /* Functions to access object as input/output buffer */
+    tp_as_buffer: *PyBufferProcs
+
+    /* Flags to define presence of optional/expanded features */
+    tp_flags: n64
+
+    tp_doc: ChaineC /* Documentation string */
+
+    /* Assigned meaning in release 2.0 */
+    /* call function for all accessible objects */
+    tp_traverse: *rien // À FAIRE: pointeur de fonction traverseproc
+
+    /* delete references to contained objects */
+    tp_clear: *rien // À FAIRE: pointeur de fonction inquiry
+
+    /* Assigned meaning in release 2.1 */
+    /* rich comparisons */
+    tp_richcompare: *rien // À FAIRE: pointeur de fonction richcmpfunc
+
+    /* weak reference enabler */
+    tp_weaklistoffset: Py_ssize_t
+
+    /* Iterators */
+    tp_iter: *rien // À FAIRE: pointeur de fonction getiterfunc
+    tp_iternext: *rien // À FAIRE: pointeur de fonction iternextfunc
+
+    /* Attribute descriptor and subclassing stuff */
+    tp_methods: *PyMethodDef
+    tp_members: *PyMemberDef
+    tp_getset: *PyGetSetDef
+    tp_base: *_typeobject
+    tp_dict: *PyObject
+    tp_descr_get: *rien // À FAIRE: pointeur de descrgetfunc
+    tp_descr_set: *rien // À FAIRE: pointeur de descrsetfunc
+    tp_dictoffset: Py_ssize_t
+    tp_init: *rien // À FAIRE: pointeur de fonctioninitproc
+    tp_alloc: #nulctx fonc (*PyTypeObject, Py_ssize_t)(*PyObject)
+    tp_new: #nulctx fonc (*PyTypeObject, *PyObject, *PyObject)(*PyObject) // PyObject *tp_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
+    tp_free: *rien // À FAIRE: pointeur de fonctionfreefunc /* Low-level free-memory routine */
+    tp_is_gc: *rien // À FAIRE: pointeur de fonctioninquiry /* For PyObject_IS_GC */
+    tp_bases: *PyGetSetDef
+    tp_mro: *PyGetSetDef /* method resolution order */
+    tp_cache: *PyGetSetDef
+    tp_subclasses: *PyGetSetDef
+    tp_weaklist: *PyGetSetDef
+    tp_del: *rien // À FAIRE: pointeur de fonctiondestructor
+
+    /* Type attribute cache version tag. Added in version 2.6 */
+    tp_version_tag: n32
+
+    tp_finalize: *rien // À FAIRE: pointeur de fonctiondestructor
+    tp_vectorcall: *rien // À FAIRE: pointeur de fonctionvectorcallfunc
+}
+
+/*
+Type flags (tp_flags)
+
+These flags are used to change expected features and behavior for a
+particular type.
+
+Arbitration of the flag bit positions will need to be coordinated among
+all extension writers who publicly release their extensions (this will
+be fewer than you might expect!).
+
+Most flags were removed as of Python 3.0 to make room for new flags.  (Some
+flags are not for backwards compatibility but to indicate the presence of an
+optional feature; these flags remain of course.)
+
+Type definitions should use Py_TPFLAGS_DEFAULT for their tp_flags value.
+
+Code can use PyType_HasFeature(type_ob, flag_value) to test whether the
+given type object has a specified feature.
+*/
+
+/* Set if the type object is dynamically allocated */
+Py_TPFLAGS_HEAPTYPE : n64 : 1 << 9
+
+/* Set if the type allows subclassing */
+Py_TPFLAGS_BASETYPE : n64 : 1 << 10
+
+/* Set if the type implements the vectorcall protocol (PEP 590) */
+// #ifndef Py_LIMITED_API
+Py_TPFLAGS_HAVE_VECTORCALL : n64 : 1 << 11
+
+/* Set if the type is 'ready' -- fully initialized */
+Py_TPFLAGS_READY : n64 : 1 << 12
+
+/* Set while the type is being 'readied', to prevent recursive ready calls */
+Py_TPFLAGS_READYING : n64 : 1 << 13
+
+/* Objects support garbage collection (see objimpl.h) */
+Py_TPFLAGS_HAVE_GC : n64 : 1 << 14
+
+/* These two bits are preserved for Stackless Python, next after this is 17 */
+// #ifdef STACKLESS
+// Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 3 << 15
+Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 0
+
+/* Objects behave like an unbound method */
+Py_TPFLAGS_METHOD_DESCRIPTOR : n64 : 1  << 17
+
+/* Objects support type attribute cache */
+Py_TPFLAGS_HAVE_VERSION_TAG : n64 : 1  << 18
+Py_TPFLAGS_VALID_VERSION_TAG : n64 : 1  << 19
+
+/* Type is abstract and cannot be instantiated */
+Py_TPFLAGS_IS_ABSTRACT : n64 : 1  << 20
+
+/* These flags are used to determine if a type is a subclass. */
+Py_TPFLAGS_LONG_SUBCLASS : n64 : 1  << 24
+Py_TPFLAGS_LIST_SUBCLASS : n64 : 1  << 25
+Py_TPFLAGS_TUPLE_SUBCLASS : n64 : 1  << 26
+Py_TPFLAGS_BYTES_SUBCLASS : n64 : 1  << 27
+Py_TPFLAGS_UNICODE_SUBCLASS : n64 : 1  << 28
+Py_TPFLAGS_DICT_SUBCLASS : n64 : 1  << 29
+Py_TPFLAGS_BASE_EXC_SUBCLASS : n64 : 1  << 30
+Py_TPFLAGS_TYPE_SUBCLASS : n64 : 1  << 31
+
+Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERSION_TAG
+
+/* NOTE: The following flags reuse lower bits (removed as part of the
+ * Python 3.0 transition). */
+
+/* The following flag is kept for compatibility. Starting with 3.8,
+ * binary compatibility of C extensions across feature releases of
+ * Python is not supported anymore, except when using the stable ABI.
+ */
+
+/* Type structure has tp_finalize member (3.4) */
+Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0
+
+/* Déclaration du "object" dont les classes Python hérite par défaut. */
+externe PyBaseObject_Type: PyTypeObject
+
+PyType_Ready :: fonc (type: *PyTypeObject) -> z32 #externe libpython
+
+PyObject :: struct #externe {
+    ob_refcnt: z64
+    ob_type: *PyTypeObject
+}
+
+PyVarObject :: struct {
+    empl ob_base: PyObject
+    ob_size: Py_ssize_t /* Number of items in variable part */
+}
+
+PyMethodDef :: struct {
+    ml_name : ChaineC
+    ml_meth : #nulctx fonc(*PyObject, *PyObject)(*PyObject)
+    ml_flag: z32
+    ml_doc : ChaineC
+}
+
+PyModuleDef_Base :: struct {
+  ob_base: PyObject
+  m_init: #nulctx fonc (rien)(*PyObject)
+  m_index: z64
+  m_copy: *PyObject
+}
+
+PyModuleDef_Slot :: struct #externe
+
+PyModuleDef :: struct {
+    m_base: PyModuleDef_Base
+    m_name: ChaineC
+    m_doc: ChaineC
+    m_size: z64
+    m_methods: *PyMethodDef
+    m_slots: *PyModuleDef_Slot
+    m_traverse: #nulctx fonc(*PyObject, *rien, *rien)(z32) // le premier *rien est une fonction "visitproc"
+    m_clear: #nulctx fonc(*PyObject)(z32)
+    m_free: #nulctx fonc(*rien)(rien)
+}
+
+/* Flag passed to newmethodobject */
+/* METH_OLDARGS  0x0000   -- unsupported now */
+METH_VARARGS  :: 0x0001
+METH_KEYWORDS :: 0x0002
+/* METH_NOARGS and METH_O must not be combined with the flags above. */
+METH_NOARGS   :: 0x0004
+METH_O        :: 0x0008
+
+/* METH_CLASS and METH_STATIC are a little different; these control
+   the construction of methods for a class.  These cannot be used for
+   functions in modules. */
+METH_CLASS    :: 0x0010
+// #ifndef Py_LIMITED_API
+METH_STATIC   :: 0x0020
+
+/* METH_COEXIST allows a method to be entered even though a slot has
+   already filled the entry.  When defined, the flag allows a separate
+   method, "__contains__" for example, to coexist with a defined
+   slot like sq_contains. */
+
+METH_COEXIST   :: 0x0040
+METH_FASTCALL  :: 0x0080
+
+/* This bit is preserved for Stackless Python */
+// #ifdef PYTHON_STACKLESS
+METH_STACKLESS :: 0x0100
+
+/* METH_METHOD means the function stores an
+ * additional reference to the class that defines it;
+ * both self and class are passed to it.
+ * It uses PyCMethodObject instead of PyCFunctionObject.
+ * May not be combined with METH_NOARGS, METH_O, METH_CLASS or METH_STATIC.
+ */
+
+//#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03090000
+METH_METHOD 0x0200
+
+PYTHON_API_VERSION :: 1013
+
+externe _Py_NoneStruct : PyObject
+Py_None : *PyObject = *_Py_NoneStruct
+
+python_retourne_rien :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_None)
+    retourne Py_None
+}
+
+externe PyBool_Type : PyTypeObject
+
+_longobject :: struct {
+    ob_base: PyVarObject
+    ob_digit: [1]digit;
+}
+
+externe _Py_FalseStruct: PyObject // À FAIRE _longobject
+Py_False : *PyObject = *_Py_FalseStruct
+
+python_retourne_faux :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_False)
+    retourne Py_False
+}
+
+externe _Py_TrueStruct : PyObject // À FAIRE _longobject
+Py_True : *PyObject = *_Py_TrueStruct
+
+python_retourne_true :: fonc () -> *PyObject #nulctx
+{
+    Py_INCREF(Py_True)
+    retourne Py_True
+}
+
+PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
+
+// ---------------------------------------------------
+// Références
+
+_Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
+
+Py_INCREF :: fonc (ob: *PyObject) #nulctx
+{
+    ob.ob_refcnt += 1
+}
+
+Py_DECREF :: fonc (ob: *PyObject) #nulctx
+{
+    ob.ob_refcnt -= 1
+    si ob.ob_refcnt == 0 {
+        _Py_Dealloc(ob)
+    }
+}
+
+Py_XDECREF :: fonc (ob: *PyObject) #nulctx
+{
+    saufsi ob {
+        retourne
+    }
+
+    Py_DECREF(ob)
+}
+
+// ---------------------------------------------------
+// Module
+
+PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
+
+PyModule_AddObject :: fonc (module: *PyObject, name: ChaineC, value: *PyObject) #externe libpython
+PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
+PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython
+
+// ---------------------------------------------------
+// Objet
+
+PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
+
+PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+{
+    flags := type.tp_flags
+    retourne (flags & feature) != 0
+}
+
+PyType_FastSubclass :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+{
+    retourne PyType_HasFeature(type, feature)
+}
+
+_Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+{
+    retourne ob.ob_type == type
+}
+
+PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+{
+    retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
+}
+
+PyObject_HashNotImplemented :: fonc (o: *PyObject) -> Py_hash_t #externe libpython
+
+// ---------------------------------------------------
+// Objet Bool
+
+PyBool_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyBool_Type)
+}
+
+PyBool_AsBool :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne ob == Py_True
+}
+
+PyBool_FromBool :: fonc (valeur: bool) -> *PyObject #nulctx
+{
+    si valeur {
+        retourne python_retourne_true()
+    }
+    retourne python_retourne_faux()
+}
+
+// ---------------------------------------------------
+// Objet Entier/Long
+
+PyLong_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS)
+}
+
+PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
+PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
+
+// ---------------------------------------------------
+// Objet Réel/Double
+
+externe PyFloat_Type : PyTypeObject
+
+PyFloat_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyFloat_Type)
+}
+
+PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
+PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
+
+// ---------------------------------------------------
+// Objet Unicode
+
+externe PyUnicode_Type : PyTypeObject
+
+PyUnicode_Check :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS)
+}
+
+PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool #nulctx
+{
+    retourne PyObject_TypeCheck(ob, *PyUnicode_Type)
+}
+
+PyUnicode_FromStringAndSize :: fonc (str: *z8, taille: Py_ssize_t) -> *PyObject #externe libpython
+PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: *Py_ssize_t) -> *z8 #externe libpython
+
+PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille)
+    retourne résultat
+}
+
+PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject #nulctx
+{
+    retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
+}
+
+// ---------------------------------------------------
+// Exceptions
+
+externe PyExc_BaseException: *PyObject
+externe PyExc_Exception: *PyObject
+externe PyExc_ArithmeticError: *PyObject
+externe PyExc_AssertionError: *PyObject
+externe PyExc_AttributeError: *PyObject
+externe PyExc_BlockingIOError: *PyObject
+externe PyExc_BrokenPipeError: *PyObject
+externe PyExc_BufferError: *PyObject
+externe PyExc_ChildProcessError: *PyObject
+externe PyExc_ConnectionAbortedError: *PyObject
+externe PyExc_ConnectionError: *PyObject
+externe PyExc_ConnectionRefusedError: *PyObject
+externe PyExc_ConnectionResetError: *PyObject
+externe PyExc_EOFError: *PyObject
+externe PyExc_FileExistsError: *PyObject
+externe PyExc_FileNotFoundError: *PyObject
+externe PyExc_FloatingPointError: *PyObject
+externe PyExc_GeneratorExit: *PyObject
+externe PyExc_ImportError: *PyObject
+externe PyExc_IndentationError: *PyObject
+externe PyExc_IndexError: *PyObject
+externe PyExc_InterruptedError: *PyObject
+externe PyExc_IsADirectoryError: *PyObject
+externe PyExc_KeyError: *PyObject
+externe PyExc_KeyboardInterrupt: *PyObject
+externe PyExc_LookupError: *PyObject
+externe PyExc_MemoryError: *PyObject
+externe PyExc_ModuleNotFoundError: *PyObject
+externe PyExc_NameError: *PyObject
+externe PyExc_NotADirectoryError: *PyObject
+externe PyExc_NotImplementedError: *PyObject
+externe PyExc_OSError: *PyObject
+externe PyExc_OverflowError: *PyObject
+externe PyExc_PermissionError: *PyObject
+externe PyExc_ProcessLookupError: *PyObject
+externe PyExc_RecursionError: *PyObject
+externe PyExc_ReferenceError: *PyObject
+externe PyExc_RuntimeError: *PyObject
+externe PyExc_StopAsyncIteration: *PyObject
+externe PyExc_StopIteration: *PyObject
+externe PyExc_SyntaxError: *PyObject
+externe PyExc_SystemError: *PyObject
+externe PyExc_SystemExit: *PyObject
+externe PyExc_TabError: *PyObject
+externe PyExc_TimeoutError: *PyObject
+externe PyExc_TypeError: *PyObject
+externe PyExc_UnboundLocalError: *PyObject
+externe PyExc_UnicodeDecodeError: *PyObject
+externe PyExc_UnicodeEncodeError: *PyObject
+externe PyExc_UnicodeError: *PyObject
+externe PyExc_UnicodeTranslateError: *PyObject
+externe PyExc_ValueError: *PyObject
+externe PyExc_ZeroDivisionError: *PyObject

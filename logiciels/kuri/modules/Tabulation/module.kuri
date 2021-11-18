@@ -1,4 +1,23 @@
+/*
+
+    Module de formattage et d'impression de données sous forme de tableaux.
+
+    Par exemple :
+
+    +---------------+----------------+
+    | Ma donnée 1   | Ma donnée 2    |
+    +---------------|----------------+
+    | Valeur 1a     | Valeur 2a      |
+    | Valeur 1b     | Valeur 2b      |
+    | Valeur 1c     | Valeur 2c      |
+    | Valeur 1d     | Valeur 2d      |
+    | Valeur 1e     | Valeur 2e      |
+    +---------------|----------------+
+
+ */
+
 importe Fondation
+importe SysFichier
 
 LigneTabuleuse :: struct {
     colonnes: []chaine
@@ -160,29 +179,25 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 	}
 
 	/* impression */
-	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
 	imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes)
-	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
 
     pour i dans 1 ... tabuleuse.lignes.taille - 1 {
 		imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes)
 	}
 
-	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
 
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
-
-    imprime("%\n", chn)
-
-    déloge(chn)
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, tailles_max_colonnes: []z64) -> rien
+imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
 {
     pour taille dans tailles_max_colonnes {
 		ajoute_au_tampon(enchaineuse, "+-")
 
-        pour i dans 0 ... taille - 1 {
+        pour taille {
 	        ajoute_au_tampon(enchaineuse, "-")
 		}
 
@@ -198,7 +213,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 	    ajoute_au_tampon(enchaineuse, "| ")
 
 		si tabuleuse.alignements[i] == Alignement.DROITE {
-            pour j dans 0 ... tailles_max_colonnes[i] - colonne.taille_unicode() - 1 {
+            pour tailles_max_colonnes[i] - colonne.taille_unicode() {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
 		}
@@ -206,7 +221,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
         ajoute_au_tampon(enchaineuse, colonne)
 
 		si tabuleuse.alignements[i] == Alignement.GAUCHE {
-            pour j dans colonne.taille_unicode() ... tailles_max_colonnes[i] - 1 {
+            pour tailles_max_colonnes[i] - colonne.taille_unicode() {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
 		}
@@ -217,7 +232,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
     pour i dans ligne.colonnes.taille ... tailles_max_colonnes.taille - 1 {
 	    ajoute_au_tampon(enchaineuse, "| ")
 
-		pour j dans 0 ... tailles_max_colonnes[i] - 1 {
+		pour tailles_max_colonnes[i] {
 	        ajoute_au_tampon(enchaineuse, " ")
 		}
 

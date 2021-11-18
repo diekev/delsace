@@ -80,10 +80,6 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
         return false;
     }
 
-    if (noeud->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
-        return false;
-    }
-
     if (noeud->possede_drapeau(EST_CONSTANTE)) {
         return false;
     }
@@ -412,7 +408,7 @@ static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, Graphe
         return graphe.cree_noeud_fonction(metaprogramme->fonction);
     }
 
-    if (noeud->est_enum() || noeud->est_structure()) {
+    if (noeud->est_declaration_type()) {
         return graphe.cree_noeud_type(noeud->type);
     }
 
@@ -1086,7 +1082,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     else {
         espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
-        if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
+        if (espace->options.resultat != ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
             requiers_liaison_executable(espace, unite->programme);

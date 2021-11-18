@@ -257,7 +257,7 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
     return SiteSource::cree(fichier, lexeme);
 }
 
-void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
+void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
     std::cerr << genere_entete_erreur(
@@ -270,7 +270,7 @@ void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
     std::cerr << genere_entete_erreur(
-        this, SiteSource(f, ligne), erreur::Genre::AVERTISSEMENT, message);
+        this, SiteSource(f, ligne - 1), erreur::Genre::AVERTISSEMENT, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,

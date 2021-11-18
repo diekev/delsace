@@ -47,6 +47,20 @@ normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 
 // ------------------------------------------------------
 
+choisit :: fonc (gna: *GNA, tableau: []$T) -> T
+{
+    saufsi tableau {
+        valeur_défaut: T
+        retourne valeur_défaut
+    }
+
+    index_r32 := gna.uniforme(0 comme r32, (tableau.taille) comme r32)
+    index := index_r32 comme z64
+    retourne tableau[index]
+}
+
+// ------------------------------------------------------
+
 // À FAIRE: #portée_fichier
 // À FAIRE: système pour ajouter dans init_execution_kuri, termine_execution_kuri
 fonctions_génération_données_aléatoires : []FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))

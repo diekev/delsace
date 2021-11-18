@@ -45,6 +45,7 @@ struct OperateurBinaire;
 struct OperateurUnaire;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeOpaque;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -318,6 +319,7 @@ struct TypeCompose : public Type {
             EST_IMPLICITE = (1 << 1),
         };
 
+        NoeudDeclarationVariable *decl = nullptr;
         Type *type = nullptr;
         IdentifiantCode *nom = nullptr;
         unsigned decalage = 0;
@@ -496,11 +498,11 @@ struct TypeOpaque : public Type {
         genre = GenreType::OPAQUE;
     }
 
-    TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie);
+    TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie);
 
     COPIE_CONSTRUCT(TypeOpaque);
 
-    NoeudDeclarationVariable *decl = nullptr;
+    NoeudDeclarationTypeOpaque *decl = nullptr;
     IdentifiantCode *ident = nullptr;
     Type *type_opacifie = nullptr;
     kuri::chaine nom_portable_ = "";
@@ -605,6 +607,7 @@ struct Typeuse {
     Type *type_base_allocatrice = nullptr;
     Type *type_info_appel_trace_appel = nullptr;
     Type *type_stockage_temporaire = nullptr;
+    Type *type_annotation = nullptr;
     // séparés car nous devons désalloué selon la bonne taille et ce sont plus des types « simples
     // »
     TypeCompose *type_eini = nullptr;
@@ -656,9 +659,9 @@ struct Typeuse {
 
     TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
 
-    TypeOpaque *cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie);
+    TypeOpaque *cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie);
 
-    TypeOpaque *monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique);
+    TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
     TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
 
@@ -681,7 +684,7 @@ inline bool est_type_entier(Type const *type)
     return type->genre == GenreType::ENTIER_NATUREL || type->genre == GenreType::ENTIER_RELATIF;
 }
 
-bool est_type_conditionnable(Type *type);
+bool est_type_booleen_implicite(Type *type);
 
 Type *normalise_type(Typeuse &typeuse, Type *type);
 

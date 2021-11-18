@@ -85,7 +85,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto bloc = static_cast<NoeudBloc *>(racine);
 
             POUR (*bloc->expressions.verrou_lecture()) {
-                aplatis_arbre(it, arbre_aplatis, drapeau);
+                aplatis_arbre(it, arbre_aplatis, DrapeauxNoeud::AUCUN);
             }
 
             // Il nous faut le bloc pour savoir quoi différer
@@ -110,21 +110,26 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(racine);
             break;
         }
+        case GenreNoeud::DECLARATION_OPAQUE:
+        {
+            auto opaque = racine->comme_type_opaque();
+            /* Évite les déclarations de types polymorphiques car cela gène la validation puisque
+             * la déclaration n'est dans aucun bloc. */
+            if (!opaque->expression_type->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+                aplatis_arbre(opaque->expression_type, arbre_aplatis, drapeau);
+            }
+            arbre_aplatis.ajoute(racine);
+            break;
+        }
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             auto expr = static_cast<NoeudDeclarationVariable *>(racine);
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
-            // Évite également les déclaration de types polymorphiques, cela gène la validation car
-            // la déclaration n'est dans aucun bloc.
-            if (!expr->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE) ||
-                !expr->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-                aplatis_arbre(
-                    expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-                aplatis_arbre(expr->expression_type,
-                              arbre_aplatis,
-                              drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-            }
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(
+                expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 
             arbre_aplatis.ajoute(expr);
 
@@ -190,7 +195,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->drapeaux |= drapeau;
 
             aplatis_arbre(expr->accedee, arbre_aplatis, drapeau);
-            expr->accedee->aide_generation_code = EST_NOEUD_ACCES;
             // n'ajoute pas le membre, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation
@@ -552,6 +556,14 @@ void aplatis_arbre(NoeudExpression *declaration)
         }
         return;
     }
+
+    if (declaration->est_type_opaque()) {
+        auto opaque = declaration->comme_type_opaque();
+        if (opaque->arbre_aplatis.taille() == 0) {
+            aplatis_arbre(opaque, opaque->arbre_aplatis, {});
+        }
+        return;
+    }
 }
 
 struct Simplificatrice {
@@ -577,6 +589,9 @@ struct Simplificatrice {
     void simplifie_discr_impl(NoeudDiscr *discr);
     void simplifie_retiens(NoeudRetiens *retiens);
     void simplifie_retour(NoeudRetour *inst);
+
+    NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
+                                                        NoeudExpression *expression);
 
     NoeudExpression *simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,
                                                  bool pour_operande);
@@ -852,12 +867,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (decl_ref->drapeaux & EST_CONSTANTE) {
                 auto decl_const = decl_ref->comme_declaration_variable();
 
-                if (decl_ref->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE)) {
-                    expr_ref->substitution = assem->cree_reference_type(
-                        expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
-                    return;
-                }
-
                 if (decl_ref->type->est_type_de_donnees()) {
                     expr_ref->substitution = assem->cree_reference_type(
                         expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
@@ -898,9 +907,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (dls::outils::est_element(decl_ref->genre,
-                                         GenreNoeud::DECLARATION_ENUM,
-                                         GenreNoeud::DECLARATION_STRUCTURE)) {
+            if (decl_ref->est_declaration_type()) {
                 expr_ref->substitution = assem->cree_reference_type(
                     expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
                 return;
@@ -1257,37 +1264,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 for (auto var : it.variables.plage()) {
                     if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                        auto ref_membre = var->comme_reference_membre();
-                        auto ref_var = ref_membre->accedee;
-
-                        // À FAIRE : référence
-                        auto nouvelle_ref = assem->cree_reference_declaration(
-                            ref_var->lexeme,
-                            ref_var->comme_reference_declaration()->declaration_referee);
-                        var->substitution = nouvelle_ref;
-
-                        auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
-                        auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-
-                        if (it.expression->comme_litterale_bool()->valeur) {
-                            // a.DRAPEAU = vrai -> a = a | DRAPEAU
-                            auto valeur_lit_enum = assem->cree_litterale_entier(
-                                noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
-                            auto op = type_enum->operateur_oub;
-                            auto ou = assem->cree_expression_binaire(
-                                noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
-                            it.expression->substitution = ou;
-                        }
-                        else {
-                            // a.DRAPEAU = faux -> a = a & ~DRAPEAU
-                            auto valeur_lit_enum = assem->cree_litterale_entier(
-                                noeud->lexeme, type_enum, ~static_cast<unsigned>(valeur_enum));
-                            auto op = type_enum->operateur_etb;
-                            auto et = assem->cree_expression_binaire(
-                                noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
-                            it.expression->substitution = et;
-                        }
-
+                        /* NOTE : pour le moment nous ne pouvons déclarer de nouvelle variables ici
+                         * pour les valeurs temporaires, et puisque nous ne pouvons pas utiliser
+                         * l'expression dans sa substitution, nous modifions l'expression
+                         * directement. Ceci est plus ou moins correcte, puisque donnees_expr n'est
+                         * censé être que pour la génération de code.
+                         */
+                        it.expression = simplifie_assignation_enum_drapeau(var, it.expression);
                         expression_fut_simplifiee = true;
                     }
                 }
@@ -1353,6 +1336,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
+        case GenreNoeud::DECLARATION_OPAQUE:
         case GenreNoeud::EXPANSION_VARIADIQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:
@@ -1906,6 +1890,113 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 
     inst->substitution = bloc;
     return;
+}
+
+NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpression *var,
+                                                                     NoeudExpression *expression)
+{
+    auto lexeme = var->lexeme;
+    auto ref_membre = var->comme_reference_membre();
+
+    // À FAIRE : référence
+    // Nous prenons ref_membre->accedee directement car ce ne sera pas
+    // simplifié, et qu'il faut prendre en compte les accés d'accés, les
+    // expressions entre parenthèses, etc. Donc faire ceci est plus simple.
+    auto nouvelle_ref = ref_membre->accedee;
+    var->substitution = nouvelle_ref;
+
+    /* Crée la conjonction d'un drapeau avec la variable (a | DRAPEAU) */
+    auto cree_conjonction_drapeau =
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
+            auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, valeur_enum);
+            auto op = type_enum->operateur_oub;
+            return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
+        };
+
+    /* Crée la disjonction d'un drapeau avec la variable (a & ~DRAPEAU) */
+    auto cree_disjonction_drapeau =
+        [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
+            auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, ~valeur_enum);
+            auto op = type_enum->operateur_etb;
+            return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
+        };
+
+    auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
+    auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+
+    if (expression->est_litterale_bool()) {
+        /* Nous avons une expression littérale, donc nous pouvons choisir la bonne instruction. */
+        if (expression->comme_litterale_bool()->valeur) {
+            // a.DRAPEAU = vrai -> a = a | DRAPEAU
+            return cree_conjonction_drapeau(
+                nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+        }
+        // a.DRAPEAU = faux -> a = a & ~DRAPEAU
+        return cree_disjonction_drapeau(
+            nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+    }
+    /* Transforme en une expression « ternaire » sans branche (similaire à a = b ? c : d en
+     * C/C++) :
+     * v1 = (a | DRAPEAU)
+     * v2 = (a & ~DRAPEAU)
+     * (-(b comme T) & v1) | (((b comme T) - 1) & v2)
+     */
+
+    auto v1 = cree_conjonction_drapeau(
+        nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+    auto v2 = cree_disjonction_drapeau(
+        nouvelle_ref, type_enum, static_cast<unsigned>(valeur_enum));
+
+    /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
+     * l'énumération. */
+    auto type_sous_jacent = type_enum->type_donnees;
+    auto ref_b = expression;
+
+    auto comme = assem->cree_comme(var->lexeme);
+    comme->type = type_sous_jacent;
+    comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    comme->expression = ref_b;
+    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_sous_jacent};
+
+    /* -b */
+    auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_donnees, 0);
+    auto moins_b_type_sous_jacent = assem->cree_expression_binaire(
+        lexeme, type_sous_jacent->operateur_sst, zero, comme);
+
+    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
+     * type.
+     */
+    auto moins_b = assem->cree_comme(var->lexeme);
+    moins_b->type = type_enum;
+    moins_b->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    moins_b->expression = moins_b_type_sous_jacent;
+    moins_b->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_enum};
+
+    /* b - 1 */
+    auto un = assem->cree_litterale_entier(lexeme, type_sous_jacent, 1);
+    auto b_moins_un_type_sous_jacent = assem->cree_expression_binaire(
+        lexeme, type_sous_jacent->operateur_sst, comme, un);
+
+    /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
+     * type.
+     */
+    auto b_moins_un = assem->cree_comme(var->lexeme);
+    b_moins_un->type = type_enum;
+    b_moins_un->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    b_moins_un->expression = b_moins_un_type_sous_jacent;
+    b_moins_un->transformation = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                                    type_enum};
+
+    /* -b & v1 */
+    auto moins_b_et_v1 = assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_etb, moins_b, v1);
+    /* (b - 1) & v2 */
+    auto b_moins_un_et_v2 = assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_etb, b_moins_un, v2);
+
+    /* (-(b comme T) & v1) | (((b comme T) - 1) & v2) */
+    return assem->cree_expression_binaire(
+        lexeme, type_enum->operateur_oub, moins_b_et_v1, b_moins_un_et_v2);
 }
 
 NoeudExpression *Simplificatrice::simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,
@@ -2572,6 +2663,12 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->nom = it.nom->nom;
                 info_type_membre->drapeaux = it.drapeaux;
 
+                if (it.decl) {
+                    for (auto annotation : it.decl->annotations) {
+                        info_type_membre->annotations.ajoute({annotation.nom, annotation.valeur});
+                    }
+                }
+
                 info_type->membres.ajoute(info_type_membre);
             }
 
@@ -2611,6 +2708,12 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->decalage = it.decalage;
                 info_type_membre->nom = it.nom->nom;
                 info_type_membre->drapeaux = it.drapeaux;
+
+                if (it.decl) {
+                    for (auto annotation : it.decl->annotations) {
+                        info_type_membre->annotations.ajoute({annotation.nom, annotation.valeur});
+                    }
+                }
 
                 info_type->membres.ajoute(info_type_membre);
             }
@@ -3300,6 +3403,19 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 
             auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(type_pointe, false, false);
 
+            /* NOTE: pour les tableaux fixes, puisque le déréférencement de pointeur est compliqué
+             * avec les indexages, nous passons par une variable locale temporaire et copierons la
+             * variable initialisée dans la mémoire pointée par le paramètre. */
+            auto valeur_resultat = assembleuse->cree_declaration_variable(
+                &lexeme_sentinel,
+                type_tableau,
+                ID::resultat,
+                assembleuse->cree_non_initialisation(&lexeme_sentinel));
+            assembleuse->bloc_courant()->membres->ajoute(valeur_resultat);
+            assembleuse->bloc_courant()->expressions->ajoute(valeur_resultat);
+            auto ref_resultat = assembleuse->cree_reference_declaration(&lexeme_sentinel,
+                                                                        valeur_resultat);
+
             /* Toutes les variables doivent être initialisées (ou nous devons nous assurer que tous
              * les types possibles créés par la compilation ont une fonction d'initalisation). */
             auto init_it = assembleuse->cree_litterale_nul(&lexeme_sentinel);
@@ -3319,7 +3435,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             static Lexeme lexeme = {};
             auto pour = assembleuse->cree_pour(&lexeme);
             pour->prend_pointeur = true;
-            pour->expression = ref_param;
+            pour->expression = ref_resultat;
             pour->bloc = assembleuse->cree_bloc(&lexeme);
             pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
@@ -3334,6 +3450,10 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             pour->bloc->expressions->ajoute(appel);
 
             assembleuse->bloc_courant()->expressions->ajoute(pour);
+
+            auto assignation_resultat = assembleuse->cree_assignation_variable(
+                &lexeme_sentinel, ref_param, ref_resultat);
+            assembleuse->bloc_courant()->expressions->ajoute(assignation_resultat);
             break;
         }
         case GenreType::OPAQUE:
@@ -3409,13 +3529,31 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::TABLEAU_FIXE:
         case GenreType::ENUM:
         case GenreType::ERREUR:
-        case GenreType::OPAQUE:
         {
             auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
             deref->expression = ref_param;
             deref->type = type;
             cree_initialisation_defaut_pour_type(
                 type, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto type_opacifie = type->comme_opaque()->type_opacifie;
+            auto type_pointeur_opacifie = typeuse.type_pointeur_pour(type_opacifie);
+
+            auto comme_type_opacifie = assembleuse->cree_comme(&lexeme_sentinel);
+            comme_type_opacifie->expression = ref_param;
+            comme_type_opacifie->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                                   type_pointeur_opacifie};
+            comme_type_opacifie->type = type_pointeur_opacifie;
+
+            auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
+            deref->expression = comme_type_opacifie;
+            deref->type = type_opacifie;
+
+            cree_initialisation_defaut_pour_type(
+                type_opacifie, espace->compilatrice(), assembleuse, deref, nullptr, typeuse);
             break;
         }
         case GenreType::EINI:
@@ -3528,4 +3666,44 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 
     type->drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
     corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+}
+
+/* Retourne la référence de déclaration de l'expression racine pour l'expression à droite d'une
+ * référence de membre. Par exemple, pour « x.y.z », retourne « x » si nous sommes sur « y.z ». */
+NoeudExpressionReference *reference_declaration_acces_accedee(NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        return expr->comme_reference_declaration();
+    }
+
+    if (expr->est_reference_membre()) {
+        auto ref_membre = expr->comme_reference_membre();
+        return reference_declaration_acces_membre(ref_membre->accedee);
+    }
+
+    if (expr->est_parenthese()) {
+        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
+    }
+
+    return nullptr;
+}
+
+/* Retourne la référence de déclaration du membre pour l'expression à droite d'une référence de
+ * membre. Par exemple, pour « x.y.z », retourne « y » si nous sommes sur « y.z ». */
+NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        return expr->comme_reference_declaration();
+    }
+
+    if (expr->est_reference_membre()) {
+        auto ref_membre = expr->comme_reference_membre();
+        return reference_declaration_acces_membre(ref_membre->membre);
+    }
+
+    if (expr->est_parenthese()) {
+        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
+    }
+
+    return nullptr;
 }

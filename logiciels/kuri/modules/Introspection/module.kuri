@@ -318,8 +318,11 @@ possède_membre :: fonc (valeur: eini, nom: chaine) -> bool
 		retourne faux
 	}
 
-	info := valeur.info comme *InfoTypeStructure
+	retourne possède_membre(valeur.info comme *InfoTypeStructure, nom)
+}
 
+possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
+{
     pour membre dans info.membres {
         si membre.nom == nom {
 			retourne vrai
