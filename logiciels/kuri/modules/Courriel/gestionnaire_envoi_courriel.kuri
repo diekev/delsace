@@ -1,0 +1,111 @@
+/*
+
+Gestionnaire pour envoyer des courriels via une ServeuseTCP.
+
+La serveuse peut être créée pour le Gestionnaire seul, ou peut être une serveuse préexistante.
+
+ */
+
+importe ConnexionTCP
+importe Réseau
+importe ServeuseTCP
+
+GestionnaireEnvoiCourriel :: struct {
+    config: ConfigurationCourriel
+    serveuse: *ServeuseTCP.ServeuseTCP
+    ctx: *Contexte
+}
+
+uri_depuis_configuration :: fonc (config: ConfigurationCourriel) -> URI
+{
+    résultat : URI
+    uri.hôte = config.serveur
+    uri.port = "25" // À FAIRE : utilise un URI dans la configuration, ou utilise un n16 dans URI directement pour stocker le port
+    retourne résultat
+}
+
+crée_gestionnaire_courriel :: fonc (serveuse: *ServeuseTCP.ServeuseTCP, config: ConfigurationCourriel) -> GestionnaireEnvoiCourriel
+{
+    gestionnaire: GestionnaireEnvoiCourriel
+    gestionnaire.config = config
+    gestionnaire.serveuse = serveuse
+    gestionnaire.ctx = crée_contexte_smtp(serveuse.boucle_évènements)
+    retourne gestionnaire
+}
+
+DonnéesPriseEnvoiCourriel :: struct {
+    courriel: Courriel
+    état: ÉtatEnvoiCourriel
+    config: ConfigurationCourriel
+}
+
+envoie_courriel :: fonc (gestionnaire: &GestionnaireEnvoiCourriel, courriel: Courriel) -> bool
+{
+    uri := uri_depuis_configuration(gestionnaire.config)
+    prise := crée_prise_connexion(gestionnaire.ctx, uri, DonnéesPriseEnvoiCourriel)
+
+    saufsi prise {
+        retourne faux
+    }
+
+    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
+    init_de(DonnéesPriseEnvoiCourriel)(données)
+    données.courriel = courriel
+    données.config = config
+
+    retourne vrai
+}
+
+crée_contexte_smtp :: fonc (boucle_évènements: *Boucle) -> *Contexte
+{
+    ctx := crée_contexte_vide(boucle_évènements, GestionnaireEnvoiCourriel)
+    ctx.rappel_quand_ouverture = quand_ouverture
+    ctx.rappel_quand_lecture = quand_lecture
+    ctx.rappel_quand_fermeture = quand_fermeture
+    retourne ctx
+}
+
+quand_ouverture :: fonc (prise: *Prise)
+{
+    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
+    commande := commande_suivante(données.état, données.config)
+    diffère déloge(commande)
+
+    _ := écris(*prise.fichier, commande)
+}
+
+quand_lecture :: fonc (prise: *Prise)
+{
+    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
+
+    contenu := tente lis_tout(*prise.fichier) piège err {
+        retourne
+    }
+
+    réponse := parse_réponse_serveuse(contenu)
+
+    si !réponse.est_valide() {
+        prise.ferme()
+        retourne
+    }
+
+    si réponse.status >= 500 {
+        réponse = envoie_commande_smtp(*fichier, "QUIT")
+        prise.ferme()
+        retourne
+    }
+
+    commande := commande_suivante(données.état, données.config)
+    diffère déloge(commande)
+
+    _ := écris(*prise.fichier, commande)
+
+    si données.état.est_terminé() {
+        prise.ferme()
+    }
+}
+
+quand_fermeture :: fonc (prise: *Prise)
+{
+    // notifie que le message fut envoyé ou non
+}
