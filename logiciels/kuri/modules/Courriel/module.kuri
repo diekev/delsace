@@ -166,7 +166,7 @@ parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
     retourne résultat
 }
 
-envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> z32
+envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> RéponseServeuse
 {
     message := ""
     diffère { si message { déloge(message) } }
@@ -178,30 +178,22 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     }
 
     taille_écrite := tente fichier.écris(message) piège err {
-        retourne 0
+        retourne RéponseServeuse()
     }
 
     // imprime("requête: %", message)
 
     si taille_écrite == -1 {
         imprime("impossible d'envoyer la requête !\n")
-        retourne 0
+        retourne RéponseServeuse()
     }
 
     réponse := tente lis_tout(fichier) piège err {
         imprime("impossible de lire la réponse !\n")
-        retourne 0
+        retourne RéponseServeuse()
     }
 
-    // imprime("réponse: %\n", réponse)
-    diffère { déloge(réponse) }
-
-    si réponse.taille < 3 {
-        retourne 0
-    }
-
-    status := extrait_nombre_entier(réponse.sous_chaine(0, 3))
-    retourne status comme z32
+    retourne parse_réponse_serveuse(réponse)
 }
 
 // https://tools.ietf.org/html/rfc5322
@@ -412,89 +404,22 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> 
         _ := tente ferme(*fichier) piège nonatteignable
     }
 
-    // 220 ok
-    si envoie_commande_smtp(*fichier, "") == 0 {
-        retourne 1
-    }
+    état := ÉtatEnvoiCourriel()
 
-    // 250 ok
-    si envoie_commande_smtp(*fichier, "EHLO") == 0 {
-        retourne 1
-    }
+    tantque !état.est_terminé() {
+        commande := commande_suivante(état, config, courriel)
+        diffère déloge(commande)
 
-    si envoie_commande_smtp(*fichier, "AUTH LOGIN") == 0 {
-        retourne 1
-    }
+        réponse := envoie_commande_smtp(*fichier, commande)
 
-    // réponse : 334 VXNlcm5hbWU6
-    nom_utilisateur_base64 := encode_base64(config.utilisateur)
-    diffère { déloge(nom_utilisateur_base64) }
-    si envoie_commande_smtp(*fichier, "%", nom_utilisateur_base64) == 0 {
-        retourne 1
-    }
-
-    // réponse : 334 UGFzc3dvcmQ6
-    mot_passe_base64 := encode_base64(config.mot_de_passe)
-    diffère { déloge(mot_passe_base64) }
-    si envoie_commande_smtp(*fichier, "%", mot_passe_base64) == 0 {
-        retourne 1
-    }
-    // 235 2.7.0 Authentication successful
-
-    // 530 5.7.1 Client was not authenticated
-    // 250 2.1.0 Ok
-    si envoie_commande_smtp(*fichier, "MAIL FROM:<%>", courriel.expéditeur.chn) == 0 {
-        retourne 1
-    }
-
-    // 530 5.7.1 Client was not authenticated
-    // 250 2.1.0 Ok
-    pour & courriel.destinataires {
-        saufsi it.est_valide() {
-            continue;
-        }
-
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
+        si !réponse.est_valide() {
             retourne 1
         }
-    }
 
-    pour & courriel.destinataires_cc {
-        saufsi it.est_valide() {
-            continue;
-        }
-
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
+        si réponse.status >= 500 {
+            réponse = envoie_commande_smtp(*fichier, "QUIT")
             retourne 1
         }
-    }
-
-    pour & courriel.destinataires_bcc {
-        saufsi it.est_valide() {
-            continue;
-        }
-
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
-            retourne 1
-        }
-    }
-
-    // 503 Bad sequence of commands
-    // 354 End data with <CR><LF>.<CR><LF>
-    si envoie_commande_smtp(*fichier, "DATA") == 0 {
-        retourne 1
-    }
-
-    // 530 5.7.1 Client was not authenticated
-    // 250 2.0.0 Ok: queued as ...
-    message := crée_corps_message(courriel)
-    diffère { déloge(message) }
-    si envoie_commande_smtp(*fichier, "%", message) == 0 {
-        retourne 1
-    }
-
-    si envoie_commande_smtp(*fichier, "QUIT") == 0 {
-        retourne 1
     }
 
     retourne 0
