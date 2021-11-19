@@ -20,6 +20,13 @@ parse_courriel_pour_info_type :: fonc (chn: chaine) -> bool, AdresseCourriel
     retourne courriel.est_valide(), courriel
 } @ParsageURL
 
+imprime_adresse_courriel :: fonc (enchaineuse: *Enchaineuse, adresse: *AdresseCourriel)
+{
+    si adresse {
+        ajoute_au_tampon(enchaineuse, adresse.nom, "@", adresse.hôte)
+    }
+} @FormattageImpression
+
 // -----------------------------------------------------
 
 génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet) -> AdresseCourriel
