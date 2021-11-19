@@ -285,22 +285,43 @@ ErreurServeur :: erreur {
     ClientNeFutPasAuthentifié :: 530
 }
 
+est_valide :: fonc (courriel: &Courriel) -> bool
+{
+    saufsi courriel.expéditeur.est_valide() {
+        retourne faux
+    }
+
+    saufsi courriel.destinataires {
+        retourne faux
+    }
+
+    pour courriel.destinataires {
+        saufsi it.est_valide() {
+            retourne faux
+        }
+    }
+
+    pour courriel.destinataires_cc {
+        saufsi it.est_valide() {
+            retourne faux
+        }
+    }
+
+    pour courriel.destinataires_bcc {
+        saufsi it.est_valide() {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
 // À FAIRE : meilleure type de retour
 // À FAIRE : note les erreurs
 envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> z32
 {
-    si !courriel.expéditeur.est_valide() {
+    saufsi courriel.est_valide() {
         retourne 1
-    }
-
-    saufsi courriel.destinataires {
-        retourne 1
-    }
-
-    pour & courriel.destinataires {
-        saufsi it.est_valide() {
-            retourne 1
-        }
     }
 
     fichier := tente ouvre_connexion_serveur(config) piège err {
