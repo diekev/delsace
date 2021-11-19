@@ -101,6 +101,71 @@ ConfigurationCourriel :: struct {
     mot_de_passe : chaine
 }
 
+RéponseServeuse :: struct {
+    // Le texte de la réponse
+    texte: chaine
+    status: z32
+    // Les différents textes extraits depuis la réponse (les lignes sans les status)
+    textes: []chaine
+}
+
+est_valide :: fonc (réponse: &RéponseServeuse) -> bool
+{
+    retourne réponse.status != 0
+}
+
+détruit_réponse :: fonc (réponse: &RéponseServeuse)
+{
+    déloge(réponse.texte)
+    déloge(réponse.textes)
+}
+
+parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
+{
+    parseuse := ParseuseChaine(texte)
+
+    eu_status := faux
+    résultat : RéponseServeuse
+    résultat.texte = texte
+
+    tantque !fini(*parseuse) {
+        saufsi consomme_nombre(*parseuse, 3) {
+            détruit_réponse(résultat)
+            retourne RéponseServeuse()
+        }
+
+        si eu_status && parseuse.nombre != résultat.status {
+            détruit_réponse(résultat)
+            /* Nous avons déjà eu un status (dans une réponse multilignes, mais le status ne correspond pas/plus au status initial. */
+            retourne RéponseServeuse()
+        }
+
+        eu_status = vrai
+        résultat.status = parseuse.nombre
+
+        plusieurs_lignes := apparie(*parseuse, '-')
+        espace := apparie(*parseuse, ' ')
+        si plusieurs_lignes || espace {
+            avance(*parseuse, 1)
+        }
+
+        index_fin_ligne := trouve_prochain(*parseuse, "\r\n")
+        si index_fin_ligne < 0 {
+            détruit_réponse(résultat)
+            retourne RéponseServeuse()
+        }
+
+        texte_ligne := sous_chaine_jusque_index(*parseuse, index_fin_ligne)
+        positionne(*parseuse, (index_fin_ligne + 2) comme z32)
+
+        si texte_ligne {
+            tableau_ajoute(*résultat.textes, texte_ligne)
+        }
+    }
+
+    retourne résultat
+}
+
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> z32
 {
     message := ""
@@ -453,4 +518,33 @@ aléafères_zéros :: fonc (chn: chaine) -> chaine
     }
 
     retourne résultat
+}
+
+// ---------------------------------------
+
+test_parsage_réponse :: fonc (texte: chaine)
+{
+    réponse := parse_réponse_serveuse(copie_chaine(texte))
+    diffère détruit_réponse(réponse)
+
+    saufsi réponse.est_valide() {
+        imprime("La réponse n'est pas valide !\n")
+    }
+    sinon {
+        imprime("La réponse est valide !\n")
+        imprime("    STATUS : %\n", réponse.status)
+        pour réponse.textes {
+            imprime("    %\n", it)
+        }
+    }
+}
+
+test_parsage_réponse :: fonc ()
+{
+    test_parsage_réponse("220 GARM-98R002 Friday, November 19, 2021\r\n")
+    test_parsage_réponse("250-OVH SMTP PROXY Hello\r\n250-SIZE 104857600\r\n250-ENHANCEDSTATUSCODES\r\n250-AUTH LOGIN PLAIN\r\n250-AUTH=LOGIN PLAIN\r\n250-STARTTLS\r\n250 8BITMIME\r\n")
+    test_parsage_réponse("334 VXNlcm5hbWU6\r\n")
+    test_parsage_réponse("334 UGFzc3dvcmQ6\r\n")
+    test_parsage_réponse("235 2.7.0 Authentication successful\r\n")
+    test_parsage_réponse("501 5.5.4 Syntax: MAIL FROM:<address>\r\n")
 }
