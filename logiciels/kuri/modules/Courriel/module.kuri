@@ -439,8 +439,10 @@ aléafères_zéros :: fonc (chn: chaine) -> chaine
 {
     maintenant := Temps.maintenant()
 
-    gna := crée_gna(maintenant.nanoseconde comme n32)
-    diffère { détruit_gna(gna) }
+    ctx_kuri := initialise_contexte_kuri()
+
+    gna := crée_gna(*ctx_kuri, maintenant.nanoseconde comme n32)
+    diffère { détruit_gna(*ctx_kuri, gna) }
 
     résultat := copie_chaine(chn)
 
