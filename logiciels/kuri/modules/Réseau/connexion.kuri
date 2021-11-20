@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe Internet
 importe SysFichier
 
 ErreurConnexion :: erreur {
@@ -15,7 +16,14 @@ FichierOuErreur :: union {
     f: Fichier
 }
 
-ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16) -> FichierOuErreur
+marque_prise_non_bloquante :: fonc (prise: z32)
+{
+    flags := fcntl(prise, F_GETFL, 0);
+    // @erreur
+    _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK);
+}
+
+ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) -> FichierOuErreur
 {
     ptr_tampon := crée_chaine_c(hôte)
     diffère détruit_chaine_c(ptr_tampon)
@@ -25,10 +33,19 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16) -> FichierOuErreur
         retourne ErreurConnexion.RésolutionHôteImpossible
     }
 
-    prise := socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+    drapeaux := SOCK_STREAM
+    saufsi bloquante {
+        drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK)
+    }
+
+    prise := socket(AF_INET, drapeaux, IPPROTO_TCP)
 
     si prise == -1 {
         retourne ErreurConnexion.CréationPriseImpossible
+    }
+
+    saufsi bloquante {
+        marque_prise_non_bloquante(prise)
     }
 
     their_addr : sockaddr_in
@@ -47,7 +64,14 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16) -> FichierOuErreur
     their_addr.sin_addr = mémoire(x comme *z8 comme *in_addr)
 
 	si connect(prise, *their_addr comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
-        retourne ErreurConnexion.ConnexionPriseImpossible
+        err := lis_errno()
+
+        /* Si la prise est non-bloquante, il est possible que la connexion n'est pas eu le temps
+         * de se faire, ce qui est indiquer par EINPROGRESS, donc ne retournons d'erreurs dans ce
+         * cas. */
+        si err != EINPROGRESS {
+            retourne ErreurConnexion.ConnexionPriseImpossible
+        }
     }
 
     retourne Fichier(desc = prise)
@@ -88,4 +112,85 @@ ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> 
     }
 
     retourne Fichier(desc = prise)
+}
+
+ErreurPrise :: erreur {
+    PortIllégal
+    CréationImpossible
+    RéutilisationImpossible
+    LiaisonAuPortImpossible
+    ÉcouteSurPortImpossible
+}
+
+FichierOuErreurPrise :: union {
+    f: Fichier
+    e: ErreurPrise
+}
+
+ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32) -> FichierOuErreurPrise
+{
+    si port < 1024 {
+        // À FAIRE : un port inférieur à 1024 ne peut être précisé que si le processus est privilégié
+        retourne ErreurPrise.PortIllégal
+    }
+
+    /*
+        tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+        udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+        raw_socket = socket(AF_INET, SOCK_RAW, protocol);
+    */
+    prise := socket(AF_INET, SOCK_STREAM, 0)
+
+    si prise == -1 {
+        retourne ErreurPrise.CréationImpossible
+    }
+
+    enable := 1
+    si setsockopt(prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
+        _ := close(prise)
+        retourne ErreurPrise.RéutilisationImpossible
+    }
+
+    notre_adresse : sockaddr_in = ---
+    // doit toujours être AF_INET
+	notre_adresse.sin_family = AF_INET comme n16
+    notre_adresse.sin_port = htons(port)
+    // trouve notre propre adresse
+    // À FAIRE : parse l'adresse ip données
+	notre_adresse.sin_addr.s_addr = 0
+    // potentiellement inutile de mettre à zéro, mais on ne sait jamais
+    pour & notre_adresse.sin_zero {
+        it = 0
+    }
+
+	err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64)
+	si err == -1 {
+        _ := close(prise)
+		retourne ErreurPrise.LiaisonAuPortImpossible
+	}
+
+	si listen(prise, connexions_max) == -1 {
+        _ := close(prise)
+		retourne ErreurPrise.ÉcouteSurPortImpossible
+	}
+
+    retourne Fichier(prise)
+}
+
+accepte :: fonc (prise: z32) -> z32
+{
+    adresse : sockaddr_in
+	sin_size := taille_de(sockaddr_in)
+
+    fd_prise := accept(prise, *adresse comme *sockaddr, *sin_size)
+
+    si fd_prise == -1 {
+        retourne -1
+    }
+
+    // À FAIRE : converti l'adresse
+    //cliente.adresse = adresse
+    //fichier.desc = fd_prise
+
+    retourne fd_prise
 }
