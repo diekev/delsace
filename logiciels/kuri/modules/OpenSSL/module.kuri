@@ -31,6 +31,7 @@ SSL_free :: fonc (ssl : *ssl_st) -> rien #externe libssl
 SSL_get_error :: fonc (ssl : *ssl_st, erreur_ : z32) -> z32 #externe libssl
 SSL_write :: fonc (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32 #externe libssl
 SSL_read :: fonc (ssl : *ssl_st, tampon : *z8, max : z32) -> z32 #externe libssl
+SSL_set_connect_state :: fonc (ssl: *ssl_st) #externe libssl
 
 // ceci est un macro en C
 OpenSSL_add_all_algorithms :: fonc () -> rien
