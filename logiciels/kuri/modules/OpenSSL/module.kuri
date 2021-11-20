@@ -25,7 +25,7 @@ SSL_load_error_strings :: fonc () -> rien #externe libssl
 SSLv23_client_method :: fonc () -> *ssl_method_st #externe libssl
 SSL_CTX_new :: fonc (method : *ssl_method_st) -> *ssl_st #externe libssl
 SSL_new :: fonc (ctx_s : *rien) -> *ssl_st #externe libssl
-SSL_set_fd :: fonc (ssl : *ssl_st, prise : z32) -> rien #externe libssl
+SSL_set_fd :: fonc (ssl : *ssl_st, prise : z32) -> z32 #externe libssl
 SSL_connect :: fonc (ssl : *ssl_st) -> z32 #externe libssl
 SSL_free :: fonc (ssl : *ssl_st) -> rien #externe libssl
 SSL_get_error :: fonc (ssl : *ssl_st, erreur_ : z32) -> z32 #externe libssl
@@ -272,7 +272,9 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *ssl_st, fichier: Fichier) -> FichierOuErreu
         retourne converti_erreur_ssl(m_ssl, 0)
     }
 
-    SSL_set_fd(m_ssl, fichier.desc)
+    si SSL_set_fd(m_ssl, fichier.desc) == 0 {
+        retourne converti_erreur_ssl(m_ssl, 0)
+    }
 
     connexion := SSL_connect(m_ssl)
 
