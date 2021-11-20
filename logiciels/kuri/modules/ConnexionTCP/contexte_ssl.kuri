@@ -1,0 +1,41 @@
+importe OpenSSL
+
+// ------------------------------------------------------
+// ContextePriseSSL
+
+ContextePriseSSL :: struct {
+    empl base: Contexte
+
+    sur_écriture_base : fonc(*Prise)(rien)
+    sur_ouverture_base : fonc(*Prise)(rien)
+    sur_fermeture_base : fonc(*Prise)(rien)
+}
+
+// ------------------------------------------------------
+// Fonctions de rappels pour parasiter le contexte de base
+// avec un contexte SSL
+
+sur_écriture_ssl :: fonc (prise: *Prise) -> rien
+{
+    ctx_prise_ssl := prise.ctx_ comme *ContextePriseSSL
+
+
+    ctx_prise_ssl.sur_écriture_base(prise)
+}
+
+sur_ouverture_ssl :: fonc (prise: *Prise) -> rien
+{
+    ctx_prise_ssl := prise.ctx_ comme *ContextePriseSSL
+
+    SSL_CTX_free(prise.ctx_ssl)
+
+    ctx_prise_ssl.sur_ouverture_base(prise)
+}
+
+sur_fermeture_ssl :: fonc (prise: *Prise) -> rien
+{
+    ctx_prise_ssl := prise.ctx_ comme *ContextePriseSSL
+
+
+    ctx_prise_ssl.sur_fermeture_base(prise)
+}

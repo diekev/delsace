@@ -527,9 +527,7 @@ quand_ouverture :: fonc (prise: *Prise)
 
 quand_lecture :: fonc (prise: *Prise)
 {
-    contenu := tente lis_tout(*prise.fichier) piège err {
-        retourne
-    }
+    contenu := prise.lis_tout()
 
     si !contenu {
         // délai en cas de non-écriture
@@ -707,7 +705,7 @@ PolitiqueDeCache :: énum {
         ajoute_au_tampon(*enchaineuse, message.contenu)
     }
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, *prise.fichier)
+    prise.écris(*enchaineuse)
 }
 
 chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien

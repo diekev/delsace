@@ -1,0 +1,69 @@
+
+Contexte :: struct {
+    boucle_prises : *Boucle
+
+    /* rappels */
+    quand_ouverture : fonc (*Prise)(rien)
+    quand_lecture : fonc (*Prise)(rien)
+    quand_écriture : fonc (*Prise)(rien)
+    quand_fermeture : fonc (*Prise)(rien)
+    quand_timeout : fonc (*Prise)(rien)
+    quand_fin : fonc (*Prise)(rien)
+    quand_erreur_connexion : fonc (*Prise)(rien)
+
+    taille_mémoire : z64
+    info_utilisateur : *InfoType
+
+    /* serveuse : optionnel */
+    serveuse_: *rien
+    info_serveuse : *InfoType
+}
+
+mute_serveuse :: fonc (contexte_: *Contexte, serveuse: *$T)
+{
+    contexte_.serveuse_ = serveuse
+    contexte_.info_serveuse = info_de(T)
+}
+
+accède_serveuse :: fonc (contexte_: *Contexte, $T: type_de_données) -> *T
+{
+    si info_de(T) != contexte_.info_serveuse {
+        retourne nul
+    }
+
+    retourne contexte_.serveuse_ comme *T
+}
+
+données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_données) -> *TypeDonnées
+{
+    si contexte_.taille_mémoire == 0 {
+        retourne nul
+    }
+
+    si contexte_.info_utilisateur != info_de(TypeDonnées) {
+        retourne nul
+    }
+
+    retourne (contexte_ + 1) comme *TypeDonnées
+}
+
+crée_contexte :: fonc (boucle_prises: *Boucle, $TypeDonnées: type_de_données) -> *Contexte
+{
+    taille_à_loger := (taille_de(Contexte) + taille_de(TypeDonnées)) comme z64
+    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(Contexte), PositionCodeSource())
+
+    contexte_ := mém_contexte_ comme *Contexte
+    init_de(Contexte)(contexte_)
+
+    contexte_.boucle_prises = boucle_prises
+
+    contexte_.taille_mémoire = taille_à_loger
+    contexte_.info_utilisateur = info_de(TypeDonnées)
+
+    retourne contexte_
+}
+
+détruit_contexte :: fonc (ctx: *Contexte)
+{
+    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), PositionCodeSource())
+}

@@ -1,0 +1,186 @@
+importe Fondation
+importe OpenSSL
+importe Temps
+importe SysFichier
+
+TypePrise :: énum {
+    RAPPEL
+    SEMI_PRISE
+    PRISE
+}
+
+Prise :: struct {
+    contexte_ : *Contexte
+    fichier: Fichier
+    type : TypePrise
+
+    // pour placer dans les listes de prises spéciales (prises fermées...)
+    suivante : *Prise
+    précédente : *Prise
+
+    ctx_ssl: *ssl_st
+    fichier_ssl: FichierSSL
+
+    // la taille de la prise avec les données utilisateurs
+    taille_mémoire: z64
+    info_utilisateur: *InfoType
+
+    données_serveuse_: *rien
+    info_données_serveuse_: *InfoType
+
+    /* délais */
+    délai : z32 // secondes
+    horodotage_délai : z32 // quand le délai fut mis en place
+}
+
+mute_données_serveuse :: fonc (prise: *Prise, info_serveuse: *$T)
+{
+    prise.données_serveuse_ = info_serveuse
+    prise.info_données_serveuse_ = info_de(T)
+}
+
+accède_données_serveuse :: fonc (prise: *Prise, $T: type_de_données) -> *T
+{
+    si prise.info_données_serveuse_ != info_de(T) {
+        retourne nul
+    }
+
+    retourne prise.données_serveuse_ comme *T
+}
+
+mute_délai :: fonc (prise: *Prise, délai: z32)
+{
+    prise.délai = délai
+    prise.horodotage_délai = maintenant_précis().secondes() comme z32
+}
+
+données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées
+{
+    si prise.taille_mémoire == 0 {
+        retourne nul
+    }
+
+    si prise.info_utilisateur != info_de(TypeDonnées) {
+        retourne nul
+    }
+
+    retourne (prise + 1) comme *TypeDonnées
+}
+
+est_fermée :: fonc (prise: *Prise) -> bool
+{
+    retourne prise.précédente == (prise.contexte_ comme *Prise)
+}
+
+ferme :: fonc (prise: *Prise)
+{
+    ferme_prise(prise, vrai)
+}
+
+ferme_connexion_en_cours :: fonc (prise: *Prise)
+{
+    ferme_prise(prise, faux)
+}
+
+ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
+{
+    enlève_prise(prise.contexte_.boucle_prises, prise)
+
+    si prise.est_prise_ssl() {
+        ferme(*prise.fichier_ssl)
+        SSL_CTX_free(prise.ctx_ssl)
+    }
+    sinon {
+        _ := ferme(*prise.fichier)
+    }
+
+    prise.suivante = prise.contexte_.boucle_prises.prises_fermées
+    prise.contexte_.boucle_prises.prises_fermées = prise
+
+    // marque la prise comme fermée
+    prise.précédente = (prise.contexte_ comme *Prise)
+
+    si émets_quand_fermeture {
+        prise.contexte_.quand_fermeture(prise)
+    }
+}
+
+initialise_contexte_ssl_client :: fonc (prise: *Prise) -> bool
+{
+    //imprime("initialise contexte client...\n")
+    ctx_ssl := tente initialise_contexte_ssl_client() piège err {
+        imprime("initialise_contexte_ssl_client retourne faux\n")
+        retourne faux
+    }
+
+    //imprime("ouvre_fichier_ssl...\n")
+    fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, prise.fichier) piège err {
+        imprime("erreur lors de l'ouverture du fichier : %\n", err)
+        SSL_CTX_free(ctx_ssl)
+        retourne faux
+    }
+
+    //imprime("prise initialisée avec un contexte SSL...\n")
+    prise.ctx_ssl = ctx_ssl
+    prise.fichier_ssl = fichier_ssl
+    retourne vrai
+}
+
+est_prise_ssl :: fonc (prise: *Prise) -> bool #enligne
+{
+    retourne prise.fichier_ssl.ssl != nul
+}
+
+lis_tout :: fonc (prise: *Prise) -> chaine
+{
+    si prise.est_prise_ssl() {
+        // imprime("tente de lire les données SSL !\n")
+        contenu := tente lis_tout(*prise.fichier_ssl) piège err {
+            retourne copie_chaine("")
+        }
+
+        // imprime("données lues !\n")
+        retourne contenu
+    }
+
+    contenu := tente lis_tout(*prise.fichier) piège err {
+        retourne copie_chaine("")
+    }
+
+    retourne contenu
+}
+
+écris :: fonc (prise: *Prise, données: chaine)
+{
+    si prise.est_prise_ssl() {
+        // imprime("écris des données SSL !\n")
+        tente écris(*prise.fichier_ssl, données) piège err {
+            imprime("impossible d'écrire SSL !\n")
+            retourne
+        }
+
+        // imprime("... données écrites !\n")
+        retourne
+    }
+
+    _ := écris(*prise.fichier, données)
+}
+
+écris :: fonc (prise: *Prise, enchaineuse: *Enchaineuse)
+{
+    si prise.est_prise_ssl() {
+        données := chaine_depuis_enchaineuse(enchaineuse)
+        diffère déloge(données)
+
+        // imprime("écris des données SSL !\n")
+        tente écris(*prise.fichier_ssl, données) piège err {
+            imprime("impossible d'écrire SSL !\n")
+            retourne
+        }
+
+        // imprime("... données écrites !\n")
+        retourne
+    }
+
+    _ := copie_enchaineuse_fichier(enchaineuse, *prise.fichier)
+}
