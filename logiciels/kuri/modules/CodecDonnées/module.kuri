@@ -57,8 +57,6 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 	initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
-    longueur := chn.taille
-
     pour c dans chn {
 		char_array_3[i] = c comme n8
 
