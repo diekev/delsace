@@ -196,6 +196,13 @@ crée_boucle :: fonc () -> *Boucle
 
 détruit_boucle :: fonc (boucle_évènements: *Boucle)
 {
+    prise := boucle_évènements.prises_fermées
+    tantque prise != nul {
+        suivante := prise.suivante
+        détruit_prise(prise)
+        prise = suivante
+    }
+
     _ := close(boucle_évènements.fd)
     déloge(boucle_évènements)
 }

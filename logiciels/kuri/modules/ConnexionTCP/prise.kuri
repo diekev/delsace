@@ -33,6 +33,11 @@ Prise :: struct {
     horodotage_délai : z32 // quand le délai fut mis en place
 }
 
+détruit_prise :: fonc (prise: *Prise)
+{
+    déloge_mémoire(prise.taille_mémoire, prise, info_de(Prise), PositionCodeSource())
+}
+
 mute_données_serveuse :: fonc (prise: *Prise, info_serveuse: *$T)
 {
     prise.données_serveuse_ = info_serveuse
