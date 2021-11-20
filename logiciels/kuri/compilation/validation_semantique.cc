@@ -3078,6 +3078,15 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
         return;
     }
 
+    /* Les paramètres de sortie sont toujours utilisés.
+     * À FAIRE : nous avons les paramètres de sorties des fonctions nichées dans le bloc de cette
+     * fonction ?
+     */
+    POUR (entete.params_sorties) {
+        it->comme_declaration_variable()->drapeaux |= EST_UTILISEE;
+    }
+    entete.param_sortie->drapeaux |= EST_UTILISEE;
+
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
         if (possede_annotation_inutilisee(decl_param)) {
@@ -3091,68 +3100,88 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     auto const &corps = *entete.corps;
 
-    visite_noeud(
-        corps.bloc, PreferenceVisiteNoeud::ORIGINAL, [&espace](const NoeudExpression *noeud) {
-            if (noeud->est_structure()) {
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
-            }
+    visite_noeud(corps.bloc,
+                 PreferenceVisiteNoeud::ORIGINAL,
+                 [&espace, entete](const NoeudExpression *noeud) {
+                     if (noeud->est_structure()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
 
-            /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser. */
-            if (noeud->est_si_statique()) {
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
-            }
+                     /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser.
+                      */
+                     if (noeud->est_si_statique()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
 
-            if (!noeud->est_declaration()) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     if (!noeud->est_declaration()) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* Ignore les variables implicites des boucles « pour ». */
-            if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Ignore les variables implicites des boucles « pour ». */
+                     if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* Le contexte peut ne pas être utilisé. */
-            if (noeud->ident == ID::contexte) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Le contexte peut ne pas être utilisé. */
+                     if (noeud->ident == ID::contexte) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas utilisée,
-             * bien que ceci ne soit pas en score formalisé dans le langage. */
-            if (noeud->ident && noeud->ident->nom == "_") {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
+                      * utilisée, bien que ceci ne soit pas en score formalisé dans le langage. */
+                     if (noeud->ident && noeud->ident->nom == "_") {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            if (noeud->est_declaration_variable()) {
-                auto const decl_var = noeud->comme_declaration_variable();
-                /* Les déclarations multiples comme « a, b := ... » ont les déclarations ajoutées
-                 * séparément aux membres du bloc. */
-                if (decl_var->valeur->est_virgule()) {
-                    return DecisionVisiteNoeud::CONTINUE;
-                }
+                     if (noeud->est_declaration_variable()) {
+                         auto const decl_var = noeud->comme_declaration_variable();
+                         /* Les déclarations multiples comme « a, b := ... » ont les déclarations
+                          * ajoutées séparément aux membres du bloc. */
+                         if (decl_var->valeur->est_virgule()) {
+                             return DecisionVisiteNoeud::CONTINUE;
+                         }
 
-                if (possede_annotation_inutilisee(decl_var)) {
-                    return DecisionVisiteNoeud::CONTINUE;
-                }
-            }
+                         if (possede_annotation_inutilisee(decl_var)) {
+                             return DecisionVisiteNoeud::CONTINUE;
+                         }
+                     }
 
-            /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas marqués
-             * comme utilisés car seules les entêtes le sont. Évitons d'émettre un avertissement
-             * pour rien. */
-            if (noeud->est_corps_fonction()) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas
+                      * marqués comme utilisés car seules les entêtes le sont. Évitons d'émettre un
+                      * avertissement pour rien. */
+                     if (noeud->est_corps_fonction()) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            if (!noeud->possede_drapeau(EST_UTILISEE)) {
-                if (noeud->est_entete_fonction()) {
-                    espace.rapporte_avertissement(noeud, "Fonction inutilisée");
-                }
-                else {
-                    espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
-                }
-            }
+                     if (!noeud->possede_drapeau(EST_UTILISEE)) {
+                         if (noeud->est_entete_fonction()) {
+                             auto entete_ = noeud->comme_entete_fonction();
+                             if (!entete_->est_declaration_type) {
+                                 auto message = enchaine("Dans la fonction ",
+                                                         entete.ident->nom,
+                                                         " : fonction « ",
+                                                         (noeud->ident ?
+                                                              noeud->ident->nom :
+                                                              kuri::chaine_statique("")),
+                                                         " » inutilisée");
+                                 espace.rapporte_avertissement(noeud, message);
+                             }
 
-            return DecisionVisiteNoeud::CONTINUE;
-        });
+                             /* Ne traverse pas la fonction nichée. */
+                             return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                         }
+
+                         auto message = enchaine(
+                             "Dans la fonction ",
+                             entete.ident->nom,
+                             " : déclaration « ",
+                             (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
+                             " » inutilisée");
+                         espace.rapporte_avertissement(noeud, message);
+                     }
+
+                     return DecisionVisiteNoeud::CONTINUE;
+                 });
 }
 
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
