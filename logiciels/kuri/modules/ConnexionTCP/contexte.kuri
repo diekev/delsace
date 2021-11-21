@@ -4,7 +4,7 @@ Contexte :: struct {
 
     /* rappels */
     quand_ouverture : fonc (*Prise)(rien)
-    quand_lecture : fonc (*Prise)(rien)
+    quand_données_reçues : fonc (*Prise, []octet)(rien)
     quand_écriture : fonc (*Prise)(rien)
     quand_fermeture : fonc (*Prise)(rien)
     quand_timeout : fonc (*Prise)(rien)

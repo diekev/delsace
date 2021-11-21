@@ -352,7 +352,11 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             }
 
             si évènements.EPOLLIN {
-                prise.contexte_.quand_lecture(prise)
+                // À FAIRE : utilise un tampon stocké dans la boucle
+                données := prise.lis_tout()
+                diffère déloge(données)
+
+                prise.contexte_.quand_données_reçues(prise, données)
 
                 //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)
                 // À FAIRE: fermeture si nous n'arrivons pas à lire
@@ -370,7 +374,7 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     {
     }
 
-    rappel_vide_quand_lecture :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
     {
     }
 
@@ -395,7 +399,7 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     }
 
     ctx.quand_ouverture = rappel_vide_quand_ouverture
-    ctx.quand_lecture = rappel_vide_quand_lecture
+    ctx.quand_données_reçues = rappel_vide_quand_données_reçues
     ctx.quand_écriture = rappel_vide_quand_écriture
     ctx.quand_fermeture = rappel_vide_quand_fermeture
     ctx.quand_timeout = rappel_vide_quand_timeout
