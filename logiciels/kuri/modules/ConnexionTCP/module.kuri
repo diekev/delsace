@@ -76,17 +76,17 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: t
     retourne prise
 }
 
-crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc(*Contexte)(rien))
+crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc(*Contexte)(rien)) -> *Prise
 {
     saufsi ctx {
-        retourne
+        retourne nul
     }
 
     fd := timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK)
 
     si fd < 0 {
         // imprime("Impossible de créer le fd pour le chronomètre !\n")
-        retourne
+        retourne nul
     }
 
     nouvelle_valeur : itimerspec = ---
@@ -95,7 +95,7 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
 
     si timerfd_settime(fd, 0, *nouvelle_valeur, nul) == -1 {
         // imprime("Impossible de mettre en place timerfd_settime !\n")
-        retourne
+        retourne nul
     }
 
     fichier := Fichier(fd)
@@ -106,9 +106,11 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
 
     si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
         // imprime("Impossible d'ajouter la prise !\n")
-        déloge(prise)
-        retourne
+        détruit_prise(prise)
+        retourne nul
     }
+
+    retourne prise
 }
 
 crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
@@ -267,9 +269,11 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             rappel(prise.contexte_)
 
             // il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement
-            _ := tente lis_tout(*prise.fichier) piège err {
+            données := tente lis_tout(*prise.fichier) piège err {
                 retourne
             }
+            /* À FAIRE : évite d'allouer de la mémoire ici */
+            déloge(données)
         }
         SEMI_PRISE {
             si évènements.EPOLLOUT {
