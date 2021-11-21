@@ -23,6 +23,16 @@ marque_prise_non_bloquante :: fonc (prise: z32)
     _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK);
 }
 
+/* Supprime le délai pour envoyer les paquets TCP, et active l'algorithme de Nagle
+ * afin d'améliorer les performances réseaux des connexions.
+ * Retourne vrai si l'option est activée, faux le cas échéant.
+ */
+prise_tcp_supprime_délai :: fonc (prise: z32) -> bool
+{
+    un := 1
+    retourne setsockopt(prise, IPPROTO_TCP, TCP_NODELAY, *un, taille_de(z32)) >= 0
+}
+
 ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) -> FichierOuErreur
 {
     ptr_tampon := crée_chaine_c(hôte)
