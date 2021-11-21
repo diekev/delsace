@@ -106,7 +106,7 @@ ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
     prise.précédente = (prise.contexte_ comme *Prise)
 
     si émets_quand_fermeture {
-        prise.contexte_.quand_fermeture(prise)
+        prise.contexte_.quand_fermeture_(prise)
     }
 }
 
