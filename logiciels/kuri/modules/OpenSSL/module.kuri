@@ -1,6 +1,7 @@
 // Interface pour la bibliothèque OpenSSL
 
 importe GlibC
+importe SysFichier
 
 libssl :: #bibliothèque "ssl"
 libcrypto :: #bibliothèque "crypto"
@@ -12,14 +13,24 @@ libcrypto :: #bibliothèque "crypto"
 ssl_method_st :: struct #externe // SSL_METHOD dans l'IPA C
 ssl_st :: struct #externe // SSL dans l'IPA C
 
+SSL_CTX :: ssl_st
+
 X509 :: struct #externe
 X509_NAME :: struct #externe
 X509_REQ :: struct #externe
 X509_CRL :: struct #externe
+STACK_OF_X509_NAME :: struct #externe // STACK_OF(X509_NAME)
+X509_STORE_CTX :: struct #externe
+
+DH :: struct #externe
+
+BIO :: struct #externe
+BIO_METHOD :: struct #externe
 
 SSL_library_init :: fonc () -> rien #externe libssl
 OPENSSL_add_all_algorithms_conf :: fonc () -> rien #externe libssl
 OPENSSL_add_all_algorithms_noconf :: fonc () -> rien #externe libssl
+TLSv1_2_method :: fonc () -> *ssl_method_st #externe libssl
 TLSv1_2_server_method :: fonc () -> *ssl_method_st #externe libssl
 SSL_load_error_strings :: fonc () -> rien #externe libssl
 SSLv23_client_method :: fonc () -> *ssl_method_st #externe libssl
@@ -32,6 +43,56 @@ SSL_get_error :: fonc (ssl : *ssl_st, erreur_ : z32) -> z32 #externe libssl
 SSL_write :: fonc (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32 #externe libssl
 SSL_read :: fonc (ssl : *ssl_st, tampon : *z8, max : z32) -> z32 #externe libssl
 SSL_set_connect_state :: fonc (ssl: *ssl_st) #externe libssl
+
+SSL_MODE_ENABLE_PARTIAL_WRITE :: 0x00000001
+SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER :: 0x00000002
+SSL_MODE_AUTO_RETRY :: 0x00000004
+SSL_MODE_NO_AUTO_CHAIN :: 0x00000008
+SSL_MODE_RELEASE_BUFFERS :: 0x00000010
+
+SSL_VERIFY_NONE                 :: 0x00
+SSL_VERIFY_PEER                 :: 0x01
+SSL_VERIFY_FAIL_IF_NO_PEER_CERT :: 0x02
+SSL_VERIFY_CLIENT_ONCE          :: 0x04
+
+TLS1_VERSION    : n16 : 0x0301
+TLS1_1_VERSION  : n16 : 0x0302
+TLS1_2_VERSION  : n16 : 0x0303
+TLS_MAX_VERSION : n16 : TLS1_2_VERSION
+
+pem_password_cb :: #nulctx fonc(*z8, z32, z32, *rien)(z32)
+
+SSL_CTX_set_read_ahead :: fonc (ssl: *SSL_CTX, oui_non: z32) -> rien #externe libssl
+
+SSL_CTX_set_mode :: fonc (ssl: *SSL_CTX, mode: z64) -> z64 #externe libssl
+
+SSL_CTX_set_min_proto_version :: fonc (ssl: *SSL_CTX, version: n16) -> z32 #externe libssl
+
+SSL_CTX_set_default_passwd_cb_userdata :: fonc (ssl: *SSL_CTX, données: *rien) -> rien #externe libssl
+SSL_CTX_get_default_passwd_cb_userdata :: fonc (ssl: *SSL_CTX) -> *rien #externe libssl
+SSL_CTX_set_default_passwd_cb :: fonc (ssl: *SSL_CTX, rappel : pem_password_cb) -> rien #externe libssl
+SSL_CTX_set_tmp_dh :: fonc (ssl: *SSL_CTX, dh: *DH) -> z64 #externe libssl
+
+SSL_CTX_set_cipher_list :: fonc (ssl: *SSL_CTX, control: ChaineC) -> z32 #externe libssl
+
+BIO_new :: fonc (type: *BIO_METHOD) -> *BIO #externe libssl
+BIO_up_ref :: fonc (a: *BIO) -> z32 #externe libssl
+BIO_free :: fonc (a: *BIO) -> z32 #externe libssl
+BIO_new_mem_buf :: fonc (buf: *rien, len: z32) -> *BIO #externe libssl
+
+DH_free :: fonc (dh: *DH) -> rien #externe libssl
+
+PEM_read_bio_DHparams :: fonc (bp: *BIO, x: **DH, cb: pem_password_cb, u: *rien) -> *DH #externe libssl
+
+SSL_CTX_use_certificate_chain_file :: fonc (ctx: *SSL_CTX, file: ChaineC) -> z32 #externe libssl
+
+SSL_load_client_CA_file :: fonc (CApath: ChaineC) -> *STACK_OF_X509_NAME #externe libssl
+SSL_CTX_set_client_CA_list :: fonc (contexte_ssl: *SSL_CTX, ca_list: *STACK_OF_X509_NAME) -> rien #externe libssl
+
+SSL_CTX_load_verify_locations :: fonc (ctx: *SSL_CTX, CAfile: ChaineC, CApath: ChaineC) -> z32 #externe libssl
+
+verify_callback_type :: #nulctx fonc (z32, *X509_STORE_CTX)(z32)
+SSL_CTX_set_verify :: fonc (ctx: *SSL_CTX, mode: z32, cb: verify_callback_type) -> rien #externe libssl
 
 // ceci est un macro en C
 OpenSSL_add_all_algorithms :: fonc () -> rien
@@ -340,4 +401,198 @@ ferme :: fonc (fichier: *FichierSSL) -> rien
     si fichier.ssl {
         SSL_free(fichier.ssl)
     }
+}
+
+// ------------------------------------------------------------------------
+
+OptionsCréationContexteSSL :: struct {
+    fichier_clé : chaine
+    fichier_certificat : chaine
+    phrase_de_passe : chaine
+    fichier_paramètres_dh : chaine
+    fichier_ca : chaine
+
+    /* Cette option est importante pour diminuer la quantité de mémoire utilisée,
+     * mais elle dimininue un peu la vittesse d'exécution du programme. */
+    préfère_utilisation_mémoire_basse : bool
+}
+
+/* Détruit un SSL_CTX créé depuis des OptionsCréationContexteSSL */
+détruit_contexte_ssl :: fonc (contexte_ssl: *SSL_CTX)
+{
+    /* Il est possible qu'un pointeur nul soit passé. */
+    saufsi contexte_ssl {
+        retourne
+    }
+
+    phrase_de_passe := SSL_CTX_get_default_passwd_cb_userdata(contexte_ssl)
+    si phrase_de_passe {
+        chn_c_phrasse_de_passe := ChaineC(phrase_de_passe comme *z8)
+        détruit_chaine_c(chn_c_phrasse_de_passe)
+    }
+
+    SSL_CTX_free(contexte_ssl)
+}
+
+/* Fonction de rappel pour demander la phrase de passe pour le chiffrage ou déchiffrage d'un fichier certificat.
+ * Puisque les OptionsCréationContexteSSL utilise une chaine pour la phrase de passe, ceci ne fait que la copier
+ * dans le tampon de sortie. Mais nous pourrions égaelement paramétrer les options pour permettre un système un
+ * peu plus complexe où cette fonction affiche un dialogue pour demander la phrase de passe (la fonction ne ferait
+ * qu'appeler la logique de l'application cliente qui affiche le dialogue).
+ *
+ * tampon : le tampon où copier la phrase de passe
+ * taille : la taille du tampon
+ * drapeaux_lecture_écriture : défini si le mot de passe est utilisé pour le chiffrage (écriture, 1) ou le déchiffrage (lecture, 0)
+ * données : les données utilisateur mis en place via SSL_CTX_set_default_passwd_cb_userdata
+ */
+rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drapeaux_lecture_écriture: z32 @inutilisée, données: *rien) -> z32 #nulctx
+pousse_contexte __contexte_fil_principal {
+    phrase_de_passe := données comme *ChaineC
+    taille_phrase_de_passe := taille_chaine_c(mémoire(phrase_de_passe))
+
+    copie_mem_nonsur(dst = tampon, src = phrase_de_passe, taille = taille_phrase_de_passe)
+
+    retourne taille_phrase_de_passe comme z32
+}
+
+/* Retourne un SSL_CTX paramétré selon les OptionsCréationContexteSSL, ou nul si impossible.
+ * Puisqu'une phrase de passe peut-être présente, le SSL_CTX doit être détruit
+ * via détruit_contexte_ssl().
+ */
+crée_contexte_ssl_depuis_options :: fonc (options: &OptionsCréationContexteSSL) -> *SSL_CTX
+{
+    /* Crée le contexte */
+    contexte_ssl := SSL_CTX_new(TLSv1_2_method())
+
+    /* Options par défaut pour ConnexionTCP
+     * À FAIRE : paramétrise. */
+    SSL_CTX_set_read_ahead(contexte_ssl, 1)
+    _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+
+    /* Requiers TLS 1.2 minimum.
+     * À FAIRE : paramétrise. */
+    _ = SSL_CTX_set_min_proto_version(contexte_ssl, TLS1_2_VERSION)
+
+    saufsi initialise_contexte_ssl_depuis_options(contexte_ssl, options) {
+        détruit_contexte_ssl(contexte_ssl)
+        retourne nul
+    }
+
+    retourne contexte_ssl
+}
+
+initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options: &OptionsCréationContexteSSL) -> bool
+{
+    si options.préfère_utilisation_mémoire_basse {
+       _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS)
+    }
+
+    si options.phrase_de_passe {
+        /* Lors de la destruction du SSL_CTX, il faut utiliser SSL_CTX_get_default_passwd_cb_userdata
+         * et manuellement libérer la ChaineC si présente. */
+        chn_c_phrasse_de_passe := crée_chaine_c(options.phrase_de_passe)
+        SSL_CTX_set_default_passwd_cb_userdata(contexte_ssl, chn_c_phrasse_de_passe comme *z8)
+        SSL_CTX_set_default_passwd_cb(contexte_ssl, rappel_pour_phrase_de_passe)
+    }
+
+    si options.fichier_certificat {
+        saufsi contexte_ssl_charge_fichier_certificat(contexte_ssl, options.fichier_certificat) {
+            retourne faux
+        }
+    }
+
+    si options.fichier_clé {
+        saufsi contexte_ssl_charge_fichier_clé_privée(contexte_ssl, options.fichier_clé) {
+            retourne faux
+        }
+    }
+
+    si options.fichier_ca {
+        saufsi contexte_ssl_charge_fichier_ca(contexte_ssl, options.fichier_ca) {
+            retourne faux
+        }
+    }
+
+    si options.fichier_paramètres_dh {
+        saufsi contexte_ssl_charge_paramètres_dh(contexte_ssl, options.fichier_paramètres_dh) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+contexte_ssl_charge_fichier_certificat :: fonc (contexte_ssl: *SSL_CTX, fichier_certificat: chaine) -> bool
+{
+    chn_c_fichier_certificat := crée_chaine_c(fichier_certificat)
+    diffère détruit_chaine_c(chn_c_fichier_certificat)
+    retourne SSL_CTX_use_certificate_chain_file(contexte_ssl, chn_c_fichier_certificat) == 1
+}
+
+contexte_ssl_charge_fichier_clé_privée :: fonc (contexte_ssl: *SSL_CTX, fichier_clé: chaine) -> bool
+{
+    chn_c_fichier_clé := crée_chaine_c(fichier_clé)
+    diffère détruit_chaine_c(chn_c_fichier_clé)
+    retourne SSL_CTX_use_PrivateKey_file(contexte_ssl, chn_c_fichier_clé, SSL_FILETYPE_PEM) == 1
+}
+
+contexte_ssl_charge_fichier_ca :: fonc (contexte_ssl: *SSL_CTX, fichier_ca: chaine) -> bool
+{
+    chn_c_fichier_ca := crée_chaine_c(fichier_ca)
+    diffère détruit_chaine_c(chn_c_fichier_ca)
+
+    ca_list := SSL_load_client_CA_file(chn_c_fichier_ca)
+
+    si ca_list == nul {
+        retourne faux
+    }
+
+    SSL_CTX_set_client_CA_list(contexte_ssl, ca_list)
+
+    si SSL_CTX_load_verify_locations(contexte_ssl, chn_c_fichier_ca, ChaineC(nul)) != 1 {
+        retourne faux
+    }
+
+    SSL_CTX_set_verify(contexte_ssl, SSL_VERIFY_PEER, nul)
+    retourne vrai
+}
+
+/* Initialise les paramètres DH éphémères depuis un fichier.
+ * Retourne vrai en cas de réussite, faux le cas échéant. */
+contexte_ssl_charge_paramètres_dh :: fonc (contexte_ssl: *SSL_CTX, fichier_paramètres_dh: chaine) -> bool
+{
+    contenu := contenu_fichier_texte(fichier_paramètres_dh)
+
+    saufsi contenu {
+        retourne faux
+    }
+
+    bio := BIO_new_mem_buf(contenu.pointeur, contenu.taille comme z32)
+    diffère _ := BIO_free(bio)
+
+    saufsi bio {
+        retourne faux
+    }
+
+    dh_2048 := PEM_read_bio_DHparams(bio, nul, nul, nul)
+
+    saufsi dh_2048 {
+        retourne faux
+    }
+
+    diffère DH_free(dh_2048)
+
+    si SSL_CTX_set_tmp_dh(contexte_ssl, dh_2048) != 1 {
+        retourne faux
+    }
+
+    /* OWASP Cipher String 'A+' (https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet) */
+    controle := crée_chaine_c("DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256")
+    diffère détruit_chaine_c(controle)
+
+    si SSL_CTX_set_cipher_list(contexte_ssl, controle) != 1 {
+        retourne faux
+    }
+
+    retourne vrai
 }
