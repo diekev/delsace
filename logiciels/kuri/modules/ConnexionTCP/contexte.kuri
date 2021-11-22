@@ -17,6 +17,13 @@ Contexte :: struct {
     /* serveuse : optionnel */
     serveuse_: *rien
     info_serveuse : *InfoType
+
+    est_ssl_ := faux
+}
+
+est_ssl :: fonc (ctx: *Contexte) -> bool #enligne
+{
+    retourne ctx.est_ssl_
 }
 
 mute_serveuse :: fonc (contexte_: *Contexte, serveuse: *$T)
@@ -47,61 +54,111 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
     retourne (contexte_ + 1) comme *TypeDonnées
 }
 
-crée_contexte :: fonc (boucle_prises: *Boucle, $TypeDonnées: type_de_données) -> *Contexte
+/* Fonction de création d'un contexte selon son type (Contexte ou ContextePriseSSL)
+ * Ceci allouera une quantité suffisante de mémoire pour tenir le contexte et une instance des TypeDeDonnéesUtilisateur. */
+crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_données, $TypeDeDonnéesUtilisateur: type_de_données) -> *TypeDuContexte
 {
-    taille_à_loger := (taille_de(Contexte) + taille_de(TypeDonnées)) comme z64
-    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(Contexte), PositionCodeSource())
+    taille_à_loger := (taille_de(Contexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64
+    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), PositionCodeSource())
 
-    contexte_ := mém_contexte_ comme *Contexte
-    init_de(Contexte)(contexte_)
+    contexte_ := mém_contexte_ comme *TypeDuContexte
+    init_de(TypeDuContexte)(contexte_)
 
     contexte_.boucle_prises = boucle_prises
-
     contexte_.taille_mémoire = taille_à_loger
-    contexte_.info_utilisateur = info_de(TypeDonnées)
+    contexte_.info_utilisateur = info_de(TypeDeDonnéesUtilisateur)
 
     retourne contexte_
 }
 
+crée_contexte :: fonc (boucle_prises: *Boucle, $TypeDonnées: type_de_données) -> *Contexte
+{
+    retourne crée_contexte_impl(boucle_prises, Contexte, TypeDonnées)
+}
+
 détruit_contexte :: fonc (ctx: *Contexte)
 {
+    si ctx.est_ssl() {
+        détruit_contexte_ssl(ctx comme *ContextePriseSSL)
+        retourne
+    }
+
     déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), PositionCodeSource())
 }
 
 // -----------------------------------------------------
 // Mise en place des rappels.
 
+// À FAIRE(langage) : les appels de fonctions ne fonctionnent pas comme résultat d'un bloc de « si comme expression ».
+// a = si b { c() } sinon { d() }
+// Ceci renvoie une erreur "valeur de retour n'est pas utilisée"
+
 mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_ouverture_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_ouverture_ = contexte_ssl_parasite_quand_ouverture(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_ouverture_ = rappel
+    }
 }
 
 mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, []octet)(rien))
 {
-    ctx.quand_données_reçues_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_données_reçues_ = contexte_ssl_parasite_quand_données_reçues(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_données_reçues_ = rappel
+    }
 }
 
 mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_écriture_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_écriture_ = contexte_ssl_parasite_quand_écriture(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_écriture_ = rappel
+    }
 }
 
 mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_fermeture_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_fermeture_ = contexte_ssl_parasite_quand_fermeture(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_fermeture_ = rappel
+    }
 }
 
 mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_timeout_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_timeout_ = contexte_ssl_parasite_quand_timeout(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_timeout_ = rappel
+    }
 }
 
 mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_fin_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_fin_ = contexte_ssl_parasite_quand_fin(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_fin_ = rappel
+    }
 }
 
 mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_erreur_connexion_ = rappel
+    si ctx.est_ssl() {
+        ctx.quand_erreur_connexion_ = contexte_ssl_parasite_quand_erreur_connexion(ctx comme *ContextePriseSSL, rappel)
+    }
+    sinon {
+        ctx.quand_erreur_connexion_ = rappel
+    }
 }
