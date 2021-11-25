@@ -501,7 +501,7 @@ ferme :: fonc (fichier: *FichierSSL) -> rien
 /* Efface les erreurs du fil d'exécution local. */
 efface_file_erreur_locale :: fonc (code: z32)
 {
-    si err == SSL_ERROR_SSL || err == SSL_ERROR_SYSCALL {
+    si code == SSL_ERROR_SSL || code == SSL_ERROR_SYSCALL {
         ERR_clear_error();
     }
 }
