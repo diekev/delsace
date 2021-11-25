@@ -18,9 +18,6 @@ Prise :: struct {
     suivante : *Prise
     précédente : *Prise
 
-    ctx_ssl: *ssl_st
-    fichier_ssl: FichierSSL
-
     // la taille de la prise avec les données utilisateurs
     taille_mémoire: z64
     info_utilisateur: *InfoType
@@ -31,6 +28,8 @@ Prise :: struct {
     /* délais */
     délai : z32 // secondes
     horodotage_délai : z32 // quand le délai fut mis en place
+
+    est_ssl_ : bool = faux
 }
 
 détruit_prise :: fonc (prise: *Prise)
@@ -69,6 +68,10 @@ données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) ->
         retourne nul
     }
 
+    si prise.est_prise_ssl() {
+        retourne ((prise comme *PriseSSL) + 1) comme *TypeDonnées
+    }
+
     retourne (prise + 1) comme *TypeDonnées
 }
 
@@ -91,13 +94,7 @@ ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
 {
     enlève_prise(prise.contexte_.boucle_prises, prise)
 
-    si prise.est_prise_ssl() {
-        ferme(*prise.fichier_ssl)
-        SSL_CTX_free(prise.ctx_ssl)
-    }
-    sinon {
-        _ := ferme(*prise.fichier)
-    }
+    _ := ferme(*prise.fichier)
 
     prise.suivante = prise.contexte_.boucle_prises.prises_fermées
     prise.contexte_.boucle_prises.prises_fermées = prise
@@ -110,44 +107,13 @@ ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
     }
 }
 
-initialise_contexte_ssl_client :: fonc (prise: *Prise) -> bool
-{
-    //imprime("initialise contexte client...\n")
-    ctx_ssl := tente initialise_contexte_ssl_client() piège err {
-        imprime("initialise_contexte_ssl_client retourne faux\n")
-        retourne faux
-    }
-
-    //imprime("ouvre_fichier_ssl...\n")
-    fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, prise.fichier) piège err {
-        imprime("erreur lors de l'ouverture du fichier : %\n", err)
-        SSL_CTX_free(ctx_ssl)
-        retourne faux
-    }
-
-    //imprime("prise initialisée avec un contexte SSL...\n")
-    prise.ctx_ssl = ctx_ssl
-    prise.fichier_ssl = fichier_ssl
-    retourne vrai
-}
-
 est_prise_ssl :: fonc (prise: *Prise) -> bool #enligne
 {
-    retourne prise.fichier_ssl.ssl != nul
+    retourne prise.est_ssl_
 }
 
 lis_tout :: fonc (prise: *Prise) -> chaine
 {
-    si prise.est_prise_ssl() {
-        // imprime("tente de lire les données SSL !\n")
-        contenu := tente lis_tout(*prise.fichier_ssl) piège err {
-            retourne copie_chaine("")
-        }
-
-        // imprime("données lues !\n")
-        retourne contenu
-    }
-
     contenu := tente lis_tout(*prise.fichier) piège err {
         retourne copie_chaine("")
     }
@@ -155,37 +121,44 @@ lis_tout :: fonc (prise: *Prise) -> chaine
     retourne contenu
 }
 
-écris :: fonc (prise: *Prise, données: chaine)
+écris :: fonc (prise: *Prise, données: chaine) -> z32
 {
     si prise.est_prise_ssl() {
-        // imprime("écris des données SSL !\n")
-        tente écris(*prise.fichier_ssl, données) piège err {
-            imprime("impossible d'écrire SSL !\n")
-            retourne
-        }
-
-        // imprime("... données écrites !\n")
-        retourne
+        retourne écris(prise comme *PriseSSL, données)
     }
 
-    _ := écris(*prise.fichier, données)
+    retourne écris_final(prise, données)
 }
 
-écris :: fonc (prise: *Prise, enchaineuse: *Enchaineuse)
+écris :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
 {
     si prise.est_prise_ssl() {
-        données := chaine_depuis_enchaineuse(enchaineuse)
-        diffère déloge(données)
-
-        // imprime("écris des données SSL !\n")
-        tente écris(*prise.fichier_ssl, données) piège err {
-            imprime("impossible d'écrire SSL !\n")
-            retourne
-        }
-
-        // imprime("... données écrites !\n")
-        retourne
+        // À FAIRE : garde la mémoire jusqu'à ce que les données furent écris
+        tampon := chaine_depuis_enchaineuse(enchaineuse)
+        diffère déloge(tampon)
+        retourne écris(prise comme *PriseSSL, tampon)
     }
 
-    _ := copie_enchaineuse_fichier(enchaineuse, *prise.fichier)
+    retourne écris_final(prise, enchaineuse)
+}
+
+/* Cette fonction est à utiliser en interne pour écrire dans la prise, les fonctions « écris » sont pour les applications clientes.
+ * Nous utilisons ce niveau d'indirection car pour SSL nous chiffrons/déchiffrons manuellement depuis un BIO qui doit également écrire
+ * les données dans la prise après le chiffrement. */
+écris_final :: fonc (prise: *Prise, données: chaine) -> z32
+{
+    octets_écris := tente écris(*prise.fichier, données) piège err {
+        retourne 0
+    }
+
+    retourne octets_écris
+}
+
+écris_final :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
+{
+    tente copie_enchaineuse_fichier(enchaineuse, *prise.fichier) piège err {
+        retourne 0
+    }
+
+    retourne taille_chaine(enchaineuse) comme z32
 }

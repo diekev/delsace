@@ -1,9 +1,15 @@
+importe Internet
+importe GlibC
+importe OpenSSL
+importe POSIX
+importe Réseau
+importe SysFichier
 
 Contexte :: struct {
     boucle_prises : *Boucle
 
     /* rappels */
-    quand_ouverture_ : fonc (*Prise)(rien)
+    quand_ouverture_ : fonc (*Prise, bool)(rien)
     quand_données_reçues_ : fonc (*Prise, []octet)(rien)
     quand_écriture_ : fonc (*Prise)(rien)
     quand_fermeture_ : fonc (*Prise)(rien)
@@ -51,6 +57,10 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
         retourne nul
     }
 
+    si contexte_.est_ssl() {
+        retourne ((contexte_ comme *ContextePriseSSL) + 1) comme *TypeDonnées
+    }
+
     retourne (contexte_ + 1) comme *TypeDonnées
 }
 
@@ -58,7 +68,7 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
  * Ceci allouera une quantité suffisante de mémoire pour tenir le contexte et une instance des TypeDeDonnéesUtilisateur. */
 crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_données, $TypeDeDonnéesUtilisateur: type_de_données) -> *TypeDuContexte
 {
-    taille_à_loger := (taille_de(Contexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64
+    taille_à_loger := (taille_de(TypeDuContexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64
     mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), PositionCodeSource())
 
     contexte_ := mém_contexte_ comme *TypeDuContexte
@@ -71,8 +81,12 @@ crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_do
     retourne contexte_
 }
 
-crée_contexte :: fonc (boucle_prises: *Boucle, $TypeDonnées: type_de_données) -> *Contexte
+crée_contexte :: fonc (boucle_prises: *Boucle, options: *OptionsCréationContexteSSL, $TypeDonnées: type_de_données) -> *Contexte
 {
+    si options {
+        retourne crée_contexte_ssl(boucle_prises, mémoire(options), TypeDonnées)
+    }
+
     retourne crée_contexte_impl(boucle_prises, Contexte, TypeDonnées)
 }
 
@@ -87,13 +101,128 @@ détruit_contexte :: fonc (ctx: *Contexte)
 }
 
 // -----------------------------------------------------
+// Création de prises
+
+crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $TypeDonnées: type_de_données) -> *Prise
+{
+    saufsi contexte_ {
+        retourne nul
+    }
+
+    // imprime("crée_prise_pour_écoute\n")
+    fichier := tente ouvre_connexion_pour_écoute(adresse_ip, port, connexions_max) piège err {
+        // imprime("erreur lors de l'ouverture d'une connexion pour écoute : %\n", err)
+        retourne nul
+    }
+
+    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées))
+    prise.type = TypePrise.SEMI_PRISE
+
+    si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
+        prise.ferme(prise)
+        retourne nul
+    }
+
+    retourne prise
+}
+
+crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: type_de_données) -> *Prise
+{
+    saufsi contexte_ {
+        retourne nul
+    }
+
+    // imprime("crée_prise_connexion\n")
+
+    port := port_pour_uri(uri)
+
+    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège err {
+        // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
+        retourne nul
+    }
+
+    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées))
+    prise.type = TypePrise.SEMI_PRISE
+
+    si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
+        prise.ferme()
+        retourne nul
+    }
+
+    retourne prise
+}
+
+crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc(*Contexte)(rien)) -> *Prise
+{
+    saufsi ctx {
+        retourne nul
+    }
+
+    fd := timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK)
+
+    si fd < 0 {
+        // imprime("Impossible de créer le fd pour le chronomètre !\n")
+        retourne nul
+    }
+
+    nouvelle_valeur : itimerspec = ---
+    nouvelle_valeur.it_interval = timespec_depuis_ms(interval)
+    nouvelle_valeur.it_value = timespec_depuis_ms(commence_dans)
+
+    si timerfd_settime(fd, 0, *nouvelle_valeur, nul) == -1 {
+        // imprime("Impossible de mettre en place timerfd_settime !\n")
+        retourne nul
+    }
+
+    fichier := Fichier(fd)
+    prise := crée_prise_interne(ctx, fichier, info_de(fonc(*Contexte)(rien)))
+    prise.type = TypePrise.RAPPEL
+    ptr_fonc := prise.données_utilisateur(fonc(*Contexte)(rien))
+    mémoire(ptr_fonc) = rappel
+
+    si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
+        // imprime("Impossible d'ajouter la prise !\n")
+        détruit_prise(prise)
+        retourne nul
+    }
+
+    retourne prise
+}
+
+crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
+{
+    taille_à_loger := (taille_de(TypePrise) + info_données_externes.taille_en_octet) comme z64
+    mém_prise := loge_mémoire(taille_à_loger, info_de(TypePrise), PositionCodeSource())
+
+    prise := mém_prise comme *TypePrise
+    init_de(TypePrise)(prise)
+
+    prise.fichier = fichier
+    prise.contexte_ = contexte_
+    prise.taille_mémoire = taille_à_loger
+    prise.info_utilisateur = info_données_externes
+    retourne prise
+}
+
+crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
+{
+    si contexte_.est_ssl() {
+        prise := crée_prise_impl(contexte_, fichier, info_données_externes, PriseSSL)
+        prise.est_ssl_ = vrai
+        retourne prise
+    }
+
+    retourne crée_prise_impl(contexte_, fichier, info_données_externes, Prise)
+}
+
+// -----------------------------------------------------
 // Mise en place des rappels.
 
 // À FAIRE(langage) : les appels de fonctions ne fonctionnent pas comme résultat d'un bloc de « si comme expression ».
 // a = si b { c() } sinon { d() }
 // Ceci renvoie une erreur "valeur de retour n'est pas utilisée"
 
-mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
+mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (*Prise, bool)(rien))
 {
     si ctx.est_ssl() {
         ctx.quand_ouverture_ = contexte_ssl_parasite_quand_ouverture(ctx comme *ContextePriseSSL, rappel)

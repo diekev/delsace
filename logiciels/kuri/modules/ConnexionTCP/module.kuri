@@ -17,117 +17,18 @@ importe Internet
 importe Réseau
 importe Temps
 
-crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $TypeDonnées: type_de_données) -> *Prise
-{
-    saufsi contexte_ {
-        retourne nul
-    }
+// --------------------------------------------------
 
-    // imprime("crée_prise_pour_écoute\n")
-    fichier := tente ouvre_connexion_pour_écoute(adresse_ip, port, connexions_max) piège err {
-        // imprime("erreur lors de l'ouverture d'une connexion pour écoute : %\n", err)
-        retourne nul
-    }
+/* 512ko de tampon partagé pour recevoir les données */
+TAILLE_TAMPON_RÉCEPTION_DONNÉES :: 524288
+/* 32 octets de marge pour en début et fin du tampon de réception. */
+MARGE_TAMPON_RÉCEPTION :: 32
+/* Une granularité de délai d'attente de 4 secondes implique qu'un délai sur une prise peut-être plus long ou plus court de 4 secondes. */
+GRANULARITÉ_DÉLAI_ATTENTE :: 4
+/* Alignement garanti des données utilisateurs (À FAIRE) */
+ALIGNEMENT_DONNÉES_UTILISATEUR :: 16
 
-    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées))
-    prise.type = TypePrise.SEMI_PRISE
-
-    // À FAIRE : SSL
-
-    si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
-        prise.ferme(prise)
-        retourne nul
-    }
-
-    retourne prise
-}
-
-crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: type_de_données) -> *Prise
-{
-    saufsi contexte_ {
-        retourne nul
-    }
-
-    // imprime("crée_prise_connexion\n")
-
-    port := port_pour_uri(uri)
-
-    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège err {
-        // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
-        retourne nul
-    }
-
-    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées))
-    prise.type = TypePrise.SEMI_PRISE
-
-    // À FAIRE : meilleure manière de déterminer si SSL doit être utilisé
-    si port == 443 || port == 465 {
-        saufsi prise.initialise_contexte_ssl_client() {
-            prise.ferme()
-            retourne nul
-        }
-    }
-
-    si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
-        prise.ferme()
-        retourne nul
-    }
-
-    retourne prise
-}
-
-crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc(*Contexte)(rien)) -> *Prise
-{
-    saufsi ctx {
-        retourne nul
-    }
-
-    fd := timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK)
-
-    si fd < 0 {
-        // imprime("Impossible de créer le fd pour le chronomètre !\n")
-        retourne nul
-    }
-
-    nouvelle_valeur : itimerspec = ---
-    nouvelle_valeur.it_interval = timespec_depuis_ms(interval)
-    nouvelle_valeur.it_value = timespec_depuis_ms(commence_dans)
-
-    si timerfd_settime(fd, 0, *nouvelle_valeur, nul) == -1 {
-        // imprime("Impossible de mettre en place timerfd_settime !\n")
-        retourne nul
-    }
-
-    fichier := Fichier(fd)
-    prise := crée_prise_interne(ctx, fichier, info_de(fonc(*Contexte)(rien)))
-    prise.type = TypePrise.RAPPEL
-    ptr_fonc := prise.données_utilisateur(fonc(*Contexte)(rien))
-    mémoire(ptr_fonc) = rappel
-
-    si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
-        // imprime("Impossible d'ajouter la prise !\n")
-        détruit_prise(prise)
-        retourne nul
-    }
-
-    retourne prise
-}
-
-crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
-{
-    taille_à_loger := (taille_de(Prise) + info_données_externes.taille_en_octet) comme z64
-    mém_prise := loge_mémoire(taille_à_loger, info_de(Prise), PositionCodeSource())
-
-    prise := mém_prise comme *Prise
-    init_de(Prise)(prise)
-
-    prise.fichier = fichier
-    prise.contexte_ = contexte_
-    prise.taille_mémoire = taille_à_loger
-    prise.info_utilisateur = info_données_externes
-
-    retourne prise
-}
+// --------------------------------------------------
 
 ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL_EVENTS) -> bool
 {
@@ -175,6 +76,8 @@ Boucle :: struct {
     prises_fermées: *Prise
 
     stop := faux
+
+    données_ssl: *DonnéesSSLBoucle
 }
 
 crée_boucle :: fonc () -> *Boucle
@@ -204,6 +107,8 @@ détruit_boucle :: fonc (boucle_évènements: *Boucle)
         détruit_prise(prise)
         prise = suivante
     }
+
+    détruit_données_ssl_boucle(boucle_évènements)
 
     _ := close(boucle_évènements.fd)
     déloge(boucle_évènements)
@@ -294,7 +199,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                     /* Si nous avions un délai, remettons-le à zéro ici. */
                     prise.mute_délai(0)
 
-                    prise.contexte_.quand_ouverture_(prise)
+                    prise.contexte_.quand_ouverture_(prise, vrai)
                 }
             }
             sinon {
@@ -319,7 +224,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
                             // us_internal_socket_context_link(listen_socket->s.context, s);
 
-                            prise.contexte_.quand_ouverture_(prise_acceptée)
+                            prise.contexte_.quand_ouverture_(prise_acceptée, faux)
                         }
 
                         si prise.est_fermée() {
@@ -370,7 +275,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
  * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
 initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 {
-    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée, est_client: bool @inutilisée)
     {
     }
 
@@ -409,9 +314,9 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 
 // Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
 // utile pour les développements.
-crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, options: *OptionsCréationContexteSSL, $T: type_de_données) -> *Contexte
 {
-    ctx := crée_contexte(boucle_évènements, T)
+    ctx := crée_contexte(boucle_évènements, options, T)
     initialise_rappels_pour_contexte_vide(ctx)
     retourne ctx
 }
