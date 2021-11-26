@@ -98,7 +98,7 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
 
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    parseuse := loge(ParseuseHTTP)
+    parseuse := loge(ParseuseMessageClienteHTTP)
     prise.mute_données_serveuse(parseuse)
 
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
@@ -120,7 +120,7 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
     imprime("reçu :\n%\n", contenu)
 
-    parseuse := prise.accède_données_serveuse(ParseuseHTTP)
+    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
     parseuse.ajourne_données(contenu)
 
     si !parseuse.message_prêt_pour_finalisation() {
@@ -220,7 +220,7 @@ doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &Messa
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n")
-    parseuse := prise.accède_données_serveuse(ParseuseHTTP)
+    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
     parseuse.réinitialise()
     déloge(parseuse)
 }
