@@ -1,8 +1,13 @@
 importe Chaine
+importe Compilatrice
 importe Fondation
 importe HTML
 importe SysFichier
 importe Temps
+
+// #exécute compile_pour_production()
+// #exécute compile_pour_profilage()
+// #exécute compile_pour_débogage()
 
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
 {
@@ -50,35 +55,3 @@ principale :: fonc () -> z32
 
     retourne 0
 }
-
-importe Compilatrice
-
-optimise_code :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.niveau_optimisation = NiveauOptimisation.O3
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute optimise_code()
-
-compile_pour_profilage :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.PROFILAGE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute compile_pour_profilage()
-
-compile_pour_débogage :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.DÉBOGAGE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute compile_pour_débogage()

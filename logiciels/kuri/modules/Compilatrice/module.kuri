@@ -9,6 +9,33 @@ charge "message"
 charge "options"
 
 // ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour la compilation.
+
+compile_pour_production :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.niveau_optimisation = NiveauOptimisation.O3
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    compilatrice_ajourne_options(options)
+}
+
+compile_pour_débogage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    compilatrice_ajourne_options(options)
+}
+
+compile_pour_profilage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.PROFILAGE
+    compilatrice_ajourne_options(options)
+}
+
+// ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour l'IPA.
 
 compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
