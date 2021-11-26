@@ -50,6 +50,7 @@ DonnéesMessage :: struct {
     position_version: PositionChaine
 
     /* Pour les messages serveurs. */
+    code_état : z32
     position_code_état: PositionChaine
 
     positions_entêtes: []DonnéesEntête
@@ -186,6 +187,39 @@ parse_état_requête_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     parseuse.état_parsage = parse_état_version_http
     parseuse.données_message.position_requête = PositionChaine(début, début + requête.taille comme z32)
+    retourne RésultatParsage.OK
+}
+
+parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+{
+    si parseuse.données.taille < 64 {
+        retourne RésultatParsage.MESSAGE_INCOMPLET
+    }
+
+    début := parseuse.parseuse_chaine.curseur
+
+    parseuse_chaine := *parseuse.parseuse_chaine
+
+    saufsi parseuse_chaine.consomme_nombre(3) {
+        retourne RésultatParsage.ERREUR
+    }
+
+    parseuse_chaine.positionne(3)
+
+    saufsi parseuse_chaine.consomme(' ') {
+        retourne RésultatParsage.ERREUR
+    }
+
+    pos_version := parseuse_chaine.trouve_prochain("HTTP")
+
+    si pos_version <= 0 {
+        retourne RésultatParsage.MESSAGE_INCOMPLET
+    }
+
+    parseuse_chaine.positionne(pos_version)
+
+    parseuse.données_message.code_état = parseuse_chaine.nombre
+    parseuse.état_parsage = parse_état_version_http
     retourne RésultatParsage.OK
 }
 
@@ -477,6 +511,9 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
 
 ParseuseMessageServeuseHTTP :: struct {
     empl base: ParseuseHTTP
+
+    /* Les messages serveuses commencent sur un status. */
+    état_parsage = parse_état_status_http
 }
 
 réinitialise :: fonc (parseuse: *ParseuseMessageServeuseHTTP)
@@ -491,5 +528,7 @@ finalise_message :: fonc (parseuse: *ParseuseMessageServeuseHTTP) -> MessageServ
 
     message_serveuse := MessageServeuseHTTP()
     initialise_depuis_message(*message_serveuse, message)
+    message_serveuse.status = parseuse.données_message.code_état
+    message_serveuse.code_état = message_serveuse.status comme CodeÉtatHTTP
     retourne message_serveuse
 }
