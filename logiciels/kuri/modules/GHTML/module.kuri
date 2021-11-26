@@ -130,8 +130,6 @@ génère_page :: fonc(
             variable := noeud.enfants[0].données.chn
             valeur := trouve_variable(données, variable)
 
-            idx_enfant := 0
-
             si évalue_condition(valeur) {
                 retourne génère_page(données, noeud.enfants[1], enchaineuse)
             }
