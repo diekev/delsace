@@ -49,7 +49,7 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     serveuse := loge(ServeuseHTTP)
 
     boucle_évènements := crée_boucle()
-    ctx := crée_contexte_vide(boucle_évènements, T)
+    ctx := crée_contexte_vide(boucle_évènements, nul, T)
 
     ctx.mute_serveuse(serveuse)
 
@@ -67,7 +67,7 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     serveuse.port = port
 
     serveuse.rappel_quand_ouverture(quand_ouverture)
-    serveuse.rappel_quand_lecture(quand_lecture)
+    serveuse.rappel_quand_données_reçues(quand_données_reçues)
     serveuse.rappel_quand_fermeture(quand_fermeture)
 
     retourne serveuse
@@ -96,7 +96,7 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
     déloge(serveuse)
 }
 
-quand_ouverture :: fonc (prise: *Prise)
+quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
     parseuse := loge(ParseuseHTTP)
     prise.mute_données_serveuse(parseuse)
@@ -106,13 +106,11 @@ quand_ouverture :: fonc (prise: *Prise)
     si serveuse.quand_connexion_http {
         serveuse.quand_connexion_http(prise)
     }
-
-    quand_lecture(prise)
 }
 
-quand_lecture :: fonc (prise: *Prise)
+quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
-    contenu := prise.lis_tout()
+    contenu := chaine_depuis_tableau_octets(données)
 
     si !contenu {
         // délai en cas de non-écriture
@@ -290,7 +288,7 @@ PolitiqueDeCache :: énum {
         ajoute_au_tampon(*enchaineuse, message.contenu)
     }
 
-    prise.écris(*enchaineuse)
+    _ := prise.écris(*enchaineuse)
 }
 
 chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
