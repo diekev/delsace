@@ -119,7 +119,7 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     prise.type = TypePrise.SEMI_PRISE
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
-        prise.ferme(prise)
+        prise.ferme()
         retourne nul
     }
 
