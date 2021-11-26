@@ -144,16 +144,21 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4, port: n16, connex
         retourne ErreurPrise.PortIllégal
     }
 
+    drapeaux := SOCK_STREAM
+    drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK)
+
     /*
         tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
         raw_socket = socket(AF_INET, SOCK_RAW, protocol);
     */
-    prise := socket(AF_INET, SOCK_STREAM, 0)
+    prise := socket(AF_INET, drapeaux, 0)
 
     si prise == -1 {
         retourne ErreurPrise.CréationImpossible
     }
+
+    marque_prise_non_bloquante(prise)
 
     enable := 1
     si setsockopt(prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
