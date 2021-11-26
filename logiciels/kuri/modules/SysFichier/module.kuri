@@ -63,7 +63,7 @@ détruit_chemin :: fonc (chemin: &CheminFichier)
     déloge(chemin.chn)
 }
 
-imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
+imprime_chemin_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
 {
     si chemin {
         ajoute_au_tampon(enchaineuse, chemin.chn)
