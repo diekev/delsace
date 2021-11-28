@@ -95,10 +95,20 @@ ajoute_destinataire_bcc :: fonc (courriel: &Courriel, destinataire: AdresseCourr
 
 ConfigurationCourriel :: struct {
     serveur : chaine
-    port : n16 = 25 // 465 pour ssl
+    port_non_chiffré : n16
+    port_chiffré : n16
     utilise_ssl := faux
     utilisateur : chaine
     mot_de_passe : chaine
+}
+
+port :: fonc (configuration: &ConfigurationCourriel) -> n16
+{
+    si configuration.utilise_ssl {
+        retourne configuration.port_chiffré
+    }
+
+    retourne configuration.port_non_chiffré
 }
 
 RéponseServeuse :: struct {
@@ -318,7 +328,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 
 ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErreur
 {
-    fichier := tente ouvre_connexion_serveur(config.serveur, config.port) piège err {
+    fichier := tente ouvre_connexion_serveur(config.serveur, config.port(), vrai) piège err {
         retourne err
     }
 
