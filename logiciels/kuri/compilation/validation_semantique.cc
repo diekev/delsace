@@ -401,10 +401,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud_module->bloc_parent = inst->bloc_parent;
                 noeud_module->bloc_parent->membres->ajoute(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-                noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             }
 
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
