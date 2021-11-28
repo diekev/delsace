@@ -1678,6 +1678,12 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
             auto type_membre = it.type;
             auto taille = type_membre->taille_octet;
+
+            /* Ignore les membres qui n'ont pas de type. */
+            if (type_membre->est_rien()) {
+                continue;
+            }
+
             max_alignement = std::max(type_membre->alignement, max_alignement);
 
             assert_rappel(it.type->alignement != 0, [&] {

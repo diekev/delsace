@@ -76,7 +76,8 @@ set(SOURCES
 	coulisse.hh
 	coulisse_asm.hh
 	coulisse_c.hh
-	coulisse_mv.hh
+  coulisse_mv.hh
+  discrimination.hh
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
@@ -106,6 +107,7 @@ set(SOURCES
 	coulisse_asm.cc
 	coulisse_c.cc
 	coulisse_mv.cc
+  discrimination.cc
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc

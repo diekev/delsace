@@ -602,6 +602,10 @@ struct Simplificatrice {
     /* remplace la dernière expression d'un bloc par une assignation afin de pouvoir simplifier les
      * conditions à droite des assigations */
     void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
+
+    void cree_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
+                                      NoeudBloc *bloc_d_insertion,
+                                      const Lexeme *lexeme_reference);
 };
 
 void Simplificatrice::simplifie(NoeudExpression *noeud)
@@ -657,6 +661,15 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto corps = noeud->comme_corps_fonction();
             simplifie(corps->bloc);
+
+            if (corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
+                auto retourne = assem->cree_retourne(corps->lexeme);
+                corps->bloc->expressions->ajoute(retourne);
+            }
+            else if (corps->aide_generation_code == REQUIERS_RETOUR_UNION_VIA_RIEN) {
+                cree_retourne_union_via_rien(corps->entete, corps->bloc, corps->lexeme);
+            }
+
             return;
         }
         case GenreNoeud::INSTRUCTION_COMPOSEE:
@@ -1828,6 +1841,29 @@ void Simplificatrice::simplifie_comparaison_chainee(NoeudExpressionBinaire *comp
     comp->substitution = cree_expression_pour_op_chainee(comparaisons, &lexeme_et);
 }
 
+void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
+                                                   NoeudBloc *bloc_d_insertion,
+                                                   Lexeme const *lexeme_reference)
+{
+    auto type_sortie = entete->type->comme_fonction()->type_sortie->comme_union();
+    auto retourne = assem->cree_retourne(lexeme_reference);
+
+    auto construction_union = assem->cree_construction_structure(lexeme_reference, type_sortie);
+    construction_union->aide_generation_code = CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN;
+
+    auto param_sortie = entete->param_sortie;
+
+    auto ref_param_sortie = assem->cree_reference_declaration(lexeme_reference, param_sortie);
+
+    auto assignation = assem->cree_assignation_variable(
+        lexeme_reference, ref_param_sortie, construction_union);
+
+    retourne->expression = ref_param_sortie;
+
+    bloc_d_insertion->expressions->ajoute(assignation);
+    bloc_d_insertion->expressions->ajoute(retourne);
+}
+
 /* Les retours sont simplifiés sous forme d'assignations des valeurs de retours,
  * et d'un chargement pour les retours simples. */
 void Simplificatrice::simplifie_retour(NoeudRetour *inst)
@@ -1837,6 +1873,13 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
     auto type_sortie = type_fonction->type_sortie;
 
     if (type_sortie->est_rien()) {
+        return;
+    }
+
+    if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
+        auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
+        cree_retourne_union_via_rien(fonction_courante, bloc, inst->lexeme);
+        inst->substitution = bloc;
         return;
     }
 
@@ -2242,7 +2285,6 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
         si_courant->condition = cree_expression_pour_op_chainee(comparaisons, &lexeme_ou);
 
-        // À FAIRE(union) : création d'une variable si nous avons une union
         simplifie(it->bloc);
         si_courant->bloc_si_vrai = it->bloc;
 
@@ -2255,46 +2297,6 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
     simplifie(discr->bloc_sinon);
     si_courant->bloc_si_faux = discr->bloc_sinon;
-
-#if 0
-	/* génération du code pour l'expression contre laquelle nous testons */
-	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
-  valeur_f = valeur_enum(static_cast<TypeEnum *>(expression->type), f->ident);
-	}
-	else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-		auto type_union = noeud->expr->type->comme_union();
-		if (type_union->est_anonyme) {
-			unsigned idx_membre = 0;
-
-			POUR (type_union->membres) {
-				if (it.type == f->type) {
-					break;
-				}
-
-				idx_membre += 1;
-			}
-
-			valeur_f = cree_z32(idx_membre + 1);
-
-			/* ajout du membre au bloc */
-			auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-			table_locales[f->ident] = valeur;
-		}
-		else {
-			auto idx_membre = trouve_index_membre(decl_struct, f->ident);
-			valeur_f = cree_z32(idx_membre + 1);
-
-			/* ajout du membre au bloc */
-			auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-			table_locales[f->ident] = valeur;
-		}
-	}
-	else {
-		genere_ri_pour_expression_droite(f, nullptr);
-		valeur_f = depile_valeur();
-	}
-
-#endif
 }
 
 void Simplificatrice::simplifie_discr(NoeudDiscr *discr)

@@ -88,6 +88,11 @@ enum {
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
+    RETOURNE_UNE_UNION_VIA_RIEN,
+    REQUIERS_RETOUR_UNION_VIA_RIEN,
+
+    /* expression construction structure */
+    CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.

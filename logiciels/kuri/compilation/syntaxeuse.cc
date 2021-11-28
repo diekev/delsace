@@ -2877,10 +2877,28 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
                 if (!noeud_decl->est_corps_texte && !noeud->est_declaration() &&
-                    !noeud->est_assignation_variable() && !noeud->est_empl()) {
+                    !noeud->est_assignation_variable() && !noeud->est_empl() &&
+                    !noeud->est_reference_declaration()) {
                     m_unite->espace->rapporte_erreur(
                         noeud,
                         "Attendu une déclaration ou une assignation dans le bloc de la structure");
+                }
+
+                if (noeud->est_reference_declaration()) {
+                    if (!noeud_decl->est_union || noeud_decl->est_nonsure) {
+                        m_unite->espace->rapporte_erreur(
+                            noeud,
+                            "Seules les unions sûres peuvent avoir des déclarations sans type");
+                    }
+
+                    auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(
+                        noeud->comme_reference_declaration());
+                    noeud = decl_membre;
+
+                    static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+                    auto type_declare = m_tacheronne.assembleuse->cree_reference_type(
+                        &lexeme_rien);
+                    decl_membre->expression_type = type_declare;
                 }
 
                 if (noeud->est_declaration_variable()) {

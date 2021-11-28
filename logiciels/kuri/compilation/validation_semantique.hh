@@ -152,6 +152,12 @@ struct ContexteValidationCode {
         NoeudExpressionMembre *expr_acces_enum,
         NoeudExpressionLitteraleBool *expr_bool);
 
+    ResultatValidation valide_discrimination(NoeudDiscr *inst);
+    ResultatValidation valide_discr_enum(NoeudDiscr *inst, Type *type);
+    ResultatValidation valide_discr_union(NoeudDiscr *inst, Type *type);
+    ResultatValidation valide_discr_union_anonyme(NoeudDiscr *inst, Type *type);
+    ResultatValidation valide_discr_scalaire(NoeudDiscr *inst, Type *type);
+
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, NoeudExpression *noeud);

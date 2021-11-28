@@ -386,8 +386,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
 - impression des types via imprime (requiers une table de types)
     voir cas dans Jorjala/LCC
 
-« rien » dans les unions
-
 - impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
 
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type
@@ -416,8 +414,6 @@ révision des transtypages :
 
 // --------------------------- Discriminations
 
-discr sur union anonyme
-
 avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
 
     discr e {
@@ -430,14 +426,6 @@ avoir une meilleure sécurité de type pour les einis, via discr et un transtypa
     }
 
     le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
-
-transtypage automatique les unions vers le type discriminée :
-
-    discr u {
-        z32 { u += 5 }
-        r32 { u += 6.7 }
-        ...
-    }
 
 possibilité d'avoir des appels de fonctions où le premier argument est celui discriminé
 
