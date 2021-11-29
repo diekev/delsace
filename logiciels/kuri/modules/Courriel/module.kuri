@@ -50,8 +50,26 @@ importe Temps
 
 // -----------------------------------------------------
 
+Correspondant :: struct {
+    nom_utilisateur : chaine
+    adresse : AdresseCourriel
+}
+
+imprime_correspondant :: fonc (enchaineuse: *Enchaineuse, correspondant: *Correspondant)
+{
+    saufsi correspondant {
+        retourne
+    }
+
+    si correspondant.nom_utilisateur {
+        ajoute_au_tampon(enchaineuse, correspondant.nom_utilisateur, " ")
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "<%>", correspondant.adresse)
+} @FormattageImpression
+
 Courriel :: struct {
-    expéditeur: AdresseCourriel
+    expéditeur: Correspondant
     destinataires: []AdresseCourriel
     destinataires_cc: []AdresseCourriel
     destinataires_bcc: []AdresseCourriel
@@ -99,6 +117,7 @@ ConfigurationCourriel :: struct {
     port_non_chiffré : n16
     port_chiffré : n16
     utilise_ssl := faux
+    expéditeur_par_défaut : Correspondant
     utilisateur : chaine
     mot_de_passe : chaine
 }
@@ -228,7 +247,8 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
-    imprime_dans_enchaineuse(*enchaineuse, "From: <%>\r\n", courriel.expéditeur.chn)
+    expéditeur := courriel.expéditeur
+    imprime_dans_enchaineuse(*enchaineuse, "From: %\r\n", courriel.expéditeur)
 
     si courriel.destinataires {
         ajoute_au_tampon(*enchaineuse, "To: ")
@@ -260,7 +280,9 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         imprime_dans_enchaineuse(*enchaineuse, "Subject: %\r\n", courriel.objet)
     }
 
-    séparateur_pièce_jointe := ""
+    séparateur_pièce_jointe : chaine
+    diffère déloge(séparateur_pièce_jointe)
+
     si courriel.pièces_jointes {
         ajoute_au_tampon(*enchaineuse, "MIME-Version: 1.0\r\n")
 
@@ -271,7 +293,9 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
     }
 
-    séparateur_corps := ""
+    séparateur_corps : chaine
+    diffère déloge(séparateur_corps)
+
     si courriel.messages.taille > 1 {
         séparateur_corps = aléafères_zéros("=BODY=SEPARATOR=_0000_0000_0000_0000_0000_0000_=")
         imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/alternative; boundary=\"%\"\r\n", séparateur_corps)

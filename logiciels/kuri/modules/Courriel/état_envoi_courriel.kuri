@@ -69,7 +69,7 @@ commande_suivante :: fonc (état: &ÉtatEnvoiCourriel, config: &ConfigurationCou
             état.étape = ÉtapeEnvoiCourriel.ExpéditeurRenseigné
             // 530 5.7.1 Client was not authenticated
             // 250 2.1.0 Ok
-            retourne imprime_chaine("MAIL FROM: <%>", courriel.expéditeur)
+            retourne imprime_chaine("MAIL FROM: <%>", courriel.expéditeur.adresse)
         }
         ExpéditeurRenseigné {
             // 530 5.7.1 Client was not authenticated
