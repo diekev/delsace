@@ -42,6 +42,8 @@ ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL
         retourne faux
     }
 
+    boucle_prises.nombre_de_prises_lancées += 1
+
     retourne vrai
 }
 
@@ -60,6 +62,8 @@ change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: 
 
 enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 {
+    boucle_prises.nombre_de_prises_lancées -= 1
+
     // imprime("enlève_prise.\n")
     ev: epoll_event
     si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc, *ev) == -1) {
@@ -75,7 +79,7 @@ Boucle :: struct {
 
     prises_fermées: *Prise
 
-    stop := faux
+    nombre_de_prises_lancées := 0
 
     données_ssl: *DonnéesSSLBoucle
 }
@@ -120,7 +124,7 @@ lance :: fonc (boucle_prises: *Boucle)
     // us_loop_integrate(loop);
 
     // tantque boucle_prises.num_fds
-    tantque !boucle_prises.stop {
+    tantque boucle_prises.nombre_de_prises_lancées != 0 {
         /* Emit pre callback */
         //us_internal_loop_pre(loop);
 
