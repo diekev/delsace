@@ -132,6 +132,8 @@ détruit_réponse :: fonc (réponse: &RéponseServeuse)
 
 parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
 {
+    /* Copie le texte pour éviter de libérer de la mémoire qui ne nous appartient pas. */
+    texte = copie_chaine(texte)
     parseuse := ParseuseChaine(texte)
 
     eu_status := faux
@@ -174,6 +176,11 @@ parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
     }
 
     retourne résultat
+}
+
+chaine_pour_commande :: fonc (commande: chaine) -> chaine
+{
+    retourne imprime_chaine("%\r\n", commande)
 }
 
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> RéponseServeuse
