@@ -66,6 +66,7 @@ détruit_courriel :: fonc (courriel: &Courriel) -> rien
     déloge(courriel.destinataires)
     déloge(courriel.destinataires_cc)
     déloge(courriel.destinataires_bcc)
+    déloge(courriel.pièces_jointes)
 }
 
 ajoute_message :: fonc (courriel: &Courriel, message: chaine)

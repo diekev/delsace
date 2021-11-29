@@ -8,6 +8,7 @@ La serveuse peut être créée pour le Gestionnaire seul, ou peut être une serv
 
 importe ConnexionTCP
 importe Fondation
+importe GlibC
 importe Réseau
 importe ServeuseTCP
 
@@ -30,18 +31,37 @@ HistoriqueEnvoiCourriel :: struct {
     messages: []MessageSMTP
 }
 
+détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
+{
+    pour historique.messages {
+        discr it {
+            Client(message_client) {
+                // imprime("C: %", message_client.texte)
+                déloge(message_client.texte)
+            }
+            Serveur(message_serveur) {
+                // imprime("S: %", message_serveur.texte)
+                déloge(message_serveur.texte)
+            }
+            sinon {
+                continue
+            }
+        }
+    }
+
+    déloge(historique.messages)
+}
+
 ajoute_message_cliente :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
-    imprime("C: %\n", texte)
-
+    imprime("C: %", texte)
     message : MessageSMTP = MessageClienteSMTP(copie_chaine(texte))
     tableau_ajoute(*historique.messages, message)
 }
 
 ajoute_message_serveuse :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
-    imprime("S: %\n", texte)
-
+    imprime("S: %", texte)
     message : MessageSMTP = MessageServeuseSMTP(copie_chaine(texte))
     tableau_ajoute(*historique.messages, message)
 }
@@ -54,6 +74,15 @@ GestionnaireEnvoiCourriel :: struct {
     ctx: *Contexte
 
     boucle_nous_appartient: bool
+}
+
+détruit_gestionnaire :: fonc (gestionnaire: &GestionnaireEnvoiCourriel)
+{
+    détruit_contexte(gestionnaire.ctx)
+
+    si gestionnaire.boucle_nous_appartient {
+        détruit_boucle(gestionnaire.boucle_évènements)
+    }
 }
 
 uri_depuis_configuration :: fonc (config: ConfigurationCourriel) -> URI
@@ -109,6 +138,12 @@ DonnéesPriseEnvoiCourriel :: struct {
     taille_envoyée: z32
 }
 
+détruit_données_prise :: fonc (données: *DonnéesPriseEnvoiCourriel)
+{
+    déloge(données.commande_courante)
+    détruit_historique(données.historique)
+}
+
 envoie_courriel :: fonc (gestionnaire: &GestionnaireEnvoiCourriel, courriel: Courriel) -> bool
 {
     uri := uri_depuis_configuration(gestionnaire.config)
@@ -142,23 +177,21 @@ crée_contexte_smtp :: fonc (boucle_évènements: *Boucle) -> *Contexte
 
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    imprime("quand_ouverture\n")
     données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
     commande := commande_suivante(données.état, données.config, données.courriel)
-    // diffère déloge(commande)
-    écris_commande(prise, données, chaine_pour_commande(commande))
+    diffère déloge(commande)
+    écris_commande(prise, données, commande)
 }
 
 quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
-    //imprime("quand_données_reçues\n")
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-
     contenu := chaine_depuis_tableau_octets(données)
 
+    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
     données_prise.historique.ajoute_message_serveuse(contenu)
 
     réponse := parse_réponse_serveuse(contenu)
+    diffère détruit_réponse(réponse)
 
     // si !réponse.est_valide() {
     //     //imprime("réponse invalide !\n")
@@ -167,14 +200,13 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     // }
 
     si réponse.status >= 500 {
-        //imprime("envoie QUIT\n")
-        écris_commande(prise, données_prise, chaine_pour_commande("QUIT"))
         données_prise.état.étape = ÉtapeEnvoiCourriel.EnvoiTerminé
+        écris_commande(prise, données_prise, chaine_pour_commande("QUIT"))
         retourne
     }
 
     commande := commande_suivante(données_prise.état, données_prise.config, données_prise.courriel)
-    // diffère déloge(commande)
+    diffère déloge(commande)
     écris_commande(prise, données_prise, chaine_pour_commande(commande))
 }
 
@@ -182,8 +214,8 @@ quand_fermeture :: fonc (prise: *Prise)
 {
     //imprime("quand_fermeture !\n")
     // notifie que le message fut envoyé ou non
-    // données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    // déloge(données_prise.commande_courante)
+    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
+    détruit_données_prise(données_prise)
 }
 
 quand_écriture :: fonc (prise: *Prise)
@@ -196,17 +228,12 @@ quand_écriture :: fonc (prise: *Prise)
 
 écris_commande :: fonc (prise: *Prise, données: *DonnéesPriseEnvoiCourriel, commande: chaine)
 {
-    //imprime("écris_commande\n")
-    // déloge(données.commande_courante)
+    déloge(données.commande_courante)
     données.commande_courante = commande
     données.taille_envoyée = prise.écris(commande)
-
-    //imprime("Envoyé : %\n", données.taille_envoyée)
-
     données.historique.ajoute_message_cliente(commande)
 
     si données.état.est_terminé() {
-        //imprime("données.état.est_terminé\n")
         prise.ferme()
     }
 }
