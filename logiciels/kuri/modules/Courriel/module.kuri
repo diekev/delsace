@@ -50,6 +50,52 @@ importe Temps
 
 // -----------------------------------------------------
 
+PièceJointe :: struct {
+    nom: chaine
+    nom_fichier: chaine
+    type_mime: chaine
+    contenu: chaine
+}
+
+détruit_pièce_jointe :: fonc (pièce_jointe: &PièceJointe)
+{
+    déloge(pièce_jointe.contenu)
+}
+
+pièce_jointe_depuis_mémoire :: fonc (nom: chaine, nom_fichier: chaine, contenu: chaine) -> PièceJointe
+{
+    résultat : PièceJointe
+    résultat.nom = nom
+    résultat.nom_fichier = nom_fichier
+    résultat.type_mime = "application/octet-stream"
+    résultat.contenu = copie_chaine(contenu)
+    retourne résultat
+}
+
+type_mime_pour_extension :: fonc (extension: chaine) -> chaine
+{
+    si extension == ".pdf" {
+        retourne "application/pdf"
+    }
+
+    retourne "application/octet-stream"
+}
+
+pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
+{
+    nom_fichier := chemin.nom_fichier()
+    nom := nom_fichier
+
+    résultat : PièceJointe
+    résultat.nom = nom
+    résultat.nom_fichier = nom_fichier
+    résultat.type_mime = type_mime_pour_extension(chemin.extension())
+    résultat.contenu = contenu_fichier_texte(chemin)
+    retourne résultat
+}
+
+// -----------------------------------------------------
+
 Correspondant :: struct {
     nom_utilisateur : chaine
     adresse : AdresseCourriel
@@ -74,7 +120,7 @@ Courriel :: struct {
     destinataires_cc: []AdresseCourriel
     destinataires_bcc: []AdresseCourriel
     objet: chaine
-    pièces_jointes: []chaine
+    pièces_jointes: []PièceJointe
     messages: []chaine
 }
 
@@ -84,6 +130,11 @@ détruit_courriel :: fonc (courriel: &Courriel) -> rien
     déloge(courriel.destinataires)
     déloge(courriel.destinataires_cc)
     déloge(courriel.destinataires_bcc)
+
+    pour courriel.pièces_jointes {
+        détruit_pièce_jointe(it)
+    }
+
     déloge(courriel.pièces_jointes)
 }
 
@@ -92,7 +143,7 @@ ajoute_message :: fonc (courriel: &Courriel, message: chaine)
     tableau_ajoute(*courriel.messages, message)
 }
 
-ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: chaine)
+ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: PièceJointe)
 {
     tableau_ajoute(*courriel.pièces_jointes, pièce)
 }
@@ -325,22 +376,18 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "--\r\n")
     }
 
-    type_mime = "application/octet-stream"
-    nom := "ATTACHMENT"
-    nom_fichier := "ATTACHMENT"
-
     pour courriel.pièces_jointes {
         si séparateur_pièce_jointe {
             ajoute_au_tampon(*enchaineuse, "\r\n")
             ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
         }
 
-        ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; ")
-        ajoute_au_tampon(*enchaineuse, "Name=\"", nom, "\"\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename=\"", nom_fichier, "\"\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Type: ", it.type_mime, "; ")
+        ajoute_au_tampon(*enchaineuse, "Name=\"", it.nom, "\"\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename=\"", it.nom_fichier, "\"\r\n")
         ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n\r\n")
 
-        contenu_encodé := encode_base64(it)
+        contenu_encodé := encode_base64(it.contenu)
         ajoute_au_tampon(*enchaineuse, contenu_encodé)
         déloge(contenu_encodé)
 
