@@ -61,7 +61,7 @@ vérifie_code :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
     }
 }
 
-vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
+vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa @inutilisée, code: *NoeudCode @inutilisée)
 {
     // À FAIRE: crash dans la MachineVirtuelle
     // type := code.type
