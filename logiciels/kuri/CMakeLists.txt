@@ -137,7 +137,6 @@ set(FICHIERS_TESTS
     exemples/applications/calendrier_républicain.kuri
     exemples/applications/chemin_complet.kuri
     exemples/applications/cliente.kuri
-    exemples/applications/client_smtp.kuri
     exemples/applications/crée_test_compilateur.kuri
     exemples/applications/json.kuri
     exemples/applications/labyrinthe.kuri

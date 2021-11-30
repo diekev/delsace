@@ -2,6 +2,7 @@
 // https://tools.ietf.org/html/rfc1521#section-3 MIME
 // https://tools.ietf.org/html/rfc5321#section-2.3.1 SMTP
 // https://www.netmeister.org/blog/email.html // adresses
+// https://fr.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
 
 importe Aléa
 importe Alphabet
@@ -459,20 +460,6 @@ ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErre
     retourne fichier
 }
 
-CodeRéussite :: énum {
-    Message :: 200
-	RéponseCommdeHelp :: 214
-    ServeurPrêt :: 220
-	FermetureCanalTransmission :: 221
-    ActionRequiseComplétée :: 250
-    UtilisationNonLocaleDevraProjeté :: 251
-    NePeutVérifierUtilisateurMaisDélivreraQuandMême :: 252
-}
-
-ErreurServeur :: erreur {
-    ClientNeFutPasAuthentifié :: 530
-}
-
 est_valide :: fonc (courriel: &Courriel) -> bool
 {
     saufsi courriel.expéditeur.est_valide() {
@@ -604,3 +591,30 @@ test_parsage_réponse :: fonc ()
     test_parsage_réponse("235 2.7.0 Authentication successful\r\n")
     test_parsage_réponse("501 5.5.4 Syntax: MAIL FROM:<address>\r\n")
 }
+
+/*
+
+ÉtatServeuse :: énum {
+	PingDébut
+	AttendHelo
+	RequiersLogin
+	RequiesNomUtilisateur
+	RequiersMotDePasse
+	RequiersCorrespondants
+	MessageAttendu
+	MessageReçu
+}
+
+_ := cliente.écris("221 Closing connection\r\n")
+_ := cliente.écris("235 2.7.0 Authentication successful\r\n")
+_ := cliente.écris("250 ok\r\n")
+_ := cliente.écris("250 2.0.0 Ok: queued as XXXXXXX\r\n")
+_ := cliente.écris("250 2.1.0 Ok\r\n")
+_ := cliente.écris("334 VXNlcm5hbWU6\r\n")
+_ := cliente.écris("334 UGFzc3dvcmQ6\r\n")
+_ := cliente.écris("354 End data with <CR><LF>.<CR><LF>\r\n")
+_ := cliente.écris("500 Enter command\r\n")
+_ := cliente.écris("503 bad sequence of commands\r\n")
+_ := cliente.écris("530 5.7.1 Client was not authenticated\r\n")
+
+*/
