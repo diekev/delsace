@@ -137,7 +137,7 @@ FichierOuErreurPrise :: union {
     e: ErreurPrise
 }
 
-ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32) -> FichierOuErreurPrise
+ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port: n16, connexions_max: z32) -> FichierOuErreurPrise
 {
     si port < 1024 {
         // À FAIRE : un port inférieur à 1024 ne peut être précisé que si le processus est privilégié
