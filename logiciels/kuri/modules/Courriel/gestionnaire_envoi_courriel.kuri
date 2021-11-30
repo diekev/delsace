@@ -54,14 +54,14 @@ détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
 
 ajoute_message_cliente :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
-    imprime("C: %", texte)
+    // imprime("C: %", texte)
     message : MessageSMTP = MessageClienteSMTP(copie_chaine(texte))
     tableau_ajoute(*historique.messages, message)
 }
 
 ajoute_message_serveuse :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
-    imprime("S: %", texte)
+    // imprime("S: %", texte)
     message : MessageSMTP = MessageServeuseSMTP(copie_chaine(texte))
     tableau_ajoute(*historique.messages, message)
 }
