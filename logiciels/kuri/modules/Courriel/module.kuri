@@ -302,7 +302,15 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
     expéditeur := courriel.expéditeur
-    imprime_dans_enchaineuse(*enchaineuse, "From: %\r\n", courriel.expéditeur)
+    imprime_dans_enchaineuse(*enchaineuse, "From: ")
+    si expéditeur.nom_utilisateur {
+        encodé_base64 := encode_base64(expéditeur.nom_utilisateur)
+        diffère déloge(encodé_base64)
+
+        ajoute_au_tampon(*enchaineuse, "=?UTF-8?B?", encodé_base64, "?= ")
+    }
+    imprime_dans_enchaineuse(*enchaineuse, "<%>", expéditeur.adresse)
+    imprime_dans_enchaineuse(*enchaineuse, "\r\n")
 
     si courriel.destinataires {
         ajoute_au_tampon(*enchaineuse, "To: ")
@@ -331,7 +339,9 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     }
 
     si courriel.objet {
-        imprime_dans_enchaineuse(*enchaineuse, "Subject: %\r\n", courriel.objet)
+        imprime_dans_enchaineuse(*enchaineuse, "Subject: ")
+        encode_sujet(*enchaineuse, courriel.objet)
+        imprime_dans_enchaineuse(*enchaineuse, "\r\n")
     }
 
     séparateur_pièce_jointe : chaine
@@ -407,6 +417,16 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     ajoute_au_tampon(*enchaineuse, "\r\n.\r\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+// =?UTF-8?Q? pour "quoted-printable"
+// =?UTF-8?B? pour "base64"
+encode_sujet :: fonc (enchaineuse: *Enchaineuse, sujet: chaine)
+{
+    encodé_base_64 := encode_base64(sujet)
+    diffère déloge(encodé_base_64)
+
+    ajoute_au_tampon(enchaineuse, "=?UTF-8?B?", encodé_base_64, "?=")
 }
 
 encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
