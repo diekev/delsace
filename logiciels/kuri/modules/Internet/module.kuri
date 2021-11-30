@@ -46,6 +46,9 @@ chaine_depuis_ip :: fonc (adresse: AdresseIP) -> chaine
         ipv6 {
             retourne chaine_depuis_ipv6(adresse.ipv6)
         }
+        sinon {
+            retourne copie_chaine("")
+        }
     }
 
     retourne copie_chaine("")
