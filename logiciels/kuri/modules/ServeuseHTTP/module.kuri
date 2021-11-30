@@ -394,7 +394,7 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message
 }
 
-sers_fichier :: fonc (prise: *Prise, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
+sers_fichier :: fonc (prise: *Prise @inutilisée, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
 {
     chm := chemin_pour_fichier(message.requête)
     contenu := contenu_fichier_texte(chm)
