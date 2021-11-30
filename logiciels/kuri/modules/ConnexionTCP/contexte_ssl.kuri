@@ -221,8 +221,6 @@ sur_écriture_ssl :: fonc (prise: *Prise) -> rien
 {
     ctx_prise_ssl := prise.contexte_ comme *ContextePriseSSL
     prise_ssl := prise comme *PriseSSL
-    boucle_ := ctx_prise_ssl.boucle_prises
-    données_ssl_boucle := boucle_.données_ssl
 
     si prise_ssl.lecture_ssl_veut_écrire {
         prise_ssl.lecture_ssl_veut_écrire = faux
