@@ -293,6 +293,9 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 
     // À FAIRE: entêtes arbitraires
     // À FAIRE: Date
+    // À FAIRE : Content-Transfer-Encoding pour le corps "7bit", "8bit", "binary" implique qu'il n'y a pas d'encodage
+    //           -> avoir un système pour définir si on encode en base64 ou "quoted-pritable"
+    //           https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
 
     ajoute_au_tampon(*enchaineuse, "User-Agent: courriel_kuri\r\n")
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
@@ -362,13 +365,14 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         }
 
         ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; charset=utf-8\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: 8bit\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n")
         ajoute_au_tampon(*enchaineuse, "Content-Disposition: inline\r\n\r\n")
 
         type_mime = "text/html"
 
         ajoute_au_tampon(*enchaineuse, "\r\n")
-        ajoute_au_tampon(*enchaineuse, it)
+
+        encode_corps_message(*enchaineuse, it)
     }
 
     si séparateur_corps {
@@ -403,6 +407,24 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     ajoute_au_tampon(*enchaineuse, "\r\n.\r\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
+{
+    encodé_base_64 := encode_base64(corps)
+    diffère déloge(encodé_base_64)
+
+    pour encodé_base_64 {
+        chn : chaine = ---
+        chn.pointeur = *it
+        chn.taille = 1
+
+        ajoute_au_tampon(enchaineuse, chn)
+
+        si (index_it + 1) % 76 == 0 {
+            ajoute_au_tampon(enchaineuse, "\r\n")
+        }
+    }
 }
 
 ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErreur
