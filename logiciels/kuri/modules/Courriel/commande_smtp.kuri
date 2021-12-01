@@ -1,0 +1,342 @@
+importe Fondation
+
+CommandeSMTP :: struct {
+    type: type_de_données
+}
+
+est :: fonc (commande: *CommandeSMTP, type: type_de_données) -> bool #enligne
+{
+    retourne commande.type == type
+}
+
+CommandeSMTP_EHLO :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_EHLO
+
+    domaine: chaine
+}
+
+CommandeSMTP_AUTH_LOGIN :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_AUTH_LOGIN
+}
+
+CommandeSMTP_NOM_UTILISATEUR :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_NOM_UTILISATEUR
+
+    texte: chaine
+}
+
+CommandeSMTP_MOT_DE_PASSE :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_MOT_DE_PASSE
+
+    texte: chaine
+}
+
+CommandeSMTP_MAIL_FROM :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_MAIL_FROM
+
+    adresse: AdresseCourriel
+}
+
+CommandeSMTP_RCPT_TO :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_RCPT_TO
+
+    adresse: AdresseCourriel
+}
+
+CommandeSMTP_DATA :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_DATA
+}
+
+CommandeSMTP_QUIT :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_QUIT
+}
+
+/* Ce type est uniquement pour les données envoyées sans commandes.
+ * Elles peuvent être les informations de connexions, ou encore les données
+ * du message après une commande "DATA". */
+CommandeSMTP_DonnéesDiverses :: struct {
+    empl base: CommandeSMTP
+    type = CommandeSMTP_DonnéesDiverses
+
+    données: chaine
+}
+
+chaine_pour_commande :: fonc (commande: *CommandeSMTP) -> Résultat(chaine)
+{
+    discr commande.type {
+        CommandeSMTP_EHLO {
+            EHLO := commande comme *CommandeSMTP_EHLO
+
+            si EHLO.domaine {
+                retourne imprime_chaine("EHLO %\r\n", EHLO.domaine)
+            }
+
+            retourne copie_chaine("EHLO\r\n")
+        }
+        CommandeSMTP_AUTH_LOGIN {
+            retourne copie_chaine("AUTH LOGIN\r\n")
+        }
+        CommandeSMTP_NOM_UTILISATEUR {
+            NOM_UTILISATEUR := commande comme *CommandeSMTP_NOM_UTILISATEUR
+            retourne imprime_chaine("%\r\n", NOM_UTILISATEUR.texte)
+        }
+        CommandeSMTP_MOT_DE_PASSE {
+            MOT_DE_PASSE := commande comme *CommandeSMTP_MOT_DE_PASSE
+            retourne imprime_chaine("%\r\n", MOT_DE_PASSE.texte)
+        }
+        CommandeSMTP_MAIL_FROM {
+            MAIL_FROM := commande comme *CommandeSMTP_MAIL_FROM
+            retourne imprime_chaine("MAIL FROM: <%>\r\n", MAIL_FROM.adresse)
+        }
+        CommandeSMTP_RCPT_TO {
+            RCPT_TO := commande comme *CommandeSMTP_RCPT_TO
+            retourne imprime_chaine("RCPT TO: <%>\r\n", RCPT_TO.adresse)
+        }
+        CommandeSMTP_DATA {
+            retourne copie_chaine("DATA\r\n")
+        }
+        CommandeSMTP_QUIT {
+            retourne copie_chaine("QUIT\r\n")
+        }
+        CommandeSMTP_DonnéesDiverses {
+            données := commande comme *CommandeSMTP_DonnéesDiverses
+            retourne données.données
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+détruit_commande :: fonc (commande: *CommandeSMTP)
+{
+
+    discr commande.type {
+        CommandeSMTP_EHLO {
+            EHLO := commande comme *CommandeSMTP_EHLO
+            déloge(EHLO)
+        }
+        CommandeSMTP_AUTH_LOGIN {
+            déloge(commande)
+        }
+        CommandeSMTP_NOM_UTILISATEUR {
+            NOM_UTILISATEUR := commande comme *CommandeSMTP_NOM_UTILISATEUR
+            déloge(NOM_UTILISATEUR)
+        }
+        CommandeSMTP_MOT_DE_PASSE {
+            MOT_DE_PASSE := commande comme *CommandeSMTP_MOT_DE_PASSE
+            déloge(MOT_DE_PASSE)
+        }
+        CommandeSMTP_MAIL_FROM {
+            MAIL_FROM := commande comme *CommandeSMTP_MAIL_FROM
+            déloge(MAIL_FROM)
+        }
+        CommandeSMTP_RCPT_TO {
+            RCPT_TO := commande comme *CommandeSMTP_RCPT_TO
+            déloge(RCPT_TO)
+        }
+        CommandeSMTP_DATA {
+            déloge(commande)
+        }
+        CommandeSMTP_QUIT {
+            déloge(commande)
+        }
+        CommandeSMTP_DonnéesDiverses {
+            données := commande comme *CommandeSMTP_DonnéesDiverses
+            déloge(données)
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+Résultat_ :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
+    Ok: TypeOk
+    Erreur: TypeErreur
+}
+
+ErreurParsageCommande :: énum {
+    /* Une erreur de syntaxe fut détectée. */
+    ErreurDeSyntaxe
+
+    /* La commande n'est pas complète. Cela peut vouloir dire qu'il faut attendre sur le réseau. */
+    CommandeIncomplète
+}
+
+ParseuseCommande :: struct {
+    empl base: ParseuseChaine
+}
+
+// À FAIRE(langage) : construction d'union depuis un type dérivé
+parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat_(*CommandeSMTP, ErreurParsageCommande)
+{
+    parseuse.chn = texte
+    parseuse.curseur = 0
+
+    /* Attendons d'avoir toutes les données pour former une commande. */
+    saufsi texte.fini_par("\r\n") {
+        retourne ErreurParsageCommande.CommandeIncomplète
+    }
+
+    position_crlf := parseuse.trouve_prochain("\r\n")
+
+    si consomme(parseuse, "EHLO") {
+        si apparie(parseuse, ' ') {
+            parseuse.avance(1)
+        }
+
+        domaine := parseuse.sous_chaine_jusque_index(position_crlf)
+        parseuse.avance(domaine.taille comme z32)
+        parseuse.avance(2) // CRLF
+
+        commande := loge(CommandeSMTP_EHLO)
+        commande.domaine = domaine
+        retourne commande comme *CommandeSMTP
+    }
+
+    si consomme(parseuse, "MAIL FROM") {
+        résultat_adresse := parse_adresse_courriel(parseuse)
+
+        discr résultat_adresse {
+            Ok(adresse) {
+                commande := loge(CommandeSMTP_MAIL_FROM)
+                commande.adresse = adresse
+                retourne commande comme *CommandeSMTP
+            }
+            Erreur(err) {
+                retourne err
+            }
+            sinon {
+                retourne ErreurParsageCommande.ErreurDeSyntaxe
+            }
+        }
+    }
+
+    si consomme(parseuse, "RCPT TO") {
+        résultat_adresse := parse_adresse_courriel(parseuse)
+
+        discr résultat_adresse {
+            Ok(adresse) {
+                commande := loge(CommandeSMTP_RCPT_TO)
+                commande.adresse = adresse
+                retourne commande comme *CommandeSMTP
+            }
+            Erreur(err) {
+                retourne err
+            }
+            sinon {
+                retourne ErreurParsageCommande.ErreurDeSyntaxe
+            }
+        }
+    }
+
+    si consomme(parseuse, "DATA") {
+        saufsi consomme(parseuse, "\r\n") {
+            retourne ErreurParsageCommande.ErreurDeSyntaxe
+        }
+
+        commande := loge(CommandeSMTP_DATA)
+        retourne commande comme *CommandeSMTP
+    }
+
+    si consomme(parseuse, "AUTH LOGIN") {
+        saufsi consomme(parseuse, "\r\n") {
+            retourne ErreurParsageCommande.ErreurDeSyntaxe
+        }
+
+        commande := loge(CommandeSMTP_AUTH_LOGIN)
+        retourne commande comme *CommandeSMTP
+    }
+
+    si consomme(parseuse, "QUIT") {
+        saufsi consomme(parseuse, "\r\n") {
+            retourne ErreurParsageCommande.ErreurDeSyntaxe
+        }
+
+        commande := loge(CommandeSMTP_QUIT)
+        retourne commande comme *CommandeSMTP
+    }
+
+    // Selon le contexte, il faudra soit attendre sur CRLF ou CRLF.CRLF
+    commande := loge(CommandeSMTP_DonnéesDiverses)
+    commande.données = texte
+    retourne commande comme *CommandeSMTP
+}
+
+parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat_(AdresseCourriel, ErreurParsageCommande)
+{
+    saufsi consomme(parseuse, ": <") {
+        retourne ErreurParsageCommande.ErreurDeSyntaxe
+    }
+
+    position_chevron_droit := parseuse.trouve_prochain('>')
+
+    si position_chevron_droit < 0 {
+        retourne ErreurParsageCommande.ErreurDeSyntaxe
+    }
+
+    chn_adresse := parseuse.sous_chaine_jusque_index(position_chevron_droit)
+
+    parseuse.avance(chn_adresse.taille comme z32)
+    parseuse.avance(1) // >
+    parseuse.avance(2) // CRLF
+
+    retourne parse_adresse_courriel(chn_adresse)
+}
+
+// ------------------------------------------------------
+
+test_parsage_commande :: fonc (texte: chaine) -> bool
+{
+    parseuse := ParseuseCommande()
+    résultat := parse_commande(*parseuse, texte)
+
+    discr résultat {
+        Ok(commande) {
+            diffère déloge(commande)
+            discr chaine_pour_commande(commande) {
+                Quelque(chn) {
+                    //diffère déloge(chn)
+                    retourne chn == texte
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+
+    retourne faux
+}
+
+test_parsage_commandes :: fonc ()
+{
+    commandes := [
+        "EHLO delsace.fr\r\n",
+        "AUTH LOGIN\r\n",
+        "adresse@courri.el\r\n",
+        "mO!-43-P4s53\r\n",
+        "DATA\r\n",
+        "QUIT\r\n"
+    ]
+
+    pour commandes {
+        si test_parsage_commande(it) {
+            continue
+        }
+
+        imprime("Erreur ! Résultat différent pour la commande %", it)
+    }
+}
