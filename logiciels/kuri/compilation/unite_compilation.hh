@@ -118,6 +118,11 @@ struct UniteCompilation {
         return m_attente.est<AttenteSurMessage>() && m_attente.message() == message_;
     }
 
+    inline bool attend_sur_un_message() const
+    {
+        return m_attente.est<AttenteSurMessage>();
+    }
+
     inline bool attend_sur_noeud_code(NoeudCode **code)
     {
         return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;

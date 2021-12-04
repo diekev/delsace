@@ -1368,3 +1368,22 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
     metaprogrammes_en_attente_de_cree_contexte.efface();
     metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;
 }
+
+void GestionnaireCode::interception_message_terminee()
+{
+    kuri::tableau<UniteCompilation *> nouvelles_unites;
+
+    POUR (unites_en_attente) {
+        if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
+            continue;
+        }
+
+        if (it->attend_sur_un_message()) {
+            it->marque_prete();
+        }
+
+        nouvelles_unites.ajoute(it);
+    }
+
+    unites_en_attente = nouvelles_unites;
+}
