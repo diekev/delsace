@@ -14,7 +14,7 @@ ErreurCertificat :: erreur {
     MésappariementClésPubliquePrivée
 }
 
-charge_certificats_ssl :: fonc(ctx: *ssl_st, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
+charge_certificats_ssl :: fonc(ctx: *SSL_CTX, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
     ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat)
     diffère détruit_chaine_c(ptr_chemin_certificat)
@@ -35,7 +35,7 @@ charge_certificats_ssl :: fonc(ctx: *ssl_st, chemin_fichier_certificat: chaine, 
     retourne 0 comme ErreurCertificat
 }
 
-imprime_certificats_ssl :: fonc(ssl: *ssl_st) -> rien
+imprime_certificats_ssl :: fonc(ssl: *SSL_CTX) -> rien
 {
     cert := SSL_get_peer_certificate(ssl)
 
@@ -63,7 +63,7 @@ ErreurInitialisationSSL :: erreur {
 }
 
 ErreurOuContexteSSL :: union {
-    c: *ssl_st
+    c: *SSL_CTX
     e: ErreurInitialisationSSL
 }
 
@@ -173,7 +173,7 @@ FichierOuErreurSSL :: union {
     e: ErreurSSL
 }
 
-ouvre_fichier_ssl :: fonc (ctx_ssl: *ssl_st, fichier: Fichier) -> FichierOuErreurSSL
+ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErreurSSL
 {
     m_ssl := SSL_new(ctx_ssl)
 
