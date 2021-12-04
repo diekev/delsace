@@ -19,7 +19,6 @@ prépare_réponse :: fonc () -> chaine
 Servlet :: fonc(ssl: *ssl_st) -> rien
 {
     buf : [1024]z8
-    reply : [1024]z8
 
     si SSL_accept(ssl) == -1 {
         imprime("SSL_accept a échoué !\n")
@@ -93,7 +92,7 @@ principale :: fonc () -> z32
         imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
 
         ssl := SSL_new(ctx)
-        SSL_set_fd(ssl, client)
+        _ := SSL_set_fd(ssl, client)
         Servlet(ssl)
     }
 
