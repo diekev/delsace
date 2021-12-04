@@ -382,9 +382,9 @@ __stockage_temporaire :: fonc(
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType,
-    pos : PositionCodeSource) -> *rien
+    données : *BaseAllocatrice @inutilisée,
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
 {
     alloc := contexte.stockage_temporaire
 
