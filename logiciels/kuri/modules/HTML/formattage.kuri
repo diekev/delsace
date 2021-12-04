@@ -156,7 +156,6 @@ peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, v
         retourne faux
     }
 
-    besoin_apostrophes := faux
     pour c dans valeur.unités {
         si c == (' ' comme n16) || c == ('/' comme n16) {
             retourne faux
