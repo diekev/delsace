@@ -136,10 +136,10 @@ extrait_texte :: fonc (noeud: *Noeud) -> ChaineUTF16
 
 vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Noeud)
 {
-    si noeud.genre == GenreNoeud.Texte {
+    si noeud.genre == HTML.GenreNoeud.Texte {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == GenreNoeud.Élément {
+    sinon si noeud.genre == HTML.GenreNoeud.Élément {
         élément := noeud comme *Élément
 
         contexte_vérification.nombre_éléments += 1
@@ -328,10 +328,10 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         }
         contexte_vérification.profondeur -= 1
     }
-    sinon si noeud.genre == GenreNoeud.Doctype {
+    sinon si noeud.genre == HTML.GenreNoeud.Doctype {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == GenreNoeud.Document {
+    sinon si noeud.genre == HTML.GenreNoeud.Document {
         contexte_vérification.profondeur += 1
         pour noeud.enfants {
             vérifie_noeud(contexte_vérification, it)
