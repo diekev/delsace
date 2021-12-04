@@ -187,6 +187,13 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
         return resultat;
     }
 
+    if (expression->est_reference_type()) {
+        auto resultat = ExpressionTestDiscrimination{};
+        resultat.ident = expression->ident;
+        resultat.ref = expression->comme_reference_type();
+        return resultat;
+    }
+
     if (expression->est_appel()) {
         auto appel = expression->comme_appel();
 
