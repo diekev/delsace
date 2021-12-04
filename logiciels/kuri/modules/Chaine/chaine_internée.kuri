@@ -26,6 +26,7 @@ détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
         chn_utf32 {
             détruit_chaine(type_chaine.chn_utf32)
         }
+        sinon {}
     }
 }
 
@@ -38,6 +39,7 @@ opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: chaine) -> bool
         chn_utf32 {
             retourne type_chaine.chn_utf32 == chn
         }
+        sinon {}
     }
 
     retourne faux
@@ -52,6 +54,7 @@ opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bo
         chn_utf32 {
             retourne type_chaine.chn_utf32 == chn
         }
+        sinon {}
     }
 
     retourne faux
@@ -66,6 +69,7 @@ opérateur == :: fonc (type_chaine_a: TypeChaineInternée, type_chaine_b: TypeCh
         chn_utf32 {
             retourne type_chaine_b == type_chaine_a.chn_utf32
         }
+        sinon {}
     }
 
     retourne faux
@@ -130,6 +134,9 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
         chn_utf32 {
             retourne converti_vers_chaine(type_chaine.chn_utf32)
         }
+        sinon {
+            retourne copie_chaine("")
+        }
     }
 
     retourne copie_chaine("")
@@ -145,6 +152,7 @@ imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *
         chn_utf32 {
             imprime_chaine_utf32(enchaineuse, *type_chaine.chn_utf32)
         }
+        sinon {}
     }
 } @FormattageImpression
 
@@ -170,6 +178,7 @@ calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
                 empreinte = ((empreinte << 5) + empreinte) + it comme n64
             }
         }
+        sinon {}
     }
 
     retourne empreinte
