@@ -178,7 +178,7 @@ const char *chaine_genre_type(GenreType genre);
 std::ostream &operator<<(std::ostream &os, GenreType genre);
 
 enum {
-    TYPEDEF_FUT_GENERE = 1,
+    /* DISPONIBLE = 1, */
     TYPE_EST_POLYMORPHIQUE = 2,
     TYPE_FUT_VALIDE = 4,
     INITIALISATION_TYPE_FUT_CREEE = 8,
@@ -189,7 +189,7 @@ enum {
     POSSEDE_TYPE_TYPE_DE_DONNEES = 256,
     CODE_BINAIRE_TYPE_FUT_GENERE = 512,
     TYPE_EST_NORMALISE = 1024,
-    CODE_MACHINE_FUT_GENERE = 2048,
+    /* DISPONIBLE = 2048, */
     UNITE_POUR_INITIALISATION_FUT_CREE = 4096,
 };
 
