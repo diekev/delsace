@@ -481,17 +481,17 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
 
     /* Parse le type en sortie. */
     si type_fonction.types_sortie.taille == 0 {
-        compilatrice_rapporte_erreur("Aucune valeur de sortie pour la fonction !")
+        compilatrice_rapporte_erreur(fonction, "Aucune valeur de sortie pour la fonction !")
         retourne DonnéesCréationPointDEntréePage()
     }
 
     si type_fonction.types_sortie.taille > 1 {
-        compilatrice_rapporte_erreur("La fonction possède trop de sortie !")
+        compilatrice_rapporte_erreur(fonction, "La fonction possède trop de sortie !")
         retourne DonnéesCréationPointDEntréePage()
     }
 
-    si !est_type_résultat(paramètres, type_fonction.types_sortie[0]) {
-        compilatrice_rapporte_erreur("La fonction ne retourne pas une valeur du type de résultat attendu !")
+    si !est_type_résultat(paramètres, fonction, type_fonction.types_sortie[0]) {
+        compilatrice_rapporte_erreur(fonction, "La fonction ne retourne pas une valeur du type de résultat attendu !")
         retourne DonnéesCréationPointDEntréePage()
     }
 
@@ -505,7 +505,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
         }
     }
     sansarrêt {
-        compilatrice_rapporte_erreur("La fonction n'est pas annotée avec un chemin !\n")
+        compilatrice_rapporte_erreur(fonction, "La fonction n'est pas annotée avec un chemin !\n")
         retourne DonnéesCréationPointDEntréePage()
     }
 
@@ -534,7 +534,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
     retourne données
 }
 
-est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> bool
+est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction, type: *InfoType) -> bool
 {
     si type.id != id_info.UNION {
         retourne faux
@@ -573,7 +573,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, type
             continue
         }
 
-        compilatrice_rapporte_erreur("Type membre du résultat inconnu !\n")
+        compilatrice_rapporte_erreur(fonction, "Type membre du résultat inconnu !\n")
     }
 
     retourne vrai
