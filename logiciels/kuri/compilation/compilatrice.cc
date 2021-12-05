@@ -394,6 +394,8 @@ OptionsDeCompilation *Compilatrice::options_compilation()
 
 void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
 {
+    /* À FAIRE : il faut ajourner la coulisse selon l'espace, et peut-être arrêter la compilation
+     * du code. */
     espace_de_travail_defaut->options = *options;
 }
 
