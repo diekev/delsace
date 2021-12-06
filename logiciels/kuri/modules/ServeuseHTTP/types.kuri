@@ -1,0 +1,9 @@
+
+/* Type pour les résultats des routes.
+ * Toutes les routes doivent retourner un type dérivé de celui-ci. */
+RésultatServeuseHTTP :: union ($T: type_de_données) {
+    valeur: T
+    redirection: Redirection
+    erreur_http: ErreurHTTP
+    contenu_http: CodeEtContenuHTPP
+}

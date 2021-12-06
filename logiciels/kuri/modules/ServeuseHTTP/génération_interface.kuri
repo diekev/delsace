@@ -42,7 +42,6 @@ ParamètresGénérationInterface :: struct {
     type_formulaire: *InfoTypeStructure
 
     /* Pour les résultats */
-    nom_type_résultat: chaine
     type_redirection: *InfoTypeStructure
     type_rendu_page: *InfoTypeStructure
 
@@ -541,7 +540,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
     }
 
     type_union := type comme *InfoTypeUnion
-    si type_union.nom != paramètres.nom_type_résultat {
+    si type_union.nom != "RésultatServeuseHTTP" {
         retourne faux
     }
 
