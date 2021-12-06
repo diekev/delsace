@@ -42,7 +42,6 @@ ParamètresGénérationInterface :: struct {
     type_formulaire: *InfoTypeStructure
 
     /* Pour les résultats */
-    type_redirection: *InfoTypeStructure
     type_rendu_page: *InfoTypeStructure
 
     données_fonctions: []DonnéesCréationPointDEntréePage
@@ -247,7 +246,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.imprime_dans_enchaineuse("\t\t% {\n", it.nom)
         enchaineuse.imprime_dans_enchaineuse("\t\t\t__valeur := résultat.%\n", it.nom)
 
-        si type_membre == paramètres.type_redirection {
+        si type_membre == info_de(Redirection) {
             // crée une redirection
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection)\n")
         }
@@ -556,7 +555,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
 
         type_membre := it.id
 
-        si type_membre == paramètres.type_redirection {
+        si type_membre == info_de(Redirection) {
             continue
         }
 
