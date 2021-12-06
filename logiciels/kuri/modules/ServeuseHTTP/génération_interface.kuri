@@ -1,10 +1,6 @@
 importe Compilatrice
 importe Fondation
 
-Redirection :: struct {
-    chemin_redirection: chaine
-}
-
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.
  *
@@ -233,10 +229,6 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n")
 
     pour données.type_résultat.membres {
-        si it.nom == "sinon_" {
-            continue
-        }
-
         si it.drapeaux.EST_CONSTANT {
             continue
         }
@@ -545,10 +537,6 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
 
     /* Vérifie que les types de tous les membres sont connus. */
     pour type_union.membres {
-        si it.nom == "sinon_" {
-            continue
-        }
-
         si it.drapeaux.EST_CONSTANT {
             continue
         }
