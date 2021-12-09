@@ -475,6 +475,41 @@ SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien #externe libc
 
+sighandler_t :: #nulctx fonc (z32)(rien)
+sigset_t :: struct #externe {
+    __val: [1024 / (8 * taille_de(n64))]n64
+}
+
+sigaction_struct :: struct {
+    sa_handler: sighandler_t
+
+    /* Additional set of signals to be blocked.  */
+    sa_mask: sigset_t
+
+    /* Special flags.  */
+    sa_flags: z32
+
+    /* Restore handler.  */
+    sa_restorer :: #nulctx fonc ()(rien)
+}
+
+sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc
+
+action_pour_erreur_de_segmentation :: fonc (signum: z32 @inutilisée) #nulctx
+pousse_contexte __contexte_fil_principal {
+    panique("violation de segmentation")
+}
+
+système_ajoute_action_pour_action_erreur_de_segmentation :: fonc () #nulctx
+{
+    act: sigaction_struct
+    act.sa_handler = action_pour_erreur_de_segmentation
+
+    si sigaction(SIGSEGV, *act, nul) == -1 {
+        retourne
+    }
+}
+
 // --------------------------------------------------
 // Notification sur des prises.
 // Devrait plutôt être dans POSIX mais epoll est une spécialité linuxienne.
@@ -515,8 +550,6 @@ epoll_event :: struct #externe #compacte {
     events: EPOLL_EVENTS  /* Epoll events */
     data: epoll_data      /* User data variable */
 }
-
-sigset_t :: struct #externe
 
 epoll_create :: fonc (size: z32) -> z32 #externe libc
 epoll_create1 :: fonc (flags: z32) -> z32 #externe libc
