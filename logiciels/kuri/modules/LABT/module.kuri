@@ -1,0 +1,563 @@
+importe Fondation
+
+/*
+
+Langage Amélioré de Balisage de Texte
+
+LABT
+
+https://dev.to/practicalprogramming/we-need-a-new-document-markup-language---here-is-why-5d4c
+
+ */
+
+Attribut :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+Noeud :: struct {
+    enfants: []*Noeud
+    attributs: []Attribut
+
+    type : type_de_données
+}
+
+détruit_noeud :: fonc (noeud: *Noeud)
+{
+    déloge(noeud.attributs)
+
+    pour noeud.enfants {
+        détruit_noeud(it)
+    }
+    déloge(noeud.enfants)
+
+    discr noeud.type {
+        Chapitre {
+            chapitre := noeud comme *Chapitre
+            déloge(chapitre)
+        }
+        Document {
+            document := noeud comme *Document
+            déloge(document.catégories)
+            déloge(document.texte_original)
+            déloge(document)
+        }
+        Texte {
+            noeud_texte := noeud comme *Texte
+            déloge(noeud_texte)
+        }
+        Lien {
+            noeud_lien := noeud comme *Lien
+            déloge(noeud_lien)
+        }
+        sinon {}
+    }
+}
+
+ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
+{
+    résultat := Attribut(nom, valeur)
+    tableau_ajoute(*noeud.attributs, résultat)
+}
+
+trouve_attribut :: fonc (noeud: *Noeud, nom: chaine) -> Résultat(Attribut)
+{
+    pour noeud.attributs {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+}
+
+crée_enfant :: fonc (noeud: *Noeud, $T: type_de_données) -> *T
+{
+    enfant := loge(T)
+    tableau_ajoute(*noeud.enfants, enfant)
+    retourne enfant
+}
+
+Document :: struct {
+    empl base: Noeud
+    type = Document
+
+    /* Le texte original du document. Nous le stockons puisque toutes les
+     * chaines des noeuds/attributs référencent ce texte, ce qui nous évite de
+     * faire trop de copies. */
+    texte_original : chaine
+
+    catégories : []chaine
+}
+
+Chapitre :: struct {
+    empl base: Noeud
+    type = Chapitre
+}
+
+// À FAIRE: élément de stylisation
+Texte :: struct {
+    empl base: Noeud
+    type = Texte
+
+    texte: chaine
+}
+
+Lien :: struct {
+    empl base: Noeud
+    type = Lien
+}
+
+// ----------------------------------------------------------------------------
+// Parsage d'un document.
+
+ParseuseDocument :: struct {
+    empl base: ParseuseChaine
+    document: *Document
+
+    erreurs: []chaine
+}
+
+détruit_parseuse :: fonc (parseuse: &ParseuseDocument)
+{
+    déloge(parseuse.erreurs)
+}
+
+possède_erreur :: fonc (parseuse: &ParseuseDocument) -> bool
+{
+    retourne parseuse.erreurs.taille != 0
+}
+
+rapporte_erreur :: fonc (parseuse: *ParseuseDocument, chn: chaine)
+{
+    tableau_ajoute(*parseuse.erreurs, chn)
+    parseuse.avance(1)
+}
+
+consomme_espaces_blanches :: fonc (parseuse: *ParseuseDocument)
+{
+    tantque !fini(parseuse) {
+        c := parseuse.chn[parseuse.curseur]
+
+        si !est_espace_blanc(c) {
+            arrête
+        }
+
+        parseuse.curseur += 1
+    }
+}
+
+parse_document :: fonc (texte: chaine) -> *Document
+{
+    document := loge(Document)
+    document.texte_original = copie_chaine(texte)
+
+    parseuse := ParseuseDocument(document.texte_original)
+    parseuse.document = document
+
+    diffère détruit_parseuse(parseuse)
+
+    saufsi consomme(*parseuse, '{') {
+        rapporte_erreur(*parseuse, "attendu une accolade ouvrante au début du document")
+    }
+
+    saufsi consomme(*parseuse, "document") {
+        rapporte_erreur(*parseuse, "attendu le mot « document » au début du document")
+    }
+
+    consomme_espaces_blanches(*parseuse)
+
+    parse_attributs(*parseuse, document)
+
+    consomme_espaces_blanches(*parseuse)
+
+    tantque !fini(*parseuse) && apparie(*parseuse, '{') {
+        parse_noeud(*parseuse, document, document)
+        consomme_espaces_blanches(*parseuse)
+    }
+
+    consomme_espaces_blanches(*parseuse)
+    saufsi consomme(*parseuse, '}') {
+        rapporte_erreur(*parseuse, "attendu une accolade ouvrante à la fin du document")
+    }
+
+    si parseuse.possède_erreur() {
+        détruit_noeud(document)
+
+        pour parseuse.erreurs {
+            imprime("%\n", it)
+        }
+
+        retourne nul
+    }
+
+    retourne document
+}
+
+parse_noeud :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *Noeud)
+{
+    saufsi consomme(parseuse, '{') {
+        rapporte_erreur(parseuse, "attendu une accolade ouvrant au début du noeud")
+    }
+
+    si consomme(parseuse, "chapitre") {
+        parseuse.parse_chapitre(document, parent)
+    }
+    sinon si consomme(parseuse, "lien") {
+        parseuse.parse_lien(parent)
+    }
+
+    saufsi consomme(parseuse, '}') {
+        rapporte_erreur(parseuse, "attendu une accolade fermante pour clore le noeud")
+    }
+}
+
+parse_chapitre :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *Noeud)
+{
+    parseuse.consomme_espaces_blanches()
+
+    chapitre := parent.crée_enfant(Chapitre)
+    parseuse.parse_attributs(chapitre)
+
+    boucle {
+        parseuse.consomme_espaces_blanches()
+
+        si apparie(parseuse, '}') {
+            arrête
+        }
+
+        si apparie(parseuse, '{') {
+            parse_noeud(parseuse, document, chapitre)
+        }
+        sinon {
+            parseuse.parse_texte(document, chapitre)
+        }
+    }
+}
+
+parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *Noeud)
+{
+    position := parseuse.curseur
+
+    tantque !parseuse.fini() {
+        si parseuse.apparie('{') {
+            arrête
+        }
+
+        si parseuse.apparie('}') {
+            arrête
+        }
+
+        parseuse.curseur += 1
+    }
+
+    position_fin := parseuse.curseur
+
+    parseuse.positionne(position)
+
+    texte := parseuse.sous_chaine_jusque_index(position_fin)
+
+    noeud_texte := parent.crée_enfant(Texte)
+    noeud_texte.texte = texte
+
+    parseuse.positionne(position_fin)
+}
+
+parse_lien :: fonc (parseuse: *ParseuseDocument, parent: *Noeud)
+{
+    noeud_lien := parent.crée_enfant(Lien)
+    parseuse.parse_attributs(noeud_lien)
+    parseuse.consomme_espaces_blanches()
+}
+
+parse_attributs :: fonc (parseuse: *ParseuseDocument, noeud: *Noeud)
+{
+    boucle {
+        parseuse.consomme_espaces_blanches()
+        // nom
+        index_égal := parseuse.trouve_prochain(' ', '=')
+
+        si index_égal < 0 {
+            rapporte_erreur(parseuse, "attendu un signe « = » après le nom de l'attribut")
+        }
+
+        nom := parseuse.sous_chaine_jusque_index(index_égal)
+        parseuse.positionne(index_égal)
+
+        parseuse.consomme_espaces_blanches()
+
+        // =
+        si !consomme(parseuse, '=') {
+            rapporte_erreur(parseuse, "attendu un signe « = » après le nom de l'attribut")
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        // "valeur"
+        si !consomme(parseuse, '"') {
+            rapporte_erreur(parseuse, "attendu un guillemet après le signe « = »")
+        }
+
+        position := parseuse.curseur
+        fin_chaine := parseuse.trouve_prochain('"')
+
+        si fin_chaine < 0 {
+            rapporte_erreur(parseuse, "attendu un guillemet fermant pour terminer l'attribut")
+            retourne
+        }
+
+        valeur := parseuse.sous_chaine_jusque_index(fin_chaine)
+
+        parseuse.positionne(fin_chaine + 1)
+
+        noeud.ajoute_attribut(nom, valeur)
+
+        si parseuse.apparie('\n') || parseuse.apparie('}') {
+            arrête
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+ImprimeAuFormat :: énum {
+    HTML
+    TEXTE_SIMPLE
+}
+
+imprime :: fonc (racine: *Noeud, au_format: ImprimeAuFormat) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    discr au_format {
+        HTML {
+            imprime_html(racine, *enchaineuse)
+        }
+        TEXTE_SIMPLE {
+            imprime_texte_simple(racine, *enchaineuse)
+        }
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+// À FAIRE : nous devrions déjà avoir une fonction similaire
+imprime_tab :: fonc (enchaineuse: *Enchaineuse, n: z32)
+{
+    pour n {
+        ajoute_au_tampon(enchaineuse, "    ")
+    }
+}
+
+est_espace_blanche :: fonc (unité: z8) -> bool #enligne
+{
+    retourne unité == ('\n') || unité == (' ') || unité == ('\t')
+}
+
+supprime_espaces_blanches :: fonc (texte: chaine) -> chaine
+{
+    tantque texte.taille != 0 {
+        si est_espace_blanche(texte[0]) {
+            texte = avance(texte, 1)
+            continue
+        }
+
+        arrête
+    }
+
+    tantque texte.taille != 0 {
+        si est_espace_blanche(texte[texte.taille - 1]) {
+            texte = recule(texte, 1)
+            continue
+        }
+
+        arrête
+    }
+
+    retourne texte
+}
+
+imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
+{
+    imprime_tab(enchaineuse, profondeur)
+
+    discr racine.type {
+        Chapitre {
+            chapitre := racine comme *Chapitre
+            ajoute_au_tampon(enchaineuse, "<div>\n")
+
+            discr trouve_attribut(chapitre, "titre") {
+                Quelque(attribut) {
+                    imprime_tab(enchaineuse, profondeur + 1)
+                    imprime_dans_enchaineuse(enchaineuse, "<h%>%</h%>\n", profondeur + 1, attribut.valeur, profondeur + 1)
+                }
+                sinon {}
+            }
+
+            saufsi racine.enfants {
+                ajoute_au_tampon(enchaineuse, "\n")
+            }
+            sinon pour racine.enfants {
+                imprime_html(it, enchaineuse, profondeur + 1)
+                ajoute_au_tampon(enchaineuse, "\n")
+            }
+
+            imprime_tab(enchaineuse, profondeur)
+            ajoute_au_tampon(enchaineuse, "</div>\n")
+        }
+        Document {
+            ajoute_au_tampon(enchaineuse, "<div>\n")
+            document := racine comme *Document
+
+            discr trouve_attribut(document, "titre") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, "<h1>", attribut.valeur, "</h1>\n")
+                }
+                sinon {}
+            }
+
+            discr trouve_attribut(document, "auteur") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, "<p>Par : ", attribut.valeur, "</p>\n")
+                }
+                sinon {}
+            }
+
+            pour racine.enfants {
+                imprime_html(it, enchaineuse, profondeur + 1)
+            }
+            ajoute_au_tampon(enchaineuse, "</div>\n")
+        }
+        Texte {
+            noeud_texte := racine comme *Texte
+            texte := supprime_espaces_blanches(noeud_texte.texte)
+            imprime_dans_enchaineuse(enchaineuse, "<p>%</p>", texte)
+        }
+        Lien {
+            noeud_lien := racine comme *Lien
+
+            texte_lien : chaine
+            url_lien : chaine
+
+            discr trouve_attribut(noeud_lien, "texte") {
+                Quelque(attribut) {
+                    texte_lien = attribut.valeur
+                }
+                sinon {}
+            }
+
+            discr trouve_attribut(noeud_lien, "url") {
+                Quelque(attribut) {
+                    url_lien = attribut.valeur
+                }
+                sinon {}
+            }
+
+            imprime_dans_enchaineuse(enchaineuse, "<a href='%'>%</a>", url_lien, texte_lien)
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "Genre de noeud inconnu")
+        }
+    }
+}
+
+imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
+{
+    discr racine.type {
+        Chapitre {
+            chapitre := racine comme *Chapitre
+            ajoute_au_tampon(enchaineuse, "\n")
+            discr trouve_attribut(chapitre, "titre") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, attribut.valeur, "\n\n")
+                }
+                sinon {}
+            }
+
+            saufsi racine.enfants {
+                ajoute_au_tampon(enchaineuse, "\n")
+            }
+            sinon pour racine.enfants {
+                imprime_texte_simple(it, enchaineuse, profondeur + 1)
+                ajoute_au_tampon(enchaineuse, "\n")
+            }
+            ajoute_au_tampon(enchaineuse, "\n")
+        }
+        Document {
+            document := racine comme *Document
+
+            discr trouve_attribut(document, "titre") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, attribut.valeur, "\n\n")
+                }
+                sinon {}
+            }
+
+            discr trouve_attribut(document, "auteur") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, "Par : ", attribut.valeur, "\n\n")
+                }
+                sinon {}
+            }
+
+            pour racine.enfants {
+                imprime_texte_simple(it, enchaineuse, profondeur + 1)
+            }
+            ajoute_au_tampon(enchaineuse, "\n")
+        }
+        Texte {
+            noeud_texte := racine comme *Texte
+            texte := supprime_espaces_blanches(noeud_texte.texte)
+            ajoute_au_tampon(enchaineuse, texte)
+        }
+        Lien {
+            noeud_lien := racine comme *Lien
+
+            discr trouve_attribut(noeud_lien, "texte") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, attribut.valeur)
+                }
+                sinon {}
+            }
+
+            discr trouve_attribut(noeud_lien, "url") {
+                Quelque(attribut) {
+                    ajoute_au_tampon(enchaineuse, " (", attribut.valeur, ")")
+                }
+                sinon {}
+            }
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "Genre de noeud inconnu")
+        }
+    }
+}
+
+imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
+{
+    imprime_tab(profondeur)
+
+    discr racine.type {
+        Chapitre {
+            imprime("Chapitre")
+        }
+        Document {
+            imprime("Document")
+        }
+        Texte {
+            imprime("Texte")
+        }
+        Lien {
+            imprime("Lien")
+        }
+        sinon {
+            imprime("Genre de noeud inconnu")
+        }
+    }
+
+    imprime("\n")
+
+    pour racine.enfants {
+        imprime_hiérarchie(it, profondeur + 1)
+    }
+}

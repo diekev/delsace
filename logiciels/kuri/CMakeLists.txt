@@ -188,6 +188,7 @@ set(FICHIERS_TESTS
     modules/HTML/Autres/minification.kuri
     modules/HTML/Autres/stats_parsage.kuri
     modules/HTML/Autres/vérification.kuri
+    modules/LABT/Programmes/principale.kuri
 )
 
 foreach(FICHIER_TEST ${FICHIERS_TESTS})
