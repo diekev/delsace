@@ -169,14 +169,29 @@ parse_document :: fonc (texte: chaine) -> *Document
 
     consomme_espaces_blanches(*parseuse)
 
-    tantque !fini(*parseuse) && apparie(*parseuse, '{') {
-        parse_noeud(*parseuse, document, document)
+    tantque !fini(*parseuse) {
+        si apparie(*parseuse, '}') {
+            arrête
+        }
+
+        si apparie(*parseuse, '{') {
+            parse_noeud(*parseuse, document, document)
+        }
+        sinon {
+            parse_texte(*parseuse, document, document)
+        }
+
         consomme_espaces_blanches(*parseuse)
     }
 
     consomme_espaces_blanches(*parseuse)
     saufsi consomme(*parseuse, '}') {
-        rapporte_erreur(*parseuse, "attendu une accolade ouvrante à la fin du document")
+        rapporte_erreur(*parseuse, "attendu une accolade fermante à la fin du document")
+    }
+
+    consomme_espaces_blanches(*parseuse)
+    saufsi fini(*parseuse) {
+        rapporte_erreur(*parseuse, "des caractères sont à la fin du texte, il est possible que la syntaxe est erronnée")
     }
 
     si parseuse.possède_erreur() {
