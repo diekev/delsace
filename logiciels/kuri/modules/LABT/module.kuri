@@ -1,3 +1,4 @@
+importe Courriel
 importe Fondation
 
 /*
@@ -575,4 +576,32 @@ imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
     pour racine.enfants {
         imprime_hiérarchie(it, profondeur + 1)
     }
+}
+
+// ----------------------------------------------------------------------------
+
+/* Parse la chaine d'un document afin de créer le message d'un Courriel.
+ *
+ * Si succès, le courriel aura le message au format texte et au format HTML, et
+ * un nouveau courriel sera retourner avec les messages : le courriel en entrée
+ * n'est pas modifié. Le courriel retourné héritera de toutes les données mises
+ * en place avant l'appel à la fonction.
+ *
+ * Si échec, ne retourne rien.
+ */
+parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Résultat(Courriel.Courriel)
+{
+    document := parse_document(texte)
+
+    saufsi document {
+        retourne
+    }
+
+    texte_simple := imprime(document, ImprimeAuFormat.TEXTE_SIMPLE)
+    texte_html := imprime(document, ImprimeAuFormat.HTML)
+
+    résultat : Courriel.Courriel = courriel
+    résultat.ajoute_message(texte_simple)
+    résultat.ajoute_message(texte_html)
+    retourne résultat
 }
