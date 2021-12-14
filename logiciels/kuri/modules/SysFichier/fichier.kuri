@@ -549,6 +549,19 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne résultat
 }
 
+taille_fichier :: fonc (fichier: *Fichier) -> z64
+{
+    taille_fichier := tente système_positionne_fichier(fichier.desc, 0, SEEK_END) piège err {
+        retourne 0
+    }
+
+    _ := tente système_positionne_fichier(fichier.desc, 0, SEEK_SET) piège err {
+        retourne 0
+    }
+
+    retourne taille_fichier
+}
+
 // fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on
 // calcule la taille du fichier avant de tout lire au lieu de faire une boucle
 // pour accumuler les données dans un tampon
