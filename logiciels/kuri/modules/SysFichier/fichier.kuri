@@ -423,13 +423,13 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
     retourne vrai
 }
 
-lis :: fonc (fichier: *Fichier, tampon: chaine) -> RésultatOpérationFichier
+lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
         retourne 0 comme ErreurFichier
     }
 
-    octets_lus := tente système_lis(fichier.desc, tampon.pointeur, tampon.taille) piège err {
+    octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
         retourne err
     }
 
