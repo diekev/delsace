@@ -555,7 +555,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 
     si scanner.lexème == LexèmeJSON.TRUE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour le membre de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -563,7 +563,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour le membre de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
