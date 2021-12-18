@@ -2908,6 +2908,12 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                          espace.rapporte_avertissement(noeud, message);
                      }
 
+                     /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
+                      * fonction fut utilisée. */
+                     if (noeud->est_entete_fonction()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
                      return DecisionVisiteNoeud::CONTINUE;
                  });
 }
