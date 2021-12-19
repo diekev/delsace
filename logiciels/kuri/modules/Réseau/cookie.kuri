@@ -69,6 +69,14 @@ crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
     retourne cookie
 }
 
+copie_cookie :: fonc (source: Cookie) -> Cookie
+{
+    résultat := source
+    résultat.nom = copie_chaine(source.nom)
+    résultat.valeur = copie_chaine(source.nom)
+    retourne résultat
+}
+
 détruit_cookie :: fonc (cookie: &Cookie)
 {
     déloge(cookie.nom)
