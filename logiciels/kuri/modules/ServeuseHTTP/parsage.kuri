@@ -108,6 +108,12 @@ ParseuseHTTP :: struct {
     pour_sous_message := faux
 }
 
+erreur_de_parsage :: fonc (message: chaine) -> RésultatParsage
+{
+    imprime("%\n", message)
+    retourne RésultatParsage.ERREUR
+}
+
 réinitialise_base :: fonc (parseuse: *ParseuseHTTP)
 {
     détruit_message(*parseuse.message_en_cours)
@@ -154,7 +160,7 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
     index := apparie_un_de(*parseuse.parseuse_chaine, ...méthodes)
 
     si index == -1 {
-        retourne RésultatParsage.ERREUR
+        retourne erreur_de_parsage("méthode inconnue")
     }
 
     méthode := méthodes[index]
@@ -169,7 +175,7 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 parse_état_requête_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 {
     si !consomme(*parseuse.parseuse_chaine, ' ') {
-        retourne RésultatParsage.ERREUR
+        retourne erreur_de_parsage("pas d'espace avant la requête HTTP")
     }
 
     début := parseuse.parseuse_chaine.curseur
@@ -196,30 +202,34 @@ parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         retourne RésultatParsage.MESSAGE_INCOMPLET
     }
 
-    début := parseuse.parseuse_chaine.curseur
-
     parseuse_chaine := *parseuse.parseuse_chaine
 
-    saufsi parseuse_chaine.consomme_nombre(3) {
-        retourne RésultatParsage.ERREUR
+    saufsi parseuse_chaine.consomme("HTTP/1.1") {
+        retourne erreur_de_parsage("chaine de la version non supportée, ou chaine invalide")
     }
-
-    parseuse_chaine.positionne(3)
 
     saufsi parseuse_chaine.consomme(' ') {
-        retourne RésultatParsage.ERREUR
+        retourne erreur_de_parsage("pas d'espace après la version")
     }
 
-    pos_version := parseuse_chaine.trouve_prochain("HTTP")
+    saufsi parseuse_chaine.consomme_nombre(3) {
+        retourne erreur_de_parsage("pas de nombre de 3 chiffres après la version")
+    }
+
+    saufsi parseuse_chaine.consomme(' ') {
+        retourne erreur_de_parsage("pas d'espace après le code du status")
+    }
+
+    pos_version := parseuse_chaine.trouve_prochain("\r\n")
 
     si pos_version <= 0 {
         retourne RésultatParsage.MESSAGE_INCOMPLET
     }
 
-    parseuse_chaine.positionne(pos_version)
+    parseuse_chaine.positionne(pos_version + 2)
 
     parseuse.données_message.code_état = parseuse_chaine.nombre
-    parseuse.état_parsage = parse_état_version_http
+    parseuse.état_parsage = parse_état_entêtes
     retourne RésultatParsage.OK
 }
 
@@ -297,7 +307,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
 
         // À FAIRE : il existe des options
         si chn_transfer_encoding != "chunked" {
-            retourne RésultatParsage.ERREUR
+            retourne erreur_de_parsage("Transfer-Encoding non supporté")
         }
 
         parseuse.état_parsage = parse_état_corps_message
@@ -309,7 +319,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         chn_taille_contenu := entête(message, "Content-Length").valeur
 
         taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
-            retourne RésultatParsage.ERREUR
+            retourne erreur_de_parsage("Content-Length n'est pas un nombre")
         }
 
         parseuse.contenu_fixe = vrai
@@ -364,7 +374,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
             valeur := sous_chaine_jusque_index(*parseuse.parseuse_chaine, pos_nouvelle_ligne)
 
             taille_chunk := tente parse_hexadécimal_z32(valeur) piège err {
-                retourne RésultatParsage.ERREUR
+                retourne erreur_de_parsage("pas de nombre héxadécimal pour la taille du chunk")
             }
 
             /* Fin du message. */
