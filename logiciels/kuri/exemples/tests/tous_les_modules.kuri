@@ -39,10 +39,9 @@ importe Physique
 importe POSIX
 importe PThread
 importe Réseau
-importe Routage
 importe SDL2
 importe Sérialisation
-importe ServeuseCGI
+// importe ServeuseCGI Routage est requis
 importe ServeuseHTTP
 importe ServeuseTCP
 importe Structures
