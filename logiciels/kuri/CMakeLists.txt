@@ -181,6 +181,7 @@ set(FICHIERS_TESTS
     exemples/tests/test_structure_poly.kuri
     exemples/tests/test_sys_fichier.kuri
     exemples/tests/test_unicode.kuri
+    exemples/tests/tous_les_modules.kuri
     modules/GHTML/test/test_ghtml.kuri
     modules/HTML/Autres/entropisation.kuri
     modules/HTML/Autres/formattage.kuri
