@@ -22,7 +22,6 @@ importe ConnexionTCP
 importe Fondation
 importe Internet
 importe Numérique
-importe Réseau
 importe ServeuseTCP
 importe SysFichier
 importe Temps

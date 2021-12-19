@@ -2,7 +2,7 @@
 
 importe Fondation
 importe OpenSSL
-importe Réseau
+importe Internet
 importe SysFichier
 
 lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine

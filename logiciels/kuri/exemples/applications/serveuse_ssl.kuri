@@ -5,7 +5,7 @@ importe Fondation
 importe GlibC
 importe OpenSSL
 importe POSIX
-importe Réseau
+importe Internet
 importe SysFichier
 
 //###############################################################################

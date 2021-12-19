@@ -14,7 +14,6 @@ importe OpenSSL
 importe POSIX
 importe SysFichier
 importe Internet
-importe Réseau
 importe Temps
 
 // --------------------------------------------------

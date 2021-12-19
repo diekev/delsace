@@ -2,7 +2,6 @@ importe Internet
 importe GlibC
 importe OpenSSL
 importe POSIX
-importe Réseau
 importe SysFichier
 
 Contexte :: struct {

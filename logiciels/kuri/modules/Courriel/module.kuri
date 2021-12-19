@@ -10,7 +10,7 @@ importe CodecDonnées
 importe Fondation
 importe JSON
 importe GlibC
-importe Réseau
+importe Internet
 importe SysFichier
 importe Temps
 

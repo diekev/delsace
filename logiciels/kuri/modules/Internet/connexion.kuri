@@ -1,6 +1,5 @@
 importe Fondation
 importe GlibC
-importe Internet
 importe SysFichier
 
 ErreurConnexion :: erreur {

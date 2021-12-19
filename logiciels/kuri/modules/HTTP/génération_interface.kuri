@@ -602,7 +602,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n", "importe ConnexionTCP\n", "importe Réseau\n", "importe HTTP\n")
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n", "importe ConnexionTCP\n", "importe Internet\n", "importe HTTP\n")
 
     si paramètres.module_à_importer {
         ajoute_au_tampon(*enchaineuse, "importe ", paramètres.module_à_importer, "\n")
@@ -627,7 +627,7 @@ crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresG�
 
     // Il nous faut les modules
     ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
-    ajoute_au_tampon(*enchaineuse, "importe Réseau\n")
+    ajoute_au_tampon(*enchaineuse, "importe Internet\n")
     ajoute_au_tampon(*enchaineuse, "importe ConnexionTCP\n")
 
     génère_fonction_appariement_routes(*enchaineuse, paramètres.données_fonctions)
