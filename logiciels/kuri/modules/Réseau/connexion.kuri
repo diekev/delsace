@@ -87,9 +87,9 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) ->
     retourne Fichier(desc = prise)
 }
 
-ouvre_connexion_serveur :: fonc (uri: &URI) -> FichierOuErreur
+ouvre_connexion_serveur :: fonc (uri: &URI, bloquante := faux) -> FichierOuErreur
 {
-    retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri))
+    retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri), bloquante)
 }
 
 ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> FichierOuErreur
