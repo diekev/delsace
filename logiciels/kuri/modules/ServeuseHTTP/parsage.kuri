@@ -228,6 +228,7 @@ parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     parseuse_chaine.positionne(pos_version + 2)
 
+    parseuse.données_message.position_version = PositionChaine(0, 8)
     parseuse.données_message.code_état = parseuse_chaine.nombre
     parseuse.état_parsage = parse_état_entêtes
     retourne RésultatParsage.OK
@@ -540,5 +541,6 @@ finalise_message :: fonc (parseuse: *ParseuseMessageServeuseHTTP) -> MessageServ
     initialise_depuis_message(*message_serveuse, message)
     message_serveuse.status = parseuse.données_message.code_état
     message_serveuse.code_état = message_serveuse.status comme CodeÉtatHTTP
+    message_serveuse.version = sous_chaine(parseuse.données, parseuse.données_message.position_version)
     retourne message_serveuse
 }
