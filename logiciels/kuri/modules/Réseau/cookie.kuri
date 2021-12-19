@@ -441,6 +441,26 @@ est_valide :: fonc (cookie: Cookie) -> bool
     retourne vrai
 }
 
+/* Fusionne le cookie dans la liste des cookies.
+ * Retourne vrai si le cookie est ajouté dans la liste.
+ * À FAIRE : age des cookies : stocker la date d'ajout */
+fusionne_cookie :: fonc (cookies: *[]Cookie, cookie: Cookie) -> bool
+{
+    tmp := mémoire(cookies)
+
+    pour tmp {
+        si it.nom == cookie.nom {
+            arrête
+        }
+    }
+    sansarrêt {
+        tableau_ajoute(cookies, cookie)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
 /*
 
     cookies := parse_cookie_client("Cookie: yummy_cookie=choco; tasty_cookie=strawberry")
