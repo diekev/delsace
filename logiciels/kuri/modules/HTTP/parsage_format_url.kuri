@@ -34,7 +34,7 @@ trouve_info_données :: fonc (infos: []InfoDonnées, nom: chaine) -> *InfoDonné
     retourne nul
 }
 
-RésultatParsage :: énum {
+RésultatParsageFormatURL :: énum {
     /* Tout c'est bien passé, le texte put être parsé avec succès. */
     Succès
 
@@ -67,7 +67,7 @@ RésultatParsage :: énum {
  *
  * Le type T doit être une structure.
  */
-parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> RésultatParsage, DonnéesRésultat(T = T), T
+parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> RésultatParsageFormatURL, DonnéesRésultat(T = T), T
 {
     #assert info_de(T).id == id_info.STRUCTURE
 
@@ -105,7 +105,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
         pos := trouve_prochain(*parseuse, '=')
 
         si pos <= 0 {
-            retourne RésultatParsage.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
         }
 
         nom := sous_chaine_jusque_index(*parseuse, pos)
@@ -114,7 +114,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
         positionne(*parseuse, pos + 1)
 
         si fini(*parseuse) {
-            retourne RésultatParsage.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
         }
 
         pos = trouve_prochain(*parseuse, '&')
@@ -131,18 +131,18 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
         id := trouve_info_données(pointeurs, nom)
 
         saufsi id {
-            retourne RésultatParsage.MembreInconnu, données, résultat
+            retourne RésultatParsageFormatURL.MembreInconnu, données, résultat
         }
 
         // Vérifions que nous n'avons pas encore parsé ce membre.
         si mémoire(id.ptr_données) {
-            retourne RésultatParsage.RenommageParamètre, données, résultat
+            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat
         }
 
         fonction_parsage := trouve_fonction_pour_type(id.info.id)
 
         saufsi fonction_parsage {
-            retourne RésultatParsage.FonctionParsageInexistante, données, résultat
+            retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat
         }
 
         tampon : []octet
@@ -151,13 +151,13 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
         saufsi fonction_parsage.rappel(valeur, tampon) {
-            retourne RésultatParsage.ÉchecParsageValeur, données, résultat
+            retourne RésultatParsageFormatURL.ÉchecParsageValeur, données, résultat
         }
 
         mémoire(id.ptr_données) = vrai
     }
 
-    retourne RésultatParsage.Succès, données, résultat
+    retourne RésultatParsageFormatURL.Succès, données, résultat
 } @IgnoreNASA
 
 /* DonnéesRésultat
@@ -225,7 +225,7 @@ InformationConnexion :: struct {
 
     raison, résultat, info := parse_texte_format_url(requête, InformationConnexion)
 
-    compilatrice_vérifie_égalité(raison, RésultatParsage.Succès)
+    compilatrice_vérifie_égalité(raison, RésultatParsageFormatURL.Succès)
 
     compilatrice_vérifie_égalité(résultat.courriel, vrai)
     compilatrice_vérifie_égalité(résultat.mot_de_passe, vrai)
@@ -253,7 +253,7 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
     texte_copié := copie_chaine(texte)
     raison, champs_renseignés, résultat := parse_texte_format_url(texte_copié, TransertDeFond)
 
-    si raison != RésultatParsage.Succès {
+    si raison != RésultatParsageFormatURL.Succès {
         retourne faux
     }
 
@@ -355,7 +355,7 @@ génère_initialisation_parsage_url :: fonc ()
     // Il nous faut les modules.
     ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe Réseau\n")
+    ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
 
 	modules_importés : []chaine
 	tableau_ajoute(*modules_importés, "Fondation")
@@ -429,5 +429,3 @@ génère_initialisation_parsage_url :: fonc ()
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
 }
-
-#pré_exécutable génère_initialisation_parsage_url()

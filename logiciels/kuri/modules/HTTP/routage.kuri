@@ -387,7 +387,7 @@ génère_initialisation_routes :: fonc ()
     // Il nous faut les modules.
     ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe ServeuseHTTP\n")
+    ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
 
 	modules_importés : []chaine
 	tableau_ajoute(*modules_importés, "Fondation")
@@ -461,5 +461,3 @@ génère_initialisation_routes :: fonc ()
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
 }
-
-#pré_exécutable génère_initialisation_routes()

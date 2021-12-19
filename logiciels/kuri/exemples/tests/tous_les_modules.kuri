@@ -42,7 +42,7 @@ importe Réseau
 importe SDL2
 importe Sérialisation
 // importe ServeuseCGI Routage est requis
-importe ServeuseHTTP
+importe HTTP
 importe ServeuseTCP
 importe Structures
 importe SysFichier

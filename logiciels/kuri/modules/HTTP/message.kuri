@@ -1,6 +1,7 @@
 importe CodecDonnées
 importe Fondation
 importe Numérique
+importe Réseau
 
 MessageHTTP :: struct {
     version: chaine
