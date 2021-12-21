@@ -1,4 +1,5 @@
 importe Fondation
+importe Introspection
 
 est_caractère_réservé_url :: fonc (c: z8) -> bool
 {
@@ -217,4 +218,71 @@ crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> 
     }
 
     retourne FluxEncodage(écris_chaine, écris_point_de_code_utf32, écris_point_de_code_utf8, enchaineuse)
+}
+
+encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
+{
+    info := valeur.info
+
+    discr info.id {
+        CHAINE {
+            chn := valeur.comme_chaine()
+            flux_encodage.écris(chn)
+        }
+        STRUCTURE {
+            fonction_de_formattage := Fondation.trouve_fonction_de_formattage(info)
+
+            saufsi fonction_de_formattage {
+                panique("pas de fonction de formattage pour le type dans encode_valeur")
+	        }
+
+            /* À FAIRE : FluxEncodage pour les fonctions de formattage. */
+            enchaineuse: Enchaineuse
+            initialise_enchaineuse(*enchaineuse)
+            diffère détruit_tampons(*enchaineuse)
+
+	        fonction_de_formattage.fonction(*enchaineuse, valeur)
+
+            chn := chaine_depuis_enchaineuse(*enchaineuse)
+            flux_encodage.écris(chn)
+
+            déloge(chn)
+        }
+        sinon {
+            panique("type non supporté dans encode_valeur")
+        }
+    }
+}
+
+encode_format_url :: fonc (valeur: eini) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    infos := valeur.info comme *InfoTypeStructure
+    flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse)
+    requiers_esperluette := faux
+    itératrice := crée_itératrice_membre(valeur)
+
+    boucle {
+        membre, nom := itératrice.membre_suivant()
+
+        saufsi membre.est_valide() {
+            arrête
+        }
+
+        si requiers_esperluette {
+            flux.écris_sans_encodage("&")
+        }
+
+        flux.écris(nom)
+        flux.écris_sans_encodage("=")
+
+        encode_valeur(flux, membre)
+
+        requiers_esperluette = vrai
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
