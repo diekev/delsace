@@ -18,6 +18,7 @@ importe Ensemble
 importe EnsembleDeBits
 importe Exétron
 importe FiltreDeBloom
+importe Finance
 importe FloconDeNeige
 importe Flux
 importe Fondation
