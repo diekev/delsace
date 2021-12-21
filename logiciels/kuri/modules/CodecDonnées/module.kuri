@@ -305,3 +305,48 @@ encode_base96 :: fonc (message: []octet) -> chaine
 
     retourne résultat
 }
+
+// -------------------------------------------------------------------
+
+FluxEncodage :: struct {
+    /* Écris une chaine native, encodée en UTF-8, dans le flux. */
+    écris_chaine : fonc (&FluxEncodage, chaine, bool)(rien)
+
+    /* Écris un point de code UTF-32 dans le flux. */
+    écris_utf32 : fonc (&FluxEncodage, n32, bool)(rien)
+
+    /* Écris un point de code UTF-8 dans le flux. */
+    écris_utf8 : fonc (&FluxEncodage, z8, bool)(rien)
+
+    enchaineuse: *Enchaineuse
+}
+
+écris :: fonc (flux: &FluxEncodage, chn: chaine)
+{
+    flux.écris_chaine(flux, chn, vrai)
+}
+
+écris :: fonc (flux: &FluxEncodage, point_de_code: n32)
+{
+    flux.écris_utf32(flux, point_de_code, vrai)
+}
+
+écris :: fonc (flux: &FluxEncodage, point_de_code: z8)
+{
+    flux.écris_utf8(flux, chn, vrai)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, chn: chaine)
+{
+    flux.écris_chaine(flux, chn, faux)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: n32)
+{
+    flux.écris_utf32(flux, point_de_code, faux)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: z8)
+{
+    flux.écris_utf8(flux, chn, faux)
+}
