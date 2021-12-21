@@ -190,3 +190,31 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
 
     chn.taille = index_d_insertion
 }
+
+// -------------------------------------------------------------------
+
+crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> FluxEncodage
+{
+    écris_chaine :: fonc (flux: &FluxEncodage, chn: chaine, doit_encoder: bool)
+    {
+        si doit_encoder {
+            encode_format_url(flux.enchaineuse, chn)
+        }
+        sinon {
+            ajoute_au_tampon(flux.enchaineuse, chn)
+        }
+    }
+
+    écris_point_de_code_utf32 :: fonc (flux: &FluxEncodage, point_de_code: n32, doit_encoder: bool)
+    {
+
+    }
+
+    écris_point_de_code_utf8 :: fonc (flux: &FluxEncodage, point_de_code: z8, doit_encoder: bool)
+    {
+        chn := construit_chaine(*point_de_code, 1)
+        écris_chaine(flux, chn, doit_encoder)
+    }
+
+    retourne FluxEncodage(écris_chaine, écris_point_de_code_utf32, écris_point_de_code_utf8, enchaineuse)
+}
