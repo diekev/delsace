@@ -1,3 +1,5 @@
+importe Fondation
+
 /* Les types opaques sont des alias pour d'autres types, mais différents de ceux-ci.
  * Un type opacifiant le type A aura les mêmes propriétés que A, mais A ne pourra pas se faire passer pour lui.
  *
@@ -54,3 +56,15 @@ Année :: #opaque z32
         retourne Jour(j)
     }
 //}
+
+Distance :: #opaque z32
+
+Mètre :: #opaque Distance
+
+principale :: fonc () -> z32
+{
+    d := Mètre(Distance(7))
+    imprime("distance : %\n", d)
+
+    retourne 0
+}

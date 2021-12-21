@@ -1,0 +1,590 @@
+importe Fondation
+importe SysFichier
+importe GlibC
+
+passe_eini :: fonc (e: eini) -> rien
+{
+
+}
+
+passe_einis :: fonc (einis: ...eini) -> rien
+{
+
+}
+
+test_eini :: fonc () -> rien
+{
+    v : Vecteur
+
+    e0 : eini = 5
+    e1 : eini = 6.0
+    e2 : eini = "Geht's ?"
+    e3 : eini = v
+
+    v0 := 5
+    v1 := 6.0
+    v2 := "Geht's ?"
+    v3 := v
+
+    e00 : eini = v0
+    e01 : eini = v1
+    e02 : eini = v2
+    e03 : eini = v3
+
+    passe_eini(v0)
+    passe_eini(v1)
+    passe_eini(v2)
+    passe_eini(v3)
+
+    passe_eini(e00)
+    passe_eini(e01)
+    passe_eini(e02)
+    passe_eini(e03)
+
+    passe_einis(v0, v1, v2, v3)
+}
+
+test_boucle_pour :: fonc () -> rien
+{
+    début : z64 = 0
+    fin : z64 = 5
+
+    t := [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+
+    imprime("pour tableau fixe avec index sans variable :\n")
+    pour t {
+        imprime("% : %\n", index_it, it)
+    }
+
+    t0 : []z32 = t
+
+    imprime("pour tableau :\n")
+    pour v dans t0 {
+        imprime("%\n", v)
+    }
+}
+
+test_différation :: fonc () -> rien
+{
+    diffère { imprime("différé !\n") }
+    retourne
+}
+
+ÉnumTest :: énum z32 {
+    VALEUR0
+    VALEUR1
+    VALEUR2
+}
+
+
+test_discr :: fonc() -> rien
+{
+    // -------------
+
+    imprime("\ndiscrimination d'énumération :\n")
+
+    ve := ÉnumTest.VALEUR2
+
+    discr ve {
+        VALEUR0 {
+            imprime("la valeur est VALEUR0\n")
+        }
+        VALEUR1 {
+            imprime("la valeur est VALEUR1\n")
+        }
+        sinon {
+            imprime("la valeur est inconnue\n")
+        }
+    }
+
+    imprime("\n")
+
+    // -------------
+
+    imprime("\ndiscrimination d'union :\n")
+
+    /*
+    ef : EntierOuDécimal
+
+    discr ef {
+        e {
+            imprime("la valeur active est e\n")
+            printf("%d\n".pointeur, e)
+        }
+        f {
+            imprime("la valeur active est f\n")
+        }
+        sinon {
+            imprime("aucune valeur n'est active\n")
+        }
+    }
+
+    imprime("\n")
+*/
+}
+
+
+test_tableau :: fonc() -> rien
+{
+    imprime("\nconstruction de tableau via initialisation individuelle :\n")
+
+    vecteur : [3]r64
+    vecteur[0] = 1.0
+    vecteur[1] = 4.0
+    vecteur[2] = 9.0
+
+    //printf("Le vecteur est  <%f, %f, %f>\n".pointeur, vecteur[0], vecteur[1], vecteur[2])
+    imprime_vecteur(vecteur)
+
+    imprime("\n")
+
+    imprime("\nconstruction de tableau via un tableau littéral :\n")
+    vec2 := [16, 25, 36]
+
+    //printf("Le vecteur est  <%d, %d, %d>\n".pointeur, vec2[0], vec2[1], vec2[2])
+    imprime_vecteur(vec2)
+
+    imprime("\n")
+}
+
+test_pointeur :: fonc() -> rien
+{
+    imprime("\ndéréférencement de pointeur :\n")
+
+    a := 5
+    b := @a
+    c := mémoire(b)
+
+    printf("(mémoire) c est de %d\n".pointeur, c)
+
+    mémoire(b) = 6
+    c = mémoire(b)
+
+    printf("(mémoire) c est de %d\n".pointeur, c)
+
+    imprime("\n")
+}
+
+
+passe_eini :: fonc(a: eini) -> rien
+{
+    imprime("passe_eini\n")
+    b : z64 = a
+
+    printf("-- la valeur est %d \n".pointeur, b)
+}
+
+imprime_vecteur :: fonc(a: []r64) -> rien
+{
+    printf("Le vecteur est  <%f, %f, %f>\n".pointeur, a[0], a[1], a[2])
+}
+
+imprime_vecteur :: fonc(a: []z32) -> rien
+{
+    printf("Le vecteur est  <%d, %d, %d>\n".pointeur, a[0], a[1], a[2])
+}
+
+imprime_info :: fonc(pointeur: *rien, info: *InfoType) -> rien
+{
+    discr info.id {
+        ENTIER    {
+            imprime("-- argument de type entier\n")
+
+            info_entier := transtype(info: *InfoTypeEntier)
+
+            printf("---- est_signé %d\n".pointeur, info_entier.est_signé)
+            printf("---- taille %d\n".pointeur, info_entier.taille_en_octet)
+        }
+        RÉEL      {
+            imprime("-- argument de type réel\n")
+
+            info_réel := transtype(info: *InfoType)
+
+            printf("---- taille %d\n".pointeur, info_réel.taille_en_octet)
+        }
+        OCTET {
+            imprime("-- argument de type octet\n")
+        }
+        BOOLÉEN   {
+            imprime("-- argument de type booléen\n")
+        }
+        CHAINE    {
+            imprime("-- argument de type chaine\n")
+
+            chn := mémoire(transtype(pointeur: *chaine))
+            imprime("---- valeur: ")
+            imprime(chn)
+            imprime("\n")
+        }
+        POINTEUR  {
+            imprime("-- argument de type pointeur\n")
+
+            info_pointeur := transtype(info: *InfoTypePointeur)
+            printf("---- est_référence %d\n".pointeur, info_pointeur.est_référence)
+            printf("---- type_pointé %p\n".pointeur, info_pointeur.type_pointé)
+
+            imprime_info(pointeur, info_pointeur.type_pointé)
+        }
+        STRUCTURE {
+            imprime("-- argument de type structure\n")
+
+            info_struct := transtype(info: *InfoTypeStructure)
+
+            imprime("---- nom: ")
+            imprime(info_struct.nom)
+            imprime("\n")
+
+            printf("il y a %d membres\n".pointeur, info_struct.membres.taille)
+
+            pour membre dans info_struct.membres {
+                printf("membre : %p\n".pointeur, membre)
+                imprime("------- nom: ")
+                imprime(membre.nom)
+                imprime("\n")
+
+                printf("------- décalage : %d\n".pointeur, membre.décalage)
+            }
+        }
+        FONCTION  {
+            imprime("-- argument de type fonction\n")
+        }
+        TABLEAU   {
+            imprime("-- argument de type tableau\n")
+        }
+        EINI      {
+            imprime("-- argument de type eini\n")
+        }
+        RIEN      {
+            imprime("-- argument de type rien\n")
+        }
+        ÉNUM      {
+            imprime("-- argument de type énum\n")
+
+            info_énum := transtype(info: *InfoTypeÉnum)
+
+            printf("---- est_drapeau : %d\n".pointeur, info_énum.est_drapeau)
+            imprime("---- nom: ")
+            imprime(info_énum.nom)
+            imprime("\n")
+
+            pour v dans info_énum.valeurs {
+                printf("------- valeur : %d\n".pointeur, v)
+            }
+
+            pour v dans info_énum.noms {
+                imprime("------- nom: ")
+                imprime(v)
+                imprime("\n")
+            }
+        }
+    }
+}
+
+passe_arguments_variadiques :: fonc(args: ...eini) -> rien
+{
+    printf("Il y a %d arguments\n".pointeur, args.taille)
+
+    pour arg dans args {
+        info := arg.info
+        imprime_info(arg.pointeur, info)
+    }
+}
+
+/*
+passe_référence :: fonc(a: &z32) -> rien
+{
+    a = 32
+}
+*/
+
+passe_tableau_octet :: fonc(t: []octet) -> rien
+{
+    printf("-- taille tableau   = %d\n".pointeur, t.taille)
+    printf("-- pointeur tableau = %p\n".pointeur, t.pointeur)
+    printf("----- ".pointeur)
+
+    pour o dans t {
+        v : octet = o
+        printf("%d ".pointeur, v)
+    }
+
+    imprime("\n")
+}
+
+Quaternion :: struct {
+    x : r64
+    y : r64
+    z : r64
+    w : r64
+}
+
+test_eini :: fonc() -> rien
+{
+    imprime("\ncréation d'eini :\n")
+
+    ext : z64 = 128
+    qqc : eini = ext
+    passe_eini(qqc)
+
+    imprime("\n")
+}
+
+test_arguments_variadiques :: fonc() -> rien
+{
+    imprime("\narguments variadiques :\n")
+
+    vecteur : [3]r64
+    tabl_dyn: []r64 = vecteur
+    valeur_enum := ÉnumTest.VALEUR0
+    quat : Quaternion
+    passe_arguments_variadiques(123, 78.0, @vecteur, vrai, "chaine", valeur_enum, quat, tabl_dyn)
+//    passe_arguments_variadiques(123, 78.0, @vecteur, vrai, "chaine", valeur_enum, quat, tabl_dyn)
+    //passe_arguments_variadiques(123, 78.0, "chaine", vec2)
+
+    imprime("\n")
+}
+
+test_references :: fonc() -> rien
+{
+    imprime("\nréférences :\n")
+
+    valeur := 742617000
+    printf("valeur = %d\n".pointeur, valeur)
+    //passe_référence(valeur)
+    printf("valeur = %d\n".pointeur, valeur)
+
+    imprime("\n")
+}
+
+test_tableau_octet :: fonc() -> rien
+{
+    imprime("\ntableau octet :\n")
+
+    imprime("tableau depuis scalaire\n")
+    passe_tableau_octet(5)
+
+    imprime("tableau depuis chaine\n")
+    passe_tableau_octet("chaine de caractère")
+
+    valeur := 742617000
+    imprime("tableau depuis pointeur\n")
+    passe_tableau_octet(@valeur)
+
+    vecteur : [3]r64
+    imprime("tableau depuis tableau fixe\n")
+    passe_tableau_octet(vecteur)
+
+    tabl_dyn : []r64 = vecteur
+    imprime("tableau depuis tableau dyn\n")
+    passe_tableau_octet(tabl_dyn)
+
+    imprime("\n")
+}
+
+test_info_de :: fonc() -> rien
+{
+    imprime("\ninfo de :\n")
+    x := 5
+    info := info_de(x)
+
+    imprime_info(@x, transtype(info: *InfoType))
+    imprime("\n")
+}
+
+imprime_quaternion :: fonc(q : Quaternion) -> rien
+{
+    printf("-- quat: <%f, %f, %f, %f>\n".pointeur, q.x, q.y, q.z, q.w)
+}
+
+test_initialisation_structure :: fonc() -> rien
+{
+    a := 5
+
+    imprime("\ninitialisation structure :\n")
+
+    imprime("\ninitialisation à zéro :\n")
+    {
+        quat : Quaternion
+        imprime_quaternion(quat)
+        imprime("\n")
+    }
+
+    imprime("\ninitialisation manuelle :\n")
+    {
+        quat : Quaternion
+        quat.x = 1.2
+        quat.y = 2.4
+        quat.z = 4.8
+        quat.w = 9.6
+        imprime_quaternion(quat)
+        imprime("\n")
+    }
+
+    imprime("\ninitialisation par construction :\n")
+    {
+        quat := Quaternion{ x = 3.0, y = 6.0, z = 12.0, w = 24.0 }
+        imprime_quaternion(quat)
+        imprime("\n")
+    }
+
+    imprime("\n")
+}
+
+test_alloc_scalaire :: fonc() -> rien
+{
+    //imprime("\ntest_alloc_scalaire :\n")
+    a := loge z32
+    printf("scalaire logée : %p\n".pointeur, a)
+
+    mémoire(a) = 5
+    printf("valeur scalaire : %d\n".pointeur, mémoire(a))
+
+    reloge a : z32
+    printf("scalaire relogée : %p\n".pointeur, a)
+    printf("valeur scalaire : %d\n".pointeur, mémoire(a))
+    déloge a
+    printf("scalaire délogée : %p\n".pointeur, a)
+
+    //imprime("\n")
+}
+
+test_alloc_chaine :: fonc() -> rien
+{
+    imprime("\ntest_alloc_chaine :\n")
+
+    chn := loge chaine(1024)
+    printf("pointeur chaine : %p\n".pointeur, chn.pointeur)
+    printf("taille chaine   : %d\n".pointeur, chn.taille)
+
+    printf("mémoire utilisée : %do\n".pointeur, mémoire_utilisée())
+
+    reloge chn : chaine(2048)
+    printf("pointeur chaine : %p\n".pointeur, chn.pointeur)
+    printf("taille chaine   : %d\n".pointeur, chn.taille)
+
+    printf("mémoire utilisée : %do\n".pointeur, mémoire_utilisée())
+
+    déloge chn
+    printf("pointeur chaine : %p\n".pointeur, chn.pointeur)
+    printf("taille chaine   : %d\n".pointeur, chn.taille)
+
+    printf("mémoire utilisée : %do\n".pointeur, mémoire_utilisée())
+
+    imprime("\n")
+}
+
+pousse :: fonc(tabl : *[]z32, valeur : z32) -> rien
+{
+    tmp := mémoire(tabl)
+
+    taille := tmp.taille
+    reloge tmp: [3025]z32
+    tmp[taille] = valeur
+
+    mémoire(tabl) = tmp
+}
+
+test_alloc_tableau :: fonc(n: z32) -> rien
+{
+    imprime("\ntest_alloc_tableau :\n")
+
+    tabl := loge [n]z32
+    printf("pointeur tableau : %p\n".pointeur, tabl.pointeur)
+    printf("taille tableau   : %d\n".pointeur, tabl.taille)
+
+    tabl[1023] = 17
+
+    printf("1024e élément    : %d\n".pointeur, tabl[1023])
+
+    pousse(@tabl, 5)
+    printf("pointeur tableau : %p\n".pointeur, tabl.pointeur)
+    printf("taille tableau   : %d\n".pointeur, tabl.taille)
+
+    printf("1025e élément    : %d\n".pointeur, tabl[1024])
+
+    reloge tabl : [n * 2]z32
+    printf("pointeur tableau : %p\n".pointeur, tabl.pointeur)
+    printf("taille tableau   : %d\n".pointeur, tabl.taille)
+
+    tabl[2000] = 2546
+    printf("1999e élément    : %d\n".pointeur, tabl[2000])
+
+    déloge tabl
+    printf("pointeur tableau : %p\n".pointeur, tabl.pointeur)
+    printf("taille tableau   : %d\n".pointeur, tabl.taille)
+
+    imprime("\n")
+}
+
+test_logement :: fonc() -> rien
+{
+    printf("allocatrice : %p\n".pointeur, contexte.allocatrice)
+    test_alloc_scalaire()
+    test_alloc_chaine()
+    test_alloc_tableau(1024)
+}
+
+test_operateurs :: fonc() -> rien
+{
+    imprime("\ntest_operateurs :\n")
+
+    si 1 <= 2 <= 3 <= 4 {
+        imprime("les éléments sont dans l'ordre\n")
+    }
+
+    saufsi 1 <= 3 <= 2 <= 4 {
+        imprime("les éléments sont dans le désordre\n")
+    }
+
+    si "chaine1" == "chaine1" {
+        imprime("les chaines sont égales\n")
+    }
+
+    si "chaine1" != "chaine2" {
+        imprime("les chaines ne sont pas égales\n")
+    }
+
+    imprime("\n")
+}
+
+test_position :: fonc () -> rien
+{
+    pos := PositionCodeSource{}
+
+    imprime("position :\n")
+    imprime("-- ")
+    imprime(pos.fichier)
+    imprime("\n")
+    imprime("-- ")
+    imprime(pos.fonction)
+    imprime("\n")
+}
+
+principale :: fonc() -> z32
+{
+//    imprime("%%%%", "Utilisation", " de", " notre", " allocatrice !\n")
+
+    //arg0 := args[0]
+    //printf("nom de l'exécutable : %s\n\n".pointeur, arg0)
+    //printf("1er caractère du nom : %c\n\n".pointeur, arg0[0])
+    //printf("2ème caractère du nom : %c\n\n".pointeur, arg0[1])
+
+    // -------------
+
+    test_logement()
+
+    // -------------
+
+    printf("données alloc : %p\n".pointeur, contexte.données_allocatrice)
+
+    stockage_temporaire := contexte.stockage_temporaire
+    printf("Stockage temporaire : %p\n".pointeur, stockage_temporaire)
+    printf("-- données          : %p\n".pointeur, stockage_temporaire.données)
+
+    // -------------
+    args := arguments_ligne_commande()
+    printf("-- args.pointeur : %p\n".pointeur, args.pointeur)
+    printf("-- args.taille   : %d\n".pointeur, args.taille)
+
+    retourne 0
+}
