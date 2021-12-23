@@ -1,8 +1,8 @@
 importe Fondation
-importe JSON
 importe GlibC
 importe Internet
 importe Introspection
+importe JSON
 
 ConfigurationMySQL :: struct {
 	hôte : AdresseIP

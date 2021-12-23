@@ -1,6 +1,6 @@
 importe Chaine
-importe Fondation
 importe Ensemble
+importe Fondation
 importe Structures
 
 est_espace_blanc_html :: fonc (c: z8) -> bool #enligne

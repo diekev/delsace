@@ -2,8 +2,8 @@
 
 importe Alphabet
 importe Fondation
-importe Math // nous dépendons sur libm.so pour le moment
 importe Introspection
+importe Math // nous dépendons sur libm.so pour le moment
 
 charge "interface_aléa"
 

@@ -1,5 +1,5 @@
-importe Internet
 importe GlibC
+importe Internet
 importe OpenSSL
 importe POSIX
 importe SysFichier

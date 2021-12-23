@@ -10,10 +10,10 @@
 
 importe Fondation
 importe GlibC
+importe Internet
 importe OpenSSL
 importe POSIX
 importe SysFichier
-importe Internet
 importe Temps
 
 // --------------------------------------------------

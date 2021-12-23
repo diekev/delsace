@@ -1,7 +1,7 @@
 // Interface pour la bibliothèque OpenSSL 1.1
 
-importe GlibC
 importe Fondation
+importe GlibC
 importe SysFichier
 
 charge "interface_openssl"
