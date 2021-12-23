@@ -7,11 +7,16 @@ importe Structures
  * Voir aussi:
  * https://ensiwiki.ensimag.fr/index.php?title=Towards_a_better_libc_primitive_for_handling_path_names */
 
+DonnéesDossierCourant :: struct {
+    dir: *DIR
+    chemin_complet: CheminFichier
+}
+
 ExploratriceFichier :: struct {
     // Le dossier racine où commencer l'exploration
     racine: CheminFichier
 
-    pile_dossiers: Pile(*DIR)
+    pile_dossiers: Pile(DonnéesDossierCourant)
 
     filtre_chemin: fonc(CheminFichier)(bool)
 }
@@ -38,7 +43,7 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Résultat(CheminF
 {
     tantque !exploration_finie(exploratrice) {
         dossier_courant := exploratrice.pile_dossiers.tête()
-        entrée := readdir(dossier_courant)
+        entrée := readdir(dossier_courant.dir)
 
         si entrée == nul {
             dépile_dossier(exploratrice)
@@ -55,7 +60,7 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Résultat(CheminF
             continue
         }
 
-        retourne crée_chemin_absolu(exploratrice.racine, chemin_entrée)
+        retourne crée_chemin_absolu(dossier_courant.chemin_complet, chemin_entrée)
     }
 }
 
@@ -69,12 +74,12 @@ empile_dossier :: fonc (exploratrice: &ExploratriceFichier, chemin: CheminFichie
     dir := ouvre_dossier(chemin)
 
     si dir {
-        exploratrice.pile_dossiers.empile(dir)
+        exploratrice.pile_dossiers.empile(DonnéesDossierCourant(dir, chemin))
     }
 }
 
 dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
 {
-    dir := exploratrice.pile_dossiers.dépile()
-    _ := closedir(dir)
+    données := exploratrice.pile_dossiers.dépile()
+    _ := closedir(données.dir)
 }
