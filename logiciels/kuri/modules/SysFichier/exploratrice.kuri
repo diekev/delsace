@@ -1,3 +1,4 @@
+importe Fondation
 importe GlibC
 importe Structures
 
@@ -33,7 +34,7 @@ crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichie
 /* Retourne le prochain chemin dans le dossier courant de l'exploration.
  * Le chemin est alloué dynamiquement, et c'est la responsabilité de l'appelant
  * de libérer la mémoire. */
-chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> CheminFichier | z32
+chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Résultat(CheminFichier)
 {
     tantque !exploration_finie(exploratrice) {
         dossier_courant := exploratrice.pile_dossiers.tête()
@@ -56,8 +57,6 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> CheminFichier | z
 
         retourne crée_chemin_absolu(exploratrice.racine, chemin_entrée)
     }
-
-    retourne 0
 }
 
 exploration_finie :: fonc (exploratrice: &ExploratriceFichier) -> bool
