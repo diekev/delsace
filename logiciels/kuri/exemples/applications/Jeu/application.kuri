@@ -1,8 +1,8 @@
 importe Couleur
 importe Fondation
+importe GlibC
 importe OpenGL
 importe Structures
-importe GlibC
 
 charge "dessin_opengl"
 charge "evenements"

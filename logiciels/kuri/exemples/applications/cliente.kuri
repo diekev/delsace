@@ -1,8 +1,8 @@
 // Application exemple d'une cliente HTTP/HTTPS pour télécharger des pages HTML.
 
 importe Fondation
-importe OpenSSL
 importe Internet
+importe OpenSSL
 importe SysFichier
 
 lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine

@@ -1,6 +1,6 @@
 importe Fondation
-importe SysFichier
 importe GlibC
+importe SysFichier
 
 passe_eini :: fonc (e: eini) -> rien
 {

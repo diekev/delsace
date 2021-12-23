@@ -1,5 +1,5 @@
-importe Fondation
 importe Compilatrice
+importe Fondation
 
 foo :: fonc (b: z32, c: z32) -> z32 #enligne
 {

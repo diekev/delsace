@@ -17,12 +17,12 @@ importe Courriel
 importe Ensemble
 importe EnsembleDeBits
 importe Exétron
+importe FTGL
 importe FiltreDeBloom
 importe Finance
 importe FloconDeNeige
 importe Flux
 importe Fondation
-importe FTGL
 importe GHTML
 importe GlibC
 importe HTML
@@ -40,12 +40,12 @@ importe OpenGL
 importe OpenSSL
 importe Ordinatrice
 importe Outils
-importe Physique
 importe POSIX
 importe PThread
+importe Physique
 importe Python
-importe SDL2
 importe Sérialisation
+importe SDL2
 // importe ServeuseCGI Routage est requis
 importe ServeuseTCP
 importe Structures
