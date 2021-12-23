@@ -1,0 +1,197 @@
+/* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
+
+importe Fondation
+importe GlibC
+importe SysFichier
+
+tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
+{
+    résultat : []T
+
+    si début > fin {
+        retourne résultat
+    }
+
+    si début >= tableau.taille {
+        retourne résultat
+    }
+
+    si fin >= tableau.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = *tableau.pointeur[début]
+    résultat.taille = fin - début + 1
+    résultat.capacité = résultat.taille
+    retourne résultat
+}
+
+// -------------------------------------
+
+écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: []chaine)
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour lignes {
+        ajoute_au_tampon(*enchaineuse, it, "\n")
+    }
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+        retourne
+    }
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    __ := ferme(*fichier)
+}
+
+// -------------------------------------
+
+exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+{
+    contenu := contenu_fichier_texte(chemin.chn)
+    diffère déloge(contenu)
+
+    lignes := divise(contenu, '\n')
+    diffère déloge(lignes)
+
+    si rappel(lignes) {
+        écris_lignes_dans_fichier(chemin, lignes)
+    }
+}
+
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]chaine)(bool))
+{
+    exploratrice := crée_exploratrice_fichier(racine)
+
+    tantque !exploration_finie(exploratrice) {
+        // À FAIRE(langage) : panique dans certains cas
+        candidat := exploratrice.chemin_suivant()
+        discr candidat {
+            Quelque(chemin) {
+                si chemin.est_dossier() {
+                    exploratrice.empile_dossier(chemin)
+                    continue
+                }
+
+                si chemin.extension() == ".kuri" {
+                    exécute_rappel_pour_fichier(chemin, rappel)
+                }
+            }
+            sinon {
+                arrête
+            }
+        }
+    }
+}
+
+// -------------------------------------
+
+// Fonction de comparaison pour qsort.
+compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
+{
+    pousse_contexte __contexte_fil_principal {
+        a1 := mémoire(attr1 comme *chaine)
+        a2 := mémoire(attr2 comme *chaine)
+
+        si a1 < a2 {
+            retourne -1
+        }
+
+        si a1 == a2 {
+            retourne 0
+        }
+    }
+
+    retourne 1
+}
+
+tri_lignes :: fonc (lignes: &[]chaine)
+{
+    qsort(lignes.pointeur, lignes.taille comme n64, taille_de(chaine) comme n64, compare_chaines_qsort)
+}
+
+tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+{
+    première_ligne := -1
+    dernière_ligne := -1
+
+    lignes_furent_modifiés := faux
+
+    // À FAIRE(langage) : itération sur des références
+    lignes_pour_itération : []chaine = lignes
+    pour lignes_pour_itération {
+        si it.commence_par("importe ") {
+            si première_ligne == -1 {
+                première_ligne = index_it comme z32
+            }
+        }
+        sinon si dernière_ligne == -1 && première_ligne != -1 {
+            dernière_ligne = index_it comme z32 - 1
+
+            bloc := tranche(lignes, première_ligne, dernière_ligne)
+
+            si bloc.taille > 1 {
+                tri_lignes(bloc)
+                lignes_furent_modifiés = vrai
+            }
+
+            dernière_ligne = -1
+            première_ligne = -1
+        }
+    }
+
+    retourne lignes_furent_modifiés
+}
+
+// -------------------------------------
+
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+{
+    dernière_ligne_fut_vide := faux
+
+    nouvelles_lignes : []chaine
+    diffère déloge(nouvelles_lignes)
+
+    lignes_pour_itération : []chaine = lignes
+    pour lignes_pour_itération {
+        si it == "" {
+            si dernière_ligne_fut_vide {
+                continue
+            }
+
+            dernière_ligne_fut_vide = vrai
+        }
+        sinon {
+            dernière_ligne_fut_vide = faux
+        }
+
+        tableau_ajoute(*nouvelles_lignes, it)
+    }
+
+    si lignes.taille != nouvelles_lignes.taille {
+        pour nouvelles_lignes {
+            lignes.pointeur[index_it] = it
+        }
+
+        lignes.taille = nouvelles_lignes.taille
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+// -------------------------------------
+
+exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+{
+    si chemin.est_dossier() {
+        exécute_rappel_pour_dossier(chemin, rappel)
+    }
+    sinon {
+        si chemin.extension() == ".kuri" {
+            exécute_rappel_pour_fichier(chemin, rappel)
+        }
+    }
+}
