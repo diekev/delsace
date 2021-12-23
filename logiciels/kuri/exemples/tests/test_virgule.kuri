@@ -13,7 +13,6 @@ principale :: fonc () -> z32
         imprime("%\n", it)
     }
 
-
     ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75)
 
     retourne 0

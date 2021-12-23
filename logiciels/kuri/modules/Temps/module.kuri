@@ -330,7 +330,6 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
         retourne résultat
     }
 
-
     pour format {
         c := chaine_date[index_it]
 

@@ -32,7 +32,6 @@ encode_format_url :: fonc (texte: chaine) -> chaine
 {
     résultat : chaine
 
-
     pour texte {
         si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
             chaine_ajoute(*résultat, '%')
@@ -52,7 +51,6 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
     //caractères_réservés := "\r\n !#$&'()*+,/:;=?@[]"
 
     caractères_non_réservés :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
-
 
     pour texte {
         si it == ' ' {

@@ -144,7 +144,6 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
-
     nombre_colonnes : z64
 
     pour ligne dans tabuleuse.lignes {

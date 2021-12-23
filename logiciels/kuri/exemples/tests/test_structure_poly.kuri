@@ -48,7 +48,6 @@ principale :: fonc () -> z32
 
     y : Tablet(N = 10, T = z32)
 
-
     o : Option(T0 = z32, T1 = r32)
     o = 6
 

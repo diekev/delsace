@@ -56,7 +56,6 @@ cacule_mensualité :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre
     t := nombre_d_années comme r32
     i := taux_d_intérêt
 
-
     numérateur := vp * i / n
 
     dénominateur := 1.0 - puissance((1.0 + i  / n), - n * t)

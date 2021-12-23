@@ -65,7 +65,6 @@ limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
 	retourne fl
 }
 
-
 tous_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
 {
     pour tableau {

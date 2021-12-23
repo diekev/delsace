@@ -1,4 +1,3 @@
-
 /*
 
 ÉtatSessionPOP :: énum {
@@ -153,7 +152,6 @@ gère_commande :: fonc (session: &SessionPOP, commande: *CommandePOP)
             saufsi session.utilisateur_existe(nom_utilisateur) {
                 retourne "-ERR"
             }
-
 
         }
     }

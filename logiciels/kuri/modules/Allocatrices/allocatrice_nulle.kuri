@@ -36,7 +36,6 @@ D'autres allocatrices à explorer :
 -- 1 bit/bloc comme unique coût
 -- fragile quant au moultfilage (nécessite un plein-entreblocage > 1 bloc)
 
-
 template <class AllocatorType, size_t MIN, size_t MAX>
 class FreeList {
 	AllocatorType m_parent;

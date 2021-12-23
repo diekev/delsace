@@ -95,7 +95,6 @@ logement_tableau :: fonc() -> rien
     imprime_tableau(tabl);
 }
 
-
 logement_chaine :: fonc() -> rien
 {
     imprime("=========================================\n");

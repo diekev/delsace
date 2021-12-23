@@ -1,5 +1,4 @@
 
-
 // --------------------
 
 Point :: struct {
@@ -310,7 +309,6 @@ point_d_intersection :: fonc (o1: Point, p1: Point, o2: Point, p2: Point) -> boo
     résultat = o1 + d1 * t1
     retourne vrai, résultat
 }
-
 
 /*
 

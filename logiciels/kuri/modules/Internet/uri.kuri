@@ -519,7 +519,6 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-
 /*
 // https://url.spec.whatwg.org/
 
@@ -654,7 +653,6 @@ origine :: fonc (uri: &URI) -> Origine
     }
 }
 */
-
 
 // -----------------------------------------------
 // tests unitaires

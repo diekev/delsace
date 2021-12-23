@@ -35,7 +35,6 @@ principale :: fonc () -> z32
     passe_eini(a)
     b := test_discr(12)
 
-
     // discr a {
     //     1, 2, 3 {
     //         retourne 1

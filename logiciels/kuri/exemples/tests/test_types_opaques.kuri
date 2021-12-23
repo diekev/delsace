@@ -13,7 +13,6 @@ importe Fondation
 /* Une durée est un lapse de temps. */
 Durée :: #opaque r32
 
-
 /* En infographie nous pouvons avoir différentes notions de temps : le temps depuis le début
  * d'une simulation, le temps entre l'ouverture et la fermeture de l'obturateur de la caméra,
  * ou encore le temps d'échantillonage d'un rayon de lumière pour simuler le flou cinétique.

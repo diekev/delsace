@@ -76,7 +76,6 @@ test_différation :: fonc () -> rien
     VALEUR2
 }
 
-
 test_discr :: fonc() -> rien
 {
     // -------------
@@ -123,7 +122,6 @@ test_discr :: fonc() -> rien
 */
 }
 
-
 test_tableau :: fonc() -> rien
 {
     imprime("\nconstruction de tableau via initialisation individuelle :\n")
@@ -164,7 +162,6 @@ test_pointeur :: fonc() -> rien
 
     imprime("\n")
 }
-
 
 passe_eini :: fonc(a: eini) -> rien
 {
