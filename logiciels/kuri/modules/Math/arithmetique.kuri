@@ -273,3 +273,18 @@ sousarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
 {
     retourne (n / multiple) * multiple
 }
+
+divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
+{
+    si dénominateur == 0 {
+        retourne 0
+    }
+
+    résultat := numérateur / dénominateur
+
+    si (numérateur % dénominateur) != 0 {
+        résultat += 1
+    }
+
+    retourne résultat
+}
