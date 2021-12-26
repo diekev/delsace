@@ -220,10 +220,15 @@ résistance_multiplicative :: fonc (n: n64) -> n64
     retourne répétitions
 }
 
-// retourne le nombre de chiffres du nombre passé en paramètre
-magnitude :: fonc (n: n64) -> n64
+/* Retourne le nombre de chiffres en base 10 du nombre passé en paramètre.
+ * Si n = 0, alors retourne 1 car 0 est considérer comme un chiffre. */
+magnitude_décimale :: fonc (n: $T) -> T
 {
-    résultat : n64 = 0
+    si n == 0 {
+        retourne 1
+    }
+
+    résultat : T = 0
 
     tantque n != 0 {
         résultat += 1

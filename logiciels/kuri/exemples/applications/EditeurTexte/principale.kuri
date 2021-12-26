@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe Numérique
 importe SysFichier
 importe Temps
 importe Terminal
@@ -438,22 +439,6 @@ console_dessine_lignes :: fonc (enchaineuse : *Enchaineuse) -> rien
     }
 }
 
-nombre_chiffres :: fonc (n: z64) -> z32
-{
-    si n == 0 {
-        retourne 1
-    }
-
-    compte := 0
-
-    tantque n != 0 {
-        n /= 10
-        compte += 1
-    }
-
-    retourne compte
-}
-
 console_dessine_barre_status :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     ajoute_au_tampon(enchaineuse, "\x1b[7m")
@@ -478,7 +463,7 @@ console_dessine_barre_status :: fonc (enchaineuse: *Enchaineuse) -> rien
 
     format := " - % lignes"
     imprime_dans_enchaineuse(enchaineuse, format, E.lignes_texte.taille)
-    taille_imprimée += format.taille comme z32 + nombre_chiffres(E.lignes_texte.taille)
+    taille_imprimée += (format.taille + magnitude_décimale(E.lignes_texte.taille)) comme z32
 
     pour i dans taille_imprimée ... E.colonnes - 1 {
         ajoute_au_tampon(enchaineuse, ' ')

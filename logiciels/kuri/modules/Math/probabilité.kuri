@@ -376,7 +376,7 @@ opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
         tableau_ajoute(*résultat.chiffres, q comme n8)
     }
 
-    m := magnitude(p.unité)
+    m := magnitude_décimale(p.unité)
 
     si m != 0 {
         pour m {
