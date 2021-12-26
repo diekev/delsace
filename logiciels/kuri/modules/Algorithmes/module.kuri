@@ -40,6 +40,32 @@ limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 }
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
+// ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
+// Ceci est utile pour stocker dans l'ordre croissant des données.
+limite_basse :: fonc (f : *$T, l : *T, v : T, comp: fonc(*T, *T)(bool)) -> *T
+{
+	fl := f
+	ll := l
+
+	boucle {
+		si fl == ll {
+			arrête
+		}
+
+		m := suivant(fl, distance(fl, ll) / 2)
+
+		si (comp(m, *v)) {
+			fl = suivant(m, 1)
+		}
+		sinon {
+			ll = m
+		}
+	}
+
+	retourne fl
+}
+
+// Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus grande que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre décroissant des données.
 limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
