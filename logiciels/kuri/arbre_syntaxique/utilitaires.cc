@@ -664,6 +664,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
                 auto retourne = assem->cree_retourne(corps->lexeme);
+                retourne->bloc_parent = corps->bloc;
                 corps->bloc->expressions->ajoute(retourne);
             }
             else if (corps->aide_generation_code == REQUIERS_RETOUR_UNION_VIA_RIEN) {
@@ -1847,6 +1848,7 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
 {
     auto type_sortie = entete->type->comme_fonction()->type_sortie->comme_union();
     auto retourne = assem->cree_retourne(lexeme_reference);
+    retourne->bloc_parent = bloc_d_insertion;
 
     auto construction_union = assem->cree_construction_structure(lexeme_reference, type_sortie);
     construction_union->aide_generation_code = CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN;
