@@ -39,7 +39,7 @@
   À FAIRE(optimisations) :
   - crée toujours des blocs pour la RI, l'enlignage sera plus simple
   - bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
-  - déplace les instruction dans les blocs au plus près de leurs utilisations
+  - déplace les instructions dans les blocs au plus près de leurs utilisations
 
   À FAIRE(enlignage) :
   - détecte les fonctions récursives, empêche leurs enlignages
@@ -48,9 +48,6 @@
   - problème avec l'enlignage : il semblerait que les pointeurs ne soit pas correctement « enlignés
   » pour les accès de membres
   - change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
-
-  À FAIRE(analyse) :
-  - membre actifs des unions
  */
 
 static bool log_actif = false;

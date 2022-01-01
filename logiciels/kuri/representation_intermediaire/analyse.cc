@@ -37,11 +37,11 @@
  * avoir une porte de sortie.
  *
  * À FAIRE(analyse_ri) : Il nous faudrait une structure en graphe afin de suivre tous les chemins
- * valides dans la fonction afin de pouvoir proprement détecter qu'un fonction retourne. Se baser
+ * valides dans la fonction afin de pouvoir proprement détecter qu'une fonction retourne. Se baser
  * uniquement sur la dernière instruction de la fonction est fragile car la génération de RI peut
  * ajouter des labels inutilisés à la fin des fonctions (pour les discriminations, boucles, ou
  * encores les instructions si), mais nous pouvons aussi avoir une branche vers un bloc définis
- * afin celle-ci et étant le bloc de retour effectif de la fonction.
+ * avant celle-ci et étant le bloc de retour effectif de la fonction.
  */
 static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atome)
 {
@@ -57,7 +57,7 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atom
             std::cerr << "La dernière instruction est nulle !\n";
         }
 
-        /* À FAIRE : la fonction peut être déclarer par la compilatrice (p.e. les initialisations
+        /* À FAIRE : la fonction peut être déclarée par la compilatrice (p.e. les initialisations
          * des types) et donc peut ne pas avoir de déclaration. */
         espace.rapporte_erreur(atome->decl, "Instruction de retour manquante");
         return false;
@@ -406,10 +406,13 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
 /* ******************************************************************************************** */
 
-/* Performes différentes analyses de la RI. Ces analyses nous servent à valider
- * un peu plus la structures du programme. Nous pourrions les faire dans la
- * validation sémantique, mais ce serait un peu plus complexe, la RI nous
- * simplifie la vie.
+/* Performe différentes analyses de la RI. Ces analyses nous servent à valider un peu plus la
+ * structures du programme. Nous pourrions les faire lors de la validation sémantique, mais ce
+ * serait un peu plus complexe car l'arbre syntaxique, contrairement à la RI, a plus de cas
+ * spéciaux.
+ *
+ * À FAIRE(analyse_ri) :
+ * - membre actifs des unions
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
