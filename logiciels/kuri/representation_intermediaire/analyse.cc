@@ -31,18 +31,6 @@
 #include "impression.hh"
 #include "instructions.hh"
 
-static Instruction *derniere_instruction(AtomeFonction *atome)
-{
-    auto &instructions = atome->instructions;
-
-    if (instructions.taille() == 0) {
-        return nullptr;
-    }
-
-    auto index = instructions.taille() - 1;
-    return instructions[index];
-}
-
 /* Performes différentes analyses de la RI. Ces analyses nous servent à valider
  * un peu plus la structures du programme. Nous pourrions les faire dans la
  * validation sémantique, mais ce serait un peu plus complexe, la RI nous
@@ -59,7 +47,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
     auto type = decl->type->comme_fonction();
 
     if (!type->type_sortie->est_rien()) {
-        auto di = derniere_instruction(atome);
+        auto di = atome->derniere_instruction();
 
         if (!di || !di->est_retour()) {
             if (di) {
