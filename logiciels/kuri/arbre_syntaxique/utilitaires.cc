@@ -3692,3 +3692,14 @@ NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *ex
 
     return nullptr;
 }
+
+bool possede_annotation(const NoeudDeclarationVariable *decl, kuri::chaine_statique annotation)
+{
+    POUR (decl->annotations) {
+        if (it.nom == annotation) {
+            return true;
+        }
+    }
+
+    return false;
+}

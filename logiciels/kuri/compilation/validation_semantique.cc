@@ -2788,17 +2788,6 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
     return nullptr;
 }
 
-static bool possede_annotation_inutilisee(NoeudDeclarationVariable const *decl)
-{
-    POUR (decl->annotations) {
-        if (it.nom == "inutilisée") {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                                              NoeudDeclarationEnteteFonction const &entete)
 {
@@ -2817,7 +2806,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possede_annotation_inutilisee(decl_param)) {
+        if (possede_annotation(decl_param, "inutilisée")) {
             continue;
         }
 
@@ -2869,7 +2858,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::CONTINUE;
                          }
 
-                         if (possede_annotation_inutilisee(decl_var)) {
+                         if (possede_annotation(decl_var, "inutilisée")) {
                              return DecisionVisiteNoeud::CONTINUE;
                          }
                      }

@@ -28,11 +28,13 @@
 
 #include "compilation/transformation_type.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AssembleuseArbre;
 struct EspaceDeTravail;
 struct NoeudBloc;
+struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Typeuse;
 
@@ -176,3 +178,5 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     AssembleuseArbre *assembleuse);
 
 NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr);
+
+bool possede_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
