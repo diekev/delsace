@@ -620,7 +620,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
-        auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
+        auto atome = constructrice.cree_allocation(param, param->type, param->ident);
         param->atome = atome;
         params.ajoute(atome);
     }
@@ -632,7 +632,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
 
     auto param_sortie = decl->param_sortie;
     auto atome_param_sortie = constructrice.cree_allocation(
-        decl, param_sortie->type, param_sortie->ident);
+        param_sortie, param_sortie->type, param_sortie->ident);
     param_sortie->atome = atome_param_sortie;
 
     if (decl->params_sorties.taille() > 1) {
