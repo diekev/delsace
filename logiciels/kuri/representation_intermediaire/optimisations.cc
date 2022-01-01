@@ -30,6 +30,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "analyse.hh"
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
@@ -438,215 +439,6 @@ static Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel
  * - copie des instructions (requiers de séparer les allocations des instructions de la
  * ConstructriceRI)
  */
-
-static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
-{
-    racine->nombre_utilisations += 1;
-
-    switch (racine->genre_atome) {
-        case Atome::Genre::GLOBALE:
-        case Atome::Genre::FONCTION:
-        case Atome::Genre::CONSTANTE:
-        {
-            break;
-        }
-        case Atome::Genre::INSTRUCTION:
-        {
-            auto inst = racine->comme_instruction();
-
-            switch (inst->genre) {
-                case Instruction::Genre::APPEL:
-                {
-                    auto appel = inst->comme_appel();
-
-                    /* appele peut être un pointeur de fonction */
-                    incremente_nombre_utilisations_recursif(appel->appele);
-
-                    POUR (appel->args) {
-                        incremente_nombre_utilisations_recursif(it);
-                    }
-
-                    break;
-                }
-                case Instruction::Genre::CHARGE_MEMOIRE:
-                {
-                    auto charge = inst->comme_charge();
-                    incremente_nombre_utilisations_recursif(charge->chargee);
-                    break;
-                }
-                case Instruction::Genre::STOCKE_MEMOIRE:
-                {
-                    auto stocke = inst->comme_stocke_mem();
-                    incremente_nombre_utilisations_recursif(stocke->valeur);
-                    incremente_nombre_utilisations_recursif(stocke->ou);
-                    break;
-                }
-                case Instruction::Genre::OPERATION_UNAIRE:
-                {
-                    auto op = inst->comme_op_unaire();
-                    incremente_nombre_utilisations_recursif(op->valeur);
-                    break;
-                }
-                case Instruction::Genre::OPERATION_BINAIRE:
-                {
-                    auto op = inst->comme_op_binaire();
-                    incremente_nombre_utilisations_recursif(op->valeur_droite);
-                    incremente_nombre_utilisations_recursif(op->valeur_gauche);
-                    break;
-                }
-                case Instruction::Genre::ACCEDE_INDEX:
-                {
-                    auto acces = inst->comme_acces_index();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
-                    break;
-                }
-                case Instruction::Genre::ACCEDE_MEMBRE:
-                {
-                    auto acces = inst->comme_acces_membre();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
-                    break;
-                }
-                case Instruction::Genre::TRANSTYPE:
-                {
-                    auto transtype = inst->comme_transtype();
-                    incremente_nombre_utilisations_recursif(transtype->valeur);
-                    break;
-                }
-                case Instruction::Genre::BRANCHE_CONDITION:
-                {
-                    auto branche = inst->comme_branche_cond();
-                    incremente_nombre_utilisations_recursif(branche->condition);
-                    break;
-                }
-                case Instruction::Genre::RETOUR:
-                {
-                    auto retour = inst->comme_retour();
-
-                    if (retour->valeur) {
-                        incremente_nombre_utilisations_recursif(retour->valeur);
-                    }
-
-                    break;
-                }
-                case Instruction::Genre::ALLOCATION:
-                case Instruction::Genre::INVALIDE:
-                case Instruction::Genre::BRANCHE:
-                case Instruction::Genre::LABEL:
-                {
-                    break;
-                }
-            }
-
-            break;
-        }
-    }
-}
-
-static bool est_utilise(Atome *atome)
-{
-    if (atome->est_instruction()) {
-        auto inst = atome->comme_instruction();
-
-        if (inst->est_alloc()) {
-            return inst->nombre_utilisations != 0;
-        }
-
-        if (inst->est_acces_index()) {
-            auto acces = inst->comme_acces_index();
-            return est_utilise(acces->accede);
-        }
-
-        if (inst->est_acces_membre()) {
-            auto acces = inst->comme_acces_membre();
-            return est_utilise(acces->accede);
-        }
-
-        // pour les déréférencements de pointeurs
-        if (inst->est_charge()) {
-            auto charge = inst->comme_charge();
-            return est_utilise(charge->chargee);
-        }
-    }
-
-    return atome->nombre_utilisations != 0;
-}
-
-/* Petit algorithme de suppression de code mort.
- *
- * Le code mort est pour le moment défini comme étant toute instruction ne participant pas au
- * résultat final, ou à une branche conditionnelle. Les fonctions ne retournant rien sont
- * considérées comme utile pour le moment, il faudra avoir un système pour détecter les effets
- * secondaire. Les fonctions dont la valeur de retour est ignorée sont supprimées malheureusement,
- * il faudra changer cela avant de tenter d'activer ce code.
- *
- * Il faudra gérer les cas suivants :
- * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires :
- * supprime la temporaire, mais garde la fonction
- * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci
- * dans la fonction
- * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le
- * pointeur d'une fonction
- * - détecter quand nous avons une variable qui est réassignée
- *
- * une fonction possède des effets secondaires si :
- * -- elle modifie l'un de ses paramètres
- * -- elle possède une boucle ou un controle de flux non constant
- * -- elle est une fonction externe
- * -- elle appel une fonction ayant des effets secondaires
- *
- * erreur non-utilisation d'une variable
- * -- si la variable fût définie par l'utilisateur
- * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les
- * it et index_it des boucles pour
- *
- */
-static void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
-{
-    for (auto i = instructions.taille() - 1; i >= 0; --i) {
-        auto it = instructions[i];
-
-        if (it->nombre_utilisations != 0) {
-            continue;
-        }
-
-        switch (it->genre) {
-            case Instruction::Genre::BRANCHE:
-            case Instruction::Genre::BRANCHE_CONDITION:
-            case Instruction::Genre::LABEL:
-            case Instruction::Genre::RETOUR:
-            {
-                incremente_nombre_utilisations_recursif(it);
-                break;
-            }
-            case Instruction::Genre::APPEL:
-            {
-                auto appel = it->comme_appel();
-
-                if (appel->type->genre == GenreType::RIEN) {
-                    incremente_nombre_utilisations_recursif(it);
-                }
-
-                break;
-            }
-            case Instruction::Genre::STOCKE_MEMOIRE:
-            {
-                auto stocke = it->comme_stocke_mem();
-
-                if (est_utilise(stocke->ou)) {
-                    incremente_nombre_utilisations_recursif(stocke);
-                }
-
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-    }
-}
 
 #undef DEBOGUE_SUPPRESSION_CODE_MORT
 
@@ -1515,7 +1307,36 @@ static bool supprime_code_mort(kuri::tableau<Instruction *, int> &instructions)
     return false;
 }
 
-// À FAIRE : vérifie que ceci ne vide pas les fonctions sans retour
+/* Petit algorithme de suppression de code mort.
+ *
+ * Le code mort est pour le moment défini comme étant toute instruction ne participant pas au
+ * résultat final, ou à une branche conditionnelle. Les fonctions ne retournant rien sont
+ * considérées comme utile pour le moment, il faudra avoir un système pour détecter les effets
+ * secondaire. Les fonctions dont la valeur de retour est ignorée sont supprimées malheureusement,
+ * il faudra changer cela avant de tenter d'activer ce code.
+ *
+ * Il faudra gérer les cas suivants :
+ * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires :
+ * supprime la temporaire, mais garde la fonction
+ * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci
+ * dans la fonction
+ * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le
+ * pointeur d'une fonction
+ * - détecter quand nous avons une variable qui est réassignée
+ *
+ * une fonction possède des effets secondaires si :
+ * -- elle modifie l'un de ses paramètres
+ * -- elle possède une boucle ou un controle de flux non constant
+ * -- elle est une fonction externe
+ * -- elle appel une fonction ayant des effets secondaires
+ *
+ * erreur non-utilisation d'une variable
+ * -- si la variable fût définie par l'utilisateur
+ * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les
+ * it et index_it des boucles pour
+ *
+ * À FAIRE : vérifie que ceci ne vide pas les fonctions sans retour
+ */
 bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
