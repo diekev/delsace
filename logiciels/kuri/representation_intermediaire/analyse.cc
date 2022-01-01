@@ -173,33 +173,77 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
     }
 }
 
-static bool est_utilise(Atome *atome)
+enum {
+    EST_PARAMETRE_FONCTION = (1 << 1),
+};
+
+static Atome *dereference_instruction(Instruction *inst)
 {
-    if (atome->est_instruction()) {
-        auto inst = atome->comme_instruction();
-
-        if (inst->est_alloc()) {
-            return inst->nombre_utilisations != 0;
-        }
-
-        if (inst->est_acces_index()) {
-            auto acces = inst->comme_acces_index();
-            return est_utilise(acces->accede);
-        }
-
-        if (inst->est_acces_membre()) {
-            auto acces = inst->comme_acces_membre();
-            return est_utilise(acces->accede);
-        }
-
-        // pour les déréférencements de pointeurs
-        if (inst->est_charge()) {
-            auto charge = inst->comme_charge();
-            return est_utilise(charge->chargee);
-        }
+    if (inst->est_acces_index()) {
+        auto acces = inst->comme_acces_index();
+        return acces->accede;
     }
 
-    return atome->nombre_utilisations != 0;
+    if (inst->est_acces_membre()) {
+        auto acces = inst->comme_acces_membre();
+        return acces->accede;
+    }
+
+    // pour les déréférencements de pointeurs
+    if (inst->est_charge()) {
+        auto charge = inst->comme_charge();
+        return charge->chargee;
+    }
+
+    if (inst->est_transtype()) {
+        auto transtype = inst->comme_transtype();
+        return transtype->valeur;
+    }
+
+    return inst;
+}
+
+static bool est_locale_ou_globale(Atome *atome)
+{
+    if (atome->est_globale()) {
+        return true;
+    }
+
+    if (atome->est_instruction()) {
+        auto inst = atome->comme_instruction();
+        return inst->est_alloc();
+    }
+
+    return false;
+}
+
+static Atome *cible_finale_stockage(Atome *ou)
+{
+    auto ancien_ou = ou;
+
+    while (!est_locale_ou_globale(ou)) {
+        if (!ou->est_instruction()) {
+            break;
+        }
+
+        auto inst = ou->comme_instruction();
+        ou = dereference_instruction(inst);
+
+        if (ou == ancien_ou) {
+            std::cerr << "Boucle infinie !!!!!!\n";
+            imprime_atome(ou, std::cerr);
+
+            if (ou->est_instruction()) {
+                imprime_instruction(ou->comme_instruction(), std::cerr);
+            }
+
+            std::cerr << "\n";
+        }
+
+        ancien_ou = ou;
+    }
+
+    return ou;
 }
 
 void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
@@ -233,11 +277,24 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
             case Instruction::Genre::STOCKE_MEMOIRE:
             {
                 auto stocke = it->comme_stocke_mem();
+                auto cible = cible_finale_stockage(stocke->ou);
 
-                if (est_utilise(stocke->ou)) {
+                if ((cible->etat & EST_PARAMETRE_FONCTION) || cible->nombre_utilisations != 0 ||
+                    cible->est_globale()) {
                     incremente_nombre_utilisations_recursif(stocke);
                 }
+                else {
+                    /* Vérifie si l'instruction de stockage prend la valeur d'une globale ou d'un
+                     * paramètre. */
+#if 0
+                    auto valeur_stocke = cible_finale_stockage(stocke->valeur);
 
+                    if ((valeur_stocke->etat & EST_PARAMETRE_FONCTION) ||
+                        valeur_stocke->est_globale()) {
+                        incremente_nombre_utilisations_recursif(stocke);
+                    }
+#endif
+                }
                 break;
             }
             default:
@@ -248,7 +305,106 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
     }
 }
 
-/* ********************************************************************************************* */
+/**
+ * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
+ *
+ * À FAIRE(analyse_ri) :
+ * - fonctions nichées inutilisées
+ * - retours appels inutilisées
+ */
+static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonction *atome)
+{
+    /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
+     * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
+    if (atome->decl && atome->decl->est_initialisation_type) {
+        return true;
+    }
+
+    POUR (atome->params_entrees) {
+        it->etat = EST_PARAMETRE_FONCTION;
+
+        /* Ignore le contexte implicite qui peut ne pas être utilisé. */
+        if (it->ident == ID::contexte) {
+            it->nombre_utilisations += 1;
+        }
+    }
+
+    atome->param_sortie->etat = EST_PARAMETRE_FONCTION;
+
+    POUR (atome->instructions) {
+        if (!it->est_alloc()) {
+            continue;
+        }
+
+        /* Les variables d'indexion des boucles pour peuvent ne pas être utilisées. */
+        if (it->ident == ID::it || it->ident == ID::index_it) {
+            it->nombre_utilisations += 1;
+            continue;
+        }
+
+        /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
+         * utilisée, bien que ceci ne soit pas en score formalisé dans le langage. */
+        if (it->ident && it->ident->nom == "_") {
+            it->nombre_utilisations += 1;
+            continue;
+        }
+    }
+
+    /* Deux passes pour prendre en compte les variables d'itérations des boucles. */
+    marque_instructions_utilisees(atome->instructions);
+    marque_instructions_utilisees(atome->instructions);
+
+    kuri::tableau<InstructionAllocation *> allocs_inutilisees;
+
+    POUR (atome->params_entrees) {
+        if (it->nombre_utilisations != 0) {
+            continue;
+        }
+
+        auto alloc = it->comme_instruction()->comme_alloc();
+        auto decl_alloc = alloc->site;
+
+        /* Si le site n'est pas une déclaration de variable (le contexte implicite n'a pas de
+         * site propre, celui de la fonction est utilisé), ajoutons-la à la liste des
+         * allocations non-utilisées pour avoir un avertissement. */
+        if (!decl_alloc || !decl_alloc->est_declaration_variable()) {
+            allocs_inutilisees.ajoute(alloc);
+            continue;
+        }
+
+        auto decl_var = decl_alloc->comme_declaration_variable();
+        if (!possede_annotation(decl_var, "inutilisée")) {
+            allocs_inutilisees.ajoute(alloc);
+        }
+    }
+
+    POUR (atome->instructions) {
+        if (!it->est_alloc() || it->nombre_utilisations != 0) {
+            continue;
+        }
+
+        auto alloc = it->comme_alloc();
+        if (alloc->ident == nullptr) {
+            continue;
+        }
+
+        allocs_inutilisees.ajoute(alloc);
+    }
+
+#if 0
+    if (allocs_inutilisees.taille() != 0) {
+        imprime_fonction(atome, std::cerr, false, true);
+    }
+#endif
+
+    POUR (allocs_inutilisees) {
+        espace.rapporte_avertissement(it->site, "Allocation inutilisée");
+    }
+
+    return true;
+}
+
+/* ******************************************************************************************** */
 
 /* Performes différentes analyses de la RI. Ces analyses nous servent à valider
  * un peu plus la structures du programme. Nous pourrions les faire dans la
@@ -257,6 +413,10 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
+    if (!detecte_declarations_inutilisees(espace, atome)) {
+        return;
+    }
+
     if (!detecte_retour_manquant(espace, atome)) {
         return;
     }
