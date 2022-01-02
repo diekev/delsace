@@ -3596,7 +3596,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                 if (!expression) {
                     valeur = genere_initialisation_defaut_pour_type(var->type);
                 }
-                else {
+                else if (!expression->est_non_initialisation()) {
                     if (expression->substitution) {
                         expression = expression->substitution;
                     }
