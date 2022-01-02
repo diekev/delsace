@@ -189,8 +189,8 @@ set(FICHIERS_TESTS
     modules/HTML/Autres/stats_parsage.kuri
     modules/HTML/Autres/vérification.kuri
     modules/LABT/Programmes/principale.kuri
-    modules/modules/OutilsMaintenance/suppression_lignes_vides.kuri
-    modules/modules/OutilsMaintenance/triage_imports.kuri
+    modules/OutilsMaintenance/Programmes/suppression_lignes_vides.kuri
+    modules/OutilsMaintenance/Programmes/triage_imports.kuri
 )
 
 foreach(FICHIER_TEST ${FICHIERS_TESTS})
