@@ -203,7 +203,7 @@ static Atome *dereference_instruction(Instruction *inst)
     return inst;
 }
 
-static bool est_locale_ou_globale(Atome *atome)
+static bool est_locale_ou_globale(Atome const *atome)
 {
     if (atome->est_globale()) {
         return true;
