@@ -312,7 +312,7 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR (type_fonction->types_entrees) {
         imprime_tab(std::cerr, profondeur_appel);
-        std::cerr << "-- paramètre " << index_sortie << " : ";
+        std::cerr << "-- paramètre " << index_sortie << " (" << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, std::cerr);
         std::cerr << '\n';
 
