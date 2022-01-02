@@ -252,7 +252,13 @@ static bool parametre_ou_globale_fut_utilisee(Atome *atome)
 {
     auto resultat = false;
     visite_atome(atome, [&resultat](Atome const *visite) {
-        if ((visite->etat & EST_PARAMETRE_FONCTION) || visite->est_globale()) {
+        /* À FAIRE(analyse_ri) : utiliser nombre_utilisations nous donne des faux-négatifs : une
+         * variable non-utilisée peut être marquée comme utilisée si elle dépend d'un paramètre ou
+         * d'une globale. */
+        /* À FAIRE(analyse_ri) : le contexte implicite parasite également la détection d'une
+         * expression non-utilisée. */
+        if ((visite->etat & EST_PARAMETRE_FONCTION) || visite->est_globale() ||
+            visite->nombre_utilisations != 0) {
             resultat = true;
         }
     });
@@ -319,6 +325,13 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
  * À FAIRE(analyse_ri) :
  * - fonctions nichées inutilisées
  * - retours appels inutilisées
+ * - les valeurs des itérations des boucles « pour » inutilisées dans le programme, sont marquées
+ *   comme utilisées ici car elles le sont via l'incrémentation : il faudra un système plus subtil
+ *   par exemple :
+ *    pour i dans tabs {
+ *      imprime("\t")
+ *    }
+ *   « i » est inutilisé, mais ne génère pas d'avertissement
  */
 static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonction *atome)
 {
@@ -406,7 +419,20 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 #endif
 
     POUR (allocs_inutilisees) {
-        espace.rapporte_avertissement(it->site, "Allocation inutilisée");
+        if (it->etat & EST_PARAMETRE_FONCTION) {
+            espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
+        }
+        else {
+            espace.rapporte_avertissement(it->site, "Variable locale inutilisée");
+        }
+    }
+
+    POUR (atome->instructions) {
+        if (!it->est_appel() || it->nombre_utilisations != 0) {
+            continue;
+        }
+
+        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
     }
 
     return true;
