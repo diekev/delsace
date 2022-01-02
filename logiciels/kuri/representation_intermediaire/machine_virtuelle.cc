@@ -288,10 +288,8 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
             auto valeur_pointeur = pointeur;
             auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
 
-            kuri::chaine chaine;
-            chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
-            chaine.taille = valeur_chaine;
-
+            auto chaine = kuri::chaine_statique(*reinterpret_cast<char **>(valeur_pointeur),
+                                                valeur_chaine);
             os << '"' << chaine << '"';
 
             break;
