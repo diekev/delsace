@@ -63,8 +63,7 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
         chemin_possible := exploratrice.chemin_suivant()
 
         discr chemin_possible {
-            CheminFichier {
-                chemin := chemin_possible comme CheminFichier
+            Quelque(chemin) {
                 si est_fichier_html(chemin) {
                     parse_page_et_accumule_stats(chemin, statistiques)
                     nombre_de_fichiers += 1
