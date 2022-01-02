@@ -217,8 +217,9 @@ static bool est_locale_ou_globale(Atome *atome)
     return false;
 }
 
-static Atome *cible_finale_stockage(Atome *ou)
+static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
 {
+    auto ou = stocke->ou;
     auto ancien_ou = ou;
 
     while (!est_locale_ou_globale(ou)) {
@@ -289,7 +290,7 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
             case Instruction::Genre::STOCKE_MEMOIRE:
             {
                 auto stocke = it->comme_stocke_mem();
-                auto cible = cible_finale_stockage(stocke->ou);
+                auto cible = cible_finale_stockage(stocke);
 
                 if ((cible->etat & EST_PARAMETRE_FONCTION) || cible->nombre_utilisations != 0 ||
                     cible->est_globale()) {
