@@ -1,8 +1,8 @@
 importe Fondation
-importe JSON
 importe GlibC
 importe Internet
 importe Introspection
+importe JSON
 
 ConfigurationMySQL :: struct {
 	hôte : AdresseIP
@@ -528,17 +528,17 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
 
     saufsi infos_membres {
-        retourne faux
+        retourne
     }
 
     si ligne_suivante(curseur) == nul {
-        retourne faux
+        retourne
     }
 
     valeur : T
 
 	saufsi parse_valeur(curseur, valeur, infos_membres) {
-		retourne faux
+		retourne
 	}
 
     retourne valeur
@@ -552,11 +552,11 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
 
     saufsi infos_membres {
-        retourne faux
+        retourne
     }
 
     si ligne_suivante(curseur) == nul {
-        retourne faux
+        retourne
     }
 
     liste : []T
@@ -566,7 +566,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
 
 		saufsi parse_valeur(curseur, valeur, infos_membres) {
 			déloge(liste)
-			retourne faux
+			retourne
 		}
 
 		tableau_ajoute(*liste, valeur)

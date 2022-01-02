@@ -423,13 +423,13 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
     retourne vrai
 }
 
-lis :: fonc (fichier: *Fichier, tampon: chaine) -> RésultatOpérationFichier
+lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
         retourne 0 comme ErreurFichier
     }
 
-    octets_lus := tente système_lis(fichier.desc, tampon.pointeur, tampon.taille) piège err {
+    octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
         retourne err
     }
 
@@ -547,6 +547,19 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 	}
 
     retourne résultat
+}
+
+taille_fichier :: fonc (fichier: *Fichier) -> z64
+{
+    taille_fichier := tente système_positionne_fichier(fichier.desc, 0, SEEK_END) piège err {
+        retourne 0
+    }
+
+    _ := tente système_positionne_fichier(fichier.desc, 0, SEEK_SET) piège err {
+        retourne 0
+    }
+
+    retourne taille_fichier
 }
 
 // fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on

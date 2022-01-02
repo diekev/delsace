@@ -28,11 +28,13 @@
 
 #include "compilation/transformation_type.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AssembleuseArbre;
 struct EspaceDeTravail;
 struct NoeudBloc;
+struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Typeuse;
 
@@ -88,6 +90,11 @@ enum {
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
+    RETOURNE_UNE_UNION_VIA_RIEN,
+    REQUIERS_RETOUR_UNION_VIA_RIEN,
+
+    /* expression construction structure */
+    CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
@@ -171,3 +178,5 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     AssembleuseArbre *assembleuse);
 
 NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr);
+
+bool possede_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);

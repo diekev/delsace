@@ -1,33 +1,38 @@
 importe Aléa
-importe Alembic
-importe Alphabet
+// importe Alembic // en réusinage
 importe Algorithmes
-// importe Allocatrices // non-terminé
+importe Allocatrices
+importe Alphabet
 importe AnalyseStatique
 // importe ArbreB // erreur dans un cas polymorphique
 importe Authentification
-// importe Chaine // non-terminé
+importe Chaine
 importe CodecDonnées
 importe Compilatrice
+importe Compression
+importe ConnexionTCP
 importe Couleur
 importe Courriel
 // importe Documentation // définis une fonction principale...
 importe Ensemble
 importe EnsembleDeBits
 importe Exétron
+importe FTGL
 importe FiltreDeBloom
+importe Finance
 importe FloconDeNeige
 importe Flux
 importe Fondation
-importe FTGL
 importe GHTML
 importe GlibC
 importe HTML
+importe HTTP
 importe Image
 importe Internet
 importe Introspection
 importe JSON
 importe Krypto
+importe LABT
 importe Math
 importe MySQL
 importe Numérique
@@ -35,19 +40,19 @@ importe OpenGL
 importe OpenSSL
 importe Ordinatrice
 importe Outils
-importe Physique
+importe OutilsMaintenance
 importe POSIX
 importe PThread
-importe Réseau
-importe Routage
-importe SDL2
+importe Physique
+importe Python
 importe Sérialisation
-importe ServeuseCGI
-importe ServeuseHTTP
+importe SDL2
+// importe ServeuseCGI Routage est requis
 importe ServeuseTCP
 importe Structures
 importe SysFichier
 importe TableHachage
+importe Tabulation
 importe Temps
 importe Terminal
 importe Tori

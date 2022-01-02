@@ -28,6 +28,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/table_hachage.hh"
 
@@ -44,277 +45,6 @@
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-
-/* ************************************************************************** */
-
-static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
-{
-    if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        return;
-    }
-
-    if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
-        return;
-    }
-
-    auto const &nom_broye = nom_broye_type(type);
-
-    enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
-
-    switch (type->genre) {
-        case GenreType::POLYMORPHIQUE:
-        {
-            break;
-        }
-        case GenreType::ERREUR:
-        case GenreType::ENUM:
-        {
-            auto type_enum = static_cast<TypeEnum *>(type);
-            auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
-
-            enchaineuse << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::OPAQUE:
-        {
-            auto type_opaque = type->comme_opaque();
-            auto nom_broye_type_opacifie = nom_broye_type(type_opaque->type_opacifie);
-
-            enchaineuse << "typedef " << nom_broye_type_opacifie << ' ' << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::BOOL:
-        {
-            enchaineuse << "typedef unsigned char " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::OCTET:
-        {
-            enchaineuse << "typedef unsigned char " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::ENTIER_CONSTANT:
-        {
-            break;
-        }
-        case GenreType::ENTIER_NATUREL:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse << "typedef unsigned char " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 2) {
-                enchaineuse << "typedef unsigned short " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "typedef unsigned int " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "typedef unsigned long " << nom_broye << ";\n";
-            }
-
-            break;
-        }
-        case GenreType::ENTIER_RELATIF:
-        {
-            if (type->taille_octet == 1) {
-                enchaineuse << "typedef char " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 2) {
-                enchaineuse << "typedef short " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "typedef int " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "typedef long " << nom_broye << ";\n";
-            }
-
-            break;
-        }
-        case GenreType::TYPE_DE_DONNEES:
-        {
-            enchaineuse << "typedef long " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::REEL:
-        {
-            if (type->taille_octet == 2) {
-                enchaineuse << "typedef unsigned short " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 4) {
-                enchaineuse << "typedef float " << nom_broye << ";\n";
-            }
-            else if (type->taille_octet == 8) {
-                enchaineuse << "typedef double " << nom_broye << ";\n";
-            }
-
-            break;
-        }
-        case GenreType::REFERENCE:
-        {
-            auto type_pointe = type->comme_reference()->type_pointe;
-            enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::POINTEUR:
-        {
-            auto type_pointe = type->comme_pointeur()->type_pointe;
-
-            if (type_pointe) {
-                enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye
-                            << ";\n";
-            }
-            else {
-                enchaineuse << "typedef Ksnul *" << nom_broye << ";\n";
-            }
-
-            break;
-        }
-        case GenreType::STRUCTURE:
-        {
-            auto type_struct = type->comme_structure();
-
-            if (type_struct->decl && type_struct->decl->est_polymorphe) {
-                break;
-            }
-
-            auto nom_struct = broye_nom_simple(type_struct->nom_portable());
-
-            // struct anomyme
-            if (type_struct->est_anonyme) {
-                enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct)
-                            << ' ' << nom_broye << ";\n";
-                break;
-            }
-
-            if (type_struct->decl && type_struct->decl->est_monomorphisation) {
-                nom_struct = enchaine(nom_struct, type_struct);
-            }
-
-            enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
-
-            break;
-        }
-        case GenreType::UNION:
-        {
-            auto type_union = type->comme_union();
-            auto nom_union = broye_nom_simple(type_union->nom_portable());
-            auto decl = type_union->decl;
-
-            // union anomyme
-            if (type_union->est_anonyme) {
-                enchaineuse << "typedef struct " << nom_union << dls::vers_chaine(type_union)
-                            << ' ' << nom_broye << ";\n";
-                break;
-            }
-
-            if (decl->est_nonsure || decl->est_externe) {
-                auto type_le_plus_grand = type_union->type_le_plus_grand;
-                enchaineuse << "typedef " << nom_broye_type(type_le_plus_grand) << ' ' << nom_broye
-                            << ";\n";
-            }
-            else {
-                if (type_union->decl && type_union->decl->est_monomorphisation) {
-                    nom_union = enchaine(nom_union, type_union);
-                }
-
-                enchaineuse << "typedef struct " << nom_union << ' ' << nom_broye << ";\n";
-            }
-
-            break;
-        }
-        case GenreType::TABLEAU_FIXE:
-        {
-            enchaineuse << "typedef struct TableauFixe_" << nom_broye << ' ' << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::VARIADIQUE:
-        {
-            auto variadique = type->comme_variadique();
-            /* Garantie la génération du typedef pour les types tableaux des variadiques. */
-            if (variadique->type_tableau_dyn &&
-                (variadique->type_tableau_dyn->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-                cree_typedef(variadique->type_tableau_dyn, enchaineuse);
-                variadique->type_tableau_dyn->drapeaux |= TYPEDEF_FUT_GENERE;
-            }
-            break;
-        }
-        case GenreType::TABLEAU_DYNAMIQUE:
-        {
-            auto type_pointe = type->comme_tableau_dynamique()->type_pointe;
-
-            if (type_pointe == nullptr) {
-                return;
-            }
-
-            enchaineuse << "typedef struct Tableau_" << nom_broye << ' ' << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::FONCTION:
-        {
-            auto type_fonc = type->comme_fonction();
-
-            auto prefixe = Enchaineuse();
-            auto suffixe = Enchaineuse();
-
-            auto nouveau_nom_broye = Enchaineuse();
-            nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
-
-            auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
-            prefixe << nom_broye_sortie << " (*";
-
-            auto virgule = "(";
-
-            POUR (type_fonc->types_entrees) {
-                auto const &nom_broye_dt = nom_broye_type(it);
-
-                suffixe << virgule;
-                suffixe << nom_broye_dt;
-                nouveau_nom_broye << nom_broye_dt;
-                virgule = ",";
-            }
-
-            if (type_fonc->types_entrees.taille() == 0) {
-                suffixe << virgule;
-                virgule = ",";
-            }
-
-            nouveau_nom_broye << 1;
-            nouveau_nom_broye << nom_broye_sortie;
-
-            suffixe << ")";
-
-            type->nom_broye = nouveau_nom_broye.chaine();
-
-            enchaineuse << "typedef " << prefixe.chaine() << nouveau_nom_broye.chaine() << ")"
-                        << suffixe.chaine() << ";\n\n";
-
-            break;
-        }
-        case GenreType::EINI:
-        {
-            enchaineuse << "typedef eini " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::RIEN:
-        {
-            enchaineuse << "typedef void " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::CHAINE:
-        {
-            enchaineuse << "typedef chaine " << nom_broye << ";\n";
-            break;
-        }
-        case GenreType::TUPLE:
-        {
-            enchaineuse << "typedef struct " << nom_broye << ' ' << nom_broye << ";\n";
-            break;
-        }
-    }
-
-    type->drapeaux |= TYPEDEF_FUT_GENERE;
-}
 
 /* ************************************************************************** */
 
@@ -381,7 +111,461 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
     enchaineuse << ";\n\n";
 }
 
-// ----------------------------------------------
+struct TypeC {
+    Type *type_kuri = nullptr;
+    kuri::chaine nom = "";
+    kuri::chaine typedef_ = "";
+    bool code_machine_fut_genere = false;
+};
+
+struct ConvertisseuseTypeC {
+  private:
+    mutable tableau_page<TypeC> types_c{};
+
+  public:
+    TypeC &type_c_pour(Type *type) const
+    {
+        POUR_TABLEAU_PAGE (types_c) {
+            if (it.type_kuri == type) {
+                return it;
+            }
+        }
+
+        TypeC *type_c = types_c.ajoute_element();
+        type_c->type_kuri = type;
+        type_c->nom = nom_broye_type(type);
+        return *type_c;
+    }
+
+    bool typedef_fut_genere(Type *type_kuri) const
+    {
+        auto &type_c = type_c_pour(type_kuri);
+        return type_c.typedef_ != "";
+    }
+
+    void cree_typedef(Type *type, Enchaineuse &enchaineuse)
+    {
+        if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return;
+        }
+
+        auto &type_c = type_c_pour(type);
+
+        if (type_c.typedef_ != "") {
+            return;
+        }
+
+        enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
+
+        switch (type->genre) {
+            case GenreType::POLYMORPHIQUE:
+            case GenreType::ENTIER_CONSTANT:
+            {
+                /* Aucun typedef. */
+                return;
+            }
+            case GenreType::ERREUR:
+            case GenreType::ENUM:
+            {
+                auto type_enum = static_cast<TypeEnum *>(type);
+                auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
+                type_c.typedef_ = nom_broye_type_donnees;
+                break;
+            }
+            case GenreType::OPAQUE:
+            {
+                auto type_opaque = type->comme_opaque();
+                auto nom_broye_type_opacifie = nom_broye_type(type_opaque->type_opacifie);
+                type_c.typedef_ = nom_broye_type_opacifie;
+                break;
+            }
+            case GenreType::BOOL:
+            {
+                type_c.typedef_ = "unsigned char";
+                break;
+            }
+            case GenreType::OCTET:
+            {
+                type_c.typedef_ = "unsigned char";
+                break;
+            }
+            case GenreType::ENTIER_NATUREL:
+            {
+                if (type->taille_octet == 1) {
+                    type_c.typedef_ = "unsigned char";
+                }
+                else if (type->taille_octet == 2) {
+                    type_c.typedef_ = "unsigned short";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "unsigned int";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "unsigned long";
+                }
+
+                break;
+            }
+            case GenreType::ENTIER_RELATIF:
+            {
+                if (type->taille_octet == 1) {
+                    type_c.typedef_ = "char";
+                }
+                else if (type->taille_octet == 2) {
+                    type_c.typedef_ = "short";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "int";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "long";
+                }
+
+                break;
+            }
+            case GenreType::TYPE_DE_DONNEES:
+            {
+                type_c.typedef_ = "long";
+                break;
+            }
+            case GenreType::REEL:
+            {
+                if (type->taille_octet == 2) {
+                    type_c.typedef_ = "unsigned short";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "float";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "double";
+                }
+
+                break;
+            }
+            case GenreType::REFERENCE:
+            {
+                auto type_pointe = type->comme_reference()->type_pointe;
+                auto &type_c_pointe = type_c_pour(type_pointe);
+                type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+                break;
+            }
+            case GenreType::POINTEUR:
+            {
+                auto type_pointe = type->comme_pointeur()->type_pointe;
+
+                if (type_pointe) {
+                    auto &type_c_pointe = type_c_pour(type_pointe);
+                    type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+                }
+                else {
+                    type_c.typedef_ = "Ksnul*";
+                }
+
+                break;
+            }
+            case GenreType::STRUCTURE:
+            {
+                auto type_struct = type->comme_structure();
+
+                if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                    /* Aucun typedef. */
+                    type_c.typedef_ = ".";
+                    return;
+                }
+
+                auto nom_struct = broye_nom_simple(type_struct->nom_portable());
+
+                // struct anomyme
+                if (type_struct->est_anonyme) {
+                    type_c.typedef_ = enchaine(
+                        "struct ", nom_struct, dls::vers_chaine(type_struct));
+                }
+                else {
+                    if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+                        nom_struct = enchaine(nom_struct, type_struct);
+                    }
+
+                    type_c.typedef_ = enchaine("struct ", nom_struct);
+                }
+
+                break;
+            }
+            case GenreType::UNION:
+            {
+                auto type_union = type->comme_union();
+                auto nom_union = broye_nom_simple(type_union->nom_portable());
+
+                if (type_union->est_anonyme) {
+                    type_c.typedef_ = enchaine("struct ", nom_union, dls::vers_chaine(type_union));
+                }
+                else {
+                    auto decl = type_union->decl;
+                    if (decl->est_nonsure || decl->est_externe) {
+                        auto type_le_plus_grand = type_union->type_le_plus_grand;
+                        type_c.typedef_ = nom_broye_type(type_le_plus_grand);
+                    }
+                    else {
+                        if (type_union->decl && type_union->decl->est_monomorphisation) {
+                            nom_union = enchaine(nom_union, type_union);
+                        }
+
+                        type_c.typedef_ = enchaine("struct ", nom_union);
+                    }
+                }
+
+                break;
+            }
+            case GenreType::TABLEAU_FIXE:
+            {
+                type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
+                break;
+            }
+            case GenreType::VARIADIQUE:
+            {
+                auto variadique = type->comme_variadique();
+                /* Garantie la génération du typedef pour les types tableaux des variadiques. */
+                if (!variadique->type_tableau_dyn) {
+                    type_c.typedef_ = "...";
+                    return;
+                }
+
+                auto &type_c_tableau = type_c_pour(variadique->type_tableau_dyn);
+                if (type_c_tableau.typedef_ == "") {
+                    cree_typedef(variadique->type_tableau_dyn, enchaineuse);
+                }
+
+                /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
+                 * pour ne plus revenir ici. */
+                type_c.typedef_ = ".";
+                return;
+            }
+            case GenreType::TABLEAU_DYNAMIQUE:
+            {
+                auto type_pointe = type->comme_tableau_dynamique()->type_pointe;
+
+                if (type_pointe == nullptr) {
+                    /* Aucun typedef. */
+                    type_c.typedef_ = ".";
+                    return;
+                }
+
+                type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
+                break;
+            }
+            case GenreType::FONCTION:
+            {
+                auto type_fonc = type->comme_fonction();
+
+                auto prefixe = Enchaineuse();
+                auto suffixe = Enchaineuse();
+
+                auto nouveau_nom_broye = Enchaineuse();
+                nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
+
+                auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
+                prefixe << nom_broye_sortie << " (*";
+
+                auto virgule = "(";
+
+                POUR (type_fonc->types_entrees) {
+                    auto const &nom_broye_dt = nom_broye_type(it);
+
+                    suffixe << virgule;
+                    suffixe << nom_broye_dt;
+                    nouveau_nom_broye << nom_broye_dt;
+                    virgule = ",";
+                }
+
+                if (type_fonc->types_entrees.taille() == 0) {
+                    suffixe << virgule;
+                    virgule = ",";
+                }
+
+                nouveau_nom_broye << 1;
+                nouveau_nom_broye << nom_broye_sortie;
+
+                suffixe << ")";
+
+                type->nom_broye = nouveau_nom_broye.chaine();
+                type_c.nom = type->nom_broye;
+
+                type_c.typedef_ = enchaine(
+                    prefixe.chaine(), nouveau_nom_broye.chaine(), ")", suffixe.chaine());
+                enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
+                /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
+                 * directement. */
+                return;
+            }
+            case GenreType::EINI:
+            {
+                type_c.typedef_ = "eini";
+                break;
+            }
+            case GenreType::RIEN:
+            {
+                type_c.typedef_ = "void";
+                break;
+            }
+            case GenreType::CHAINE:
+            {
+                type_c.typedef_ = "chaine";
+                break;
+            }
+            case GenreType::TUPLE:
+            {
+                type_c.typedef_ = enchaine("struct ", type_c.nom);
+                break;
+            }
+        }
+
+        enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
+    }
+
+    /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
+     * types ont un typedef afin de simplifier la génération de code pour les déclaration de
+     * variables : avec un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;`
+     * (PointeurTableau3Int est utilisé pour démontrer la chose, dans le langage ce serait plutôt
+     * KT3KPKsz32).
+     *
+     * Pour les structures (ou unions) nous devons également nous assurer que le code des
+     * structures utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la
+     * structure parent.
+     */
+    void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
+    {
+        if (!type) {
+            /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls
+             * peuvent être nuls. */
+            return;
+        }
+
+        auto &type_c = type_c_pour(type);
+
+        if (type_c.code_machine_fut_genere) {
+            return;
+        }
+
+        if (type->est_structure()) {
+            auto type_struct = type->comme_structure();
+
+            if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                return;
+            }
+
+            type_c.code_machine_fut_genere = true;
+            cree_typedef(type, enchaineuse);
+            POUR (type_struct->membres) {
+                if (it.type->est_pointeur()) {
+                    cree_typedef(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                    cree_typedef(it.type, enchaineuse);
+                    continue;
+                }
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+            genere_declaration_structure(enchaineuse, type_struct, quoi);
+
+            POUR (type_struct->membres) {
+                if (it.type->est_pointeur()) {
+                    genere_code_pour_type(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                    continue;
+                }
+            }
+        }
+        else if (type->est_tuple()) {
+            auto type_tuple = type->comme_tuple();
+
+            if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+                return;
+            }
+
+            type_c.code_machine_fut_genere = true;
+            cree_typedef(type, enchaineuse);
+            POUR (type_tuple->membres) {
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto nom_broye = nom_broye_type(type_tuple);
+
+            enchaineuse << "typedef struct " << nom_broye << " {\n";
+
+            auto index_membre = 0;
+            for (auto &membre : type_tuple->membres) {
+                enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++ << ";\n";
+            }
+
+            enchaineuse << "} " << nom_broye << ";\n";
+        }
+        else if (type->est_union()) {
+            auto type_union = type->comme_union();
+            type_c.code_machine_fut_genere = true;
+            POUR (type_union->membres) {
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+            genere_code_pour_type(type_union->type_structure, enchaineuse);
+        }
+        else if (type->est_enum()) {
+            auto type_enum = type->comme_enum();
+            genere_code_pour_type(type_enum->type_donnees, enchaineuse);
+        }
+        else if (type->est_tableau_fixe()) {
+            auto tableau_fixe = type->comme_tableau_fixe();
+            genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+            auto const &nom_broye = nom_broye_type(type);
+            enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
+                        << nom_broye_type(tableau_fixe->type_pointe);
+            enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
+            enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
+        }
+        else if (type->est_tableau_dynamique()) {
+            auto tableau_dynamique = type->comme_tableau_dynamique();
+            auto type_pointe = tableau_dynamique->type_pointe;
+
+            if (type_pointe == nullptr) {
+                return;
+            }
+
+            genere_code_pour_type(type_pointe, enchaineuse);
+
+            if (!type_c.code_machine_fut_genere) {
+                auto const &nom_broye = nom_broye_type(type);
+                enchaineuse << "typedef struct Tableau_" << nom_broye;
+                enchaineuse << "{\n\t";
+                enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
+                enchaineuse << "\n\tlong taille;\n"
+                            << "\tlong " << broye_nom_simple("capacité") << ";\n} Tableau_"
+                            << nom_broye << ";\n\n";
+            }
+        }
+        else if (type->est_opaque()) {
+            auto opaque = type->comme_opaque();
+            genere_code_pour_type(opaque->type_opacifie, enchaineuse);
+        }
+        else if (type->est_fonction()) {
+            auto type_fonction = type->comme_fonction();
+            POUR (type_fonction->types_entrees) {
+                genere_code_pour_type(it, enchaineuse);
+            }
+            genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
+        }
+        else if (type->est_pointeur()) {
+            genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
+        }
+        else if (type->est_reference()) {
+            genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
+        }
+        else if (type->est_variadique()) {
+            genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
+            genere_code_pour_type(type->comme_variadique()->type_tableau_dyn, enchaineuse);
+        }
+
+        type_c.code_machine_fut_genere = true;
+        cree_typedef(type, enchaineuse);
+    }
+};
+
+/* ************************************************************************** */
 
 static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
@@ -1363,162 +1547,19 @@ struct GeneratriceCodeC {
     }
 };
 
-/* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les types
- * ont un typedef afin de simplifier la génération de code pour les déclaration de variables : avec
- * un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;` (PointeurTableau3Int est
- * utilisé pour démontrer la chose, dans le langage ce serait plutôt KT3KPKsz32).
- *
- * Pour les structures (ou unions) nous devons également nous assurer que le code des structures
- * utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la structure
- * parent.
- */
-static void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
-{
-    if (!type) {
-        /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls peuvent
-         * être nuls. */
-        return;
-    }
-
-    if ((type->drapeaux & CODE_MACHINE_FUT_GENERE) != 0) {
-        return;
-    }
-
-    if (type->est_structure()) {
-        auto type_struct = type->comme_structure();
-
-        if (type_struct->decl && type_struct->decl->est_polymorphe) {
-            return;
-        }
-
-        type->drapeaux |= CODE_MACHINE_FUT_GENERE;
-        cree_typedef(type, enchaineuse);
-        POUR (type_struct->membres) {
-            if (it.type->est_pointeur()) {
-                cree_typedef(it.type->comme_pointeur()->type_pointe, enchaineuse);
-                cree_typedef(it.type, enchaineuse);
-                continue;
-            }
-            genere_code_pour_type(it.type, enchaineuse);
-        }
-
-        auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-        genere_declaration_structure(enchaineuse, type_struct, quoi);
-
-        POUR (type_struct->membres) {
-            if (it.type->est_pointeur()) {
-                genere_code_pour_type(it.type->comme_pointeur()->type_pointe, enchaineuse);
-                continue;
-            }
-        }
-    }
-    else if (type->est_tuple()) {
-        auto type_tuple = type->comme_tuple();
-
-        if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            return;
-        }
-
-        type->drapeaux |= CODE_MACHINE_FUT_GENERE;
-        cree_typedef(type, enchaineuse);
-        POUR (type_tuple->membres) {
-            genere_code_pour_type(it.type, enchaineuse);
-        }
-
-        auto nom_broye = nom_broye_type(type_tuple);
-
-        enchaineuse << "typedef struct " << nom_broye << " {\n";
-
-        auto index_membre = 0;
-        for (auto &membre : type_tuple->membres) {
-            enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++ << ";\n";
-        }
-
-        enchaineuse << "} " << nom_broye << ";\n";
-    }
-    else if (type->est_union()) {
-        auto type_union = type->comme_union();
-        type->drapeaux |= CODE_MACHINE_FUT_GENERE;
-        POUR (type_union->membres) {
-            genere_code_pour_type(it.type, enchaineuse);
-        }
-        genere_code_pour_type(type_union->type_structure, enchaineuse);
-    }
-    else if (type->est_enum()) {
-        auto type_enum = type->comme_enum();
-        genere_code_pour_type(type_enum->type_donnees, enchaineuse);
-    }
-    else if (type->est_tableau_fixe()) {
-        auto tableau_fixe = type->comme_tableau_fixe();
-        genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-        auto const &nom_broye = nom_broye_type(type);
-        enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
-                    << nom_broye_type(tableau_fixe->type_pointe);
-        enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
-        enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
-    }
-    else if (type->est_tableau_dynamique()) {
-        auto tableau_dynamique = type->comme_tableau_dynamique();
-        auto type_pointe = tableau_dynamique->type_pointe;
-
-        if (type_pointe == nullptr) {
-            return;
-        }
-
-        genere_code_pour_type(type_pointe, enchaineuse);
-
-        if ((type->drapeaux & CODE_MACHINE_FUT_GENERE) == 0) {
-            auto const &nom_broye = nom_broye_type(type);
-            enchaineuse << "typedef struct Tableau_" << nom_broye;
-            enchaineuse << "{\n\t";
-            enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
-            enchaineuse << "\n\tlong taille;\n"
-                        << "\tlong " << broye_nom_simple("capacité") << ";\n} Tableau_"
-                        << nom_broye << ";\n\n";
-        }
-    }
-    else if (type->est_opaque()) {
-        auto opaque = type->comme_opaque();
-        genere_code_pour_type(opaque->type_opacifie, enchaineuse);
-    }
-    else if (type->est_fonction()) {
-        auto type_fonction = type->comme_fonction();
-        POUR (type_fonction->types_entrees) {
-            genere_code_pour_type(it, enchaineuse);
-        }
-        genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
-    }
-    else if (type->est_pointeur()) {
-        genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
-        //        auto type_pointe = type->comme_pointeur()->type_pointe;
-        //        if (type_pointe) {
-        //            cree_typedef(type_pointe, enchaineuse);
-        //        }
-    }
-    else if (type->est_reference()) {
-        genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
-    }
-    else if (type->est_variadique()) {
-        genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
-        genere_code_pour_type(type->comme_variadique()->type_tableau_dyn, enchaineuse);
-    }
-
-    type->drapeaux |= CODE_MACHINE_FUT_GENERE;
-    cree_typedef(type, enchaineuse);
-}
-
 static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     ProgrammeRepreInter const &repr_inter_programme,
                                     std::ostream &fichier_sortie)
 {
+    ConvertisseuseTypeC convertisseuse_type_c;
     Enchaineuse enchaineuse;
 
     auto generatrice = GeneratriceCodeC(espace);
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     POUR (repr_inter_programme.types) {
-        genere_code_pour_type(it, enchaineuse);
+        convertisseuse_type_c.genere_code_pour_type(it, enchaineuse);
     }
 
     generatrice.genere_code(

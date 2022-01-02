@@ -673,7 +673,7 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
 }
 
 void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
-    EspaceDeTravail *espace, MetaProgramme *metaprogramme)
+    EspaceDeTravail *espace, MetaProgramme *metaprogramme, bool peut_planifier_compilation)
 {
     espace->tache_ri_ajoutee(m_compilatrice->messagere);
 
@@ -683,7 +683,13 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
 
     metaprogramme->fonction->unite = unite;
 
-    unites_en_attente.ajoute(unite);
+    if (peut_planifier_compilation) {
+        unites_en_attente.ajoute(unite);
+    }
+    else {
+        assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
+        metaprogrammes_en_attente_de_cree_contexte.ajoute(unite);
+    }
 }
 
 UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *espace,
@@ -726,8 +732,9 @@ void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpress
     unites_en_attente.ajoute(unite);
 }
 
-std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_contexte(
-    EspaceDeTravail *espace, Programme *programme, GrapheDependance &graphe)
+bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
+                                                                    Programme *programme,
+                                                                    GrapheDependance &graphe)
 {
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
@@ -735,38 +742,38 @@ std::optional<Attente> GestionnaireCode::tente_de_garantir_presence_creation_con
     auto decl_creation_contexte = m_compilatrice->interface_kuri->decl_creation_contexte;
 
     if (!decl_creation_contexte) {
-        return Attente::sur_interface_kuri(ID::cree_contexte);
+        return false;
     }
 
     programme->ajoute_fonction(decl_creation_contexte);
 
     if (!decl_creation_contexte->unite) {
         requiers_typage(espace, decl_creation_contexte);
-        return Attente::sur_declaration(decl_creation_contexte);
+        return false;
     }
 
     if (!decl_creation_contexte->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-        return Attente::sur_declaration(decl_creation_contexte);
+        return false;
     }
 
     determine_dependances(decl_creation_contexte, espace, graphe);
 
     if (!decl_creation_contexte->corps->unite) {
         requiers_typage(espace, decl_creation_contexte->corps);
-        return Attente::sur_declaration(decl_creation_contexte->corps);
+        return false;
     }
 
     if (!decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-        return Attente::sur_declaration(decl_creation_contexte->corps);
+        return false;
     }
 
     determine_dependances(decl_creation_contexte->corps, espace, graphe);
 
     if (!decl_creation_contexte->corps->possede_drapeau(RI_FUT_GENEREE)) {
-        return Attente::sur_ri(&decl_creation_contexte->atome);
+        return false;
     }
 
-    return {};
+    return true;
 }
 
 void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espace,
@@ -789,12 +796,10 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
-    requiers_generation_ri_principale_metaprogramme(espace, metaprogramme);
-
-    auto attente = tente_de_garantir_presence_creation_contexte(espace, programme, *graphe);
-    if (attente.has_value()) {
-        metaprogramme->fonction->unite->mute_attente(attente.value());
-    }
+    auto ri_cree_contexte_est_disponible = tente_de_garantir_presence_creation_contexte(
+        espace, programme, *graphe);
+    requiers_generation_ri_principale_metaprogramme(
+        espace, metaprogramme, ri_cree_contexte_est_disponible);
 
     if (metaprogramme->corps_texte) {
         if (metaprogramme->corps_texte_pour_fonction) {
@@ -1027,6 +1032,15 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 }
 
+static bool est_corps_de(NoeudExpression *noeud, IdentifiantCode const *ident)
+{
+    if (!noeud->est_corps_fonction()) {
+        return false;
+    }
+    auto corps = noeud->comme_corps_fonction();
+    return corps->ident == ident;
+}
+
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
@@ -1039,6 +1053,12 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
     espace->tache_ri_terminee(m_compilatrice->messagere);
     if (espace->optimisations) {
         // À FAIRE(gestion) : tâches d'optimisations
+    }
+
+    /* Si nous avons la RI pour #crée_contexte, il nout faut ajouter toutes les unités l'attendant.
+     */
+    if (est_corps_de(unite->noeud, ID::cree_contexte)) {
+        flush_metaprogrammes_en_attente_de_cree_contexte();
     }
 }
 
@@ -1230,7 +1250,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         }
     }
 
-    if (!unites_en_attente.est_vide()) {
+    if (!unites_en_attente.est_vide() || !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
         return false;
     }
 
@@ -1337,4 +1357,33 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     if (message) {
         unite_code_machine->mute_attente(Attente::sur_message(message));
     }
+}
+
+void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
+{
+    assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
+    POUR (metaprogrammes_en_attente_de_cree_contexte) {
+        unites_en_attente.ajoute(it);
+    }
+    metaprogrammes_en_attente_de_cree_contexte.efface();
+    metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;
+}
+
+void GestionnaireCode::interception_message_terminee()
+{
+    kuri::tableau<UniteCompilation *> nouvelles_unites;
+
+    POUR (unites_en_attente) {
+        if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
+            continue;
+        }
+
+        if (it->attend_sur_un_message()) {
+            it->marque_prete();
+        }
+
+        nouvelles_unites.ajoute(it);
+    }
+
+    unites_en_attente = nouvelles_unites;
 }

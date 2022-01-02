@@ -66,6 +66,8 @@ class GestionnaireCode {
 
     /* Les unités qui attendent sur quelque chose. */
     kuri::tableau<UniteCompilation *> unites_en_attente{};
+    kuri::tableau<UniteCompilation *> metaprogrammes_en_attente_de_cree_contexte{};
+    bool metaprogrammes_en_attente_de_cree_contexte_est_ouvert = true;
 
     Compilatrice *m_compilatrice = nullptr;
 
@@ -114,8 +116,13 @@ class GestionnaireCode {
 
     void requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 
+    /* Crée une unité de compilation pour le métaprogramme.
+     * Si peut_planifier_compilation est vrai, l'unité est ajoutée à la liste d'unités en attente.
+     * Sinon, l'unité est ajoutée à la liste des métaprogrammes en attentes de la disponibilité de
+     * la RI pour #crée_contexte. */
     void requiers_generation_ri_principale_metaprogramme(EspaceDeTravail *espace,
-                                                         MetaProgramme *metaprogramme);
+                                                         MetaProgramme *metaprogramme,
+                                                         bool peut_planifier_compilation);
 
     void requiers_compilation_metaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
@@ -162,6 +169,11 @@ class GestionnaireCode {
         return m_fonctions_parsees;
     }
 
+    /* Appelé par la Messagère quand l'interception de messages est terminée.
+     * Toutes les unités d'envoie de messages sont annulées, et toutes les unités attendant sur un
+     * message sont marquées comme prêtes. */
+    void interception_message_terminee();
+
   private:
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
 
@@ -178,12 +190,14 @@ class GestionnaireCode {
                                GrapheDependance &graphe);
 
     bool plus_rien_n_est_a_faire();
-    std::optional<Attente> tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
-                                                                        Programme *programme,
-                                                                        GrapheDependance &graphe);
+    bool tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
+                                                      Programme *programme,
+                                                      GrapheDependance &graphe);
 
     void tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace);
 
     void finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
                                                           Programme *programme);
+
+    void flush_metaprogrammes_en_attente_de_cree_contexte();
 };

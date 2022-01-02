@@ -69,6 +69,14 @@ crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
     retourne cookie
 }
 
+copie_cookie :: fonc (source: Cookie) -> Cookie
+{
+    résultat := source
+    résultat.nom = copie_chaine(source.nom)
+    résultat.valeur = copie_chaine(source.nom)
+    retourne résultat
+}
+
 détruit_cookie :: fonc (cookie: &Cookie)
 {
     déloge(cookie.nom)
@@ -439,6 +447,26 @@ est_valide :: fonc (cookie: Cookie) -> bool
     }
 
     retourne vrai
+}
+
+/* Fusionne le cookie dans la liste des cookies.
+ * Retourne vrai si le cookie est ajouté dans la liste.
+ * À FAIRE : age des cookies : stocker la date d'ajout */
+fusionne_cookie :: fonc (cookies: *[]Cookie, cookie: Cookie) -> bool
+{
+    tmp := mémoire(cookies)
+
+    pour tmp {
+        si it.nom == cookie.nom {
+            arrête
+        }
+    }
+    sansarrêt {
+        tableau_ajoute(cookies, cookie)
+        retourne vrai
+    }
+
+    retourne faux
 }
 
 /*

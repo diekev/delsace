@@ -89,37 +89,37 @@ lance :: fonc (serveuse: *ServeuseTCP)
     serveuse.boucle_évènements.lance()
 }
 
-rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
+rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise, bool)(rien))
 {
-    serveuse.ctx.quand_ouverture = rappel
+    serveuse.ctx.mute_quand_ouverture(rappel)
 }
 
-rappel_quand_lecture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
+rappel_quand_données_reçues :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise, []octet)(rien))
 {
-    serveuse.ctx.quand_lecture = rappel
+    serveuse.ctx.mute_quand_données_reçues(rappel)
 }
 
 rappel_quand_écriture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
-    serveuse.ctx.quand_écriture = rappel
+    serveuse.ctx.mute_quand_écriture(rappel)
 }
 
 rappel_quand_fermeture :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
-    serveuse.ctx.quand_fermeture = rappel
+    serveuse.ctx.mute_quand_fermeture(rappel)
 }
 
 rappel_quand_timeout :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
-    serveuse.ctx.quand_timeout = rappel
+    serveuse.ctx.mute_quand_timeout(rappel)
 }
 
 rappel_quand_fin :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
-    serveuse.ctx.quand_fin = rappel
+    serveuse.ctx.mute_quand_fin(rappel)
 }
 
 rappel_quand_erreur_connexion :: fonc (serveuse: *ServeuseTCP, rappel: fonc(*Prise)(rien))
 {
-    serveuse.ctx.quand_erreur_connexion = rappel
+    serveuse.ctx.mute_quand_erreur_connexion(rappel)
 }

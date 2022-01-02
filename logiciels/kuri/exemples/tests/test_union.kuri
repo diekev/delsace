@@ -1,0 +1,108 @@
+importe Fondation
+
+// ----------------------------------------------------------------------------
+// Extraction d'une valeur depuis une union.
+
+Optionnel :: union ($T: type_de_données) {
+    Quelque: T
+}
+
+imprime_optionnel :: fonc (optionnel: Optionnel(z32))
+{
+    discr optionnel {
+        Quelque(x) {
+            imprime("L'optionnel a la valeur % !\n", x)
+        }
+        sinon {
+            imprime("L'optionnel n'a aucune valeur !\n")
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Extraction d'une valeur depuis une union anonyme.
+
+imprime_union_anonyme :: fonc (anonyme: z32 | r32)
+{
+    discr anonyme {
+        z32(x) {
+            imprime("L'anonyme a la valeur entière %\n", x)
+        }
+        r32(x) {
+            imprime("L'anonyme a la valeur réele %\n", x)
+        }
+        sinon {
+            imprime("L'anonyme n'a aucune valeur\n")
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Déclaration d'un membre de type « rien » dans une union.
+
+Result :: union ($T: type_de_données) {
+    Quelque: T
+    Aucun
+}
+
+// Permet la construction d'une union ayant un membre de type « rien » via
+// une instruction « retourne » qui ne renvoie rien, ou d'un manque
+// d'instruction
+
+construit_résultat :: fonc (valeur: z32) -> Result(z32)
+{
+    si valeur == 5 {
+        imprime("Construction du résultat depuis une valeur !\n")
+        retourne valeur
+    }
+
+    si valeur == 6 {
+        imprime("Construction explicite du résultat sans valeur !\n")
+        // Construction « explicite ».
+        retourne
+    }
+
+    // Construction « implicite ».
+    imprime("Construction implicite du résultat sans valeur !\n")
+}
+
+imprime_résultat :: fonc (résultat: Result(z32))
+{
+    discr résultat {
+        Quelque(x) {
+            imprime("Le résultat a la valeur % !\n", x)
+        }
+        Aucun {
+            imprime("Le résultat n'a aucune valeur (« Aucun » est en place) !\n")
+        }
+        sinon {
+            imprime("Le résultat n'a aucune valeur !\n")
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+principale :: fonc () -> z32
+{
+    v : Optionnel(z32)
+    imprime_optionnel(v)
+    imprime_optionnel(5)
+
+    imprime_union_anonyme(123)
+    imprime_union_anonyme(45.6)
+
+    r0 := construit_résultat(5)
+    imprime_résultat(r0)
+
+    r1 := construit_résultat(6)
+    imprime_résultat(r1)
+
+    r2 := construit_résultat(7)
+    imprime_résultat(r2)
+
+    r3 : Result(z32)
+    imprime_résultat(r3)
+
+    retourne 0
+}

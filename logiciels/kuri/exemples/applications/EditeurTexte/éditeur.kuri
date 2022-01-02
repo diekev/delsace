@@ -361,7 +361,6 @@ TAILLE_TABULATION :: 4
         éditeur.décalage_ligne = éditeur.cy - éditeur.lignes + 1
     }
 
-
     si éditeur.rx < éditeur.décalage_colonne {
         éditeur.décalage_colonne = éditeur.rx
     }

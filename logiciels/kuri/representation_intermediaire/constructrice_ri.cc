@@ -1590,6 +1590,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 if (type_union->est_nonsure) {
                     cree_stocke_mem(noeud, alloc, valeur);
                 }
+                else if (expr->aide_generation_code == CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN) {
+                    index_membre = 0;
+                    POUR (type_union->membres) {
+                        if (it.type->est_rien()) {
+                            break;
+                        }
+
+                        index_membre += 1;
+                    }
+
+                    auto ptr_index = cree_reference_membre(noeud, alloc, 1);
+                    cree_stocke_mem(noeud, ptr_index, cree_z32(index_membre + 1));
+                }
                 else {
                     auto ptr_valeur = cree_reference_membre(noeud, alloc, 0);
                     cree_stocke_mem(noeud, ptr_valeur, valeur);
@@ -1793,10 +1806,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     cree_label(decl);
 
     genere_ri_pour_noeud(decl->corps->bloc);
-
-    if (decl->corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-        cree_retour(decl, nullptr);
-    }
 
     decl->drapeaux |= RI_FUT_GENEREE;
     decl->corps->drapeaux |= RI_FUT_GENEREE;

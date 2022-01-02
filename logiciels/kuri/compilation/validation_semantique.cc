@@ -401,10 +401,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud_module->bloc_parent = inst->bloc_parent;
                 noeud_module->bloc_parent->membres->ajoute(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-                noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             }
 
+            noeud->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
@@ -1538,300 +1537,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         {
             auto inst = noeud->comme_discr();
-
-            auto expression = inst->expression_discriminee;
-
-            auto type = expression->type;
-
-            if (type->genre == GenreType::REFERENCE) {
-                transtype_si_necessaire(inst->expression_discriminee,
-                                        TypeTransformation::DEREFERENCE);
-                type = type->comme_reference()->type_pointe;
-            }
-
-            if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type);
-            }
-
-            if (type->genre == GenreType::UNION && type->comme_union()->est_anonyme) {
-                // vérifie que tous les membres sont discriminés
-                auto type_union = type->comme_union();
-                inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
-
-                auto membres_rencontres = kuri::ensemblon<Type *, 16>();
-
-                noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
-
-                for (int i = 0; i < inst->paires_discr.taille(); ++i) {
-                    auto expr_paire =
-                        inst->paires_discr[i]->expression->comme_virgule()->expressions[0];
-
-                    valide_semantique_noeud(expr_paire);
-
-                    Type *type_expr;
-                    if (resoud_type_final(expr_paire, type_expr) == CodeRetourValidation::Erreur) {
-                        rapporte_erreur("Ne peut résoudre le type", expr_paire);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    expr_paire->type = type_expr;
-
-                    auto trouve = false;
-
-                    POUR (type_union->membres) {
-                        if (it.type == type_expr) {
-                            membres_rencontres.insere(type_expr);
-                            trouve = true;
-                            break;
-                        }
-                    }
-
-                    if (!trouve) {
-                        rapporte_erreur("Le type n'est pas membre de l'union", expr_paire);
-                    }
-
-                    /* À FAIRE(union) : ajoute la variable dans le bloc suivant, il nous faudra un
-                     * système de capture dans le cas où la variable est un accès */
-                }
-
-                if (inst->bloc_sinon == nullptr) {
-                    // return valide_presence_membres();
-                }
-            }
-            else if (type->genre == GenreType::UNION) {
-                auto type_union = type->comme_union();
-                auto decl = type_union->decl;
-                inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
-
-                if (decl->est_nonsure) {
-                    rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto membres_rencontres = kuri::ensemblon<IdentifiantCode *, 16>();
-
-                auto valide_presence_membres =
-                    [&membres_rencontres, &type_union, this, &expression]() {
-                        auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
-
-                        POUR (type_union->membres) {
-                            if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
-                                continue;
-                            }
-
-                            if (!membres_rencontres.possede(it.nom)) {
-                                valeurs_manquantes.insere(it.nom->nom);
-                            }
-                        }
-
-                        if (valeurs_manquantes.taille() != 0) {
-                            rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        return CodeRetourValidation::OK;
-                    };
-
-                noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
-
-                for (int i = 0; i < inst->paires_discr.taille(); ++i) {
-                    auto expr_paire =
-                        inst->paires_discr[i]->expression->comme_virgule()->expressions[0];
-                    auto bloc_paire = inst->paires_discr[i]->bloc;
-
-                    /* vérifie que toutes les expressions des paires sont bel et
-                     * bien des membres */
-                    if (expr_paire->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-                        espace
-                            ->rapporte_erreur(expr_paire,
-                                              "Attendu une référence à un membre de l'union")
-                            .ajoute_message(
-                                "L'expression est de genre : ", expr_paire->genre, "\n");
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (membres_rencontres.possede(expr_paire->ident)) {
-                        rapporte_erreur("Redéfinition de l'expression", expr_paire);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    membres_rencontres.insere(expr_paire->ident);
-
-                    auto decl_var = trouve_dans_bloc_seul(decl->bloc, expr_paire);
-
-                    if (decl_var == nullptr) {
-                        rapporte_erreur_membre_inconnu(noeud, expr_paire, type_union);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expr_paire->ident);
-
-                    /* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est
-                     */
-                    if (decl_prec != nullptr) {
-                        rapporte_erreur("Ne peut pas utiliser implicitement le membre car une "
-                                        "variable de ce nom existe déjà",
-                                        expr_paire);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    /* pousse la variable dans le bloc suivant */
-                    auto decl_expr = m_tacheronne.assembleuse->cree_declaration_variable(
-                        expr_paire->lexeme);
-                    decl_expr->ident = expr_paire->ident;
-                    decl_expr->lexeme = expr_paire->lexeme;
-                    decl_expr->bloc_parent = bloc_paire;
-                    decl_expr->drapeaux |= EMPLOYE;
-                    decl_expr->type = decl_var->type;
-                    // À FAIRE: il semblerait que l'absence de ceci ajout une tache de typage
-                    decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
-                    // À FAIRE(emploi): mise en place des informations d'emploi
-
-                    bloc_paire->membres->ajoute(decl_expr);
-                }
-
-                if (inst->bloc_sinon == nullptr) {
-                    return valide_presence_membres();
-                }
-            }
-            else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-                auto type_enum = static_cast<TypeEnum *>(type);
-                inst->op = type_enum->operateur_egt;
-
-                auto membres_rencontres = kuri::ensemblon<IdentifiantCode *, 16>();
-                noeud->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
-
-                for (int i = 0; i < inst->paires_discr.taille(); ++i) {
-                    auto expr_paire = inst->paires_discr[i]->expression;
-
-                    auto feuilles = expr_paire->comme_virgule();
-
-                    for (auto f : feuilles->expressions) {
-                        if (f->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-                            rapporte_erreur(
-                                "expression inattendue dans la discrimination, seules les "
-                                "références de déclarations sont supportées pour le moment",
-                                f);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        auto nom_membre = f->ident;
-
-                        auto nom_trouve = false;
-
-                        POUR (type_enum->membres) {
-                            if (it.nom == nom_membre) {
-                                nom_trouve = true;
-                                break;
-                            }
-                        }
-
-                        if (!nom_trouve) {
-                            rapporte_erreur_membre_inconnu(noeud, f, type_enum);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        if (membres_rencontres.possede(nom_membre)) {
-                            rapporte_erreur("Redéfinition de l'expression", f);
-                            return CodeRetourValidation::Erreur;
-                        }
-
-                        membres_rencontres.insere(nom_membre);
-                    }
-                }
-
-                if (inst->bloc_sinon == nullptr) {
-                    auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
-
-                    POUR (type_enum->membres) {
-                        if (!membres_rencontres.possede(it.nom) &&
-                            (it.drapeaux & TypeCompose::Membre::EST_IMPLICITE) == 0) {
-                            valeurs_manquantes.insere(it.nom->nom);
-                        }
-                    }
-
-                    if (valeurs_manquantes.taille() != 0) {
-                        rapporte_erreur_valeur_manquante_discr(expression, valeurs_manquantes);
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-            }
-            else {
-                auto type_pour_la_recherche = type;
-                if (type->genre == GenreType::TYPE_DE_DONNEES) {
-                    type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
-                }
-
-                auto candidats = dls::tablet<OperateurCandidat, 10>();
-                auto resultat = cherche_candidats_operateurs(*espace,
-                                                             type_pour_la_recherche,
-                                                             type_pour_la_recherche,
-                                                             GenreLexeme::EGALITE,
-                                                             candidats);
-                if (resultat.has_value()) {
-                    return resultat.value();
-                }
-
-                auto meilleur_candidat = OperateurCandidat::nul_const();
-                auto poids = 0.0;
-
-                for (auto const &candidat : candidats) {
-                    if (candidat.poids > poids) {
-                        poids = candidat.poids;
-                        meilleur_candidat = &candidat;
-                    }
-                }
-
-                if (meilleur_candidat == nullptr) {
-                    unite->espace
-                        ->rapporte_erreur(
-                            noeud,
-                            "Je ne peux pas valider l'expression de discrimination car "
-                            "je n'arrive à trouver un opérateur de comparaison pour le "
-                            "type de l'expression. ")
-                        .ajoute_message("Le type de l'expression est : ")
-                        .ajoute_message(chaine_type(type))
-                        .ajoute_message(".\n\n")
-                        .ajoute_conseil(
-                            "Les discriminations ont besoin d'un opérateur « == » défini pour le "
-                            "type afin de pouvoir comparer les valeurs,"
-                            " donc si vous voulez utiliser une discrimination sur un type "
-                            "personnalisé, vous pouvez définir l'opérateur comme ceci :\n\n"
-                            "\topérateur == :: fonc (a: MonType, b: MonType) -> bool\n\t{\n\t\t "
-                            "/* logique de comparaison */\n\t}\n");
-                    return CodeRetourValidation::Erreur;
-                }
-
-                inst->op = meilleur_candidat->op;
-
-                for (int i = 0; i < inst->paires_discr.taille(); ++i) {
-                    auto expr_paire = inst->paires_discr[i]->expression;
-
-                    auto feuilles = expr_paire->comme_virgule();
-
-                    for (auto j = 0; j < feuilles->expressions.taille(); ++j) {
-                        auto resultat_validation = valide_semantique_noeud(
-                            feuilles->expressions[j]);
-                        if (!est_ok(resultat_validation)) {
-                            return resultat_validation;
-                        }
-
-                        auto const resultat_transtype = transtype_si_necessaire(
-                            feuilles->expressions[j], expression->type);
-                        if (!est_ok(resultat_transtype)) {
-                            return resultat_transtype;
-                        }
-                    }
-                }
-
-                if (inst->bloc_sinon == nullptr) {
-                    espace->rapporte_erreur(noeud,
-                                            "Les discriminations de valeurs scalaires doivent "
-                                            "avoir un bloc « sinon »");
-                }
-            }
-
-            break;
+            return valide_discrimination(inst);
         }
         case GenreNoeud::INSTRUCTION_RETIENS:
         {
@@ -2637,6 +2343,17 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
+static bool peut_construire_union_via_rien(TypeUnion *type_union)
+{
+    POUR (type_union->membres) {
+        if (it.type->est_rien()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
     auto type_fonc = fonction_courante()->type->comme_fonction();
@@ -2645,7 +2362,18 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     if (inst->expression == nullptr) {
         inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
 
-        if ((!fonction_courante()->est_coroutine && type_fonc->type_sortie != inst->type) ||
+        auto type_sortie = type_fonc->type_sortie;
+
+        /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
+         * du type ayant le membre « rien » actif. */
+        if (type_sortie->est_union() && !type_sortie->comme_union()->est_nonsure) {
+            if (peut_construire_union_via_rien(type_fonc->type_sortie->comme_union())) {
+                inst->aide_generation_code = RETOURNE_UNE_UNION_VIA_RIEN;
+                return CodeRetourValidation::OK;
+            }
+        }
+
+        if ((!fonction_courante()->est_coroutine && type_sortie != inst->type) ||
             est_corps_texte) {
             rapporte_erreur("Expression de retour manquante", inst);
             return CodeRetourValidation::Erreur;
@@ -3053,17 +2781,6 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
     return nullptr;
 }
 
-static bool possede_annotation_inutilisee(NoeudDeclarationVariable const *decl)
-{
-    POUR (decl->annotations) {
-        if (it.nom == "inutilisée") {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                                              NoeudDeclarationEnteteFonction const &entete)
 {
@@ -3071,9 +2788,18 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
         return;
     }
 
+    /* Les paramètres de sortie sont toujours utilisés.
+     * À FAIRE : nous avons les paramètres de sorties des fonctions nichées dans le bloc de cette
+     * fonction ?
+     */
+    POUR (entete.params_sorties) {
+        it->comme_declaration_variable()->drapeaux |= EST_UTILISEE;
+    }
+    entete.param_sortie->drapeaux |= EST_UTILISEE;
+
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possede_annotation_inutilisee(decl_param)) {
+        if (possede_annotation(decl_param, "inutilisée")) {
             continue;
         }
 
@@ -3084,68 +2810,94 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     auto const &corps = *entete.corps;
 
-    visite_noeud(
-        corps.bloc, PreferenceVisiteNoeud::ORIGINAL, [&espace](const NoeudExpression *noeud) {
-            if (noeud->est_structure()) {
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
-            }
+    visite_noeud(corps.bloc,
+                 PreferenceVisiteNoeud::ORIGINAL,
+                 [&espace, entete](const NoeudExpression *noeud) {
+                     if (noeud->est_structure()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
 
-            /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser. */
-            if (noeud->est_si_statique()) {
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
-            }
+                     /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser.
+                      */
+                     if (noeud->est_si_statique()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
 
-            if (!noeud->est_declaration()) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     if (!noeud->est_declaration()) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* Ignore les variables implicites des boucles « pour ». */
-            if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Ignore les variables implicites des boucles « pour ». */
+                     if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* Le contexte peut ne pas être utilisé. */
-            if (noeud->ident == ID::contexte) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Le contexte peut ne pas être utilisé. */
+                     if (noeud->ident == ID::contexte) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas utilisée,
-             * bien que ceci ne soit pas en score formalisé dans le langage. */
-            if (noeud->ident && noeud->ident->nom == "_") {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
+                      * utilisée, bien que ceci ne soit pas en score formalisé dans le langage. */
+                     if (noeud->ident && noeud->ident->nom == "_") {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            if (noeud->est_declaration_variable()) {
-                auto const decl_var = noeud->comme_declaration_variable();
-                /* Les déclarations multiples comme « a, b := ... » ont les déclarations ajoutées
-                 * séparément aux membres du bloc. */
-                if (decl_var->valeur->est_virgule()) {
-                    return DecisionVisiteNoeud::CONTINUE;
-                }
+                     if (noeud->est_declaration_variable()) {
+                         auto const decl_var = noeud->comme_declaration_variable();
+                         /* Les déclarations multiples comme « a, b := ... » ont les déclarations
+                          * ajoutées séparément aux membres du bloc. */
+                         if (decl_var->valeur->est_virgule()) {
+                             return DecisionVisiteNoeud::CONTINUE;
+                         }
 
-                if (possede_annotation_inutilisee(decl_var)) {
-                    return DecisionVisiteNoeud::CONTINUE;
-                }
-            }
+                         if (possede_annotation(decl_var, "inutilisée")) {
+                             return DecisionVisiteNoeud::CONTINUE;
+                         }
+                     }
 
-            /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas marqués
-             * comme utilisés car seules les entêtes le sont. Évitons d'émettre un avertissement
-             * pour rien. */
-            if (noeud->est_corps_fonction()) {
-                return DecisionVisiteNoeud::CONTINUE;
-            }
+                     /* Les corps fonctions sont des déclarations et sont visités, mais ne sont pas
+                      * marqués comme utilisés car seules les entêtes le sont. Évitons d'émettre un
+                      * avertissement pour rien. */
+                     if (noeud->est_corps_fonction()) {
+                         return DecisionVisiteNoeud::CONTINUE;
+                     }
 
-            if (!noeud->possede_drapeau(EST_UTILISEE)) {
-                if (noeud->est_entete_fonction()) {
-                    espace.rapporte_avertissement(noeud, "Fonction inutilisée");
-                }
-                else {
-                    espace.rapporte_avertissement(noeud, "Déclaration inutilisée");
-                }
-            }
+                     if (!noeud->possede_drapeau(EST_UTILISEE)) {
+                         if (noeud->est_entete_fonction()) {
+                             auto entete_ = noeud->comme_entete_fonction();
+                             if (!entete_->est_declaration_type) {
+                                 auto message = enchaine("Dans la fonction ",
+                                                         entete.ident->nom,
+                                                         " : fonction « ",
+                                                         (noeud->ident ?
+                                                              noeud->ident->nom :
+                                                              kuri::chaine_statique("")),
+                                                         " » inutilisée");
+                                 espace.rapporte_avertissement(noeud, message);
+                             }
 
-            return DecisionVisiteNoeud::CONTINUE;
-        });
+                             /* Ne traverse pas la fonction nichée. */
+                             return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                         }
+
+                         auto message = enchaine(
+                             "Dans la fonction ",
+                             entete.ident->nom,
+                             " : déclaration « ",
+                             (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
+                             " » inutilisée");
+                         espace.rapporte_avertissement(noeud, message);
+                     }
+
+                     /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
+                      * fonction fut utilisée. */
+                     if (noeud->est_entete_fonction()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
+                     return DecisionVisiteNoeud::CONTINUE;
+                 });
 }
 
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
@@ -3226,15 +2978,24 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
     if (inst_ret == nullptr) {
         auto type_fonc = entete->type->comme_fonction();
+        auto type_sortie = type_fonc->type_sortie;
 
-        if ((type_fonc->type_sortie->genre != GenreType::RIEN && !entete->est_coroutine) ||
-            est_corps_texte) {
-            rapporte_erreur(
-                "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
-            return CodeRetourValidation::Erreur;
+        if (type_sortie->est_union() && !type_sortie->comme_union()->est_nonsure) {
+            if (peut_construire_union_via_rien(type_sortie->comme_union())) {
+                decl->aide_generation_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
+            }
+        }
+        else {
+            if ((type_fonc->type_sortie->genre != GenreType::RIEN && !entete->est_coroutine) ||
+                est_corps_texte) {
+                rapporte_erreur(
+                    "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
+                return CodeRetourValidation::Erreur;
+            }
         }
 
-        if (entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
+        if (decl->aide_generation_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
+            entete != m_compilatrice.interface_kuri->decl_creation_contexte) {
             decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
         }
     }
@@ -3790,7 +3551,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant,
                                            NoeudExpression *expr_valeur) -> ResultatValidation {
         auto type_membre = enfant->type;
-        auto align_type = type_membre->alignement;
 
         // À FAIRE: ceci devrait plutôt être déplacé dans la validation des déclarations, mais nous
         // finissons sur une erreur de compilation à cause d'une attente
@@ -3798,15 +3558,18 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             return Attente::sur_type(type_membre);
         }
 
-        if (align_type == 0) {
-            unite->espace->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
-                .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
-            return CodeRetourValidation::Erreur;
-        }
+        if (type_membre != m_compilatrice.typeuse[TypeBase::RIEN]) {
+            if (type_membre->alignement == 0) {
+                unite->espace
+                    ->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
+                    .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
+                return CodeRetourValidation::Erreur;
+            }
 
-        if (type_membre->taille_octet == 0) {
-            rapporte_erreur("impossible de définir la taille du type", enfant);
-            return CodeRetourValidation::Erreur;
+            if (type_membre->taille_octet == 0) {
+                rapporte_erreur("impossible de définir la taille du type", enfant);
+                return CodeRetourValidation::Erreur;
+            }
         }
 
         auto decl_var_enfant = NoeudDeclarationVariable::nul();
@@ -3861,8 +3624,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 for (auto i = 0; i < donnees.variables.taille(); ++i) {
                     auto var = donnees.variables[i];
 
-                    if (var->type->est_rien()) {
-                        rapporte_erreur("Ne peut avoir un type « rien » dans une union",
+                    if (var->type->est_rien() && decl->est_nonsure) {
+                        rapporte_erreur("Ne peut avoir un type « rien » dans une union nonsûre",
                                         decl_var,
                                         erreur::Genre::TYPE_DIFFERENTS);
                         return CodeRetourValidation::Erreur;

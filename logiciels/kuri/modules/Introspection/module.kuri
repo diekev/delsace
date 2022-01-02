@@ -483,6 +483,8 @@ ItératriceMembreStructure :: struct {
     taille: z64
 
     position: z64
+
+    ignore_membres_constants : bool
 }
 
 crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := vrai) -> ItératriceMembreStructure
@@ -497,6 +499,7 @@ crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := v
 
     itératrice.valeur = structure
     itératrice.taille = info.membres.taille
+    itératrice.ignore_membres_constants = ignore_membres_constants
 
     retourne itératrice
 }
@@ -511,7 +514,7 @@ membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chain
     tantque itératrice.position < itératrice.taille {
         membre := info.membres[itératrice.position]
 
-        si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+        si membre.drapeaux.EST_CONSTANT && itératrice.ignore_membres_constants {
             itératrice.position += 1
             continue
         }

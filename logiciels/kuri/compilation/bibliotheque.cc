@@ -434,28 +434,28 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     dls::tablet<kuri::chaine_statique, 4> dossiers;
     // À FAIRE(bibliotheques) : versions 32-bits, ou 64-bits
     if (espace.options.architecture == ArchitectureCible::X86) {
+        if (site) {
+            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
+            const auto module = fichier->module;
+            dossiers.ajoute(module->chemin_bibliotheque_32bits);
+        }
+
         dossiers.ajoute("/lib/i386-linux-gnu/");
         dossiers.ajoute("/usr/lib/i386-linux-gnu/");
         // pour les tables r16...
         dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
-
+    }
+    else {
         if (site) {
             const auto fichier = compilatrice.fichier(site->lexeme->fichier);
             const auto module = fichier->module;
             dossiers.ajoute(module->chemin_bibliotheque_64bits);
         }
-    }
-    else {
+
         dossiers.ajoute("/lib/x86_64-linux-gnu/");
         dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
         // pour les tables r16...
         dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
-
-        if (site) {
-            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
-            const auto module = fichier->module;
-            dossiers.ajoute(module->chemin_bibliotheque_64bits);
-        }
     }
 
     // essaye de déterminer le chemin

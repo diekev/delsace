@@ -7,15 +7,15 @@
 
 // Type pour représenter un résultat optionnel
 Résultat :: union ($T: type_de_données) {
-    v: T
-    e: bool
+    Quelque: T
+    Aucun
 }
 
 valeur_ou :: fonc (résultat: Résultat($T), valeur: T) -> T #enligne
 {
 	discr résultat {
-		v {
-			retourne résultat.v
+		Quelque(v) {
+			retourne v
 		}
 		sinon {
 			retourne valeur
@@ -26,9 +26,9 @@ valeur_ou :: fonc (résultat: Résultat($T), valeur: T) -> T #enligne
 valeur_ou_défaut :: fonc (résultat: Résultat($T)) -> T #enligne
 {
     discr résultat {
-        v {
-            retourne résultat.v
-        }
+		Quelque(v) {
+			retourne v
+		}
         sinon {
 			valeur_défaut: T
 			retourne valeur_défaut
@@ -39,7 +39,7 @@ valeur_ou_défaut :: fonc (résultat: Résultat($T)) -> T #enligne
 possède_valeur :: fonc (résultat: Résultat($T)) -> bool #enligne
 {
 	discr résultat {
-		v {
+		Quelque {
 			retourne vrai
 		}
 		sinon {

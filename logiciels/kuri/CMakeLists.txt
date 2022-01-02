@@ -137,7 +137,6 @@ set(FICHIERS_TESTS
     exemples/applications/calendrier_républicain.kuri
     exemples/applications/chemin_complet.kuri
     exemples/applications/cliente.kuri
-    exemples/applications/client_smtp.kuri
     exemples/applications/crée_test_compilateur.kuri
     exemples/applications/json.kuri
     exemples/applications/labyrinthe.kuri
@@ -179,16 +178,19 @@ set(FICHIERS_TESTS
     exemples/tests/test_polymorphisme.kuri
     exemples/tests/test_ppm.kuri
     exemples/tests/test_recherche.kuri
-    exemples/tests/test_routage.kuri
     exemples/tests/test_structure_poly.kuri
     exemples/tests/test_sys_fichier.kuri
     exemples/tests/test_unicode.kuri
+    exemples/tests/tous_les_modules.kuri
     modules/GHTML/test/test_ghtml.kuri
     modules/HTML/Autres/entropisation.kuri
     modules/HTML/Autres/formattage.kuri
     modules/HTML/Autres/minification.kuri
     modules/HTML/Autres/stats_parsage.kuri
     modules/HTML/Autres/vérification.kuri
+    modules/LABT/Programmes/principale.kuri
+    modules/OutilsMaintenance/Programmes/suppression_lignes_vides.kuri
+    modules/OutilsMaintenance/Programmes/triage_imports.kuri
 )
 
 foreach(FICHIER_TEST ${FICHIERS_TESTS})

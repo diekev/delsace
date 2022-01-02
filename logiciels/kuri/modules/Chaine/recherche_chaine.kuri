@@ -20,7 +20,6 @@ Chaine16 :: BaseChaine(T = n16)
 /* Une chaine UTF-32 */
 Chaine32 :: BaseChaine(T = n32)
 
-
 // avec un codec
 
 BaseChaine :: struct ($T: type_de_données, $codec: Codec(T = T)) {
@@ -57,7 +56,6 @@ Codec :: struct ($T: type_de_données) {
 // génère les fonctions par un métaprogramme, est_espace_blanc, ...
 
 // min := Chaine.codec.en_minuscule(l)
-
 
 // stocke les empreintes, et accumule les valeurs quand la chaine est modifiée
 

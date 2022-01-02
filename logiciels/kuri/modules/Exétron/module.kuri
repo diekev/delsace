@@ -1,7 +1,7 @@
 charge "interface_exétron"
 
 // ------------------------------------------
-// FilExécution
+// FilExecution
 
 DonnéesCréationFil :: struct ($T: type_de_données) {
     rappel: fonc(*T)(rien)
@@ -16,7 +16,7 @@ __fonction_principale_exétron :: fonc (données_création_fil: *DonnéesCréati
 }
 
 // À FAIRE(langage) : crash si le type polymorphique est déclaré dans le rappel
-crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExécution
+crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExecution
 {
     données_création_fil : DonnéesCréationFil(T) = ---
     données_création_fil.données = données
@@ -24,17 +24,17 @@ crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExé
     retourne EXETRON_cree_fil(__fonction_principale_exétron, *données_création_fil)
 }
 
-join :: fonc (fil: *FilExécution) -> bool
+join :: fonc (fil: *FilExecution) -> bool
 {
     retourne EXETRON_join_fil(fil)
 }
 
-détache :: fonc (fil: *FilExécution)
+détache :: fonc (fil: *FilExecution)
 {
     EXTRONT_detache_fil(fil)
 }
 
-détruit :: fonc (fil: &*FilExécution)
+détruit :: fonc (fil: &*FilExecution)
 {
     EXETRON_detruit_fil(fil)
     fil = nul

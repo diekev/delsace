@@ -1,8 +1,8 @@
 importe Couleur
 importe Fondation
 importe Image
-importe OpenGL
 importe Math
+importe OpenGL
 importe SDL2
 
 charge "caméra_3d"

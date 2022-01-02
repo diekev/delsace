@@ -93,7 +93,6 @@ safe_open_register_path_warning_callback :: fonc(f : fonc(*z8)z32) -> fonc(*z8)z
 	retourne old_value;
 }
 
-
 safe_open_path_warning :: fonc(fn : *z8) -> z32
 {
 	f = safe_open_path_warning_callback;
@@ -176,7 +175,6 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 	    open_errno = errno;
 
 	    r = lstat(fn, *lstat_buf);
-
 
 	    // handle the case of the lstat failing first
 	    si (r == -1) {
@@ -307,7 +305,6 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 	retourne f;
 }
 
-
 // create file, error if exists, don't follow sym link
 safe_create_fail_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
@@ -321,7 +318,6 @@ safe_create_fail_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 
 	retourne open(fn, flags | _O_CREAT | _O_EXCL, mode);
 }
-
 
 // create file if it doesn't exist, keep inode if it does
 safe_create_keep_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
@@ -395,7 +391,6 @@ safe_create_keep_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 	retourne f;
 }
 
-
 // create file, replace file if exists
 safe_create_replace_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
@@ -462,7 +457,6 @@ safe_create_replace_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 
 	retourne f;
 }
-
 
 // open existing file
 safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
@@ -532,7 +526,6 @@ safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
 
 	retourne f;
 }
-
 
 // create file if it doesn't exist, keep inode if it does
 safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
@@ -636,7 +629,6 @@ safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> 
 // fopen functions.  In C the initial permissions of the created file (mode)
 // will need to be added if missing.
 
-
 // Fonction de remplacement pour 'open', échoue si fn est un lien symbolic.
 safe_open_wrapper :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
@@ -653,7 +645,6 @@ safe_open_wrapper :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 	// _O_CREAT non-spécifié
 	retourne safe_open_no_create(fn, flags);
 }
-
 
 // Fonction de remplacement pour 'open', suit les liens symbolics existants.
 safe_open_wrapper_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
@@ -729,10 +720,8 @@ principale :: fonc () -> z32
 	    exit(1);
     }
 
-
     //************************************************************************
     // test safe_create_fail_if_exists with no prior file
-
 
     f = safe_create_fail_if_exists(fn, _O_WRONLY, allMask);
     si (f == -1)  {
@@ -762,10 +751,8 @@ principale :: fonc () -> z32
 	exit(5);
     }
 
-
     //************************************************************************
     // test safe_create_fail_if_exists with prior file
-
 
     f = safe_create_fail_if_exists(fn, _O_WRONLY, allMask);
     si (f != -1)  {
@@ -773,10 +760,8 @@ principale :: fonc () -> z32
 	exit(10);
     }
 
-
     //************************************************************************
     // test safe_create_replace_file_if_exists with prior file
-
 
     r = link(fn, linkFn);
     si (r == -1)  {
@@ -835,10 +820,8 @@ principale :: fonc () -> z32
 	exit(26);
     }
 
-
     //************************************************************************
     // test_safe_create_keep_if_exists with prior file
-
 
     f = safe_create_keep_if_exists(fn, _O_WRONLY, allMask);
     si (f == -1)  {
@@ -879,10 +862,8 @@ principale :: fonc () -> z32
 	exit(35);
     }
 
-
     //************************************************************************
     // test_safe_open_no_create with prior file
-
 
     f = safe_open_no_create(fn, _O_RDONLY);
     si (f == -1)  {
@@ -923,10 +904,8 @@ principale :: fonc () -> z32
 	exit(45);
     }
 
-
     //************************************************************************
     // test_safe_create_replace_if_exists with no prior file
-
 
     r = unlink(fn);
     si (r == -1)  {
@@ -963,10 +942,8 @@ principale :: fonc () -> z32
 	exit(64);
     }
 
-
     //************************************************************************
     // test_safe_create_keep_if_exists with no prior file
-
 
     r = unlink(fn);
     si (r == -1)  {
@@ -1003,10 +980,8 @@ principale :: fonc () -> z32
 	exit(74);
     }
 
-
     //************************************************************************
     // test_safe_open_no_create with no prior file
-
 
     r = unlink(fn);
     si (r == -1)  {
@@ -1025,10 +1000,8 @@ principale :: fonc () -> z32
 	}
     }
 
-
     //************************************************************************
     // test_safe_open_no_create with _O_CREAT flag, should fail
-
 
     f = safe_open_no_create(fn, _O_RDONLY | _O_CREAT);
     si (f != -1)  {
@@ -1041,18 +1014,14 @@ principale :: fonc () -> z32
 	exit(81);
     }
 
-
     //************************************************************************
     // final cleanup
-
 
     unlink(fn);
     unlink(linkFn);
 
-
     //************************************************************************
     // test fopen on /dev/null
-
 
     //F = safe_fopen_wrapper_follow("/dev/null", "w", 0o666);
     //si (F == NULL)  {
@@ -1062,10 +1031,8 @@ principale :: fonc () -> z32
 	//fclose(F);
     //}
 
-
     //************************************************************************
     // success
-
 
     retourne 0;
 }

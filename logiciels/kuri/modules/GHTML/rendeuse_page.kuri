@@ -97,6 +97,9 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
             erreur_ {
                 retourne recherche_page_étendue.erreur_
             }
+            sinon {
+                retourne "erreur inconnue"
+            }
         }
     }
 
@@ -109,6 +112,9 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
             }
             erreur_ {
                 retourne recherche_page_incluse.erreur_
+            }
+            sinon {
+                retourne "erreur inconnue"
             }
         }
     }
@@ -181,6 +187,9 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
         page {}
         erreur_ {
             retourne enchaine("<p>", recherche_page.erreur_, "</p>")
+        }
+        sinon {
+            retourne enchaine("<p>Erreur interne</p>")
         }
     }
 

@@ -47,7 +47,6 @@ ferme_fichier
 
  */
 
-
 CheminFichier :: struct {
     chn : chaine
 }
@@ -63,7 +62,7 @@ détruit_chemin :: fonc (chemin: &CheminFichier)
     déloge(chemin.chn)
 }
 
-imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
+imprime_chemin_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
 {
     si chemin {
         ajoute_au_tampon(enchaineuse, chemin.chn)
@@ -711,7 +710,6 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
 
  */
 
-
 /*
 
     Opération sur les chemins de fichiers :
@@ -737,6 +735,5 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
             -- etc.
     - crée une séquence de fichier
         -- pour les séquences, l'application cliente peut se charger de créer le bon chemin
-
 
  */

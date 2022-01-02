@@ -30,15 +30,18 @@
 
 #include "parsage/identifiant.hh"
 
+#include "analyse.hh"
+#include "bloc_basique.hh"
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
+#include "log.hh"
 
 /*
   À FAIRE(optimisations) :
   - crée toujours des blocs pour la RI, l'enlignage sera plus simple
   - bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
-  - déplace les instruction dans les blocs au plus près de leurs utilisations
+  - déplace les instructions dans les blocs au plus près de leurs utilisations
 
   À FAIRE(enlignage) :
   - détecte les fonctions récursives, empêche leurs enlignages
@@ -47,33 +50,7 @@
   - problème avec l'enlignage : il semblerait que les pointeurs ne soit pas correctement « enlignés
   » pour les accès de membres
   - change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
-
-  À FAIRE(analyse) :
-  - membre actifs des unions
  */
-
-static bool log_actif = false;
-
-static void active_log()
-{
-    log_actif = true;
-}
-
-static void desactive_log()
-{
-    log_actif = false;
-}
-
-template <typename... Ts>
-void log(std::ostream &os, Ts... ts)
-{
-    if (!log_actif) {
-        return;
-    }
-
-    ((os << ts), ...);
-    os << '\n';
-}
 
 enum {
     PROPRE = 0,
@@ -96,557 +73,11 @@ enum {
     REQUIERS_SUPPRESSION_CODE_MORT = (1 << 4),
 };
 
-struct Bloc;
-static void imprime_bloc(Bloc *bloc,
-                         int decalage_instruction,
-                         std::ostream &os,
-                         bool surligne_inutilisees = false);
-static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
-
-struct Bloc {
-    InstructionLabel *label = nullptr;
-
-    kuri::tableau<Instruction *, int> instructions{};
-
-    kuri::tableau<Bloc *, int> parents{};
-    kuri::tableau<Bloc *, int> enfants{};
-
-    /* les variables déclarées dans ce bloc */
-    kuri::tableau<InstructionAllocation *, int> variables_declarees{};
-
-    /* les variables utilisées dans ce bloc */
-    kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
-
-    void ajoute_enfant(Bloc *enfant)
-    {
-        enfant->ajoute_parent(this);
-
-        POUR (enfants) {
-            if (it == enfant) {
-                return;
-            }
-        }
-
-        enfants.ajoute(enfant);
-    }
-
-    void remplace_enfant(Bloc *enfant, Bloc *par)
-    {
-        enleve_du_tableau(enfants, enfant);
-        ajoute_enfant(par);
-        enfant->enleve_parent(this);
-        par->ajoute_parent(this);
-
-        auto inst = instructions.derniere();
-
-        if (inst->est_branche()) {
-            auto branche = inst->comme_branche();
-            branche->label = par->label;
-            return;
-        }
-
-        if (inst->est_branche_cond()) {
-            auto branche_cond = inst->comme_branche_cond();
-            auto label_si_vrai = branche_cond->label_si_vrai;
-            auto label_si_faux = branche_cond->label_si_faux;
-
-            if (label_si_vrai == enfant->label) {
-                branche_cond->label_si_vrai = par->label;
-            }
-
-            if (label_si_faux == enfant->label) {
-                branche_cond->label_si_faux = par->label;
-            }
-
-            return;
-        }
-    }
-
-    void enleve_parent(Bloc *parent)
-    {
-        enleve_du_tableau(parents, parent);
-    }
-
-    void enleve_enfant(Bloc *enfant)
-    {
-        enleve_du_tableau(enfants, enfant);
-
-        /* quand nous enlevons un enfant, il faut modifier la cible des branches potentielles */
-
-        if (instructions.est_vide()) {
-            return;
-        }
-
-        /* création_contexte n'a pas d'instruction de retour à la fin de son bloc, et après
-         * l'enlignage, nous nous retrouvons avec un bloc vide à la fin de la fonction */
-        if (enfant->instructions.est_vide()) {
-            return;
-        }
-
-        auto inst = instructions.derniere();
-
-        if (log_actif) {
-            std::cerr << "-- dernière inststruction : ";
-            imprime_instruction(inst, std::cerr);
-        }
-
-        if (inst->est_branche()) {
-            // À FAIRE
-            return;
-        }
-
-        if (inst->est_branche_cond()) {
-            auto branche_cond = inst->comme_branche_cond();
-            auto label_si_vrai = branche_cond->label_si_vrai;
-            auto label_si_faux = branche_cond->label_si_faux;
-
-            if (label_si_vrai == enfant->label) {
-                branche_cond->label_si_vrai = label_si_faux;
-            }
-            else if (label_si_faux == enfant->label) {
-                branche_cond->label_si_faux = label_si_vrai;
-            }
-            else {
-                // assert(0);
-            }
-
-            return;
-        }
-
-        if (inst->est_retour()) {
-            return;
-        }
-
-        log(std::cerr, "bloc ", label->id);
-        assert(0);
-    }
-
-    bool peut_fusionner_enfant()
-    {
-        if (enfants.taille() == 0) {
-            log(std::cerr, "enfant == 0");
-            return false;
-        }
-
-        if (enfants.taille() > 1) {
-            log(std::cerr, "enfants.taille() > 1");
-            return false;
-        }
-
-        auto enfant = enfants[0];
-
-        if (enfant->parents.taille() > 1) {
-            log(std::cerr, "enfants.parents.taille() > 1");
-            return false;
-        }
-
-        return true;
-    }
-
-    void utilise_variable(InstructionAllocation *variable)
-    {
-        if (!variable) {
-            return;
-        }
-
-        for (auto var : this->variables_utilisees) {
-            if (var == variable) {
-                return;
-            }
-        }
-
-        this->variables_utilisees.ajoute(variable);
-        variable->blocs_utilisants += 1;
-    }
-
-    void fusionne_enfant(Bloc *enfant)
-    {
-        log(std::cerr,
-            "S'apprête à fusionner le bloc ",
-            enfant->label->id,
-            " dans le bloc ",
-            this->label->id);
-
-        this->instructions.supprime_dernier();
-        this->instructions.reserve_delta(enfant->instructions.taille());
-
-        POUR (enfant->instructions) {
-            this->instructions.ajoute(it);
-        }
-
-        this->variables_declarees.reserve(enfant->variables_declarees.taille() +
-                                          this->variables_declarees.taille());
-        POUR (enfant->variables_declarees) {
-            this->variables_declarees.ajoute(it);
-        }
-
-        POUR (enfant->variables_utilisees) {
-            it->blocs_utilisants -= 1;
-            this->utilise_variable(it);
-        }
-
-        this->enleve_enfant(enfant);
-
-        POUR (enfant->enfants) {
-            this->ajoute_enfant(it);
-        }
-
-        POUR (this->enfants) {
-            it->enleve_parent(enfant);
-        }
-
-        //		std::cerr << "-- enfants après fusion : ";
-        //		POUR (this->enfants) {
-        //			std::cerr << it->label->id << " ";
-        //		}
-        //		std::cerr << "\n";
-
-        if (log_actif) {
-            std::cerr << "-- bloc après fusion :\n";
-            imprime_bloc(this, 0, std::cerr);
-        }
-
-        enfant->instructions.efface();
-    }
-
-  private:
-    void enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
-    {
-        for (auto i = 0; i < tableau.taille(); ++i) {
-            if (tableau[i] == bloc) {
-                std::swap(tableau[i], tableau[tableau.taille() - 1]);
-                tableau.redimensionne(tableau.taille() - 1);
-                break;
-            }
-        }
-    }
-
-    void ajoute_parent(Bloc *parent)
-    {
-        POUR (parents) {
-            if (it == parent) {
-                return;
-            }
-        }
-
-        parents.ajoute(parent);
-    }
-};
-
-static void imprime_bloc(Bloc *bloc,
-                         int decalage_instruction,
-                         std::ostream &os,
-                         bool surligne_inutilisees)
-{
-    os << "Bloc " << bloc->label->id << ' ';
-
-    auto virgule = " [";
-    if (bloc->parents.est_vide()) {
-        os << virgule;
-    }
-    for (auto parent : bloc->parents) {
-        os << virgule << parent->label->id;
-        virgule = ", ";
-    }
-    os << "]";
-
-    virgule = " [";
-    if (bloc->enfants.est_vide()) {
-        os << virgule;
-    }
-    for (auto enfant : bloc->enfants) {
-        os << virgule << enfant->label->id;
-        virgule = ", ";
-    }
-    os << "]\n";
-
-    imprime_instructions(
-        bloc->instructions, decalage_instruction, os, false, surligne_inutilisees);
-}
-
-static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)
-{
-    os << "=================== Blocs ===================\n";
-
-    int decalage_instruction = 0;
-    POUR (blocs) {
-        imprime_bloc(it, decalage_instruction, os);
-        decalage_instruction += it->instructions.taille();
-    }
-}
-
-static InstructionAllocation *alloc_ou_nul(Atome *atome)
-{
-    if (!atome->est_instruction()) {
-        return nullptr;
-    }
-
-    auto inst = atome->comme_instruction();
-
-    if (inst->est_alloc()) {
-        return inst->comme_alloc();
-    }
-
-    if (inst->est_acces_membre()) {
-        return alloc_ou_nul(inst->comme_acces_membre()->accede);
-    }
-
-    return nullptr;
-}
-
-static void construit_liste_variables_utilisees(Bloc *bloc)
-{
-    POUR (bloc->instructions) {
-        if (it->est_alloc()) {
-            auto alloc = it->comme_alloc();
-            bloc->variables_declarees.ajoute(alloc);
-            continue;
-        }
-
-        if (it->est_stocke_mem()) {
-            auto stocke = it->comme_stocke_mem();
-            bloc->utilise_variable(alloc_ou_nul(stocke->ou));
-        }
-        else if (it->est_acces_membre()) {
-            auto membre = it->comme_acces_membre();
-            bloc->utilise_variable(alloc_ou_nul(membre->accede));
-        }
-        else if (it->est_op_binaire()) {
-            auto op = it->comme_op_binaire();
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_gauche));
-            bloc->utilise_variable(alloc_ou_nul(op->valeur_droite));
-        }
-    }
-}
-
-static Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
-{
-    POUR (blocs) {
-        if (it->label == label) {
-            return it;
-        }
-    }
-
-    auto bloc = memoire::loge<Bloc>("Bloc");
-    bloc->label = label;
-    blocs.ajoute(bloc);
-    return bloc;
-}
-
 /* À FAIRE(optimisations) : non-urgent
  * - Substitutrice, pour généraliser les substitions d'instructions
  * - copie des instructions (requiers de séparer les allocations des instructions de la
  * ConstructriceRI)
  */
-
-static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
-{
-    racine->nombre_utilisations += 1;
-
-    switch (racine->genre_atome) {
-        case Atome::Genre::GLOBALE:
-        case Atome::Genre::FONCTION:
-        case Atome::Genre::CONSTANTE:
-        {
-            break;
-        }
-        case Atome::Genre::INSTRUCTION:
-        {
-            auto inst = racine->comme_instruction();
-
-            switch (inst->genre) {
-                case Instruction::Genre::APPEL:
-                {
-                    auto appel = inst->comme_appel();
-
-                    /* appele peut être un pointeur de fonction */
-                    incremente_nombre_utilisations_recursif(appel->appele);
-
-                    POUR (appel->args) {
-                        incremente_nombre_utilisations_recursif(it);
-                    }
-
-                    break;
-                }
-                case Instruction::Genre::CHARGE_MEMOIRE:
-                {
-                    auto charge = inst->comme_charge();
-                    incremente_nombre_utilisations_recursif(charge->chargee);
-                    break;
-                }
-                case Instruction::Genre::STOCKE_MEMOIRE:
-                {
-                    auto stocke = inst->comme_stocke_mem();
-                    incremente_nombre_utilisations_recursif(stocke->valeur);
-                    incremente_nombre_utilisations_recursif(stocke->ou);
-                    break;
-                }
-                case Instruction::Genre::OPERATION_UNAIRE:
-                {
-                    auto op = inst->comme_op_unaire();
-                    incremente_nombre_utilisations_recursif(op->valeur);
-                    break;
-                }
-                case Instruction::Genre::OPERATION_BINAIRE:
-                {
-                    auto op = inst->comme_op_binaire();
-                    incremente_nombre_utilisations_recursif(op->valeur_droite);
-                    incremente_nombre_utilisations_recursif(op->valeur_gauche);
-                    break;
-                }
-                case Instruction::Genre::ACCEDE_INDEX:
-                {
-                    auto acces = inst->comme_acces_index();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
-                    break;
-                }
-                case Instruction::Genre::ACCEDE_MEMBRE:
-                {
-                    auto acces = inst->comme_acces_membre();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
-                    break;
-                }
-                case Instruction::Genre::TRANSTYPE:
-                {
-                    auto transtype = inst->comme_transtype();
-                    incremente_nombre_utilisations_recursif(transtype->valeur);
-                    break;
-                }
-                case Instruction::Genre::BRANCHE_CONDITION:
-                {
-                    auto branche = inst->comme_branche_cond();
-                    incremente_nombre_utilisations_recursif(branche->condition);
-                    break;
-                }
-                case Instruction::Genre::RETOUR:
-                {
-                    auto retour = inst->comme_retour();
-
-                    if (retour->valeur) {
-                        incremente_nombre_utilisations_recursif(retour->valeur);
-                    }
-
-                    break;
-                }
-                case Instruction::Genre::ALLOCATION:
-                case Instruction::Genre::INVALIDE:
-                case Instruction::Genre::BRANCHE:
-                case Instruction::Genre::LABEL:
-                {
-                    break;
-                }
-            }
-
-            break;
-        }
-    }
-}
-
-static bool est_utilise(Atome *atome)
-{
-    if (atome->est_instruction()) {
-        auto inst = atome->comme_instruction();
-
-        if (inst->est_alloc()) {
-            return inst->nombre_utilisations != 0;
-        }
-
-        if (inst->est_acces_index()) {
-            auto acces = inst->comme_acces_index();
-            return est_utilise(acces->accede);
-        }
-
-        if (inst->est_acces_membre()) {
-            auto acces = inst->comme_acces_membre();
-            return est_utilise(acces->accede);
-        }
-
-        // pour les déréférencements de pointeurs
-        if (inst->est_charge()) {
-            auto charge = inst->comme_charge();
-            return est_utilise(charge->chargee);
-        }
-    }
-
-    return atome->nombre_utilisations != 0;
-}
-
-/* Petit algorithme de suppression de code mort.
- *
- * Le code mort est pour le moment défini comme étant toute instruction ne participant pas au
- * résultat final, ou à une branche conditionnelle. Les fonctions ne retournant rien sont
- * considérées comme utile pour le moment, il faudra avoir un système pour détecter les effets
- * secondaire. Les fonctions dont la valeur de retour est ignorée sont supprimées malheureusement,
- * il faudra changer cela avant de tenter d'activer ce code.
- *
- * Il faudra gérer les cas suivants :
- * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires :
- * supprime la temporaire, mais garde la fonction
- * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci
- * dans la fonction
- * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le
- * pointeur d'une fonction
- * - détecter quand nous avons une variable qui est réassignée
- *
- * une fonction possède des effets secondaires si :
- * -- elle modifie l'un de ses paramètres
- * -- elle possède une boucle ou un controle de flux non constant
- * -- elle est une fonction externe
- * -- elle appel une fonction ayant des effets secondaires
- *
- * erreur non-utilisation d'une variable
- * -- si la variable fût définie par l'utilisateur
- * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les
- * it et index_it des boucles pour
- *
- */
-static void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
-{
-    for (auto i = instructions.taille() - 1; i >= 0; --i) {
-        auto it = instructions[i];
-
-        if (it->nombre_utilisations != 0) {
-            continue;
-        }
-
-        switch (it->genre) {
-            case Instruction::Genre::BRANCHE:
-            case Instruction::Genre::BRANCHE_CONDITION:
-            case Instruction::Genre::LABEL:
-            case Instruction::Genre::RETOUR:
-            {
-                incremente_nombre_utilisations_recursif(it);
-                break;
-            }
-            case Instruction::Genre::APPEL:
-            {
-                auto appel = it->comme_appel();
-
-                if (appel->type->genre == GenreType::RIEN) {
-                    incremente_nombre_utilisations_recursif(it);
-                }
-
-                break;
-            }
-            case Instruction::Genre::STOCKE_MEMOIRE:
-            {
-                auto stocke = it->comme_stocke_mem();
-
-                if (est_utilise(stocke->ou)) {
-                    incremente_nombre_utilisations_recursif(stocke);
-                }
-
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-    }
-}
 
 #undef DEBOGUE_SUPPRESSION_CODE_MORT
 
@@ -1515,7 +946,36 @@ static bool supprime_code_mort(kuri::tableau<Instruction *, int> &instructions)
     return false;
 }
 
-// À FAIRE : vérifie que ceci ne vide pas les fonctions sans retour
+/* Petit algorithme de suppression de code mort.
+ *
+ * Le code mort est pour le moment défini comme étant toute instruction ne participant pas au
+ * résultat final, ou à une branche conditionnelle. Les fonctions ne retournant rien sont
+ * considérées comme utile pour le moment, il faudra avoir un système pour détecter les effets
+ * secondaire. Les fonctions dont la valeur de retour est ignorée sont supprimées malheureusement,
+ * il faudra changer cela avant de tenter d'activer ce code.
+ *
+ * Il faudra gérer les cas suivants :
+ * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires :
+ * supprime la temporaire, mais garde la fonction
+ * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci
+ * dans la fonction
+ * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le
+ * pointeur d'une fonction
+ * - détecter quand nous avons une variable qui est réassignée
+ *
+ * une fonction possède des effets secondaires si :
+ * -- elle modifie l'un de ses paramètres
+ * -- elle possède une boucle ou un controle de flux non constant
+ * -- elle est une fonction externe
+ * -- elle appel une fonction ayant des effets secondaires
+ *
+ * erreur non-utilisation d'une variable
+ * -- si la variable fût définie par l'utilisateur
+ * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les
+ * it et index_it des boucles pour
+ *
+ * À FAIRE : vérifie que ceci ne vide pas les fonctions sans retour
+ */
 bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
@@ -1945,64 +1405,6 @@ static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blo
             }
         }
     }
-}
-
-static kuri::tableau<Bloc *, int> convertis_en_blocs(ConstructriceRI &constructrice,
-                                                     AtomeFonction *atome_fonc,
-                                                     kuri::tableau<Bloc *, int> &blocs___)
-{
-    kuri::tableau<Bloc *, int> blocs{};
-
-    Bloc *bloc_courant = nullptr;
-    auto numero_instruction = atome_fonc->params_entrees.taille();
-
-    POUR (atome_fonc->instructions) {
-        it->numero = numero_instruction++;
-    }
-
-    POUR (atome_fonc->instructions) {
-        if (it->est_label()) {
-            bloc_courant = bloc_pour_label(blocs___, it->comme_label());
-            blocs.ajoute(bloc_courant);
-            continue;
-        }
-
-        bloc_courant->instructions.ajoute(it);
-
-        if (it->est_branche()) {
-            auto bloc_cible = bloc_pour_label(blocs___, it->comme_branche()->label);
-            bloc_courant->ajoute_enfant(bloc_cible);
-            continue;
-        }
-
-        if (it->est_branche_cond()) {
-            auto label_si_vrai = it->comme_branche_cond()->label_si_vrai;
-            auto label_si_faux = it->comme_branche_cond()->label_si_faux;
-
-            auto bloc_si_vrai = bloc_pour_label(blocs___, label_si_vrai);
-            auto bloc_si_faux = bloc_pour_label(blocs___, label_si_faux);
-
-            bloc_courant->ajoute_enfant(bloc_si_vrai);
-            bloc_courant->ajoute_enfant(bloc_si_faux);
-            continue;
-        }
-    }
-
-    /* ajoute des branches implicites pour les blocs qui n'en ont pas,
-     * ceci peut arriver pour les NoeudBlocs des conditions ou des boucles, qui
-     * n'ont pas d'expressions */
-    for (auto i = 0; i < blocs.taille() - 1; ++i) {
-        auto bloc = blocs[i];
-
-        if (bloc->enfants.est_vide() &&
-            (bloc->instructions.est_vide() || !bloc->instructions.derniere()->est_retour())) {
-            auto enfant = blocs[i + 1];
-            bloc->ajoute_enfant(enfant);
-            bloc->instructions.ajoute(constructrice.cree_branche(nullptr, enfant->label, true));
-        }
-    }
-
-    return blocs;
 }
 
 static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)

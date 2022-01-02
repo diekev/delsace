@@ -2,8 +2,6 @@ importe CodecDonnées
 importe Fondation
 importe Internet
 importe POSIX
-importe Réseau
-importe Routage
 importe SysFichier
 importe Temps
 

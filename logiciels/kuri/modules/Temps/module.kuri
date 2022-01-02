@@ -72,6 +72,38 @@ temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
     retourne m - microsecondes(inst)
 }
 
+opérateur == :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne i0.seconde == i1.seconde && i0.nanoseconde == i1.nanoseconde
+}
+
+opérateur != :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne !(i0 == i1)
+}
+
+opérateur < :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne i0.seconde <= i1.seconde && i0.nanoseconde < i1.nanoseconde
+}
+
+opérateur > :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne i0.seconde >= i1.seconde && i0.nanoseconde > i1.nanoseconde
+}
+
+opérateur <= :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne i0 < i1 || i0 == i1
+}
+
+opérateur >= :: fonc (i0: Instantané, i1: Instantané) -> bool
+{
+    retourne i0 > i1 || i0 == i1
+}
+
+// ----------------------------------------------------------------------------
+
 TempsSystème :: struct {
     seconde: z64
     nanoseconde: z64
@@ -107,6 +139,38 @@ millisecondes :: fonc (temps: TempsSystème) -> z64
 {
     retourne temps.seconde * 1_000 + temps.nanoseconde / 1_000_000
 }
+
+opérateur == :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne t0.seconde == t1.seconde && t0.nanoseconde == t1.nanoseconde
+}
+
+opérateur != :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne !(t0 == t1)
+}
+
+opérateur < :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne t0.seconde <= t1.seconde && t0.nanoseconde < t1.nanoseconde
+}
+
+opérateur > :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne t0.seconde >= t1.seconde && t0.nanoseconde > t1.nanoseconde
+}
+
+opérateur <= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne t0 < t1 || t0 == t1
+}
+
+opérateur >= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
+{
+    retourne t0 > t1 || t0 == t1
+}
+
+// ----------------------------------------------------------------------------
 
 secondes_par_an :: fonc () -> z32
 {
@@ -265,7 +329,6 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
     si chaine_date.taille != format.taille {
         retourne résultat
     }
-
 
     pour format {
         c := chaine_date[index_it]

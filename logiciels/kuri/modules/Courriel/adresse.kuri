@@ -1,4 +1,5 @@
 importe Aléa
+importe Alphabet
 importe Fondation
 
 /* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
@@ -18,7 +19,14 @@ parse_courriel_pour_info_type :: fonc (chn: chaine) -> bool, AdresseCourriel
 {
     courriel := parse_adresse_courriel(chn)
     retourne courriel.est_valide(), courriel
-} @ParsageURL
+} @ParsageURL @ParsageJSON
+
+imprime_adresse_courriel :: fonc (enchaineuse: *Enchaineuse, adresse: *AdresseCourriel)
+{
+    si adresse {
+        ajoute_au_tampon(enchaineuse, adresse.nom, "@", adresse.hôte)
+    }
+} @FormattageImpression
 
 // -----------------------------------------------------
 

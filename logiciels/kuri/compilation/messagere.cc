@@ -157,12 +157,8 @@ void Messagere::commence_interception(EspaceDeTravail * /*espace*/)
 void Messagere::termine_interception(EspaceDeTravail * /*espace*/)
 {
     interception_commencee = false;
-
-    /* purge tous les messages puisque nous ne sommes plus écouté */
-    while (!file_message.est_vide()) {
-        auto message = file_message.defile();
-        m_compilatrice->gestionnaire_code->message_recu(message);
-    }
+    file_message.efface();
+    m_compilatrice->gestionnaire_code->interception_message_terminee();
 }
 
 void Messagere::purge_messages()

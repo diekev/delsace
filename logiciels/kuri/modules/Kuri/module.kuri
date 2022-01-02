@@ -1,3 +1,5 @@
+importe GlibC // pour le signal de violation de segmentation
+
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
 // Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
@@ -382,9 +384,9 @@ __stockage_temporaire :: fonc(
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    données : *BaseAllocatrice,
-    info : *InfoType,
-    pos : PositionCodeSource) -> *rien
+    données : *BaseAllocatrice @inutilisée,
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
 {
     alloc := contexte.stockage_temporaire
 
@@ -821,6 +823,9 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
 
     info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale(contexte)\n")
     trace_appel.info_appel = *info_appel
+
+    système_ajoute_action_pour_action_erreur_de_segmentation()
+
     résultat := __principale(mémoire(contexte))
 
     __fini_exécution_kuri(contexte)

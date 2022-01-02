@@ -1,5 +1,6 @@
-#bibliothèque_statique "libmodule_c_compression.a"
-#bibliothèque_dynamique "z"
+libz :: #bibliothèque "z"
+
+#dépendance_bibliothèque libmodule_c_compression libz
 
 importe Fondation
 importe SysFichier

@@ -1,8 +1,8 @@
 importe Compilatrice
 importe ConnexionTCP
 importe Fondation
+importe Internet
 importe Introspection
-importe Réseau
 importe SysFichier
 
 TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
@@ -147,8 +147,8 @@ calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
 }
 
 NouvelleRouteuse :: struct {
-    apparie_routes_get: fonc(&NouvelleRouteuse, chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
-    apparie_routes_post: fonc(&NouvelleRouteuse, chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+    apparie_routes_get: fonc(chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+    apparie_routes_post: fonc(chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
     // À FAIRE
     rappel_page_non_trouvée: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
@@ -183,11 +183,11 @@ apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &Mes
             retourne apparie_fichier(routeuse, chemin, prise, message)
         }
 
-        retourne routeuse.apparie_routes_get(routeuse, chemin, prise, message)
+        retourne routeuse.apparie_routes_get(chemin, prise, message)
     }
 
     si routeuse.apparie_routes_post && méthode == "POST" {
-        retourne routeuse.apparie_routes_post(routeuse, chemin, prise, message)
+        retourne routeuse.apparie_routes_post(chemin, prise, message)
     }
 
     retourne méthode_non_autorisée()
@@ -217,7 +217,7 @@ est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chain
     retourne faux
 }
 
-apparie_fichier :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
     chm := chemin_pour_fichier(chemin)
 
@@ -387,7 +387,7 @@ génère_initialisation_routes :: fonc ()
     // Il nous faut les modules.
     ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe ServeuseHTTP\n")
+    ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
 
 	modules_importés : []chaine
 	tableau_ajoute(*modules_importés, "Fondation")
@@ -461,5 +461,3 @@ génère_initialisation_routes :: fonc ()
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
 }
-
-#pré_exécutable génère_initialisation_routes()

@@ -9,7 +9,6 @@ importe SysFichier
  * - taille tabulation
  * - préférences guillemet/apostrophe
 
-
     minification
     [X] comments
     [ ] default attributes
@@ -51,7 +50,6 @@ $htmlMin->doSortHtmlAttributes();                     // sort html-attributes, f
 $htmlMin->doRemoveSpacesBetweenTags();                // remove more (aggressive) spaces in the dom (disabled by default)
 $htmlMin->doRemoveOmittedQuotes();                    // remove quotes e.g. class="lall" => class=lall
 $htmlMin->doRemoveOmittedHtmlTags();                  // remove ommitted html tags e.g. <p>lall</p> => <p>lall
-
 
  */
 
@@ -156,7 +154,6 @@ peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, v
         retourne faux
     }
 
-    besoin_apostrophes := faux
     pour c dans valeur.unités {
         si c == (' ' comme n16) || c == ('/' comme n16) {
             retourne faux

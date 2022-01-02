@@ -1,6 +1,6 @@
 importe Fondation
 importe GlibC
-importe Réseau
+importe Internet
 
 //###############################################################################
 

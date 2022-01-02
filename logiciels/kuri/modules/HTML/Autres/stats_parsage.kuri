@@ -63,8 +63,7 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
         chemin_possible := exploratrice.chemin_suivant()
 
         discr chemin_possible {
-            CheminFichier {
-                chemin := chemin_possible comme CheminFichier
+            Quelque(chemin) {
                 si est_fichier_html(chemin) {
                     parse_page_et_accumule_stats(chemin, statistiques)
                     nombre_de_fichiers += 1
@@ -141,22 +140,6 @@ importe Compilatrice
 // Fichier legifrance
 // ~6 s non-optimisé
 // ~1.5 s optimisé
-optimise_code :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.niveau_optimisation = NiveauOptimisation.O3
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute optimise_code()
-
-compile_pour_profilage :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.PROFILAGE
-    compilatrice_ajourne_options(options)
-}
-
+// #exécute compile_pour_production()
 // #exécute compile_pour_profilage()
+// #exécute compile_pour_débogage()

@@ -1,10 +1,15 @@
 /* Programme pour vérifier la validité d'un fichier HTML. */
 
 importe Chaine
+importe Compilatrice
 importe Fondation
 importe HTML
 importe SysFichier
 importe Temps
+
+// #exécute compile_pour_production()
+// #exécute compile_pour_profilage()
+// #exécute compile_pour_débogage()
 
 /*
 
@@ -16,7 +21,6 @@ importe Temps
 
     options possibles :
         - préfère style horsligné
-
 
     // quelques sources d'inspiration
     -- https://www.themelocation.com/best-html5-practices/
@@ -131,10 +135,10 @@ extrait_texte :: fonc (noeud: *Noeud) -> ChaineUTF16
 
 vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Noeud)
 {
-    si noeud.genre == GenreNoeud.Texte {
+    si noeud.genre == HTML.GenreNoeud.Texte {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == GenreNoeud.Élément {
+    sinon si noeud.genre == HTML.GenreNoeud.Élément {
         élément := noeud comme *Élément
 
         contexte_vérification.nombre_éléments += 1
@@ -323,10 +327,10 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         }
         contexte_vérification.profondeur -= 1
     }
-    sinon si noeud.genre == GenreNoeud.Doctype {
+    sinon si noeud.genre == HTML.GenreNoeud.Doctype {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == GenreNoeud.Document {
+    sinon si noeud.genre == HTML.GenreNoeud.Document {
         contexte_vérification.profondeur += 1
         pour noeud.enfants {
             vérifie_noeud(contexte_vérification, it)
@@ -397,35 +401,3 @@ principale :: fonc () -> z32
 
     retourne 0
 }
-
-importe Compilatrice
-
-optimise_code :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.niveau_optimisation = NiveauOptimisation.O3
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute optimise_code()
-
-compile_pour_profilage :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.PROFILAGE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute compile_pour_profilage()
-
-compile_pour_débogage :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.DÉBOGAGE
-    compilatrice_ajourne_options(options)
-}
-
-// #exécute compile_pour_débogage()

@@ -40,6 +40,32 @@ limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 }
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
+// ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
+// Ceci est utile pour stocker dans l'ordre croissant des données.
+limite_basse :: fonc (f : *$T, l : *T, v : T, comp: fonc(*T, *T)(bool)) -> *T
+{
+	fl := f
+	ll := l
+
+	boucle {
+		si fl == ll {
+			arrête
+		}
+
+		m := suivant(fl, distance(fl, ll) / 2)
+
+		si (comp(m, *v)) {
+			fl = suivant(m, 1)
+		}
+		sinon {
+			ll = m
+		}
+	}
+
+	retourne fl
+}
+
+// Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus grande que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre décroissant des données.
 limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
@@ -63,4 +89,83 @@ limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
 	}
 
 	retourne fl
+}
+
+tous_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
+{
+    pour tableau {
+        saufsi prédicat(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+aucun_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
+{
+    pour tableau {
+        si prédicat(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+copie_si :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> []T
+{
+    résultat : []T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        si prédicat(it) {
+            tableau_ajoute(*résultat, copie(it))
+        }
+    }
+
+    retourne résultat
+}
+
+copie :: fonc (tableau: []$T) -> []T
+{
+    résultat : []T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        tableau_ajoute(*résultat, copie(it))
+    }
+
+    retourne résultat
+}
+
+vole :: fonc (tableau: &[]$T) -> []T
+{
+    résultat : []T = tableau
+    tableau.pointeur = nul
+    tableau.taille = 0
+    tableau.capacité = 0
+    retourne tableau
+}
+
+accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
+{
+    résultat := valeur_initiale
+
+    pour tableau {
+        résultat += rappel(it)
+    }
+
+    retourne résultat
+}
+
+accumule :: fonc (tableau: []$T, valeur_initiale: $T) -> T
+{
+    résultat := valeur_initiale
+
+    pour tableau {
+        résultat += it
+    }
+
+    retourne résultat
 }
