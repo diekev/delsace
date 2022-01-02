@@ -246,6 +246,18 @@ static Atome *cible_finale_stockage(Atome *ou)
     return ou;
 }
 
+/* Retourne vrai si un paramètre ou une globale fut utilisée lors de la production de l'atome. */
+static bool parametre_ou_globale_fut_utilisee(Atome *atome)
+{
+    auto resultat = false;
+    visite_atome(atome, [&resultat](Atome const *visite) {
+        if ((visite->etat & EST_PARAMETRE_FONCTION) || visite->est_globale()) {
+            resultat = true;
+        }
+    });
+    return resultat;
+}
+
 void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
 {
     for (auto i = instructions.taille() - 1; i >= 0; --i) {
@@ -286,14 +298,9 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
                 else {
                     /* Vérifie si l'instruction de stockage prend la valeur d'une globale ou d'un
                      * paramètre. */
-#if 0
-                    auto valeur_stocke = cible_finale_stockage(stocke->valeur);
-
-                    if ((valeur_stocke->etat & EST_PARAMETRE_FONCTION) ||
-                        valeur_stocke->est_globale()) {
+                    if (parametre_ou_globale_fut_utilisee(stocke->valeur)) {
                         incremente_nombre_utilisations_recursif(stocke);
                     }
-#endif
                 }
                 break;
             }
