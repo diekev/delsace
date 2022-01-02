@@ -170,7 +170,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         si message.uri.requête {
             raison, champs_renseignés, paramètres := parse_texte_format_url(message.uri.requête, %)
 
-            si raison != RésultatParsage.Succès {
+            si raison != RésultatParsageFormatURL.Succès {
                 retourne mauvaise_requête("la requête est malformée")
             }
 
