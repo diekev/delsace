@@ -263,17 +263,10 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
 {
     auto nom_fontion = enchaine("init_globale", fonction_pour);
 
-    auto types_entrees = dls::tablet<Type *, 6>(1);
-    types_entrees[0] = m_compilatrice.typeuse.type_contexte;
-
+    auto types_entrees = dls::tablet<Type *, 6>(0);
     auto type_sortie = m_compilatrice.typeuse[TypeBase::RIEN];
 
-    Atome *param_contexte = cree_allocation(nullptr, types_entrees[0], ID::contexte);
-
-    auto params = kuri::tableau<Atome *, int>(1);
-    params[0] = param_contexte;
-
-    auto fonction = m_compilatrice.cree_fonction(nullptr, nom_fontion, std::move(params));
+    auto fonction = m_compilatrice.cree_fonction(nullptr, nom_fontion);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
 
     this->fonction_courante = fonction;
@@ -321,31 +314,10 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     // crée l'appel de cette fonction et ajoute là au début de la fonction_pour
 
     this->fonction_courante = fonction_pour;
-    param_contexte = nullptr;
+    cree_appel(nullptr, fonction);
 
-    POUR (fonction_pour->instructions) {
-        if (it->est_alloc() && it->comme_alloc()->ident == ID::contexte) {
-            param_contexte = it;
-            break;
-        }
-    }
-
-    if (param_contexte == nullptr) {
-        espace()->rapporte_erreur(
-            fonction_pour->decl,
-            "Erreur interne, aucun contexte trouvé pour l'initialisation des globales");
-        this->fonction_courante = nullptr;
-        return nullptr;
-    }
-
-    auto param_appel = kuri::tableau<Atome *, int>(1);
-    param_appel[0] = cree_charge_mem(nullptr, param_contexte);
-
-    cree_appel(nullptr, fonction, std::move(param_appel));
-
-    std::rotate(fonction_pour->instructions.begin() + fonction_pour->decalage_appel_init_globale +
-                    1,
-                fonction_pour->instructions.end() - 2,
+    std::rotate(fonction_pour->instructions.begin() + fonction_pour->decalage_appel_init_globale,
+                fonction_pour->instructions.end() - 1,
                 fonction_pour->instructions.end());
 
     this->fonction_courante = nullptr;
@@ -760,6 +732,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             break;
         }
+        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Erreur interne : une instruction pousse_contexte ne fut pas "
+                             "simplifiée !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         case GenreNoeud::INSTRUCTION_DISCR:
@@ -858,10 +839,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto args = kuri::tableau<Atome *, int>();
             args.reserve(expr_appel->parametres_resolus.taille());
-
-            if (!expr_appel->possede_drapeau(FORCE_NULCTX)) {
-                args.ajoute(cree_charge_mem(expr_appel, contexte));
-            }
 
             auto ancien_pour_appel = m_noeud_pour_appel;
             m_noeud_pour_appel = expr_appel;
@@ -1162,10 +1139,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
                     insere_label(label1);
 
-                    auto params = kuri::tableau<Atome *, int>(3);
-                    params[0] = cree_charge_mem(noeud, contexte);
-                    params[1] = acces_taille;
-                    params[2] = valeur_;
+                    auto params = kuri::tableau<Atome *, int>(2);
+                    params[0] = acces_taille;
+                    params[1] = valeur_;
                     cree_appel(noeud, fonction, std::move(params));
 
                     insere_label(label2);
@@ -1176,20 +1152,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
                     insere_label(label3);
 
-                    params = kuri::tableau<Atome *, int>(3);
-                    params[0] = cree_charge_mem(noeud, contexte);
-                    params[1] = acces_taille;
-                    params[2] = valeur_;
+                    params = kuri::tableau<Atome *, int>(2);
+                    params[0] = acces_taille;
+                    params[1] = valeur_;
                     cree_appel(noeud, fonction, std::move(params));
 
                     insere_label(label4);
                 };
 
-            // À FAIRE : les fonctions sans contexte ne peuvent pas avoir des vérifications de
-            // limites
-
             if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
-                if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+                if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto type_tableau_fixe = type_gauche->comme_tableau_fixe();
                     auto acces_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
                     genere_protection_limites(
@@ -1204,7 +1176,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             if (type_gauche->genre == GenreType::TABLEAU_DYNAMIQUE ||
                 type_gauche->genre == GenreType::VARIADIQUE) {
-                if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+                if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
                     genere_protection_limites(
                         acces_taille,
@@ -1218,7 +1190,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             }
 
             if (type_gauche->genre == GenreType::CHAINE) {
-                if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+                if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
                     genere_protection_limites(
                         acces_taille,
@@ -1760,19 +1732,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             empile_valeur(cree_charge_mem(noeud, valeur));
             break;
         }
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
-        {
-            auto noeud_pc = noeud->comme_pousse_contexte();
-            genere_ri_pour_noeud(noeud_pc->expression);
-            auto atome_nouveau_contexte = depile_valeur();
-            auto atome_ancien_contexte = contexte;
-
-            contexte = atome_nouveau_contexte;
-            genere_ri_pour_noeud(noeud_pc->bloc);
-            contexte = atome_ancien_contexte;
-
-            break;
-        }
         case GenreNoeud::EXPANSION_VARIADIQUE:
         {
             genere_ri_pour_expression_droite(noeud->comme_expansion_variadique()->expression,
@@ -1804,17 +1763,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     fonction_courante = atome_fonc;
 
-    if (!decl->possede_drapeau(FORCE_NULCTX)) {
-        contexte = atome_fonc->params_entrees[0];
-
-        POUR ((*decl->corps->bloc->membres.verrou_lecture())) {
-            if (it->ident == ID::contexte) {
-                static_cast<NoeudDeclarationSymbole *>(it)->atome = contexte;
-                break;
-            }
-        }
-    }
-
     cree_label(decl);
 
     genere_ri_pour_noeud(decl->corps->bloc);
@@ -1824,7 +1772,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     fonction_courante->ri_generee = true;
 
     fonction_courante = nullptr;
-    contexte = nullptr;
     this->m_pile.efface();
 }
 
@@ -1986,12 +1933,9 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
                 insere_label(label_si_vrai);
                 // À FAIRE : nous pourrions avoir une erreur différente ici.
-                auto params = kuri::tableau<Atome *, int>(1);
-                params[0] = cree_charge_mem(noeud, contexte);
                 cree_appel(noeud,
                            m_compilatrice.trouve_ou_insere_fonction(
-                               *this, m_compilatrice.interface_kuri->decl_panique_membre_union),
-                           std::move(params));
+                               *this, m_compilatrice.interface_kuri->decl_panique_membre_union));
                 insere_label(label_si_faux);
 
                 valeur = cree_reference_membre(noeud, valeur, 0);
@@ -2376,12 +2320,9 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
 
         insere_label(label_si_vrai);
         if (noeud->expression_piegee == nullptr) {
-            auto params = kuri::tableau<Atome *, int>(1);
-            params[0] = cree_charge_mem(noeud, contexte);
             cree_appel(noeud,
                        m_compilatrice.trouve_ou_insere_fonction(
-                           *this, m_compilatrice.interface_kuri->decl_panique_erreur),
-                       std::move(params));
+                           *this, m_compilatrice.interface_kuri->decl_panique_erreur));
         }
         else {
             auto var_expr_piegee = cree_allocation(
@@ -2439,12 +2380,9 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
 
         insere_label(label_si_vrai);
         if (noeud->expression_piegee == nullptr) {
-            auto params = kuri::tableau<Atome *, int>(1);
-            params[0] = cree_charge_mem(noeud, contexte);
             cree_appel(noeud,
                        m_compilatrice.trouve_ou_insere_fonction(
-                           *this, m_compilatrice.interface_kuri->decl_panique_erreur),
-                       std::move(params));
+                           *this, m_compilatrice.interface_kuri->decl_panique_erreur));
         }
         else {
             Instruction *membre_erreur = cree_reference_membre(noeud, valeur_union, 0);
@@ -2560,12 +2498,9 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 
         cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
         insere_label(label_si_vrai);
-        auto params = kuri::tableau<Atome *, int>(1);
-        params[0] = cree_charge_mem(noeud, contexte);
         cree_appel(noeud,
                    m_compilatrice.trouve_ou_insere_fonction(
-                       *this, m_compilatrice.interface_kuri->decl_panique_membre_union),
-                   std::move(params));
+                       *this, m_compilatrice.interface_kuri->decl_panique_membre_union));
         insere_label(label_si_faux);
     }
 
@@ -3462,21 +3397,11 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
     nombre_labels = 0;
 
     // déclare une fonction de type int(ContexteProgramme) appelée __principale
-    auto types_entrees = dls::tablet<Type *, 6>(1);
-    types_entrees[0] = m_compilatrice.typeuse.type_contexte;
-
+    auto types_entrees = dls::tablet<Type *, 6>();
     auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
-
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
 
-    auto alloc_contexte = cree_allocation(
-        nullptr, m_compilatrice.typeuse.type_contexte, ID::contexte);
-    contexte = alloc_contexte;
-
-    auto params = kuri::tableau<Atome *, int>(1);
-    params[0] = alloc_contexte;
-
-    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale", std::move(params));
+    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale");
     fonction->type = type_fonction;
     fonction->sanstrace = true;
     fonction->nombre_utilisations = 1;
@@ -3518,9 +3443,6 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
     // appel notre fonction principale en passant le contexte et le tableau
     auto fonc_princ = m_espace->fonction_principale;
 
-    auto params_principale = kuri::tableau<Atome *, int>(1);
-    params_principale[0] = cree_charge_mem(nullptr, fonction->params_entrees[0]);
-
     static Lexeme lexeme_appel_principale = {
         "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
     lexeme_appel_principale.ident = ID::principale;
@@ -3528,8 +3450,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
     static NoeudExpression site_appel_principale;
     site_appel_principale.lexeme = &lexeme_appel_principale;
 
-    auto valeur_princ = cree_appel(
-        &site_appel_principale, fonc_princ->atome, std::move(params_principale));
+    auto valeur_princ = cree_appel(&site_appel_principale, fonc_princ->atome);
 
     // return
     cree_retour(nullptr, valeur_princ);
@@ -3556,13 +3477,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     for (auto i = 0; i < atome_creation_contexte->instructions.taille(); ++i) {
         auto it = atome_creation_contexte->instructions[i];
         atome_fonc->instructions.ajoute(it);
-
-        if (it->genre == Instruction::Genre::ALLOCATION && it->ident == ID::contexte) {
-            contexte = it;
-        }
     }
-
-    assert(contexte);
 
     atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille();
 
@@ -3571,7 +3486,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     fonction->drapeaux |= RI_FUT_GENEREE;
 
     fonction_courante = nullptr;
-    contexte = nullptr;
 }
 
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)

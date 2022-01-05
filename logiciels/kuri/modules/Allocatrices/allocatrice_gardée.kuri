@@ -187,7 +187,7 @@ loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *Inf
     entête.info = info
     entête.taille = taille_alignée(taille)
 
-    traces := enregistre_trace_appels(contexte.trace_appel)
+    traces := enregistre_trace_appels(contexte().trace_appel)
     entête.traces = traces
 
     // À FAIRE: mutex
@@ -218,7 +218,7 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
     entête.taille = taille_alignée(nouvelle_taille)
     entête.info = info
     libère_tableau_trace_appels(entête.traces)
-    entête.traces = enregistre_trace_appels(contexte.trace_appel)
+    entête.traces = enregistre_trace_appels(contexte().trace_appel)
     ajoute_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
 
     retourne pointeur_depuis_entête(entête)
@@ -288,7 +288,7 @@ principale :: fonc () -> z32
 {
     allocatrice_gardée : AllocatriceGardée
 
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = allocation_gardée
     nouveau_contexte.données_allocatrice = *allocatrice_gardée
 
@@ -297,7 +297,7 @@ principale :: fonc () -> z32
         //déloge(a)
     }
 
-    contexte.logueur = mon_logueur
+    __contexte_fil_principal.logueur = mon_logueur
     imprime_liste_mémoire(*allocatrice_gardée)
 
     retourne 0

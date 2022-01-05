@@ -20,70 +20,61 @@ crée_flux_compression_pour_fichier :: fonc (fichier: *Fichier) -> FluxCompressi
     retourne flux
 }
 
-flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+flux_compression_fichier_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
     taille_écrite : n32
 
-    pousse_contexte __contexte_fil_principal {
-        fichier := flux.donnees_utilisateur comme *Fichier
+    fichier := flux.donnees_utilisateur comme *Fichier
 
-        tampon : []octet = ---
-        tampon.pointeur = données comme *octet
-        tampon.taille = taille comme z64
+    tampon : []octet = ---
+    tampon.pointeur = données comme *octet
+    tampon.taille = taille comme z64
 
-        résultat := fichier.écris(tampon)
+    résultat := fichier.écris(tampon)
 
-        discr résultat {
-            e {
-                taille_écrite = 0
-            }
-            r {
-                taille_écrite = résultat.r comme n32
-            }
+    discr résultat {
+        e {
+            taille_écrite = 0
+        }
+        r {
+            taille_écrite = résultat.r comme n32
         }
     }
 
     retourne taille_écrite
 }
 
-flux_compression_fichier_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+flux_compression_fichier_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
     taille_lue : n32
 
-    pousse_contexte __contexte_fil_principal {
-        fichier := flux.donnees_utilisateur comme *Fichier
+    fichier := flux.donnees_utilisateur comme *Fichier
 
-        tampon : chaine = ---
-        tampon.pointeur = données comme *z8
-        tampon.taille = taille comme z64
+    tampon : chaine = ---
+    tampon.pointeur = données comme *z8
+    tampon.taille = taille comme z64
 
-        résultat := fichier.lis(tampon)
+    résultat := fichier.lis(tampon)
 
-        discr résultat {
-            e {
-                taille_lue = 0
-            }
-            r {
-                taille_lue = résultat.r comme n32
-            }
+    discr résultat {
+        e {
+            taille_lue = 0
+        }
+        r {
+            taille_lue = résultat.r comme n32
         }
     }
 
     retourne taille_lue
 }
 
-flux_compression_fichier_fin_de_flux :: fonc (flux: *FluxCompression) -> bool #nulctx
+flux_compression_fichier_fin_de_flux :: fonc (flux: *FluxCompression) -> bool
 {
-    pousse_contexte __contexte_fil_principal {
-        fichier := flux.donnees_utilisateur comme *Fichier
-        si est_fin_de_fichier(fichier) {
-            retourne vrai
-        }
-    }
-    retourne faux
+    fichier := flux.donnees_utilisateur comme *Fichier
+    retourne est_fin_de_fichier(fichier)
 }
 
-flux_compression_fichier_possede_erreur :: fonc (flux: *FluxCompression) -> bool #nulctx
+flux_compression_fichier_possede_erreur :: fonc (flux: *FluxCompression) -> bool
 {
     // À FAIRE
     retourne faux
@@ -102,80 +93,65 @@ crée_flux_compression_pour_chaine :: fonc (chn: *chaine) -> FluxCompression
     retourne flux
 }
 
-flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
     taille_écrite : n32
 
-    pousse_contexte __contexte_fil_principal {
-        chn := flux.donnees_utilisateur comme *chaine
+    chn := flux.donnees_utilisateur comme *chaine
 
-        tampon : chaine = ---
-        tampon.pointeur = données comme *z8
-        tampon.taille = taille comme z64
+    tampon : chaine = ---
+    tampon.pointeur = données comme *z8
+    tampon.taille = taille comme z64
 
-        taille_écrite = taille
+    taille_écrite = taille
 
-        chaine_ajoute(chn, tampon)
-    }
+    chaine_ajoute(chn, tampon)
 
     retourne taille_écrite
 }
 
-flux_compression_chaine_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32 #nulctx
+flux_compression_chaine_lis :: fonc (flux: *FluxCompression, taille: n32, données: *n8) -> n32
 {
     taille_lue : n32
 
-    pousse_contexte __contexte_fil_principal {
-        chn := flux.donnees_utilisateur comme *chaine
+    chn := flux.donnees_utilisateur comme *chaine
 
-        taille_z64 := taille comme z64
+    taille_z64 := taille comme z64
 
-        si taille_z64 > chn.taille {
-            taille_z64 = chn.taille
-        }
-
-        copie_mem_nonsur(src = chn.pointeur, dst = données, taille = taille_z64)
-
-        taille_lue = taille_z64 comme n32
-        mémoire(chn) = avance(mémoire(chn), taille_z64)
+    si taille_z64 > chn.taille {
+        taille_z64 = chn.taille
     }
+
+    copie_mem_nonsur(src = chn.pointeur, dst = données, taille = taille_z64)
+
+    taille_lue = taille_z64 comme n32
+    mémoire(chn) = avance(mémoire(chn), taille_z64)
 
     retourne taille_lue
 }
 
-flux_compression_chaine_fin_de_flux :: fonc (flux: *FluxCompression) -> bool #nulctx
+flux_compression_chaine_fin_de_flux :: fonc (flux: *FluxCompression) -> bool
 {
-    pousse_contexte __contexte_fil_principal {
-        chn := flux.donnees_utilisateur comme *chaine
-        retourne chn.taille == 0
-    }
-    retourne faux
+    chn := flux.donnees_utilisateur comme *chaine
+    retourne chn.taille == 0
 }
 
-flux_compression_chaine_possede_erreur :: fonc (flux: *FluxCompression) -> bool #nulctx
+flux_compression_chaine_possede_erreur :: fonc (flux: *FluxCompression) -> bool
 {
     retourne faux
 }
 
-taille_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression) -> n32 #nulctx
+taille_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression) -> n32
 {
     retourne 1024
 }
 
-cree_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, taille: n32) -> *n8 #nulctx
+cree_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, taille: n32) -> *n8
 {
-    ptr: *n8
-
-    pousse_contexte __contexte_fil_principal {
-        ptr = loge_mémoire(taille comme z64, nul, PositionCodeSource())
-    }
-
-    retourne ptr
+    retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
 }
 
-detruit_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, pointeur: *n8, taille: n32) -> rien #nulctx
+detruit_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, pointeur: *n8, taille: n32) -> rien
 {
-    pousse_contexte __contexte_fil_principal {
-        déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
-    }
+    déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
 }

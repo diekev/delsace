@@ -74,7 +74,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 	retourne nchn
 }
 
-construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
+construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
 	ret : chaine
 	ret.pointeur = ptr

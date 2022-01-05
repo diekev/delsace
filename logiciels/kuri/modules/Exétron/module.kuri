@@ -8,11 +8,9 @@ DonnéesCréationFil :: struct ($T: type_de_données) {
     données: *T
 }
 
-__fonction_principale_exétron :: fonc (données_création_fil: *DonnéesCréationFil($T)) #nulctx
+__fonction_principale_exétron :: fonc (données_création_fil: *DonnéesCréationFil($T))
 {
-    pousse_contexte __contexte_principal {
-        données_création_fil.rappel(données_création_fil.données)
-    }
+    données_création_fil.rappel(données_création_fil.données)
 }
 
 // À FAIRE(langage) : crash si le type polymorphique est déclaré dans le rappel

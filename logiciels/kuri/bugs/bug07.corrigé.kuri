@@ -8,7 +8,7 @@ imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...e
 {
 	message := imprime_chaine(format, ...args)
 
-    contexte.logueur(message, ident, mode, contexte.données_logueur)
+    __contexte_fil_principal.logueur(message, ident, mode, contexte().données_logueur)
 	déloge(message)
 }
 

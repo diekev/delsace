@@ -49,7 +49,8 @@ struct Typeuse;
     O(type_base_allocatrice, ID::BaseAllocatrice)                                                 \
     O(type_info_appel_trace_appel, ID::InfoAppelTraceAppel)                                       \
     O(type_stockage_temporaire, ID::StockageTemporaire)                                           \
-    O(type_info_type_opaque, ID::InfoTypeOpaque)
+    O(type_info_type_opaque, ID::InfoTypeOpaque)                                                  \
+    O(type_contexte, ID::ContexteProgramme)
 
 #define ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(Op)                                               \
     Op(decl_panique, ID::panique) Op(decl_panique_memoire, ID::panique_hors_memoire)              \

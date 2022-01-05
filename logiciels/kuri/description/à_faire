@@ -200,8 +200,6 @@ Résultat de l'algorithme d'unification :
 
 // --------------------------- Contexte Implicite
 
-utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
-
 permettre aux utilisateurs du langage d'y ajouter des variables
 
 option de compilation pour définir la taille du stockage temporaire
@@ -391,7 +389,7 @@ déclaration d'énum, de structures, et d'unions anonymes :
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type
     voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
 
-- pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
+- pouvoir passer des pointeur comme référence
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 

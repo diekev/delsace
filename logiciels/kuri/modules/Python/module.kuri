@@ -66,25 +66,14 @@ convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -
     retourne résultat
 }
 
-// ignore_premier_paramètre_après_contexte est pour les fonctions d'allocation, etc.,
-// qui doivent prendre un paramètre du type dans kuri, mais qui peuvent ne pas prendre
-// l'objet en paramètre dans Python.
-méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre_après_contexte := faux) -> MéthodePython
+// ignore_premier_paramètre est pour les fonctions d'allocation, etc.
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre := faux) -> MéthodePython
 {
     résultat: MéthodePython
     résultat.nom = entête.nom
 
-    après_contexte := vrai
-
     pour entête.params {
-        /* Ignore le contexte implicite, seuls les vrais paramètres devraient être convertis. */
-        si it.type == info_de(ContexteProgramme) {
-            après_contexte = vrai
-            continue
-        }
-
-        si après_contexte && ignore_premier_paramètre_après_contexte {
-            après_contexte = faux
+        si it == 0 && ignore_premier_paramètre {
             continue
         }
 

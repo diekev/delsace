@@ -9,13 +9,13 @@ importe OpenSSL
 // controler la lecture des données, et éviter de bloquer
 // sur une prise.
 
-rappel_personnalisé_création_bio :: fonc (bio: *BIO) -> z32 #nulctx
+rappel_personnalisé_création_bio :: fonc (bio: *BIO) -> z32
 {
     BIO_set_init(bio, 1)
     retourne 1
 }
 
-rappel_personnalisé_controle_bio :: fonc (bio: *BIO @inutilisée, cmd: z32, num: z64 @inutilisée, user: *rien @inutilisée) -> z64 #nulctx
+rappel_personnalisé_controle_bio :: fonc (bio: *BIO @inutilisée, cmd: z32, num: z64 @inutilisée, user: *rien @inutilisée) -> z64
 {
     si cmd == BIO_CTRL_FLUSH {
         retourne 1
@@ -23,8 +23,8 @@ rappel_personnalisé_controle_bio :: fonc (bio: *BIO @inutilisée, cmd: z32, num
     retourne 0
 }
 
-rappel_personnalisé_écriture_bio :: fonc (bio: *BIO, données: *octet, length: z32) -> z32 #nulctx
-pousse_contexte __contexte_fil_principal {
+rappel_personnalisé_écriture_bio :: fonc (bio: *BIO, données: *octet, length: z32) -> z32
+{
     données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle
     prise := données_ssl_boucle.prise_ssl
 
@@ -43,8 +43,8 @@ pousse_contexte __contexte_fil_principal {
     retourne octets_écris
 }
 
-rappel_personnalisé_lecture_bio :: fonc (bio: *BIO, dst: *octet, length: z32) -> z32 #nulctx
-pousse_contexte __contexte_fil_principal {
+rappel_personnalisé_lecture_bio :: fonc (bio: *BIO, dst: *octet, length: z32) -> z32
+{
     données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle
 
     saufsi données_ssl_boucle.ssl_read_input_length {

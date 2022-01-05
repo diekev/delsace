@@ -287,7 +287,6 @@ est_résultat :: fonc (info: *InfoType) -> bool
 
 ClassificationParamètre :: énum {
     EST_INCONNU
-    EST_TYPE_CONTEXTE_PROGRAMME
     EST_TYPE_SERVEUSE
     EST_TYPE_CONNEXION
     EST_TYPE_PARAMÈTRE_ROUTAGE
@@ -310,10 +309,6 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
 
         si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRequête)) {
             retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_REQUÊTE
-        }
-
-        si est_struct_ou_employeuse_de(info_struct, info_de(ContexteProgramme)) {
-            retourne ClassificationParamètre.EST_TYPE_CONTEXTE_PROGRAMME
         }
     }
     sinon si type.id == id_info.POINTEUR {
@@ -348,8 +343,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
     infos_paramètres : InformationParamètres
     type_fonction := fonction.type comme *InfoTypeFonction
 
-    // NOTE : les index doivent être décalés de 1 car le ContexteProgramme est également présent.
-
     pour type_fonction.types_entrée {
         classification := classifie_paramètre(paramètres, it)
 
@@ -357,9 +350,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
             EST_INCONNU {
                 compilatrice_rapporte_erreur(fonction, "Type de paramètre non-supporté")
                 retourne faux, infos_paramètres
-            }
-            EST_TYPE_CONTEXTE_PROGRAMME {
-                continue
             }
             EST_TYPE_SERVEUSE {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -370,7 +360,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.serveuse.type = info_struct
-                infos_paramètres.serveuse.index = index_it - 1
+                infos_paramètres.serveuse.index = index_it
             }
             EST_TYPE_CONNEXION {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -381,7 +371,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.connexion.type = info_struct
-                infos_paramètres.connexion.index = index_it - 1
+                infos_paramètres.connexion.index = index_it
             }
             EST_TYPE_PARAMÈTRE_ROUTAGE {
                 info_struct := it comme *InfoTypeStructure
@@ -392,7 +382,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
-                infos_paramètres.paramètres_route.index = index_it - 1
+                infos_paramètres.paramètres_route.index = index_it
             }
             EST_TYPE_PARAMÈTRE_REQUÊTE {
                 info_struct := it comme *InfoTypeStructure
@@ -402,7 +392,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_requête.type = info_struct
-                infos_paramètres.paramètres_requête.index = index_it - 1
+                infos_paramètres.paramètres_requête.index = index_it
             }
             EST_TYPE_FORMULAIRE {
                 info_struct := it comme *InfoTypeStructure
@@ -413,7 +403,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.formulaire.type = info_struct
-                infos_paramètres.formulaire.index = index_it - 1
+                infos_paramètres.formulaire.index = index_it
             }
         }
     }

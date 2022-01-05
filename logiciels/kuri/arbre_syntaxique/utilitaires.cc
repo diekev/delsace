@@ -1294,6 +1294,36 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto pousse_contexte = noeud->comme_pousse_contexte();
             simplifie(pousse_contexte->bloc);
+
+            auto bloc_substitution = assem->cree_bloc_seul(pousse_contexte->lexeme,
+                                                           pousse_contexte->bloc_parent);
+
+            auto contexte_courant = espace->compilatrice().globale_contexte_programme;
+            auto ref_contexte_courant = assem->cree_reference_declaration(pousse_contexte->lexeme,
+                                                                          contexte_courant);
+
+            // sauvegarde_contexte := __contexte_fil_principal
+            auto sauvegarde_contexte = assem->cree_declaration_variable(
+                pousse_contexte->lexeme, contexte_courant->type, nullptr, ref_contexte_courant);
+            auto ref_sauvegarde_contexte = assem->cree_reference_declaration(
+                pousse_contexte->lexeme, sauvegarde_contexte);
+            bloc_substitution->membres->ajoute(sauvegarde_contexte);
+            bloc_substitution->expressions->ajoute(sauvegarde_contexte);
+
+            // __contexte_fil_principal = expr
+            auto permute_contexte = assem->cree_assignation_variable(
+                pousse_contexte->lexeme, ref_contexte_courant, pousse_contexte->expression);
+            bloc_substitution->expressions->ajoute(permute_contexte);
+
+            // bloc..
+            bloc_substitution->expressions->ajoute(pousse_contexte->bloc);
+
+            // __contexte_fil_principal = sauvegarde_contexte
+            permute_contexte = assem->cree_assignation_variable(
+                pousse_contexte->lexeme, ref_contexte_courant, ref_sauvegarde_contexte);
+            bloc_substitution->expressions->ajoute(permute_contexte);
+
+            pousse_contexte->substitution = bloc_substitution;
             return;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -3271,8 +3301,7 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
         }
 
         entete->type = type_fonction;
-        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_NULCTX |
-                             FORCE_SANSTRACE);
+        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_SANSTRACE);
 
         type->fonction_init = entete;
     }
@@ -3323,7 +3352,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
             appel->parametres_resolus.ajoute(prise_adresse);
-            appel->drapeaux |= FORCE_NULCTX;
             assembleuse->bloc_courant()->expressions->ajoute(appel);
             break;
         }
@@ -3429,7 +3457,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_pointe, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
-            appel->drapeaux |= FORCE_NULCTX;
             appel->parametres_resolus.ajoute(ref_it);
 
             pour->bloc->expressions->ajoute(appel);
@@ -3462,7 +3489,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_opacifie, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonc_init, typeuse[TypeBase::RIEN]);
-            appel->drapeaux |= FORCE_NULCTX;
             appel->parametres_resolus.ajoute(comme);
             assembleuse->bloc_courant()->expressions->ajoute(appel);
             break;

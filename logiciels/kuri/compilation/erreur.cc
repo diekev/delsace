@@ -248,11 +248,6 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
-            else if (dc.raison == CONTEXTE_MANQUANT) {
-                e.ajoute_message("\tNe peut appeler une fonction avec contexte dans un bloc "
-                                 "n'ayant pas de contexte\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
             else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
                 e.ajoute_message("\tImpossible d'utiliser une expansion variadique dans une "
                                  "fonction variadique externe\n");

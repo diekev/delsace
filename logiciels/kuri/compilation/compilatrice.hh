@@ -93,6 +93,10 @@ struct Compilatrice {
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
     NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
 
+    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
+    NoeudDeclarationVariable *globale_contexte_programme = nullptr;
+    std::mutex mutex_globale_contexte_programme{};
+
     /* Pour les executions des métaprogrammes. */
     std::mutex mutex_donnees_constantes_executions{};
     DonneesConstantesExecutions donnees_constantes_executions{};
@@ -224,6 +228,10 @@ struct Compilatrice {
 
     EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
                                                   kuri::chaine const &nom);
+
+    /* ********************************************************************** */
+
+    bool globale_contexte_programme_est_disponible();
 
     /* ********************************************************************** */
 

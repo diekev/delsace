@@ -182,19 +182,17 @@ peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage, tag: *C
     retourne faux
 }
 
-compare_attribut :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
+compare_attribut :: fonc (attr1: *rien, attr2: *rien) -> z32
 {
-    pousse_contexte __contexte_fil_principal {
-        a1 := attr1 comme *Attribut
-        a2 := attr2 comme *Attribut
+    a1 := attr1 comme *Attribut
+    a2 := attr2 comme *Attribut
 
-        si a1.nom < a2.nom {
-            retourne -1
-        }
+    si a1.nom < a2.nom {
+        retourne -1
+    }
 
-        si a1.nom == a2.nom {
-            retourne 0
-        }
+    si a1.nom == a2.nom {
+        retourne 0
     }
 
     retourne 1

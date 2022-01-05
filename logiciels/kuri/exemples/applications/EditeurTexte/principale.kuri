@@ -504,7 +504,7 @@ console_rafraichis_écran :: fonc () -> rien
 
 principale :: fonc () -> z32
 {
-    contexte.rappel_panique = gère_panique
+    __contexte_fil_principal.rappel_panique = gère_panique
 
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 

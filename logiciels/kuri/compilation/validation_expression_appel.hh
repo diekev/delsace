@@ -71,7 +71,6 @@ enum {
     RENOMMAGE_ARG,
     TROP_D_EXPRESSION_POUR_UNION,
     TYPE_N_EST_PAS_FONCTION,
-    CONTEXTE_MANQUANT,
     EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
     MULTIPLE_EXPANSIONS_VARIADIQUES,
     EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
@@ -92,7 +91,6 @@ enum {
 };
 
 struct ErreurAppariement {
-    int raison = AUCUNE_RAISON;
     kuri::chaine_statique nom_arg{};
 
     Attente attente{};
@@ -100,8 +98,7 @@ struct ErreurAppariement {
     /* Ce que nous avons à gauche */
     int note = NOTE_INVALIDE;
 
-    bool requiers_contexte = true;
-    REMBOURRE(3);
+    int raison = AUCUNE_RAISON;
 
     /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
      * fonctions) */
@@ -193,7 +190,6 @@ struct ErreurAppariement {
     CREATION_ERREUR(ARGUMENTS_MANQUANTS, arguments_manquants);
     CREATION_ERREUR(NOMMAGE_ARG_POINTEUR_FONCTION, nommage_argument_pointeur_fonction);
     CREATION_ERREUR(TROP_D_EXPRESSION_POUR_UNION, expression_extra_pour_union);
-    CREATION_ERREUR(CONTEXTE_MANQUANT, contexte_manquant);
     CREATION_ERREUR(EXPANSION_VARIADIQUE_FONCTION_EXTERNE, expansion_variadique_externe);
     CREATION_ERREUR(MULTIPLE_EXPANSIONS_VARIADIQUES, multiple_expansions_variadiques);
     CREATION_ERREUR(EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
@@ -217,8 +213,7 @@ struct CandidateAppariement {
     double poids_args = 0.0;
     int note = NOTE_INVALIDE;
 
-    bool requiers_contexte = true;
-    REMBOURRE(3);
+    REMBOURRE(4);
     /* Le type de l'élément à gauche de l'expression (pour les structures et les pointeurs de
      * fonctions) */
     Type *type = nullptr;
@@ -371,14 +366,12 @@ struct CandidateAppariement {
         dls::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        auto resultat = cree_candidate(CANDIDATE_EST_APPEL_INIT_DE,
-                                       poids,
-                                       nullptr,
-                                       type,
-                                       std::move(exprs),
-                                       std::move(transformations));
-        resultat.requiers_contexte = false;
-        return resultat;
+        return cree_candidate(CANDIDATE_EST_APPEL_INIT_DE,
+                              poids,
+                              nullptr,
+                              type,
+                              std::move(exprs),
+                              std::move(transformations));
     }
 
     static CandidateAppariement initialisation_opaque(

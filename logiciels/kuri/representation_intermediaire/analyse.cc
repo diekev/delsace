@@ -343,11 +343,6 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
     POUR (atome->params_entrees) {
         it->etat = EST_PARAMETRE_FONCTION;
-
-        /* Ignore le contexte implicite qui peut ne pas être utilisé. */
-        if (it->ident == ID::contexte) {
-            it->nombre_utilisations += 1;
-        }
     }
 
     atome->param_sortie->etat = EST_PARAMETRE_FONCTION;

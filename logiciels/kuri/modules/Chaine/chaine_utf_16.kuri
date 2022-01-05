@@ -156,19 +156,17 @@ taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64 #enligne
 }
 
 // Fonction de comparaison pour qsort.
-compare_chaine_utf16 :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
+compare_chaine_utf16 :: fonc (attr1: *rien, attr2: *rien) -> z32
 {
-    pousse_contexte __contexte_fil_principal {
-        a1 := mémoire(attr1 comme *ChaineUTF16)
-        a2 := mémoire(attr2 comme *ChaineUTF16)
+    a1 := mémoire(attr1 comme *ChaineUTF16)
+    a2 := mémoire(attr2 comme *ChaineUTF16)
 
-        si a1 < a2 {
-            retourne -1
-        }
+    si a1 < a2 {
+        retourne -1
+    }
 
-        si a1 == a2 {
-            retourne 0
-        }
+    si a1 == a2 {
+        retourne 0
     }
 
     retourne 1

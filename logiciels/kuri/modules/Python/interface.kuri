@@ -19,8 +19,8 @@ PyMemberDef :: struct #externe
 
 PyGetSetDef :: struct #externe {
     name: ChaineC
-    get: #nulctx fonc(*PyObject, *rien)(*PyObject)
-    set: #nulctx fonc(*PyObject, *PyObject, *rien)(*PyObject)
+    get: fonc(*PyObject, *rien)(*PyObject)
+    set: fonc(*PyObject, *PyObject, *rien)(*PyObject)
     doc: ChaineC
     closure: *rien
 }
@@ -45,7 +45,7 @@ PyTypeObject :: struct #externe {
 
     tp_as_async: *PyAsyncMethods /* formerly known as tp_compare (Python 2)
                                     or tp_reserved (Python 3) */
-    tp_repr: #nulctx fonc(*PyObject)(*PyObject)
+    tp_repr: fonc(*PyObject)(*PyObject)
 
     /* Method suites for standard classes */
 
@@ -55,9 +55,9 @@ PyTypeObject :: struct #externe {
 
     /* More standard operations (here for binary compatibility) */
 
-    tp_hash: #nulctx fonc(*PyObject)(Py_hash_t)
+    tp_hash: fonc(*PyObject)(Py_hash_t)
     tp_call: *rien // À FAIRE: pointeur de fonction ternaryfunc
-    tp_str: #nulctx fonc(*PyObject)(*PyObject)
+    tp_str: fonc(*PyObject)(*PyObject)
     tp_getattro: *rien // À FAIRE: pointeur de fonction getattrofunc
     tp_setattro: *rien // À FAIRE: pointeur de fonction setattrofunc
 
@@ -97,8 +97,8 @@ PyTypeObject :: struct #externe {
     tp_descr_set: *rien // À FAIRE: pointeur de descrsetfunc
     tp_dictoffset: Py_ssize_t
     tp_init: *rien // À FAIRE: pointeur de fonctioninitproc
-    tp_alloc: #nulctx fonc (*PyTypeObject, Py_ssize_t)(*PyObject)
-    tp_new: #nulctx fonc (*PyTypeObject, *PyObject, *PyObject)(*PyObject) // PyObject *tp_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
+    tp_alloc: fonc (*PyTypeObject, Py_ssize_t)(*PyObject)
+    tp_new: fonc (*PyTypeObject, *PyObject, *PyObject)(*PyObject) // PyObject *tp_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
     tp_free: *rien // À FAIRE: pointeur de fonctionfreefunc /* Low-level free-memory routine */
     tp_is_gc: *rien // À FAIRE: pointeur de fonctioninquiry /* For PyObject_IS_GC */
     tp_bases: *PyGetSetDef
@@ -209,14 +209,14 @@ PyVarObject :: struct {
 
 PyMethodDef :: struct {
     ml_name : ChaineC
-    ml_meth : #nulctx fonc(*PyObject, *PyObject)(*PyObject)
+    ml_meth : fonc(*PyObject, *PyObject)(*PyObject)
     ml_flag: z32
     ml_doc : ChaineC
 }
 
 PyModuleDef_Base :: struct {
   ob_base: PyObject
-  m_init: #nulctx fonc (rien)(*PyObject)
+  m_init: fonc (rien)(*PyObject)
   m_index: z64
   m_copy: *PyObject
 }
@@ -230,9 +230,9 @@ PyModuleDef :: struct {
     m_size: z64
     m_methods: *PyMethodDef
     m_slots: *PyModuleDef_Slot
-    m_traverse: #nulctx fonc(*PyObject, *rien, *rien)(z32) // le premier *rien est une fonction "visitproc"
-    m_clear: #nulctx fonc(*PyObject)(z32)
-    m_free: #nulctx fonc(*rien)(rien)
+    m_traverse: fonc(*PyObject, *rien, *rien)(z32) // le premier *rien est une fonction "visitproc"
+    m_clear: fonc(*PyObject)(z32)
+    m_free: fonc(*rien)(rien)
 }
 
 /* Flag passed to newmethodobject */
@@ -277,7 +277,7 @@ PYTHON_API_VERSION :: 1013
 externe _Py_NoneStruct : PyObject
 Py_None : *PyObject = *_Py_NoneStruct
 
-python_retourne_rien :: fonc () -> *PyObject #nulctx
+python_retourne_rien :: fonc () -> *PyObject
 {
     Py_INCREF(Py_None)
     retourne Py_None
@@ -293,7 +293,7 @@ _longobject :: struct {
 externe _Py_FalseStruct: PyObject // À FAIRE _longobject
 Py_False : *PyObject = *_Py_FalseStruct
 
-python_retourne_faux :: fonc () -> *PyObject #nulctx
+python_retourne_faux :: fonc () -> *PyObject
 {
     Py_INCREF(Py_False)
     retourne Py_False
@@ -302,7 +302,7 @@ python_retourne_faux :: fonc () -> *PyObject #nulctx
 externe _Py_TrueStruct : PyObject // À FAIRE _longobject
 Py_True : *PyObject = *_Py_TrueStruct
 
-python_retourne_true :: fonc () -> *PyObject #nulctx
+python_retourne_true :: fonc () -> *PyObject
 {
     Py_INCREF(Py_True)
     retourne Py_True
@@ -315,12 +315,12 @@ PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #
 
 _Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
 
-Py_INCREF :: fonc (ob: *PyObject) #nulctx
+Py_INCREF :: fonc (ob: *PyObject)
 {
     ob.ob_refcnt += 1
 }
 
-Py_DECREF :: fonc (ob: *PyObject) #nulctx
+Py_DECREF :: fonc (ob: *PyObject)
 {
     ob.ob_refcnt -= 1
     si ob.ob_refcnt == 0 {
@@ -328,7 +328,7 @@ Py_DECREF :: fonc (ob: *PyObject) #nulctx
     }
 }
 
-Py_XDECREF :: fonc (ob: *PyObject) #nulctx
+Py_XDECREF :: fonc (ob: *PyObject)
 {
     saufsi ob {
         retourne
@@ -351,23 +351,23 @@ PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: Cha
 
 PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
 
-PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #enligne
 {
     flags := type.tp_flags
     retourne (flags & feature) != 0
 }
 
-PyType_FastSubclass :: fonc (type: *PyTypeObject, feature: n64) -> bool #nulctx #enligne
+PyType_FastSubclass :: fonc (type: *PyTypeObject, feature: n64) -> bool #enligne
 {
     retourne PyType_HasFeature(type, feature)
 }
 
-_Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+_Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 {
     retourne ob.ob_type == type
 }
 
-PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool #nulctx
+PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 {
     retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
 }
@@ -377,17 +377,17 @@ PyObject_HashNotImplemented :: fonc (o: *PyObject) -> Py_hash_t #externe libpyth
 // ---------------------------------------------------
 // Objet Bool
 
-PyBool_Check :: fonc (ob: *PyObject) -> bool #nulctx
+PyBool_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyBool_Type)
 }
 
-PyBool_AsBool :: fonc (ob: *PyObject) -> bool #nulctx
+PyBool_AsBool :: fonc (ob: *PyObject) -> bool
 {
     retourne ob == Py_True
 }
 
-PyBool_FromBool :: fonc (valeur: bool) -> *PyObject #nulctx
+PyBool_FromBool :: fonc (valeur: bool) -> *PyObject
 {
     si valeur {
         retourne python_retourne_true()
@@ -398,7 +398,7 @@ PyBool_FromBool :: fonc (valeur: bool) -> *PyObject #nulctx
 // ---------------------------------------------------
 // Objet Entier/Long
 
-PyLong_Check :: fonc (ob: *PyObject) -> bool #nulctx
+PyLong_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS)
 }
@@ -411,7 +411,7 @@ PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
 
 externe PyFloat_Type : PyTypeObject
 
-PyFloat_Check :: fonc (ob: *PyObject) -> bool #nulctx
+PyFloat_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyFloat_Type)
 }
@@ -424,12 +424,12 @@ PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
 
 externe PyUnicode_Type : PyTypeObject
 
-PyUnicode_Check :: fonc (ob: *PyObject) -> bool #nulctx
+PyUnicode_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS)
 }
 
-PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool #nulctx
+PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyUnicode_Type)
 }
@@ -444,7 +444,7 @@ PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
     retourne résultat
 }
 
-PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject #nulctx
+PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 {
     retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
 }

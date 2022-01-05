@@ -96,7 +96,6 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(principale, "principale")                                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(enligne, "enligne")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(horsligne, "horsligne")                                     \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nulctx, "nulctx")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface")                                     \
@@ -144,7 +143,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pre_executable, "pré_exécutable")                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(AnnotationCode, "AnnotationCode")                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(zero, "zéro")                                               \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(resultat, "résultat")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(resultat, "résultat")                                       \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__contexte_fil_principal, "__contexte_fil_principal")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

@@ -70,7 +70,7 @@ DonnéesObj :: struct {
 
 parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     marque := obtiens_marque_stockage_temporaire()

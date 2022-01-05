@@ -81,7 +81,6 @@ struct ConstructriceRI {
     int taille_allouee = 0;
 
     NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
-    Atome *contexte = nullptr;
 
     bool expression_gauche = true;
 

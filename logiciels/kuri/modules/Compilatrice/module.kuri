@@ -144,10 +144,6 @@ fonction_n_a_qu_un_seul_paramètre :: fonc (fonction: *NoeudCodeEntêteFonction)
         retourne faux
     }
 
-    si fonction.params[0].type == info_de(ContexteProgramme) {
-        retourne fonction.params.taille == 2
-    }
-
     retourne fonction.params.taille == 1
 }
 
@@ -164,10 +160,6 @@ type_premier_paramètre_sans_contexte :: fonc (entête: *NoeudCodeEntêteFonctio
 {
     si entête.params.taille == 0 {
         retourne nul
-    }
-
-    si entête.params[0].type != info_de(ContexteProgramme) {
-        retourne entête.params[0].type
     }
 
     si entête.params.taille < 2 {

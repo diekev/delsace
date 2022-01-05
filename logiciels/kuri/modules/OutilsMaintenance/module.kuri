@@ -89,19 +89,17 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]cha
 // -------------------------------------
 
 // Fonction de comparaison pour qsort.
-compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
+compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32
 {
-    pousse_contexte __contexte_fil_principal {
-        a1 := mémoire(attr1 comme *chaine)
-        a2 := mémoire(attr2 comme *chaine)
+    a1 := mémoire(attr1 comme *chaine)
+    a2 := mémoire(attr2 comme *chaine)
 
-        si a1 < a2 {
-            retourne -1
-        }
+    si a1 < a2 {
+        retourne -1
+    }
 
-        si a1 == a2 {
-            retourne 0
-        }
+    si a1 == a2 {
+        retourne 0
     }
 
     retourne 1

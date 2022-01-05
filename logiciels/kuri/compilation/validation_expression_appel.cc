@@ -626,37 +626,23 @@ static ResultatAppariement apparie_appel_pointeur(
     /* vérifie la compatibilité des arguments pour déterminer
      * s'il y aura besoin d'une transformation. */
     auto type_fonction = type->comme_fonction();
-    auto requiers_contexte = true;
-    auto debut_params = 0;
 
-    if (type_fonction->types_entrees.taille() != 0 &&
-        type_fonction->types_entrees[0] == espace.compilatrice().typeuse.type_contexte) {
-        debut_params = 1;
-
-        if (!b->bloc_parent->possede_contexte) {
-            return ErreurAppariement::contexte_manquant(b);
-        }
-    }
-    else {
-        requiers_contexte = false;
-    }
-
-    if (type_fonction->types_entrees.taille() - debut_params != args.taille()) {
+    if (type_fonction->types_entrees.taille() != args.taille()) {
         return ErreurAppariement::mecomptage_arguments(
-            b, type_fonction->types_entrees.taille() - debut_params, args.taille());
+            b, type_fonction->types_entrees.taille(), args.taille());
     }
 
     auto exprs = dls::tablet<NoeudExpression *, 10>();
-    exprs.reserve(type_fonction->types_entrees.taille() - debut_params);
+    exprs.reserve(type_fonction->types_entrees.taille());
 
     auto transformations = kuri::tableau<TransformationType, int>(
-        type_fonction->types_entrees.taille() - debut_params);
+        type_fonction->types_entrees.taille());
 
     auto poids_args = 1.0;
 
     /* Validation des types passés en paramètre. */
-    for (auto i = debut_params; i < type_fonction->types_entrees.taille(); ++i) {
-        auto arg = args[i - debut_params].expr;
+    for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
+        auto arg = args[i].expr;
         auto type_prm = type_fonction->types_entrees[i];
         auto type_enf = arg->type;
 
@@ -678,14 +664,13 @@ static ResultatAppariement apparie_appel_pointeur(
                 arg, type_enf, type_dereference_pour(type_prm));
         }
 
-        transformations[i - debut_params] = poids_xform.transformation;
+        transformations[i] = poids_xform.transformation;
 
         exprs.ajoute(arg);
     }
 
     auto candidate = CandidateAppariement::appel_pointeur(
         poids_args, type_fonction, std::move(exprs), std::move(transformations));
-    candidate.requiers_contexte = requiers_contexte;
     return candidate;
 }
 
@@ -1668,8 +1653,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     });
 #endif
 
-    auto fonction_courante = contexte.fonction_courante();
-
     // ------------
     // valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
 
@@ -1813,23 +1796,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
 
-        /* pour les directives d'exécution, la fonction courante est nulle */
-        if (fonction_courante != nullptr) {
-            using dls::outils::possede_drapeau;
-            auto decl_fonc = fonction_courante;
-
-            if (!expr->bloc_parent->possede_contexte) {
-                auto decl_appel = decl_fonction_appelee;
-
-                if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {
-                    contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-        }
-
-        /* ---------------------- */
-
         if (!candidate->items_monomorphisation.est_vide()) {
             auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
                 contexte,
@@ -1900,11 +1866,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
 
-        if (decl_fonction_appelee->est_externe ||
-            decl_fonction_appelee->possede_drapeau(FORCE_NULCTX)) {
-            expr->drapeaux |= FORCE_NULCTX;
-        }
-
         if (expr->type == nullptr) {
             expr->type = type_sortie;
         }
@@ -1972,10 +1933,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = candidate->type;
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
-        if (!candidate->requiers_contexte) {
-            expr->drapeaux |= FORCE_NULCTX;
-        }
-
         if (expr->type == nullptr) {
             expr->type = candidate->type->comme_fonction()->type_sortie;
         }
@@ -2007,7 +1964,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
         expr->type = espace.compilatrice().typeuse[TypeBase::RIEN];
-        expr->drapeaux |= FORCE_NULCTX;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_opaque();

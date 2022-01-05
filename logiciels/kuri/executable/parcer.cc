@@ -381,7 +381,7 @@ static dls::chaine converti_type(CXType const &cxtype,
                         decalage++;
                     }
 
-                    flux << " #nulctx fonc (";
+                    flux << " fonc (";
 
                     auto type_param = kuri::tableau<dls::chaine>();
 
@@ -776,7 +776,7 @@ struct TypedefTypeFonction {
 
     void imprime(std::ostream &os, dico_typedefs const &typedefs)
     {
-        os << nom_typedef << " :: #nulctx fonc ";
+        os << nom_typedef << " :: fonc ";
 
         auto virgule = "(";
 

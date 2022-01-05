@@ -37,6 +37,7 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "portee.hh"
 #include "programme.hh"
 
 /* ************************************************************************** */
@@ -367,6 +368,29 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
     return espace;
 }
 
+bool Compilatrice::globale_contexte_programme_est_disponible()
+{
+    if (globale_contexte_programme == nullptr) {
+        std::unique_lock verrouille(mutex_globale_contexte_programme);
+
+        if (globale_contexte_programme == nullptr) {
+            if (module_kuri == nullptr || module_kuri->bloc == nullptr) {
+                return false;
+            }
+
+            auto decl = trouve_dans_bloc(module_kuri->bloc, ID::__contexte_fil_principal);
+
+            if (!decl) {
+                return false;
+            }
+
+            globale_contexte_programme = decl->comme_declaration_variable();
+        }
+    }
+
+    return globale_contexte_programme != nullptr;
+}
+
 ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 {
     auto rappel_erreur = [this, espace](SiteSource site, kuri::chaine message) {
@@ -612,11 +636,6 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
 
     auto params = kuri::tableau<Atome *, int>();
     params.reserve(decl->params.taille());
-
-    if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
-        auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
-        params.ajoute(atome);
-    }
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);

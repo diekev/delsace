@@ -1003,12 +1003,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
                 return noeud;
             }
-            else if (directive == ID::nulctx) {
-                lexeme = lexeme_courant();
-                auto noeud_fonc = analyse_declaration_fonction(lexeme);
-                noeud_fonc->drapeaux |= FORCE_NULCTX;
-                return noeud_fonc;
-            }
             else if (directive == ID::si) {
                 return analyse_instruction_si_statique(lexeme);
             }
@@ -1294,41 +1288,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         return noeud;
                     }
 
-                    if (directive == ID::nulctx) {
-                        consomme();
-
-                        if (lexeme_courant()->genre != GenreLexeme::FONC) {
-                            rapporte_erreur("Attendu « fonc » après « #nulctx »");
-                            return nullptr;
-                        }
-
-                        //  À FAIRE(syntaxage) : déduplique, ou modifie la grammaire pour les
-                        //  directives
-                        auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
-
-                        // À FAIRE(syntaxaga) : position exacte de l'erreur, en cas de déclaration
-                        // de fonction, nous serions après la fonction
-                        if (!noeud_fonction->est_declaration_type) {
-                            rapporte_erreur("Attendu la déclaration d'un type de fonction.");
-                            return nullptr;
-                        }
-
-                        auto noeud = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
-                        noeud->ident = gauche->ident;
-                        noeud->valeur = gauche;
-                        noeud->expression = noeud_fonction;
-                        noeud->drapeaux |= EST_CONSTANTE;
-                        gauche->drapeaux |= EST_CONSTANTE;
-                        gauche->comme_reference_declaration()->declaration_referee = noeud;
-                        noeud_fonction->drapeaux |= FORCE_NULCTX;
-
-                        return noeud;
-                    }
-                    else {
-                        m_position = position - 1;
-                        consomme();
-                    }
-
+                    m_position = position - 1;
+                    consomme();
                     break;
                 }
             }
@@ -2407,11 +2368,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::horsligne) {
                 noeud->drapeaux |= FORCE_HORSLIGNE;
             }
-            else if (ident_directive == ID::nulctx) {
-                noeud->drapeaux |= FORCE_NULCTX;
-                noeud->drapeaux |= FORCE_SANSTRACE;
-                noeud->bloc_parametres->possede_contexte = false;
-            }
             else if (ident_directive == ID::externe) {
                 noeud->drapeaux |= EST_EXTERNE;
                 noeud->est_externe = true;
@@ -2452,13 +2408,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 m_compilatrice.interface_kuri->mute_membre(noeud);
             }
             else if (ident_directive == ID::creation_contexte) {
-                noeud->drapeaux |= FORCE_NULCTX;
                 noeud->drapeaux |= FORCE_SANSTRACE;
                 noeud->drapeaux |= EST_RACINE;
                 m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
             }
             else if (ident_directive == ID::compilatrice) {
-                noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
+                noeud->drapeaux |= (FORCE_SANSTRACE | COMPILATRICE);
                 noeud->est_externe = true;
 
                 if (!est_fonction_compilatrice(noeud->ident)) {
@@ -2675,9 +2630,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         }
         else if (directive == ID::horsligne) {
             noeud->drapeaux |= FORCE_HORSLIGNE;
-        }
-        else if (directive == ID::nulctx) {
-            noeud->drapeaux |= FORCE_NULCTX;
         }
         else {
             rapporte_erreur("Directive inconnue");

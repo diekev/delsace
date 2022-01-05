@@ -303,8 +303,8 @@ détruit_contexte_ssl :: fonc (contexte_ssl: *SSL_CTX)
  * drapeaux_lecture_écriture : défini si le mot de passe est utilisé pour le chiffrage (écriture, 1) ou le déchiffrage (lecture, 0)
  * données : les données utilisateur mis en place via SSL_CTX_set_default_passwd_cb_userdata
  */
-rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drapeaux_lecture_écriture: z32 @inutilisée, données: *rien) -> z32 #nulctx
-pousse_contexte __contexte_fil_principal {
+rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drapeaux_lecture_écriture: z32 @inutilisée, données: *rien) -> z32
+{
     phrase_de_passe := données comme *ChaineC
     taille_phrase_de_passe := taille_chaine_c(mémoire(phrase_de_passe))
 

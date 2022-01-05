@@ -196,7 +196,7 @@ ratisse_maillage :: fonc (
     }
 */
 
-    contexte_temp := contexte
+    contexte_temp := contexte()
     contexte_temp.allocatrice = __stockage_temporaire
 
     mat_trans := matrice_translation(z = 8.0)

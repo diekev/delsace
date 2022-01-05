@@ -4,7 +4,7 @@ FilExecution :: struct #externe;
 
 EXETRON_nombre_fils_materiel :: fonc () -> n32 #externe libexetron
 
-EXETRON_cree_fil :: fonc (ctx_kuri : *ContexteKuri, rappel :  #nulctx fonc (*rien)(rien), argument : *rien) -> *FilExecution #externe libexetron
+EXETRON_cree_fil :: fonc (ctx_kuri : *ContexteKuri, rappel :  fonc (*rien)(rien), argument : *rien) -> *FilExecution #externe libexetron
 
 EXETRON_joins_fil :: fonc (ptr_fil : *FilExecution) -> bool #externe libexetron
 

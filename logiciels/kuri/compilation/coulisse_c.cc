@@ -577,13 +577,13 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	static KsKuriInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
 	KsKuriTraceAppel ma_trace = { 0 }; \
 	ma_trace.info_fonction = &mon_info; \
-	ma_trace.prxC3xA9cxC3xA9dente = contexte.trace_appel; \
-	ma_trace.profondeur = contexte.trace_appel->profondeur + 1;
+ ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
+ ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
 	static KsKuriInfoAppelTraceAppel info_appel##_index = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
 	ma_trace.info_appel = &info_appel##_index; \
-	contexte.trace_appel = &ma_trace;
+ __contexte_fil_principal.trace_appel = &ma_trace;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
 	DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne)
@@ -592,7 +592,7 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	DEBUTE_RECORD_TRACE_APPEL_EX(__COUNTER__, _ligne, _colonne, _ligne_appel, _taille_ligne)
 
 #define TERMINE_RECORD_TRACE_APPEL \
-   contexte.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
+   __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
 	)";
 
 #if 0
@@ -614,7 +614,6 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse << "#endif\n";
     enchaineuse << "typedef unsigned char octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef struct KuriContexteProgramme KsKuriContexteProgramme;\n";
     enchaineuse << "typedef char ** KPKPKsz8;\n";
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
