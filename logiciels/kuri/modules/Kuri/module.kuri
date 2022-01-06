@@ -89,6 +89,8 @@ allocatrice_défaut :: fonc(
             retourne nul
         }
     }
+
+    retourne nul
 }
 
 /* Fonctions de bases pour loger des valeurs en mémoire. */
@@ -440,6 +442,8 @@ __stockage_temporaire :: fonc(
             retourne nul
         }
     }
+
+    retourne nul
 }
 
 // fonction de convénience pour loge un tampon dans le stockage temporaire

@@ -272,6 +272,8 @@ allocation_gardée :: fonc (
             retourne déloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, info)
         }
     }
+
+    retourne nul
 }
 
 /*
