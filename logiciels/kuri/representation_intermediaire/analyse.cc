@@ -24,10 +24,15 @@
 
 #include "analyse.hh"
 
+#include "biblinternes/structures/file.hh"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/espace_de_travail.hh"
 
+#include "structures/ensemble.hh"
+
+#include "bloc_basique.hh"
 #include "impression.hh"
 #include "instructions.hh"
 
@@ -36,32 +41,67 @@
 /* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
  * avoir une porte de sortie.
  *
- * À FAIRE(analyse_ri) : Il nous faudrait une structure en graphe afin de suivre tous les chemins
- * valides dans la fonction afin de pouvoir proprement détecter qu'une fonction retourne. Se baser
- * uniquement sur la dernière instruction de la fonction est fragile car la génération de RI peut
- * ajouter des labels inutilisés à la fin des fonctions (pour les discriminations, boucles, ou
- * encores les instructions si), mais nous pouvons aussi avoir une branche vers un bloc définis
- * avant celle-ci et étant le bloc de retour effectif de la fonction.
+ * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
+ * tous ont un retour défini.
  */
-static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atome)
+static bool detecte_retour_manquant(EspaceDeTravail &espace,
+                                    ConstructriceRI &constructrice,
+                                    AtomeFonction *atome)
 {
-    auto di = atome->derniere_instruction();
+    auto blocs__ = kuri::tableau<Bloc *, int>();
+    auto blocs = convertis_en_blocs(constructrice, atome, blocs__);
 
-    if (!di || !di->est_retour()) {
-        if (di) {
-            std::cerr << "La dernière instruction est ";
-            imprime_instruction(di, std::cerr);
-            imprime_fonction(atome, std::cerr);
-        }
-        else {
-            std::cerr << "La dernière instruction est nulle !\n";
+    kuri::ensemble<Bloc *> blocs_visites;
+    dls::file<Bloc *> a_visiter;
+
+    a_visiter.enfile(blocs[0]);
+
+    while (!a_visiter.est_vide()) {
+        auto bloc_courant = a_visiter.defile();
+
+        if (blocs_visites.possede(bloc_courant)) {
+            continue;
         }
 
-        /* À FAIRE : la fonction peut être déclarée par la compilatrice (p.e. les initialisations
-         * des types) et donc peut ne pas avoir de déclaration. */
-        espace.rapporte_erreur(atome->decl, "Instruction de retour manquante");
-        return false;
+        blocs_visites.insere(bloc_courant);
+
+        if (bloc_courant->instructions.est_vide()) {
+            // À FAIRE : précise en quoi une instruction de retour manque.
+            espace
+                .rapporte_erreur(atome->decl,
+                                 "Alors que je traverse tous les chemins possibles à travers une "
+                                 "fonction, j'ai trouvé qui ne retourne pas de la fonction.")
+                .ajoute_message("Erreur : instruction de retour manquante !");
+            return false;
+        }
+
+        auto di = bloc_courant->instructions.derniere();
+
+        if (di->est_retour()) {
+            continue;
+        }
+
+        POUR (bloc_courant->enfants) {
+            a_visiter.enfile(it);
+        }
     }
+
+#if 0
+    // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
+    // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
+    // de fonctions. Mais ce peut également être du code mort après un retour.
+    POUR (blocs) {
+        if (!blocs_visites.possede(it)) {
+            imprime_fonction(atome, std::cerr);
+            imprime_blocs(blocs, std::cerr);
+            espace
+                .rapporte_erreur(atome->decl,
+                                 "Erreur interne, un ou plusieurs blocs n'ont pas été visité !")
+                .ajoute_message("Le premier bloc non visité est le bloc ", it->label->id);
+            return false;
+        }
+    }
+#endif
 
     return true;
 }
@@ -443,13 +483,13 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
  * À FAIRE(analyse_ri) :
  * - membre actifs des unions
  */
-void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
+void analyse_ri(EspaceDeTravail &espace, ConstructriceRI &constructrice, AtomeFonction *atome)
 {
     if (!detecte_declarations_inutilisees(espace, atome)) {
         return;
     }
 
-    if (!detecte_retour_manquant(espace, atome)) {
+    if (!detecte_retour_manquant(espace, constructrice, atome)) {
         return;
     }
 }
