@@ -1315,13 +1315,24 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 pousse_contexte->lexeme, ref_contexte_courant, pousse_contexte->expression);
             bloc_substitution->expressions->ajoute(permute_contexte);
 
-            // bloc..
-            bloc_substitution->expressions->ajoute(pousse_contexte->bloc);
-
-            // __contexte_fil_principal = sauvegarde_contexte
-            permute_contexte = assem->cree_assignation_variable(
+            /* Il est possible qu'une instruction de retour se trouve dans le bloc, donc nous
+             * devons différer la restauration du contexte :
+             *
+             * diffère __contexte_fil_principal = sauvegarde_contexte
+             */
+            auto differe = assem->cree_differe(pousse_contexte->lexeme);
+            differe->bloc_parent = bloc_substitution;
+            differe->expression = assem->cree_assignation_variable(
                 pousse_contexte->lexeme, ref_contexte_courant, ref_sauvegarde_contexte);
-            bloc_substitution->expressions->ajoute(permute_contexte);
+            bloc_substitution->expressions->ajoute(differe);
+
+            /* À FAIRE : surécrire le bloc_parent d'un bloc avec un bloc de substitution peut avoir
+             * des conséquences incertaines mais nous avons du bloc de substitution dans la liste
+             * des ancêtres du bloc afin que l'instruction diffère soit gérée dans la RI. */
+            pousse_contexte->bloc->bloc_parent = bloc_substitution;
+
+            /* Finalement ajoute le code du bloc, après l'instruction de différation. */
+            bloc_substitution->expressions->ajoute(pousse_contexte->bloc);
 
             pousse_contexte->substitution = bloc_substitution;
             return;
