@@ -303,7 +303,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return Attente::sur_declaration(corps);
             }
             auto ajoute_fini = noeud->comme_ajoute_fini();
-            corps->bloc->expressions->ajoute(ajoute_fini->expression);
+            corps->bloc->expressions->pousse_front(ajoute_fini->expression);
             ajoute_fini->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
@@ -321,7 +321,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return Attente::sur_declaration(corps);
             }
             auto ajoute_init = noeud->comme_ajoute_init();
-            corps->bloc->expressions->ajoute(ajoute_init->expression);
+            corps->bloc->expressions->pousse_front(ajoute_init->expression);
             ajoute_init->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
