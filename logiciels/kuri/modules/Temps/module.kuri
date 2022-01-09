@@ -233,6 +233,12 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     d := doy - (153*mp+2)/5 + 1                             // [1, 31]
     m := mp + si mp < 10 { 3 } sinon { -9 }                 // [1, 12]
 
+    /* Le calendrier de référence commence en mars (après un possible 29 février)
+     * donc nous devons corriger l'année au besoin. */
+    si m <= 2 {
+        y += 1
+    }
+
     seconde := secondes % 60
     minutes := (secondes / 60) % 60
     heures  := (secondes / 3600) % 24
