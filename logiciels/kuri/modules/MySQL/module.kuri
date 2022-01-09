@@ -299,7 +299,8 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine, info: *InfoTypeStructu
 			}
 		}
 		sansarrêt {
-			imprime_log(agent, "le type ne possède pas la colonne % !\n", it)
+			message := imprime_chaine("Colonne '%' introuvable dans le type !", it)
+			panique(message)
 			déloge(infos_membres)
 			retourne infos_membres
 		}
