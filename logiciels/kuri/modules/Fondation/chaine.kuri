@@ -805,6 +805,11 @@ cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheA
     }
 }
 
+contiens :: fonc (chn: chaine, sous_chaine: chaine, par := ChercheAiguillePar.ForceBrute) -> bool
+{
+    retourne cherche_aiguille(chn, sous_chaine, par) != -1
+}
+
 /* Une simple parseuse pour travailler sur des chaines.
  */
 ParseuseChaine :: struct {
