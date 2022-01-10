@@ -179,7 +179,8 @@ quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
     données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
     commande := commande_suivante(données.état, données.config, données.courriel)
-    diffère déloge(commande)
+    // À FAIRE : gestion de la mémoire
+    //diffère déloge(commande)
     écris_commande(prise, données, commande)
 }
 
@@ -206,14 +207,15 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     }
 
     commande := commande_suivante(données_prise.état, données_prise.config, données_prise.courriel)
-    diffère déloge(commande)
+    // À FAIRE : gestion de la mémoire
+    //diffère déloge(commande)
     écris_commande(prise, données_prise, chaine_pour_commande(commande))
 }
 
 quand_fermeture :: fonc (prise: *Prise)
 {
     //imprime("quand_fermeture !\n")
-    // notifie que le message fut envoyé ou non
+    // À FAIRE : notifie que le message fut envoyé ou non
     données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
     détruit_données_prise(données_prise)
 }
