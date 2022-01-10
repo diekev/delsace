@@ -11,6 +11,17 @@ DonnéesFichier :: struct {
     racine_exécution: CheminFichier
     chemin: CheminFichier
     lignes: []chaine
+
+    données_utilisateurs: eini
+}
+
+données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
+{
+    si données_fichier.données_utilisateurs.info != info_de(TypeDonnéesPersonnelles) {
+        retourne nul
+    }
+
+    retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
 }
 
 tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
@@ -57,7 +68,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
@@ -69,13 +80,14 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     données.racine_exécution = racine
     données.lignes = lignes
     données.chemin = chemin
+    données.données_utilisateurs = données_utilisateurs
 
     si rappel(données) {
         écris_lignes_dans_fichier(chemin, lignes)
     }
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -90,7 +102,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
                 }
 
                 si chemin.extension() == ".kuri" {
-                    exécute_rappel_pour_fichier(racine, chemin, rappel)
+                    exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
                 }
             }
             sinon {
@@ -195,14 +207,20 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 
 // -------------------------------------
 
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_dossier() {
-        exécute_rappel_pour_dossier(chemin, rappel)
+        exécute_rappel_pour_dossier(chemin, rappel, données_utilisateurs)
     }
     sinon {
         si chemin.extension() == ".kuri" {
-            exécute_rappel_pour_fichier(chemin, chemin, rappel)
+            exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
         }
     }
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+{
+    données_utilisateurs: eini
+    exécute_rappel(chemin, rappel)
 }
