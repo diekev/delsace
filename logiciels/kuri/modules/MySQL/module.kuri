@@ -582,6 +582,13 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 		membre := it
         chn := colonne_suivante(curseur)
 
+		/* La valeur peut être nulle (NULL) donc nous devons éviter de tenter de la parser,
+		 * ce qui ferait échouée le parsage de manière générale. */
+		/* À FAIRE(MySQL) : gestion des NULL potentiels (p.e. en utilisant le type « Optionnel »). */
+		si chn == "" {
+			continue
+		}
+
         fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
 
         saufsi fonction_de_parsage {
