@@ -189,6 +189,7 @@ set(FICHIERS_TESTS
     modules/HTML/Autres/stats_parsage.kuri
     modules/HTML/Autres/vérification.kuri
     modules/LABT/Programmes/principale.kuri
+    modules/OutilsMaintenance/Programmes/formattage.kuri
     modules/OutilsMaintenance/Programmes/suppression_lignes_vides.kuri
     modules/OutilsMaintenance/Programmes/triage_imports.kuri
 )
