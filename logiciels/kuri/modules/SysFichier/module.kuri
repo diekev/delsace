@@ -677,6 +677,22 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
     retourne vrai
 }
 
+nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
+{
+    pile : Pile(chaine)
+    diffère détruit(pile)
+    divise_et_empile_chemin(pile, chm)
+
+    /* Dépile le nom du fichier ou du fichier parent. */
+    _ := pile.dépile()
+
+    si pile.est_vide() {
+        retourne ""
+    }
+
+    retourne pile.dépile()
+}
+
 /*
     À FAIRE : tests
 
