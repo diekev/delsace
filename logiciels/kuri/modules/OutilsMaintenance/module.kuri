@@ -5,6 +5,10 @@ importe GlibC
 importe SysFichier
 
 DonnéesFichier :: struct {
+    /* Le chemin racine d'où est lancée l'exécution,
+     * par exemple le chemin passé dans la ligne de commande
+     * pour les programmes en ligne de commande. */
+    racine_exécution: CheminFichier
     chemin: CheminFichier
     lignes: []chaine
 }
@@ -53,7 +57,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
@@ -62,6 +66,7 @@ exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&Donn�
     diffère déloge(lignes)
 
     données: DonnéesFichier
+    données.racine_exécution = racine
     données.lignes = lignes
     données.chemin = chemin
 
@@ -85,7 +90,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
                 }
 
                 si chemin.extension() == ".kuri" {
-                    exécute_rappel_pour_fichier(chemin, rappel)
+                    exécute_rappel_pour_fichier(racine, chemin, rappel)
                 }
             }
             sinon {
@@ -197,7 +202,7 @@ exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(b
     }
     sinon {
         si chemin.extension() == ".kuri" {
-            exécute_rappel_pour_fichier(chemin, rappel)
+            exécute_rappel_pour_fichier(chemin, chemin, rappel)
         }
     }
 }
