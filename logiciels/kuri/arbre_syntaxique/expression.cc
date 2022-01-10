@@ -400,9 +400,13 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             res.est_errone = false;
 
             if (est_operateur_bool(inst->lexeme->genre)) {
-                if (res.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle()) {
                     res.valeur = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
+                }
+                else if (res1.valeur.est_booleenne()) {
+                    res.valeur = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.booleenne(), res2.valeur.booleenne());
                 }
                 else {
                     res.valeur = applique_operateur_binaire_comp(
@@ -410,7 +414,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 }
             }
             else {
-                if (res.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle()) {
                     res.valeur = applique_operateur_binaire(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
