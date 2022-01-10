@@ -4,6 +4,11 @@ importe Fondation
 importe GlibC
 importe SysFichier
 
+DonnéesFichier :: struct {
+    chemin: CheminFichier
+    lignes: []chaine
+}
+
 tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 {
     résultat : []T
@@ -48,7 +53,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
@@ -56,12 +61,16 @@ exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&[]cha
     lignes := divise(contenu, '\n')
     diffère déloge(lignes)
 
-    si rappel(lignes) {
+    données: DonnéesFichier
+    données.lignes = lignes
+    données.chemin = chemin
+
+    si rappel(données) {
         écris_lignes_dans_fichier(chemin, lignes)
     }
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -110,16 +119,15 @@ tri_lignes :: fonc (lignes: &[]chaine)
     qsort(lignes.pointeur, lignes.taille comme n64, taille_de(chaine) comme n64, compare_chaines_qsort)
 }
 
-tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
     première_ligne := -1
     dernière_ligne := -1
 
     lignes_furent_modifiés := faux
 
-    // À FAIRE(langage) : itération sur des références
-    lignes_pour_itération : []chaine = lignes
-    pour lignes_pour_itération {
+    lignes := données_fichier.lignes
+    pour lignes {
         si it.commence_par("importe ") {
             si première_ligne == -1 {
                 première_ligne = index_it comme z32
@@ -145,15 +153,15 @@ tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
 
 // -------------------------------------
 
-supprime_lignes_vides_redondantes_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
     dernière_ligne_fut_vide := faux
 
     nouvelles_lignes : []chaine
     diffère déloge(nouvelles_lignes)
 
-    lignes_pour_itération : []chaine = lignes
-    pour lignes_pour_itération {
+    lignes := données_fichier.lignes
+    pour lignes {
         si it == "" {
             si dernière_ligne_fut_vide {
                 continue
@@ -182,7 +190,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (lignes: &[]chaine) -> bo
 
 // -------------------------------------
 
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
 {
     si chemin.est_dossier() {
         exécute_rappel_pour_dossier(chemin, rappel)
