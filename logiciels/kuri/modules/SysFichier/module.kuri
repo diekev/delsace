@@ -693,6 +693,26 @@ nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
     retourne pile.dépile()
 }
 
+/* Retourne le nom du premier dossier après le dossier de base.
+ * Par exemple pour un chemin "/dossier1/dossier2", et une base "/dossier1",
+ * retourne "dossier2"
+ * À FAIRE : crée un test. */
+premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chaine
+{
+    chm.chn = avance(chm.chn, base.chn.taille)
+
+    pile: Pile(chaine)
+    diffère détruit(pile)
+
+    divise_et_empile_chemin(pile, chm)
+
+    tantque pile.taille() != 1 {
+        _ := pile.dépile()
+    }
+
+    retourne pile.dépile()
+}
+
 /*
     À FAIRE : tests
 
