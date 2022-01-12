@@ -1032,13 +1032,13 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 }
 
-static bool est_corps_de(NoeudExpression *noeud, IdentifiantCode const *ident)
+static inline bool est_corps_de(NoeudExpression const *noeud,
+                                NoeudDeclarationEnteteFonction const *fonction)
 {
-    if (!noeud->est_corps_fonction()) {
+    if (fonction == nullptr) {
         return false;
     }
-    auto corps = noeud->comme_corps_fonction();
-    return corps->ident == ident;
+    return noeud == fonction->corps;
 }
 
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
@@ -1057,7 +1057,8 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 
     /* Si nous avons la RI pour #crée_contexte, il nout faut ajouter toutes les unités l'attendant.
      */
-    if (est_corps_de(unite->noeud, ID::cree_contexte)) {
+    if (est_corps_de(unite->noeud,
+                     espace->compilatrice().interface_kuri->decl_creation_contexte)) {
         flush_metaprogrammes_en_attente_de_cree_contexte();
     }
 }
