@@ -258,7 +258,6 @@ encode_format_url :: fonc (valeur: eini) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    infos := valeur.info comme *InfoTypeStructure
     flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse)
     requiers_esperluette := faux
     itératrice := crée_itératrice_membre(valeur)
