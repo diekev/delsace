@@ -1,5 +1,8 @@
 importe Compilatrice
+importe Ensemble
 importe Fondation
+importe GlibC
+importe SysFichier
 
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.
@@ -43,6 +46,10 @@ ParamètresGénérationInterface :: struct {
     données_fonctions: []DonnéesCréationPointDEntréePage
 
     module_à_importer: chaine
+
+    /* Pour les pilotes. */
+    génère_pilote: bool
+    dossier_pilote: chaine
 }
 
 génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInterface, fichier_racine: chaine)
@@ -89,6 +96,7 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
             phase := message comme *MessagePhaseCompilation
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
                 crée_interface_pour_initialisations_routes(paramètres, espace)
+                crée_pilote_client(paramètres, espace)
                 arrête
             }
         }
@@ -721,4 +729,146 @@ génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données
     }
     imprime_dans_enchaineuse(enchaineuse, "\t\t}\n")
     imprime_dans_enchaineuse(enchaineuse, "\t}\n")
+}
+
+crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
+{
+    saufsi paramètres.génère_pilote {
+        retourne
+    }
+
+    si paramètres.dossier_pilote == "" {
+        compilatrice_rapporte_erreur(espace, "Un pilote client fut demandé, mais le chemin de dossier n'est pas renseigné !\n")
+        retourne
+    }
+
+    chm_courant := chemin_courant()
+
+    chm_dossier_pilote := chm_courant / paramètres.dossier_pilote
+    chm_fichier_pilote := chm_dossier_pilote / "module.kuri"
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+        compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
+        retourne
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    génère_code_pilote_client(paramètres, espace, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    __ := ferme(*fichier)
+}
+
+génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[]*InfoTypeStructure)
+{
+    saufsi infos {
+        retourne
+    }
+
+    si ensemble_possède(types_utilisés, infos) {
+        retourne
+    }
+
+    ensemble_ajoute(types_utilisés, infos)
+
+    ajoute_au_tampon(enchaineuse, chaine_pour_type(infos), " :: struct {\n")
+
+    pour infos.membres {
+        ajoute_au_tampon(enchaineuse, "    ", it.nom, ": ", chaine_pour_type(it.id), "\n")
+    }
+
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+}
+
+génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, enchaineuse: *Enchaineuse)
+{
+    nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
+
+    // À FAIRE : import des modules où se trouve les types
+    ajoute_au_tampon(enchaineuse, "importe Courriel\n")
+
+    /* Import des modules de bases requis pour le Pilote. */
+    ajoute_au_tampon(enchaineuse, "importe CodecDonnées\n")
+    ajoute_au_tampon(enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(enchaineuse, "importe HTTP\n")
+    ajoute_au_tampon(enchaineuse, "importe Internet\n\n")
+
+    /* Déclaration du type spécifique de pilote. */
+    ajoute_au_tampon(enchaineuse, nom_type_pilote, " :: struct {\n")
+    ajoute_au_tampon(enchaineuse, "    empl base: PiloteClienteHTTP\n")
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+
+    /* Déclaration d'une fonction de création. */
+    imprime_dans_enchaineuse(enchaineuse, "crée_pilote_% :: fonc (uri: URI) -> %\n", paramètres.nom_serveuse, nom_type_pilote)
+    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "    pilote: PiloteCréaduc\n")
+    ajoute_au_tampon(enchaineuse, "    pilote.uri_serveur = uri\n")
+    ajoute_au_tampon(enchaineuse, "    retourne pilote\n")
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+
+    types_utilisés : []*InfoTypeStructure
+    diffère déloge(types_utilisés)
+
+    pour paramètres.données_fonctions {
+        infos_paramètres := it.infos_paramètres
+        type_formulaire := infos_paramètres.formulaire.type
+        type_paramètres_route := infos_paramètres.paramètres_route.type
+        type_paramètre_requête := infos_paramètres.paramètres_requête.type
+
+        génère_code_pour_structure(type_formulaire, enchaineuse, *types_utilisés)
+        génère_code_pour_structure(type_paramètres_route, enchaineuse, *types_utilisés)
+        génère_code_pour_structure(type_paramètre_requête, enchaineuse, *types_utilisés)
+
+        /* Déclaration de la fonction et de ses paramètres. */
+        imprime_dans_enchaineuse(enchaineuse, "% :: fonc (pilote: &%", it.nom_fonction, nom_type_pilote)
+
+        si type_formulaire {
+            ajoute_au_tampon(enchaineuse, ", formulaire: ", chaine_pour_type(type_formulaire))
+        }
+
+        si type_paramètres_route {
+            ajoute_au_tampon(enchaineuse, ", paramètres_routage: ", chaine_pour_type(type_paramètres_route))
+        }
+
+        si type_paramètre_requête {
+            ajoute_au_tampon(enchaineuse, ", paramètres_requête: ", chaine_pour_type(type_paramètre_requête))
+        }
+
+        ajoute_au_tampon(enchaineuse, ") -> Résultat(MessageServeuseHTTP)\n")
+        ajoute_au_tampon(enchaineuse, "{\n")
+
+        /* Construction de l'uri. */
+        ajoute_au_tampon(enchaineuse, "    uri := pilote.uri_serveur\n")
+
+        si type_paramètres_route {
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin ,"\", paramètres_routage)\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin ,"\"\n")
+        }
+
+        si type_paramètre_requête {
+            ajoute_au_tampon(enchaineuse, "    uri.requête = encode_format_url(paramètres_requête)\n")
+        }
+
+        /* Construction de la requête. */
+        si type_formulaire {
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.POST, uri)\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.GET, uri)\n")
+        }
+        ajoute_au_tampon(enchaineuse, "    diffère détruit_message(*requête)\n")
+
+        si type_formulaire {
+            ajoute_au_tampon(enchaineuse, "    formulaire ajoute_contenu_depuis_formulaire(*requête, formulaire)\n")
+        }
+
+        /* Valeur de retour. */
+        ajoute_au_tampon(enchaineuse, "    retourne pilote.envoie_requête_et_traite_réponse(requête)\n")
+        ajoute_au_tampon(enchaineuse, "}\n\n")
+    }
 }
