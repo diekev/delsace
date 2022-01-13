@@ -241,11 +241,6 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &mes
     return messagere->ajoute_message_phase_compilation(this);
 }
 
-PhaseCompilation EspaceDeTravail::phase_courante() const
-{
-    return phase;
-}
-
 SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
 {
     if (!noeud) {

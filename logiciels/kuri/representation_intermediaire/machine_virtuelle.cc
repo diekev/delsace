@@ -393,7 +393,7 @@ MachineVirtuelle::~MachineVirtuelle()
 }
 
 template <typename T>
-void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
+inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 {
     *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
 #ifndef NDEBUG
@@ -410,7 +410,7 @@ void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 }
 
 template <typename T>
-T MachineVirtuelle::depile(NoeudExpression *site)
+inline T MachineVirtuelle::depile(NoeudExpression *site)
 {
     this->pointeur_pile -= static_cast<long>(sizeof(T));
     // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
@@ -728,7 +728,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     pointeur_pile = pointeur_arguments + taille_type_retour;
 }
 
-void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
+inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
 {
     auto drapeaux = LIS_OCTET();
 

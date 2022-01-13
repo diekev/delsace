@@ -123,10 +123,10 @@ struct MachineVirtuelle {
 
   private:
     template <typename T>
-    void empile(NoeudExpression *site, T valeur);
+    inline void empile(NoeudExpression *site, T valeur);
 
     template <typename T>
-    T depile(NoeudExpression *site);
+    inline T depile(NoeudExpression *site);
 
     void depile(NoeudExpression *site, long n);
 
@@ -142,7 +142,7 @@ struct MachineVirtuelle {
                                 NoeudExpression *site,
                                 ResultatInterpretation &resultat);
 
-    void empile_constante(NoeudExpression *site, FrameAppel *frame);
+    inline void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
     void installe_metaprogramme(MetaProgramme *metaprogramme);
 

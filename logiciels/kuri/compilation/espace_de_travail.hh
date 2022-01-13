@@ -121,7 +121,11 @@ struct EspaceDeTravail {
 
     Message *change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
                              PhaseCompilation nouvelle_phase);
-    PhaseCompilation phase_courante() const;
+
+    PhaseCompilation phase_courante() const
+    {
+        return phase;
+    }
 
     SiteSource site_source_pour(NoeudExpression const *noeud) const;
 
