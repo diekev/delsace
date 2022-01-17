@@ -510,9 +510,28 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     auto fichier = espace.compilatrice().fichier(appelee->lexeme->fichier);
 
     if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+        auto modules_visites = kuri::ensemblon<Module const *, 10>();
         auto declarations = dls::tablet<NoeudDeclaration *, 10>();
         trouve_declarations_dans_bloc_ou_module(
-            declarations, appelee->bloc_parent, appelee->ident, fichier);
+            declarations, modules_visites, appelee->bloc_parent, appelee->ident, fichier);
+
+        if (contexte.fonction_courante()) {
+            auto fonction_courante = contexte.fonction_courante();
+
+            if (fonction_courante->est_monomorphisation) {
+                auto site_monomorphisation = fonction_courante->site_monomorphisation;
+                auto fichier_site = espace.compilatrice().fichier(
+                    site_monomorphisation->lexeme->fichier);
+
+                if (fichier_site != fichier) {
+                    trouve_declarations_dans_bloc_ou_module(declarations,
+                                                            modules_visites,
+                                                            site_monomorphisation->bloc_parent,
+                                                            appelee->ident,
+                                                            fichier_site);
+                }
+            }
+        }
 
         POUR (declarations) {
             // on peut avoir des expressions du genre inverse := inverse(matrice),
@@ -1516,6 +1535,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     Compilatrice &compilatrice,
     EspaceDeTravail &espace,
     NoeudDeclarationEnteteFonction *decl,
+    NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
     auto monomorphisation = decl->monomorphisations->trouve_monomorphisation(
@@ -1529,6 +1549,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         copie_noeud(contexte.m_tacheronne.assembleuse, decl, decl->bloc_parent));
     copie->est_monomorphisation = true;
     copie->est_polymorphe = false;
+    copie->site_monomorphisation = site;
 
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
@@ -1802,6 +1823,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 compilatrice,
                 espace,
                 decl_fonction_appelee,
+                expr,
                 std::move(candidate->items_monomorphisation));
 
             if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
@@ -1879,6 +1901,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 compilatrice,
                 espace,
                 decl_fonction_appelee,
+                expr,
                 std::move(candidate->items_monomorphisation));
 
             if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {

@@ -2625,7 +2625,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
 
     if (decl == nullptr) {
-        return Attente::sur_symbole(expr);
+        if (fonction_courante() && fonction_courante()->est_monomorphisation) {
+            auto site_monomorphisation = fonction_courante()->site_monomorphisation;
+
+            fichier = m_compilatrice.fichier(site_monomorphisation->lexeme->fichier);
+            decl = trouve_dans_bloc_ou_module(
+                site_monomorphisation->bloc_parent, expr->ident, fichier);
+        }
+        if (decl == nullptr) {
+            return Attente::sur_symbole(expr);
+        }
     }
 #endif
 

@@ -142,6 +142,29 @@ void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10>
     });
 }
 
+void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+                                             kuri::ensemblon<Module const *, 10> &modules_visites,
+                                             NoeudBloc *bloc,
+                                             IdentifiantCode const *ident,
+                                             Fichier const *fichier)
+{
+    if (!modules_visites.possede(fichier->module)) {
+        trouve_declarations_dans_bloc(declarations, bloc, ident);
+    }
+
+    modules_visites.insere(fichier->module);
+
+    /* cherche dans les modules importés */
+    pour_chaque_element(fichier->modules_importes, [&](auto &module) {
+        if (modules_visites.possede(module)) {
+            return kuri::DecisionIteration::Continue;
+        }
+        modules_visites.insere(module);
+        trouve_declarations_dans_bloc(declarations, module->bloc, ident);
+        return kuri::DecisionIteration::Continue;
+    });
+}
+
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle)
 {
     while (bloc->bloc_parent) {

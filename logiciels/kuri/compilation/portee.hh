@@ -26,9 +26,12 @@
 
 #include "biblinternes/structures/tablet.hh"
 
+#include "structures/ensemblon.hh"
+
 struct EspaceDeTravail;
 struct Fichier;
 struct IdentifiantCode;
+struct Module;
 struct NoeudExpression;
 struct NoeudBloc;
 struct NoeudDeclaration;
@@ -48,6 +51,12 @@ void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarat
                                    IdentifiantCode const *ident);
 
 void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+                                             NoeudBloc *bloc,
+                                             IdentifiantCode const *ident,
+                                             Fichier const *fichier);
+
+void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+                                             kuri::ensemblon<Module const *, 10> &modules_visites,
                                              NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);

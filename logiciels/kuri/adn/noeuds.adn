@@ -393,6 +393,9 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	chaine nom_broye_
 
 	Monomorphisations *monomorphisations
+  /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
+   * dans le contexte du site. */
+  NoeudExpression *site_monomorphisation
 
   Annotation [] annotations [code copie]
 
