@@ -607,6 +607,102 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 }
 
 // -------------------------------------------------------
+
+sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "SELECT ")
+
+    virgule := " "
+    pour colonnes {
+        ajoute_au_tampon(*enchaineuse, virgule, it)
+        virgule = ", "
+    }
+
+    ajoute_au_tampon(*enchaineuse, " FROM ", nom_table, ";")
+
+    requête := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(requête)
+
+	résultat_exécution := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat_exécution)
+
+    si résultat_exécution.curseurs.taille != 1 {
+        retourne
+    }
+
+    résultats := parse_liste_résultat(*résultat_exécution.curseurs[0], TypeRésultat, ...colonnes)
+
+    discr résultats {
+        Quelque(liste_de_résultat) {
+            /* Nous devons copier les chaines. */
+            pour & liste_de_résultat {
+                it = copie(it)
+            }
+
+            retourne liste_de_résultat
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
+{
+    résultat := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat)
+
+    si résultat.curseurs.taille != 1 {
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
+        retourne
+    }
+
+    rés := parse_liste_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    discr rés {
+        Quelque(liste) {
+            pour & liste {
+                it = copie(it)
+            }
+            retourne liste
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat(TypeRésultat)
+{
+    résultat := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat)
+
+    si résultat.curseurs.taille != 1 {
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
+        retourne
+    }
+
+    rés := parse_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    discr rés {
+        Quelque(valeur) {
+            retourne copie(valeur)
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+// -------------------------------------------------------
 // Parsage & Formattage
 
 ajoute_fonction_de_parsage_mysql :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
