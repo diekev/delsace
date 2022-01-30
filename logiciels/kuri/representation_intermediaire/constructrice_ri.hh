@@ -27,7 +27,6 @@
 #include "instructions.hh"
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/chaine.hh"
 
 #include "arbre_syntaxique/noeud_code.hh"
 

@@ -26,7 +26,6 @@
 
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/ensemblon.hh"

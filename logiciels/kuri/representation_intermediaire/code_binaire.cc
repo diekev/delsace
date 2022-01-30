@@ -28,7 +28,6 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/pile.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "arbre_syntaxique/noeud_expression.hh"

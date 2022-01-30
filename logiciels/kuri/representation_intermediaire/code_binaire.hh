@@ -30,8 +30,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/pile.hh"
 
 #include "structures/table_hachage.hh"

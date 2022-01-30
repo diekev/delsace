@@ -27,7 +27,6 @@
 #include <utility>
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
 #include "structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
