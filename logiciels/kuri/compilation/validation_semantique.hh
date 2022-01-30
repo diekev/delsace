@@ -24,18 +24,38 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/file_fixe.hh"
 #include "biblinternes/structures/tablet.hh"
 
-#include "arbre_syntaxique/noeud_expression.hh"
+#include <variant>
+
+#include "arbre_syntaxique/utilitaires.hh"
 
 #include "structures/ensemble.hh"
 
+#include "attente.hh"
+
 struct Compilatrice;
+struct EspaceDeTravail;
 struct Lexeme;
 struct MetaProgramme;
+struct NoeudAssignation;
+struct NoeudBloc;
+struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeOpaque;
+struct NoeudDeclarationVariable;
+struct NoeudDirectiveCuisine;
+struct NoeudDirectiveExecute;
+struct NoeudDiscr;
+struct NoeudEnum;
+struct NoeudExpressionBinaire;
+struct NoeudExpressionLitteraleBool;
+struct NoeudExpressionMembre;
+struct NoeudRetour;
+struct NoeudStruct;
 struct Tacheronne;
+struct TransformationType;
 struct TypeCompose;
 struct TypeEnum;
 struct TypeTableauFixe;

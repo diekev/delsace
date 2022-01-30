@@ -24,23 +24,15 @@
 
 #include "validation_semantique.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/garde_portee.h"
-#include "biblinternes/structures/file_fixe.hh"
+#include "arbre_syntaxique/assembleuse.hh"
 
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique/assembleuse.hh"
-#include "arbre_syntaxique/noeud_expression.hh"
-
-#include "broyage.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "monomorphisations.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
-#include "validation_expression_appel.hh"
+#include "unite_compilation.hh"
 
 /* ************************************************************************** */
 
