@@ -42,8 +42,6 @@
 #include "tacheronne.hh"
 #include "validation_expression_appel.hh"
 
-using dls::outils::possede_drapeau;
-
 /* ************************************************************************** */
 
 #define VERIFIE_INTERFACE_KURI_CHARGEE(nom, id)                                                   \
