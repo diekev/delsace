@@ -431,7 +431,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     // chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
     //                  /lib/i386-linux-gnu/ pour 32-bit
 
-    dls::tablet<kuri::chaine_statique, 4> dossiers;
+    kuri::tablet<kuri::chaine_statique, 4> dossiers;
     // À FAIRE(bibliotheques) : versions 32-bits, ou 64-bits
     if (espace.options.architecture == ArchitectureCible::X86) {
         if (site) {

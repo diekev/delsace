@@ -41,13 +41,13 @@ using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement
 
 struct Monomorpheuse {
     using paire_item = dls::paire<IdentifiantCode *, Type *>;
-    dls::tablet<paire_item, 6> items{};
+    kuri::tablet<paire_item, 6> items{};
 
     using paire_type = dls::paire<Type *, Type *>;
-    dls::tablet<paire_type, 6> paires_types{};
+    kuri::tablet<paire_type, 6> paires_types{};
 
     // mise en cache des types structures polymorphiques et de leurs monomorphisations passées
-    dls::tablet<paire_type, 6> table_structures{};
+    kuri::tablet<paire_type, 6> table_structures{};
 
     ErreurAppariement erreur{};
 
@@ -323,7 +323,7 @@ struct Monomorpheuse {
         else if (type_polymorphique->genre == GenreType::FONCTION) {
             auto type_fonction = type_polymorphique->comme_fonction();
 
-            auto types_entrees = dls::tablet<Type *, 6>();
+            auto types_entrees = kuri::tablet<Type *, 6>();
             types_entrees.reserve(type_fonction->types_entrees.taille());
 
             POUR (type_fonction->types_entrees) {
@@ -339,7 +339,7 @@ struct Monomorpheuse {
             auto type_sortie = type_fonction->type_sortie;
 
             if (type_sortie->est_tuple()) {
-                auto membres = dls::tablet<TypeCompose::Membre, 6>();
+                auto membres = kuri::tablet<TypeCompose::Membre, 6>();
 
                 auto tuple = type_sortie->comme_tuple();
 
@@ -376,8 +376,8 @@ struct Monomorpheuse {
 
 struct ApparieuseParams {
   private:
-    dls::tablet<IdentifiantCode *, 10> m_noms{};
-    dls::tablet<NoeudExpression *, 10> m_slots{};
+    kuri::tablet<IdentifiantCode *, 10> m_noms{};
+    kuri::tablet<NoeudExpression *, 10> m_slots{};
     kuri::ensemblon<IdentifiantCode *, 10> args_rencontres{};
     bool m_arguments_nommes = false;
     bool m_dernier_argument_est_variadique = false;
@@ -480,7 +480,7 @@ struct ApparieuseParams {
         return true;
     }
 
-    dls::tablet<NoeudExpression *, 10> &slots()
+    kuri::tablet<NoeudExpression *, 10> &slots()
     {
         return m_slots;
     }
@@ -505,13 +505,13 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     ContexteValidationCode &contexte,
     EspaceDeTravail &espace,
     NoeudExpression *appelee,
-    dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
+    kuri::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
 {
     auto fichier = espace.compilatrice().fichier(appelee->lexeme->fichier);
 
     if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
         auto modules_visites = kuri::ensemblon<Module const *, 10>();
-        auto declarations = dls::tablet<NoeudDeclaration *, 10>();
+        auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
         trouve_declarations_dans_bloc_ou_module(
             declarations, modules_visites, appelee->bloc_parent, appelee->ident, fichier);
 
@@ -558,7 +558,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION &&
             fichier->importe_module(accede->ident)) {
             auto module = espace.compilatrice().module(accede->ident);
-            auto declarations = dls::tablet<NoeudDeclaration *, 10>();
+            auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
             trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 
             POUR (declarations) {
@@ -651,7 +651,7 @@ static ResultatAppariement apparie_appel_pointeur(
             b, type_fonction->types_entrees.taille(), args.taille());
     }
 
-    auto exprs = dls::tablet<NoeudExpression *, 10>();
+    auto exprs = kuri::tablet<NoeudExpression *, 10>();
     exprs.reserve(type_fonction->types_entrees.taille());
 
     auto transformations = kuri::tableau<TransformationType, int>(
@@ -708,7 +708,7 @@ static ResultatAppariement apparie_appel_init_de(
             args[0].expr, type_pointeur, args[0].expr->type);
     }
 
-    auto exprs = dls::cree_tablet<NoeudExpression *, 10>(args[0].expr);
+    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(args[0].expr);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = {TypeTransformation::INUTILE};
@@ -783,7 +783,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     /* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles
      */
-    dls::tablet<NoeudDeclarationVariable *, 10> parametres_entree;
+    kuri::tablet<NoeudDeclarationVariable *, 10> parametres_entree;
     for (auto i = 0; i < decl->params.taille(); ++i) {
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
@@ -812,7 +812,7 @@ static ResultatAppariement apparie_appel_fonction(
     auto expansion_rencontree = false;
 
     auto &slots = apparieuse_params.slots();
-    auto transformations = dls::tablet<TransformationType, 10>(slots.taille());
+    auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
     auto nombre_arg_variadiques_rencontres = 0;
 
@@ -1053,7 +1053,7 @@ static ResultatAppariement apparie_appel_fonction(
         }
     }
 
-    auto exprs = dls::tablet<NoeudExpression *, 10>();
+    auto exprs = kuri::tablet<NoeudExpression *, 10>();
     exprs.reserve(slots.taille());
 
     auto transformations_ = kuri::tableau<TransformationType, int>();
@@ -1321,12 +1321,12 @@ static ResultatAppariement apparie_construction_opaque(
 
     if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         if (arg->type->est_type_de_donnees()) {
-            auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+            auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
             return CandidateAppariement::monomorphisation_opaque(
                 1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
         }
 
-        auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
         return CandidateAppariement::initialisation_opaque(
             1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
@@ -1344,7 +1344,7 @@ static ResultatAppariement apparie_construction_opaque(
         return ErreurAppariement::metypage_argument(arg, type_opaque->type_opacifie, arg->type);
     }
 
-    auto exprs = dls::cree_tablet<NoeudExpression *, 10>(arg);
+    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = poids_xform.transformation;
@@ -1360,7 +1360,7 @@ static ResultatAppariement apparie_construction_opaque(
 
 struct ContexteValidationAppel {
     kuri::tableau<IdentifiantEtExpression> args{};
-    dls::tablet<ResultatAppariement, 10> resultats{};
+    kuri::tablet<ResultatAppariement, 10> resultats{};
 
     void efface()
     {
@@ -1370,7 +1370,7 @@ struct ContexteValidationAppel {
 };
 
 using ListeCandidatesExpressionAppel =
-    dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
+    kuri::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
 
 static ResultatValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
@@ -1727,8 +1727,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
 
-    dls::tablet<CandidateAppariement, 10> candidates;
-    dls::tablet<ErreurAppariement, 10> erreurs;
+    kuri::tablet<CandidateAppariement, 10> candidates;
+    kuri::tablet<ErreurAppariement, 10> erreurs;
 
     POUR (ctx.resultats) {
         if (std::holds_alternative<ErreurAppariement>(it)) {

@@ -189,7 +189,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
         decl_entete->param_sortie->type = type_expression;
     }
 
-    auto types_entrees = dls::tablet<Type *, 6>(0);
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
 
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
@@ -403,7 +403,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
-            auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille());
+            auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
 
             for (auto i = 0; i < decl->params.taille(); ++i) {
                 NoeudExpression *type_entree = decl->params[i];
@@ -423,7 +423,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else {
-                dls::tablet<TypeCompose::Membre, 6> membres;
+                kuri::tablet<TypeCompose::Membre, 6> membres;
                 membres.reserve(decl->params_sorties.taille());
 
                 for (auto &type_declare : decl->params_sorties) {
@@ -699,7 +699,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 default:
                 {
-                    auto candidats = dls::tablet<OperateurCandidat, 10>();
+                    auto candidats = kuri::tablet<OperateurCandidat, 10>();
                     auto resultat = cherche_candidats_operateurs(
                         *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
                     if (resultat.has_value()) {
@@ -1454,7 +1454,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            auto types_entrees = dls::tablet<Type *, 6>(1);
+            auto types_entrees = kuri::tablet<Type *, 6>(1);
             types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
 
             auto type_fonction = m_compilatrice.typeuse.type_fonction(
@@ -2032,7 +2032,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     {
         CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (typage)");
 
-        dls::tablet<Type *, 6> types_entrees;
+        kuri::tablet<Type *, 6> types_entrees;
         types_entrees.reserve(decl->params.taille());
 
         POUR (decl->params) {
@@ -2049,7 +2049,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
             }
         }
         else {
-            dls::tablet<TypeCompose::Membre, 6> membres;
+            kuri::tablet<TypeCompose::Membre, 6> membres;
             membres.reserve(decl->params_sorties.taille());
 
             for (auto &expr : decl->params_sorties) {
@@ -2269,7 +2269,7 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
 }
 
 static void rassemble_expressions(NoeudExpression *expr,
-                                  dls::tablet<NoeudExpression *, 6> &expressions)
+                                  kuri::tablet<NoeudExpression *, 6> &expressions)
 {
     if (expr == nullptr) {
         return;
@@ -2299,7 +2299,7 @@ struct VariableEtExpression {
 };
 
 static void rassemble_expressions(NoeudExpression *expr,
-                                  dls::tablet<VariableEtExpression, 6> &expressions)
+                                  kuri::tablet<VariableEtExpression, 6> &expressions)
 {
     /* pour les directives d'exécutions nous devons directement utiliser le résultat afin
      * d'éviter les problèmes si la substitution est une virgule (plusieurs résultats) */
@@ -2414,10 +2414,10 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     }
 
     /* tri les expressions selon les noms */
-    dls::tablet<VariableEtExpression, 6> vars_et_exprs;
+    kuri::tablet<VariableEtExpression, 6> vars_et_exprs;
     rassemble_expressions(inst->expression, vars_et_exprs);
 
-    dls::tablet<NoeudExpression *, 6> expressions;
+    kuri::tablet<NoeudExpression *, 6> expressions;
     expressions.redimensionne(vars_et_exprs.taille());
 
     POUR (expressions) {
@@ -2497,7 +2497,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::OK;
     };
 
-    dls::tablet<DonneesAssignations, 6> donnees_retour;
+    kuri::tablet<DonneesAssignations, 6> donnees_retour;
 
     POUR (expressions) {
         DonneesAssignations donnees;
@@ -2592,7 +2592,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 	 * qu'un module soit nommé comme une structure dans celui-ci, donc une expression
 	 * du style X.X sera toujours erronnée.
 	 */
-	auto declarations = dls::tablet<NoeudDeclaration *, 10>();
+ auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
 	trouve_declarations_dans_bloc_ou_module(declarations, bloc_recherche, expr->ident, fichier);
 
 	if (declarations.taille() == 0) {
@@ -2736,7 +2736,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     fonction->params_sorties.ajoute(decl_sortie);
     fonction->param_sortie = decl_sortie;
 
-    auto types_entrees = dls::tablet<Type *, 6>(0);
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
 
     auto type_sortie = m_compilatrice.typeuse[TypeBase::CHAINE];
 
@@ -4118,7 +4118,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         variables.enfile(variable);
     }
 
-    dls::tablet<NoeudExpression *, 6> expressions;
+    kuri::tablet<NoeudExpression *, 6> expressions;
     rassemble_expressions(inst->expression, expressions);
 
     auto ajoute_variable = [this](DonneesAssignations &donnees,
@@ -4223,7 +4223,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         return CodeRetourValidation::OK;
     };
 
-    dls::tablet<DonneesAssignations, 6> donnees_assignations;
+    kuri::tablet<DonneesAssignations, 6> donnees_assignations;
 
     POUR (expressions) {
         if (it->est_non_initialisation()) {
@@ -4592,7 +4592,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
     type1 = enfant_expr->operande_droite->type;
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
@@ -4728,7 +4728,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
                 return Attente::sur_type(type_type2->type_connu);
             }
 
-            auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
+            auto membres = kuri::tablet<TypeCompose::Membre, 6>(2);
             membres[0] = {nullptr, type_type1->type_connu, ID::_0};
             membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 
@@ -4786,7 +4786,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         }
     }
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
@@ -4856,7 +4856,7 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(
         *espace, type_bool, type_bool, type_op, candidats);
     if (resultat.has_value()) {

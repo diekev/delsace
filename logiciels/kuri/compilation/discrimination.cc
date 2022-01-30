@@ -470,7 +470,7 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(
         *espace, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE, candidats);
     if (resultat.has_value()) {

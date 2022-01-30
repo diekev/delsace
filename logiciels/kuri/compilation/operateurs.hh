@@ -27,12 +27,12 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "transformation_type.hh"
 
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tablet.hh"
 
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
@@ -224,8 +224,9 @@ struct OperateurCandidat {
     POINTEUR_NUL(OperateurCandidat)
 };
 
-std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
-                                                    Type *type1,
-                                                    Type *type2,
-                                                    GenreLexeme type_op,
-                                                    dls::tablet<OperateurCandidat, 10> &candidats);
+std::optional<Attente> cherche_candidats_operateurs(
+    EspaceDeTravail &espace,
+    Type *type1,
+    Type *type2,
+    GenreLexeme type_op,
+    kuri::tablet<OperateurCandidat, 10> &candidats);

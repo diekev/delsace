@@ -141,7 +141,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *b,
-                                    dls::tablet<ErreurAppariement, 10> const &erreurs)
+                                    kuri::tablet<ErreurAppariement, 10> const &erreurs)
 {
     auto e = espace.rapporte_erreur(
         b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);

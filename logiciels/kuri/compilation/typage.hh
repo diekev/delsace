@@ -28,11 +28,11 @@
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
+#include "structures/tablet.hh"
 
 #include "operateurs.hh"
 
@@ -292,7 +292,7 @@ struct TypeFonction : public Type {
         genre = GenreType::FONCTION;
     }
 
-    TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie);
+    TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie);
 
     COPIE_CONSTRUCT(TypeFonction);
 
@@ -638,9 +638,9 @@ struct Typeuse {
 
     TypeVariadique *type_variadique(Type *type_pointe);
 
-    TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees);
+    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
 
-    TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees,
+    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees,
                                 Type *type_sortie,
                                 bool ajoute_operateurs = true);
 
@@ -652,7 +652,7 @@ struct Typeuse {
 
     TypeUnion *reserve_type_union(NoeudStruct *decl);
 
-    TypeUnion *union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres);
+    TypeUnion *union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres);
 
     TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
@@ -662,7 +662,7 @@ struct Typeuse {
 
     TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
-    TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
+    TypeTuple *cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres);
 
     inline Type *operator[](TypeBase type_base) const
     {

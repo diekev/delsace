@@ -964,7 +964,7 @@ struct GeneratriceCodeC {
                     os << ");\n";
                 }
 
-                auto arguments = dls::tablet<kuri::chaine, 10>();
+                auto arguments = kuri::tablet<kuri::chaine, 10>();
 
                 POUR (inst_appel->args) {
                     arguments.ajoute(genere_code_pour_atome(it, os, false));

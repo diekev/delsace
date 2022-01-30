@@ -263,7 +263,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
 {
     auto nom_fontion = enchaine("init_globale", fonction_pour);
 
-    auto types_entrees = dls::tablet<Type *, 6>(0);
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
     auto type_sortie = m_compilatrice.typeuse[TypeBase::RIEN];
 
     auto fonction = m_compilatrice.cree_fonction(nullptr, nom_fontion);
@@ -3397,7 +3397,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
     nombre_labels = 0;
 
     // déclare une fonction de type int(ContexteProgramme) appelée __principale
-    auto types_entrees = dls::tablet<Type *, 6>();
+    auto types_entrees = kuri::tablet<Type *, 6>();
     auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
 

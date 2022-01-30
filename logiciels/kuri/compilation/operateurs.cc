@@ -695,12 +695,12 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
                                                     Type *type1,
                                                     Type *type2,
                                                     GenreLexeme type_op,
-                                                    dls::tablet<OperateurCandidat, 10> &candidats)
+                                                    kuri::tablet<OperateurCandidat, 10> &candidats)
 {
     assert(type1);
     assert(type2);
 
-    auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
+    auto op_candidats = kuri::tablet<OperateurBinaire const *, 10>();
 
     POUR (type1->operateurs.operateurs(type_op).plage()) {
         op_candidats.ajoute(it);

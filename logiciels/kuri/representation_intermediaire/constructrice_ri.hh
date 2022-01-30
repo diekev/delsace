@@ -28,9 +28,10 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_code.hh"
+
+#include "structures/tablet.hh"
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -89,7 +90,7 @@ struct ConstructriceRI {
     /* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
      * appelons les genere_ri_*, il faut dépiler la valeur que nous désirons, si
      * nous en désirons une */
-    dls::tablet<Atome *, 8> m_pile{};
+    kuri::tablet<Atome *, 8> m_pile{};
 
   public:
     AtomeFonction *fonction_courante = nullptr;

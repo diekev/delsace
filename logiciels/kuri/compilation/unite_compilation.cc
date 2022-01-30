@@ -342,7 +342,7 @@ void UniteCompilation::rapporte_erreur() const
             auto type1 = expression_operation->operande_gauche->type;
             auto type2 = expression_operation->operande_droite->type;
 
-            auto candidats = dls::tablet<OperateurCandidat, 10>();
+            auto candidats = kuri::tablet<OperateurCandidat, 10>();
             auto resultat = cherche_candidats_operateurs(
                 *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
 

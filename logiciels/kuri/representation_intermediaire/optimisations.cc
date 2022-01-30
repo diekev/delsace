@@ -24,11 +24,11 @@
 
 #include "optimisations.hh"
 
-#include "biblinternes/structures/tablet.hh"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "structures/tablet.hh"
 
 #include "analyse.hh"
 #include "bloc_basique.hh"
@@ -381,7 +381,7 @@ struct Substitutrice {
         SubstitutDans substitut_dans = SubstitutDans::TOUT;
     };
 
-    dls::tablet<DonneesSubstitution, 16> substitutions{};
+    kuri::tablet<DonneesSubstitution, 16> substitutions{};
 
   public:
     void ajoute_substitution(Atome *original, Atome *substitut, SubstitutDans substitut_dans)
@@ -750,8 +750,8 @@ static bool operandes_sont_constantes(InstructionOpBinaire *op)
 
 static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *, int> &instructions)
 {
-    dls::tablet<std::pair<Atome *, Atome *>, 16> dernieres_valeurs;
-    dls::tablet<InstructionAccedeMembre *, 16> acces_membres;
+    kuri::tablet<std::pair<Atome *, Atome *>, 16> dernieres_valeurs;
+    kuri::tablet<InstructionAccedeMembre *, 16> acces_membres;
 
     auto renseigne_derniere_valeur = [&](Atome *ptr, Atome *valeur) {
         if (log_actif) {
@@ -884,7 +884,7 @@ bool propage_constantes_et_temporaires(kuri::tableau<Bloc *, int> &blocs)
 static void determine_assignations_inutiles(Bloc *bloc)
 {
     using paire_atomes = std::pair<Atome *, InstructionStockeMem *>;
-    auto anciennes_valeurs = dls::tablet<paire_atomes, 16>();
+    auto anciennes_valeurs = kuri::tablet<paire_atomes, 16>();
 
     auto indique_valeur_chargee = [&](Atome *atome) {
         POUR (anciennes_valeurs) {

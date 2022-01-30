@@ -33,10 +33,10 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 struct Atome;
 struct AtomeConstante;

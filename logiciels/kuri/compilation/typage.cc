@@ -209,7 +209,7 @@ TypeReference::TypeReference(Type *type_pointe_) : TypeReference()
     type_pointe_->drapeaux |= POSSEDE_TYPE_REFERENCE;
 }
 
-TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie) : TypeFonction()
+TypeFonction::TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie) : TypeFonction()
 {
     this->types_entrees.reserve(static_cast<int>(entrees.taille()));
     POUR (entrees) {
@@ -784,7 +784,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     return type;
 }
 
-TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees)
+TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees)
 {
     if (it->types_entrees.taille() != entrees.taille()) {
         return nullptr;
@@ -802,7 +802,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *,
 // static int nombre_types_apparies = 0;
 // static int nombre_appels = 0;
 
-TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees,
+TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
                                      Type *type_sortie,
                                      bool ajoute_operateurs)
 {
@@ -907,7 +907,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     return type;
 }
 
-TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres)
+TypeUnion *Typeuse::union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres)
 {
     auto types_unions_ = types_unions.verrou_ecriture();
 
@@ -1012,7 +1012,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
     return type;
 }
 
-TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres)
+TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres)
 {
     auto types_tuples_ = types_tuples.verrou_ecriture();
 
@@ -1576,7 +1576,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     else if (type->genre == GenreType::FONCTION) {
         auto type_fonction = type->comme_fonction();
 
-        auto types_entrees = dls::tablet<Type *, 6>();
+        auto types_entrees = kuri::tablet<Type *, 6>();
         types_entrees.reserve(type_fonction->types_entrees.taille());
 
         POUR (type_fonction->types_entrees) {
@@ -1589,7 +1589,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     else if (type->genre == GenreType::TUPLE) {
         auto type_tuple = type->comme_tuple();
 
-        auto types_membres = dls::tablet<TypeCompose::Membre, 6>();
+        auto types_membres = kuri::tablet<TypeCompose::Membre, 6>();
 
         POUR (type_tuple->membres) {
             types_membres.ajoute({nullptr, normalise_type(typeuse, it.type)});
@@ -1734,7 +1734,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
 static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
 {
-    dls::tablet<kuri::chaine_statique, 6> noms;
+    kuri::tablet<kuri::chaine_statique, 6> noms;
 
     while (bloc) {
         if (bloc->ident) {

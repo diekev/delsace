@@ -654,7 +654,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
 #endif
 
-    auto pointeurs_arguments = dls::tablet<void *, 12>();
+    auto pointeurs_arguments = kuri::tablet<void *, 12>();
     auto decalage_argument = 0u;
 
     if (ptr_fonction->decl->est_variadique) {

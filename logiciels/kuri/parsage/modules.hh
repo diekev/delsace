@@ -28,7 +28,6 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
 #include <mutex>
@@ -38,6 +37,7 @@
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 #include "lexemes.hh"
 
@@ -156,7 +156,7 @@ struct Module {
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
-    dls::tablet<Fichier *, 16> fichiers{};
+    kuri::tablet<Fichier *, 16> fichiers{};
     bool importe = false;
 
     kuri::chaine chemin_bibliotheque_32bits{};

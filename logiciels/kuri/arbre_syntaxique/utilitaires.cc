@@ -1722,7 +1722,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			/* À FAIRE : utilisation du type */
 			auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
 
-			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
+			auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
 			rassemble_feuilles(enfant1, feuilles);
 
 			auto idx = static_cast<NoeudExpression *>(nullptr);
@@ -2165,7 +2165,7 @@ void Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
 
 	constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 
-	auto feuilles = dls::tablet<NoeudExpression *, 10>{};
+	auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
 	rassemble_feuilles(enfant, feuilles);
 
 	for (auto i = 0l; i < feuilles.taille(); ++i) {
@@ -3267,7 +3267,7 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
             type_param = typeuse.type_pointeur_pour(type_normalise, false, false);
         }
 
-        auto types_entrees = dls::tablet<Type *, 6>();
+        auto types_entrees = kuri::tablet<Type *, 6>();
         types_entrees.ajoute(type_param);
 
         auto type_fonction = typeuse.type_fonction(types_entrees, typeuse[TypeBase::RIEN], false);

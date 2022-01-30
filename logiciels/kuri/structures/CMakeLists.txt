@@ -38,6 +38,7 @@ set(SOURCES
     ensemblon.cc
     intervalle.cc
 	table_hachage.cc
+  tablet.cc
 	tableau.cc
 	tableau_compresse.cc
 
@@ -48,6 +49,7 @@ set(SOURCES
     ensemblon.hh
     intervalle.hh
 	table_hachage.hh
+  tablet.hh
 	tableau.hh
 	tableau_compresse.hh
 )

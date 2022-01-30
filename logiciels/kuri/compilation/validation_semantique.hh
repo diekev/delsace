@@ -25,13 +25,13 @@
 #pragma once
 
 #include "biblinternes/structures/file_fixe.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include <variant>
 
 #include "arbre_syntaxique/utilitaires.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/tablet.hh"
 
 #include "attente.hh"
 
@@ -100,13 +100,13 @@ struct ContexteValidationDeclaration {
     };
 
     /* Les variables déclarées, entre les virgules, si quelqu'une. */
-    dls::tablet<NoeudExpression *, 6> feuilles_variables{};
+    kuri::tablet<NoeudExpression *, 6> feuilles_variables{};
 
     /* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
-    dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
+    kuri::tablet<DeclarationEtReference, 6> decls_et_refs{};
 
     /* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
-    dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
+    kuri::tablet<NoeudExpression *, 6> feuilles_expressions{};
 
     /* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir
      * le résultat de son évaluation. */
@@ -114,7 +114,7 @@ struct ContexteValidationDeclaration {
 
     /* Les données finales pour les assignations, faisant correspondre les expressions aux
      * variables. */
-    dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+    kuri::tablet<DonneesAssignations, 6> donnees_assignations{};
 
     /* Données temporaires pour la constructions des donnees_assignations. */
     DonneesAssignations donnees_temp{};

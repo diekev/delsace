@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/tablet.hh"
-
 #include "structures/ensemblon.hh"
+#include "structures/tablet.hh"
 
 struct EspaceDeTravail;
 struct Fichier;
@@ -46,16 +45,16 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);
 
-void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc *bloc,
                                    IdentifiantCode const *ident);
 
-void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                              NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);
 
-void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
                                              NoeudBloc *bloc,
                                              IdentifiantCode const *ident,

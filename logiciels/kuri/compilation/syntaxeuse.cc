@@ -40,7 +40,7 @@
 #include "typage.hh"
 
 template <typename T, unsigned long N, typename TypeIndex>
-static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
+static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
 {
     dst.reserve(static_cast<TypeIndex>(src.taille()));
 
@@ -1580,7 +1580,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                dls::tablet<NoeudExpression *, 6> expressions;
+                kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
                 while (true) {
@@ -1618,7 +1618,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                dls::tablet<NoeudExpression *, 6> expressions;
+                kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
                 while (true) {
@@ -1710,7 +1710,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
         bloc->possede_contexte = true;
     }
 
-    auto expressions = dls::tablet<NoeudExpression *, 32>();
+    auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
         if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -1750,7 +1750,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
     consomme(GenreLexeme::PARENTHESE_OUVRANTE, "attendu une parenthèse ouvrante");
 
-    auto params = dls::tablet<NoeudExpression *, 16>();
+    auto params = kuri::tablet<NoeudExpression *, 16>();
 
     while (apparie_expression()) {
         auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
@@ -1799,7 +1799,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
     auto sinon_rencontre = false;
 
-    auto paires_discr = dls::tablet<NoeudPaireDiscr *, 32>();
+    auto paires_discr = kuri::tablet<NoeudPaireDiscr *, 32>();
 
     while (!apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
         if (apparie(GenreLexeme::SINON)) {
@@ -2117,7 +2117,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
-    auto expressions = dls::tablet<NoeudExpression *, 16>();
+    auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
         if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -2193,7 +2193,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
     /* analyse les paramètres de la fonction */
-    auto params = dls::tablet<NoeudExpression *, 16>();
+    auto params = kuri::tablet<NoeudExpression *, 16>();
 
     auto eu_declarations = false;
 
@@ -2535,7 +2535,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
     /* analyse les paramètres de la fonction */
-    auto params = dls::tablet<NoeudExpression *, 16>();
+    auto params = kuri::tablet<NoeudExpression *, 16>();
 
     while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2817,7 +2817,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
         consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
-        auto expressions = dls::tablet<NoeudExpression *, 16>();
+        auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
             if (apparie(GenreLexeme::POINT_VIRGULE)) {
