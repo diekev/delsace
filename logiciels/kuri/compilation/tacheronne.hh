@@ -25,9 +25,10 @@
 #pragma once
 
 #include "biblinternes/outils/badge.hh"
-#include "biblinternes/structures/file.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
+
+#include "structures/file.hh"
 
 #include "statistiques/statistiques.hh"
 #include "unite_compilation.hh"
@@ -113,7 +114,7 @@ struct OrdonnanceuseTache {
   private:
     Compilatrice *m_compilatrice = nullptr;
 
-    dls::file<Tache> taches[NOMBRE_FILES];
+    kuri::file<Tache> taches[NOMBRE_FILES];
 
     int nombre_de_tacheronnes = 0;
     bool compilation_terminee = false;

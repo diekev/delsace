@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/file.hh"
-
 #include "arbre_syntaxique/noeud_code.hh"
+
+#include "structures/file.hh"
 
 #include "message.hh"
 
@@ -49,7 +49,7 @@ struct Messagere {
 
     Compilatrice *m_compilatrice = nullptr;
 
-    dls::file<Message const *> file_message{};
+    kuri::file<Message const *> file_message{};
 
   public:
     Messagere() = default;

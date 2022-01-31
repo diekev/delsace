@@ -49,9 +49,9 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/pile.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/pile.hh"
 #include "structures/tableau.hh"
 
 using dls::outils::est_element;
@@ -208,7 +208,7 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
         dls::paire{dls::vue_chaine("float"), dls::vue_chaine("r32")},
         dls::paire{dls::vue_chaine("double"), dls::vue_chaine("r64")});
 
-    auto pile_morceaux = dls::pile<dls::chaine>();
+    auto pile_morceaux = kuri::pile<dls::chaine>();
 
     for (auto i = 0; i < morceaux.taille(); ++i) {
         auto &morceau = morceaux[i];
@@ -1076,7 +1076,7 @@ struct Convertisseuse {
     /* pour les structures, unions, et énumérations anonymes */
     int nombre_anonymes = 0;
 
-    dls::pile<dls::chaine> noms_structure{};
+    kuri::pile<dls::chaine> noms_structure{};
 
     dico_typedefs typedefs{};
 

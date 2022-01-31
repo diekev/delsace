@@ -30,8 +30,8 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/pile.hh"
 
+#include "structures/pile.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
@@ -316,7 +316,7 @@ class ConvertisseuseRI {
     kuri::tableau<PatchLabel> patchs_labels{};
 
 #ifdef OPTIMISE_ALLOCS
-    dls::pile<int> pile_taille{};
+    kuri::pile<int> pile_taille{};
     int dernier_decalage_pile = 0;
 #endif
 

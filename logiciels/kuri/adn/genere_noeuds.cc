@@ -1274,12 +1274,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
     {
         os << "#pragma once\n";
         os << "#include \"allocatrice.hh\"\n";
-        os << "#include \"biblinternes/structures/pile.hh\"\n";
+        os << "#include \"structures/pile.hh\"\n";
         os << "struct TypeCompose;\n";
         os << "struct AssembleuseArbre {\n";
         os << "private:\n";
         os << "\tAllocatriceNoeud &m_allocatrice;\n";
-        os << "\tdls::pile<NoeudBloc *> m_blocs{};\n";
+        os << "\tkuri::pile<NoeudBloc *> m_blocs{};\n";
         os << "public:\n";
 
         const char *methodes = R"(

@@ -24,13 +24,12 @@
 
 #include "analyse.hh"
 
-#include "biblinternes/structures/file.hh"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/espace_de_travail.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/file.hh"
 
 #include "bloc_basique.hh"
 #include "impression.hh"
@@ -52,7 +51,7 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
     auto blocs = convertis_en_blocs(constructrice, atome, blocs__);
 
     kuri::ensemble<Bloc *> blocs_visites;
-    dls::file<Bloc *> a_visiter;
+    kuri::file<Bloc *> a_visiter;
 
     a_visiter.enfile(blocs[0]);
 

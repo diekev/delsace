@@ -36,7 +36,9 @@ set(SOURCES
 	enchaineuse.cc
     ensemble.cc
     ensemblon.cc
+    file.cc
     intervalle.cc
+    pile.cc
 	table_hachage.cc
   tablet.cc
 	tableau.cc
@@ -47,7 +49,10 @@ set(SOURCES
 	enchaineuse.hh
     ensemble.hh
     ensemblon.hh
+    file.hh
+    file_fixe.hh
     intervalle.hh
+    pile.hh
 	table_hachage.hh
   tablet.hh
 	tableau.hh

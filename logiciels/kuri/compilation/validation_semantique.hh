@@ -24,13 +24,12 @@
 
 #pragma once
 
-#include "biblinternes/structures/file_fixe.hh"
-
 #include <variant>
 
 #include "arbre_syntaxique/utilitaires.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/file_fixe.hh"
 #include "structures/tablet.hh"
 
 #include "attente.hh"
@@ -110,7 +109,7 @@ struct ContexteValidationDeclaration {
 
     /* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir
      * le résultat de son évaluation. */
-    file_fixe<NoeudExpression *, 6> variables{};
+    kuri::file_fixe<NoeudExpression *, 6> variables{};
 
     /* Les données finales pour les assignations, faisant correspondre les expressions aux
      * variables. */

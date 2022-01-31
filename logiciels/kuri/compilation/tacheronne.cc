@@ -295,7 +295,7 @@ static std::optional<Attente> attente_sur_type_si_drapeau_manquant(
     kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
 {
     auto visites = kuri::ensemblon<Type *, 16>();
-    auto pile = dls::pile<Type *>();
+    auto pile = kuri::pile<Type *>();
 
     pour_chaque_element(types_utilises, [&pile](auto &type) {
         pile.empile(type);

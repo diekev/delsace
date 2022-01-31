@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/file.hh"
 #include "structures/tableau.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
@@ -74,7 +74,7 @@ class GestionnaireCode {
     /* Les programmes en cours de compilation, ils sont ajoutés et retirés de la liste en fonction
      * de leurs états de compilation. Les programmes ne sont retirés que si leur compilation ou
      * exécution est terminée. */
-    dls::file<Programme *> programmes_en_cours{};
+    kuri::file<Programme *> programmes_en_cours{};
 
     /* Les dépendances d'une déclaration qui sont rassemblées après la fin du typage, nous ne
      * stockons pas définitivement cette information, ce membre ne sers qu'à réutiliser la mémoire

@@ -26,6 +26,7 @@
 #include "biblinternes/tests/test_unitaire.hh"
 
 #include "../structures/ensemble.hh"
+#include "../structures/file.hh"
 
 static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse, uint iteration)
 {
@@ -92,10 +93,49 @@ void test_ensemble(dls::test_unitaire::Controleuse &controleuse)
     }
 }
 
+static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, uint iteration)
+{
+    auto gna = GNA(iteration);
+    const auto nombre_d_elements = gna.uniforme(0, 1024);
+
+    auto tableau_controle = kuri::tableau<long>(nombre_d_elements);
+    for (int i = 0; i < nombre_d_elements; i++) {
+        tableau_controle[i] = gna.uniforme(std::numeric_limits<long>::min(),
+                                           std::numeric_limits<long>::max());
+    }
+
+    auto file = kuri::file<long>();
+
+    for (int i = 0; i < 2; i++) {
+        for (auto v : tableau_controle) {
+            file.enfile(v);
+        }
+
+        CU_VERIFIE_CONDITION(controleuse, !file.est_vide());
+        CU_VERIFIE_EGALITE(controleuse, file.taille(), tableau_controle.taille());
+        CU_VERIFIE_EGALITE(controleuse, file.taille(), static_cast<long>(nombre_d_elements));
+
+        for (auto v : tableau_controle) {
+            auto valeur_defilee = file.defile();
+            CU_VERIFIE_EGALITE(controleuse, v, valeur_defilee);
+        }
+
+        CU_VERIFIE_CONDITION(controleuse, file.est_vide());
+    }
+}
+
+void test_file(dls::test_unitaire::Controleuse &controleuse)
+{
+    for (uint i = 0; i < 1000; ++i) {
+        iteration_test_file(controleuse, i);
+    }
+}
+
 int main()
 {
     dls::test_unitaire::Controleuse controleuse;
     controleuse.ajoute_fonction(test_ensemble);
+    controleuse.ajoute_fonction(test_file);
     controleuse.performe_controles();
 
     controleuse.imprime_resultat();

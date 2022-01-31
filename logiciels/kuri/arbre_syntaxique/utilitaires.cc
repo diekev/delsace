@@ -1798,7 +1798,7 @@ static void rassemble_operations_chainees(NoeudExpression *racine,
 NoeudExpression *Simplificatrice::cree_expression_pour_op_chainee(
     kuri::tableau<NoeudExpressionBinaire> &comparaisons, Lexeme const *lexeme_op_logique)
 {
-    dls::pile<NoeudExpression *> exprs;
+    kuri::pile<NoeudExpression *> exprs;
 
     for (auto i = comparaisons.taille() - 1; i >= 0; --i) {
         auto &it = comparaisons[i];

@@ -1284,7 +1284,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
              * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
              * avoir à attendre. */
             auto visites = kuri::ensemblon<Type *, 16>();
-            auto pile = dls::pile<Type *>();
+            auto pile = kuri::pile<Type *>();
             pile.empile(type);
 
             while (!pile.est_vide()) {
@@ -2407,7 +2407,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::Erreur;
     }
 
-    dls::file_fixe<NoeudExpression *, 6> variables;
+    kuri::file_fixe<NoeudExpression *, 6> variables;
 
     POUR (fonction_courante()->params_sorties) {
         variables.enfile(it);
@@ -4092,7 +4092,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
     auto variable = inst->variable;
 
-    dls::file_fixe<NoeudExpression *, 6> variables;
+    kuri::file_fixe<NoeudExpression *, 6> variables;
 
     if (variable->est_virgule()) {
         auto virgule = variable->comme_virgule();
