@@ -526,9 +526,14 @@ void UniteCompilation::marque_prete_si_attente_resolue()
 
     if (m_attente.est<AttenteSurInterfaceKuri>()) {
         auto interface_attendue = m_attente.interface_kuri();
-        auto decl = espace->compilatrice().interface_kuri->declaration_pour_ident(
-            interface_attendue);
-        if (decl && decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        auto &compilatrice = espace->compilatrice();
+
+        if (ident_est_pour_fonction_interface(interface_attendue)) {
+            auto decl = compilatrice.interface_kuri->declaration_pour_ident(interface_attendue);
+            if (!decl || !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return;
+            }
+
             if (decl->ident == ID::cree_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
                  * nous faut le code. */
@@ -537,7 +542,16 @@ void UniteCompilation::marque_prete_si_attente_resolue()
             else {
                 marque_prete();
             }
+
+            return;
         }
+
+        assert(ident_est_pour_type_interface(interface_attendue));
+
+        if (est_type_interface_disponible(compilatrice.typeuse, interface_attendue)) {
+            marque_prete();
+        }
+
         return;
     }
 

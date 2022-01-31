@@ -80,3 +80,10 @@ struct InterfaceKuri {
 };
 
 void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type);
+
+bool ident_est_pour_fonction_interface(const IdentifiantCode *ident);
+
+bool ident_est_pour_type_interface(const IdentifiantCode *ident);
+
+/** Retourne vrai si le type correspondant à l'IdentifiantCode est non-nul. */
+bool est_type_interface_disponible(Typeuse &typeuse, const IdentifiantCode *ident);
