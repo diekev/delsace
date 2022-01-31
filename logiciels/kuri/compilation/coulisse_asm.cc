@@ -25,6 +25,7 @@
 #include "coulisse_asm.hh"
 
 #include "structures/enchaineuse.hh"
+#include "structures/table_hachage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/instructions.hh"
@@ -39,8 +40,8 @@
 static constexpr const char *RSP = "rsp";
 
 struct GeneratriceCodeASM {
-    dls::dico<Atome const *, kuri::chaine> table_valeurs{};
-    dls::dico<Atome const *, kuri::chaine> table_globales{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 

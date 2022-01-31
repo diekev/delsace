@@ -52,7 +52,8 @@
 #include "biblexternes/iprof/prof.h"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
+
+#include "structures/table_hachage.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
@@ -294,11 +295,11 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 /* ************************************************************************** */
 
 struct GeneratriceCodeLLVM {
-    dls::dico<Atome const *, llvm::Value *> table_valeurs{};
-    dls::dico<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
-    dls::dico<Atome const *, llvm::GlobalVariable *> table_globales{};
-    dls::dico_desordonne<Type *, llvm::Type *> table_types{};
-    dls::dico_desordonne<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{};
+    kuri::table_hachage<Atome const *, llvm::Value *> table_valeurs{};
+    kuri::table_hachage<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
+    kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{};
+    kuri::table_hachage<Type *, llvm::Type *> table_types{};
+    kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{};
     EspaceDeTravail &m_espace;
 
     llvm::Function *m_fonction_courante = nullptr;
@@ -332,7 +333,7 @@ GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
 
 llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 {
-    auto type_llvm = table_types[type];
+    auto type_llvm = table_types.valeur_ou(type, nullptr);
 
     if (type_llvm != nullptr) {
         /* Note: normalement les types des pointeurs vers les fonctions doivent
@@ -355,7 +356,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
         case GenreType::TUPLE:
         {
             type_llvm = nullptr;
-            table_types[type] = type_llvm;
+            table_types.insere(type, type_llvm);
             break;
         }
         case GenreType::FONCTION:
@@ -516,7 +517,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
             /* Pour les structures récursives, il faut créer un type
              * opaque, dont le corps sera renseigné à la fin */
             auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
-            table_types[type] = type_opaque;
+            table_types.insere(type, type_opaque);
 
             std::vector<llvm::Type *> types_membres;
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
@@ -586,7 +587,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
         }
     }
 
-    table_types[type] = type_llvm;
+    table_types.insere(type, type_llvm);
     return type_llvm;
 }
 
@@ -648,12 +649,12 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
 
                     if (valeur_globale->ident) {
-                        auto valeur_ = table_globales[valeur_globale];
+                        auto valeur_ = table_globales.valeur_ou(valeur_globale, nullptr);
                         // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
                         return valeur_;
                     }
 
-                    auto valeur_ = table_valeurs[valeur_globale];
+                    auto valeur_ = table_valeurs.valeur_ou(valeur_globale, nullptr);
                     // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
                     return valeur_;
                 }
@@ -689,7 +690,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
                         auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
                         assert(init);
-                        auto globale_llvm = table_globales[globale];
+                        auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
 
                         accede = init;
 
@@ -840,11 +841,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
-            return table_valeurs[inst];
+            return table_valeurs.valeur_ou(inst, nullptr);
         }
         case Atome::Genre::GLOBALE:
         {
-            auto valeur = table_globales[atome];
+            auto valeur = table_globales.valeur_ou(atome, nullptr);
             // dbg() << "GLOBALE: " << *valeur;
             return valeur;
         }
@@ -874,7 +875,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
             alloca->setAlignment(type_pointeur->type_pointe->alignement);
-            table_valeurs[inst] = alloca;
+            table_valeurs.insere(inst, alloca);
             break;
         }
         case Instruction::Genre::APPEL:
@@ -917,7 +918,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             }
 
             auto valeur_fonction = genere_code_pour_atome(inst_appel->appele, false);
-            table_valeurs[inst] = m_builder.CreateCall(valeur_fonction, arguments);
+            table_valeurs.insere(inst, m_builder.CreateCall(valeur_fonction, arguments));
 
             //			if (!m_fonction_courante->sanstrace) {
             //				os << "  TERMINE_RECORD_TRACE_APPEL;\n";
@@ -928,15 +929,15 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case Instruction::Genre::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
-            m_builder.CreateBr(table_blocs[inst_branche->label]);
+            m_builder.CreateBr(table_blocs.valeur_ou(inst_branche->label, nullptr));
             break;
         }
         case Instruction::Genre::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
             auto condition = genere_code_pour_atome(inst_branche->condition, false);
-            auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai];
-            auto bloc_si_faux = table_blocs[inst_branche->label_si_faux];
+            auto bloc_si_vrai = table_blocs.valeur_ou(inst_branche->label_si_vrai, nullptr);
+            auto bloc_si_faux = table_blocs.valeur_ou(inst_branche->label_si_faux, nullptr);
             m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
             break;
         }
@@ -947,17 +948,17 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur = static_cast<llvm::Value *>(nullptr);
 
             if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur = table_valeurs[charge];
+                valeur = table_valeurs.valeur_ou(charge, nullptr);
             }
             else {
-                valeur = table_globales[charge];
+                valeur = table_globales.valeur_ou(charge, nullptr);
             }
 
             assert(valeur != nullptr);
 
             auto load = m_builder.CreateLoad(valeur, "");
             load->setAlignment(charge->type->alignement);
-            table_valeurs[inst_charge] = load;
+            table_valeurs.insere(inst_charge, load);
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
@@ -968,10 +969,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_ou = static_cast<llvm::Value *>(nullptr);
 
             if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur_ou = table_valeurs[ou];
+                valeur_ou = table_valeurs.valeur_ou(ou, nullptr);
             }
             else {
-                valeur_ou = table_globales[ou];
+                valeur_ou = table_globales.valeur_ou(ou, nullptr);
             }
 
             m_builder.CreateStore(valeur, valeur_ou);
@@ -982,7 +983,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         {
             auto inst_label = inst->comme_label();
             auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", m_fonction_courante);
-            table_blocs[inst_label] = bloc;
+            table_blocs.insere(inst_label, bloc);
             // m_builder.SetInsertPoint(bloc);
             break;
         }
@@ -1038,7 +1039,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
             }
 
-            table_valeurs[inst] = valeur;
+            table_valeurs.insere(inst, valeur);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1050,17 +1051,19 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal &&
                 inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Nat) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
-                table_valeurs[inst] = m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite);
+                table_valeurs.insere(inst,
+                                     m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
             }
             else if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal_Reel &&
                      inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Reel) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
-                table_valeurs[inst] = m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite);
+                table_valeurs.insere(inst,
+                                     m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite));
             }
             else {
                 auto inst_llvm = inst_llvm_depuis_operateur(inst_bin->op);
-                table_valeurs[inst] = m_builder.CreateBinOp(
-                    inst_llvm, valeur_gauche, valeur_droite);
+                table_valeurs.insere(
+                    inst, m_builder.CreateBinOp(inst_llvm, valeur_gauche, valeur_droite));
             }
 
 #if 0
@@ -1125,7 +1128,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             index[0] = m_builder.getInt64(0);
             index[1] = valeur_index;
 
-            table_valeurs[inst] = m_builder.CreateGEP(valeur_accede, index);
+            table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
@@ -1144,15 +1147,15 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 index[1] = m_builder.getInt32(static_cast<unsigned int>(index_membre));
 
                 auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
-                table_valeurs[inst] = valeur_membre;
+                table_valeurs.insere(inst, valeur_membre);
             }
             else {
-                valeur_accede = table_globales[accede];
+                valeur_accede = table_globales.valeur_ou(accede, nullptr);
 
                 auto index = std::vector<llvm::Value *>(1);
                 index[0] = m_builder.getInt32(static_cast<unsigned int>(index_membre));
 
-                table_valeurs[inst] = m_builder.CreateGEP(valeur_accede, index);
+                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
             }
 
             // À FAIRE : type union
@@ -1219,7 +1222,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 resultat = m_builder.CreateCast(CastOps::BitCast, valeur, type_llvm);
             }
 
-            table_valeurs[inst] = resultat;
+            table_valeurs.insere(inst, resultat);
 
             break;
         }
@@ -1254,7 +1257,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
                                                 nom_globale);
 
         globale->setAlignment(type->alignement);
-        table_globales[valeur_globale] = globale;
+        table_globales.insere(valeur_globale, globale);
     }
 
     POUR (repr_inter.globales) {
@@ -1262,7 +1265,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
-        auto globale = table_globales[valeur_globale];
+        auto globale = table_globales.valeur_ou(valeur_globale, nullptr);
         if (valeur_globale->initialisateur) {
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 genere_code_pour_atome(valeur_globale->initialisateur, true));
@@ -1312,7 +1315,8 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             genere_code_pour_instruction(inst);
         }
 
-        auto bloc_entree = table_blocs[atome_fonc->instructions[0]->comme_label()];
+        auto bloc_entree = table_blocs.valeur_ou(atome_fonc->instructions[0]->comme_label(),
+                                                 nullptr);
         m_builder.SetInsertPoint(bloc_entree);
 
         auto valeurs_args = fonction->arg_begin();
@@ -1332,7 +1336,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto store = m_builder.CreateStore(valeur, alloc);
             store->setAlignment(type->alignement);
 
-            table_valeurs[param] = alloc;
+            table_valeurs.insere(param, alloc);
         }
 
         //		if (!atome_fonc->sanstrace) {
@@ -1364,12 +1368,12 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto type_llvm = converti_type_llvm(type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
             alloca->setAlignment(type_pointeur->type_pointe->alignement);
-            table_valeurs[param] = alloca;
+            table_valeurs.insere(param, alloca);
         }
 
         for (auto inst : atome_fonc->instructions) {
             if (inst->genre == Instruction::Genre::LABEL) {
-                auto bloc = table_blocs[inst->comme_label()];
+                auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
                 m_builder.SetInsertPoint(bloc);
                 continue;
             }
@@ -1388,10 +1392,9 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
                                                         long taille_chaine)
 {
-    auto iter = valeurs_chaines_globales.trouve(chaine);
-
-    if (iter != valeurs_chaines_globales.fin()) {
-        return iter->second;
+    auto iter = valeurs_chaines_globales.valeur_ou(chaine, nullptr);
+    if (iter) {
+        return iter;
     }
 
     // @.chn [N x i8] c"...0"
@@ -1423,7 +1426,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
     auto struct_chaine = llvm::ConstantStruct::get(
         static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);
 
-    valeurs_chaines_globales.insere({chaine, struct_chaine});
+    valeurs_chaines_globales.insere(chaine, struct_chaine);
 
     return struct_chaine;
 }
