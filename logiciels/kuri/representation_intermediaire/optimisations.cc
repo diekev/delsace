@@ -28,6 +28,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "structures/table_hachage.hh"
 #include "structures/tablet.hh"
 
 #include "analyse.hh"
@@ -83,7 +84,7 @@ enum {
 
 struct CopieuseInstruction {
   private:
-    std::map<Atome *, Atome *> copies{};
+    kuri::table_hachage<Atome *, Atome *> copies{};
     ConstructriceRI &constructrice;
 
   public:
@@ -93,7 +94,7 @@ struct CopieuseInstruction {
 
     void ajoute_substitution(Atome *a, Atome *b)
     {
-        copies.insert({a, b});
+        copies.insere(a, b);
     }
 
     kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
@@ -103,7 +104,7 @@ struct CopieuseInstruction {
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.find(it) != copies.end()) {
+            if (!it->est_label() && copies.possede(it)) {
                 continue;
             }
 
@@ -126,9 +127,10 @@ struct CopieuseInstruction {
 
         auto inst = atome->comme_instruction();
 
-        auto iter = copies.find(inst);
-        if (iter != copies.end()) {
-            return iter->second;
+        auto trouvee = false;
+        auto valeur = copies.trouve(inst, trouvee);
+        if (trouvee) {
+            return valeur;
         }
 
         auto nouvelle_inst = static_cast<Instruction *>(nullptr);
@@ -267,7 +269,7 @@ struct CopieuseInstruction {
 
         if (nouvelle_inst) {
             nouvelle_inst->type = inst->type;
-            copies.insert({inst, nouvelle_inst});
+            ajoute_substitution(inst, nouvelle_inst);
         }
 
         return nouvelle_inst;
