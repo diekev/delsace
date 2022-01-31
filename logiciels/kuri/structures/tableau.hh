@@ -50,8 +50,9 @@ struct tableau {
 
     tableau(std::initializer_list<T> &&liste) : tableau(static_cast<TypeIndex>(liste.size()))
     {
+        auto ptr = this->pointeur;
         for (auto &&elem : liste) {
-            ajoute(elem);
+            *ptr++ = elem;
         }
     }
 

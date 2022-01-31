@@ -131,9 +131,22 @@ void test_file(dls::test_unitaire::Controleuse &controleuse)
     }
 }
 
+static void test_tableau(dls::test_unitaire::Controleuse &controleuse)
+{
+    /* Construction d'un tableau via un std::initializer_list. */
+    auto tableau = kuri::tableau<int>({0, 1, 2, 3, 4, 5});
+
+    CU_VERIFIE_EGALITE(controleuse, tableau.taille(), 6l);
+
+    for (int i = 0; i < 6; i++) {
+        CU_VERIFIE_EGALITE(controleuse, tableau[i], i);
+    }
+}
+
 int main()
 {
     dls::test_unitaire::Controleuse controleuse;
+    controleuse.ajoute_fonction(test_tableau);
     controleuse.ajoute_fonction(test_ensemble);
     controleuse.ajoute_fonction(test_file);
     controleuse.performe_controles();
