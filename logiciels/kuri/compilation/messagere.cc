@@ -40,8 +40,7 @@ void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kur
     message->espace = espace;
     message->chemin = chemin;
 
-    file_message.enfile({nullptr, message});
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    envoie_message(message);
 }
 
 void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri::chaine &chemin)
@@ -55,8 +54,7 @@ void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri
     message->espace = espace;
     message->chemin = chemin;
 
-    file_message.enfile({nullptr, message});
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    envoie_message(message);
 }
 
 void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module)
@@ -71,8 +69,7 @@ void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *mo
     message->chemin = module->chemin();
     message->module = module;
 
-    file_message.enfile({nullptr, message});
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    envoie_message(message);
 }
 
 void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module)
@@ -87,8 +84,7 @@ void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *mod
     message->chemin = module->chemin();
     message->module = module;
 
-    file_message.enfile({nullptr, message});
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    envoie_message(message);
 }
 
 Message *Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
@@ -123,8 +119,7 @@ Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
     message->espace = espace;
     message->phase = espace->phase_courante();
 
-    file_message.enfile(message);
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    envoie_message(message);
 
     return message;
 }
