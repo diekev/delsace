@@ -39,16 +39,6 @@
 #include "ipa.hh"
 #include "typage.hh"
 
-template <typename T, unsigned long N, typename TypeIndex>
-static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
-{
-    dst.reserve(static_cast<TypeIndex>(src.taille()));
-
-    POUR (src) {
-        dst.ajoute(it);
-    }
-}
-
 enum {
     OPERATEUR_EST_SURCHARGEABLE = (1 << 0),
     EST_EXPRESSION = (1 << 1),
