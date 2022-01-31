@@ -352,7 +352,11 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
 
 void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
-    os << m_nom_code << " :: struct {";
+    os << m_nom_code << " :: struct ";
+    if (m_nom_code.nom_kuri() == "AnnotationCode") {
+        os << "#interface ";
+    }
+    os << "{";
     if (m_mere) {
         os << "\n\templ base: " << m_mere->nom() << "\n";
     }
