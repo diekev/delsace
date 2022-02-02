@@ -629,8 +629,10 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *ty
         parametres.push_back(converti_type_llvm(it));
     }
 
-    return llvm::FunctionType::get(
-        converti_type_llvm(type->type_sortie), parametres, est_variadique && est_externe);
+    auto type_sortie_llvm = converti_type_llvm(type->type_sortie);
+    assert(type_sortie_llvm);
+
+    return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique && est_externe);
 }
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
