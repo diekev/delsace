@@ -612,14 +612,11 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR, type, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR_EGAL, type, type_bool, indice);
     ajoute_basique(GenreLexeme::SUPERIEUR, type, type_bool, indice);
@@ -658,11 +655,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
-
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
