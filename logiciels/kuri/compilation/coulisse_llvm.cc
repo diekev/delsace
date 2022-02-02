@@ -66,6 +66,12 @@
 // Inclus cela à la fin car DIFFERE interfère avec le lexème...
 #include "biblinternes/outils/garde_portee.h"
 
+inline bool adresse_est_nulle(void *adresse)
+{
+    /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
+    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
+}
+
 /* ************************************************************************** */
 
 struct Indentation {
@@ -932,6 +938,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             }
 
             auto valeur_fonction = genere_code_pour_atome(inst_appel->appele, false);
+            assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
+                erreur::imprime_site(m_espace, inst_appel->site);
+                imprime_atome(inst_appel->appele, std::cerr);
+            });
             table_valeurs.insere(inst, m_builder.CreateCall(valeur_fonction, arguments));
 
             //			if (!m_fonction_courante->sanstrace) {
@@ -988,6 +998,15 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             else {
                 valeur_ou = table_globales.valeur_ou(ou, nullptr);
             }
+
+            assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
+                erreur::imprime_site(m_espace, inst_stocke->site);
+                imprime_atome(inst_stocke->ou, std::cerr);
+            });
+            assert_rappel(!adresse_est_nulle(valeur), [&]() {
+                erreur::imprime_site(m_espace, inst_stocke->site);
+                imprime_atome(inst_stocke->valeur, std::cerr);
+            });
 
             m_builder.CreateStore(valeur, valeur_ou);
 
@@ -1237,6 +1256,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             }
 
             table_valeurs.insere(inst, resultat);
+            assert_rappel(!adresse_est_nulle(resultat), [&]() {
+                erreur::imprime_site(m_espace, inst_transtype->site);
+                imprime_atome(inst_transtype->valeur, std::cerr);
+            });
 
             break;
         }
