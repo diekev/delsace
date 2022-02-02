@@ -353,10 +353,22 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
-        case GenreType::TUPLE:
         {
             type_llvm = nullptr;
             table_types.insere(type, type_llvm);
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            auto tuple = type->comme_tuple();
+
+            std::vector<llvm::Type *> types_membres;
+            types_membres.reserve(static_cast<size_t>(tuple->membres.taille()));
+            POUR (tuple->membres) {
+                types_membres.push_back(converti_type_llvm(it.type));
+            }
+
+            type_llvm = llvm::StructType::create(m_contexte_llvm, types_membres, "tuple", false);
             break;
         }
         case GenreType::FONCTION:
