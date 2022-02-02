@@ -1231,6 +1231,9 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                         resultat = m_builder.CreateCast(CastOps::SExt, valeur, type_llvm);
                     }
                 }
+                else if (type_vers->est_enum()) {
+                    resultat = m_builder.CreateCast(CastOps::BitCast, valeur, type_llvm);
+                }
             }
             else if (type_de->genre == GenreType::REEL) {
                 if (type_vers->genre == GenreType::ENTIER_NATUREL) {
