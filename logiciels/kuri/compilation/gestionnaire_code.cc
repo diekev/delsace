@@ -151,6 +151,40 @@ struct RassembleuseDependances {
  * globales utilisées. */
 void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 {
+    auto rassemble_dependances_transformation = [&](TransformationType transformation,
+                                                    Type *type) {
+        /* Marque les dépendances sur les fonctions d'interface de kuri. */
+        auto interface = compilatrice->interface_kuri;
+
+        if (transformation.type == TypeTransformation::EXTRAIT_UNION) {
+            assert(interface->decl_panique_membre_union);
+            auto type_union = type->comme_union();
+            if (!type_union->est_nonsure) {
+                ajoute_fonction(interface->decl_panique_membre_union);
+            }
+        }
+        else if (transformation.type == TypeTransformation::FONCTION) {
+            assert(transformation.fonction);
+            ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(transformation.fonction));
+        }
+
+        /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
+         * RI. À FAIRE: généralise pour toutes les variables. */
+        if (transformation.type_cible) {
+            auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
+                transformation.type_cible, false, false);
+            ajoute_type(type_pointeur);
+            ajoute_type(transformation.type_cible);
+        }
+    };
+
+    auto rassemble_dependances_transformations =
+        [&](kuri::tableau_compresse<TransformationType, int> const &transformations, Type *type) {
+            POUR (transformations.plage()) {
+                rassemble_dependances_transformation(it, type);
+            }
+        };
+
     visite_noeud(
         racine,
         PreferenceVisiteNoeud::SUBSTITUTION,
@@ -300,31 +334,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
-
-                /* Marque les dépendances sur les fonctions d'interface de kuri. */
-                auto interface = compilatrice->interface_kuri;
-
-                if (comme->transformation.type == TypeTransformation::EXTRAIT_UNION) {
-                    assert(interface->decl_panique_membre_union);
-                    auto type_union = comme->expression->type->comme_union();
-                    if (!type_union->est_nonsure) {
-                        ajoute_fonction(interface->decl_panique_membre_union);
-                    }
-                }
-                else if (comme->transformation.type == TypeTransformation::FONCTION) {
-                    assert(comme->transformation.fonction);
-                    ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(
-                        comme->transformation.fonction));
-                }
-
-                /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
-                 * RI. À FAIRE: généralise pour toutes les variables. */
-                if (comme->transformation.type_cible) {
-                    auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
-                        comme->transformation.type_cible, false, false);
-                    ajoute_type(type_pointeur);
-                    ajoute_type(comme->transformation.type_cible);
-                }
+                rassemble_dependances_transformation(comme->transformation,
+                                                     comme->expression->type);
             }
             else if (noeud->est_appel()) {
                 auto appel = noeud->comme_appel();
@@ -355,6 +366,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 
                 POUR (assignation->donnees_exprs.plage()) {
                     rassemble_dependances(it.expression);
+                    auto type_expression = it.expression ? it.expression->type : Type::nul();
+                    rassemble_dependances_transformations(it.transformations, type_expression);
                 }
             }
             else if (noeud->est_declaration_variable()) {
@@ -365,6 +378,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                         ajoute_type(var->type);
                     }
                     rassemble_dependances(it.expression);
+                    auto type_expression = it.expression ? it.expression->type : Type::nul();
+                    rassemble_dependances_transformations(it.transformations, type_expression);
                 }
             }
 
