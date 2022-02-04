@@ -1008,11 +1008,17 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
                 erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke->ou, std::cerr);
+                imprime_atome(inst_stocke, std::cerr);
+                std::cerr << '\n';
+                imprime_information_atome(inst_stocke->ou, std::cerr);
+                std::cerr << '\n';
             });
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
                 erreur::imprime_site(m_espace, inst_stocke->site);
-                imprime_atome(inst_stocke->valeur, std::cerr);
+                imprime_atome(inst_stocke, std::cerr);
+                std::cerr << '\n';
+                imprime_information_atome(inst_stocke->valeur, std::cerr);
+                std::cerr << '\n';
             });
 
             m_builder.CreateStore(valeur, valeur_ou);
