@@ -712,27 +712,31 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         assert(init);
                         auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
 
-                        accede = init;
+                        accede = globale_llvm;
 
+                        globale_llvm->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
                         globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
                     }
 
-#if 0
-                    auto index_array = std::vector<llvm::Value *>(2);
-                    index_array[0] = llvm::ConstantInt::get(
-                        llvm::Type::getInt32Ty(m_contexte_llvm), 0);
-                    index_array[1] = index;
-#else
-                    auto index_array = std::vector<llvm::Value *>(1);
-                    index_array[0] = index;
-#endif
+                    auto index_array = std::vector<llvm::Value *>();
+                    auto type_accede = acces->accede->type;
+                    if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+                        index_array.resize(1);
+                        index_array[0] = index;
+                    }
+                    else {
+                        index_array.resize(2);
+                        index_array[0] = llvm::ConstantInt::get(
+                            llvm::Type::getInt32Ty(m_contexte_llvm), 0);
+                        index_array[1] = index;
+                    }
 
                     assert(type_llvm);
 
                     // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
 
-                    return llvm::ConstantExpr::getGetElementPtr(
-                        type_llvm, llvm::cast<llvm::Constant>(accede), index_array);
+                    return llvm::ConstantExpr::getInBoundsGetElementPtr(
+                        nullptr, llvm::cast<llvm::Constant>(accede), index_array);
                 }
                 case AtomeConstante::Genre::VALEUR:
                 {
