@@ -2311,10 +2311,11 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         auto label_si_vrai = reserve_label(noeud);
         auto label_si_faux = reserve_label(noeud);
 
-        auto condition = cree_op_comparaison(noeud,
-                                             OperateurBinaire::Genre::Comp_Inegal,
-                                             gen_tente.acces_erreur_pour_test,
-                                             cree_z32(0));
+        auto condition = cree_op_comparaison(
+            noeud,
+            OperateurBinaire::Genre::Comp_Inegal,
+            gen_tente.acces_erreur_pour_test,
+            cree_constante_entiere(noeud->expression_appelee->type, 0));
 
         cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 
