@@ -1429,6 +1429,14 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             table_valeurs.insere(param, alloca);
         }
 
+        /* Génère le code pour les accès de membres des retours mutliples. */
+        if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+            for (auto &param : atome_fonc->decl->params_sorties) {
+                genere_code_pour_instruction(
+                    param->comme_declaration_variable()->atome->comme_instruction());
+            }
+        }
+
         for (auto inst : atome_fonc->instructions) {
             if (inst->genre == Instruction::Genre::LABEL) {
                 auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
