@@ -32,6 +32,123 @@
 
 #include "instructions.hh"
 
+void imprime_information_atome(Atome const *atome, std::ostream &os)
+{
+    switch (atome->genre_atome) {
+        case Atome::Genre::GLOBALE:
+        {
+            os << "globale " << (atome->ident ? atome->ident->nom : "anonyme") << " de type "
+               << chaine_type(atome->type);
+            break;
+        }
+        case Atome::Genre::CONSTANTE:
+        {
+            auto atome_const = static_cast<AtomeConstante const *>(atome);
+            os << "constante de type " << chaine_type(atome->type);
+            switch (atome_const->genre) {
+                case AtomeConstante::Genre::GLOBALE:
+                {
+                    os << " représentant une globale";
+                    break;
+                }
+                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+                {
+                    os << " représentant un transtypage constant";
+                    break;
+                }
+                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+                {
+                    os << " représentant une opération unaire constante";
+                    break;
+                }
+                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+                {
+                    os << " représentant une opération binaire constante";
+                    break;
+                }
+                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+                {
+                    os << " représentant un indexage constant";
+                    break;
+                }
+                case AtomeConstante::Genre::VALEUR:
+                {
+                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
+
+                    switch (valeur_const->valeur.genre) {
+                        case AtomeValeurConstante::Valeur::Genre::NULLE:
+                        {
+                            os << " représentant une valeur constante NULLE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::REELLE:
+                        {
+                            os << " représentant une valeur constante REELLE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TYPE:
+                        {
+                            os << " représentant une valeur constante TYPE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            os << " représentant une valeur constante TAILLE_DE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+                        {
+                            os << " représentant une valeur constante ENTIERE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+                        {
+                            os << " représentant une valeur constante BOOLEENNE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+                        {
+                            os << " représentant une valeur constante CARACTERE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        {
+                            os << " représentant une valeur constante INDEFINIE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+                        {
+                            os << " représentant une valeur constante STRUCTURE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+                        {
+                            os << " représentant une valeur constante TABLEAU_FIXE";
+                            break;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+                        {
+                            os << " représentant une valeur constante TABLEAU_DONNEES_CONSTANTES";
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            os << "instruction";
+            break;
+        }
+        case Atome::Genre::FONCTION:
+        {
+            os << "fonction";
+            break;
+        }
+    }
+}
+
 static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_operande)
 {
     if (atome->genre_atome == Atome::Genre::GLOBALE) {
