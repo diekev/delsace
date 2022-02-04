@@ -1194,16 +1194,19 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
             auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
 
-#if 1
-            auto index = std::vector<llvm::Value *>(1);
-            index[0] = valeur_index;
-#else
-            auto index = std::vector<llvm::Value *>(2);
-            index[0] = m_builder.getInt32(0);
-            index[1] = valeur_index;
-#endif
+            auto type_accede = inst_acces->accede->type;
+            if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+                auto index = std::vector<llvm::Value *>(1);
+                index[0] = valeur_index;
+                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+            }
+            else {
+                auto index = std::vector<llvm::Value *>(2);
+                index[0] = m_builder.getInt32(0);
+                index[1] = valeur_index;
+                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+            }
 
-            table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
