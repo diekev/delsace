@@ -1097,6 +1097,16 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal &&
                 inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Nat) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
+
+                assert_rappel(inst_bin->valeur_droite->type == inst_bin->valeur_gauche->type,
+                              [&]() {
+                                  erreur::imprime_site(m_espace, inst_bin->site);
+                                  std::cerr << "Type à gauche "
+                                            << chaine_type(inst_bin->valeur_gauche->type) << '\n';
+                                  std::cerr << "Type à droite "
+                                            << chaine_type(inst_bin->valeur_droite->type) << '\n';
+                              });
+
                 table_valeurs.insere(inst,
                                      m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
             }
