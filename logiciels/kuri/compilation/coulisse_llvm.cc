@@ -1105,7 +1105,21 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                                             << chaine_type(inst_bin->valeur_gauche->type) << '\n';
                                   std::cerr << "Type à droite "
                                             << chaine_type(inst_bin->valeur_droite->type) << '\n';
+                                  imprime_instruction(inst_bin, std::cerr);
+                                  std::cerr << '\n';
                               });
+
+                assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
+                    erreur::imprime_site(m_espace, inst_bin->site);
+                    llvm::errs() << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n';
+                    llvm::errs() << "Type à droite LLVM " << *valeur_droite->getType() << '\n';
+                    std::cerr << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type)
+                              << '\n';
+                    std::cerr << "Type à droite " << chaine_type(inst_bin->valeur_droite->type)
+                              << '\n';
+                    imprime_instruction(inst_bin, std::cerr);
+                    std::cerr << '\n';
+                });
 
                 table_valeurs.insere(inst,
                                      m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
