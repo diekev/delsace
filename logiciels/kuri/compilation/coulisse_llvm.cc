@@ -1170,9 +1170,14 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
             auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
 
+#if 1
+            auto index = std::vector<llvm::Value *>(1);
+            index[0] = valeur_index;
+#else
             auto index = std::vector<llvm::Value *>(2);
-            index[0] = m_builder.getInt64(0);
+            index[0] = m_builder.getInt32(0);
             index[1] = valeur_index;
+#endif
 
             table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
             break;
