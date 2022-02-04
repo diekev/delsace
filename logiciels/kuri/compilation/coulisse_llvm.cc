@@ -762,6 +762,13 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         }
                         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                         {
+                            // À FAIRE : la RI peut modifier le type mais pas le genre de l'atome.
+                            if (atome->type->est_reel()) {
+                                auto valeur_reelle = static_cast<double>(
+                                    valeur_const->valeur.valeur_entiere);
+                                return llvm::ConstantFP::get(type_llvm, valeur_reelle);
+                            }
+
                             return llvm::ConstantInt::get(type_llvm,
                                                           valeur_const->valeur.valeur_entiere);
                         }
