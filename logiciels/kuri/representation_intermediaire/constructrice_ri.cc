@@ -2812,6 +2812,7 @@ AtomeConstante *ConstructriceRI::cree_tableau_annotations_pour_info_membre(
     valeurs_annotations.reserve(annotations.taille());
 
     auto type_annotation = m_compilatrice.typeuse.type_annotation;
+    auto type_pointeur_annotation = m_compilatrice.typeuse.type_pointeur_pour(type_annotation);
 
     POUR (annotations) {
         kuri::tableau<AtomeConstante *> valeurs(2);
@@ -2821,7 +2822,7 @@ AtomeConstante *ConstructriceRI::cree_tableau_annotations_pour_info_membre(
         valeurs_annotations.ajoute(valeur);
     }
 
-    return cree_tableau_global(type_annotation, std::move(valeurs_annotations));
+    return cree_tableau_global(type_pointeur_annotation, std::move(valeurs_annotations));
 }
 
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *site)

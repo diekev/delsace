@@ -86,7 +86,7 @@ struct InfoTypeMembreStructure {
     InfoType *info = nullptr;
     long decalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
-    kuri::tableau<AnnotationMembre> annotations{};
+    kuri::tableau<AnnotationMembre *> annotations{};
 };
 
 struct InfoTypeStructure : public InfoType {
