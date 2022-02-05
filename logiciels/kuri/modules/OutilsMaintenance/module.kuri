@@ -222,5 +222,5 @@ exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(b
 exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
 {
     données_utilisateurs: eini
-    exécute_rappel(chemin, rappel)
+    exécute_rappel(chemin, rappel, données_utilisateurs)
 }
