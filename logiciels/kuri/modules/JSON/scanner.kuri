@@ -836,6 +836,7 @@ génère_initialisation_json :: fonc ()
     ajoute_au_tampon(*enchaineuse, "importe JSON\n")
 
 	modules_importés : []chaine
+    diffère déloge(modules_importés)
 	tableau_ajoute(*modules_importés, "Fondation")
 
 	/* Création des enveloppes pour les fonctions de parsage. */

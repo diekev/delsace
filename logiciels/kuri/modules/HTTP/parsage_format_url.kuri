@@ -358,6 +358,7 @@ génère_initialisation_parsage_url :: fonc ()
     ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
 
 	modules_importés : []chaine
+    diffère déloge(modules_importés)
 	tableau_ajoute(*modules_importés, "Fondation")
 
 	/* Création des enveloppes pour les fonctions de parsage. */

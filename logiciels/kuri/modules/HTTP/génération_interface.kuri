@@ -59,8 +59,6 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
 
     espace := démarre_un_espace_de_travail("Génération Interface Serveuse", *options)
 
-    diffère déloge(paramètres.données_fonctions)
-
     compilatrice_commence_interception(espace)
     diffère compilatrice_termine_interception(espace)
 
@@ -103,6 +101,12 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
             }
         }
     }
+
+    pour paramètres.données_fonctions {
+        déloge(it.règles_routage)
+    }
+
+    déloge(paramètres.données_fonctions)
 }
 
 InfoParamètreFonctionRappel :: struct {
@@ -163,7 +167,9 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.nouvelle_ligne()
 
     si infos_paramètres.formulaire.type != nul {
-        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chaine_pour_type(infos_paramètres.formulaire.type))
+        chn_type_formulaire := chaine_pour_type(infos_paramètres.formulaire.type)
+        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chn_type_formulaire)
+        déloge(chn_type_formulaire)
 
         enchaineuse.ajoute_au_tampon("\tsaufsi résultat_parsage == RésultatParsageFormatURL.Succès {\n")
         enchaineuse.ajoute_au_tampon("\t\tretourne mauvaise_requête()\n")
@@ -501,6 +507,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
 
     chemin_est_valide, règles_routage := valide_chemin(fonction, chemin, infos_paramètres.paramètres_route.type)
     saufsi chemin_est_valide {
+        déloge(règles_routage)
         retourne DonnéesCréationPointDEntréePage()
     }
 
@@ -751,6 +758,10 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     chm_dossier_pilote := chm_courant / paramètres.dossier_pilote
     chm_fichier_pilote := chm_dossier_pilote / "module.kuri"
 
+    diffère détruit_chemin(chm_courant)
+    diffère détruit_chemin(chm_dossier_pilote)
+    diffère détruit_chemin(chm_fichier_pilote)
+
     fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
         compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
         retourne
@@ -778,10 +789,14 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
 
     ensemble_ajoute(types_utilisés, infos)
 
-    ajoute_au_tampon(enchaineuse, chaine_pour_type(infos), " :: struct {\n")
+    chn_type := chaine_pour_type(infos)
+    ajoute_au_tampon(enchaineuse, chn_type, " :: struct {\n")
+    déloge(chn_type)
 
     pour infos.membres {
-        ajoute_au_tampon(enchaineuse, "    ", it.nom, ": ", chaine_pour_type(it.id), "\n")
+        chn_type = chaine_pour_type(it.id)
+        ajoute_au_tampon(enchaineuse, "    ", it.nom, ": ", chn_type, "\n")
+        déloge(chn_type)
     }
 
     ajoute_au_tampon(enchaineuse, "}\n\n")
@@ -831,15 +846,21 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
         imprime_dans_enchaineuse(enchaineuse, "% :: fonc (pilote: &%", it.nom_fonction, nom_type_pilote)
 
         si type_formulaire {
-            ajoute_au_tampon(enchaineuse, ", formulaire: ", chaine_pour_type(type_formulaire))
+            chn_type := chaine_pour_type(type_formulaire)
+            ajoute_au_tampon(enchaineuse, ", formulaire: ", chn_type)
+            déloge(chn_type)
         }
 
         si type_paramètres_route {
-            ajoute_au_tampon(enchaineuse, ", paramètres_routage: ", chaine_pour_type(type_paramètres_route))
+            chn_type := chaine_pour_type(type_paramètres_route)
+            ajoute_au_tampon(enchaineuse, ", paramètres_routage: ", chn_type)
+            déloge(chn_type)
         }
 
         si type_paramètre_requête {
-            ajoute_au_tampon(enchaineuse, ", paramètres_requête: ", chaine_pour_type(type_paramètre_requête))
+            chn_type := chaine_pour_type(type_paramètre_requête)
+            ajoute_au_tampon(enchaineuse, ", paramètres_requête: ", chn_type)
+            déloge(chn_type)
         }
 
         ajoute_au_tampon(enchaineuse, ") -> Résultat(MessageServeuseHTTP)\n")

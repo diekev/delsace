@@ -740,6 +740,7 @@ génère_initialisation_mysql :: fonc ()
     ajoute_au_tampon(*enchaineuse, "importe MySQL\n")
 
 	modules_importés : []chaine
+	diffère déloge(modules_importés)
 	tableau_ajoute(*modules_importés, "Fondation")
 
 	/* Création des enveloppes pour les fonctions de parsage. */
