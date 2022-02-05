@@ -819,6 +819,10 @@ void Tacheronne::execute_metaprogrammes()
 
                 compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
+
+                /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler
+                 * free. */
+                free(const_cast<char *>(resultat.pointeur()));
             }
         }
 
