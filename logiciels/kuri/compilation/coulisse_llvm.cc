@@ -1173,43 +1173,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     inst, m_builder.CreateBinOp(inst_llvm, valeur_gauche, valeur_droite));
             }
 
-#if 0
-			auto expr = static_cast<NoeudExpressionBinaire *>(b);
-			auto enfant1 = expr->operande_gauche;
-			auto enfant2 = expr->operande_droite;
-			auto type1 = enfant1->type;
-			auto type2 = enfant2->type;
-			auto op = expr->op;
-
-			auto valeur1 = applique_transformation(contexte, enfant1, false);
-			auto valeur2 = applique_transformation(contexte, enfant2, false);
-
-			if (op->est_basique) {
-				if (op->est_comp_entier) {
-					// détecte comparaison de pointeurs avec nul
-					if (type1->genre == GenreType::POINTEUR && type2->genre == GenreType::POINTEUR) {
-						auto type_pointe1 = static_cast<TypePointeur *>(type1)->type_pointe;
-						auto type_pointe2 = static_cast<TypePointeur *>(type2)->type_pointe;
-
-						if (type_pointe1 == nullptr) {
-							valeur1 = new llvm::BitCastInst(valeur1, converti_type_llvm(contexte, type2), "", contexte.bloc_courant());
-						}
-						else if (type_pointe2 == nullptr) {
-							valeur2 = new llvm::BitCastInst(valeur2, converti_type_llvm(contexte, type1), "", contexte.bloc_courant());
-						}
-					}
-
-					return llvm::ICmpInst::Create(llvm::Instruction::ICmp, op->predicat_llvm, valeur1, valeur2, "", contexte.bloc_courant());
-				}
-
-				if (op->est_comp_reel) {
-					return llvm::FCmpInst::Create(llvm::Instruction::FCmp, op->predicat_llvm, valeur1, valeur2, "", contexte.bloc_courant());
-				}
-
-				return llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
-			}
-#endif
-
             break;
         }
         case Instruction::Genre::RETOUR:
