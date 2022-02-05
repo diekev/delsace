@@ -59,6 +59,8 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
 
     espace := démarre_un_espace_de_travail("Génération Interface Serveuse", *options)
 
+    diffère déloge(paramètres.données_fonctions)
+
     compilatrice_commence_interception(espace)
     diffère compilatrice_termine_interception(espace)
 
@@ -597,6 +599,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     tableau_ajoute(*paramètres.données_fonctions, données)
 
     enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
@@ -621,6 +624,7 @@ crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresG�
     }
 
     enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
@@ -786,6 +790,7 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
 génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, enchaineuse: *Enchaineuse)
 {
     nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
+    diffère déloge(nom_type_pilote)
 
     // À FAIRE : import des modules où se trouve les types
     ajoute_au_tampon(enchaineuse, "importe Courriel\n")
