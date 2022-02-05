@@ -74,6 +74,36 @@ inline bool adresse_est_nulle(void *adresse)
 
 /* ************************************************************************** */
 
+/* À FAIRE(typage) : l'index des membres utilisé pour les accès à des membres est l'index absolu
+ * dans le tableau de membres du type. Hors ceci contient également les membres constants. Avoir de
+ * tels index pour les accès est plus ou moins correcte pour la coulisse C, mais pour LLVM, dont
+ * les types n'ont pas de membres constants, les index sont faux et peuvent pointer endehors du
+ * type donc nous devons les corriger afin d'accéder au membre correspondant du type LLVM.
+ * Nous pourrions stocker les membres constants à la fin du tableau de membre afin de ne pas avoir
+ * à se soucier de ce genre de choses. */
+static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
+{
+    auto index_reel = 0u;
+
+    POUR (type.membres) {
+        if (index == 0) {
+            break;
+        }
+
+        index -= 1;
+
+        if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+            continue;
+        }
+
+        index_reel += 1;
+    }
+
+    return index_reel;
+}
+
+/* ************************************************************************** */
+
 struct Indentation {
     int v = 0;
 
@@ -541,6 +571,9 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
 
             POUR (type_struct->membres) {
+                if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+                    continue;
+                }
                 types_membres.push_back(converti_type_llvm(it.type));
             }
 
@@ -1223,10 +1256,14 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto index_membre =
                 static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere;
 
+            auto index_reel = index_reel_pour_membre(
+                *accede->type->comme_pointeur()->type_pointe->comme_compose(),
+                static_cast<unsigned int>(index_membre));
+
             if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
-                index[1] = m_builder.getInt32(static_cast<unsigned int>(index_membre));
+                index[1] = m_builder.getInt32(index_reel);
 
                 auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
                 table_valeurs.insere(inst, valeur_membre);
@@ -1235,7 +1272,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 valeur_accede = table_globales.valeur_ou(accede, nullptr);
 
                 auto index = std::vector<llvm::Value *>(1);
-                index[0] = m_builder.getInt32(static_cast<unsigned int>(index_membre));
+                index[0] = m_builder.getInt32(index_reel);
 
                 table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
             }
