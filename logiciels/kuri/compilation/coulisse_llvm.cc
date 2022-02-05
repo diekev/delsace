@@ -1256,11 +1256,13 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto index_membre =
                 static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere;
 
+            auto type_pointe = accede->type->comme_pointeur()->type_pointe;
+
             auto index_reel = index_reel_pour_membre(
                 *accede->type->comme_pointeur()->type_pointe->comme_compose(),
                 static_cast<unsigned int>(index_membre));
 
-            if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
+            if (!type_pointe->est_pointeur()) {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
                 index[1] = m_builder.getInt32(index_reel);
