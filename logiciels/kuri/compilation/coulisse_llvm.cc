@@ -1417,10 +1417,13 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
                                m_module);
     }
 
+    // auto index_fonction = 0l;
     POUR (repr_inter.fonctions) {
         auto atome_fonc = it;
         table_valeurs.efface();
         table_blocs.efface();
+
+        // index_fonction++;
 
         if (atome_fonc->est_externe) {
             continue;
@@ -1507,6 +1510,10 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             }
         }
 
+        //        std::cerr << "Fonction " << index_fonction << " / " <<
+        //        repr_inter.fonctions.taille()
+        //                  << '\n';
+        // imprime_fonction(atome_fonc, std::cerr);
         for (auto inst : atome_fonc->instructions) {
             if (inst->genre == Instruction::Genre::LABEL) {
                 auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
