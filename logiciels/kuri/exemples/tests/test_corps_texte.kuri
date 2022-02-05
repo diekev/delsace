@@ -2,12 +2,12 @@ importe Fondation
 
 ajoute :: fonc (a: z32, b: z32) -> z32
 #corps_texte {
-    retourne "retourne a + b"
+    retourne copie_chaine("retourne a + b")
 }
 
 ajoute_poly :: fonc (a: $T, b: T) -> T
 #corps_texte {
-    retourne "retourne a + b"
+    retourne copie_chaine("retourne a + b")
 }
 
 test_ajoute :: fonc ()
@@ -20,7 +20,7 @@ test_ajoute :: fonc ()
 }
 
 Vecteur :: struct ($T: type_de_données) #corps_texte {
-    retourne "x: T; y: T; z: T;"
+    retourne copie_chaine("x: T; y: T; z: T;")
 }
 
 init_vecteur :: fonc () {
@@ -34,5 +34,5 @@ init_vecteur :: fonc () {
 
 principale :: fonc () -> z32
 #corps_texte {
-    retourne "/* init_vecteur(); */ test_ajoute(); retourne 0"
+    retourne copie_chaine("/* init_vecteur(); */ test_ajoute(); retourne 0")
 }
