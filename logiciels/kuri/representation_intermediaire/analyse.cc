@@ -26,6 +26,7 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 
 #include "structures/ensemble.hh"
@@ -472,6 +473,51 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
 /* ******************************************************************************************** */
 
+static bool atome_est_pour_creation_contexte(Compilatrice &compilatrice, AtomeFonction *atome)
+{
+    auto interface = compilatrice.interface_kuri;
+
+    /* atome->decl peut être nulle, vérifions d'abord que la fonction #création_contexte existe
+     * déjà. */
+    if (!interface->decl_creation_contexte) {
+        return false;
+    }
+
+    return interface->decl_creation_contexte == atome->decl;
+}
+
+static bool detecte_blocs_invalide(EspaceDeTravail &espace, AtomeFonction *atome)
+{
+    kuri::tableau<Bloc *, int> blocs__;
+    auto blocs = convertis_en_blocs(atome, blocs__);
+
+    POUR (blocs) {
+        if (it->instructions.est_vide()) {
+            espace.rapporte_erreur(atome->decl, "Erreur interne : bloc vide dans la RI !\n");
+            return false;
+        }
+
+        auto di = it->instructions.derniere();
+
+        if (di->est_branche_ou_retourne()) {
+            continue;
+        }
+
+        /* La fonction #création_contexte n'a pas de retour, puisque ses instructions sont copiées
+         * dans d'autres fonctions. */
+        if (atome_est_pour_creation_contexte(espace.compilatrice(), atome)) {
+            continue;
+        }
+
+        espace.rapporte_erreur(
+            di->site, "Erreur interne : un bloc ne finit pas par une branche ou un retour !\n");
+    }
+
+    return true;
+}
+
+/* ******************************************************************************************** */
+
 /* Performe différentes analyses de la RI. Ces analyses nous servent à valider un peu plus la
  * structures du programme. Nous pourrions les faire lors de la validation sémantique, mais ce
  * serait un peu plus complexe car l'arbre syntaxique, contrairement à la RI, a plus de cas
@@ -482,6 +528,10 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
+    if (!detecte_blocs_invalide(espace, atome)) {
+        return;
+    }
+
     if (!detecte_declarations_inutilisees(espace, atome)) {
         return;
     }
