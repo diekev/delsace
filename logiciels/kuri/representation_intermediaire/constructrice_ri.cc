@@ -215,6 +215,8 @@ InstructionBranche *ConstructriceRI::cree_branche(NoeudExpression *site_,
 {
     auto inst = insts_branche.ajoute_element(site_, label);
 
+    label->nombre_utilisations += 1;
+
     if (!cree_seulement) {
         fonction_courante->instructions.ajoute(inst);
     }
@@ -230,6 +232,10 @@ InstructionBrancheCondition *ConstructriceRI::cree_branche_condition(
 {
     auto inst = insts_branche_condition.ajoute_element(
         site_, valeur, label_si_vrai, label_si_faux);
+
+    label_si_vrai->nombre_utilisations += 1;
+    label_si_faux->nombre_utilisations += 1;
+
     fonction_courante->instructions.ajoute(inst);
     return inst;
 }
@@ -248,7 +254,31 @@ InstructionLabel *ConstructriceRI::reserve_label(NoeudExpression *site_)
 
 void ConstructriceRI::insere_label(InstructionLabel *label)
 {
+    /* La génération de code pour les conditions (#si, #saufsi) et les boucles peut ajouter des
+     * labels redondants (par exemple les labels pour après la condition ou la boucle) quand ces
+     * instructions sont conséquentes. Afin d'éviter d'avoir des labels définissant des blocs
+     * vides, nous ajoutons des branches implicites. */
+    if (!fonction_courante->instructions.est_vide()) {
+        auto di = fonction_courante->derniere_instruction();
+        /* Nous pourrions avoir `if (di->est_label())` pour détecter des labels de blocs vides,
+         * mais la génération de code pour par exemple les conditions d'une instructions `si` sans
+         * `sinon` ne met pas de branche à la fin de `si.bloc_si_vrai`. Donc ceci permet de
+         * détecter également ces cas. */
+        if (!di->est_branche_ou_retourne()) {
+            cree_branche(label->site, label);
+        }
+    }
+
     fonction_courante->instructions.ajoute(label);
+}
+
+void ConstructriceRI::insere_label_si_utilise(InstructionLabel *label)
+{
+    if (label->nombre_utilisations == 0) {
+        return;
+    }
+
+    insere_label(label);
 }
 
 InstructionRetour *ConstructriceRI::cree_retour(NoeudExpression *site_, Atome *valeur)
@@ -1345,7 +1375,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
                 insere_label(label_si_faux);
                 genere_ri_pour_noeud(inst_si->bloc_si_faux);
-                insere_label(label_apres_instruction);
+                insere_label_si_utilise(label_apres_instruction);
             }
             else {
                 insere_label(label_si_vrai);
@@ -1436,7 +1466,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 genere_ri_pour_noeud(boucle->bloc_sinon);
             }
 
-            insere_label(label_apres_boucle);
+            insere_label_si_utilise(label_apres_boucle);
 
             break;
         }

@@ -164,6 +164,7 @@ struct ConstructriceRI {
     InstructionLabel *cree_label(NoeudExpression *site_);
     InstructionLabel *reserve_label(NoeudExpression *site_);
     void insere_label(InstructionLabel *label);
+    void insere_label_si_utilise(InstructionLabel *label);
     InstructionRetour *cree_retour(NoeudExpression *site_, Atome *valeur);
     InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_,
                                           Atome *ou,
