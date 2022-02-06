@@ -292,7 +292,10 @@ UniteCompilation *UniteCompilation::unite_attendue() const
         return nullptr;
     }
 
-    assert(!m_attente.est_valide());
+    assert_rappel(!m_attente.est_valide(), [&]() {
+        std::cerr << "L'attente est pour " << commentaire() << '\n';
+        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
+    });
     return nullptr;
 }
 

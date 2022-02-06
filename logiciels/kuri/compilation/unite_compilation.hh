@@ -89,6 +89,7 @@ struct UniteCompilation {
         m_attente = attente;
         m_prete = false;
         cycle = 0;
+        assert(attente.est_valide());
     }
 
     void marque_prete()
