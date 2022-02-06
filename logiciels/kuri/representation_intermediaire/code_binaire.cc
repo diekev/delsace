@@ -106,9 +106,26 @@ int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *
     return decalage;
 }
 
-void Chunk::emets_assignation(NoeudExpression *site, Type *type)
+void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
+                              NoeudExpression *site,
+                              Type *type)
 {
-    assert(type->taille_octet);
+    assert_rappel(type->taille_octet, [&]() {
+        std::cerr << "Le type est " << chaine_type(type) << '\n';
+
+        auto fonction = contexte.fonction;
+        if (fonction) {
+            std::cerr << *fonction << '\n';
+
+            if (fonction->est_initialisation_type) {
+                auto type_param = fonction->params[0]->type->comme_pointeur()->type_pointe;
+                std::cerr << "La fonction est pour l'initialisation du type "
+                          << chaine_type(type_param) << '\n';
+            }
+        }
+
+        erreur::imprime_site(*contexte.espace, site);
+    });
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);
@@ -781,6 +798,9 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
         if (it->chunk.code || it->donnees_externe.ptr_fonction != nullptr) {
             continue;
         }
+
+        fonction_courante = it->decl;
+
         if (!genere_code_pour_fonction(it)) {
             return false;
         }
@@ -976,7 +996,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             genere_code_binaire_pour_atome(stocke->ou, chunk, true);
-            chunk.emets_assignation(stocke->site, stocke->valeur->type);
+            chunk.emets_assignation(contexte(), stocke->site, stocke->valeur->type);
             break;
         }
         case Instruction::Genre::APPEL:
@@ -1731,4 +1751,9 @@ int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
     }
 
     return index;
+}
+
+ContexteGenerationCodeBinaire ConvertisseuseRI::contexte() const
+{
+    return {espace, fonction_courante};
 }

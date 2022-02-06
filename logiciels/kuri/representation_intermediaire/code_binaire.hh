@@ -51,6 +51,7 @@ struct MetaProgramme;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -59,6 +60,11 @@ struct NoeudPour;
 struct NoeudStruct;
 struct Type;
 struct TypeFonction;
+
+struct ContexteGenerationCodeBinaire {
+    EspaceDeTravail *espace = nullptr;
+    const NoeudDeclarationEnteteFonction *fonction = nullptr;
+};
 
 using octet_t = unsigned char;
 
@@ -255,7 +261,9 @@ struct Chunk {
     void agrandis_si_necessaire(long taille);
 
     int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
-    void emets_assignation(NoeudExpression *site, Type *type);
+    void emets_assignation(ContexteGenerationCodeBinaire contexte,
+                           NoeudExpression *site,
+                           Type *type);
     void emets_charge(NoeudExpression *site, Type *type);
     void emets_charge_variable(NoeudExpression *site, int pointeur, Type *type);
     void emets_reference_globale(NoeudExpression *site, int pointeur);
@@ -306,6 +314,8 @@ class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
     DonneesConstantesExecutions *donnees_executions = nullptr;
 
+    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
     MetaProgramme *metaprogramme = nullptr;
@@ -344,6 +354,8 @@ class ConvertisseuseRI {
 
     int ajoute_globale(AtomeGlobale *globale);
     int genere_code_pour_globale(AtomeGlobale *atome_globale);
+
+    ContexteGenerationCodeBinaire contexte() const;
 };
 
 ffi_type *converti_type_ffi(Type *type);
