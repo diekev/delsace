@@ -43,12 +43,10 @@
  * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
  * tous ont un retour défini.
  */
-static bool detecte_retour_manquant(EspaceDeTravail &espace,
-                                    ConstructriceRI &constructrice,
-                                    AtomeFonction *atome)
+static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atome)
 {
     auto blocs__ = kuri::tableau<Bloc *, int>();
-    auto blocs = convertis_en_blocs(constructrice, atome, blocs__);
+    auto blocs = convertis_en_blocs(atome, blocs__);
 
     kuri::ensemble<Bloc *> blocs_visites;
     kuri::file<Bloc *> a_visiter;
@@ -482,13 +480,13 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
  * À FAIRE(analyse_ri) :
  * - membre actifs des unions
  */
-void analyse_ri(EspaceDeTravail &espace, ConstructriceRI &constructrice, AtomeFonction *atome)
+void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
     if (!detecte_declarations_inutilisees(espace, atome)) {
         return;
     }
 
-    if (!detecte_retour_manquant(espace, constructrice, atome)) {
+    if (!detecte_retour_manquant(espace, atome)) {
         return;
     }
 }

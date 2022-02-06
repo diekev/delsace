@@ -349,8 +349,7 @@ Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label
 
 /* NOTE: blocs___ est pour rassembler tous les blocs créés et trouver un bloc selon un label pour
  * la création des blocs. À RETRAVAILLER. */
-kuri::tableau<Bloc *, int> convertis_en_blocs(ConstructriceRI &constructrice,
-                                              AtomeFonction *atome_fonc,
+kuri::tableau<Bloc *, int> convertis_en_blocs(AtomeFonction *atome_fonc,
                                               kuri::tableau<Bloc *, int> &blocs___)
 {
     kuri::tableau<Bloc *, int> resultat{};
@@ -387,20 +386,6 @@ kuri::tableau<Bloc *, int> convertis_en_blocs(ConstructriceRI &constructrice,
             bloc_courant->ajoute_enfant(bloc_si_vrai);
             bloc_courant->ajoute_enfant(bloc_si_faux);
             continue;
-        }
-    }
-
-    /* ajoute des branches implicites pour les blocs qui n'en ont pas,
-     * ceci peut arriver pour les NoeudBlocs des conditions ou des boucles, qui
-     * n'ont pas d'expressions */
-    for (auto i = 0; i < resultat.taille() - 1; ++i) {
-        auto bloc = resultat[i];
-
-        if (bloc->enfants.est_vide() &&
-            (bloc->instructions.est_vide() || !bloc->instructions.derniere()->est_retour())) {
-            auto enfant = resultat[i + 1];
-            bloc->ajoute_enfant(enfant);
-            bloc->instructions.ajoute(constructrice.cree_branche(nullptr, enfant->label, true));
         }
     }
 

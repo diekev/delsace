@@ -1492,7 +1492,7 @@ void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
     enligne_fonctions(constructrice, atome_fonc);
 
     kuri::tableau<Bloc *, int> blocs___{};
-    auto blocs = convertis_en_blocs(constructrice, atome_fonc, blocs___);
+    auto blocs = convertis_en_blocs(atome_fonc, blocs___);
 
     performe_passes_optimisation(blocs);
 
