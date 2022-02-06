@@ -45,8 +45,6 @@
 
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
- * - crée une branche lors de l'insertion d'un label si la dernière instruction
- *   n'en est pas une (pour mimiquer le comportement des blocs de LLVM)
  */
 
 /* ************************************************************************** */
