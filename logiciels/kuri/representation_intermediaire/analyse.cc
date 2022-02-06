@@ -106,6 +106,9 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
 
 /* ********************************************************************************************* */
 
+// Il reste des choses à faire pour activer ceci
+#undef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+
 static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 {
     racine->nombre_utilisations += 1;
@@ -357,6 +360,8 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
     }
 }
 
+#ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+
 /**
  * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
  *
@@ -445,11 +450,11 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         allocs_inutilisees.ajoute(alloc);
     }
 
-#if 0
+#    if 0
     if (allocs_inutilisees.taille() != 0) {
         imprime_fonction(atome, std::cerr, false, true);
     }
-#endif
+#    endif
 
     POUR (allocs_inutilisees) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
@@ -470,6 +475,7 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
     return true;
 }
+#endif
 
 /* ******************************************************************************************** */
 
@@ -534,11 +540,13 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
         return;
     }
 
-    if (!detecte_declarations_inutilisees(espace, atome)) {
-        return;
-    }
-
     if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
         return;
     }
+
+#ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+    if (!detecte_declarations_inutilisees(espace, atome)) {
+        return;
+    }
+#endif
 }

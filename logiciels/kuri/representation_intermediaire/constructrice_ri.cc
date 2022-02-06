@@ -1801,6 +1801,8 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     decl->corps->drapeaux |= RI_FUT_GENEREE;
     fonction_courante->ri_generee = true;
 
+    analyse_ri(*espace(), atome_fonc);
+
     fonction_courante = nullptr;
     this->m_pile.efface();
 }
