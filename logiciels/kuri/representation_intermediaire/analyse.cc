@@ -44,15 +44,15 @@
  * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
  * tous ont un retour défini.
  */
-static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atome)
+static bool detecte_retour_manquant(EspaceDeTravail &espace,
+                                    FonctionEtBlocs const &fonction_et_blocs)
 {
-    auto blocs__ = kuri::tableau<Bloc *, int>();
-    auto blocs = convertis_en_blocs(atome, blocs__);
+    auto const atome = fonction_et_blocs.fonction;
 
     kuri::ensemble<Bloc *> blocs_visites;
     kuri::file<Bloc *> a_visiter;
 
-    a_visiter.enfile(blocs[0]);
+    a_visiter.enfile(fonction_et_blocs.blocs[0]);
 
     while (!a_visiter.est_vide()) {
         auto bloc_courant = a_visiter.defile();
@@ -88,10 +88,10 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atom
     // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
-    POUR (blocs) {
+    POUR (fonction_et_blocs.blocs) {
         if (!blocs_visites.possede(it)) {
             imprime_fonction(atome, std::cerr);
-            imprime_blocs(blocs, std::cerr);
+            imprime_blocs(fonction_et_blocs.blocs, std::cerr);
             espace
                 .rapporte_erreur(atome->decl,
                                  "Erreur interne, un ou plusieurs blocs n'ont pas été visité !")
@@ -486,12 +486,12 @@ static bool atome_est_pour_creation_contexte(Compilatrice &compilatrice, AtomeFo
     return interface->decl_creation_contexte == atome->decl;
 }
 
-static bool detecte_blocs_invalide(EspaceDeTravail &espace, AtomeFonction *atome)
+static bool detecte_blocs_invalide(EspaceDeTravail &espace,
+                                   FonctionEtBlocs const &fonction_et_blocs)
 {
-    kuri::tableau<Bloc *, int> blocs__;
-    auto blocs = convertis_en_blocs(atome, blocs__);
+    auto atome = fonction_et_blocs.fonction;
 
-    POUR (blocs) {
+    POUR (fonction_et_blocs.blocs) {
         if (it->instructions.est_vide()) {
             espace.rapporte_erreur(atome->decl, "Erreur interne : bloc vide dans la RI !\n");
             return false;
@@ -528,7 +528,9 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace, AtomeFonction *atome
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
-    if (!detecte_blocs_invalide(espace, atome)) {
+    auto fonction_et_blocs = convertis_en_blocs(atome);
+
+    if (!detecte_blocs_invalide(espace, fonction_et_blocs)) {
         return;
     }
 
@@ -536,7 +538,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
         return;
     }
 
-    if (!detecte_retour_manquant(espace, atome)) {
+    if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
         return;
     }
 }

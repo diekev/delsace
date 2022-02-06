@@ -1491,16 +1491,11 @@ void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
     // while (enligne_fonctions(constructrice, atome_fonc)) {}
     enligne_fonctions(constructrice, atome_fonc);
 
-    kuri::tableau<Bloc *, int> blocs___{};
-    auto blocs = convertis_en_blocs(atome_fonc, blocs___);
+    auto fonction_et_blocs = convertis_en_blocs(atome_fonc);
 
-    performe_passes_optimisation(blocs);
+    performe_passes_optimisation(fonction_et_blocs.blocs);
 
-    transfere_instructions_blocs(blocs, atome_fonc);
-
-    POUR (blocs___) {
-        memoire::deloge("Bloc", it);
-    }
+    transfere_instructions_blocs(fonction_et_blocs.blocs, atome_fonc);
 
     desactive_log();
 }

@@ -77,5 +77,11 @@ void construit_liste_variables_utilisees(Bloc *bloc);
 
 Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label);
 
-kuri::tableau<Bloc *, int> convertis_en_blocs(AtomeFonction *atome_fonc,
-                                              kuri::tableau<Bloc *, int> &blocs___);
+struct FonctionEtBlocs {
+    AtomeFonction *fonction = nullptr;
+    kuri::tableau<Bloc *, int> blocs{};
+
+    ~FonctionEtBlocs();
+};
+
+FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc);

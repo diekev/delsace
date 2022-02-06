@@ -347,12 +347,21 @@ Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label
     return bloc;
 }
 
-/* NOTE: blocs___ est pour rassembler tous les blocs créés et trouver un bloc selon un label pour
- * la création des blocs. À RETRAVAILLER. */
-kuri::tableau<Bloc *, int> convertis_en_blocs(AtomeFonction *atome_fonc,
-                                              kuri::tableau<Bloc *, int> &blocs___)
+FonctionEtBlocs::~FonctionEtBlocs()
 {
-    kuri::tableau<Bloc *, int> resultat{};
+    POUR (blocs) {
+        memoire::deloge("Bloc", it);
+    }
+}
+
+FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc)
+{
+    /* blocs_pour_labels est pour rassembler tous les blocs créés et trouver un bloc selon un label
+     * pour la création des blocs. */
+    kuri::tableau<Bloc *, int> blocs_pour_labels;
+
+    FonctionEtBlocs resultat;
+    resultat.fonction = atome_fonc;
 
     Bloc *bloc_courant = nullptr;
     auto numero_instruction = atome_fonc->params_entrees.taille();
@@ -363,15 +372,15 @@ kuri::tableau<Bloc *, int> convertis_en_blocs(AtomeFonction *atome_fonc,
 
     POUR (atome_fonc->instructions) {
         if (it->est_label()) {
-            bloc_courant = bloc_pour_label(blocs___, it->comme_label());
-            resultat.ajoute(bloc_courant);
+            bloc_courant = bloc_pour_label(blocs_pour_labels, it->comme_label());
+            resultat.blocs.ajoute(bloc_courant);
             continue;
         }
 
         bloc_courant->instructions.ajoute(it);
 
         if (it->est_branche()) {
-            auto bloc_cible = bloc_pour_label(blocs___, it->comme_branche()->label);
+            auto bloc_cible = bloc_pour_label(blocs_pour_labels, it->comme_branche()->label);
             bloc_courant->ajoute_enfant(bloc_cible);
             continue;
         }
@@ -380,8 +389,8 @@ kuri::tableau<Bloc *, int> convertis_en_blocs(AtomeFonction *atome_fonc,
             auto label_si_vrai = it->comme_branche_cond()->label_si_vrai;
             auto label_si_faux = it->comme_branche_cond()->label_si_faux;
 
-            auto bloc_si_vrai = bloc_pour_label(blocs___, label_si_vrai);
-            auto bloc_si_faux = bloc_pour_label(blocs___, label_si_faux);
+            auto bloc_si_vrai = bloc_pour_label(blocs_pour_labels, label_si_vrai);
+            auto bloc_si_faux = bloc_pour_label(blocs_pour_labels, label_si_faux);
 
             bloc_courant->ajoute_enfant(bloc_si_vrai);
             bloc_courant->ajoute_enfant(bloc_si_faux);
