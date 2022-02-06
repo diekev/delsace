@@ -276,6 +276,14 @@ UniteCompilation *UniteCompilation::unite_attendue() const
         return nullptr;
     }
 
+    if (m_attente.est<AttenteSurChargement>()) {
+        return nullptr;
+    }
+
+    if (m_attente.est<AttenteSurLexage>()) {
+        return nullptr;
+    }
+
     if (m_attente.est<AttenteSurParsage>()) {
         return nullptr;
     }
