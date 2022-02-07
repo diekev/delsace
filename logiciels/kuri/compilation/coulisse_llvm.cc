@@ -1689,7 +1689,9 @@ static bool valide_llvm_ir(llvm::Module &module)
 }
 #endif
 
-static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
+static bool cree_executable(EspaceDeTravail const &espace,
+                            const kuri::chaine &dest,
+                            const std::filesystem::path &racine_kuri)
 {
     /* Compile le fichier objet qui appelera 'fonction principale'. */
     if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
@@ -1717,7 +1719,17 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 #if 1
     ss << "gcc ";
     ss << racine_kuri / "fichiers/point_d_entree.c";
-    ss << " /tmp/kuri.o /tmp/r16_tables.o -o " << dest;
+    ss << " /tmp/kuri.o ";
+
+    if (espace.options.architecture == ArchitectureCible::X86) {
+        ss << " /tmp/r16_tables_x86.o ";
+    }
+    else {
+        ss << " /tmp/r16_tables_x64.o ";
+    }
+
+    ss << "-o " << dest;
+
 #else
     ss << "ld ";
     /* ce qui chargera le programme */
@@ -1731,7 +1743,11 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 #endif
     ss << '\0';
 
-    const auto err = system(ss.chaine().pointeur());
+    auto commande = ss.chaine();
+
+    std::cout << "Exécution de la commande : " << commande << '\n';
+
+    const auto err = system(commande.pointeur());
 
     if (err != 0) {
         std::cerr << "Ne peut pas créer l'executable !\n";
@@ -1813,7 +1829,8 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
                                    Programme * /*programme*/)
 {
     auto debut_executable = dls::chrono::compte_seconde();
-    if (!::cree_executable(espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
+    if (!::cree_executable(
+            espace, espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
         espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;
     }
