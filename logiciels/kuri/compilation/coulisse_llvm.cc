@@ -1198,7 +1198,10 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
                 auto index = std::vector<llvm::Value *>(1);
                 index[0] = valeur_index;
-                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+
+                // À FAIRE : ceci est sans doute faux
+                auto xx = m_builder.CreateGEP(valeur_accede, index);
+                table_valeurs.insere(inst, m_builder.CreateLoad(xx));
             }
             else {
                 auto index = std::vector<llvm::Value *>(2);
