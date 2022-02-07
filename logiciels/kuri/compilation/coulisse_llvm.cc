@@ -784,6 +784,12 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         }
                         case AtomeValeurConstante::Valeur::Genre::REELLE:
                         {
+                            if (atome_const->type->taille_octet == 2) {
+                                return llvm::ConstantInt::get(
+                                    llvm::Type::getInt16Ty(m_contexte_llvm),
+                                    static_cast<unsigned>(valeur_const->valeur.valeur_reelle));
+                            }
+
                             return llvm::ConstantFP::get(type_llvm,
                                                          valeur_const->valeur.valeur_reelle);
                         }
