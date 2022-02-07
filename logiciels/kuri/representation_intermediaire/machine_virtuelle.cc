@@ -523,8 +523,11 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
         espace_recu->metaprogramme = nullptr;
 
-        auto &messagere = compilatrice.messagere;
-        messagere->termine_interception(espace_recu);
+        /* Ne passons pas par la messagère car il est possible que le GestionnaireCode soit
+         * vérrouiller par quelqu'un, et par le passé la Messagère prévenait le GestionnaireCode,
+         * causant un verrou mort. */
+        auto &gestionnaire = compilatrice.gestionnaire_code;
+        gestionnaire->interception_message_terminee(espace_recu);
         return;
     }
 

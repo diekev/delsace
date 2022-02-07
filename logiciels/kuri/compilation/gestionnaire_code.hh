@@ -169,10 +169,11 @@ class GestionnaireCode {
         return m_fonctions_parsees;
     }
 
-    /* Appelé par la Messagère quand l'interception de messages est terminée.
+    /* Appelé par la MachineVirtuelle quand l'interception de messages est terminée. Ceci notifie à
+     * son tour la Messagère.
      * Toutes les unités d'envoie de messages sont annulées, et toutes les unités attendant sur un
      * message sont marquées comme prêtes. */
-    void interception_message_terminee();
+    void interception_message_terminee(EspaceDeTravail *espace);
 
   private:
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);

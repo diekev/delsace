@@ -1385,8 +1385,10 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
     metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;
 }
 
-void GestionnaireCode::interception_message_terminee()
+void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 {
+    m_compilatrice->messagere->termine_interception(espace);
+
     kuri::tableau<UniteCompilation *> nouvelles_unites;
 
     POUR (unites_en_attente) {

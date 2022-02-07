@@ -153,7 +153,6 @@ void Messagere::termine_interception(EspaceDeTravail * /*espace*/)
 {
     interception_commencee = false;
     file_message.efface();
-    m_compilatrice->gestionnaire_code->interception_message_terminee();
 }
 
 void Messagere::purge_messages()
