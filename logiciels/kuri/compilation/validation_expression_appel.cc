@@ -621,10 +621,11 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
 static ResultatAppariement apparie_appel_pointeur(
     NoeudExpressionAppel const *b,
-    Type *type,
+    NoeudExpression *decl_pointeur_fonction,
     EspaceDeTravail &espace,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
+    auto type = decl_pointeur_fonction->type;
     // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme membre
     //    membre :: fonc()(rien)
     // au lieu de
@@ -689,7 +690,7 @@ static ResultatAppariement apparie_appel_pointeur(
     }
 
     auto candidate = CandidateAppariement::appel_pointeur(
-        poids_args, type_fonction, std::move(exprs), std::move(transformations));
+        poids_args, decl_pointeur_fonction, type, std::move(exprs), std::move(transformations));
     return candidate;
 }
 
@@ -1428,7 +1429,7 @@ static std::optional<Attente> apparies_candidates(
 {
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
-            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl->type, espace, args));
+            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl, espace, args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1502,8 +1503,7 @@ static std::optional<Attente> apparies_candidates(
                     }
                 }
                 else if (type->est_fonction()) {
-                    resultat.resultats.ajoute(
-                        apparie_appel_pointeur(expr, decl->type, espace, args));
+                    resultat.resultats.ajoute(apparie_appel_pointeur(expr, decl, espace, args));
                 }
                 else if (type->est_opaque()) {
                     auto type_opaque = type->comme_opaque();
@@ -1521,7 +1521,7 @@ static std::optional<Attente> apparies_candidates(
             resultat.resultats.ajoute(apparie_appel_init_de(it.decl, args));
         }
         else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl->type, espace, args));
+            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl, espace, args));
         }
     }
 
