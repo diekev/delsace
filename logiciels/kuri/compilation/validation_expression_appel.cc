@@ -1755,6 +1755,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         return a.poids_args > b.poids_args;
     });
 
+    /* À FAIRE(appel) : utilise des poids différents selon la distance entre le site d'appel et la
+     * candidate. Si un paramètre possède le même nom qu'une fonction externe, il y aura collision
+     * et nous ne pourrons pas choisir quelle fonction appelée.
+     * Pour tester, renommer "comp" de Algorithmes.limite_basse et compiler SGBD.
+     */
     if (candidates.taille() > 1 && (candidates[0].poids_args == candidates[1].poids_args)) {
         auto e = espace.rapporte_erreur(
             expr,
