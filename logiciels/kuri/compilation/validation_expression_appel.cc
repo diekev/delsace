@@ -2033,3 +2033,36 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     assert(expr->type);
     return CodeRetourValidation::OK;
 }
+
+#if 0
+enum class OrigineDeclaration {
+    VARIABLE_LOCALE_OU_PARAMÈTRE
+    DECLARATION_NICHÉE_DANS_FONCTION_COURANTE
+    DECLARATION_DU_MEME_FICHIER
+    DECLARTION_DU_MEME_MODULE
+    DECLARTION_IMPORTEE_PAR_MODULE
+
+    NOMBRE_D_ORIGINES
+};
+
+static constexpr double poids_pour_origine[NOMBRE_D_ORIGINES] = {
+    1.0, 0.9, 0.8, 0.7, 0.6
+};
+
+static double poids_pour_candidate(const DeclarationCandidatePourAppel &declaration_candidate)
+{
+    double resultat = poids_pour_origine(declaration_candidate.origine);
+
+    /* Pondère avec le poids des expressions passées en paramètres. */
+    POUR (declaration_candidate.expressions) {
+        resultat *= it.poids
+    }
+
+    return resultat;
+}
+
+struct DeclarationCandidatePourAppel {
+    NoeudExpression *site;
+    OrigineDeclaration declaration;
+};
+#endif
