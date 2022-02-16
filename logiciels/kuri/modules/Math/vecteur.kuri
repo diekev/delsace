@@ -158,6 +158,11 @@ opérateur == :: fonc (u: Vec3, s: r32) -> bool
     retourne u.x == s && u.y == s && u.z == s
 }
 
+opérateur != :: fonc (v0: Vec3, v1: Vec3) -> bool
+{
+	retourne !(v0 == v1)
+}
+
 opérateur < :: fonc (u: Vec3, s: r32) -> bool
 {
     retourne u.x < s && u.y < s && u.z < s
