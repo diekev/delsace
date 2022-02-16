@@ -824,7 +824,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
 
             auto noeud = m_tacheronne.assembleuse->cree_empl(lexeme);
-            noeud->expression = analyse_expression({}, GenreLexeme::EMPL, GenreLexeme::INCONNU);
+            noeud->expression = analyse_expression({}, GenreLexeme::EMPL, lexeme_final);
             return noeud;
         }
         case GenreLexeme::EXTERNE:
