@@ -32,20 +32,25 @@ set(BIBLIOTHEQUES
     /opt/lib/alembic/lib/libAlembic.so
 )
 
-add_library(${NOM_PROJET} STATIC
-    abc_ipa_c.cc
+set(SOURCES
+  AbcKuri/alembic_archive.cc
+  AbcKuri/alembic_export.cc
+  AbcKuri/alembic_import.cc
+  AbcKuri/utilitaires.cc
 
-    abc_ipa_c.h
-    alembic.h
+  alembic_ipa_c.cc
+
+  AbcKuri/alembic_archive.hh
+  AbcKuri/alembic_export.hh
+  AbcKuri/alembic_import.hh
+  AbcKuri/utilitaires.hh
+
+  alembic.h
+  alembic_ipa_c.h
+  alembic_types.h
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
-set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Alembic/)
+# À FAIRE : depends alembic_types.h
+compile_module_c(${NOM_PROJET} alembic alembic_ipa_c.h Alembic "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")

@@ -53,6 +53,13 @@ T *kuri_loge(ContexteKuri *ctx_kuri, Args &&... args)
 }
 
 template <typename T>
+T *kuri_reloge(ContexteKuri *ctx, T *objet, unsigned long nouvelle_taille)
+{
+    void *nouveau_pointeur = ctx->reloge_memoire(ctx, objet, sizeof(T), nouvelle_taille);
+    return static_cast<T *>(nouveau_pointeur);
+}
+
+template <typename T>
 void kuri_deloge(ContexteKuri *ctx_kuri, T *ptr)
 {
     if (!ptr) {
