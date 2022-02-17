@@ -2017,7 +2017,9 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
      * l'énumération. */
     auto type_sous_jacent = type_enum->type_donnees;
-    auto ref_b = expression;
+
+    simplifie(expression);
+    auto ref_b = expression->substitution ? expression->substitution : expression;
 
     auto comme = assem->cree_comme(var->lexeme);
     comme->type = type_sous_jacent;
