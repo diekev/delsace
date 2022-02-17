@@ -77,11 +77,19 @@ GL_INVALID_FRAMEBUFFER_OPERATION : GLenum : 0x0506
 GL_STREAM_DRAW : GLenum : 0x88E0
 GL_ARRAY_BUFFER_BINDING : GLenum : 0x8894
 
+GL_ONE : n32 : 1
+GL_LESS : GLenum : 0x0201
+GL_DEPTH_TEST : GLenum : 0x0B71
+GL_DEPTH_BUFFER_BIT : GLenum : 0x00000100
+GL_COLOR_BUFFER_BIT : GLenum : 0x00004000
+
+glDepthFunc :: fonc (x: n32) -> rien #externe libGL
+
 externe glewExperimental : z32
 
 glewInit :: fonc () -> z32 #externe libGLEW
 
-glClear :: fonc (bit : z32) -> rien #externe libGL
+glClear :: fonc (bit : n32) -> rien #externe libGL
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
 
 glEnable :: fonc (cap: GLenum) -> rien #externe libGL
@@ -109,6 +117,7 @@ glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe lib
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
 glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe libGL
 glUniform1i :: fonc (loc: n32, uniform: z32) -> rien #externe libGL
+glUniformMatrix4fv :: fonc (loc: n32, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
 
 glGetIntegerv :: fonc (pname: GLenum, data: *GLint) -> GLvoid #externe libGL
 
