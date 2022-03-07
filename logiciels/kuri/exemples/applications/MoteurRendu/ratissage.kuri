@@ -223,3 +223,39 @@ ratisse_triangle :: fonc(
         remplis_triangle_haut_plat(image, v2, v4, v3, couleur);
     }
 }
+
+/*
+Ratisseuse :: struct {
+    cible: *CibleRatissage
+}
+
+/* Nous passons la hauteur et la largeur de l'image afin de pouvoir laisser une chance au compilateur d'optimiser le code. */
+ratisse_triangle :: fonc (ratisseuse: *Ratisseuse,
+                          largeur: z32,
+                          hauteur: z32,
+                          x1 : r32,
+                          y1 : r32,
+                          x2 : r32,
+                          y2 : r32,
+                          x3 : r32,
+                          y3 : r32,
+                          nuançage: fonc()(Couleur.Couleur))
+{
+    /* Trouve les points sur l'image. */
+
+    /* Ratisse le triangle. */
+
+    /* Trouve le pointeur de base pour la première ligne du triangle. */
+    pointeur_cible := ratisseuse.cible.pointeur_pour(x, y);
+
+    stride := largeur
+
+    pour chaque ligne {
+        ptr_ligne := pointeur_cible + largeur + x0;
+        pour x0 ... x1 {
+            mémoire(ptr_ligne) = nuançage(co)
+            ptr_ligne += 1
+        }
+    }
+}
+ */
