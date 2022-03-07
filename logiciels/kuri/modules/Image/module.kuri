@@ -13,6 +13,7 @@ crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
     image.tampon = loge_tableau(Couleur.Couleur, largeur * hauteur)
+    image.tampon.taille = largeur * hauteur
     image.largeur = largeur
     image.hauteur = hauteur
 
