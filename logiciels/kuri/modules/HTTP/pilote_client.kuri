@@ -6,9 +6,9 @@
  * Les pilotes écris manuellement doivent dérivé de PiloteClienteHTTP.
  */
 
-importe Internet
-importe Fondation
 importe CodecDonnées
+importe Fondation
+importe Internet
 importe SysFichier
 
 MéthodeHTTP :: énum {

@@ -528,7 +528,6 @@ SDL_Event :: union nonsûr #externe {
     button: SDL_MouseButtonEvent    /**< Mouse button event data */
     wheel:  SDL_MouseWheelEvent      /**< Mouse wheel event data */
 
-
     /* force la taille de l'union à être de 56 octets */
     padding: [56]z8
 }
@@ -546,4 +545,5 @@ SDL_BUTTON_LEFT :: 1
 SDL_BUTTON_MIDDLE :: 2
 SDL_BUTTON_RIGHT :: 3
 SDL_BUTTON_X1 :: 4
+SDL_BUTTON_X2 :: 5
 SDL_BUTTON_X2 :: 5

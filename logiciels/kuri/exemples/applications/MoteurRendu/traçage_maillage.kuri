@@ -1,6 +1,6 @@
 importe Fondation
-importe Math
 importe Image
+importe Math
 
 Rayon :: struct {
     origine : Vec3

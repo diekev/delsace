@@ -1,7 +1,7 @@
 importe Couleur
 importe Fondation
-importe Math
 importe Image
+importe Math
 importe Triage
 
 // --------------------------------------------------------------
