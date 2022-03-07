@@ -154,28 +154,21 @@ min_max :: fonc (v: *Vec3, min_boite: *Vec3, max_boite: *Vec3) -> rien
     }
 }
 
+// --------------------------------------------------------------
+
+initialise_moteur_rendu_traçage :: fonc (moteur: *MoteurRendu)
+{
+    moteur.rends = trace_maillage
+}
+
+// --------------------------------------------------------------
+
 // pas de rebond, pas d'anti-aliasing, simplement un traçage direct, pour avoir
 // un rendu plus rapide du résultat, le matériau est une capmat
-trace_maillage :: fonc (
-    caméra : *Caméra3D,
-    maillage : *Maillage,
-    image: *Image.Image,
-    matcap: *Image.Image) -> rien
+trace_maillage :: fonc (moteur: *MoteurRendu, image: *Image.Image) -> rien
 {
-    ticks := compte_ticks_ms()
-
-    diffère {
-        temps_rendu := compte_ticks_ms() - ticks
-        temps_rendu_us := temps_rendu * 1000
-        temps_par_pixel := temps_rendu_us / (image.largeur * image.hauteur)
-        temps_par_polygone := temps_rendu_us / (maillage.tris.taille)
-
-        imprime(
-            "Temps de rendu : %ms (par pixel %us, par polygone %us)\n",
-            FormatEntier(valeur = temps_rendu, séparation = 3),
-            FormatEntier(valeur = temps_par_pixel, séparation = 3),
-            FormatEntier(valeur = temps_par_polygone, séparation = 3))
-    }
+    caméra := moteur.caméra
+    maillage := moteur.maillage
 
     theta := 1.0
 
@@ -219,6 +212,10 @@ trace_maillage :: fonc (
 
     aspect := image.largeur comme r32 / image.hauteur comme r32
     échelle := tan(calcul_champs_de_vue(70.0, 35.0) * 0.5) comme r32
+
+    données_nuançage: DonnéesPourNuançage
+    données_nuançage.matcap = moteur.matcap
+    données_nuançage.direction_vue = caméra.direction_vue
 
     pour j dans 0 ... image.hauteur - 1 {
         pour i dans 0 ... image.largeur - 1 {
@@ -274,11 +271,9 @@ trace_maillage :: fonc (
                 line2 := tri.p2 - tri.p0
 
                 nor := calcul_normal_normalisé(line1, line2)
-                vnor := vec_depuis_nor(nor)
+                données_nuançage.normal = nor
+                couleur := moteur.nuanceur(données_nuançage)
 
-                uv := calcul_uv_capmat(*caméra.direction_vue, *vnor, faux)
-
-                couleur := échantillonne_prochain(matcap, *uv)
                 image.tampon[j * image.largeur + i] = couleur
             }
         }
