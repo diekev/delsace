@@ -2,6 +2,7 @@ importe Couleur
 importe Fondation
 importe Math
 importe Image
+importe Triage
 
 // --------------------------------------------------------------
 
@@ -55,7 +56,7 @@ rends_ratissage :: fonc (moteur: *MoteurRendu, image: *Image.Image)
     }
 
     // tri des triangles pour les ordonner selon la distance à la caméra
-    tri_sélection(triangles_visible)
+    tri_par_sélection(triangles_visible, compare_triangles_selon_axe_z)
 
     pour tri dans triangles_visible {
         données_nuançage.normal = calcul_normal_normalisé(tri)
