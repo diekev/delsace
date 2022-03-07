@@ -6,6 +6,20 @@ Triangle :: struct {
     p2 : Vec3
 }
 
+calcul_normal :: fonc (triangle: Triangle) -> Norm3
+{
+    ligne1 := triangle.p1 - triangle.p0
+    ligne2 := triangle.p2 - triangle.p0
+    retourne calcul_normal(ligne1, ligne2)
+}
+
+calcul_normal_normalisé :: fonc (triangle: Triangle) -> Norm3
+{
+    ligne1 := triangle.p1 - triangle.p0
+    ligne2 := triangle.p2 - triangle.p0
+    retourne calcul_normal_normalisé(ligne1, ligne2)
+}
+
 crée_triangle :: fonc (p0 : Vec3, p1 : Vec3, p2 : Vec3) -> Triangle
 {
     tri : Triangle
@@ -16,7 +30,21 @@ crée_triangle :: fonc (p0 : Vec3, p1 : Vec3, p2 : Vec3) -> Triangle
     retourne tri
 }
 
-transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
+calcul_boite_englobante :: fonc (triangles: []Triangle) -> (Vec3, Vec3)
+{
+    min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
+    max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
+
+    pour tri dans triangles {
+        min_max(*tri.p0, *min_boite, *max_boite)
+        min_max(*tri.p1, *min_boite, *max_boite)
+        min_max(*tri.p2, *min_boite, *max_boite)
+    }
+
+    retourne min_boite, max_boite
+}
+
+transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle #enligne
 {
     rés : Triangle
 

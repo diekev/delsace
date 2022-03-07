@@ -156,6 +156,29 @@ min_max :: fonc (v: *Vec3, min_boite: *Vec3, max_boite: *Vec3) -> rien
 
 // --------------------------------------------------------------
 
+entresecte_triangles :: fonc (triangles_visible: []Triangle, rayon: Rayon) -> z32
+{
+    distance_min := 1000.0
+    idx_triangle := -1
+
+    pour tri, idx dans triangles_visible {
+        distance := 0.0
+        touché := entresecte_triangle(tri.p0, tri.p1, tri.p2, *rayon, *distance, nul, nul)
+
+        si distance < distance_min {
+            distance_min = distance
+        }
+
+        si touché {
+            idx_triangle = idx comme z32
+        }
+    }
+
+    retourne idx_triangle
+}
+
+// --------------------------------------------------------------
+
 initialise_moteur_rendu_traçage :: fonc (moteur: *MoteurRendu)
 {
     moteur.rends = trace_maillage
@@ -169,49 +192,24 @@ trace_maillage :: fonc (moteur: *MoteurRendu, image: *Image.Image) -> rien
 {
     caméra := moteur.caméra
     maillage := moteur.maillage
-
-    theta := 1.0
-
-    mat_trans := matrice_translation(z = 8.0)
-    mat_rot_x := matrice_rotation_x(theta * 0.5)
-    mat_rot_z := matrice_rotation_z(theta)
-    mat_rot := multiplie(mat_rot_x, mat_rot_z)
-    mat_obj := mat_trans // multiplie(mat_rot, mat_trans)
+    mat_obj := maillage.matrice
 
     triangles_visible : []Triangle
-    diffère { déloge(triangles_visible); }
-
-    min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
-    max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
+    diffère déloge(triangles_visible)
 
     pour tri dans maillage.tris {
         tri_transformé := transforme(mat_obj, tri)
         tableau_ajoute(*triangles_visible, tri_transformé)
-
-        min_max(*tri_transformé.p0, *min_boite, *max_boite)
-        min_max(*tri_transformé.p1, *min_boite, *max_boite)
-        min_max(*tri_transformé.p2, *min_boite, *max_boite)
     }
 
-    dir_haut := crée_vec3r(y = 1.0)
-    dir_cible := crée_vec3r(z = 1.0)
-    mat_rot_cam := matrice_rotation_y(caméra.yaw)
-    caméra.direction_vue = transforme(mat_rot_cam, dir_cible)
-    dir_cible = caméra.position + caméra.direction_vue
+    min_boite, max_boite := calcul_boite_englobante(triangles_visible)
 
-    caméra.monde_vers_caméra = matrice_de_visé(*caméra.position, *dir_cible, *dir_haut)
-    caméra.monde_vers_caméra = inverse_matrice_sans_échelle(*caméra.monde_vers_caméra)
-
-    caméra_vers_monde := matrice_de_visé(*caméra.position, *dir_cible, *dir_haut)
-
-    caméra.hauteur = image.hauteur
-    caméra.largeur = image.largeur
-
-    largeur_inverse := 1.0 / image.largeur comme r32
-    hauteur_inverse := 1.0 / image.hauteur comme r32
-
-    aspect := image.largeur comme r32 / image.hauteur comme r32
-    échelle := tan(calcul_champs_de_vue(70.0, 35.0) * 0.5) comme r32
+    /* Mis en tampon de certaines valeurs. */
+    largeur_inverse := 1.0 / caméra.largeur comme r32
+    hauteur_inverse := 1.0 / caméra.hauteur comme r32
+    aspect := caméra.aspect
+    échelle := caméra.échelle
+    caméra_vers_monde := caméra.caméra_vers_monde
 
     données_nuançage: DonnéesPourNuançage
     données_nuançage.matcap = moteur.matcap
@@ -248,34 +246,18 @@ trace_maillage :: fonc (moteur: *MoteurRendu, image: *Image.Image) -> rien
                 continue
             }
 
-            distance_min := 1000.0
-            idx_triangle := -1
+            idx_triangle := entresecte_triangles(triangles_visible, rayon)
 
-            pour tri, idx dans triangles_visible {
-                distance := 0.0
-                touché := entresecte_triangle(tri.p0, tri.p1, tri.p2, *rayon, *distance, nul, nul)
-
-                si distance < distance_min {
-                    distance_min = distance
-                }
-
-                si touché {
-                    idx_triangle = idx comme z32
-                }
+            si idx_triangle == -1 {
+                continue
             }
 
-            si idx_triangle != -1 {
-                tri := triangles_visible[idx_triangle]
+            tri := triangles_visible[idx_triangle]
 
-                line1 := tri.p1 - tri.p0
-                line2 := tri.p2 - tri.p0
+            données_nuançage.normal = calcul_normal_normalisé(tri)
+            couleur := moteur.nuanceur(données_nuançage)
 
-                nor := calcul_normal_normalisé(line1, line2)
-                données_nuançage.normal = nor
-                couleur := moteur.nuanceur(données_nuançage)
-
-                image.tampon[j * image.largeur + i] = couleur
-            }
+            image.tampon[j * image.largeur + i] = couleur
         }
     }
 }

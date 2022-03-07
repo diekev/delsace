@@ -4,6 +4,18 @@ importe SysFichier
 
 Maillage :: struct {
     tris : []Triangle
+
+    matrice: Mat4r
+}
+
+/* Crée une matrice avec une rotation sur X et Z d'un angle theta. */
+initialise_matrice_maillage :: fonc (maillage: *Maillage, theta: r32)
+{
+    mat_trans := matrice_translation(z = 8.0)
+    mat_rot_x := matrice_rotation_x(theta * 0.5)
+    mat_rot_z := matrice_rotation_z(theta)
+    mat_rot := multiplie(mat_trans, mat_rot_z)
+    maillage.matrice = mat_trans // multiplie(mat_rot, mat_rot_x)
 }
 
 crée_maillage_cube :: fonc () -> *Maillage

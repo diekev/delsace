@@ -1,10 +1,13 @@
 importe Couleur
+importe Compilatrice
 importe Fondation
 importe GlibC
 importe Image
 importe Math
 importe OpenGL
 importe SDL2
+
+#exécute compile_pour_production()
 
 charge "application"
 charge "caméra_3d"

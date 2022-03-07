@@ -6,13 +6,54 @@ Caméra3D :: struct {
     direction_vue : Vec3
     yaw := 0.0
     projection : Mat4r
+    caméra_vers_rateau: Mat4r
+    caméra_vers_monde : Mat4r
     monde_vers_caméra : Mat4r
+    monde_vers_rateau : Mat4r
     champs_de_vue := 90.0
     plan_proche := 0.1
     plan_éloigné := 1000.0
 
     hauteur := 0
     largeur := 0
+
+    aspect := 0.0
+    échelle := 0.0
+}
+
+initialise_caméra :: fonc (caméra: *Caméra3D, hauteur: z32, largeur: z32)
+{
+    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
+
+    caméra.projection = matrice_projection(
+        caméra.champs_de_vue,
+        largeur comme r32,
+        hauteur comme r32,
+        caméra.plan_proche,
+        caméra.plan_éloigné)
+
+    dir_haut := crée_vec3r(y = 1.0)
+    dir_cible := crée_vec3r(z = 1.0)
+    mat_rot_cam := matrice_rotation_y(caméra.yaw)
+    caméra.direction_vue = transforme(mat_rot_cam, dir_cible)
+
+    caméra.caméra_vers_monde = matrice_de_visé(*caméra.position, *dir_cible, *dir_haut)
+    caméra.monde_vers_caméra = inverse_matrice_sans_échelle(*caméra.caméra_vers_monde)
+
+    caméra.hauteur = hauteur
+    caméra.largeur = largeur
+
+    caméra.aspect = largeur comme r32 / hauteur comme r32
+    caméra.échelle = tan(caméra.champs_de_vue * 0.5) comme r32
+
+    caméra_vers_rateau := construit_identité_mat4r()
+    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))
+    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_translation(1.0, 1.0, 0.0))
+
+    caméra.caméra_vers_rateau = caméra_vers_rateau
+
+    monde_vers_rateau := caméra_vers_rateau * caméra.projection * caméra.monde_vers_caméra
+    caméra.monde_vers_rateau = monde_vers_rateau
 }
 
 projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3) -> Vec3

@@ -123,14 +123,7 @@ crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
     éditrice.tampon_texture = crée_tampon_texture()
 
     caméra := loge(Caméra3D)
-    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
-    caméra.direction_vue = Vec3(z = 1.0)
-    caméra.projection = matrice_projection(
-        caméra.champs_de_vue,
-        éditrice.largeur comme r32,
-        éditrice.hauteur comme r32,
-        caméra.plan_proche,
-        caméra.plan_éloigné)
+    initialise_caméra(caméra, app.hauteur, app.largeur)
 
     éditrice.caméra = caméra
 
@@ -145,6 +138,8 @@ dessine_vue_3d :: fonc (app: *Application, éditrice: *ÉditriceVue3D) -> rien
     moteur.caméra = éditrice.caméra
     moteur.maillage = app.maillage
     moteur.matcap = *éditrice.matcap
+
+    initialise_matrice_maillage(app.maillage, 1.0)
 
     si éditrice.mode_rendu == ModeRendu.Ratissage {
         initialise_moteur_rendu_ratissage(*moteur)
