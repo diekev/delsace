@@ -68,7 +68,7 @@ DonnéesObj :: struct {
     maillage : *Maillage
 }
 
-parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
+parse_ligne_obj :: fonc (ligne: chaine, données_obj: *DonnéesObj) -> rien
 {
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
@@ -79,18 +79,25 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
     // supprime le caractère de nouvelle ligne
     ligne = recule(ligne, 1)
 
-    données_obj := données.pointeur comme *DonnéesObj
+    si ligne.taille > 0 && ligne[ligne.taille - 1] == '\r' {
+        ligne = recule(ligne, 1)
+    }
+
     maillage := données_obj.maillage
 
     si ligne.commence_par("f ") {
         tmp := avance(ligne, 2)
 
-        tri : Triangle
+        tri0 : Triangle
+        tri1 : Triangle
+        est_quad := faux
 
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
 
-            // À FAIRE: uvs, normaux, quads
+            est_quad = mots.taille == 4
+
+            // À FAIRE: uvs, normaux
             indices0 := divise(mots[0], '/')
             idx0 := extrait_nombre_entier(indices0[0])
 
@@ -100,12 +107,24 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
             indices2 := divise(mots[2], '/')
             idx2 := extrait_nombre_entier(indices2[0])
 
-            tri.p0 = données_obj.vecteurs[idx0 - 1]
-            tri.p1 = données_obj.vecteurs[idx1 - 1]
-            tri.p2 = données_obj.vecteurs[idx2 - 1]
+            tri0.p0 = données_obj.vecteurs[idx0 - 1]
+            tri0.p1 = données_obj.vecteurs[idx1 - 1]
+            tri0.p2 = données_obj.vecteurs[idx2 - 1]
+
+            si est_quad {
+                indices3 := divise(mots[3], '/')
+                idx3 := extrait_nombre_entier(indices3[0])
+
+                tri1.p0 = données_obj.vecteurs[idx0 - 1]
+                tri1.p1 = données_obj.vecteurs[idx2 - 1]
+                tri1.p2 = données_obj.vecteurs[idx3 - 1]
+            }
         }
 
-        tableau_ajoute(*maillage.tris, tri)
+        tableau_ajoute(*maillage.tris, tri0)
+        si est_quad {
+            tableau_ajoute(*maillage.tris, tri1)
+        }
     }
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
@@ -138,7 +157,7 @@ charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
     données : DonnéesObj
     données.maillage = maillage
 
-    pour_chaque_ligne(contenu, données, parse_ligne_obj)
+    pour_chaque_ligne(contenu, *données, parse_ligne_obj)
     déloge(données.vecteurs)
 
     retourne maillage

@@ -84,13 +84,13 @@ dessine_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
     glUseProgram(tampon_texture.programme)
     glBindVertexArray(tampon_texture.id_tableau_vertex)
 
-	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, tampon_texture.code_texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tampon_texture.code_texture);
 
     glDrawElements(GL_TRIANGLES, 6, 0x1405, nul)
 
-	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0)
     glUseProgram(0)
@@ -117,16 +117,16 @@ génère_texture :: fonc (
         glGenTextures(1, *tampon_texture.code_texture);
 	}
 
-	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, tampon_texture.code_texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tampon_texture.code_texture);
 
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MIN_FILTER, _GL_LINEAR);
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MAG_FILTER, _GL_LINEAR);
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_S, _GL_CLAMP);
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_T, _GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RGBA, largeur, hauteur, 0, _GL_RGBA, _GL_FLOAT, données.pointeur);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur, hauteur, 0, GL_RGBA, GL_FLOAT, données.pointeur);
 
-	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

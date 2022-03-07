@@ -1,0 +1,46 @@
+charge "éditrice"
+charge "éditrice_vue3d"
+
+Application :: struct {
+    hauteur : z32 = 0
+    largeur : z32 = 0
+
+    maillage : *Maillage
+
+    éditrices : []*Éditrice
+}
+
+ajoute_éditrice :: fonc (app: *Application) -> rien
+{
+    éditrice := crée_éditrice_vue_3d(app)
+    tableau_ajoute(*app.éditrices, éditrice)
+}
+
+dessine :: fonc (app: *Application, éditrice: *Éditrice) -> rien
+{
+    si éditrice.type == TypeÉditrice.VUE_3D {
+        éditrice_vue_3d := éditrice comme *ÉditriceVue3D
+        dessine_vue_3d(app, éditrice_vue_3d)
+    }
+    sinon {
+    }
+}
+
+initalise_application :: fonc (app: *Application) -> rien
+{
+    maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/suzanne.obj")
+    //maillage := crée_maillage_cube()
+    app.maillage = maillage
+
+    ajoute_éditrice(app)
+}
+
+détruit_application :: fonc (app: *Application) -> rien
+{
+    pour éditrice dans app.éditrices {
+        détruit_éditrice(éditrice)
+    }
+
+    déloge(app.éditrices)
+    détruit_maillage(app.maillage)
+}

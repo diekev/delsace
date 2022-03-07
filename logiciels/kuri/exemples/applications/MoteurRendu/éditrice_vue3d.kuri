@@ -1,0 +1,95 @@
+importe Couleur
+importe Fondation
+importe Image
+importe Math
+
+charge "ratissage_maillage"
+charge "traçage_maillage"
+
+ModeRendu :: énum {
+    Ratissage
+    TraçageDeRayon
+}
+
+ÉditriceVue3D :: struct {
+    empl base: Éditrice
+
+    caméra : *Caméra3D
+    tampon_texture : *TamponTexture
+    image : Image.Image
+
+    // seulement utilisé pour l'échantillonnage
+    matcap : Image.Image
+
+    img_matcap : ImageIO
+
+    mode_rendu: ModeRendu
+}
+
+détruit_éditrice_vue_3d :: fonc (éditrice: *ÉditriceVue3D) -> rien
+{
+    détruit_tampon_texture(éditrice.tampon_texture)
+    détruit_image(*éditrice.image)
+    IMG_detruit_image(*éditrice.img_matcap)
+    déloge(éditrice.caméra)
+    déloge(éditrice)
+}
+
+crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
+{
+    éditrice := loge(ÉditriceVue3D)
+    éditrice.x = 0
+    éditrice.y = 0
+    éditrice.largeur = app.largeur
+    éditrice.hauteur = app.hauteur
+
+    éditrice.x_r = 0.0
+    éditrice.y_r = 0.0
+    éditrice.largeur_r = 1.0
+    éditrice.hauteur_r = 1.0
+
+    éditrice.type = TypeÉditrice.VUE_3D
+
+    éditrice.image = crée_image(éditrice.largeur, éditrice.hauteur)
+
+    _ := IMG_ouvre_image("/home/kevin/Images/matcap.png\0".pointeur, *éditrice.img_matcap)
+    // imprime("résultat ouverture : %\n", résultat_ouverture)
+    éditrice.matcap.tampon.pointeur = éditrice.img_matcap.donnees comme *Couleur.Couleur
+    éditrice.matcap.tampon.taille = éditrice.img_matcap.largeur * éditrice.img_matcap.hauteur
+    éditrice.matcap.largeur = éditrice.img_matcap.largeur
+    éditrice.matcap.hauteur = éditrice.img_matcap.hauteur
+
+    éditrice.tampon_texture = crée_tampon_texture()
+
+    caméra := loge(Caméra3D)
+    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
+    caméra.direction_vue = Vec3(z = 1.0)
+    caméra.projection = matrice_projection(
+        caméra.champs_de_vue,
+        éditrice.largeur comme r32,
+        éditrice.hauteur comme r32,
+        caméra.plan_proche,
+        caméra.plan_éloigné)
+
+    éditrice.caméra = caméra
+
+    retourne éditrice
+}
+
+dessine_vue_3d :: fonc (app: *Application, éditrice: *ÉditriceVue3D) -> rien
+{
+    remplis_image(*éditrice.image, Couleur.Couleur( r = 0.0, v = 0.0, b = 0.0, a = 1.0 ))
+
+    theta := 1.0
+
+    si éditrice.mode_rendu == ModeRendu.Ratissage {
+        ratisse_maillage(éditrice.caméra, app.maillage, *éditrice.image, *éditrice.matcap, theta)
+    }
+    sinon {
+        trace_maillage(éditrice.caméra, app.maillage, *éditrice.image, *éditrice.matcap)
+    }
+
+    génère_texture(éditrice.tampon_texture, éditrice.image.tampon, éditrice.largeur, éditrice.hauteur)
+
+    dessine_tampon_texture(éditrice.tampon_texture)
+}
