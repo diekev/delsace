@@ -211,27 +211,20 @@ trace_maillage :: fonc (moteur: *MoteurRendu, image: *Image.Image) -> rien
     échelle := caméra.échelle
     caméra_vers_monde := caméra.caméra_vers_monde
 
+    PM := multiplie(caméra.projection, caméra.monde_vers_caméra)
+    MVP_inverse := inverse(*PM)
+
     données_nuançage: DonnéesPourNuançage
     données_nuançage.matcap = moteur.matcap
     données_nuançage.direction_vue = caméra.direction_vue
 
     pour j dans 0 ... image.hauteur - 1 {
         pour i dans 0 ... image.largeur - 1 {
-            /*
-            x := (transtype(i: r32) * largeur_inverse)
-            y := (transtype(image.hauteur - j: r32) * hauteur_inverse)
+            x := (i comme r32 + 0.5) * largeur_inverse
+            y := (j comme r32 + 0.5) * hauteur_inverse
 
-            pos_pixel := Vec2r{ x = x, y = y }
-
-            direction := direction_via_pixel(caméra, @pos_pixel)
-            */
-
-            x := (2.0 * (i comme r32 + 0.5) * largeur_inverse - 1.0) * aspect * échelle
-            y := (1.0 - 2.0 * (j comme r32 + 0.5) * hauteur_inverse) * échelle
-
-            pos := crée_vec3r(x, y, -1.0)
-
-            direction := transforme(caméra_vers_monde, pos)
+            pos_pixel := Vec2r(x, y)
+            direction := direction_via_pixel_rapide(MVP_inverse, pos_pixel)
 
             rayon : Rayon
             rayon.origine = caméra.position
