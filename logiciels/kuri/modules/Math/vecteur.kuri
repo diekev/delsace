@@ -63,13 +63,6 @@ longueur_carrée :: fonc (u: Vec3) -> r32
     retourne u.x * u.x + u.y * u.y + u.z * u.z
 }
 
-échange :: fonc (tri1 : *Vec3, tri2 : *Vec3) -> rien
-{
-    tmp := mémoire(tri2)
-    mémoire(tri2) = mémoire(tri1)
-    mémoire(tri1) = tmp
-}
-
 opérateur [] :: fonc (v: Vec3, index: z64) -> r32
 {
 	retourne (*v.x)[index]
