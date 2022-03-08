@@ -5,6 +5,13 @@
 	mémoire(b) = temp;
 }
 
+permute :: fonc (a: &$T, b: &T) #enligne
+{
+    tmp : T = a
+    a = b
+    b = tmp
+}
+
 // Type pour représenter un résultat optionnel
 Résultat :: union ($T: type_de_données) {
     Quelque: T
