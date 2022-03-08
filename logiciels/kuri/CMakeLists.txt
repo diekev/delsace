@@ -120,7 +120,6 @@ set(DOSSIERS_TESTS
     exemples/applications/EditeurTexte
     exemples/applications/Eliza
     exemples/applications/Jeu
-    exemples/applications/MoteurRendu
     exemples/applications/NASA
 )
 
