@@ -34,7 +34,7 @@ struct ContexteLectureCache;
 struct ConvertisseuseImportAttributs;
 
 struct LectriceCache {
-    Abc::IObject iobject;
+    Abc::IObject iobject{};
 
 #if 0
     std::variant<AbcGeom::IPolyMesh, AbcGeom::ISubD, AbcGeom::ICurves, AbcGeom::IXform> object_;
@@ -52,7 +52,7 @@ struct LectriceCache {
         return T(iobject, Abc::kWrapExisting);
     }
 
-    void *donnees;
+    void *donnees = nullptr;
 };
 
 namespace AbcKuri {

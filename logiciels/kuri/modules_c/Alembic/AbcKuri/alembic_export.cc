@@ -47,7 +47,7 @@ struct EcrivainCache {
                  AbcGeom::OSubD,
                  AbcGeom::OXform,
                  AbcMaterial::OMaterial>
-        o_schema_object;
+        o_schema_object{};
 
     template <typename T>
     static EcrivainCache *cree(ContexteKuri *ctx, EcrivainCache *parent, const std::string &nom)

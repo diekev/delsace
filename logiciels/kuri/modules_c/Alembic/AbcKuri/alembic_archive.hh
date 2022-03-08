@@ -38,7 +38,7 @@ struct ContexteTraverseArchive;
 // En dehors de l'espace de nom AbcKuri afin de ne pas avoir à transtyper en passant par les
 // fonctions "extern C".
 struct ArchiveCache {
-    std::variant<Abc::IArchive, Abc::OArchive> archive;
+    std::variant<Abc::IArchive, Abc::OArchive> archive{};
 
     bool est_lecture()
     {

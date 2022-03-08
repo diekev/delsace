@@ -326,8 +326,8 @@ static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             AbcGeom::IFaceSet &xform,
                             const double time)
 {
-    auto &schema = xform.getSchema();
-    auto selector = Abc::ISampleSelector(time);
+    // auto &schema = xform.getSchema();
+    // auto selector = Abc::ISampleSelector(time);
 
     // À FAIRE
 }
@@ -337,8 +337,8 @@ static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             AbcGeom::ICamera &xform,
                             const double time)
 {
-    auto &schema = xform.getSchema();
-    auto selector = Abc::ISampleSelector(time);
+    // auto &schema = xform.getSchema();
+    // auto selector = Abc::ISampleSelector(time);
 
     // À FAIRE
 }
@@ -348,8 +348,8 @@ static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             AbcGeom::ILight &xform,
                             const double time)
 {
-    auto &schema = xform.getSchema();
-    auto selector = Abc::ISampleSelector(time);
+    // auto &schema = xform.getSchema();
+    // auto selector = Abc::ISampleSelector(time);
 
     // À FAIRE
 }
@@ -359,8 +359,8 @@ static void convertis_objet(ContexteKuri * /*ctx_kuri*/,
                             AbcMaterial::IMaterial &xform,
                             const double time)
 {
-    auto &schema = xform.getSchema();
-    auto selector = Abc::ISampleSelector(time);
+    // auto &schema = xform.getSchema();
+    // auto selector = Abc::ISampleSelector(time);
     // À FAIRE
 }
 
@@ -690,6 +690,8 @@ struct convertisseuse_valeur<std::wstring> {
     }
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #define DEFINIS_CONVERTISSEUSE_VALEUR(TYPE_ALEMBIC, TYPE_POINTEUR, TYPE_KURI, DIMENSIONS)         \
     template <>                                                                                   \
     struct convertisseuse_valeur<TYPE_ALEMBIC> {                                                  \
@@ -751,6 +753,7 @@ DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3c, uint8_t, n8, 3);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4f, float, r32, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
+#pragma GCC diagnostic pop
 
 static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse,
                                    AbcGeom::GeometryScope portee_pretendue,
