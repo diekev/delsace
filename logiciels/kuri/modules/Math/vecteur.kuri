@@ -287,6 +287,13 @@ calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
     retourne uv_capmat
 }
 
+// -------------------------------------------------------------------------
+
+interp_linéaire :: fonc (v0: Vec3, t: r32, v1: Vec3) -> Vec3
+{
+    retourne (1.0 - t) * v0 + t * v1
+}
+
 // ------------------------------------
 // vecteurs de nombres entiers relatifs
 
