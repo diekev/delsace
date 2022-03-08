@@ -128,6 +128,8 @@ glIsTexture :: fonc (id: GLenum) -> bool #externe libGL
 glActiveTexture :: fonc (id: GLenum) -> rien #externe libGL
 glBindTexture :: fonc (cible: GLenum, id: n32) -> rien #externe libGL
 glTexParameteri :: fonc (cible: GLenum, a: GLenum, b: GLenum) -> rien #externe libGL
+glBindTextureUnit :: fonc (id: GLenum, texture: n32) -> rien #externe libGL
+glCreateTextures :: fonc (target: GLenum, n: GLsizei, textures: *GLuint) -> rien #externe libGL
 
 glTexImage2D :: fonc (
     cible: GLenum,
@@ -184,28 +186,34 @@ vérifie_erreur :: fonc (raison: chaine = "") -> rien
         retourne
 	}
 
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
     si raison {
-        imprime("[%] erreur OpenGL !\n", raison)
+        imprime_dans_enchaineuse(*enchaineuse, "[%] erreur OpenGL !\n", raison)
     }
     sinon {
-	    imprime("erreur OpenGL !\n")
+	    imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL !\n")
     }
 
     discr erreur_ {
         GL_INVALID_ENUM {
-            imprime("-- énumération invalide\n")
+            imprime_dans_enchaineuse(*enchaineuse, "-- énumération invalide\n")
         }
         GL_INVALID_VALUE {
-            imprime("-- valeur invalide\n")
+            imprime_dans_enchaineuse(*enchaineuse, "-- valeur invalide\n")
         }
         GL_INVALID_OPERATION {
-            imprime("-- opération invalide\n")
+            imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide\n")
         }
         GL_INVALID_FRAMEBUFFER_OPERATION {
-            imprime("-- opération invalide sur framebuffer\n")
+            imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide sur framebuffer\n")
         }
         sinon {
-            imprime("-- erreur inconnue, code %\n", erreur_)
+            imprime_dans_enchaineuse(*enchaineuse, "-- erreur inconnue, code %\n", erreur_)
         }
     }
+
+    chaine_erreur := chaine_depuis_enchaineuse(*enchaineuse)
+    panique(chaine_erreur)
 }
