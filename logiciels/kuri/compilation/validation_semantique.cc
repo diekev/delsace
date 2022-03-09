@@ -2675,6 +2675,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 
     if (decl->possede_drapeau(EST_CONSTANTE)) {
+        if (decl->est_declaration_variable()) {
+            auto valeur = decl->comme_declaration_variable()->valeur_expression;
+            /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
+             * avoir à s'en soucier plus tard. */
+            if (valeur.est_fonction()) {
+                decl = valeur.fonction();
+                expr->declaration_referee = decl;
+            }
+        }
+
         expr->genre_valeur = GenreValeur::DROITE;
     }
 

@@ -19,9 +19,20 @@ test_valeur :: fonc ($N: z32)
     imprime("%\n", N)
 }
 
+fonction_rappel :: fonc ()
+{
+    imprime("Impression depuis fonction rappel !\n")
+}
+
+test_valeur_fonction :: fonc ($Fonction: fonc()(rien))
+{
+    Fonction()
+}
+
 principale :: fonc () -> z32
 {
     test_valeur(456789)
     test_tampons()
+    test_valeur_fonction(fonction_rappel)
     retourne 0
 }

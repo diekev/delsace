@@ -31,6 +31,7 @@
 
 struct Compilatrice;
 struct NoeudBloc;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct NoeudExpressionLitteraleChaine;
 struct NoeudExpressionConstructionTableau;
@@ -44,7 +45,8 @@ struct ValeurExpression {
                                      double,
                                      long,
                                      NoeudExpressionLitteraleChaine *,
-                                     NoeudExpressionConstructionTableau *>;
+                                     NoeudExpressionConstructionTableau *,
+                                     NoeudDeclarationEnteteFonction *>;
     TypeVariant v{};
 
   public:
@@ -73,6 +75,10 @@ struct ValeurExpression {
     }
 
     ValeurExpression(NoeudExpressionConstructionTableau *t) : v(t)
+    {
+    }
+
+    ValeurExpression(NoeudDeclarationEnteteFonction *t) : v(t)
     {
     }
 
@@ -108,6 +114,11 @@ struct ValeurExpression {
         return std::holds_alternative<NoeudExpressionConstructionTableau *>(v);
     }
 
+    inline bool est_fonction() const
+    {
+        return std::holds_alternative<NoeudDeclarationEnteteFonction *>(v);
+    }
+
     /* Accès. */
 
     inline bool booleenne() const
@@ -133,6 +144,11 @@ struct ValeurExpression {
     inline NoeudExpressionConstructionTableau *tableau_fixe() const
     {
         return std::get<NoeudExpressionConstructionTableau *>(v);
+    }
+
+    inline NoeudDeclarationEnteteFonction *fonction() const
+    {
+        return std::get<NoeudDeclarationEnteteFonction *>(v);
     }
 
     inline bool est_egale_a(ValeurExpression v2) const

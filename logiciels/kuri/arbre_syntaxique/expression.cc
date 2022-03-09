@@ -246,6 +246,12 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 return res;
             }
 
+            if (decl->est_entete_fonction()) {
+                res.est_errone = false;
+                res.valeur = decl->comme_entete_fonction();
+                return res;
+            }
+
             if (decl->genre != GenreNoeud::DECLARATION_VARIABLE) {
                 res.est_errone = true;
                 res.noeud_erreur = b;
