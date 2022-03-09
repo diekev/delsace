@@ -555,53 +555,66 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         auto accede = acces->accedee;
         auto membre = acces->membre;
 
-        if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION &&
-            fichier->importe_module(accede->ident)) {
-            auto module = espace.compilatrice().module(accede->ident);
-            auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
-            trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
+        if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+            auto declaration_referee = accede->comme_reference_declaration()->declaration_referee;
 
-            POUR (declarations) {
-                candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
+            if (declaration_referee->est_declaration_module()) {
+                if (!fichier->importe_module(declaration_referee->ident)) {
+                    /* Nous savons que c'est un module car un autre fichier du module l'importe :
+                     * la validation sémantique utilise #trouve_dans_bloc_ou_module. */
+                    espace.rapporte_erreur(
+                        accede,
+                        "Référence d'un module alors qu'il n'a pas été importé dans le fichier.");
+                    return CodeRetourValidation::Erreur;
+                }
+
+                auto module = espace.compilatrice().module(accede->ident);
+                auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
+                trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
+
+                POUR (declarations) {
+                    candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
+                }
+
+                return CodeRetourValidation::OK;
             }
         }
-        else {
-            auto type_accede = accede->type;
 
-            while (type_accede->genre == GenreType::POINTEUR ||
-                   type_accede->genre == GenreType::REFERENCE) {
-                type_accede = type_dereference_pour(type_accede);
-            }
+        auto type_accede = accede->type;
 
-            if (type_accede->genre == GenreType::STRUCTURE) {
-                auto type_struct = type_accede->comme_structure();
-
-                if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                    return Attente::sur_type(type_accede);
-                }
-
-                auto membre_trouve = false;
-                auto index_membre = 0;
-
-                POUR (type_struct->membres) {
-                    if (it.nom == membre->ident) {
-                        acces->type = it.type;
-                        membre_trouve = true;
-                        break;
-                    }
-
-                    index_membre += 1;
-                }
-
-                if (membre_trouve != false) {
-                    candidates.ajoute({CANDIDATE_EST_ACCES, acces});
-                    acces->index_membre = index_membre;
-                    return CodeRetourValidation::OK;
-                }
-            }
-
-            candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
+        while (type_accede->genre == GenreType::POINTEUR ||
+               type_accede->genre == GenreType::REFERENCE) {
+            type_accede = type_dereference_pour(type_accede);
         }
+
+        if (type_accede->genre == GenreType::STRUCTURE) {
+            auto type_struct = type_accede->comme_structure();
+
+            if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_accede);
+            }
+
+            auto membre_trouve = false;
+            auto index_membre = 0;
+
+            POUR (type_struct->membres) {
+                if (it.nom == membre->ident) {
+                    acces->type = it.type;
+                    membre_trouve = true;
+                    break;
+                }
+
+                index_membre += 1;
+            }
+
+            if (membre_trouve != false) {
+                candidates.ajoute({CANDIDATE_EST_ACCES, acces});
+                acces->index_membre = index_membre;
+                return CodeRetourValidation::OK;
+            }
+        }
+
+        candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
     }
     else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
         candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
