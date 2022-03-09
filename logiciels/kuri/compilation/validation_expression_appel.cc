@@ -50,34 +50,65 @@ struct Monomorpheuse {
 
     ErreurAppariement erreur{};
 
+    EspaceDeTravail &m_espace;
+
+    Monomorpheuse(EspaceDeTravail &espace) : m_espace(espace)
+    {
+    }
+
     void ajoute_item(IdentifiantCode *ident)
     {
         auto item = item_pour_ident(ident);
         if (item) {
             return;
         }
-        items.ajoute({ident, nullptr});
+        /* Par défaut, nous considérons que l'item est pour un type, et non une valeur, car le code
+         * fut d'abord écris pour les types. Il faudra sans doute revoir le système. */
+        items.ajoute({ident, nullptr, {}, true});
     }
 
-    bool ajoute_contrainte(IdentifiantCode *ident, Type *type_contrainte, Type *type_donne)
+    bool ajoute_contrainte(IdentifiantCode *ident,
+                           Type *type_contrainte,
+                           Type *type_donne,
+                           NoeudExpression *expr)
     {
-        // si le type n'obéis pas à la contrainte, retourne
-        if (type_contrainte->est_type_de_donnees() && !type_donne->est_type_de_donnees()) {
-            return false;
-        }
-
-        auto type = type_donne->comme_type_de_donnees()->type_connu;
-
-        if (!type) {
-            return false;
-        }
-
         auto item = item_pour_ident(ident);
-        if (item) {
+        if (!item) {
+            return false;
+        }
+
+        /* Cas pour un type de données ($T: type_de_données). */
+        if (type_contrainte->est_type_de_donnees()) {
+            if (!type_donne->est_type_de_donnees()) {
+                return false;
+            }
+
+            auto type = type_donne->comme_type_de_donnees()->type_connu;
+            if (!type) {
+                return false;
+            }
+
             item->type = type;
+            item->est_type = true;
             return true;
         }
-        return false;
+
+        /* Cas pour une constante typée ($N: z32). */
+        if (!(type_contrainte == type_donne ||
+              (type_donne->est_entier_constant() && est_type_entier(type_contrainte)))) {
+            return false;
+        }
+
+        auto valeur = evalue_expression(m_espace.compilatrice(), expr->bloc_parent, expr);
+        if (valeur.est_errone) {
+            m_espace.rapporte_erreur(expr, "La valeur n'est pas constante");
+            return false;
+        }
+
+        item->valeur = valeur.valeur;
+        item->type = type_contrainte;
+        item->est_type = false;
+        return true;
     }
 
     ItemMonomorphisation *item_pour_ident(IdentifiantCode const *ident)
@@ -230,7 +261,15 @@ struct Monomorpheuse {
             }
 
             auto item = item_pour_ident(ident);
-            if (item && item->type == nullptr) {
+            if (!item) {
+                return false;
+            }
+            /* Nous voulons un type ici, et nous avons l'identifiant d'une valeur : il y a conflit.
+             */
+            if (!item->est_type) {
+                return false;
+            }
+            if (item->type == nullptr) {
                 item->type = type;
             }
         }
@@ -843,7 +882,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     auto type_donnees_argument_variadique = dernier_type_parametre;
 
-    auto monomorpheuse = Monomorpheuse();
+    auto monomorpheuse = Monomorpheuse(espace);
 
     if (decl->est_polymorphe) {
         decl->bloc_constantes->membres.avec_verrou_lecture(
@@ -866,7 +905,7 @@ static ResultatAppariement apparie_appel_fonction(
             auto slot = slots[i];
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type)) {
+                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
@@ -1568,9 +1607,12 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->ident = it.ident;
-        decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
 
-        if (!it.est_type) {
+        if (it.est_type) {
+            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
+        }
+        else {
+            decl_constante->type = it.type;
             decl_constante->valeur_expression = it.valeur;
         }
 

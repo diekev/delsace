@@ -5,13 +5,23 @@ imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N), $N: z64)
     imprime("N = %\n", N)
 }
 
-principale :: fonc () -> z32
+test_tampons :: fonc ()
 {
     tampon8 : TamponFixe(T = z32, N = 8)
-    imprime_N(*tampon8)
+    imprime_N(*tampon8, 8)
 
     tampon16 : TamponFixe(T = z32, N = 16)
-    imprime_N(*tampon16)
+    imprime_N(*tampon16, 16)
+}
 
+test_valeur :: fonc ($N: z32)
+{
+    imprime("%\n", N)
+}
+
+principale :: fonc () -> z32
+{
+    test_valeur(456789)
+    test_tampons()
     retourne 0
 }
