@@ -94,9 +94,23 @@ struct Monomorpheuse {
         }
 
         /* Cas pour une constante typée ($N: z32). */
-        if (!(type_contrainte == type_donne ||
-              (type_donne->est_entier_constant() && est_type_entier(type_contrainte)))) {
-            return false;
+        item->est_type = false;
+
+        if (type_contrainte->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            if (!ajoute_paire_types(type_contrainte, type_donne)) {
+                return false;
+            }
+
+            /* À FAIRE: apparie_type doit pouvoir gérer les fonctions. */
+            item->type = type_donne;
+        }
+        else {
+            if (!(type_contrainte == type_donne ||
+                  (type_donne->est_entier_constant() && est_type_entier(type_contrainte)))) {
+                return false;
+            }
+
+            item->type = type_contrainte;
         }
 
         auto valeur = evalue_expression(m_espace.compilatrice(), expr->bloc_parent, expr);
@@ -106,8 +120,6 @@ struct Monomorpheuse {
         }
 
         item->valeur = valeur.valeur;
-        item->type = type_contrainte;
-        item->est_type = false;
         return true;
     }
 
