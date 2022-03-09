@@ -52,12 +52,10 @@ struct Monomorpheuse {
 
     void ajoute_item(IdentifiantCode *ident)
     {
-        POUR (items) {
-            if (it.ident == ident) {
-                return;
-            }
+        auto item = item_pour_ident(ident);
+        if (item) {
+            return;
         }
-
         items.ajoute({ident, nullptr});
     }
 
@@ -74,16 +72,25 @@ struct Monomorpheuse {
             return false;
         }
 
+        auto item = item_pour_ident(ident);
+        if (item) {
+            item->type = type;
+            return true;
+        }
+        return false;
+    }
+
+    ItemMonomorphisation *item_pour_ident(IdentifiantCode const *ident)
+    {
         POUR (items) {
             if (it.ident != ident) {
                 continue;
             }
 
-            it.type = type;
-            return true;
+            return &it;
         }
 
-        return false;
+        return nullptr;
     }
 
     bool ajoute_paire_types(Type *type_poly, Type *type_cible)
@@ -222,13 +229,9 @@ struct Monomorpheuse {
                 return false;
             }
 
-            for (auto &item : items) {
-                if (item.ident == ident) {
-                    if (item.type == nullptr) {
-                        item.type = type;
-                    }
-                    break;
-                }
+            auto item = item_pour_ident(ident);
+            if (item && item->type == nullptr) {
+                item->type = type;
             }
         }
 
