@@ -1,0 +1,90 @@
+importe Fondation
+
+// ----------------------------------------------------------
+
+/* Doit émettre un avertissement :
+ * - une variable employée dont les membres ne sont pas utilisés
+ * - les fonctions nichées non utilisées
+ * - les retours de fonctions non utilisées
+ * - les expressions inutiles (par exemple : "x.y.z" où on aurait oublié d'assigner)
+ */
+
+/* Ne doit pas émettre un avertissement :
+ * - une variable employée les membres sont utilisés
+ * - les variables déclarées avec "_"
+ * - les variables implicites des boucles pour (it, index_it)
+ * - les variables générées par la compilatrice de manière générale (compteurs pour les boucles, temporaires, etc.)
+ */
+
+// ----------------------------------------------------------
+
+/* Vérifie que les retours de fonction assignés via une expression « si »
+ * ne génère pas d'erreurs de compilation.
+ */
+
+retourne_un_nombre_entier :: fonc () -> z32
+{
+    retourne 127
+}
+
+test_assignation_via_si :: fonc (via_fonction: bool)
+{
+    valeur_si_non_via_fonction := 26
+
+    valeur := si via_fonction {
+        retourne_un_nombre_entier()
+    }
+    sinon {
+        valeur_si_non_via_fonction
+    }
+
+    si via_fonction {
+        si valeur != retourne_un_nombre_entier() {
+            imprime("ERREUR : nous aurions dû assigner via une fonction !");
+        }
+    }
+    sinon {
+        si valeur != valeur_si_non_via_fonction {
+            imprime("ERREUR : nous aurions dû assigner via la variable locale !");
+        }
+    }
+}
+
+// ----------------------------------------------------------
+
+/* Vérifie que les assignations via une expression d'appel fonctionnent.
+ * x.y().z = w
+ */
+
+Y :: struct {
+    z: z32
+}
+
+X :: struct {
+    y_: Y
+}
+
+y :: fonc (x: &X) -> *Y
+{
+    retourne *x.y_
+}
+
+test_assignations_membre_de_structure_retournée :: fonc (w: z32)
+{
+    x: X
+    x.y().z = w
+
+    si x.y_.z != w {
+        imprime("ERREUR : nous aurions dû pouvoir assigner !")
+    }
+}
+
+// ----------------------------------------------------------
+
+principale :: fonc () -> z32
+{
+    test_assignation_via_si(vrai)
+    test_assignation_via_si(faux)
+    test_assignations_membre_de_structure_retournée(123)
+    retourne 0
+}
