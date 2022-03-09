@@ -40,8 +40,7 @@
 using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
 
 struct Monomorpheuse {
-    using paire_item = dls::paire<IdentifiantCode *, Type *>;
-    kuri::tablet<paire_item, 6> items{};
+    kuri::tablet<ItemMonomorphisation, 6> items{};
 
     using paire_type = dls::paire<Type *, Type *>;
     kuri::tablet<paire_type, 6> paires_types{};
@@ -54,7 +53,7 @@ struct Monomorpheuse {
     void ajoute_item(IdentifiantCode *ident)
     {
         POUR (items) {
-            if (it.premier == ident) {
+            if (it.ident == ident) {
                 return;
             }
         }
@@ -76,11 +75,11 @@ struct Monomorpheuse {
         }
 
         POUR (items) {
-            if (it.premier != ident) {
+            if (it.ident != ident) {
                 continue;
             }
 
-            it.second = type;
+            it.type = type;
             return true;
         }
 
@@ -224,9 +223,9 @@ struct Monomorpheuse {
             }
 
             for (auto &item : items) {
-                if (item.premier == ident) {
-                    if (item.second == nullptr) {
-                        item.second = type;
+                if (item.ident == ident) {
+                    if (item.type == nullptr) {
+                        item.type = type;
                     }
                     break;
                 }
@@ -234,9 +233,9 @@ struct Monomorpheuse {
         }
 
         POUR (items) {
-            if (it.second == nullptr) {
+            if (it.type == nullptr) {
                 erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
-                                                                                     it.premier);
+                                                                                     it.ident);
                 return false;
             }
         }
@@ -314,8 +313,8 @@ struct Monomorpheuse {
             auto type = type_polymorphique->comme_polymorphique();
 
             POUR (items) {
-                if (it.premier == type->ident) {
-                    resultat = it.second;
+                if (it.ident == type->ident) {
+                    resultat = it.type;
                     break;
                 }
             }
@@ -1094,13 +1093,8 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-
     if (decl->est_polymorphe) {
-        items_monomorphisation.reserve(static_cast<int>(monomorpheuse.items.taille()));
-
-        POUR (monomorpheuse.items) {
-            items_monomorphisation.ajoute({it.premier, it.second, ValeurExpression(), true});
-        }
+        copie_tablet_tableau(monomorpheuse.items, items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
