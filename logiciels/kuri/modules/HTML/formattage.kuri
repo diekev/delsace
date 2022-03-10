@@ -4,6 +4,7 @@ importe Chaine
 importe Fondation
 importe GlibC
 importe SysFichier
+importe Triage
 
 /* À FAIRE : options
  * - taille tabulation
@@ -182,11 +183,8 @@ peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage, tag: *C
     retourne faux
 }
 
-compare_attribut :: fonc (attr1: *rien, attr2: *rien) -> z32
+compare_attribut :: fonc (a1: Attribut, a2: Attribut) -> z32
 {
-    a1 := attr1 comme *Attribut
-    a2 := attr2 comme *Attribut
-
     si a1.nom < a2.nom {
         retourne -1
     }
@@ -203,7 +201,7 @@ tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
     classes := divise_chaine(chn_classe, ' ' comme n32)
     diffère déloge(classes)
 
-    qsort(classes.pointeur, classes.taille comme n64, taille_de(ChaineUTF16) comme n64, compare_chaine_utf16)
+    tri_rapide(classes, compare_chaine_utf16)
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
@@ -247,7 +245,7 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
         tableau_ajoute(*résultat, it)
     }
 
-    qsort(résultat.pointeur, résultat.taille comme n64, taille_de(Attribut) comme n64, compare_attribut)
+    tri_rapide(résultat, compare_attribut)
 
     retourne résultat
 }

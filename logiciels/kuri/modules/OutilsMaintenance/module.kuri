@@ -3,6 +3,7 @@
 importe Fondation
 importe GlibC
 importe SysFichier
+importe Triage
 
 DonnéesFichier :: struct {
     /* Le chemin racine d'où est lancée l'exécution,
@@ -114,28 +115,6 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
 
 // -------------------------------------
 
-// Fonction de comparaison pour qsort.
-compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32
-{
-    a1 := mémoire(attr1 comme *chaine)
-    a2 := mémoire(attr2 comme *chaine)
-
-    si a1 < a2 {
-        retourne -1
-    }
-
-    si a1 == a2 {
-        retourne 0
-    }
-
-    retourne 1
-}
-
-tri_lignes :: fonc (lignes: &[]chaine)
-{
-    qsort(lignes.pointeur, lignes.taille comme n64, taille_de(chaine) comme n64, compare_chaines_qsort)
-}
-
 tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
     première_ligne := -1
@@ -156,7 +135,7 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
             bloc := tranche(lignes, première_ligne, dernière_ligne)
 
             si bloc.taille > 1 {
-                tri_lignes(bloc)
+                tri_rapide(bloc, compare_chaine)
                 lignes_furent_modifiés = vrai
             }
 
