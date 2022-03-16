@@ -124,6 +124,8 @@ AnnotationPython :: énum {
      * mutables. */
     POUR_INIT
     POUR_NEW
+    /* La fonction est considérer comme une méthode du type du premier argument. */
+    POUR_MÉTHODE
 }
 
 /* Retourne la valeur de l'énumération correspondant à une chaine de
@@ -144,6 +146,10 @@ annotation_python_pour_chaine :: fonc (chn: chaine) -> AnnotationPython
 
     si chn == "new" {
         retourne AnnotationPython.POUR_NEW
+    }
+
+    si chn == "méthode" {
+        retourne AnnotationPython.POUR_MÉTHODE
     }
 
     si chn == "" {
@@ -393,6 +399,9 @@ ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fo
         POUR_STR {
             ajoute_fonction_type(compilatrice, CodeErreurCompilationPython.FONCTION_STR_REQUIERS_STRUCTURE, fonction)
         }
+        POUR_MÉTHODE {
+            ajoute_fonction_pour_méthode(compilatrice, fonction)
+        }
     }
 }
 
@@ -400,6 +409,14 @@ ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython
 {
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
     compilatrice.module.ajoute_fonction(compilatrice.système_type, fonction)
+}
+
+ajoute_fonction_pour_méthode :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
+{
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    type_paramètre := type_premier_paramètre(fonction)
+    type_python := convertis_vers_type_python(compilatrice.système_type, type_paramètre)
+    type_python.ajoute_méthode(compilatrice.système_type, fonction)
 }
 
 /* Ajoute une fonction clé pour un type (__init__, __repr__, etc.).

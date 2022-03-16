@@ -212,7 +212,7 @@ TypePython :: struct {
 
 ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
-    méthode := méthode_python_depuis_entête(fonction, système_type)
+    méthode := méthode_python_depuis_entête(fonction, système_type, vrai)
     tableau_ajoute(*type.méthodes, méthode)
 }
 

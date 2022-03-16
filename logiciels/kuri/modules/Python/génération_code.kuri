@@ -203,11 +203,19 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     /*
         À FAIRE : méthodes types
             __init__ pour les membres mutables
-            méthodes diverses
 
             NomDuType.tp_flags = Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE;
 
      */
+
+    si type.méthodes {
+        pour type.méthodes {
+            génère_interface_fonction(enchaineuse, it, type)
+        }
+        nom_tableau := enchaine("méthodes_", type.nom)
+        diffère déloge(nom_tableau)
+        génère_tableaux_méthodes(enchaineuse, type.méthodes, nom_tableau)
+    }
 
     globale_getset := génère_méthodes_getset_pour_type(enchaineuse, type)
     diffère déloge(globale_getset)
@@ -240,6 +248,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *PyBaseObject_Type\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_name = crée_chaine_c(\"", tp_name, "\")\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_flags = 1 << 10 | 1 << 18\n")
+
+    si type.méthodes {
+        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_methods = *méthodes_", type.nom, "[0]\n")
+    }
 
     si fonction_new {
         enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_new = ", fonction_new, "\n")
@@ -353,12 +365,15 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
     enchaineuse.ajoute_au_tampon(")\n")
 }
 
-génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython)
+génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython, self: *TypePython = nul)
 {
     // À FAIRE : initialisation des variables globales de kuri
 
-    // À FAIRE : self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet
-    self_inutilisé := " @inutilisée"
+    /* self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet */
+    self_inutilisé := ""
+    saufsi self {
+        self_inutilisé = " @inutilisée"
+    }
     args_inutilisés := ""
     saufsi méthode.paramètres_entrée {
         args_inutilisés = " @inutilisée"
@@ -370,6 +385,10 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     génère_parsage_args_tuple(enchaineuse, méthode, "nul")
     génère_conversion_args_vers_kuri(enchaineuse, méthode)
 
+    si self {
+        enchaineuse.ajoute_au_tampon("    self_kuri := ", self.fonctions.pour_extraction_valeur, "(self)\n")
+    }
+
     /* Appel la fonction. */
     possède_retour := !méthode.ne_retourne_rien()
 
@@ -378,7 +397,12 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
         enchaineuse.ajoute_au_tampon("résultat := ")
     }
 
-    génère_appel_méthode_kuri(enchaineuse, méthode)
+    arg_implicite := ""
+    si self {
+        arg_implicite = "*self_kuri.notre_instance"
+    }
+
+    génère_appel_méthode_kuri(enchaineuse, méthode, arg_implicite)
 
     si possède_retour {
         type_sortie := méthode.paramètres_sortie[0].type
@@ -391,18 +415,18 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
-génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
+génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []MéthodePython, nom_tableau: chaine)
 {
     /* Déclare le tableau de méthodes. Il y a une méthode supplémentaire nulle comme sentinelle. */
-    enchaineuse.imprime_dans_enchaineuse("méthodes_du_module : [%]PyMethodDef\n", module.méthodes.taille + 1)
+    enchaineuse.imprime_dans_enchaineuse("% : [%]PyMethodDef\n", nom_tableau, méthodes.taille + 1)
 
     /* Fonction d'initialisation pour les méthodes. */
-    enchaineuse.ajoute_au_tampon("initialise_méthodes :: fonc ()\n")
+    enchaineuse.imprime_dans_enchaineuse("initialise_% :: fonc ()\n", nom_tableau)
     enchaineuse.ajoute_au_tampon("{\n")
 
-    pour module.méthodes {
-        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_name = crée_chaine_c(\"%\")\n", index_it, it.nom)
-        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_meth = enveloppe_python_%\n", index_it, it.nom)
+    pour méthodes {
+        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_name = crée_chaine_c(\"%\")\n", nom_tableau, index_it, it.nom)
+        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_meth = enveloppe_python_%\n", nom_tableau, index_it, it.nom)
 
         drapeaux_méthode := ""
         si it.paramètres_entrée {
@@ -412,18 +436,23 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
             drapeaux_méthode = "METH_NOARGS"
         }
 
-        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_flag = %\n", index_it, drapeaux_méthode)
-        enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_doc = ChaineC(nul)\n", index_it)
+        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_flag = %\n", nom_tableau, index_it, drapeaux_méthode)
+        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_doc = ChaineC(nul)\n", nom_tableau, index_it)
     }
 
     /* Sentienelle */
-    index_it_ := module.méthodes.taille
-    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_name = ChaineC(nul)\n", index_it_)
-    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_meth = nul\n", index_it_)
-    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_flag = 0\n", index_it_)
-    enchaineuse.imprime_dans_enchaineuse("    méthodes_du_module[%].ml_doc = ChaineC(nul)\n", index_it_)
+    index_it_ := méthodes.taille
+    enchaineuse.imprime_dans_enchaineuse("    %[%].ml_name = ChaineC(nul)\n", nom_tableau, index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    %[%].ml_meth = nul\n", nom_tableau, index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    %[%].ml_flag = 0\n", nom_tableau, index_it_)
+    enchaineuse.imprime_dans_enchaineuse("    %[%].ml_doc = ChaineC(nul)\n", nom_tableau, index_it_)
 
     enchaineuse.ajoute_au_tampon("}\n")
+}
+
+génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
+{
+    génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module")
 
     /* Déclaration de la globale pour la définition du module. */
     enchaineuse.ajoute_au_tampon("définition_module: PyModuleDef\n")
@@ -465,8 +494,14 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("    Py_None = *_Py_NoneStruct\n")
     enchaineuse.ajoute_au_tampon("    Py_True = *_Py_TrueStruct\n")
     enchaineuse.ajoute_au_tampon("    Py_False = *_Py_FalseStruct\n")
-    enchaineuse.ajoute_au_tampon("    initialise_méthodes()\n")
+    enchaineuse.ajoute_au_tampon("    initialise_méthodes_du_module()\n")
     enchaineuse.ajoute_au_tampon("    initialise_définition_module()\n")
+
+    pour types {
+        si it.méthodes {
+            enchaineuse.ajoute_au_tampon("    initialise_méthodes_", it.nom,"()\n")
+        }
+    }
 
     enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
 
