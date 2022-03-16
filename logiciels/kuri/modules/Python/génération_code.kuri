@@ -296,8 +296,6 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
     enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
     enchaineuse.ajoute_au_tampon("    }\n")
 
-    code_pour_erreur_typage := «»
-
     /* Vérifie que les types sont ceux attendus. */
     pour méthode.paramètres_entrée {
         chn_erreur := imprime_chaine("Mauvais type pour l'argument % ! Attendu : %, obtenu : ", it.nom, it.type.nom)
