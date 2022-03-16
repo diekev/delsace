@@ -422,7 +422,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("}\n")
 
     /* La fonction d'initialisation du module doit avoir la signature : PyInit_nom_module :: fonc () -> *PyObject */
-    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage\n", module.nom)
+    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace\n", module.nom)
     enchaineuse.ajoute_au_tampon("{\n")
 
     /* Nous devons tout d'abord initialiser le contexte. */
