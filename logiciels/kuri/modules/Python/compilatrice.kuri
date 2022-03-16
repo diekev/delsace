@@ -288,7 +288,8 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             }
         }
         POINTEUR {
-            // non supporté pour le moment
+            info_pointeur := info comme *InfoTypePointeur
+            type_python = convertis_vers_type_python(système, info_pointeur.type_pointé)
         }
         FONCTION {
             // non supporté pour le moment
