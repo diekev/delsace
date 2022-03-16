@@ -366,7 +366,8 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     génère_appel_méthode_kuri(enchaineuse, méthode)
 
     si possède_retour {
-        enchaineuse.ajoute_au_tampon("    retourne PyLong_FromLong(résultat)\n")
+        type_sortie := méthode.paramètres_sortie[0].type
+        enchaineuse.ajoute_au_tampon("    retourne ", type_sortie.fonctions.pour_construction, "(résultat)\n")
     }
     sinon {
         enchaineuse.ajoute_au_tampon("    retourne python_retourne_rien()\n")
