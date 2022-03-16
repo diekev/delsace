@@ -178,6 +178,8 @@ MembreType :: struct {
 
 DrapeauxType :: énum_drapeau {
     TYPE_EST_UNION
+    /* Indique qu'un pointeur est stocké dans le membre "notre_instance" du type Python. */
+    TOUJOURS_COMME_POINTEUR
 }
 
 TypePython :: struct {

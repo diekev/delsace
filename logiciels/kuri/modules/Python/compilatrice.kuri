@@ -186,9 +186,10 @@ SystèmeType :: struct {
     types: []*TypePython
 }
 
-ajoute_type :: fonc (système: &SystèmeType, info: *InfoType)
+ajoute_type :: fonc (système: &SystèmeType, info: *InfoType, drapeaux: DrapeauxType)
 {
-    _ := convertis_vers_type_python(système, info)
+    type := convertis_vers_type_python(système, info)
+    type.drapeaux |= drapeaux
 }
 
 crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine) -> *TypePython
@@ -357,9 +358,9 @@ ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, nom_module:
     tableau_ajoute(*compilatrice.modules_kuri_à_importer, nom_module)
 }
 
-ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType)
+ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType, drapeaux: DrapeauxType = DrapeauxType.zéro)
 {
-    compilatrice.système_type.ajoute_type(type_kuri)
+    compilatrice.système_type.ajoute_type(type_kuri, drapeaux)
 }
 
 ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
