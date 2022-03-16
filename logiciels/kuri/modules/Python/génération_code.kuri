@@ -351,10 +351,10 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     // À FAIRE : initialisation des variables globales de kuri
 
     // À FAIRE : self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet
-    self_inutilisé := "@inutilisée"
+    self_inutilisé := " @inutilisée"
     args_inutilisés := ""
     saufsi méthode.paramètres_entrée {
-        args_inutilisés = "@inutilisée"
+        args_inutilisés = " @inutilisée"
     }
 
     enchaineuse.imprime_dans_enchaineuse("enveloppe_python_% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject\n", méthode.nom, self_inutilisé, args_inutilisés)
