@@ -296,9 +296,18 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
     enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
     enchaineuse.ajoute_au_tampon("    }\n")
 
+    code_pour_erreur_typage := «»
+
     /* Vérifie que les types sont ceux attendus. */
     pour méthode.paramètres_entrée {
+        chn_erreur := imprime_chaine("Mauvais type pour l'argument % ! Attendu : %, obtenu : ", it.nom, it.type.nom)
+        diffère déloge(chn_erreur)
+
         enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n")
+        enchaineuse.ajoute_au_tampon("        chn_type := PyType_ChaineNom(pyobject_", it.nom, ")\n")
+        enchaineuse.ajoute_au_tampon("        chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
+        enchaineuse.ajoute_au_tampon("        PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
+        enchaineuse.ajoute_au_tampon("        déloge(chn_type); déloge(chn_erreur)\n")
         enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
         enchaineuse.ajoute_au_tampon("    }\n")
     }

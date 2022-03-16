@@ -450,6 +450,14 @@ PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 }
 
 // ---------------------------------------------------
+// Utilitaires
+
+PyType_ChaineNom :: fonc (obj: *PyObject) -> chaine
+{
+    retourne convertis_chaine_c(obj.ob_type.tp_name)
+}
+
+// ---------------------------------------------------
 // Exceptions
 
 externe PyExc_BaseException: *PyObject
@@ -505,3 +513,6 @@ externe PyExc_UnicodeError: *PyObject
 externe PyExc_UnicodeTranslateError: *PyObject
 externe PyExc_ValueError: *PyObject
 externe PyExc_ZeroDivisionError: *PyObject
+
+
+PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
