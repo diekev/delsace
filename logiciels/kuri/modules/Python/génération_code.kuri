@@ -332,7 +332,15 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
         enchaineuse.ajoute_au_tampon(virgule)
     }
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon(virgule, it.nom)
+        enchaineuse.ajoute_au_tampon(virgule)
+        /* À FAIRE: meilleure gestion des pointeurs. */
+        saufsi it.type.est_basique || it.type.drapeaux.TOUJOURS_COMME_POINTEUR {
+            enchaineuse.ajoute_au_tampon("*")
+        }
+        enchaineuse.ajoute_au_tampon(it.nom)
+        saufsi it.type.est_basique {
+            enchaineuse.ajoute_au_tampon(".notre_instance")
+        }
         virgule = ", "
     }
     enchaineuse.ajoute_au_tampon(")\n")
