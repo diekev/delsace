@@ -65,7 +65,7 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
             nom_méthode := chaine_méthode_python_pour_code_erreur(code_erreur)
             imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python requiers un pointeur de structure ou d'union comme premier paramètre.\n", nom_méthode)
 
-            type := type_premier_paramètre_sans_contexte(ctx.fonction)
+            type := type_premier_paramètre(ctx.fonction)
             si type == nul {
                 ajoute_au_tampon(*enchaineuse, "Or, la fonction n'a pas de paramètres.")
             }
@@ -405,7 +405,7 @@ ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython
  * la fonction, mais aussi pour rapporter une erreur. */
 ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erreur: CodeErreurCompilationPython, fonction: *NoeudCodeEntêteFonction)
 {
-    type_paramètre := type_premier_paramètre_sans_contexte(fonction)
+    type_paramètre := type_premier_paramètre(fonction)
     type_structure := est_pointeur_de_structure_ou_union(type_paramètre)
 
     si type_structure == nul {

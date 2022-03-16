@@ -73,7 +73,7 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
     résultat.nom = entête.nom
 
     pour entête.params {
-        si it == 0 && ignore_premier_paramètre {
+        si index_it == 0 && ignore_premier_paramètre {
             continue
         }
 
@@ -150,7 +150,7 @@ ConfidentialitéType :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: []AnnotationCode) -> ConfidentialitéType
+confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéType
 {
     pour annotations {
         si it.nom == "privé" {
