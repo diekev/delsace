@@ -327,14 +327,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
 génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython)
 {
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")")
-
-        // À FAIRE(type Python) : meilleure gestion des types entiers, et réels.
-        si it.type.nom == "z32" {
-            enchaineuse.ajoute_au_tampon(" comme z32")
-        }
-
-        enchaineuse.ajoute_au_tampon("\n")
+        enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")\n")
     }
 }
 

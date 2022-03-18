@@ -406,6 +406,61 @@ PyLong_Check :: fonc (ob: *PyObject) -> bool
 PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
 PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
 
+PyLong_AsZ8 :: fonc (ob: *PyObject) -> z8
+{
+    retourne PyLong_AsLong(ob) comme z8
+}
+
+PyLong_AsZ16 :: fonc (ob: *PyObject) -> z16
+{
+    retourne PyLong_AsLong(ob) comme z16
+}
+
+PyLong_AsZ32 :: fonc (ob: *PyObject) -> z32
+{
+    retourne PyLong_AsLong(ob) comme z32
+}
+
+PyLong_AsN8 :: fonc (ob: *PyObject) -> n8
+{
+    retourne PyLong_AsLong(ob) comme n8
+}
+
+PyLong_AsN16 :: fonc (ob: *PyObject) -> n16
+{
+    retourne PyLong_AsLong(ob) comme n16
+}
+
+PyLong_AsN32 :: fonc (ob: *PyObject) -> n32
+{
+    retourne PyLong_AsLong(ob) comme n32
+}
+
+PyLong_AsN64 :: fonc (ob: *PyObject) -> n64
+{
+    retourne PyLong_AsLong(ob) comme n64
+}
+
+PyLong_FromN8 :: fonc (l: n8) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN16 :: fonc (l: n16) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN32 :: fonc (l: n32) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN64 :: fonc (l: n64) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
 // ---------------------------------------------------
 // Objet Réel/Double
 
@@ -418,6 +473,16 @@ PyFloat_Check :: fonc (ob: *PyObject) -> bool
 
 PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
 PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
+
+PyFloat_AsR32 :: fonc (ob: *PyObject) -> r32
+{
+    retourne PyFloat_AsDouble(ob) comme r32
+}
+
+PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
+{
+    retourne PyFloat_AsDouble(ob) comme r16
+}
 
 // ---------------------------------------------------
 // Objet Unicode
