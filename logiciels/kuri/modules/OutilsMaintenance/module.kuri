@@ -88,7 +88,7 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     }
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -102,7 +102,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
                     continue
                 }
 
-                si chemin.extension() == ".kuri" {
+                si fait_partie_de(chemin.extension(), ...extensions) {
                     exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
                 }
             }
@@ -184,22 +184,32 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
     retourne faux
 }
 
-// -------------------------------------
+// À FAIRE : bouge ça dans un module d'outils ou autre (copie de HTML)
+fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
+{
+    pour liste {
+        si valeur == it {
+            retourne vrai
+        }
+    }
 
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+    retourne faux
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_dossier() {
-        exécute_rappel_pour_dossier(chemin, rappel, données_utilisateurs)
+        exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
     }
     sinon {
-        si chemin.extension() == ".kuri" {
+        si fait_partie_de(chemin.extension(), ...extensions) {
             exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
         }
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool))
 {
     données_utilisateurs: eini
-    exécute_rappel(chemin, rappel, données_utilisateurs)
+    exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
 }
