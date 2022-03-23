@@ -84,7 +84,7 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     données.données_utilisateurs = données_utilisateurs
 
     si rappel(données) {
-        écris_lignes_dans_fichier(chemin, lignes)
+        écris_lignes_dans_fichier(chemin, données.lignes)
     }
 }
 
