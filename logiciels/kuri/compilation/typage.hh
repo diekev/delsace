@@ -32,6 +32,7 @@
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
+#include "structures/ensemblon.hh"
 #include "structures/tablet.hh"
 
 #include "operateurs.hh"
@@ -692,3 +693,6 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 NoeudDeclaration *decl_pour_type(const Type *type);
 
 bool est_type_polymorphique(Type *type);
+
+std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau);
