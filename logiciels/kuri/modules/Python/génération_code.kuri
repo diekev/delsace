@@ -105,16 +105,23 @@ génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
     /* Appel la fonction d'initialisation. */
     génère_conversion_args_vers_kuri(enchaineuse, méthode)
 
-    enchaineuse.ajoute_au_tampon("    résultat :", type.nom, "\n")
-    enchaineuse.ajoute_au_tampon("    succès := ")
-    génère_appel_méthode_kuri(enchaineuse, méthode, "*résultat")
+    si type.drapeaux.TOUJOURS_COMME_POINTEUR {
+        enchaineuse.ajoute_au_tampon("    résultat := loge(", type.nom, ")\n")
+        enchaineuse.ajoute_au_tampon("    succès := ")
+        génère_appel_méthode_kuri(enchaineuse, méthode, "résultat")
+    }
+    sinon {
+        enchaineuse.ajoute_au_tampon("    résultat :", type.nom, "\n")
+        enchaineuse.ajoute_au_tampon("    succès := ")
+        génère_appel_méthode_kuri(enchaineuse, méthode, "*résultat")
+    }
 
     enchaineuse.ajoute_au_tampon("    saufsi succès {\n")
     enchaineuse.ajoute_au_tampon("        retourne nul\n")
     enchaineuse.ajoute_au_tampon("    }\n")
 
     /* Crée un objet python correspondant, et retourne. */
-    enchaineuse.ajoute_au_tampon("    objet_résultat := subtype.tp_alloc(subtype, 1) comme *", type.nom, "PourPython\n")
+    enchaineuse.ajoute_au_tampon("    objet_résultat := subtype.tp_alloc(subtype, 0) comme *", type.nom, "PourPython\n")
     enchaineuse.ajoute_au_tampon("    objet_résultat.notre_instance = résultat\n")
     enchaineuse.ajoute_au_tampon("    retourne objet_résultat\n")
     enchaineuse.ajoute_au_tampon("}\n")
@@ -244,7 +251,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     enchaineuse.ajoute_au_tampon("    init_de(PyTypeObject)(*", nom_globale_type, ")\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".ob_refcnt = 1\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".ob_size = 0\n")
-    enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_basicsize = taille_de(", type.nom, ") comme Py_ssize_t\n")
+    enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_basicsize = taille_de(", type.nom, "PourPython) comme Py_ssize_t\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *PyBaseObject_Type\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_name = crée_chaine_c(\"", tp_name, "\")\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_flags = 1 << 10 | 1 << 18\n")
