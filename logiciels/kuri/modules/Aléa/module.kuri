@@ -61,6 +61,21 @@ choisit :: fonc (gna: *GNA, tableau: []$T) -> T
     retourne tableau[index]
 }
 
+mélange_tableau :: fonc (gna: *GNA, tableau: *[]$T)
+{
+    pour tableau.taille {
+        nouvel_index := gna.uniforme(0.0, (tableau.taille - 1) comme r32) comme z64
+
+        si nouvel_index == index_it {
+            continue
+        }
+
+        tmp := tableau.pointeur[index_it]
+        tableau.pointeur[index_it] = tableau.pointeur[nouvel_index]
+        tableau.pointeur[nouvel_index] = tmp
+    }
+}
+
 // ------------------------------------------------------
 
 // À FAIRE: #portée_fichier
