@@ -37,7 +37,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         }
         enchaineuse.ajoute_au_tampon("}\n")
 
-        si type.confidentialité == ConfidentialitéType.MUTABLE {
+        si it.confidentialité == ConfidentialitéType.MUTABLE {
             // set : fonc (*PyObject, *PyObject, *rien)(z32)
             // retourne 0 pour un succès
             // retourne -1 pour une erreur
@@ -67,7 +67,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
     pour type.membres {
         enchaineuse.imprime_dans_enchaineuse("    %[%].name = crée_chaine_c(\"%\")\n", nom_globale, index_it, it.nom)
         enchaineuse.imprime_dans_enchaineuse("    %[%].get = get_%_%\n", nom_globale, index_it, type.nom, it.nom)
-        si type.confidentialité == ConfidentialitéType.MUTABLE {
+        si it.confidentialité == ConfidentialitéType.MUTABLE {
             enchaineuse.imprime_dans_enchaineuse("    %[%].set = set_%_%\n", nom_globale, index_it, type.nom, it.nom)
         }
         sinon {
