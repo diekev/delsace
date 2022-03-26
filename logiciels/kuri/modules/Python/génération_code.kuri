@@ -44,14 +44,45 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
             enchaineuse.ajoute_au_tampon("set_", type.nom, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32\n")
             enchaineuse.ajoute_au_tampon("{\n")
 
-            enchaineuse.ajoute_au_tampon("    saufsi ", type_membre.fonctions.pour_discrimination, "(valeur) {\n")
-            // À FAIRE : erreur -> attendu un objet de type "type attendu", obtenu un "type reçu"
-            enchaineuse.ajoute_au_tampon("        retourne -1\n")
+            enchaineuse.ajoute_au_tampon("    si ", type_membre.fonctions.pour_discrimination, "(valeur) {\n")
+            enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom, "PourPython).notre_instance\n")
+            si it.type.est_basique {
+                // À FAIRE : crash ici
+                // enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur)\n")
+            }
+            sinon {
+                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n")
+            }
+            enchaineuse.ajoute_au_tampon("    retourne 0\n")
             enchaineuse.ajoute_au_tampon("    }\n")
 
-            enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom, "PourPython).notre_instance\n")
-            enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur)\n")
-            enchaineuse.ajoute_au_tampon("    retourne 0\n")
+            si it.type.drapeaux.TYPE_EST_ÉNUM {
+                assigne_énum_depuis_chaine := «
+                    si PyUnicode_Check(valeur) {
+                        valeur_chaine := PyUnicode_AsChaine(valeur)
+                        infos := info_de(%)
+
+                        pour infos.noms {
+                            si it == valeur_chaine {
+                                (instance comme *%PourPython).notre_instance.% = infos.valeurs[index_it] comme %
+                                retourne 0
+                            }
+                        }
+
+                        PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))
+                        retourne -1
+                    }
+                »
+                enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, it.type.nom, type.nom, it.nom, it.type.nom)
+            }
+
+            chn_erreur := imprime_chaine("Ne peut assigner un objet de type % avec un objet de type", it.type.nom)
+            diffère déloge(chn_erreur)
+
+            enchaineuse.ajoute_au_tampon("    chn_type := PyType_ChaineNom(valeur)\n")
+            enchaineuse.ajoute_au_tampon("    chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
+            enchaineuse.ajoute_au_tampon("    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
+            enchaineuse.ajoute_au_tampon("    retourne -1\n")
             enchaineuse.ajoute_au_tampon("}\n")
         }
     }
@@ -133,7 +164,7 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
 {
     méthode := type.str
 
-    saufsi méthode.nom {
+    saufsi méthode.nom || type.drapeaux.TYPE_EST_ÉNUM {
         retourne copie_chaine("")
     }
 
@@ -143,11 +174,93 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
     enchaineuse.ajoute_au_tampon(nom_fonction_str, ":: fonc (self: *PyObject) -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
     enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-    enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
+    si type.drapeaux.TYPE_EST_ÉNUM {
+        enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n")
+        enchaineuse.ajoute_au_tampon("    résultat := info_énum.noms[notre_instance comme z32]\n")
+    }
+    sinon {
+        enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
+    }
     enchaineuse.ajoute_au_tampon("    retourne PyUnicode_FromChaine(résultat)\n")
     enchaineuse.ajoute_au_tampon("}\n")
 
     retourne nom_fonction_str
+}
+
+/* https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_richcompare */
+génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
+{
+    saufsi type.drapeaux.TYPE_EST_ÉNUM {
+        retourne copie_chaine("")
+    }
+
+    nom_fonction_richcompare := enchaine("richcompare_", type.nom)
+
+    compare_énum_avec_chaine := «
+    si PyUnicode_Check(other) {
+        valeur_chaine := PyUnicode_AsChaine(other)
+        valeur_énum := Py%_As%(self).notre_instance
+
+        infos := info_de(%)
+        valeur_énum_comme_chaine := infos.noms[valeur_énum comme z32]
+
+        si op == Py_EQ {
+            si valeur_chaine == valeur_énum_comme_chaine {
+                retourne Py_NewRef(Py_True)
+            }
+            retourne Py_NewRef(Py_False)
+        }
+
+        si op == Py_NE {
+            si valeur_chaine != valeur_énum_comme_chaine {
+                retourne Py_NewRef(Py_True)
+            }
+            retourne Py_NewRef(Py_False)
+        }
+
+        retourne Py_NewRef(Py_NotImplemented)
+    }
+    »
+
+    compare_énum_avec_énum := «
+    si Py%_Check(other) {
+        valeur1 := Py%_As%(self).notre_instance
+        valeur2 := Py%_As%(other).notre_instance
+
+        si op == Py_EQ {
+            si valeur1 == valeur2 {
+                retourne Py_NewRef(Py_True)
+            }
+            retourne Py_NewRef(Py_False)
+        }
+
+        si op == Py_NE {
+            si valeur1 != valeur2 {
+                retourne Py_NewRef(Py_True)
+            }
+            retourne Py_NewRef(Py_False)
+        }
+
+        retourne Py_NewRef(Py_NotImplemented)
+    }
+    »
+
+    enchaineuse.ajoute_au_tampon(nom_fonction_richcompare, ":: fonc (self: *PyObject, other: *PyObject, op: z32) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+
+    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom, type.nom, type.nom)
+    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_énum, type.nom, type.nom, type.nom, type.nom, type.nom)
+
+    chn_erreur := imprime_chaine("Ne peut comparer un objet de type % avec un objet de type", type.nom)
+    diffère déloge(chn_erreur)
+
+    enchaineuse.ajoute_au_tampon("    chn_type := PyType_ChaineNom(other)\n")
+    enchaineuse.ajoute_au_tampon("    chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
+    enchaineuse.ajoute_au_tampon("    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
+    enchaineuse.ajoute_au_tampon("    retourne nul\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    retourne nom_fonction_richcompare
 }
 
 génère_fonction_repr :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
@@ -240,6 +353,9 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     fonction_repr := génère_fonction_repr(enchaineuse, type)
     diffère déloge(fonction_repr)
 
+    fonction_richcompare := génère_fonction_richcompare(enchaineuse, type)
+    diffère déloge(fonction_richcompare)
+
     /* Définition de la fonction d'initialisation de la globale pour le type Python. */
     enchaineuse.ajoute_au_tampon("initialise_", nom_globale_type, " :: fonc () -> bool\n")
     enchaineuse.ajoute_au_tampon("{\n")
@@ -270,6 +386,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
 
     si fonction_repr {
         enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_repr = ", fonction_repr, "\n")
+    }
+
+    si fonction_richcompare {
+        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_richcompare = ", fonction_richcompare, "\n")
     }
 
     si globale_getset {
@@ -499,6 +619,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("    Py_None = *_Py_NoneStruct\n")
     enchaineuse.ajoute_au_tampon("    Py_True = *_Py_TrueStruct\n")
     enchaineuse.ajoute_au_tampon("    Py_False = *_Py_FalseStruct\n")
+    enchaineuse.ajoute_au_tampon("    Py_NotImplemented = *_Py_NotImplementedStruct\n")
     enchaineuse.ajoute_au_tampon("    initialise_méthodes_du_module()\n")
     enchaineuse.ajoute_au_tampon("    initialise_définition_module()\n")
 
