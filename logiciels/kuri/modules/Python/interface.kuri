@@ -20,7 +20,7 @@ PyMemberDef :: struct #externe
 PyGetSetDef :: struct #externe {
     name: ChaineC
     get: fonc(*PyObject, *rien)(*PyObject)
-    set: fonc(*PyObject, *PyObject, *rien)(*PyObject)
+    set: fonc(*PyObject, *PyObject, *rien)(z32)
     doc: ChaineC
     closure: *rien
 }
@@ -78,7 +78,7 @@ PyTypeObject :: struct #externe {
 
     /* Assigned meaning in release 2.1 */
     /* rich comparisons */
-    tp_richcompare: *rien // À FAIRE: pointeur de fonction richcmpfunc
+    tp_richcompare: fonc(*PyObject,*PyObject,z32)(*PyObject)
 
     /* weak reference enabler */
     tp_weaklistoffset: Py_ssize_t
@@ -310,6 +310,9 @@ python_retourne_true :: fonc () -> *PyObject
 
 PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
 
+externe _Py_NotImplementedStruct : PyObject
+Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct
+
 // ---------------------------------------------------
 // Références
 
@@ -318,6 +321,13 @@ _Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
 Py_INCREF :: fonc (ob: *PyObject)
 {
     ob.ob_refcnt += 1
+}
+
+Py_XINCREF :: fonc (ob: *PyObject)
+{
+    si ob {
+        Py_INCREF(ob)
+    }
 }
 
 Py_DECREF :: fonc (ob: *PyObject)
@@ -336,6 +346,27 @@ Py_XDECREF :: fonc (ob: *PyObject)
 
     Py_DECREF(ob)
 }
+
+Py_NewRef :: fonc (ob: *PyObject) -> *PyObject
+{
+    Py_INCREF(ob)
+    retourne ob
+}
+
+Py_XNewRef :: fonc (ob: *PyObject) -> *PyObject
+{
+    Py_XINCREF(ob)
+    retourne ob
+}
+
+// ---------------------------------------------------
+/* Rich comparison opcodes */
+Py_LT :: 0
+Py_LE :: 1
+Py_EQ :: 2
+Py_NE :: 3
+Py_GT :: 4
+Py_GE :: 5
 
 // ---------------------------------------------------
 // Module
