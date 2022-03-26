@@ -237,7 +237,7 @@ confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> Con
         }
 
         si it.nom == "accessible" {
-            retourne ConfidentialitéType.MUTABLE
+            retourne ConfidentialitéType.ACCESSIBLE
         }
     }
 
