@@ -1332,14 +1332,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie depuis une adresse nulle !");
+                    rapporte_erreur_execution(site, "Assignation depuis une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie vers une adresse nulle !");
+                    rapporte_erreur_execution(site, "Assignation vers une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1389,14 +1387,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie depuis une adresse nulle !");
+                    rapporte_erreur_execution(site, "Copie depuis une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie vers une adresse nulle !");
+                    rapporte_erreur_execution(site, "Copie vers une adresse nulle !");
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1485,6 +1481,20 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     erreur::imprime_site(*m_metaprogramme->unite->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
         erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
+    }
+}
+
+void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
+                                                 kuri::chaine_statique message)
+{
+    auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
+
+    e.ajoute_message("Trace d'appel :\n\n");
+
+    /* La première frame d'appel possède le même lexème que la directive d'exécution du
+     * métaprogramme, donc ignorons-là également. */
+    for (int i = profondeur_appel - 1; i >= 1; --i) {
+        e.ajoute_site(frames[i].site);
     }
 }
 
