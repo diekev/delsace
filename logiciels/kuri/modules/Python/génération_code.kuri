@@ -477,8 +477,7 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
     }
     pour méthode.paramètres_entrée {
         enchaineuse.ajoute_au_tampon(virgule)
-        /* À FAIRE: meilleure gestion des pointeurs. */
-        saufsi it.type.est_basique || it.type.drapeaux.TOUJOURS_COMME_POINTEUR {
+        si it.param_originel_est_pointeur && it.type.drapeaux.TOUJOURS_COMME_POINTEUR == faux {
             enchaineuse.ajoute_au_tampon("*")
         }
         enchaineuse.ajoute_au_tampon(it.nom)

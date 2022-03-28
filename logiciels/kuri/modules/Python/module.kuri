@@ -40,6 +40,12 @@ ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: cha
 ParamètreMéthodePython :: struct {
     nom: chaine
     type: *TypePython
+    /* Les types Python n'ont pas d'information sur s'ils sont pointeur ou non.
+     * Par défaut, nous stockons une instance de notre type par valeur dans le
+     * PyObject que nous créons pour notre type (sauf si TOUJOURS_COMME_POINTEUR
+     * est vrai). Ceci nous sers à déterminer, lors des appels de nos fonctions,
+     * si nous devrions passer la valeur par pointeur ou par valeur. */
+    param_originel_est_pointeur: bool
 }
 
 MéthodePython :: struct {
@@ -63,6 +69,7 @@ convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -
     résultat: ParamètreMéthodePython
     résultat.nom = param.nom
     résultat.type = système_type.convertis_vers_type_python(param.type)
+    résultat.param_originel_est_pointeur = param.type.id == id_info.POINTEUR
     retourne résultat
 }
 
