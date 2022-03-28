@@ -647,6 +647,21 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
+        auto code = depile<NoeudCode *>(site);
+        auto module = static_cast<Module *>(nullptr);
+
+        if (code) {
+            const auto fichier = compilatrice.fichier(code->chemin_fichier);
+            if (fichier) {
+                module = fichier->module;
+            }
+        }
+
+        empile(site, module);
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 
