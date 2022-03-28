@@ -998,6 +998,37 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
     return false;
 }
 
+static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
+{
+    kuri::ensemble<Module *> modules_visites;
+
+    POUR_TABLEAU_PAGE (sys_module.modules) {
+        for (auto fichier : it.fichiers) {
+            if (!fichier->fut_charge) {
+                return false;
+            }
+
+            if (!fichier->fut_parse) {
+                return false;
+            }
+        }
+
+        for (auto decl : (*it.bloc->membres.verrou_lecture())) {
+            if (decl->est_entete_fonction() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return false;
+            }
+        }
+
+        for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
+            if (decl->est_importe() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
@@ -1038,9 +1069,15 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         unite->mute_attente(Attente::sur_message(message));
     }
 
+    auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
+        *m_compilatrice->sys_module.verrou_lecture());
+
+    // std::cerr << "peut_envoyer_changement_de_phase: " << peut_envoyer_changement_de_phase <<
+    // '\n';
+
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
-    espace->tache_typage_terminee(m_compilatrice->messagere);
+    espace->tache_typage_terminee(m_compilatrice->messagere, peut_envoyer_changement_de_phase);
 
     if (noeud->est_entete_fonction()) {
         m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
