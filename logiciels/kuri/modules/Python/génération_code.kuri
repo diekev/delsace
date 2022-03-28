@@ -127,7 +127,12 @@ génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
 
     nom_fonction_new := enchaine("new_", type.nom)
 
-    enchaineuse.ajoute_au_tampon(nom_fonction_new, " :: fonc (subtype: *PyTypeObject, args: *PyObject, kwds: *PyObject @inutilisée) -> *PyObject\n")
+    args_inutilisés := ""
+    saufsi méthode.paramètres_entrée {
+        args_inutilisés = " @inutilisée"
+    }
+
+    enchaineuse.ajoute_au_tampon(nom_fonction_new, " :: fonc (subtype: *PyTypeObject, args: *PyObject", args_inutilisés, ", kwds: *PyObject @inutilisée) -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
 
     /* Parse les arguments. */
