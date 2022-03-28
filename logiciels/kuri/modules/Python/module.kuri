@@ -263,6 +263,9 @@ DrapeauxType :: énum_drapeau {
     TYPE_EST_ÉNUM
     /* Indique qu'un pointeur est stocké dans le membre "notre_instance" du type Python. */
     TOUJOURS_COMME_POINTEUR
+    /* Pour les types composés, le programme devra définir une fonction de rafinage
+     * appelée « rafine_type_{nom_du_type}. */
+    REQUIERS_RAFINAGE
 }
 
 TypePython :: struct {

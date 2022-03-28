@@ -548,13 +548,18 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
+    génère_interface_python(compilatrice, *enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
 
-    ajoute_au_tampon(*enchaineuse, "importe GlibC\n") // Pour ChaineC
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Python\n")
+génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse)
+{
+    ajoute_au_tampon(enchaineuse, "importe GlibC\n") // Pour ChaineC
+    ajoute_au_tampon(enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(enchaineuse, "importe Python\n")
 
     pour compilatrice.modules_kuri_à_importer {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(enchaineuse, "importe ", it, "\n")
     }
 
     module := compilatrice.module
@@ -564,15 +569,14 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
             continue
         }
 
-        génère_déclaration_type_python(*enchaineuse, module, it)
+        génère_déclaration_type_python(enchaineuse, module, it)
     }
 
     pour module.méthodes {
-        génère_interface_fonction(*enchaineuse, it)
+        génère_interface_fonction(enchaineuse, it)
     }
 
-    génère_initialisation_module(*enchaineuse, module, compilatrice.système_type.types)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
 }
 
 génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: *EspaceDeTravail)
