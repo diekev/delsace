@@ -8,9 +8,9 @@ Vec2r :: struct {
 
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
-    x: r32
-    y: r32
-    z: r32
+    x: r32  @mutable
+    y: r32  @mutable
+    z: r32  @mutable
 }
 
 Point3 :: #opaque Vec3
