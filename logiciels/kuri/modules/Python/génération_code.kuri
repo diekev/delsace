@@ -47,8 +47,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
             enchaineuse.ajoute_au_tampon("    si ", type_membre.fonctions.pour_discrimination, "(valeur) {\n")
             enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom, "PourPython).notre_instance\n")
             si it.type.est_basique {
-                // À FAIRE : crash ici
-                // enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur)\n")
+                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur)\n")
             }
             sinon {
                 enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n")
