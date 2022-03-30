@@ -228,6 +228,26 @@ kuri::ensemble<Module *> Programme::modules_utilises() const
     return modules;
 }
 
+void Programme::ajourne_pour_nouvelles_options_espace()
+{
+    /* Recréer la coulisse. */
+    Coulisse::detruit(m_coulisse);
+    m_coulisse = Coulisse::cree_pour_options(espace()->options);
+
+    auto index = 0;
+    POUR (m_fonctions) {
+        /* Supprime le point d'entrée. */
+        if (it == espace()->fonction_point_d_entree &&
+            espace()->options.resultat != ResultatCompilation::EXECUTABLE) {
+            std::swap(m_fonctions[index], m_fonctions[m_fonctions.taille() - 1]);
+            m_fonctions.redimensionne(m_fonctions.taille() - 1);
+            break;
+        }
+
+        index += 1;
+    }
+}
+
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const
 {
     diagnostique.tous_les_fichiers_sont_charges = true;

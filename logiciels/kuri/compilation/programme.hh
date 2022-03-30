@@ -214,6 +214,8 @@ struct Programme {
 
     kuri::ensemble<Module *> modules_utilises() const;
 
+    void ajourne_pour_nouvelles_options_espace();
+
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;
 

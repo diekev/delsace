@@ -1442,3 +1442,9 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 
     unites_en_attente = nouvelles_unites;
 }
+
+void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
+{
+    auto programme = espace->programme;
+    programme->ajourne_pour_nouvelles_options_espace();
+}

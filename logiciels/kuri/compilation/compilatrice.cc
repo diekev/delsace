@@ -421,6 +421,7 @@ void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
     /* À FAIRE : il faut ajourner la coulisse selon l'espace, et peut-être arrêter la compilation
      * du code. */
     espace_de_travail_defaut->options = *options;
+    gestionnaire_code->ajourne_espace_pour_nouvelles_options(espace_de_travail_defaut);
 }
 
 void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
