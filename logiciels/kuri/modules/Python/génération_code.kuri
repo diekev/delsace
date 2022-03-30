@@ -377,7 +377,6 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".ob_refcnt = 1\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".ob_size = 0\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_basicsize = taille_de(", type.nom, "PourPython) comme Py_ssize_t\n")
-    enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *PyBaseObject_Type\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_name = crée_chaine_c(\"", tp_name, "\")\n")
     enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_flags = 1 << 10 | 1 << 18\n")
 
@@ -404,6 +403,13 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     si globale_getset {
         enchaineuse.ajoute_au_tampon("    initialise_getset_", type.nom, "()\n")
         enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_getset = *", globale_getset, "[0]\n")
+    }
+
+    si type.base {
+        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *Type", type.base.nom, "PourPython\n")
+    }
+    sinon {
+        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *PyBaseObject_Type\n")
     }
 
     /* À FAIRE(type Python) : calcul d'empreinte
@@ -583,6 +589,23 @@ génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []Mé
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
+génère_initialisation_type :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
+{
+    si type.code_pour_init_module_fut_généré {
+        retourne
+    }
+
+    si type.base {
+        génère_initialisation_type(enchaineuse, type.base)
+    }
+
+    enchaineuse.ajoute_au_tampon("    saufsi initialise_", type.nom_globale_type, "() {\n")
+    enchaineuse.ajoute_au_tampon("        Py_DECREF(module_pyobject)\n")
+    enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
+    enchaineuse.ajoute_au_tampon("    }\n")
+    type.code_pour_init_module_fut_généré = vrai
+}
+
 génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
 {
     génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module")
@@ -656,11 +679,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
         si it.est_basique {
             continue
         }
-
-        enchaineuse.ajoute_au_tampon("    saufsi initialise_", it.nom_globale_type, "() {\n")
-        enchaineuse.ajoute_au_tampon("        Py_DECREF(module_pyobject)\n")
-        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        génère_initialisation_type(enchaineuse, it)
     }
 
     /* Après que tous les types furent initialisés, ajoutons-les au module.

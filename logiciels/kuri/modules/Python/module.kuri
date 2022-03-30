@@ -294,6 +294,12 @@ TypePython :: struct {
 
     /* Le nom de la globale qui défini les informations sur le PyTypeObject correspondant. */
     nom_globale_type: chaine
+
+    /* Type de base du type. */
+    base: *TypePython
+
+    /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
+    code_pour_init_module_fut_généré: bool
 }
 
 ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
