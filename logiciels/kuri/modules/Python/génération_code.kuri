@@ -315,6 +315,11 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     enchaineuse.ajoute_au_tampon("}\n")
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_discrimination, " :: fonc (self: *PyObject) -> bool\n")
     enchaineuse.ajoute_au_tampon("{\n")
+    si type.drapeaux.TYPE_EST_ÉNUM {
+        enchaineuse.ajoute_au_tampon("    si PyUnicode_Check(self) {\n")
+        enchaineuse.ajoute_au_tampon("        retourne vrai;\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
     enchaineuse.ajoute_au_tampon("    retourne PyObject_TypeCheck(self, *", type.nom_globale_type, ")\n")
     enchaineuse.ajoute_au_tampon("}\n")
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom, ") -> *", type.nom, "PourPython\n")
