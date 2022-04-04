@@ -332,7 +332,12 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     }
 
     si type.drapeaux.REQUIERS_RAFINAGE {
-        enchaineuse.ajoute_au_tampon("    résultat.ob_type = rafine_type_", type.nom, "(valeur)\n")
+        enchaineuse.ajoute_au_tampon("    ob_type := rafine_type_", type.nom, "(valeur)\n")
+        enchaineuse.ajoute_au_tampon("    résultat := ob_type.tp_alloc(ob_type, 1) comme *", type.nom, "PourPython\n")
+        enchaineuse.ajoute_au_tampon("    résultat.ob_type = ob_type\n")
+    }
+    sinon {
+        enchaineuse.ajoute_au_tampon("    résultat := ", type.nom_globale_type, ".tp_alloc(*", type.nom_globale_type, ", 1) comme *", type.nom, "PourPython\n")
     }
 
     enchaineuse.ajoute_au_tampon("    résultat.notre_instance = valeur\n")
