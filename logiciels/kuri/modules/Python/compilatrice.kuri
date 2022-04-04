@@ -315,6 +315,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             si info_struct.structs_employées {
                 type_base := système.convertis_vers_type_python(info_struct.structs_employées[0])
                 type_python.base = type_base
+                si type_base.drapeaux.TOUJOURS_COMME_POINTEUR {
+                    type_python.drapeaux.TOUJOURS_COMME_POINTEUR = vrai
+                }
             }
 
             pour info_struct.membres {
