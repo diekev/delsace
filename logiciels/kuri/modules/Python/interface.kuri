@@ -553,6 +553,36 @@ PyType_ChaineNom :: fonc (obj: *PyObject) -> chaine
     retourne convertis_chaine_c(obj.ob_type.tp_name)
 }
 
+PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
+{
+    saufsi PyUnicode_Check(object) {
+        retourne faux
+    }
+
+    chn := PyUnicode_AsChaine(object)
+
+    pour info.noms {
+        si it == chn {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
+{
+    chn := PyUnicode_AsChaine(object)
+
+    pour info.noms {
+        si it == chn {
+            retourne info.valeurs[index_it]
+        }
+    }
+
+    retourne 0
+}
+
 // ---------------------------------------------------
 // Exceptions
 
