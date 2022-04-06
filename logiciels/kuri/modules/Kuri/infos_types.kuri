@@ -60,6 +60,17 @@ InfoTypeMembreStructure :: struct #interface {
   annotations: []*AnnotationCode
 }
 
+possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne vrai
+		}
+	}
+
+	retourne faux
+}
+
 InfoTypeStructure :: struct #interface {
 	empl base : InfoType
 
