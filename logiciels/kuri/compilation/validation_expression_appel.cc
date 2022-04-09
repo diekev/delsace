@@ -798,38 +798,36 @@ static ResultatAppariement apparie_appel_fonction(
             return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
         }
 
-        // prend les paramètres polymorphiques
-        auto bloc_constantes = decl->bloc_constantes;
+        auto monomorpheuse = Monomorpheuse(espace);
+        decl->bloc_constantes->membres.avec_verrou_lecture(
+            [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+                POUR (membres) {
+                    monomorpheuse.ajoute_item(it->ident);
+                }
+            });
 
-        if (bloc_constantes->membres->taille() != args.taille()) {
-            return ErreurAppariement::mecomptage_arguments(
-                expr, bloc_constantes->membres->taille(), args.taille());
+        POUR (decl->params) {
+            if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+                monomorpheuse.ajoute_item(it->ident);
+            }
         }
 
-        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
-        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+        // À FAIRE : vérifie que toutes les constantes ont été renseignées.
+        // À FAIRE : gère proprement la validation du type de la constante
 
+        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
         POUR (args) {
             if (noms_rencontres.possede(it.ident)) {
                 return ErreurAppariement::renommage_argument(it.expr, it.ident);
             }
-
             noms_rencontres.insere(it.ident);
 
-            auto param = NoeudDeclarationVariable::nul();
-
-            for (auto &p : (*bloc_constantes->membres.verrou_lecture())) {
-                if (p->ident == it.ident) {
-                    param = p->comme_declaration_variable();
-                    break;
-                }
-            }
-
-            if (param == nullptr) {
+            auto item = monomorpheuse.item_pour_ident(it.ident);
+            if (item == nullptr) {
                 return ErreurAppariement::menommage_arguments(it.expr, it.ident);
             }
 
-            // À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
             auto type = it.expr->type->comme_type_de_donnees();
             items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
         }
