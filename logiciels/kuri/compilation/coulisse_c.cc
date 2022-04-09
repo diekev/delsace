@@ -1785,7 +1785,11 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << chaine_pour_niveau_optimisation(ops.niveau_optimisation);
     }
     else if (ops.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g -Og -fsanitize=address ";
+        enchaineuse << " -g -Og ";
+
+        if (ops.utilise_asan) {
+            enchaineuse << " -fsanitize=address ";
+        }
     }
     else if (ops.compilation_pour == CompilationPour::PROFILAGE) {
         enchaineuse << " -pg ";
@@ -1884,7 +1888,11 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -pg ";
     }
     else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g  -fsanitize=address ";
+        enchaineuse << " -g ";
+
+        if (espace.options.utilise_asan) {
+            enchaineuse << " -fsanitize=address ";
+        }
     }
 
     enchaineuse << " /tmp/compilation_kuri.o ";

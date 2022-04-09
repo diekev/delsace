@@ -55,4 +55,5 @@ struct OptionsDeCompilation {
     bool émets_métriques = vrai
     bool continue_si_erreur = faux
     bool erreur_si_avertissement = faux
+    bool utilise_asan = faux
 }
