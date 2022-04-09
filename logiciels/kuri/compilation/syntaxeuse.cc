@@ -1278,6 +1278,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         return noeud;
                     }
 
+                    if (directive == ID::cuisine) {
+                        recule();
+                        break;
+                    }
+
                     m_position = position - 1;
                     consomme();
                     break;

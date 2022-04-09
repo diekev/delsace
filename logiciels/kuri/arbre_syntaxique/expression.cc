@@ -492,6 +492,18 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             res.valeur = b->comme_construction_tableau();
             return res;
         }
+        case GenreNoeud::DIRECTIVE_CUISINE:
+        {
+            auto cuisine = b->comme_cuisine();
+            auto expr = cuisine->expression;
+            auto appel = expr->comme_appel();
+            auto fonction = appel->expression->comme_entete_fonction();
+
+            auto res = ResultatExpression();
+            res.est_errone = false;
+            res.valeur = fonction;
+            return res;
+        }
     }
 }
 
