@@ -47,6 +47,24 @@ struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
 struct Statistiques;
 
+struct GestionnaireChainesAjoutees {
+  private:
+    kuri::tableau<kuri::chaine, int> m_chaines;
+
+    /* Ceci est utilisé pour trouver la position de la chaine dans le fichier final.
+     * Nous commençons à 2, car le fichier est préfixé par la date et l'heure, et
+     * d'une ligne vide.
+     */
+    long nombre_total_de_lignes = 2;
+
+  public:
+    long ajoute(kuri::chaine chaine);
+
+    int nombre_de_chaines() const;
+
+    void imprime_dans(std::ostream &os);
+};
+
 struct Compilatrice {
     dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
@@ -70,7 +88,7 @@ struct Compilatrice {
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-    tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
+    dls::outils::Synchrone<GestionnaireChainesAjoutees> chaines_ajoutees_a_la_compilation{};
 
     tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;

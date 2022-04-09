@@ -192,8 +192,11 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     auto const numero_ligne = site.index_ligne + 1;
     auto const index_colonne = site.index_colonne;
     auto const texte_ligne = fichier->tampon()[index_ligne];
+    auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTEE ?
+                      kuri::chaine(".chaine_ajoutées") :
+                      fichier->chemin();
 
-    enchaineuse << fichier->chemin() << ':' << numero_ligne;
+    enchaineuse << chemin << ':' << numero_ligne + fichier->decalage_fichier;
 
     if (index_colonne != -1) {
         enchaineuse << ':' << index_colonne;

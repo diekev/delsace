@@ -42,8 +42,6 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "date.hh"
-
 #include "biblinternes/chrono/chronometrage.hh"
 
 #define AVEC_THREADS
@@ -217,18 +215,9 @@ int main(int argc, char *argv[])
         lance_tacheronne(&tacheronne_mp);
 #endif
 
-        if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
+        if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
             auto fichier_chaines = std::ofstream(".chaines_ajoutées");
-
-            auto d = hui_systeme();
-
-            fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
-                            << " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
-
-            POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
-                fichier_chaines << it;
-                fichier_chaines << '\n';
-            }
+            compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
         }
 
         /* restore le dossier d'origine */

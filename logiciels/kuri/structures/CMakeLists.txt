@@ -33,6 +33,7 @@ set(BIBLIOTHEQUES
 set(SOURCES
     chaine.cc
 	chaine_statique.cc
+  date.cc
 	enchaineuse.cc
     ensemble.cc
     ensemblon.cc
@@ -46,6 +47,7 @@ set(SOURCES
 
     chaine.hh
 	chaine_statique.hh
+  date.hh
 	enchaineuse.hh
     ensemble.hh
     ensemblon.hh
