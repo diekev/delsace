@@ -407,7 +407,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     }
 
     si type.base {
-        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *Type", type.base.nom, "PourPython\n")
+        enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *", type.base.nom_globale_type, "\n")
     }
     sinon {
         enchaineuse.ajoute_au_tampon("    ", nom_globale_type, ".tp_base = *PyBaseObject_Type\n")
