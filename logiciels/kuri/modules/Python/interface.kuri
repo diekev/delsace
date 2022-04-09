@@ -84,8 +84,8 @@ PyTypeObject :: struct #externe {
     tp_weaklistoffset: Py_ssize_t
 
     /* Iterators */
-    tp_iter: *rien // À FAIRE: pointeur de fonction getiterfunc
-    tp_iternext: *rien // À FAIRE: pointeur de fonction iternextfunc
+    tp_iter: fonc(*PyObject)(*PyObject)
+    tp_iternext: fonc(*PyObject)(*PyObject)
 
     /* Attribute descriptor and subclassing stuff */
     tp_methods: *PyMethodDef

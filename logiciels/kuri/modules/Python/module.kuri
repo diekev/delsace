@@ -261,6 +261,8 @@ MembreType :: struct {
 DrapeauxType :: énum_drapeau {
     TYPE_EST_UNION
     TYPE_EST_ÉNUM
+    TYPE_EST_TABLEAU
+    TYPE_EST_ITÉRATEUR
     /* Indique qu'un pointeur est stocké dans le membre "notre_instance" du type Python. */
     TOUJOURS_COMME_POINTEUR
     /* Pour les types composés, le programme devra définir une fonction de rafinage
@@ -271,6 +273,8 @@ DrapeauxType :: énum_drapeau {
 TypePython :: struct {
     nom: chaine
     type_kuri: *InfoType
+
+    nom_type_kuri: chaine
 
     /* Si le type est un type de base, qui ne doit avoir un PyTypeObject associé. */
     est_basique: bool
@@ -297,6 +301,13 @@ TypePython :: struct {
 
     /* Type de base du type. */
     base: *TypePython
+
+    /* Type des éléments pour les tableaux. */
+    type_élément: *TypePython
+
+    /* Type de l'objet itéré pour les itérateurs. */
+    type_itéré: *TypePython
+    type_itérateur: *TypePython
 
     /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
     code_pour_init_module_fut_généré: bool

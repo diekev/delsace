@@ -203,6 +203,7 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     type_python := loge(TypePython)
     type_python.nom = nom
     type_python.type_kuri = info
+    type_python.nom_globale_type = enchaine("Type", nom, "PourPython")
     tableau_ajoute(*système.types, type_python)
     retourne type_python
 }
@@ -359,6 +360,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         POINTEUR {
             info_pointeur := info comme *InfoTypePointeur
             type_python = convertis_vers_type_python(système, info_pointeur.type_pointé)
+
+            /* Pour nom_type_kuri, nous ne voulons pas avoir le pointeur. */
+            info = info_pointeur.type_pointé
         }
         FONCTION {
             compilatrice_rapporte_erreur("Les types fonctions ne sont pas convertibles vers Python pour le moment")
@@ -367,7 +371,30 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             compilatrice_rapporte_erreur("Les types opaques ne sont pas convertibles vers Python pour le moment")
         }
         TABLEAU {
-            compilatrice_rapporte_erreur("Les types tableaux ne sont pas convertibles vers Python pour le moment")
+            info_tableau := info comme *InfoTypeTableau
+
+            si info_tableau.est_tableau_fixe {
+                compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+                retourne nul
+            }
+
+            type_pointé := info_tableau.type_pointé
+
+            type_élément := convertis_vers_type_python(système, type_pointé)
+
+            nom := enchaine("Tableau_", type_élément.nom)
+            type_python = système.crée_type_python_pour(info, nom)
+            type_python.drapeaux.TYPE_EST_TABLEAU = vrai
+            type_python.type_élément = type_élément
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom)
+
+            /* Crée un type itérateur pour ce type. */
+            type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom))
+            type_itérateur.drapeaux.TYPE_EST_ITÉRATEUR = vrai
+            type_itérateur.type_itéré = type_python
+            init_fonctions_type_structure(type_itérateur.fonctions, type_itérateur.nom)
+
+            type_python.type_itérateur = type_itérateur
         }
         RIEN {
             /* Le type rien n'est pas convertis en type Python, nous le détectons lors de la génération de code
@@ -385,6 +412,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         EINI {
             compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers Python pour le moment")
         }
+    }
+
+    si type_python {
+        type_python.nom_type_kuri = chaine_pour_type(info)
     }
 
     retourne type_python
