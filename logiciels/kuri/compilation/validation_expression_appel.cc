@@ -427,6 +427,23 @@ struct Monomorpheuse {
     }
 };
 
+static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
+                                           NoeudDeclarationEnteteFonction *decl)
+{
+    decl->bloc_constantes->membres.avec_verrou_lecture(
+        [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+            POUR (membres) {
+                monomorpheuse.ajoute_item(it->ident);
+            }
+        });
+
+    POUR (decl->params) {
+        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            monomorpheuse.ajoute_item(it->ident);
+        }
+    }
+}
+
 struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
@@ -799,18 +816,7 @@ static ResultatAppariement apparie_appel_fonction(
         }
 
         auto monomorpheuse = Monomorpheuse(espace);
-        decl->bloc_constantes->membres.avec_verrou_lecture(
-            [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    monomorpheuse.ajoute_item(it->ident);
-                }
-            });
-
-        POUR (decl->params) {
-            if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        }
+        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
 
         // À FAIRE : vérifie que toutes les constantes ont été renseignées.
         // À FAIRE : gère proprement la validation du type de la constante
@@ -895,18 +901,7 @@ static ResultatAppariement apparie_appel_fonction(
     auto monomorpheuse = Monomorpheuse(espace);
 
     if (decl->est_polymorphe) {
-        decl->bloc_constantes->membres.avec_verrou_lecture(
-            [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    monomorpheuse.ajoute_item(it->ident);
-                }
-            });
-
-        POUR (decl->params) {
-            if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        }
+        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
 
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
