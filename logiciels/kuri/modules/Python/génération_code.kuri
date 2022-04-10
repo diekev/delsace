@@ -629,7 +629,7 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
         args_inutilisés = " @inutilisée"
     }
 
-    enchaineuse.imprime_dans_enchaineuse("enveloppe_python_% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject\n", méthode.nom, self_inutilisé, args_inutilisés)
+    enchaineuse.imprime_dans_enchaineuse("% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject\n", méthode.nom_enveloppe, self_inutilisé, args_inutilisés)
     enchaineuse.ajoute_au_tampon("{\n")
 
     génère_parsage_args_tuple(enchaineuse, méthode, "nul")
@@ -681,7 +681,7 @@ génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []Mé
 
     pour méthodes {
         enchaineuse.imprime_dans_enchaineuse("    %[%].ml_name = crée_chaine_c(\"%\")\n", nom_tableau, index_it, it.nom)
-        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_meth = enveloppe_python_%\n", nom_tableau, index_it, it.nom)
+        enchaineuse.imprime_dans_enchaineuse("    %[%].ml_meth = %\n", nom_tableau, index_it, it.nom_enveloppe)
 
         drapeaux_méthode := ""
         si it.paramètres_entrée {

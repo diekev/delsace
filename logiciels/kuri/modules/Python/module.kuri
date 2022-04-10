@@ -50,6 +50,8 @@ ParamètreMéthodePython :: struct {
 
 MéthodePython :: struct {
     nom: chaine
+    /* Nom unique pour éviter les problèmes de redéfinition de fonction. */
+    nom_enveloppe: chaine
     paramètres_entrée: []ParamètreMéthodePython
     paramètres_sortie: []ParamètreMéthodePython
 }
@@ -78,6 +80,7 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
 {
     résultat: MéthodePython
     résultat.nom = entête.nom
+    résultat.nom_enveloppe = imprime_chaine("enveloppe_python_%%", entête.nom, entête)
 
     pour entête.params {
         si index_it == 0 && ignore_premier_paramètre {
