@@ -296,6 +296,7 @@ TypePython :: struct {
     init: MéthodePython
     repr: MéthodePython
     str: MéthodePython
+    hash: MéthodePython
 
     /* Données pour la génération de code, mises en place lors de celle-ci. */
 
@@ -340,4 +341,9 @@ ajoute_méthode_repr :: fonc (type: *TypePython, système_type: &SystèmeType, f
 ajoute_méthode_str :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.str = méthode_python_depuis_entête(fonction, système_type)
+}
+
+ajoute_méthode_hash :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.hash = méthode_python_depuis_entête(fonction, système_type)
 }

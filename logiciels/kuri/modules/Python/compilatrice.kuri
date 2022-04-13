@@ -10,12 +10,15 @@ CodeErreurCompilationPython :: énum {
     FONCTION_NEW_REQUIERS_STRUCTURE
     FONCTION_REPR_REQUIERS_STRUCTURE
     FONCTION_STR_REQUIERS_STRUCTURE
+    FONCTION_HASH_REQUIERS_STRUCTURE
     TYPE_ENTRÉE_REPR
     TYPE_ENTRÉE_STR
+    TYPE_ENTRÉE_HASH
     TYPE_RETOUR_INIT
     TYPE_RETOUR_NEW
     TYPE_RETOUR_REPR
     TYPE_RETOUR_STR
+    TYPE_RETOUR_HASH
     TYPE_INCONNU_DE_PYTHON
     TROP_D_ANNOTATIONS
 }
@@ -41,6 +44,9 @@ chaine_méthode_python_pour_code_erreur :: fonc (code_erreur: CodeErreurCompilat
         TYPE_RETOUR_REPR {
             retourne "__repr__"
         }
+        TYPE_RETOUR_HASH {
+            retourne "hash"
+        }
         sinon {
             retourne ""
         }
@@ -58,6 +64,7 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
     initialise_enchaineuse(*enchaineuse)
 
     discr code_erreur {
+        FONCTION_HASH_REQUIERS_STRUCTURE,
         FONCTION_NEW_REQUIERS_STRUCTURE,
         FONCTION_INIT_REQUIERS_STRUCTURE,
         FONCTION_REPR_REQUIERS_STRUCTURE,
@@ -76,6 +83,7 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
             }
         }
         TYPE_ENTRÉE_STR,
+        TYPE_ENTRÉE_HASH,
         TYPE_ENTRÉE_REPR {
             nom_méthode := chaine_méthode_python_pour_code_erreur(code_erreur)
             imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python ne doit prendre qu'un seul paramètre.\n", nom_méthode)
@@ -89,6 +97,10 @@ rapporte_erreur :: fonc (code_erreur: CodeErreurCompilationPython, ctx: Contexte
         TYPE_RETOUR_REPR {
             nom_méthode := chaine_méthode_python_pour_code_erreur(code_erreur)
             imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python doit retourner une valeur unique de type « chaine ».\n", nom_méthode)
+        }
+        TYPE_RETOUR_HASH {
+            nom_méthode := chaine_méthode_python_pour_code_erreur(code_erreur)
+            imprime_dans_enchaineuse(*enchaineuse, "La fonction « % » pour un type accessible via Python doit retourner une valeur unique de type « z64 ».\n", nom_méthode)
         }
         TYPE_INCONNU_DE_PYTHON {
             ajoute_au_tampon(*enchaineuse, "Un type requis pour la compilation du module Python n'est pas connu : ")
@@ -126,6 +138,7 @@ AnnotationPython :: énum {
     POUR_NEW
     /* La fonction est considérer comme une méthode du type du premier argument. */
     POUR_MÉTHODE
+    POUR_HASH
 }
 
 /* Retourne la valeur de l'énumération correspondant à une chaine de
@@ -150,6 +163,10 @@ annotation_python_pour_chaine :: fonc (chn: chaine) -> AnnotationPython
 
     si chn == "méthode" {
         retourne AnnotationPython.POUR_MÉTHODE
+    }
+
+    si chn == "hash" {
+        retourne AnnotationPython.POUR_HASH
     }
 
     si chn == "" {
@@ -497,6 +514,9 @@ ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fo
         POUR_STR {
             ajoute_fonction_type(compilatrice, CodeErreurCompilationPython.FONCTION_STR_REQUIERS_STRUCTURE, fonction)
         }
+        POUR_HASH {
+            ajoute_fonction_type(compilatrice, CodeErreurCompilationPython.FONCTION_HASH_REQUIERS_STRUCTURE, fonction)
+        }
         POUR_MÉTHODE {
             ajoute_fonction_pour_méthode(compilatrice, fonction)
         }
@@ -577,6 +597,19 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         }
 
         type_python.ajoute_méthode_str(compilatrice.système_type, fonction)
+    }
+    sinon si code_erreur == CodeErreurCompilationPython.FONCTION_HASH_REQUIERS_STRUCTURE {
+        saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
+            rapporte_erreur(CodeErreurCompilationPython.TYPE_ENTRÉE_HASH, ContexteErreurPython(fonction))
+            retourne
+        }
+
+        saufsi fonction_ne_retourne_que(fonction, info_de(z64)) {
+            rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_HASH, ContexteErreurPython(fonction))
+            retourne
+        }
+
+        type_python.ajoute_méthode_hash(compilatrice.système_type, fonction)
     }
 
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
