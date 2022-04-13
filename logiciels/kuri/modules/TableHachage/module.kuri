@@ -1,3 +1,5 @@
+importe Fondation
+
 //###############################################################################
 // Implémentation d'une table de hachage chaine -> chaine
 // Voir aussi, comme inspiration :
@@ -48,17 +50,6 @@ crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
     n.valeur = valeur
     n.suivant = nul
     retourne n
-}
-
-calcule_empreinte :: fonc(chn : chaine) -> n64
-{
-    empreinte : n64 = 5381
-
-    pour c dans chn {
-        empreinte = ((empreinte << 5) + empreinte) + c comme n64
-    }
-
-	retourne empreinte
 }
 
 insère :: fonc(table : *TableHachage, clé : chaine, valeur : chaine) -> rien
