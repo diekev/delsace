@@ -127,6 +127,8 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
         {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
     tableau.ajoute_ligne(
         {"Nombre métaprogrammes", formatte_nombre(stats.nombre_metaprogrammes_executes), ""});
+    tableau.ajoute_ligne(
+        {"Instructions exécutées", formatte_nombre(stats.instructions_executees), ""});
 
     tableau.ajoute_ligne({"Temps Scène",
                           formatte_nombre(temps_scene * 1000.0),

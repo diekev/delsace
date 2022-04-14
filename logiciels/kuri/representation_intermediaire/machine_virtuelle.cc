@@ -849,11 +849,13 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     m_metaprogramme = nullptr;
 }
 
+#define INSTRUCTIONS_PAR_BATCH 1000
+
 MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions()
 {
     auto frame = &frames[profondeur_appel - 1];
 
-    for (auto i = 0; i < 1000; ++i) {
+    for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
 #ifdef DEBOGUE_INTERPRETEUSE
         auto &sortie = std::cerr;
         imprime_tab(sortie, profondeur_appel);
@@ -1575,6 +1577,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
         installe_metaprogramme(it);
 
         auto res = execute_instructions();
+        it->donnees_execution->instructions_executees += INSTRUCTIONS_PAR_BATCH;
 
         if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
             // RÀF
@@ -1622,6 +1625,8 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
         return;
     }
 
+    instructions_executees += donnees->instructions_executees;
+
     // À FAIRE : récupère la mémoire
     memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
     donnees = nullptr;
@@ -1632,6 +1637,7 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.memoire_mv += donnees_execution.memoire_utilisee();
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
+    stats.instructions_executees += instructions_executees;
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
