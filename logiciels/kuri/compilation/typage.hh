@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
@@ -527,12 +528,14 @@ struct TypeTuple : public TypeCompose {
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
     inline TypeRafine *Type::comme_##nom()                                                        \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<TypeRafine *>(this);                                                   \
     }                                                                                             \
     inline const TypeRafine *Type::comme_##nom() const                                            \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<const TypeRafine *>(this);                                             \
     }
 
