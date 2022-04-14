@@ -3573,6 +3573,12 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (it->possede_drapeau(EMPLOYE)) {
+            if (!it->type->est_structure()) {
+                espace->rapporte_erreur(it,
+                                        "Ne peut pas employer un type n'étant pas une structure");
+                return CodeRetourValidation::Erreur;
+            }
+
             type_struct->types_employes.ajoute(it->type->comme_structure());
             continue;
         }
