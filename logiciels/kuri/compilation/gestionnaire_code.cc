@@ -1013,6 +1013,10 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sy
             }
         }
 
+        if (it.bloc == nullptr) {
+            return false;
+        }
+
         for (auto decl : (*it.bloc->membres.verrou_lecture())) {
             if (decl->est_entete_fonction() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 return false;
