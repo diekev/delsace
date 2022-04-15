@@ -49,7 +49,7 @@ struct Statistiques;
 
 struct GestionnaireChainesAjoutees {
   private:
-    kuri::tableau<kuri::chaine, int> m_chaines;
+    kuri::tableau<kuri::chaine, int> m_chaines{};
 
     /* Ceci est utilisé pour trouver la position de la chaine dans le fichier final.
      * Nous commençons à 2, car le fichier est préfixé par la date et l'heure, et
