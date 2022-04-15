@@ -113,17 +113,43 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
 {
-    index := 0
+	index_caractère := 0
+    index_argument := 0
+	pointeur := format.pointeur
 
-	pour c dans format {
-		si c == '%' && index < args.taille {
-			arg := args[index]
+	début_mot_courant := 0
+	taille_mot_courant := 0
+
+	tantque index_caractère < format.taille {
+		c := pointeur[index_caractère]
+
+		si c == '%' && index_argument < args.taille  {
+			si taille_mot_courant != 0 {
+				mot : chaine = ---
+				mot.pointeur = *pointeur[début_mot_courant]
+				mot.taille = taille_mot_courant
+				enchaineuse.ajoute_au_tampon(mot)
+			}
+
+			taille_mot_courant = 0
+			début_mot_courant = index_caractère + 1
+
+			arg := args[index_argument]
 			imprime_valeur(enchaineuse, arg, faux)
-			index += 1
+			index_argument += 1
 		}
 		sinon {
-			ajoute_au_tampon(enchaineuse, c)
+			taille_mot_courant += 1
 		}
+
+		index_caractère += 1
+	}
+
+	si taille_mot_courant != 0 {
+		mot : chaine = ---
+		mot.pointeur = *pointeur[début_mot_courant]
+		mot.taille = taille_mot_courant
+		enchaineuse.ajoute_au_tampon(mot)
 	}
 }
 
