@@ -11,7 +11,7 @@ importe SysFichier
 TAILLE_TAMPON_ENCHAINEUSE :: 16384
 
 TamponEnchaineuse :: struct {
-    données : [TAILLE_TAMPON_ENCHAINEUSE]z8
+    données : [TAILLE_TAMPON_ENCHAINEUSE]z8 = ---
     occupé  : z32
     suivant : *TamponEnchaineuse
 }
