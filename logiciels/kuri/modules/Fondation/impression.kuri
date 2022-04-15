@@ -383,14 +383,20 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
 	taille := index_fin - index_début
 
-	pour i dans 0 ... taille - 1 {
-		si format.séparation != 0 {
+	si format.séparation != 0 {
+		pour i dans 0 ... taille - 1 {
 			si i != 0 && ((taille - i) % format.séparation) == 0 {
 				ajoute_au_tampon(enchaineuse, ' ')
 			}
-		}
 
-		ajoute_au_tampon(enchaineuse, résultat[index_début + i + 1])
+			ajoute_au_tampon(enchaineuse, résultat[index_début + i + 1])
+		}
+	}
+	sinon {
+		mot : chaine = ---
+		mot.pointeur = *résultat[index_début + 1]
+		mot.taille = taille
+		ajoute_au_tampon(enchaineuse, mot)
 	}
 }
 
