@@ -337,7 +337,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
 	chiffres_base_64 :: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
 
-	résultat : [64]z8
+	résultat : [64]z8 = ---
 
 	index_fin := 63
 	index_début := index_fin
