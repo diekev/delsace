@@ -55,6 +55,33 @@ struct DonneesExecution {
     long instructions_executees = 0;
 };
 
+struct EchantillonProfilage {
+    FrameAppel frames[TAILLE_FRAMES_APPEL];
+    int profondeur_frame_appel = 0;
+};
+
+struct InformationProfilage {
+    MetaProgramme *metaprogramme = nullptr;
+    kuri::tableau<EchantillonProfilage> echantillons{};
+};
+
+struct PaireEnchantillonFonction {
+    AtomeFonction *fonction = nullptr;
+    int nombre_echantillons = 0;
+};
+
+struct Profileuse {
+    kuri::tableau<InformationProfilage> informations_pour_metaprogrammes{};
+
+    InformationProfilage &informations_pour(MetaProgramme *metaprogramme);
+
+    void ajoute_echantillon(MetaProgramme *metaprogramme);
+
+    void cree_rapports();
+
+    void cree_rapport(InformationProfilage const &informations);
+};
+
 struct MachineVirtuelle {
   private:
     enum class ResultatInterpretation : int {
@@ -94,6 +121,8 @@ struct MachineVirtuelle {
     long instructions_executees = 0;
 
     MetaProgramme *m_metaprogramme = nullptr;
+
+    Profileuse profileuse{};
 
   public:
     bool stop = false;

@@ -24,6 +24,8 @@
 
 #include "machine_virtuelle.hh"
 
+#include <fstream>
+
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -36,8 +38,12 @@
 
 #include "parsage/identifiant.hh"
 
+#include "structures/ensemble.hh"
+#include "structures/table_hachage.hh"
+
 #include "instructions.hh"
 
+#undef PROFILE_METAPROGRAMME
 #undef DEBOGUE_INTERPRETEUSE
 #undef CHRONOMETRE_INTERPRETATION
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
@@ -847,6 +853,10 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     intervalle_adresses_pile_execution = {};
 
     m_metaprogramme = nullptr;
+
+#ifdef PROFILE_METAPROGRAMME
+    profileuse.ajoute_echantillon(metaprogramme);
+#endif
 }
 
 #define INSTRUCTIONS_PAR_BATCH 1000
@@ -1638,6 +1648,10 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
     stats.instructions_executees += instructions_executees;
+
+#ifdef PROFILE_METAPROGRAMME
+    profileuse.cree_rapports();
+#endif
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
@@ -1664,4 +1678,127 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
     os << "-- adresse où   : " << patch.decalage_ou << '\n';
 
     return os;
+}
+
+InformationProfilage &Profileuse::informations_pour(MetaProgramme *metaprogramme)
+{
+    POUR (informations_pour_metaprogrammes) {
+        if (it.metaprogramme == metaprogramme) {
+            return it;
+        }
+    }
+
+    auto informations = InformationProfilage();
+    informations.metaprogramme = metaprogramme;
+    informations_pour_metaprogrammes.ajoute(informations);
+    return informations_pour_metaprogrammes.derniere();
+}
+
+void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme)
+{
+    auto &informations = informations_pour(metaprogramme);
+
+    auto echantillon = EchantillonProfilage();
+    echantillon.profondeur_frame_appel = metaprogramme->donnees_execution->profondeur_appel;
+
+    for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
+        echantillon.frames[i] = metaprogramme->donnees_execution->frames[i];
+    }
+
+    informations.echantillons.ajoute(echantillon);
+}
+
+enum {
+    FORMAT_RAPPORT_ECHANTILLONS_TOTAL_PLUS_FONCTION,
+    FORMAT_RAPPORT_BRENDAN_GREGG,
+};
+
+void Profileuse::cree_rapports()
+{
+    POUR (informations_pour_metaprogrammes) {
+        cree_rapport(it);
+    }
+}
+
+static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
+{
+    if (fonction->decl) {
+        auto decl = fonction->decl;
+        if (decl->est_initialisation_type) {
+            auto type_param = decl->params[0]->type->comme_pointeur()->type_pointe;
+            os << "init_de(" << chaine_type(type_param) << ')';
+        }
+        else if (decl->ident) {
+            os << decl->ident->nom;
+        }
+        else {
+            os << fonction->nom;
+        }
+    }
+    else {
+        os << fonction->nom;
+    }
+}
+
+static void cree_rapport_format_echantillons_total_plus_fonction(
+    const InformationProfilage &informations)
+{
+    std::cerr << "----------------------------------------------------\n";
+
+    auto table = kuri::table_hachage<AtomeFonction *, int>();
+    auto fonctions = kuri::ensemble<AtomeFonction *>();
+
+    POUR (informations.echantillons) {
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            auto valeur = table.valeur_ou(frame.fonction, 0);
+            table.insere(frame.fonction, valeur + 1);
+
+            fonctions.insere(frame.fonction);
+        }
+    }
+
+    auto fonctions_et_echantillons = kuri::tableau<PaireEnchantillonFonction>();
+
+    fonctions.pour_chaque_element([&](AtomeFonction *fonction) {
+        auto nombre_echantillons = table.valeur_ou(fonction, 0);
+        auto paire = PaireEnchantillonFonction{fonction, nombre_echantillons};
+        fonctions_et_echantillons.ajoute(paire);
+    });
+
+    std::sort(fonctions_et_echantillons.begin(),
+              fonctions_et_echantillons.end(),
+              [](auto &a, auto &b) { return a.nombre_echantillons > b.nombre_echantillons; });
+
+    POUR (fonctions_et_echantillons) {
+        std::cerr << it.nombre_echantillons << " : ";
+        imprime_nom_fonction(it.fonction, std::cerr);
+        std::cerr << '\n';
+    }
+}
+
+static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations)
+{
+    auto nom_fichier = "/tmp/métaprogramme" +
+                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
+
+    std::ofstream os(nom_fichier);
+
+    POUR (informations.echantillons) {
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            imprime_nom_fonction(frame.fonction, os);
+
+            if (i < it.profondeur_frame_appel - 1) {
+                os << ";";
+            }
+        }
+
+        os << " 1000\n";
+    }
+}
+
+void Profileuse::cree_rapport(const InformationProfilage &informations)
+{
+    cree_rapport_format_brendan_gregg(informations);
 }
