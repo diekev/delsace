@@ -52,7 +52,7 @@ struct DonneesExecution {
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
-    int instructions_executees = 0;
+    long instructions_executees = 0;
 };
 
 struct MachineVirtuelle {
@@ -91,7 +91,7 @@ struct MachineVirtuelle {
 
     int nombre_de_metaprogrammes_executes = 0;
     double temps_execution_metaprogammes = 0;
-    int instructions_executees = 0;
+    long instructions_executees = 0;
 
     MetaProgramme *m_metaprogramme = nullptr;
 
