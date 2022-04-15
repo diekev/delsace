@@ -84,6 +84,7 @@ struct Compilatrice {
     bool m_possede_erreur = false;
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
+    bool profile_metaprogrammes = false;
 
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;

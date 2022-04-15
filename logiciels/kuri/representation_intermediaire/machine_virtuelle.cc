@@ -43,7 +43,6 @@
 
 #include "instructions.hh"
 
-#undef PROFILE_METAPROGRAMME
 #undef DEBOGUE_INTERPRETEUSE
 #undef CHRONOMETRE_INTERPRETATION
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
@@ -854,9 +853,9 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 
     m_metaprogramme = nullptr;
 
-#ifdef PROFILE_METAPROGRAMME
-    profileuse.ajoute_echantillon(metaprogramme);
-#endif
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.ajoute_echantillon(metaprogramme);
+    }
 }
 
 #define INSTRUCTIONS_PAR_BATCH 1000
@@ -1649,9 +1648,9 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
     stats.instructions_executees += instructions_executees;
 
-#ifdef PROFILE_METAPROGRAMME
-    profileuse.cree_rapports();
-#endif
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.cree_rapports();
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)

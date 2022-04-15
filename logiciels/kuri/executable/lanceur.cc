@@ -137,6 +137,9 @@ int main(int argc, char *argv[])
                 ++i;
                 nom_fichier_utilises = argv[i];
             }
+            else if (strcmp(argv[i], "--profile_exécution") == 0) {
+                compilatrice.profile_metaprogrammes = true;
+            }
             else {
             }
         }
