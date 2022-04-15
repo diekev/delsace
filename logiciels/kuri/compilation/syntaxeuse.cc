@@ -2124,8 +2124,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
             auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
             if (noeud->est_reference_declaration()) {
-                expressions.ajoute(m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->comme_reference_declaration()));
+                auto decl_variable = m_tacheronne.assembleuse->cree_declaration_variable(
+                    noeud->comme_reference_declaration());
+                decl_variable->drapeaux |= EST_CONSTANTE;
+                expressions.ajoute(decl_variable);
             }
             else {
                 expressions.ajoute(noeud);

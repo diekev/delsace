@@ -260,6 +260,14 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 return res;
             }
 
+            if (!decl->possede_drapeau(EST_CONSTANTE)) {
+                res.est_errone = true;
+                res.noeud_erreur = b;
+                res.message_erreur = "La référence n'est pas celle d'une variable constante !";
+
+                return res;
+            }
+
             auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
             if (decl_var->valeur_expression.est_valide()) {
