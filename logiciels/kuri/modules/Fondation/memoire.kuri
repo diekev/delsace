@@ -4,6 +4,8 @@
 // tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
 // blocs de mémoires à manipuler.
 
+importe GlibC
+
 comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
 {
     si a.taille < taille {
@@ -50,9 +52,10 @@ comp_mem :: fonc(a : []octet, b : []octet, taille : z64) -> bool
 
 copie_mem_nonsur :: fonc(src : *octet, dst : *octet, taille : z64) -> rien
 {
-    pour i dans 0...taille - 1 {
-		dst[i] = src[i]
-	}
+    // pour i dans 0...taille - 1 {
+	// 	dst[i] = src[i]
+	// }
+	_ := memcpy(dst, src, taille comme n64)
 }
 
 // Copie 'taille' octets depuis la source vers la destination
