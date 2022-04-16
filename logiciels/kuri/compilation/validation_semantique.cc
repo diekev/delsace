@@ -3991,9 +3991,11 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
                 graphe->cree_noeud_globale(decl_var);
             }
-
-            auto bloc_parent = decl_var->bloc_parent;
-            bloc_parent->membres->ajoute(decl_var);
+            else {
+                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
+                auto bloc_parent = decl_var->bloc_parent;
+                bloc_parent->membres->ajoute(decl_var);
+            }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
         }
