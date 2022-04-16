@@ -58,6 +58,9 @@
 - ajout d'une fonction visite_noeud :
     -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
     -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
+- transforme les PositionCode en globales:
+    -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
+
 
 // -----------------------------------
 // Fonctionnalités diverses
