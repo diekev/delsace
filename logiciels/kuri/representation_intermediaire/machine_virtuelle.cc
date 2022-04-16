@@ -860,7 +860,8 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 
 #define INSTRUCTIONS_PAR_BATCH 1000
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions()
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
+    int &compte_executees)
 {
     auto frame = &frames[profondeur_appel - 1];
 
@@ -1240,6 +1241,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         pointeur_pile = pointeur_debut_retour;
                     }
 
+                    compte_executees = i + 1;
                     return ResultatInterpretation::TERMINE;
                 }
 
@@ -1264,6 +1266,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1277,6 +1280,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 #endif
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1286,6 +1290,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1310,6 +1315,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse = depile<void *>(site);
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1322,11 +1328,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                     if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
+                        compte_executees = i + 1;
                         return resultat;
                     }
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                        compte_executees = i + 1;
                         return ResultatInterpretation::ERREUR;
                     }
                 }
@@ -1359,11 +1367,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 if (adresse_est_nulle(adresse_de)) {
                     rapporte_erreur_execution(site, "Assignation depuis une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
                     rapporte_erreur_execution(site, "Assignation vers une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1409,16 +1419,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
                         .ajoute_message(
                             "Le type du site  est         : ", chaine_type(site->type), "\n");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
                     rapporte_erreur_execution(site, "Copie depuis une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
                     rapporte_erreur_execution(site, "Copie vers une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1437,6 +1450,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
                         .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1492,6 +1506,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 m_metaprogramme->unite->espace->rapporte_erreur(
                     dernier_site, "Erreur interne : Opération inconnue dans la MV !");
+                compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
         }
@@ -1499,6 +1514,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         dernier_site = site;
     }
 
+    compte_executees = INSTRUCTIONS_PAR_BATCH;
     return ResultatInterpretation::OK;
 }
 
@@ -1585,8 +1601,9 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
         installe_metaprogramme(it);
 
-        auto res = execute_instructions();
-        it->donnees_execution->instructions_executees += INSTRUCTIONS_PAR_BATCH;
+        int compte_executees = 0;
+        auto res = execute_instructions(compte_executees);
+        it->donnees_execution->instructions_executees += compte_executees;
 
         if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
             // RÀF

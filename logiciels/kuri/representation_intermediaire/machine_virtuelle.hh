@@ -179,7 +179,7 @@ struct MachineVirtuelle {
 
     void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
 
-    ResultatInterpretation execute_instructions();
+    ResultatInterpretation execute_instructions(int &compte_executees);
 
     void imprime_trace_appel(NoeudExpression *site);
 
