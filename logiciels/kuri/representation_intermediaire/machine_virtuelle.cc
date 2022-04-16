@@ -833,7 +833,8 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     m_metaprogramme = metaprogramme;
 }
 
-void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
+void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme,
+                                                 int compte_executees)
 {
     auto de = metaprogramme->donnees_execution;
     de->profondeur_appel = profondeur_appel;
@@ -853,8 +854,9 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 
     m_metaprogramme = nullptr;
 
+    de->instructions_executees += compte_executees;
     if (compilatrice.profile_metaprogrammes) {
-        profileuse.ajoute_echantillon(metaprogramme);
+        profileuse.ajoute_echantillon(metaprogramme, compte_executees);
     }
 }
 
@@ -1570,7 +1572,7 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
      * désinstallation ajournement les données d'exécution. */
     installe_metaprogramme(metaprogramme);
     appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
-    desinstalle_metaprogramme(metaprogramme);
+    desinstalle_metaprogramme(metaprogramme, 0);
     m_metaprogrammes.ajoute(metaprogramme);
 }
 
@@ -1603,7 +1605,6 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
         int compte_executees = 0;
         auto res = execute_instructions(compte_executees);
-        it->donnees_execution->instructions_executees += compte_executees;
 
         if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
             // RÀF
@@ -1623,7 +1624,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             i -= 1;
         }
 
-        desinstalle_metaprogramme(it);
+        desinstalle_metaprogramme(it, compte_executees);
 
         if (stop || compilatrice.possede_erreur()) {
             break;
@@ -1710,12 +1711,17 @@ InformationProfilage &Profileuse::informations_pour(MetaProgramme *metaprogramme
     return informations_pour_metaprogrammes.derniere();
 }
 
-void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme)
+void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
 {
+    if (poids == 0) {
+        return;
+    }
+
     auto &informations = informations_pour(metaprogramme);
 
     auto echantillon = EchantillonProfilage();
     echantillon.profondeur_frame_appel = metaprogramme->donnees_execution->profondeur_appel;
+    echantillon.poids = poids;
 
     for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
         echantillon.frames[i] = metaprogramme->donnees_execution->frames[i];
@@ -1801,6 +1807,10 @@ static void cree_rapport_format_brendan_gregg(const InformationProfilage &inform
     std::ofstream os(nom_fichier);
 
     POUR (informations.echantillons) {
+        if (it.profondeur_frame_appel == 0) {
+            continue;
+        }
+
         for (int i = 0; i < it.profondeur_frame_appel; i++) {
             auto &frame = it.frames[i];
             imprime_nom_fonction(frame.fonction, os);
@@ -1810,7 +1820,7 @@ static void cree_rapport_format_brendan_gregg(const InformationProfilage &inform
             }
         }
 
-        os << " 1000\n";
+        os << " " << it.poids << '\n';
     }
 }
 

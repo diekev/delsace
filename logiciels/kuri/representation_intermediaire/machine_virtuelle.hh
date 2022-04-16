@@ -58,6 +58,7 @@ struct DonneesExecution {
 struct EchantillonProfilage {
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_frame_appel = 0;
+    int poids = 0;
 };
 
 struct InformationProfilage {
@@ -75,7 +76,7 @@ struct Profileuse {
 
     InformationProfilage &informations_pour(MetaProgramme *metaprogramme);
 
-    void ajoute_echantillon(MetaProgramme *metaprogramme);
+    void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
 
     void cree_rapports();
 
@@ -177,7 +178,7 @@ struct MachineVirtuelle {
 
     void installe_metaprogramme(MetaProgramme *metaprogramme);
 
-    void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
+    void desinstalle_metaprogramme(MetaProgramme *metaprogramme, int compte_executees);
 
     ResultatInterpretation execute_instructions(int &compte_executees);
 
