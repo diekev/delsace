@@ -140,6 +140,26 @@ int main(int argc, char *argv[])
             else if (strcmp(argv[i], "--profile_exécution") == 0) {
                 compilatrice.profile_metaprogrammes = true;
             }
+            else if (strcmp(argv[i], "--format_profile") == 0) {
+                ++i;
+
+                if (i >= argc) {
+                    std::cerr << "Argument manquant après --format_profile\n";
+                    return 1;
+                }
+
+                if (strcmp(argv[i], "défaut") == 0 || strcmp(argv[i], "gregg") == 0) {
+                    compilatrice.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+                }
+                else if (strcmp(argv[i], "échantillons_totaux") == 0) {
+                    compilatrice.format_rapport_profilage =
+                        FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
+                }
+                else {
+                    std::cerr << "Type de format de profile \"" << argv[i] << "\" inconnu\n";
+                    return 1;
+                }
+            }
             else {
             }
         }

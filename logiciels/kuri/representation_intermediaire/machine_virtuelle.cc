@@ -1667,7 +1667,7 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.instructions_executees += instructions_executees;
 
     if (compilatrice.profile_metaprogrammes) {
-        profileuse.cree_rapports();
+        profileuse.cree_rapports(compilatrice.format_rapport_profilage);
     }
 }
 
@@ -1730,15 +1730,10 @@ void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
     informations.echantillons.ajoute(echantillon);
 }
 
-enum {
-    FORMAT_RAPPORT_ECHANTILLONS_TOTAL_PLUS_FONCTION,
-    FORMAT_RAPPORT_BRENDAN_GREGG,
-};
-
-void Profileuse::cree_rapports()
+void Profileuse::cree_rapports(FormatRapportProfilage format)
 {
     POUR (informations_pour_metaprogrammes) {
-        cree_rapport(it);
+        cree_rapport(it, format);
     }
 }
 
@@ -1763,10 +1758,8 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os
 }
 
 static void cree_rapport_format_echantillons_total_plus_fonction(
-    const InformationProfilage &informations)
+    const InformationProfilage &informations, std::ostream &os)
 {
-    std::cerr << "----------------------------------------------------\n";
-
     auto table = kuri::table_hachage<AtomeFonction *, int>();
     auto fonctions = kuri::ensemble<AtomeFonction *>();
 
@@ -1793,19 +1786,15 @@ static void cree_rapport_format_echantillons_total_plus_fonction(
               [](auto &a, auto &b) { return a.nombre_echantillons > b.nombre_echantillons; });
 
     POUR (fonctions_et_echantillons) {
-        std::cerr << it.nombre_echantillons << " : ";
-        imprime_nom_fonction(it.fonction, std::cerr);
-        std::cerr << '\n';
+        os << it.nombre_echantillons << " : ";
+        imprime_nom_fonction(it.fonction, os);
+        os << '\n';
     }
 }
 
-static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations)
+static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations,
+                                              std::ostream &os)
 {
-    auto nom_fichier = "/tmp/métaprogramme" +
-                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
-
-    std::ofstream os(nom_fichier);
-
     POUR (informations.echantillons) {
         if (it.profondeur_frame_appel == 0) {
             continue;
@@ -1824,7 +1813,24 @@ static void cree_rapport_format_brendan_gregg(const InformationProfilage &inform
     }
 }
 
-void Profileuse::cree_rapport(const InformationProfilage &informations)
+void Profileuse::cree_rapport(const InformationProfilage &informations,
+                              FormatRapportProfilage format)
 {
-    cree_rapport_format_brendan_gregg(informations);
+    auto nom_fichier = "/tmp/métaprogramme" +
+                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
+
+    std::ofstream os(nom_fichier);
+
+    switch (format) {
+        case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
+        {
+            cree_rapport_format_echantillons_total_plus_fonction(informations, os);
+            break;
+        }
+        case FormatRapportProfilage::BRENDAN_GREGG:
+        {
+            cree_rapport_format_brendan_gregg(informations, os);
+            break;
+        }
+    }
 }

@@ -71,6 +71,8 @@ struct PaireEnchantillonFonction {
     int nombre_echantillons = 0;
 };
 
+enum class FormatRapportProfilage : int;
+
 struct Profileuse {
     kuri::tableau<InformationProfilage> informations_pour_metaprogrammes{};
 
@@ -78,9 +80,9 @@ struct Profileuse {
 
     void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
 
-    void cree_rapports();
+    void cree_rapports(FormatRapportProfilage format);
 
-    void cree_rapport(InformationProfilage const &informations);
+    void cree_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
 };
 
 struct MachineVirtuelle {

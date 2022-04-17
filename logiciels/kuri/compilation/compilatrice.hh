@@ -47,6 +47,11 @@ struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
 struct Statistiques;
 
+enum class FormatRapportProfilage : int {
+    BRENDAN_GREGG,
+    ECHANTILLONS_TOTAL_POUR_FONCTION,
+};
+
 struct GestionnaireChainesAjoutees {
   private:
     kuri::tableau<kuri::chaine, int> m_chaines{};
@@ -85,6 +90,7 @@ struct Compilatrice {
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
     bool profile_metaprogrammes = false;
+    FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
