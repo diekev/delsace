@@ -66,9 +66,10 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
         if (bloc_courant->instructions.est_vide()) {
             // À FAIRE : précise en quoi une instruction de retour manque.
             espace
-                .rapporte_erreur(atome->decl,
-                                 "Alors que je traverse tous les chemins possibles à travers une "
-                                 "fonction, j'ai trouvé qui ne retourne pas de la fonction.")
+                .rapporte_erreur(
+                    atome->decl,
+                    "Alors que je traverse tous les chemins possibles à travers une "
+                    "fonction, j'ai trouvé un chemin qui ne retourne pas de la fonction.")
                 .ajoute_message("Erreur : instruction de retour manquante !");
             return false;
         }
