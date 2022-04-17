@@ -811,7 +811,7 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
 
 bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 {
-    /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
+    /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
     if (fonction->decl && fonction->decl->est_externe) {
         auto &donnees_externe = fonction->donnees_externe;
         auto decl = fonction->decl;
@@ -827,8 +827,8 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
         }
 
-        if (fonction->decl->est_variadique) {
-            // les fonctions variadiques doivent être préparées pour chaque appel
+        if (decl->est_variadique) {
+            /* Les fonctions variadiques doivent être préparées pour chaque appel. */
             return true;
         }
 
@@ -851,8 +851,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
         if (status != FFI_OK) {
             espace->rapporte_erreur(
-                fonction->decl,
-                "Impossible de préparer l'interface d'appel forrain pour la fonction");
+                decl, "Impossible de préparer l'interface d'appel forrain pour la fonction");
             return false;
         }
 
