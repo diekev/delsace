@@ -496,7 +496,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
     fichier_tmp.close();
 
     const auto commande =
-        "gperf -m100 /tmp/empreinte_parfaite.txt --output-file=/tmp/empreinte_parfaite.hh";
+        "gperf -m100 /tmp/empreinte_parfaite.txt --output-file=/tmp/empreinte_parfaite_tmp.hh";
 
     if (system(commande) != 0) {
         std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte "
@@ -504,7 +504,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
         return 1;
     }
 
-    std::ifstream fichier_tmp_entree("/tmp/empreinte_parfaite.hh");
+    std::ifstream fichier_tmp_entree("/tmp/empreinte_parfaite_tmp.hh");
 
     if (!fichier_tmp_entree.is_open()) {
         std::cerr << "Impossible d'ouvrir le fichier /tmp/empreinte_parfaite.hh\n";
@@ -560,9 +560,11 @@ int main(int argc, const char **argv)
     construit_lexemes(lexemes);
     construit_nom_enums(lexemes);
 
+    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+
     if (nom_fichier_sortie.filename() == "lexemes.cc") {
         {
-            std::ofstream fichier_sortie(argv[1]);
+            std::ofstream fichier_sortie(nom_fichier_tmp);
             genere_fichier_source(lexemes, fichier_sortie);
         }
         {
@@ -574,11 +576,11 @@ int main(int argc, const char **argv)
         }
     }
     else if (nom_fichier_sortie.filename() == "lexemes.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         genere_fichier_entete(lexemes, fichier_sortie);
     }
     else if (nom_fichier_sortie.filename() == "empreinte_parfaite.hh") {
-        std::ofstream fichier_sortie(nom_fichier_sortie);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         if (genere_empreinte_parfaite(lexemes, fichier_sortie) != 0) {
             return 1;
         }
@@ -587,6 +589,8 @@ int main(int argc, const char **argv)
         std::cerr << "Fichier de sortie « " << argv[1] << " » inconnu !\n";
         return 1;
     }
+
+    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
 
     return 0;
 }

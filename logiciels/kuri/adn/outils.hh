@@ -46,3 +46,5 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique param_gabarit);
 
 void imprime_erreur(SiteSource site, kuri::chaine message);
+
+void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);

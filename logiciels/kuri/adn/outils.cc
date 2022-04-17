@@ -24,6 +24,9 @@
 
 #include "outils.hh"
 
+#include <filesystem>
+#include <fstream>
+
 #include "biblinternes/langage/erreur.hh"
 
 #include "parsage/lexeuse.hh"
@@ -31,6 +34,11 @@
 
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
+
+static std::string vers_std_string(kuri::chaine_statique chn)
+{
+    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+}
 
 bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
 {
@@ -57,8 +65,7 @@ bool remplace(std::string &std_string, std::string_view motif, std::string_view 
 
 kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
 {
-    auto std_string = std::string(avec_accent.pointeur(),
-                                  static_cast<size_t>(avec_accent.taille()));
+    auto std_string = vers_std_string(avec_accent);
 
     remplace(std_string, "à", "a");
     remplace(std_string, "é", "e");
@@ -130,4 +137,38 @@ void imprime_erreur(SiteSource site, kuri::chaine message)
     enchaineuse << message;
 
     std::cerr << enchaineuse.chaine();
+}
+
+static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
+{
+    std::ifstream f1(vers_std_string(nom_source));
+    std::ifstream f2(vers_std_string(nom_dest));
+    if (f1.fail() || f2.fail()) {
+        return false;  // file problem
+    }
+
+    if (f1.tellg() != f2.tellg()) {
+        return false;  // size mismatch
+    }
+
+    // seek back to beginning and use std::equal to compare contents
+    f1.seekg(0, std::ifstream::beg);
+    f2.seekg(0, std::ifstream::beg);
+    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                      std::istreambuf_iterator<char>(),
+                      std::istreambuf_iterator<char>(f2.rdbuf()));
+}
+
+void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
+{
+    if (nom_source == nom_dest) {
+        return;
+    }
+
+    if (fichier_sont_egaux(nom_source, nom_dest)) {
+        return;
+    }
+
+    std::filesystem::remove(vers_std_string(nom_dest));
+    std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
 }
