@@ -46,9 +46,13 @@ struct Bloc {
     /* les variables utilisées dans ce bloc */
     kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
 
+    bool est_atteignable = false;
+
     void ajoute_enfant(Bloc *enfant);
 
     void remplace_enfant(Bloc *enfant, Bloc *par);
+
+    void remplace_parent(Bloc *parent, Bloc *par);
 
     void enleve_parent(Bloc *parent);
 
