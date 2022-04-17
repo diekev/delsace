@@ -885,13 +885,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto enfant3 = inst->bloc;
             auto feuilles = enfant1->comme_virgule();
 
+            auto requiers_index = feuilles->expressions.taille() == 2;
+
             for (auto &f : feuilles->expressions) {
-                /* transforme les références en déclarations, nous faisons ça ici et non lors
+                /* Transforme les références en déclarations, nous faisons ça ici et non lors
                  * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
                  * les cas où nous avons une fonction polymorphique : les données des déclarations
-                 * ne sont pas copiées */
+                 * ne sont pas copiées.
+                 * Afin de ne pas faire de travail inutile, toutes les variables, saufs les
+                 * variables d'indexage ne sont pas initialisées. Les variables d'indexages doivent
+                 * l'être puisqu'elles sont directement testées avec la condition de fin de la
+                 * boucle.
+                 */
+                auto init = NoeudExpression::nul();
+                if (requiers_index && f != feuilles->expressions.derniere()) {
+                    init = m_tacheronne.assembleuse->cree_non_initialisation(f->lexeme);
+                }
+
                 f = m_tacheronne.assembleuse->cree_declaration_variable(
-                    f->comme_reference_declaration(), nullptr);
+                    f->comme_reference_declaration(), init);
                 auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
                 if (decl_f != nullptr) {
@@ -905,8 +917,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto variable = feuilles->expressions[0];
             inst->ident = variable->ident;
-
-            auto requiers_index = feuilles->expressions.taille() == 2;
 
             auto type = enfant2->type;
             if (type->est_opaque()) {
