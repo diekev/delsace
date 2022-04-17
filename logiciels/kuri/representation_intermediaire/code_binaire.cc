@@ -1015,9 +1015,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
         {
             auto appel = instruction->comme_appel();
 
-            // évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
-            // instructions, une fois pour l'opérande les fonctions retournant « rien » ne peuvent
-            // être opérandes
+            /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
+             * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
+             * être opérandes. */
             if (appel->type->genre != GenreType::RIEN && !pour_operande) {
                 return;
             }
