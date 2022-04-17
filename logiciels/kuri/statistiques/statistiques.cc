@@ -146,10 +146,11 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
                           formatte_nombre(temps_lexage * 1000.0),
                           "ms",
                           formatte_nombre(calc_pourcentage(temps_lexage, temps_scene))});
-    tableau.ajoute_ligne({"- Métaprogrammes",
-                          formatte_nombre(stats.temps_metaprogrammes * 1000.0),
-                          "ms",
-                          formatte_nombre(calc_pourcentage(temps_parsage, temps_scene))});
+    tableau.ajoute_ligne(
+        {"- Métaprogrammes",
+         formatte_nombre(stats.temps_metaprogrammes * 1000.0),
+         "ms",
+         formatte_nombre(calc_pourcentage(stats.temps_metaprogrammes, temps_scene))});
     tableau.ajoute_ligne({"- Syntaxage",
                           formatte_nombre(temps_parsage * 1000.0),
                           "ms",
