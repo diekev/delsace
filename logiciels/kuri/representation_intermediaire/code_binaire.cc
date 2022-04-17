@@ -820,6 +820,19 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
+            /* Nous ne pouvons appeler une fonction prenant un pointeur de fonction car le pointeur
+             * pourrait être une fonction interne dont l'adresse ne sera pas celle d'une fonction
+             * exécutable (pour le système d'exploitation) mais l'adresse de l'AtomeFonction
+             * correspondant qui est utilisée dans la machine virtuelle. */
+            POUR (decl->params) {
+                if (it->type->est_fonction()) {
+                    espace->rapporte_erreur(fonction->decl,
+                                            "Impossible d'appeler dans un métaprogramme une "
+                                            "fonction externe utilisant un pointeur de fonction");
+                    return false;
+                }
+            }
+
             if (!decl->symbole->charge(espace, decl)) {
                 return false;
             }
