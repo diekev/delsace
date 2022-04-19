@@ -1,0 +1,303 @@
+/**
+ * Structure représentant un quaternion sous la forme d'un vecteur et d'un poids.
+ */
+Quaternion :: struct {
+	vecteur: Vec3
+	poids: r32 = 1.0
+}
+
+/* ************************************************************************** */
+
+/**
+ * Retourne le quaternion résultant de l'addition des deux quaternions spécifiés.
+ */
+opérateur + :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+{
+	q.vecteur += autre.vecteur
+	q.poids += autre.poids
+	retourne q
+}
+
+/**
+ * Retourne le quaternion résultant de la soustraction des deux quaternions spécifiés.
+ */
+opérateur - :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+{
+	q.vecteur -= autre.vecteur
+	q.poids -= autre.poids
+	retourne q
+}
+
+/**
+ * Retourne le quaternion résultant de la multiplication des deux quaternions
+ * spécifiés.
+ */
+opérateur * :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+{
+	vp := produit_vectorielle(q.vecteur, autre.vecteur)
+	vp += q.vecteur * autre.poids
+	vp += q.autre.vecteur * poids
+
+	pp := q.poids * autre.poids - produit_scalaire(q.vecteur, autre.vecteur)
+
+	q.vecteur = vp
+	q.poids = pp
+
+	retourne q
+}
+
+/**
+ * Retourne le quaternion résultant de la multiplication du quaternion par la
+ * valeur spécifiée.
+ */
+opérateur * :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
+{
+	q.vecteur *= valeur
+	q.poids *= valeur
+	retourne q
+}
+
+/**
+ * Retourne le quaternion résultant de la division du quaternion par la valeur
+ * spécifiée.
+ */
+opérateur / :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
+{
+	q.vecteur /= valeur
+	q.poids /= valeur
+	retourne q
+}
+
+/**
+ * Retourne le quaternion résultant de la réciproque du quaternion par la valeur
+ * spécifiée.
+ */
+opérateur / :: fonc (valeur: r32, q: Quaternion) -> Quaternion #enligne
+{
+	q.vecteur /= valeur
+	q.poids /= valeur
+	retourne q
+}
+
+/* ************************************************************************** */
+
+/**
+ * Retourne le quaternion résultant de la négation du quaternion spécifié.
+ */
+opérateur - :: fonc (a: Quaternion) -> Quaternion #enligne
+{
+	retourne Quaternion(Vec3(-a.vecteur.x, -a.vecteur.y, -a.vecteur.z), -a.poids)
+}
+
+/* ************************************************************************** */
+
+/**
+ * Retourne vrai si les valeurs des deux quaternions sont égales entre elles.
+ */
+opérateur == :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
+{
+	retourne cote_gauche.vecteur == cote_droit.vecteur && cote_gauche.poids == cote_droit.poids;
+}
+
+/**
+ * Retourne vrai si les valeurs des deux quaternions sont différentes.
+ */
+opérateur != :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
+{
+	retourne !(cote_gauche == cote_droit)
+}
+
+/* ************************************************************************** */
+
+/**
+ * Retourne le produit scalaire des deux quaternions, à savoir le cosinus de
+ * l'angle entre eux.
+ */
+produit_scalaire :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> r32 #enligne
+{
+	retourne produit_scalaire(cote_gauche.vecteur, cote_droit.vecteur) + cote_gauche.poids * cote_droit.poids
+}
+
+/**
+ * Retourne un quaternion dont les valeurs correspondent à celles du quaternion
+ * spécifié mais ayant une longueur égale à un.
+ */
+normalise :: fonc (q: Quaternion) -> Quaternion
+{
+	lon := sqrt(produit_scalaire(q, q))
+
+	si lon != 0.0 {
+		retourne q / lon;
+	}
+
+	retourne Quaternion(Vec3(y = 1.0), 0.0)
+}
+
+/**
+ * Retourne un quaternion dont les valeurs correspondent à celles du quaternion
+ * spécifié mais ayant une longueur égale à un.
+ */
+interpolation_sphérique :: fonc (a: Quaternion, t: r32, b: Quaternion) -> Quaternion
+{
+	un :: 1.0
+	cos_theta := produit_scalaire(a, b)
+
+	/* Si les deux quaternions sont presques parallèle, retourne une
+	 * interpolation linéaire de ceux-ci pour éviter une instabilité numérique.
+	 */
+	si cos_theta >= 0.9995 {
+		retourne normalise((un - t) * a + t * b)
+	}
+
+	theta := acos(restreint(cos_theta, -un, un))
+	thetap := theta * t;
+	qperp := normalise(b - a * thetap)
+
+	retourne a * cos(thetap) + qperp * sin(thetap)
+}
+
+/*
+
+À FAIRE: mat3
+
+template <ConceptNombre Nombre>
+[[nodiscard]] auto quat_depuis_mat3(mat3x3<Nombre> const &mat)
+{
+	auto UN = static_cast<Nombre>(1.0);
+	auto DEUX = static_cast<Nombre>(2.0);
+
+	dls::math::quaternion<Nombre> q;
+
+	/* À FAIRE : assert que la longueur des vecteurs lignes = 1.0 */
+
+	auto tr = 0.25 * static_cast<double>(UN + mat[0][0] + mat[1][1] + mat[2][2]);
+
+	if (tr > 1e-4) {
+		auto s = std::sqrt(tr);
+		q.vecteur[0] = static_cast<Nombre>(s);
+		s = 1.0 / (4.0 * s);
+		q.vecteur[1] = static_cast<Nombre>(static_cast<double>(mat[1][2] - mat[2][1]) * s);
+		q.vecteur[2] = static_cast<Nombre>(static_cast<double>(mat[2][0] - mat[0][2]) * s);
+		q.poids = static_cast<Nombre>(static_cast<double>(mat[0][1] - mat[1][0]) * s);
+	}
+	else {
+		if (mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
+			auto s = static_cast<double>(DEUX * std::sqrt(UN + mat[0][0] - mat[1][1] - mat[2][2]));
+			q.vecteur[1] = static_cast<Nombre>(0.25 * s);
+
+			s = 1.0 / s;
+			q.vecteur[0] = static_cast<Nombre>(static_cast<double>(mat[1][2] - mat[2][1]) * s);
+			q.vecteur[2] = static_cast<Nombre>(static_cast<double>(mat[1][0] + mat[0][1]) * s);
+			q.poids = static_cast<Nombre>(static_cast<double>(mat[2][0] + mat[0][2]) * s);
+		}
+		else if (mat[1][1] > mat[2][2]) {
+			auto s = static_cast<double>(DEUX * std::sqrt(UN + mat[1][1] - mat[0][0] - mat[2][2]));
+			q.vecteur[2] = static_cast<Nombre>(0.25 * s);
+
+			s = 1.0 / s;
+			q.vecteur[0] = static_cast<Nombre>(static_cast<double>(mat[2][0] - mat[0][2]) * s);
+			q.vecteur[1] = static_cast<Nombre>(static_cast<double>(mat[1][0] + mat[0][1]) * s);
+			q.poids = static_cast<Nombre>(static_cast<double>(mat[2][1] + mat[1][2]) * s);
+		}
+		else {
+			auto s = static_cast<double>(DEUX * std::sqrt(UN + mat[2][2] - mat[0][0] - mat[1][1]));
+			q.poids = static_cast<Nombre>(0.25 * s);
+
+			s = 1.0 / s;
+			q.vecteur[0] = static_cast<Nombre>(static_cast<double>(mat[0][1] - mat[1][0]) * s);
+			q.vecteur[1] = static_cast<Nombre>(static_cast<double>(mat[2][0] + mat[0][2]) * s);
+			q.vecteur[2] = static_cast<Nombre>(static_cast<double>(mat[2][1] + mat[1][2]) * s);
+		}
+	}
+
+	retourne normalise(q);
+}
+
+template <ConceptNombre Nombre>
+void loc_quat_depuis_mat4(
+        mat4x4<Nombre> const &mat,
+        vec3<Nombre> &loc,
+        quaternion<Nombre> &quat)
+{
+	auto mat3 = mat3_depuis_mat4(mat);
+	auto mat3_n = normalise(mat3);
+
+	/* Pour qu'une taille négative n'interfère pas avec la rotation.
+	 * NOTE : ceci est une solution pour contourner le fait que les matrices
+	 * négatives ne fonctionne pas pour les conversions de rotations. À FIXER.
+	 */
+	if (est_negative(mat3)) {
+		nie(mat3_n);
+	}
+
+	quat = quat_depuis_mat3(mat3_n);
+	loc[0] = mat[3][0];
+	loc[1] = mat[3][1];
+	loc[2] = mat[3][2];
+}
+
+template <ConceptNombre Nombre>
+[[nodiscard]] auto mat3_depuis_quat(quaternion<Nombre> const &q)
+{
+	auto const q0 = M_SQRT2 * static_cast<double>(q.vecteur[0]);
+	auto const q1 = M_SQRT2 * static_cast<double>(q.vecteur[1]);
+	auto const q2 = M_SQRT2 * static_cast<double>(q.vecteur[2]);
+	auto const q3 = M_SQRT2 * static_cast<double>(q.poids);
+
+	auto const qda = q0 * q1;
+	auto const qdb = q0 * q2;
+	auto const qdc = q0 * q3;
+	auto const qaa = q1 * q1;
+	auto const qab = q1 * q2;
+	auto const qac = q1 * q3;
+	auto const qbb = q2 * q2;
+	auto const qbc = q2 * q3;
+	auto const qcc = q3 * q3;
+
+	mat3x3<Nombre> m;
+	m[0][0] = static_cast<Nombre>(1.0 - qbb - qcc);
+	m[0][1] = static_cast<Nombre>(qdc + qab);
+	m[0][2] = static_cast<Nombre>(-qdb + qac);
+
+	m[1][0] = static_cast<Nombre>(-qdc + qab);
+	m[1][1] = static_cast<Nombre>(1.0 - qaa - qcc);
+	m[1][2] = static_cast<Nombre>(qda + qbc);
+
+	m[2][0] = static_cast<Nombre>(qdb + qac);
+	m[2][1] = static_cast<Nombre>(-qda + qbc);
+	m[2][2] = static_cast<Nombre>(1.0 - qaa - qbb);
+
+	retourne m;
+}
+
+/**
+ * Extraction de la rotation d'une matrice selon l'algorithme présenté dans
+ * "A Robust Method to Extract the Rotational Part of Deformations"
+ * http://matthias-mueller-fischer.ch/publications/stablePolarDecomp.pdf
+ */
+template <ConceptNombre Nombre>
+void extrait_rotation(
+        mat3x3<Nombre> const &A,
+        quaternion<Nombre> &q,
+        const unsigned int iter_max)
+{
+	for (unsigned int iter = 0; iter < iter_max; iter++) {
+		auto R = mat3_depuis_quat(q);
+
+		auto omega = (produit_croix(R[0], A[0])
+		        + produit_croix(R[1], A[1])
+		        + produit_croix(R[2], A[2]))
+		        * (1.0 / std::fabs(produit_scalaire(R[0], A[0])
+		                           + produit_scalaire(R[1], A[1])
+		                           + produit_scalaire(R[2], A[2])) + 1.0e-9);
+
+		double w = longueur(omega);
+
+		if (w < 1.0e-9) {
+			break;
+		}
+
+		q = normalise(Quaterniond(AngleAxisd(w, (1.0 / w) * omega)) * q);
+	}
+}
+*/
