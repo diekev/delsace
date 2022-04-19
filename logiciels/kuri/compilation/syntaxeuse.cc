@@ -2618,7 +2618,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
     while (apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
-        consomme();
 
         auto directive = lexeme_courant()->ident;
 
@@ -2631,6 +2630,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         else {
             rapporte_erreur("Directive inconnue");
         }
+
+        consomme();
     }
 
     if (!dls::outils::possede_drapeau(noeud->drapeaux, FORCE_HORSLIGNE)) {
