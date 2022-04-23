@@ -489,12 +489,20 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
 
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_discrimination, " :: fonc (self: *PyObject) -> bool\n")
     enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon("    si PyObject_TypeCheck(self, *", type.nom_globale_type, ") {\n")
+    enchaineuse.ajoute_au_tampon("        retourne vrai\n")
+    enchaineuse.ajoute_au_tampon("    }\n")
     si type.drapeaux.TYPE_EST_ÉNUM {
         enchaineuse.ajoute_au_tampon("    si PyUnicodeEnum_Check(self, info_de(", type.nom, ")) {\n")
         enchaineuse.ajoute_au_tampon("        retourne vrai;\n")
         enchaineuse.ajoute_au_tampon("    }\n")
     }
-    enchaineuse.ajoute_au_tampon("    retourne PyObject_TypeCheck(self, *", type.nom_globale_type, ")\n")
+    si type.drapeaux.TOUJOURS_COMME_POINTEUR {
+        enchaineuse.ajoute_au_tampon("    si self == Py_None {\n")
+        enchaineuse.ajoute_au_tampon("        retourne vrai;\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+    }
+    enchaineuse.ajoute_au_tampon("    retourne faux\n")
     enchaineuse.ajoute_au_tampon("}\n")
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom_type_kuri, ") -> *", type.nom, "PourPython\n")
     enchaineuse.ajoute_au_tampon("{\n")
