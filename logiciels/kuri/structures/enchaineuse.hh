@@ -104,7 +104,7 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 
 template <typename... Ts>
-kuri::chaine enchaine(Ts &&... ts)
+kuri::chaine enchaine(Ts &&...ts)
 {
     Enchaineuse enchaineuse;
     ((enchaineuse << ts), ...);

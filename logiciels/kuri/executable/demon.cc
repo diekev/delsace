@@ -9,7 +9,7 @@
 #include "structures/table_hachage.hh"
 
 template <typename... Ts>
-static kuri::chaine imprime_commande_systeme(Ts &&... ts)
+static kuri::chaine imprime_commande_systeme(Ts &&...ts)
 {
     Enchaineuse enchaineuse;
     ((enchaineuse << ts) << ...);
