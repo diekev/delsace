@@ -13,7 +13,7 @@
 
 # If LLVM_ROOT_DIR was defined in the environment, use it.
 
-set(LLVM_VERSION 6.0)
+set(LLVM_VERSION 12)
 
 if(LLVM_ROOT_DIR)
 	if(DEFINED LLVM_VERSION)
@@ -54,13 +54,13 @@ endif()
 
 if(LLVM_STATIC)
 	find_library(LLVM_LIBRARY
-	             NAMES LLVMAnalysis # first of a whole bunch of libs to get
+                     NAMES LLVMDemangle # first of a whole bunch of libs to get
 	             PATHS ${LLVM_LIBPATH})
 else()
 	find_library(LLVM_LIBRARY
 	             NAMES
 	               LLVM-${LLVM_VERSION}
-	               LLVMAnalysis  # check for the static library as a fall-back
+                       LLVMDemangle  # check for the static library as a fall-back
 	             PATHS ${LLVM_LIBPATH})
 endif()
 
@@ -78,7 +78,7 @@ if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 endif()
 
 
-# handle the QUIETLY and REQUIRED arguments and set SDL2_FOUND to TRUE if
+# handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
