@@ -19,6 +19,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+find_package(OpenImageIO REQUIRED)
+
 set(NOM_PROJET module_c_image)
 
 set(INCLUSIONS

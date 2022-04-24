@@ -23,6 +23,7 @@
 
 option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
+option(AVEC_IMAGE "Active la génération du module Image" OFF)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
@@ -108,7 +109,6 @@ add_subdirectory(modules_c/Aléa)
 add_subdirectory(modules_c/Compression)
 add_subdirectory(modules_c/Exétron)
 add_subdirectory(modules_c/FTGL)
-add_subdirectory(modules_c/Image)
 add_subdirectory(modules_c/Krypto)
 add_subdirectory(parsage)
 add_subdirectory(representation_intermediaire)
@@ -118,6 +118,10 @@ add_subdirectory(tests)
 
 if(AVEC_ALEMBIC)
    add_subdirectory(modules_c/Alembic)
+endif()
+
+if(AVEC_IMAGE)
+    add_subdirectory(modules_c/Image)
 endif()
 
 install(
