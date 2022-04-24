@@ -61,9 +61,26 @@ else()
 	             NAMES
 	               LLVM-${LLVM_VERSION}
                        LLVMDemangle  # check for the static library as a fall-back
-	             PATHS ${LLVM_LIBPATH})
+                     PATHS ${LLVM_LIBPATH})
 endif()
 
+find_path(LLVM_INCLUDE_DIR
+        NAMES
+            llvm/InitializePasses.h
+        HINTS
+            ${LLVM_ROOT_DIR}
+        PATH_SUFFIXES
+            include
+)
+
+find_path(CLANG_INCLUDE_DIR
+        NAMES
+            clang/AST/Expr.h
+        HINTS
+            ${LLVM_ROOT_DIR}
+        PATH_SUFFIXES
+            include
+)
 
 if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 	if(LLVM_STATIC)
@@ -82,7 +99,7 @@ endif()
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
-    LLVM_LIBRARY)
+    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR)
 
 MARK_AS_ADVANCED(
   LLVM_LIBRARY
