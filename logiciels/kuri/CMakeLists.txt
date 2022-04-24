@@ -28,6 +28,8 @@ if(AVEC_LLVM)
 	add_definitions(-DAVEC_LLVM)
 endif()
 
+find_program(GPERF NAME gperf)
+
 # À FAIRE : trouve ceux-ci de manière programmatique
 add_definitions(-DCOMPILATEUR_C_COULISSE_C="/usr/bin/gcc-10")
 add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="/usr/bin/g++-10")
