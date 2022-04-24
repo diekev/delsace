@@ -1770,7 +1770,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
                                                   OptionsDeCompilation const &ops)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << "/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ";
+    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c /tmp/compilation_kuri.c ";
 
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -fPIC ";
@@ -1878,7 +1878,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     auto debut_executable = dls::chrono::compte_seconde();
 
     Enchaineuse enchaineuse;
-    enchaineuse << "/usr/bin/g++-9 ";
+    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
 
     if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -shared -fPIC ";
