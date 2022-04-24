@@ -35,18 +35,17 @@ namespace outils {
  * ^, ^=, &, &= |, |=, ~.
  */
 template <typename T>
-concept bool ConceptValeurMasque = requires(T a, T b)
-{
-	a = a | b;
-	a |= b;
-	a = a & b;
-	a &= b;
-	a = a ^ b;
-	a ^= b;
-	a = ~b;
+concept ConceptValeurMasque = requires(T a, T b) {
+  a = a | b;
+  a |= b;
+  a = a & b;
+  a &= b;
+  a = a ^ b;
+  a ^= b;
+  a = ~b;
 };
 #else
-#	define ConceptValeurMasque typename
+#define ConceptValeurMasque typename
 #endif
 
 /**
@@ -56,139 +55,120 @@ concept bool ConceptValeurMasque = requires(T a, T b)
  * binaire depuis les fonctions ou opérations retournant des masques
  * et non un nombre quelconque.
  */
-template <ConceptValeurMasque T>
-class MasqueBinaire {
-	T m_masque = static_cast<T>(0);
+template <ConceptValeurMasque T> class MasqueBinaire {
+  T m_masque = static_cast<T>(0);
 
 public:
-	/**
-	 * Construit un masque binaire par défaut où la valeur du masque est mise à
-	 * zéro.
-	 */
-	MasqueBinaire() = default;
+  /**
+   * Construit un masque binaire par défaut où la valeur du masque est mise à
+   * zéro.
+   */
+  MasqueBinaire() = default;
 
-	/**
-	 * Construit un masque binaire dont la valeur est égale à celle passée en
-	 * paramètre.
-	 */
-	explicit MasqueBinaire(T valeur)
-		: m_masque(valeur)
-	{}
+  /**
+   * Construit un masque binaire dont la valeur est égale à celle passée en
+   * paramètre.
+   */
+  explicit MasqueBinaire(T valeur) : m_masque(valeur) {}
 
-	/**
-	 * Construit un masque binaire dont la valeur est égale à celle du masque
-	 * passé en paramètre.
-	 */
-	MasqueBinaire(const MasqueBinaire &autre)
-		: m_masque(autre.masque())
-	{}
+  /**
+   * Construit un masque binaire dont la valeur est égale à celle du masque
+   * passé en paramètre.
+   */
+  MasqueBinaire(const MasqueBinaire &autre) : m_masque(autre.masque()) {}
 
-	/**
-	 * Retourne la valeur du masque.
-	 */
-	T masque() const
-	{
-		return m_masque;
-	}
+  /**
+   * Retourne la valeur du masque.
+   */
+  T masque() const { return m_masque; }
 
-	/**
-	 * Met à jour la valeur du masque avec celle passée en paramètre. Après que
-	 * cette fonction soit appelée, la condition `masque == valeur` est vraie.
-	 */
-	void masque(T valeur)
-	{
-		m_masque = valeur;
-	}
+  /**
+   * Met à jour la valeur du masque avec celle passée en paramètre. Après que
+   * cette fonction soit appelée, la condition `masque == valeur` est vraie.
+   */
+  void masque(T valeur) { m_masque = valeur; }
 
-	/**
-	 * Met à jour la valeur du masque avec celle passée en paramètre. Après que
-	 * cette fonction soit appelée, la condition `masque == valeur` est vraie.
-	 */
-	MasqueBinaire &operator=(const T &valeur)
-	{
-		m_masque = valeur;
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque avec celle passée en paramètre. Après que
+   * cette fonction soit appelée, la condition `masque == valeur` est vraie.
+   */
+  MasqueBinaire &operator=(const T &valeur) {
+    m_masque = valeur;
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque avec celle de celui passé en paramètre.
-	 * Après que cette fonction soit appelée, la condition `masque == autre` est
-	 * vraie.
-	 */
-	MasqueBinaire &operator=(const MasqueBinaire &autre)
-	{
-		m_masque = autre.masque();
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque avec celle de celui passé en paramètre.
+   * Après que cette fonction soit appelée, la condition `masque == autre` est
+   * vraie.
+   */
+  MasqueBinaire &operator=(const MasqueBinaire &autre) {
+    m_masque = autre.masque();
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `ou` inclusif entre ce
-	 * masque et la valeur passée en paramètre.
-	 */
-	MasqueBinaire &operator|=(const T &autre)
-	{
-		m_masque |= autre;
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `ou` inclusif entre ce
+   * masque et la valeur passée en paramètre.
+   */
+  MasqueBinaire &operator|=(const T &autre) {
+    m_masque |= autre;
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `ou` inclusif entre ce
-	 * masque et celui passé en paramètre.
-	 */
-	MasqueBinaire &operator|=(const MasqueBinaire &autre)
-	{
-		m_masque |= autre.masque();
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `ou` inclusif entre ce
+   * masque et celui passé en paramètre.
+   */
+  MasqueBinaire &operator|=(const MasqueBinaire &autre) {
+    m_masque |= autre.masque();
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `et` entre ce masque et
-	 * la valeur passée en paramètre.
-	 */
-	MasqueBinaire &operator&=(const T &autre)
-	{
-		m_masque &= autre;
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `et` entre ce masque et
+   * la valeur passée en paramètre.
+   */
+  MasqueBinaire &operator&=(const T &autre) {
+    m_masque &= autre;
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `et` entre ce masque et
-	 * celui passé en paramètre.
-	 */
-	MasqueBinaire &operator&=(const MasqueBinaire &autre)
-	{
-		m_masque &= autre.masque();
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `et` entre ce masque et
+   * celui passé en paramètre.
+   */
+  MasqueBinaire &operator&=(const MasqueBinaire &autre) {
+    m_masque &= autre.masque();
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `ou` exclusif entre ce
-	 * masque et la valeur passée en paramètre.
-	 */
-	MasqueBinaire &operator^=(const T &autre)
-	{
-		m_masque ^= autre;
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `ou` exclusif entre ce
+   * masque et la valeur passée en paramètre.
+   */
+  MasqueBinaire &operator^=(const T &autre) {
+    m_masque ^= autre;
+    return *this;
+  }
 
-	/**
-	 * Met à jour la valeur du masque en performant un `ou` exclusif entre ce
-	 * masque et celui passé en paramètre.
-	 */
-	MasqueBinaire &operator^=(const MasqueBinaire &autre)
-	{
-		m_masque ^= autre.masque();
-		return *this;
-	}
+  /**
+   * Met à jour la valeur du masque en performant un `ou` exclusif entre ce
+   * masque et celui passé en paramètre.
+   */
+  MasqueBinaire &operator^=(const MasqueBinaire &autre) {
+    m_masque ^= autre.masque();
+    return *this;
+  }
 };
 
 /**
  * Retourne vrai si les deux masques passés en paramètre ont des valeurs égales.
  */
 template <ConceptValeurMasque T>
-auto operator==(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
-{
-	return masque1.masque() == masque2.masque();
+auto operator==(const MasqueBinaire<T> &masque1,
+                const MasqueBinaire<T> &masque2) {
+  return masque1.masque() == masque2.masque();
 }
 
 /**
@@ -196,9 +176,8 @@ auto operator==(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2
  * égales.
  */
 template <ConceptValeurMasque T>
-auto operator==(const MasqueBinaire<T> &masque, const T &valeur)
-{
-	return masque.masque() == valeur;
+auto operator==(const MasqueBinaire<T> &masque, const T &valeur) {
+  return masque.masque() == valeur;
 }
 
 /**
@@ -206,9 +185,8 @@ auto operator==(const MasqueBinaire<T> &masque, const T &valeur)
  * égales.
  */
 template <ConceptValeurMasque T>
-auto operator==(const T &valeur, const MasqueBinaire<T> &masque)
-{
-	return masque.masque() == valeur;
+auto operator==(const T &valeur, const MasqueBinaire<T> &masque) {
+  return masque.masque() == valeur;
 }
 
 /**
@@ -216,9 +194,9 @@ auto operator==(const T &valeur, const MasqueBinaire<T> &masque)
  * différentes.
  */
 template <ConceptValeurMasque T>
-auto operator!=(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
-{
-	return !(masque1 == masque2);
+auto operator!=(const MasqueBinaire<T> &masque1,
+                const MasqueBinaire<T> &masque2) {
+  return !(masque1 == masque2);
 }
 
 /**
@@ -226,9 +204,8 @@ auto operator!=(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2
  * différentes.
  */
 template <ConceptValeurMasque T>
-auto operator!=(const MasqueBinaire<T> &masque, const T &valeur)
-{
-	return !(masque == valeur);
+auto operator!=(const MasqueBinaire<T> &masque, const T &valeur) {
+  return !(masque == valeur);
 }
 
 /**
@@ -236,9 +213,8 @@ auto operator!=(const MasqueBinaire<T> &masque, const T &valeur)
  * différentes.
  */
 template <ConceptValeurMasque T>
-auto operator!=(const T &valeur, const MasqueBinaire<T> &masque)
-{
-	return !(masque == valeur);
+auto operator!=(const T &valeur, const MasqueBinaire<T> &masque) {
+  return !(masque == valeur);
 }
 
 /**
@@ -246,10 +222,10 @@ auto operator!=(const T &valeur, const MasqueBinaire<T> &masque)
  * entre les deux masques spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator&(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
-{
-	MasqueBinaire<T> temp(masque1);
-	return (temp &= masque2);
+auto operator&(const MasqueBinaire<T> &masque1,
+               const MasqueBinaire<T> &masque2) {
+  MasqueBinaire<T> temp(masque1);
+  return (temp &= masque2);
 }
 
 /**
@@ -257,10 +233,9 @@ auto operator&(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
  * entre le masque et la valeur spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator&(const MasqueBinaire<T> &masque, const T &valeur)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp ^= valeur);
+auto operator&(const MasqueBinaire<T> &masque, const T &valeur) {
+  MasqueBinaire<T> temp(masque);
+  return (temp ^= valeur);
 }
 
 /**
@@ -268,10 +243,9 @@ auto operator&(const MasqueBinaire<T> &masque, const T &valeur)
  * entre la valeur et le masque spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator&(const T &valeur, const MasqueBinaire<T> &masque)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp &= valeur);
+auto operator&(const T &valeur, const MasqueBinaire<T> &masque) {
+  MasqueBinaire<T> temp(masque);
+  return (temp &= valeur);
 }
 
 /**
@@ -279,10 +253,10 @@ auto operator&(const T &valeur, const MasqueBinaire<T> &masque)
  * entre les deux masques spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator|(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
-{
-	MasqueBinaire<T> temp(masque1);
-	return (temp |= masque2);
+auto operator|(const MasqueBinaire<T> &masque1,
+               const MasqueBinaire<T> &masque2) {
+  MasqueBinaire<T> temp(masque1);
+  return (temp |= masque2);
 }
 
 /**
@@ -290,10 +264,9 @@ auto operator|(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
  * entre le masque et la valeur spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator|(const MasqueBinaire<T> &masque, const T &valeur)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp |= valeur);
+auto operator|(const MasqueBinaire<T> &masque, const T &valeur) {
+  MasqueBinaire<T> temp(masque);
+  return (temp |= valeur);
 }
 
 /**
@@ -301,10 +274,9 @@ auto operator|(const MasqueBinaire<T> &masque, const T &valeur)
  * entre la valeur et le masque spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator|(const T &valeur, const MasqueBinaire<T> &masque)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp |= valeur);
+auto operator|(const T &valeur, const MasqueBinaire<T> &masque) {
+  MasqueBinaire<T> temp(masque);
+  return (temp |= valeur);
 }
 
 /**
@@ -312,10 +284,10 @@ auto operator|(const T &valeur, const MasqueBinaire<T> &masque)
  * `ou exclusif` entre les deux masques spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator^(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
-{
-	MasqueBinaire<T> temp(masque1);
-	return (temp ^= masque2);
+auto operator^(const MasqueBinaire<T> &masque1,
+               const MasqueBinaire<T> &masque2) {
+  MasqueBinaire<T> temp(masque1);
+  return (temp ^= masque2);
 }
 
 /**
@@ -323,10 +295,9 @@ auto operator^(const MasqueBinaire<T> &masque1, const MasqueBinaire<T> &masque2)
  * `ou exclusif` entre le masque et la valeur spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator^(const MasqueBinaire<T> &masque, const T &valeur)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp ^= valeur);
+auto operator^(const MasqueBinaire<T> &masque, const T &valeur) {
+  MasqueBinaire<T> temp(masque);
+  return (temp ^= valeur);
 }
 
 /**
@@ -334,10 +305,9 @@ auto operator^(const MasqueBinaire<T> &masque, const T &valeur)
  * `ou exclusif` entre la valeur et le masque spécifiés en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator^(const T &valeur, const MasqueBinaire<T> &masque)
-{
-	MasqueBinaire<T> temp(masque);
-	return (temp ^= valeur);
+auto operator^(const T &valeur, const MasqueBinaire<T> &masque) {
+  MasqueBinaire<T> temp(masque);
+  return (temp ^= valeur);
 }
 
 /**
@@ -345,10 +315,9 @@ auto operator^(const T &valeur, const MasqueBinaire<T> &masque)
  * `non` appliquée sur la masque spécifié en paramètre.
  */
 template <ConceptValeurMasque T>
-auto operator~(const MasqueBinaire<T> &masque)
-{
-	return MasqueBinaire<T>(~masque.masque());
+auto operator~(const MasqueBinaire<T> &masque) {
+  return MasqueBinaire<T>(~masque.masque());
 }
 
-}  /* namespace outils */
-}  /* namespace dls */
+} /* namespace outils */
+} /* namespace dls */
