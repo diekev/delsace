@@ -22,6 +22,7 @@
 # ------------------------------------------------------------------------------
 
 option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
+option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
@@ -103,7 +104,6 @@ add_subdirectory(arbre_syntaxique)
 add_subdirectory(compilation)
 add_subdirectory(executable)
 add_subdirectory(exemples)
-add_subdirectory(modules_c/Alembic)
 add_subdirectory(modules_c/Aléa)
 add_subdirectory(modules_c/Compression)
 add_subdirectory(modules_c/Exétron)
@@ -115,6 +115,10 @@ add_subdirectory(representation_intermediaire)
 add_subdirectory(statistiques)
 add_subdirectory(structures)
 add_subdirectory(tests)
+
+if(AVEC_ALEMBIC)
+   add_subdirectory(modules_c/Alembic)
+endif()
 
 install(
 	DIRECTORY modules

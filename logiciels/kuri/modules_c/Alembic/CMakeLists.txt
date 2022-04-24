@@ -19,6 +19,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+find_package(Alembic REQUIRED)
+
 set(NOM_PROJET alembic)
 
 set(INCLUSIONS
