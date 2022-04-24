@@ -38,6 +38,8 @@
 #include <llvm/IR/Module.h>
 #include <llvm/InitializePasses.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
@@ -944,7 +946,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto type_pointeur = inst->type->comme_pointeur();
             auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
-            alloca->setAlignment(type_pointeur->type_pointe->alignement);
+            alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
             table_valeurs.insere(inst, alloca);
             break;
         }
@@ -992,7 +994,12 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 erreur::imprime_site(m_espace, inst_appel->site);
                 imprime_atome(inst_appel->appele, std::cerr);
             });
-            table_valeurs.insere(inst, m_builder.CreateCall(valeur_fonction, arguments));
+            table_valeurs.insere(
+                inst,
+                m_builder.CreateCall(llvm::FunctionCallee(static_cast<llvm::FunctionType *>(
+                                                              valeur_fonction->getType()),
+                                                          valeur_fonction),
+                                     arguments));
 
             //			if (!m_fonction_courante->sanstrace) {
             //				os << "  TERMINE_RECORD_TRACE_APPEL;\n";
@@ -1031,7 +1038,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             assert(valeur != nullptr);
 
             auto load = m_builder.CreateLoad(valeur, "");
-            load->setAlignment(charge->type->alignement);
+            load->setAlignment(llvm::Align(charge->type->alignement));
             table_valeurs.insere(inst_charge, load);
             break;
         }
@@ -1356,7 +1363,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
                                                 nullptr,
                                                 nom_globale);
 
-        globale->setAlignment(type->alignement);
+        globale->setAlignment(llvm::Align(type->alignement));
         table_globales.insere(valeur_globale, globale);
     }
 
@@ -1434,10 +1441,10 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto type_llvm = converti_type_llvm(type);
 
             auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
-            alloc->setAlignment(type->alignement);
+            alloc->setAlignment(llvm::Align(type->alignement));
 
             auto store = m_builder.CreateStore(valeur, alloc);
-            store->setAlignment(type->alignement);
+            store->setAlignment(llvm::Align(type->alignement));
 
             table_valeurs.insere(param, alloc);
         }
@@ -1470,7 +1477,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto type_pointe = type_pointeur->type_pointe;
             auto type_llvm = converti_type_llvm(type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
-            alloca->setAlignment(type_pointeur->type_pointe->alignement);
+            alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
             table_valeurs.insere(param, alloca);
         }
 
@@ -1572,7 +1579,7 @@ bool initialise_llvm()
     llvm::initializeCodeGenPreparePass(registre);
     llvm::initializeAtomicExpandPass(registre);
     llvm::initializeWinEHPreparePass(registre);
-    llvm::initializeDwarfEHPreparePass(registre);
+    llvm::initializeDwarfEHPrepareLegacyPassPass(registre);
     llvm::initializeSjLjEHPreparePass(registre);
     llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
     llvm::initializeGlobalMergePass(registre);
@@ -1656,9 +1663,9 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
     }
 
     llvm::legacy::PassManager pass;
-    auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
+    auto type_fichier = llvm::CGFT_ObjectFile;
 
-    if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
+    if (machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
         std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
         return false;
     }
