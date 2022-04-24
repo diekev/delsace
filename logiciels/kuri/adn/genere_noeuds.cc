@@ -40,7 +40,7 @@
 #include "structures/table_hachage.hh"
 
 #include "adn.hh"
-#include "outils.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static const char *copie_extra_declaration_variable = R"(
 			/* n'oublions pas de mettre en place les déclarations */

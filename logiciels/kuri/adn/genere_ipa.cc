@@ -38,6 +38,7 @@
 #include "structures/tableau.hh"
 
 #include "adn.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
 {

@@ -32,7 +32,7 @@
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
-#include "outils.hh"
+#include "outils_independants_des_lexemes.hh"
 
 enum {
     EST_MOT_CLE = (1 << 0),

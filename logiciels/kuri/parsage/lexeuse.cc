@@ -1518,14 +1518,3 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
     m_taille_mot_courant = 0;
     m_dernier_id = GenreLexeme::NOMBRE_REEL;
 }
-
-SiteSource SiteSource::cree(const Fichier *fichier, const Lexeme *lexeme)
-{
-    SiteSource site;
-    site.fichier = fichier;
-    site.index_ligne = lexeme->ligne;
-    site.index_colonne = lexeme->colonne;
-    site.index_colonne_min = site.index_colonne;
-    site.index_colonne_max = static_cast<int>(site.index_colonne + lexeme->chaine.taille());
-    return site;
-}
