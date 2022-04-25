@@ -209,6 +209,14 @@ SystèmeType :: struct {
     types: []*TypePython
 }
 
+détruit :: fonc (système: &SystèmeType)
+{
+    pour système.types {
+        détruit(it)
+    }
+    déloge(système.types)
+}
+
 ajoute_type :: fonc (système: &SystèmeType, info: *InfoType, drapeaux: DrapeauxType)
 {
     type := convertis_vers_type_python(système, info)
@@ -451,6 +459,17 @@ CompilatriceModulePython :: struct {
      * À FAIRE : les infos-types n'ont pas d'information pour les modules.
      */
     modules_kuri_à_importer: []chaine
+}
+
+// 520622 byte(s) leaked in 1097 allocation
+// 507949 byte(s) leaked in  965 allocation
+// 489903 byte(s) leaked in  803 allocation
+// 461935 byte(s) leaked in  757 allocation
+détruit :: fonc (compilatrice: &CompilatriceModulePython)
+{
+    déloge(compilatrice.modules_kuri_à_importer)
+    détruit(compilatrice.module)
+    détruit(compilatrice.système_type)
 }
 
 crée_compilatrice_pour_un_module :: fonc (nom_module: chaine) -> CompilatriceModulePython

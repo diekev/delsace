@@ -17,6 +17,17 @@ ModulePython :: struct {
     constantes_chaine : []ConstanteChaine
 }
 
+détruit :: fonc (module: &ModulePython)
+{
+    pour module.méthodes {
+        détruit(it)
+    }
+
+    déloge(module.méthodes)
+    déloge(module.constantes_nombre_entier)
+    déloge(module.constantes_chaine)
+}
+
 ConstanteNombreEntier :: struct {
     nom: chaine
     valeur: z64
@@ -54,6 +65,13 @@ MéthodePython :: struct {
     nom_enveloppe: chaine
     paramètres_entrée: []ParamètreMéthodePython
     paramètres_sortie: []ParamètreMéthodePython
+}
+
+détruit :: fonc (méthode: &MéthodePython)
+{
+    déloge(méthode.nom_enveloppe)
+    déloge(méthode.paramètres_entrée)
+    déloge(méthode.paramètres_sortie)
 }
 
 ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
@@ -315,6 +333,17 @@ TypePython :: struct {
 
     /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
     code_pour_init_module_fut_généré: bool
+}
+
+détruit :: fonc (type: *TypePython)
+{
+    déloge(type.fonctions.pour_discrimination)
+    déloge(type.fonctions.pour_construction)
+    déloge(type.fonctions.pour_extraction_valeur)
+    déloge(type.membres)
+    déloge(type.méthodes)
+    déloge(type.nom_globale_type)
+    déloge(type)
 }
 
 ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
