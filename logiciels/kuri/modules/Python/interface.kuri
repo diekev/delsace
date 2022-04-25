@@ -2,7 +2,7 @@
 
 importe GlibC
 
-libpython :: #bibliothèque "python3.7m"
+libpython :: #bibliothèque "python3.10"
 
 Py_ssize_t :: z64
 Py_hash_t :: Py_ssize_t
