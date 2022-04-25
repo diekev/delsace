@@ -6,6 +6,7 @@ gmon.out
 test.db
 *.a
 *.so
+*.so*
 config.json
 
 logiciels/kuri/modules/Aléa/*.h
