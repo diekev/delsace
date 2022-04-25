@@ -3,4 +3,4 @@
 	url = https://github.com/nst/JSONTestSuite.git
 [submodule "logiciels/kuri/modules_c/openvdb"]
 	path = logiciels/kuri/modules_c/openvdb
-	url = https://github.com/AcademySoftwareFoundation/openvdb.git
+	url = git@github.com:diekev/openvdb.git
