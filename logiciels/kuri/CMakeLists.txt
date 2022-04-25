@@ -24,6 +24,7 @@
 option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
+option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
@@ -122,6 +123,10 @@ endif()
 
 if(AVEC_IMAGE)
     add_subdirectory(modules_c/Image)
+endif()
+
+if(AVEC_OPENVDB)
+    add_subdirectory(modules_c/openvdb)
 endif()
 
 install(
