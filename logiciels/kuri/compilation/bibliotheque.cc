@@ -496,8 +496,14 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     }
 
     if (!chemin_statique_trouve && !chemin_dynamique_trouve) {
-        espace.rapporte_erreur(site, "Impossible de résoudre le chemin vers une bibliothèque")
-            .ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n");
+        auto e = espace.rapporte_erreur(site,
+                                        "Impossible de résoudre le chemin vers une bibliothèque");
+        e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
+        e.ajoute_message("Les chemins testés furent :\n");
+        POUR (dossiers) {
+            e.ajoute_message("    ", it, "/", nom_statique, "\n");
+            e.ajoute_message("    ", it, "/", nom_dynamique, "\n");
+        }
         return;
     }
 
