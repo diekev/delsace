@@ -288,3 +288,41 @@ divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
 
     retourne résultat
 }
+
+bit_est_actif :: fonc (n: n64, index_bit: n64) -> bool #enligne
+{
+    retourne (n & (1 << index_bit)) != 0
+}
+
+index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
+{
+    pour > 64 {
+        si bit_est_actif(v, it comme n64) {
+            retourne it comme n64
+        }
+    }
+
+    retourne 0
+}
+
+/* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
+exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
+{
+    début := index_premier_bit_actif_gauche(exp)
+    résultat : n64 = 1
+
+    // À FAIRE(langage) : les nombres naturels font des boucles infinies avec "> début"
+    pour 0 ... début {
+        si bit_est_actif(exp, début - it) {
+            résultat *= résultat
+            résultat *= b
+        }
+        sinon {
+            résultat *= résultat
+        }
+
+        résultat %= mod
+    }
+
+    retourne résultat   
+}
