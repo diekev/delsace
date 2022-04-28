@@ -1271,7 +1271,7 @@ struct Convertisseuse {
                 auto enfants = rassemble_enfants(cursor);
 
                 if (!enfants.est_vide()) {
-                    flux_sortie << " := ";
+                    flux_sortie << " :: ";
                     converti_enfants(enfants, trans_unit, flux_sortie);
                 }
 

@@ -489,7 +489,7 @@ texture_font_t :: struct {
      * font location
      */
     anonyme0 :: énum n32 {
-        TEXTURE_FONT_FILE := 0
+        TEXTURE_FONT_FILE :: 0
         TEXTURE_FONT_MEMORY
     }
 
