@@ -36,5 +36,7 @@ logiciels/kuri/parsage/empreinte_parfaite.hh
 logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh
 
+logiciels/kuri/modules/OpenVDB/interface_openvdb_kuri.kuri
+
 .chaines_ajoutées
 .vscode/
