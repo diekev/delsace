@@ -2859,6 +2859,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 if (noeud->est_declaration_variable()) {
                     auto decl_membre = noeud->comme_declaration_variable();
                     analyse_annotations(decl_membre->annotations);
+                    noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
                 }
 
                 expressions.ajoute(noeud);

@@ -3794,7 +3794,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
         POUR (decls_et_refs) {
             auto bloc_final = NoeudBloc::nul();
-            if (it.decl->possede_drapeau(EST_PARAMETRE)) {
+            if (it.decl->possede_drapeau(EST_PARAMETRE) ||
+                it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
                 bloc_final = it.decl->bloc_parent->bloc_parent;
             }
             auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
