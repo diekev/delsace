@@ -2327,6 +2327,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
             }
 
+            noeud->param_sortie->drapeaux |= EST_PARAMETRE;
+
             if (eu_parenthese) {
                 consomme(
                     GenreLexeme::PARENTHESE_FERMANTE,
@@ -2348,6 +2350,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
             decl->expression_type = type_declare;
+
+            decl->drapeaux |= EST_PARAMETRE;
 
             noeud->params_sorties.ajoute(decl);
             noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
