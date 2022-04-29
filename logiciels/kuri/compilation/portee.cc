@@ -49,11 +49,13 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration const *decl)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+                                   NoeudDeclaration const *decl,
+                                   NoeudBloc *bloc_final)
 {
     auto bloc_courant = bloc;
 
-    while (bloc_courant != nullptr) {
+    while (bloc_courant != bloc_final) {
         auto membres = bloc_courant->membres.verrou_lecture();
         bloc_courant->nombre_recherches += 1;
         POUR (*membres) {

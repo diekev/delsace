@@ -3793,7 +3793,11 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "typage et redéfinition");
 
         POUR (decls_et_refs) {
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+            auto bloc_final = NoeudBloc::nul();
+            if (it.decl->possede_drapeau(EST_PARAMETRE)) {
+                bloc_final = it.decl->bloc_parent->bloc_parent;
+            }
+            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
             if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
                 if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
