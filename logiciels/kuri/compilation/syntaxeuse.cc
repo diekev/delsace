@@ -2334,12 +2334,16 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
         }
         else {
-            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(&lexeme_rien);
+            Lexeme *lexeme_rien = m_tacheronne.lexemes_extra.ajoute_element();
+            *lexeme_rien = *lexeme;
+            lexeme_rien->genre = GenreLexeme::RIEN;
+            lexeme_rien->chaine = "";
+
+            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(lexeme_rien);
 
             auto ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 
-            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(&lexeme_rien);
+            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_rien);
             ref->ident = ident;
 
             auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);

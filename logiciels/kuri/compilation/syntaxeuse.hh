@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 
 struct Annotation;

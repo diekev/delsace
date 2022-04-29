@@ -340,7 +340,7 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 struct Lexeme {
-	dls::vue_chaine_compacte chaine;
+    dls::vue_chaine_compacte chaine{};
 
 	union {
 		unsigned long long valeur_entiere;
@@ -349,7 +349,7 @@ struct Lexeme {
 		IdentifiantCode *ident;
 	};
 
-	GenreLexeme genre;
+    GenreLexeme genre{};
 	int fichier = 0;
 	int ligne = 0;
 	int colonne = 0;
