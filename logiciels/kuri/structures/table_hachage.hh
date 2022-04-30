@@ -50,6 +50,42 @@ struct table_hachage {
     {
     }
 
+  private:
+    /* Utilise un incrément différent pour chaque empreinte.
+     *
+     * Quand nous insérons ou recherchons une valeur, nous commençons par
+     * la position correspond à l'empreinte. Si elle est occupée par
+     * quelque chose n'ayant pas la même empreinte (ou simplement par
+     * quelque chose lors d'une insertion), nous allons à la position suivante.
+     *
+     * Cette approche pose problème, car l'utilisation de l'index suivant pourrait
+     * causer des collisions futures avec des objets n'ayant pas la même empreinte
+     * mais devant se trouver à cette position.
+     *
+     * Pour éviter d'avoir des régions contiguës trop grande, et éviter trop
+     * de collisions, nous utilisons un décalage différent pour chaque
+     * empreinte : si il y a une collision, la position suivante sera
+     * `position de base + incrément`.
+     *
+     * L'incrément est également incrément à chaque collision.
+     *
+     * Visuellement, sans incrément nous aurions (où les valeurs A B C D E
+     * auraient la même empreinte, ou une empreinte différente mais la position
+     * fut déjà utilisée) :
+     *
+     * _ _ _ _ A B C D E _ _ _ _ _ _ _ _ _ _
+     *
+     * Avec :
+     *
+     * _ _ _ _ A _ B _ _ C _ _ _ D _ _ _ _ E
+     */
+    inline int increment_de_base_pour_empreinte(size_t empreinte)
+    {
+        /* - 1 pour être relativement premier avec la capacité. */
+        return 1 + empreinte % (static_cast<size_t>(capacite) - 1);
+    }
+
+  public:
     void alloue(long taille)
     {
         capacite = taille;
@@ -146,6 +182,7 @@ struct table_hachage {
         }
 
         auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto increment = increment_de_base_pour_empreinte(empreinte);
 
         while (occupes[index]) {
             if (empreintes[index] == empreinte) {
@@ -154,10 +191,11 @@ struct table_hachage {
                 }
             }
 
-            index += 1;
+            index += increment;
+            increment += 1;
 
-            if (index >= capacite) {
-                index = 0;
+            while (index >= capacite) {
+                index -= capacite;
             }
         }
 
@@ -192,12 +230,14 @@ struct table_hachage {
         }
 
         auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto increment = increment_de_base_pour_empreinte(empreinte);
 
         while (occupes[index]) {
-            index += 1;
+            index += increment;
+            increment += 1;
 
-            if (index >= capacite) {
-                index = 0;
+            while (index >= capacite) {
+                index -= capacite;
             }
         }
 
