@@ -627,8 +627,8 @@ static bool est_type_tableau_fixe(Type *type)
 }
 
 struct GeneratriceCodeC {
-    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{};
-    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 

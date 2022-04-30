@@ -37,7 +37,7 @@ struct IdentifiantCode {
 
 struct TableIdentifiant {
   private:
-    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
+    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{"IdentifiantCode"};
     tableau_page<IdentifiantCode, 1024> identifiants{};
 
     Enchaineuse enchaineuse{};

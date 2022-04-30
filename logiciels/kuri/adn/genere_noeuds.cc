@@ -94,7 +94,7 @@ static const char *copie_extra_bloc = R"(
 struct GeneratriceCodeCPP {
     kuri::tableau<Proteine *> proteines{};
     kuri::tableau<ProteineStruct *> proteines_struct{};
-    kuri::table_hachage<kuri::chaine_statique, ProteineStruct *> table_desc{};
+    kuri::table_hachage<kuri::chaine_statique, ProteineStruct *> table_desc{"Protéines"};
 
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
@@ -1625,7 +1625,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProteineStruct *>();
+    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProteineStruct *>(
+        "Protéines structures");
 
     POUR (syntaxeuse.proteines) {
         if (!it->comme_struct()) {

@@ -333,11 +333,14 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 /* ************************************************************************** */
 
 struct GeneratriceCodeLLVM {
-    kuri::table_hachage<Atome const *, llvm::Value *> table_valeurs{};
-    kuri::table_hachage<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
-    kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{};
-    kuri::table_hachage<Type *, llvm::Type *> table_types{};
-    kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{};
+    kuri::table_hachage<Atome const *, llvm::Value *> table_valeurs{"Table valeurs locales LLVM"};
+    kuri::table_hachage<InstructionLabel const *, llvm::BasicBlock *> table_blocs{
+        "Table labels LLVM"};
+    kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
+        "Table valeurs globales LLVM"};
+    kuri::table_hachage<Type *, llvm::Type *> table_types{"Table types LLVM"};
+    kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{
+        "Table chaines LLVM"};
     EspaceDeTravail &m_espace;
 
     llvm::Function *m_fonction_courante = nullptr;

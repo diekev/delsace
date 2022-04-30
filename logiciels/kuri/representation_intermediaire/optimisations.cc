@@ -84,7 +84,7 @@ enum {
 
 struct CopieuseInstruction {
   private:
-    kuri::table_hachage<Atome *, Atome *> copies{};
+    kuri::table_hachage<Atome *, Atome *> copies{"Instructions copiées"};
     ConstructriceRI &constructrice;
 
   public:

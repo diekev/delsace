@@ -199,7 +199,8 @@ struct SystemeModule {
     tableau_page<Module> modules{};
     tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{};
+    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
+        "Fichiers système modules"};
 
     Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 

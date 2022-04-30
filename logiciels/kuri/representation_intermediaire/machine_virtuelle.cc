@@ -1760,7 +1760,7 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os
 static void cree_rapport_format_echantillons_total_plus_fonction(
     const InformationProfilage &informations, std::ostream &os)
 {
-    auto table = kuri::table_hachage<AtomeFonction *, int>();
+    auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
 
     POUR (informations.echantillons) {

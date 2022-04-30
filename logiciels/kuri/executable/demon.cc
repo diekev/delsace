@@ -127,8 +127,8 @@ static bool lis_tout(int fd)
 }
 
 class Guetteuse {
-    kuri::table_hachage<int, kuri::chaine> table_chemin_fichiers{};
-    kuri::table_hachage<kuri::chaine, int> table_desc_fichiers{};
+    kuri::table_hachage<int, kuri::chaine> table_chemin_fichiers{"Chemins fichiers"};
+    kuri::table_hachage<kuri::chaine, int> table_desc_fichiers{"Descripteurs fichiers"};
 
   public:
     void ajoute(int fd, const std::filesystem::path &chemin)

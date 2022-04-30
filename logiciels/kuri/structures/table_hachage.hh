@@ -43,7 +43,13 @@ struct table_hachage {
 
     static constexpr auto TAILLE_MIN = 32;
 
+    const char *nom = nullptr;
+
   public:
+    explicit table_hachage(const char *identifiant) : nom(identifiant)
+    {
+    }
+
     void alloue(long taille)
     {
         capacite = taille;

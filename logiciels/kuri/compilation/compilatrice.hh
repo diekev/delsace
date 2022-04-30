@@ -139,7 +139,7 @@ struct Compilatrice {
     dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
     using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{};
+    dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
 
     std::mutex mutex_atomes_fonctions{};
     std::mutex mutex_atomes_globales{};

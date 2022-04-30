@@ -40,8 +40,8 @@
 static constexpr const char *RSP = "rsp";
 
 struct GeneratriceCodeASM {
-    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{};
-    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales ASM"};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales ASM"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
