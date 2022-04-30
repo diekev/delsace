@@ -2984,12 +2984,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             /* création de l'info type */
 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(7);
+            auto valeurs = kuri::tableau<AtomeConstante *>(8);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::ENUM, type);
             valeurs[3] = cree_chaine(type_enum->nom->nom);
             valeurs[4] = tableau_valeurs;
             valeurs[5] = tableau_noms;
             valeurs[6] = cree_constante_booleenne(type_enum->est_drapeau);
+            valeurs[7] = cree_info_type(type_enum->type_donnees, site);
 
             type->atome_info_type = cree_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_enum, std::move(valeurs));

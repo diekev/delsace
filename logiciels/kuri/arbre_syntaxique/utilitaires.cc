@@ -2761,6 +2761,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->nom = type_enum->nom->nom;
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
+            info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
+                cree_info_type_pour(type_enum->type_donnees));
 
             info_type->noms.reserve(type_enum->membres.taille());
             info_type->valeurs.reserve(type_enum->membres.taille());

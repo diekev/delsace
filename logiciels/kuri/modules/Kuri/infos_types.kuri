@@ -104,6 +104,7 @@ InfoTypeÉnum :: struct #interface {
 	valeurs : []z32
 	noms : []chaine
 	est_drapeau : bool
+	type_sous_jacent: *InfoTypeEntier
 }
 
 InfoTypeOpaque :: struct #interface {
