@@ -182,26 +182,21 @@ struct table_hachage {
   private:
     int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
     {
-        auto index = trouve_index(cle, empreinte);
-
-        if (index == -1) {
-            if (nombre_elements * 2 >= capacite) {
-                agrandis();
-            }
-
-            index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
-
-            while (occupes[index]) {
-                index += 1;
-
-                if (index >= capacite) {
-                    index = 0;
-                }
-            }
-
-            nombre_elements += 1;
+        if (nombre_elements * 2 >= capacite) {
+            agrandis();
         }
 
+        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+
+        while (occupes[index]) {
+            index += 1;
+
+            if (index >= capacite) {
+                index = 0;
+            }
+        }
+
+        nombre_elements += 1;
         return index;
     }
 };
