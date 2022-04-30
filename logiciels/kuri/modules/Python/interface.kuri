@@ -583,6 +583,77 @@ PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
     retourne 0
 }
 
+PyUnicodeEnum_Value_z8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z8
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z8
+}
+
+PyUnicodeEnum_Value_z16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z16
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z16
+}
+
+PyUnicodeEnum_Value_z32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
+{
+    retourne PyUnicodeEnum_Value(object, info)
+}
+
+PyUnicodeEnum_Value_z64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z64
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z64
+}
+
+PyUnicodeEnum_Value_n8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n8
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n8
+}
+
+PyUnicodeEnum_Value_n16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n16
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n16
+}
+
+PyUnicodeEnum_Value_n32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n32
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n32
+}
+
+PyUnicodeEnum_Value_n64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n64
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n64
+}
+
+fonction_PyUnicodeEnum_Value_pour_info :: fonc (info_énum: *InfoTypeÉnum) -> chaine
+{
+    info := info_énum.type_sous_jacent
+
+    si info == info_de(z8) {
+        retourne "PyUnicodeEnum_Value_z8"
+    }
+    si info == info_de(z16) {
+        retourne "PyUnicodeEnum_Value_z16"
+    }
+    si info == info_de(z32) {
+        retourne "PyUnicodeEnum_Value_z32"
+    }
+    si info == info_de(z64) {
+        retourne "PyUnicodeEnum_Value_z64"
+    }
+    si info == info_de(n8) {
+        retourne "PyUnicodeEnum_Value_n8"
+    }
+    si info == info_de(n16) {
+        retourne "PyUnicodeEnum_Value_n16"
+    }
+    si info == info_de(n32) {
+        retourne "PyUnicodeEnum_Value_n32"
+    }
+    si info == info_de(n64) {
+        retourne "PyUnicodeEnum_Value_n64"
+    }
+    retourne "PyUnicodeEnum_Value"
+}
+
 // ---------------------------------------------------
 // Exceptions
 
