@@ -30,7 +30,7 @@
 
 namespace kuri {
 
-template <typename Cle, typename Valeur>
+template <typename Cle, typename Valeur, int FACTEUR_DE_CHARGE = 70>
 struct table_hachage {
   private:
     kuri::tableau<Cle, int> cles{};
@@ -182,7 +182,12 @@ struct table_hachage {
   private:
     int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
     {
-        if (nombre_elements * 2 >= capacite) {
+        /* éléments / alloués >= FACTEUR_DE_CHARGE / 100
+         * donc
+         * éléments * 100 >= alloués * FACTEUR_DE_CHARGE
+         * + 1 pour être cohérent sur la division de nombre entiers
+         */
+        if ((nombre_elements + 1) * 100 >= capacite * FACTEUR_DE_CHARGE) {
             agrandis();
         }
 
