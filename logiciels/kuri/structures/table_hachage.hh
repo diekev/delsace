@@ -24,11 +24,15 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "biblinternes/outils/definitions.h"
 
 #include "structures/tableau.hh"
 
 namespace kuri {
+
+#undef COMPTE_COLLISION
 
 template <typename Cle, typename Valeur, int FACTEUR_DE_CHARGE = 70>
 struct table_hachage {
@@ -45,9 +49,29 @@ struct table_hachage {
 
     const char *nom = nullptr;
 
+#ifdef COMPTE_COLLISION
+    int nombre_de_collision_recherche = 0;
+    int nombre_de_collision_ajout = 0;
+#endif
+
   public:
     explicit table_hachage(const char *identifiant) : nom(identifiant)
     {
+    }
+
+    ~table_hachage()
+    {
+#ifdef COMPTE_COLLISION
+        auto &os = std::cout;
+
+        os << "Table \"" << nom << "\"\n";
+        os << "-- capacité            " << capacite << '\n';
+        os << "-- éléments            " << nombre_elements << '\n';
+        os << "-- collision recherche " << nombre_de_collision_recherche << '\n';
+        os << "-- collision ajout     " << nombre_de_collision_ajout << '\n';
+        os << "-- collision / élément "
+           << (static_cast<double>(nombre_de_collision_ajout) / nombre_elements) << '\n';
+#endif
     }
 
   private:
@@ -190,6 +214,9 @@ struct table_hachage {
                     return index;
                 }
             }
+#ifdef COMPTE_COLLISION
+            nombre_de_collision_recherche += 1;
+#endif
 
             index += increment;
             increment += 1;
@@ -233,6 +260,9 @@ struct table_hachage {
         auto increment = increment_de_base_pour_empreinte(empreinte);
 
         while (occupes[index]) {
+#ifdef COMPTE_COLLISION
+            nombre_de_collision_ajout += 1;
+#endif
             index += increment;
             increment += 1;
 
