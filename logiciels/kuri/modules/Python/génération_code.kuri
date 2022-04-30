@@ -180,7 +180,7 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
     enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
     si type.drapeaux.TYPE_EST_ÉNUM {
         enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n")
-        enchaineuse.ajoute_au_tampon("    résultat := info_énum.noms[notre_instance comme z32]\n")
+        enchaineuse.ajoute_au_tampon("    résultat := info_énum.noms[notre_instance]\n")
     }
     sinon {
         enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
@@ -217,7 +217,7 @@ génère_fonction_hash :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) ->
         enchaineuse.ajoute_au_tampon("{\n")
         enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
         enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n")
-        enchaineuse.ajoute_au_tampon("    résultat := info_énum.valeurs[notre_instance comme z32]\n")
+        enchaineuse.ajoute_au_tampon("    résultat := info_énum.valeurs[notre_instance]\n")
         enchaineuse.ajoute_au_tampon("    retourne résultat\n")
         enchaineuse.ajoute_au_tampon("}\n")
 
@@ -259,7 +259,7 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
         valeur_énum := Py%_As%(self).notre_instance
 
         infos := info_de(%)
-        valeur_énum_comme_chaine := infos.noms[valeur_énum comme z32]
+        valeur_énum_comme_chaine := infos.noms[valeur_énum]
 
         si op == Py_EQ {
             si valeur_chaine == valeur_énum_comme_chaine {
