@@ -691,10 +691,7 @@ void Lexeuse::performe_lexage()
     }
 
     if (m_taille_mot_courant != 0) {
-        rapporte_erreur("Des caractères en trop se trouvent à la fin du texte !",
-                        m_position_ligne,
-                        m_position_ligne,
-                        m_position_ligne + 1);
+        this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
     }
 
 #undef CAS_CARACTERE
