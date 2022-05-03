@@ -20,12 +20,6 @@
 using namespace std;
 using namespace CGAL;
 
-struct Texture {
-    QString m_name;
-    QImage m_data;
-    GLuint m_id;
-};
-
 // compute facet normal
 struct Facet_normal {
     template <class Facet>

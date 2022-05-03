@@ -25,6 +25,7 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
         /opt/lib/CGAL/include/
+        /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
 )
 
 set(BIBLIOTHEQUES
