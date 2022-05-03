@@ -29,6 +29,25 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 )
 
+set(SOURCES_BOOLEEN
+    booleen/Polyhedron/Correct_CGAL_Structure.h
+    booleen/Polyhedron/mesh.cpp
+    booleen/Polyhedron/mesh.h
+    booleen/Polyhedron/polyhedron.h
+    booleen/Polyhedron/Polyhedron_Builder.h
+    booleen/Polyhedron/Polyhedron_Copy.h
+    booleen/Polyhedron/polyhedron_enriched_polyhedron.h
+    booleen/Polyhedron/polyhedron_shared_items.h
+
+    booleen/Boolean_Operations_Definitions.h
+    booleen/Boolean_Operations_Items.h
+    booleen/Boolean_Operations_Polyhedron.h
+    booleen/Boolean_Operations_triangulation.h
+    booleen/BoolPolyhedra.h
+    booleen/CPolyhedron_from_polygon_builder_3.h
+    booleen/Time_measure.h
+)
+
 set(SOURCES_VORONOI
     voro/cell.cc
     voro/c_loops.cc
@@ -71,6 +90,7 @@ set(SOURCES
     fracture.cc
     fracture.hh
 
+    ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
