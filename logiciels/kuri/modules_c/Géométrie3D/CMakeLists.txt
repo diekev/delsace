@@ -24,6 +24,7 @@ set(NOM_PROJET module_c_geometrie_3d)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+        /opt/lib/CGAL/include/
 )
 
 set(BIBLIOTHEQUES
