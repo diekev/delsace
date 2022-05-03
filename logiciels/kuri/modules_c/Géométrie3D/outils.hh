@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "biblinternes/math/limites.hh"
@@ -33,6 +34,11 @@
 using namespace dls;
 
 #include "ipa.hh"
+
+inline std::string vers_std_string(const char *chemin, long taille_chemin)
+{
+    return std::string(chemin, static_cast<size_t>(taille_chemin));
+}
 
 namespace geo {
 
@@ -135,6 +141,20 @@ class Maillage : public AdaptriceMaillage {
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
+    template <TypeAttributGeo3D TypeAttribut>
+    auto accedeAttributPoint(const std::string &nom) const
+        -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
+    {
+        AdaptriceAttribut adaptrice;
+        this->accede_attribut_sur_points(
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        if (!adaptrice) {
+            return {};
+        }
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
+        return ClasseAttribut::enveloppe(&adaptrice);
+    }
+
     /* Interface pour les polygones. */
 
     long nombreDePolygones() const;
@@ -169,6 +189,20 @@ class Maillage : public AdaptriceMaillage {
     }
 
     template <TypeAttributGeo3D TypeAttribut>
+    auto accedeAttributPolygone(const std::string &nom) const
+        -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
+    {
+        AdaptriceAttribut adaptrice;
+        this->accede_attribut_sur_polygones(
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        if (!adaptrice) {
+            return {};
+        }
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
+        return ClasseAttribut::enveloppe(&adaptrice);
+    }
+
+    template <TypeAttributGeo3D TypeAttribut>
     typename SelectriceClasseAttribut<TypeAttribut>::Type ajouteAttributSommetsPolygone(
         const std::string &nom)
     {
@@ -176,6 +210,20 @@ class Maillage : public AdaptriceMaillage {
         AdaptriceAttribut adaptrice;
         this->ajoute_attribut_sur_sommets_polygones(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        return ClasseAttribut::enveloppe(&adaptrice);
+    }
+
+    template <TypeAttributGeo3D TypeAttribut>
+    auto accedeAttributSommetsPolygone(const std::string &nom) const
+        -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
+    {
+        AdaptriceAttribut adaptrice;
+        this->accede_attribut_sur_sommets_polygones(
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        if (!adaptrice) {
+            return {};
+        }
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -199,6 +247,20 @@ class Maillage : public AdaptriceMaillage {
         AdaptriceAttribut adaptrice;
         this->ajoute_attribut_sur_maillage(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        return ClasseAttribut::enveloppe(&adaptrice);
+    }
+
+    template <TypeAttributGeo3D TypeAttribut>
+    auto accedeAttributMaillage(const std::string &nom) const
+        -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
+    {
+        AdaptriceAttribut adaptrice;
+        this->accede_attribut_sur_maillage(
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+        if (!adaptrice) {
+            return {};
+        }
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 

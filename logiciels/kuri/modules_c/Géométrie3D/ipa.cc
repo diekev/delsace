@@ -25,13 +25,14 @@
 #include "ipa.hh"
 
 #include "creation.h"
+#include "fracture.hh"
 #include "import_objet.h"
 #include "outils.hh"
 
-static std::string vers_std_string(const char *chemin, long taille_chemin)
-{
-    return std::string(chemin, static_cast<size_t>(taille_chemin));
-}
+#define RETOURNE_SI_NUL(x)                                                                        \
+    if (!x) {                                                                                     \
+        return;                                                                                   \
+    }
 
 /**
  * Crée une boîte avec les tailles spécifiées.
@@ -160,4 +161,21 @@ void GEO3D_importe_fichier_stl(AdaptriceMaillage *adaptrice,
 {
     geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
     geo::charge_fichier_STL(maillage, vers_std_string(chemin, taille_chemin));
+}
+
+void GEO3D_fracture_maillage(struct ParametresFracture *params,
+                             struct AdaptriceMaillage *maillage_a_fracturer,
+                             struct AdaptriceMaillage *nuage_de_points,
+                             struct AdaptriceMaillage *maillage_sortie)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(maillage_a_fracturer)
+    RETOURNE_SI_NUL(nuage_de_points)
+    RETOURNE_SI_NUL(maillage_sortie)
+
+    geo::Maillage maillage_a_fracturer_ = geo::Maillage::enveloppe(maillage_a_fracturer);
+    geo::Maillage nuage_de_points_ = geo::Maillage::enveloppe(nuage_de_points);
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
+    geo::fracture_maillage_voronoi(
+        *params, maillage_a_fracturer_, nuage_de_points_, maillage_sortie_);
 }

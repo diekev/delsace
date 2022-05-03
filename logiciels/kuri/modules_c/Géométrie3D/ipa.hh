@@ -45,6 +45,9 @@ enum TypeAttributGeo3D {
 };
 
 struct AdaptriceAttribut {
+#ifdef __cplusplus
+  protected:
+#endif
     void (*lis_bool_pour_index)(void *, long, bool *);
     void (*lis_entier_pour_index)(void *, long, int *);
     void (*lis_reel_pour_index)(void *, long, float *);
@@ -62,6 +65,14 @@ struct AdaptriceAttribut {
     void (*ecris_couleur_a_l_index)(void *, long, float *);
 
     void *donnees_utilisateur;
+
+#ifdef __cplusplus
+  public:
+    operator bool() const
+    {
+        return this->donnees_utilisateur != nullptr;
+    }
+#endif
 };
 
 struct AdaptriceMaillage {
@@ -79,6 +90,9 @@ struct AdaptriceMaillage {
     void (*ajoute_plusieurs_points)(void *, float *points, long nombre);
 
     void (*ajoute_attribut_sur_points)(
+        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+
+    void (*accede_attribut_sur_points)(
         void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
 
     /* Interface pour les polygones. */
@@ -100,7 +114,13 @@ struct AdaptriceMaillage {
     void (*ajoute_attribut_sur_polygones)(
         void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
 
+    void (*accede_attribut_sur_polygones)(
+        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+
     void (*ajoute_attribut_sur_sommets_polygones)(
+        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+
+    void (*accede_attribut_sur_sommets_polygones)(
         void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
 
     /* Appelée si un polygone possède plus que 4 sommet afin que l'application cliente définissent
@@ -120,6 +140,9 @@ struct AdaptriceMaillage {
     void (*ajoute_attribut_sur_maillage)(
         void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
 
+    void (*accede_attribut_sur_maillage)(
+        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+
     /* Outils. */
 
     void (*calcule_boite_englobante)(void *,
@@ -136,7 +159,7 @@ struct AdaptriceMaillage {
 /**
  * Crée une boîte avec les tailles spécifiées.
  */
-void GEO3D_cree_boite(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_boite(struct AdaptriceMaillage *adaptrice,
                       const float taille_x,
                       const float taille_y,
                       const float taille_z,
@@ -147,7 +170,7 @@ void GEO3D_cree_boite(AdaptriceMaillage *adaptrice,
 /**
  * Crée une sphere UV avec les paramètres spécifiés.
  */
-void GEO3D_cree_sphere_uv(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_sphere_uv(struct AdaptriceMaillage *adaptrice,
                           const float rayon,
                           int const resolution_u,
                           int const resolution_v,
@@ -158,7 +181,7 @@ void GEO3D_cree_sphere_uv(AdaptriceMaillage *adaptrice,
 /**
  * Crée un torus avec les paramètres spécifiés.
  */
-void GEO3D_cree_torus(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_torus(struct AdaptriceMaillage *adaptrice,
                       const float rayon_mineur,
                       const float rayon_majeur,
                       const long segment_mineur,
@@ -170,7 +193,7 @@ void GEO3D_cree_torus(AdaptriceMaillage *adaptrice,
 /**
  * Crée une grille avec les paramètres spécifiés.
  */
-void GEO3D_cree_grille(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_grille(struct AdaptriceMaillage *adaptrice,
                        const float taille_x,
                        const float taille_y,
                        const long lignes,
@@ -182,7 +205,7 @@ void GEO3D_cree_grille(AdaptriceMaillage *adaptrice,
 /**
  * Crée un cercle avec les paramètres spécifiés.
  */
-void GEO3D_cree_cercle(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_cercle(struct AdaptriceMaillage *adaptrice,
                        const long segments,
                        const float rayon,
                        const float centre_x,
@@ -192,7 +215,7 @@ void GEO3D_cree_cercle(AdaptriceMaillage *adaptrice,
 /**
  * Crée un cylindre avec les paramètres spécifiés.
  */
-void GEO3D_cree_cylindre(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_cylindre(struct AdaptriceMaillage *adaptrice,
                          const long segments,
                          const float rayon_mineur,
                          const float rayon_majeur,
@@ -204,19 +227,58 @@ void GEO3D_cree_cylindre(AdaptriceMaillage *adaptrice,
 /**
  * Crée une sphère ico avec les paramètres spécifiés.
  */
-void GEO3D_cree_icosphere(AdaptriceMaillage *adaptrice,
+void GEO3D_cree_icosphere(struct AdaptriceMaillage *adaptrice,
                           const float rayon,
                           const float centre_x,
                           const float centre_y,
                           const float centre_z);
 
-void GEO3D_importe_fichier_obj(AdaptriceMaillage *adaptrice,
+void GEO3D_importe_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);
 
-void GEO3D_importe_fichier_stl(AdaptriceMaillage *adaptrice,
+void GEO3D_importe_fichier_stl(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);
+
+struct ParametresFracture {
+    bool periodique_x;
+    bool periodique_y;
+    bool periodique_z;
+
+    bool utilise_rayon;
+    const char *ptr_nom_attribut_rayon;
+    long taille_nom_attribut_rayon;
+
+    bool genere_groupes;
+    const char *ptr_nom_base_groupe;
+    long taille_nom_base_groupe;
+
+    /** Crée un attribut sur chaque polygone contenant l'index de la cellule voisine.
+     *  Cet index sera également celui du groupe, si les groupes sont générés.
+     */
+    bool cree_attribut_cellule_voisine;
+
+    /**
+     * Crée un attribut sur chaque polygone contenant le volume de la cellule dont
+     * il fait partie.
+     * À FAIRE : attributs sur les groupes plutôt.
+     */
+    bool cree_attribut_volume_cellule;
+
+    /**
+     * Crée un attribut sur chaque polygone contenant le centroide de la cellule dont
+     * il fait partie.
+     * À FAIRE : attributs sur les groupes plutôt.
+     */
+    bool cree_attribut_centroide;
+};
+
+void GEO3D_fracture_maillage(struct ParametresFracture *params,
+                             struct AdaptriceMaillage *maillage_a_fracturer,
+                             struct AdaptriceMaillage *nuage_de_points,
+                             struct AdaptriceMaillage *maillage_sortie);
+
 #ifdef __cplusplus
 }
 #endif
