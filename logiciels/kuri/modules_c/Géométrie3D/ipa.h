@@ -48,7 +48,14 @@ enum TypeAttributGeo3D {
 
 struct AdaptriceAttribut {
 #ifdef __cplusplus
-    AdaptriceAttribut() : donnees_utilisateur(nullptr)
+    AdaptriceAttribut()
+        : lis_bool_pour_index(nullptr), lis_entier_pour_index(nullptr),
+          lis_reel_pour_index(nullptr), lis_vec2_pour_index(nullptr), lis_vec3_pour_index(nullptr),
+          lis_vec4_pour_index(nullptr), lis_couleur_pour_index(nullptr),
+          ecris_bool_a_l_index(nullptr), ecris_entier_a_l_index(nullptr),
+          ecris_reel_a_l_index(nullptr), ecris_vec2_a_l_index(nullptr),
+          ecris_vec3_a_l_index(nullptr), ecris_vec4_a_l_index(nullptr),
+          ecris_couleur_a_l_index(nullptr), donnees_utilisateur(nullptr)
     {
     }
 
