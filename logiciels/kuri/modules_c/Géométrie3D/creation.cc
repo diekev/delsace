@@ -430,7 +430,6 @@ void cree_grille(Maillage &maillage,
     auto normal = math::vec3f(0.0f, 1.0f, 0.0f);
 
     int poly[4] = {0, 0, 0, 0};
-    int normaux[4] = {0, 0, 0, 0};
 
     /* crée une copie pour le lambda */
     auto const tot_x = lignes;
