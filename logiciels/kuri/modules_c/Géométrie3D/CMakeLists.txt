@@ -177,3 +177,6 @@ set(SOURCES
 )
 
 compile_module_c(${NOM_PROJET} geometrie3d ipa.h Géométrie3D "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
+
+desactive_drapeaux_compilation_c(${NOM_PROJET}_statique)
+desactive_drapeaux_compilation_c(${NOM_PROJET}_dynamique)

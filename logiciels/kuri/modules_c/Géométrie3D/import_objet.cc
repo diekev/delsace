@@ -53,22 +53,22 @@ static dls::tableau<std::string> morcelle(std::string const &texte, char const d
 namespace geo {
 
 struct GroupePrimitives {
-    std::string nom;
-    dls::tableau<int> index;
+    std::string nom = "";
+    dls::tableau<int> index{};
 };
 
 struct DonneesLectureOBJ {
-    dls::tableau<math::vec3f> points;
-    dls::tableau<math::vec3f> normaux;
-    dls::tableau<math::vec3f> parametres_point;
-    dls::tableau<math::vec3f> coordonnees_texture_point;
+    dls::tableau<math::vec3f> points{};
+    dls::tableau<math::vec3f> normaux{};
+    dls::tableau<math::vec3f> parametres_point{};
+    dls::tableau<math::vec3f> coordonnees_texture_point{};
 
-    dls::tableau<dls::tableau<int>> polygones;
-    dls::tableau<dls::tableau<int>> normaux_polygones;
-    dls::tableau<dls::tableau<int>> uv_polygones;
+    dls::tableau<dls::tableau<int>> polygones{};
+    dls::tableau<dls::tableau<int>> normaux_polygones{};
+    dls::tableau<dls::tableau<int>> uv_polygones{};
 
-    std::list<GroupePrimitives> groupes;
-    std::list<GroupePrimitives *> groupes_courant;
+    std::list<GroupePrimitives> groupes{};
+    std::list<GroupePrimitives *> groupes_courant{};
 
     GroupePrimitives *cree_groupe_si_non_existant(const std::string &nom)
     {
@@ -119,10 +119,6 @@ static void lis_polygone(DonneesLectureOBJ &donnees, std::istringstream &is)
     dls::tableau<int> index_polygones;
     dls::tableau<int> index_normaux;
     dls::tableau<int> index_coords_uv;
-
-    auto ptr_index = static_cast<int *>(nullptr);
-    auto ptr_normaux = static_cast<int *>(nullptr);
-    auto ptr_coords = static_cast<int *>(nullptr);
 
     while (is >> info_poly) {
         auto morceaux = morcelle(info_poly, '/');
@@ -241,7 +237,7 @@ static ParsatTableauIndexSurPolygone parse_tableau_index(
             return resultat;
         }
 
-        resultat.nombre_de_sommets += tableau.taille();
+        resultat.nombre_de_sommets += static_cast<int>(tableau.taille());
 
         int premier_index = tableau[0];
         for (const auto &index : tableau) {
@@ -321,7 +317,7 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
 
     auto parsat_polygones = parse_tableau_index(donnees.polygones);
     auto parsat_normaux_polygones = parse_tableau_index(donnees.normaux_polygones);
-    auto parsat_uv_polygones = parse_tableau_index(donnees.uv_polygones);
+    // auto parsat_uv_polygones = parse_tableau_index(donnees.uv_polygones);
 
     if (parsat_polygones.valide && parsat_polygones.donnees_variantes_sur_polygone &&
         !donnees.polygones.est_vide()) {
@@ -331,7 +327,7 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
 
         maillage.reserveNombreDePolygones(donnees.polygones.taille());
         for (const auto &polygone : donnees.polygones) {
-            maillage.ajouteUnPolygone(polygone.donnees(), polygone.taille());
+            maillage.ajouteUnPolygone(polygone.donnees(), static_cast<int>(polygone.taille()));
         }
 
         /* Exporte les groupes. */
@@ -433,7 +429,7 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
             tous_les_triangles.ajoute(triangle);
 
             for (int i = 0; i < 3; ++i) {
-                triangle[i] += 3;
+                triangle[static_cast<size_t>(i)] += 3;
             }
         }
         else if (mot == "endsolid") {
