@@ -24,6 +24,7 @@
 
 #include "ipa.h"
 
+#include "booleen_maillage.hh"
 #include "creation.h"
 #include "fracture.hh"
 #include "import_objet.h"
@@ -186,4 +187,14 @@ void GEO3D_fracture_maillage(struct ParametresFracture *params,
     geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
     geo::fracture_maillage_voronoi(
         *params, maillage_a_fracturer_, nuage_de_points_, maillage_sortie_);
+}
+
+void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
+                                    struct AdaptriceMaillage *maillage_sortie)
+{
+    RETOURNE_SI_NUL(maillage_entree)
+    RETOURNE_SI_NUL(maillage_sortie)
+    geo::Maillage maillage_entree_ = geo::Maillage::enveloppe(maillage_entree);
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
+    geo::test_conversion_polyedre(maillage_entree_, maillage_sortie_);
 }

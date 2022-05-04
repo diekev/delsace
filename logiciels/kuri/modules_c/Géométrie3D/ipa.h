@@ -285,6 +285,8 @@ void GEO3D_fracture_maillage(struct ParametresFracture *params,
                              struct AdaptriceMaillage *nuage_de_points,
                              struct AdaptriceMaillage *maillage_sortie);
 
+void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
+                                    struct AdaptriceMaillage *maillage_sortie);
 #ifdef __cplusplus
 }
 #endif

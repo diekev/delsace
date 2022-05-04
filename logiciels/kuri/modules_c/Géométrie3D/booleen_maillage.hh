@@ -24,3 +24,10 @@
 
 #pragma once
 
+namespace geo {
+
+class Maillage;
+
+void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie);
+
+}  // namespace geo

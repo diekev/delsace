@@ -45,8 +45,9 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
     vertices.reserve(maillage.nombreDePoints());
 
     for (long i = 0; i < maillage.nombreDePoints(); i++) {
+        auto point = maillage.pointPourIndex(i);
         auto vd = CGAL::add_vertex(*resultat);
-        put(point_map, vd, Point3d());  // À FAIRE
+        put(point_map, vd, Point3d(point.x, point.y, point.z));
         vertices.ajoute(vd);
     }
 
@@ -69,14 +70,14 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
         auto face = CGAL::Euler::add_face(face_vertices, *resultat);
 
         if (face == boost::graph_traits<FEVV::MeshPolyhedron>::null_face()) {
-            // erreur ?
+            std::cerr << "Erreur lors de la construction de la face !\n";
         }
     }
 
     return resultat;
 }
 
-static void convertis_vers_maillage(const FEVV::MeshPolyhedron *polyhedre, Maillage &maillage)
+static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &maillage)
 {
     const long num_verts = polyhedre->size_of_vertices();
     if (num_verts == 0) {
@@ -84,11 +85,13 @@ static void convertis_vers_maillage(const FEVV::MeshPolyhedron *polyhedre, Maill
     }
     maillage.reserveNombreDePoints(num_verts);
 
+    auto id_vertex = 0;
     for (auto vert_iter = polyhedre->vertices_begin(); vert_iter != polyhedre->vertices_end();
          ++vert_iter) {
 
         auto point = vert_iter->point();
-        maillage.ajouteUnPoint(point.x(), point.x(), point.z());
+        vert_iter->id() = id_vertex++;
+        maillage.ajouteUnPoint(point.x(), point.y(), point.z());
     }
 
     const long num_faces = polyhedre->size_of_facets();
