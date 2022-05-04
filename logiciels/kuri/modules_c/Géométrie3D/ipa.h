@@ -48,6 +48,10 @@ enum TypeAttributGeo3D {
 
 struct AdaptriceAttribut {
 #ifdef __cplusplus
+    AdaptriceAttribut() : donnees_utilisateur(nullptr)
+    {
+    }
+
   protected:
 #endif
     void (*lis_bool_pour_index)(void *, long, bool *);
