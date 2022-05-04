@@ -55,6 +55,8 @@ struct table_hachage {
 #endif
 
   public:
+    COPIE_CONSTRUCT(table_hachage);
+
     explicit table_hachage(const char *identifiant) : nom(identifiant)
     {
     }
@@ -106,7 +108,7 @@ struct table_hachage {
     inline int increment_de_base_pour_empreinte(size_t empreinte)
     {
         /* - 1 pour être relativement premier avec la capacité. */
-        return 1 + empreinte % (static_cast<size_t>(capacite) - 1);
+        return 1 + static_cast<int>(empreinte % (static_cast<size_t>(capacite) - 1));
     }
 
   public:
@@ -222,7 +224,7 @@ struct table_hachage {
             increment += 1;
 
             while (index >= capacite) {
-                index -= capacite;
+                index -= static_cast<int>(capacite);
             }
         }
 
@@ -267,7 +269,7 @@ struct table_hachage {
             increment += 1;
 
             while (index >= capacite) {
-                index -= capacite;
+                index -= static_cast<int>(capacite);
             }
         }
 
