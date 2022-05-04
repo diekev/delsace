@@ -27,6 +27,8 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+    bib_outils
+    memoire
 )
 
 set(SOURCES_VORONOI

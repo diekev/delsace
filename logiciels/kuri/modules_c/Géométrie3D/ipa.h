@@ -27,7 +27,7 @@
 #ifdef __cplusplus
 extern "C" {
 #else
-#    define bool unsigned char
+typedef unsigned char bool;
 #endif
 
 /* Structure servant à rafiner les polygones n'étant ni des triangles, ni des quadrilatères. */
