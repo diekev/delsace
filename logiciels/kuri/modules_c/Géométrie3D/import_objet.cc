@@ -323,7 +323,7 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
     auto parsat_normaux_polygones = parse_tableau_index(donnees.normaux_polygones);
     auto parsat_uv_polygones = parse_tableau_index(donnees.uv_polygones);
 
-    if (parsat_polygones.valide && parsat_normaux_polygones.donnees_variantes_sur_polygone &&
+    if (parsat_polygones.valide && parsat_polygones.donnees_variantes_sur_polygone &&
         !donnees.polygones.est_vide()) {
         if (parsat_polygones.index_max + 1 != donnees.points.taille()) {
             return;
