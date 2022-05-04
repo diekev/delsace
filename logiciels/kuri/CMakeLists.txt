@@ -92,7 +92,8 @@ macro(compile_module_c __nom__ __nom_interface__ __entete_interface__ __dossier_
 	# Version dynamique
 	add_library(${NOM_DYNAMIQUE} SHARED ${__sources__})
 	target_include_directories(${NOM_DYNAMIQUE} PUBLIC ${__inclusions__})
-	target_link_libraries(${NOM_DYNAMIQUE} ${__bibliotheques__})
+        target_link_libraries(${NOM_DYNAMIQUE} ${__bibliotheques__})
+        set_property(TARGET ${NOM_DYNAMIQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 	set_target_properties(${NOM_DYNAMIQUE} PROPERTIES OUTPUT_NAME ${__nom__})
 	install(TARGETS ${NOM_DYNAMIQUE} LIBRARY DESTINATION ${CHEMIN_INSTALLATION})
 

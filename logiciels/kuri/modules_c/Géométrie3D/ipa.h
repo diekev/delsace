@@ -26,6 +26,8 @@
 
 #ifdef __cplusplus
 extern "C" {
+#else
+typedef unsigned char bool;
 #endif
 
 /* Structure servant à rafiner les polygones n'étant ni des triangles, ni des quadrilatères. */
@@ -90,10 +92,10 @@ struct AdaptriceMaillage {
     void (*ajoute_plusieurs_points)(void *, float *points, long nombre);
 
     void (*ajoute_attribut_sur_points)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_points)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     /* Interface pour les polygones. */
 
@@ -112,16 +114,16 @@ struct AdaptriceMaillage {
                                    long nombre_polygones);
 
     void (*ajoute_attribut_sur_polygones)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_polygones)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     void (*ajoute_attribut_sur_sommets_polygones)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_sommets_polygones)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     /* Appelée si un polygone possède plus que 4 sommet afin que l'application cliente définissent
      * comment rafiner ces polygones. */
@@ -138,10 +140,10 @@ struct AdaptriceMaillage {
     /* Données générale sur le maillage. */
 
     void (*ajoute_attribut_sur_maillage)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_maillage)(
-        void *, TypeAttributGeo3D type, const char *, long, AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
 
     /* Outils. */
 
@@ -237,7 +239,7 @@ void GEO3D_importe_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);
 
-void GEO3D_exporte_fichier_obj(AdaptriceMaillage *adaptrice,
+void GEO3D_exporte_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);
 

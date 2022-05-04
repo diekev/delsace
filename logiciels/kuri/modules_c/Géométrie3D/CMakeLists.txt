@@ -28,6 +28,8 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+    bib_outils
+    memoire
 )
 
 set(SOURCES_BOOLEEN
@@ -104,7 +106,7 @@ set(SOURCES
     import_objet.cc
     import_objet.h
     ipa.cc
-    ipa.hh
+    ipa.h
     outils.cc
     outils.hh
 
@@ -120,4 +122,4 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
-compile_module_c(${NOM_PROJET} geometrie3d ipa.hh Géométrie3D "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
+compile_module_c(${NOM_PROJET} geometrie3d ipa.h Géométrie3D "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
