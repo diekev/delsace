@@ -27,8 +27,8 @@
 // Avant boolean_operations pour calmer les erreurs de compilations...
 #include <CGAL/Simple_cartesian.h>
 
-#include "booleen2/boolean_operations.hpp"
-#include "booleen2/properties_polyhedron_3.h"
+#include "booleen/boolean_operations.hpp"
+#include "booleen/properties_polyhedron_3.h"
 
 #include "outils.hh"
 

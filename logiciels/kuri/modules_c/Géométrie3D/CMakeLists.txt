@@ -33,42 +33,23 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES_BOOLEEN
-    booleen/Polyhedron/Correct_CGAL_Structure.h
-    booleen/Polyhedron/mesh.cpp
-    booleen/Polyhedron/mesh.h
-    booleen/Polyhedron/polyhedron.h
-    booleen/Polyhedron/Polyhedron_Builder.h
-    booleen/Polyhedron/Polyhedron_Copy.h
-    booleen/Polyhedron/polyhedron_enriched_polyhedron.h
-    booleen/Polyhedron/polyhedron_shared_items.h
+    booleen/boolean_operations.hpp
+    booleen/boolops_cpolyhedron_builder.hpp
+    booleen/boolops_definitions.hpp
+    booleen/boolops_enriched_polyhedron.hpp
+    booleen/boolops_polyhedra.hpp
+    booleen/boolops_properties.h
+    booleen/boolops_triangulation.hpp
 
-    booleen/Boolean_Operations_Definitions.h
-    booleen/Boolean_Operations_Items.h
-    booleen/Boolean_Operations_Polyhedron.h
-    booleen/Boolean_Operations_triangulation.h
-    booleen/BoolPolyhedra.h
-    booleen/CPolyhedron_from_polygon_builder_3.h
-    booleen/Time_measure.h
-)
+    booleen/Geometry_traits.h
+    booleen/properties.h
 
-set(SOURCES_BOOLEEN2
-    booleen2/boolean_operations.hpp
-    booleen2/boolops_cpolyhedron_builder.hpp
-    booleen2/boolops_definitions.hpp
-    booleen2/boolops_enriched_polyhedron.hpp
-    booleen2/boolops_polyhedra.hpp
-    booleen2/boolops_properties.h
-    booleen2/boolops_triangulation.hpp
-
-    booleen2/Geometry_traits.h
-    booleen2/properties.h
-
-    booleen2/Geometry_traits_cgal_polyhedron_3.h
-    booleen2/properties_polyhedron_3.h
-    booleen2/Wrappings_cgal_polyhedron_3.h
-    booleen2/Geometry_traits_cartesian.h
-    booleen2/Geometry_traits_cgal_exact_predicates_inexact_constructions_kernel.h
-    booleen2/Geometry_traits_operators.h
+    booleen/Geometry_traits_cgal_polyhedron_3.h
+    booleen/properties_polyhedron_3.h
+    booleen/Wrappings_cgal_polyhedron_3.h
+    booleen/Geometry_traits_cartesian.h
+    booleen/Geometry_traits_cgal_exact_predicates_inexact_constructions_kernel.h
+    booleen/Geometry_traits_operators.h
 )
 
 set(SOURCES_VORONOI
@@ -116,8 +97,7 @@ set(SOURCES
     fracture.cc
     fracture.hh
 
-    #${SOURCES_BOOLEEN}
-    ${SOURCES_BOOLEEN2}
+    ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
