@@ -78,9 +78,45 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
 
 static void convertis_vers_maillage(const FEVV::MeshPolyhedron *polyhedre, Maillage &maillage)
 {
+    const long num_verts = polyhedre->size_of_vertices();
+    if (num_verts == 0) {
+        return;
+    }
+    maillage.reserveNombreDePoints(num_verts);
+
+    for (auto vert_iter = polyhedre->vertices_begin(); vert_iter != polyhedre->vertices_end();
+         ++vert_iter) {
+
+        auto point = vert_iter->point();
+        maillage.ajouteUnPoint(point.x(), point.x(), point.z());
+    }
+
+    const long num_faces = polyhedre->size_of_facets();
+    if (num_faces == 0) {
+        return;
+    }
+    maillage.reserveNombreDePolygones(num_faces);
+
+    for (auto face_iter = polyhedre->facets_begin(); face_iter != polyhedre->facets_end();
+         ++face_iter) {
+
+        dls::tableau<int> sommets;
+
+        auto edge_iter = face_iter->halfedge();
+        auto edge_begin = edge_iter;
+        do {
+            int sommet = edge_iter->vertex()->id();
+            sommets.ajoute(sommet);
+            edge_iter = edge_iter->next();
+        } while (edge_iter != edge_begin);
+
+        maillage.ajouteUnPolygone(sommets.donnees(), sommets.taille());
+    }
 }
 
-void bool_operation(Maillage const &maillage_a, Maillage const &maillage_b)
+void bool_operation(Maillage const &maillage_a,
+                    Maillage const &maillage_b,
+                    Maillage &maillage_sortie)
 {
     std::string m_operation = "UNION";  // "INTER", "MINUS"
 
@@ -94,6 +130,18 @@ void bool_operation(Maillage const &maillage_a, Maillage const &maillage_b)
         FEVV::Filters::boolean_inter(*mesh_A, *mesh_B, *output_mesh);
     else
         FEVV::Filters::boolean_minus(*mesh_A, *mesh_B, *output_mesh);
+
+    convertis_vers_maillage(output_mesh, maillage_sortie);
+    delete mesh_A;
+    delete mesh_B;
+    delete output_mesh;
+}
+
+void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie)
+{
+    FEVV::MeshPolyhedron *polyedre = convertis_vers_polyhedre(maillage_entree);
+    convertis_vers_maillage(polyedre, maillage_sortie);
+    delete polyedre;
 }
 
 }  // namespace geo

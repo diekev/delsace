@@ -237,6 +237,10 @@ void GEO3D_importe_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);
 
+void GEO3D_exporte_fichier_obj(AdaptriceMaillage *adaptrice,
+                               const char *chemin,
+                               long taille_chemin);
+
 void GEO3D_importe_fichier_stl(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin);

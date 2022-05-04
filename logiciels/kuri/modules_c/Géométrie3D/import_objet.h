@@ -32,6 +32,8 @@ class Maillage;
 
 void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin);
 
+void ecris_fichier_OBJ(Maillage const &maillage, std::string const &chemin);
+
 void charge_fichier_STL(Maillage &maillage, std::string const &chemin);
 
 }  // namespace geo

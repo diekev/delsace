@@ -455,6 +455,38 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
     }
 }
 
+void ecris_fichier_OBJ(Maillage const &maillage, std::string const &chemin)
+{
+    std::ofstream fichier(chemin);
+
+    if (!fichier.is_open()) {
+        return;
+    }
+
+    for (long i = 0; i < maillage.nombreDePoints(); ++i) {
+        auto point = maillage.pointPourIndex(i);
+        fichier << "v " << point.x << " " << point.y << " " << point.z << "\n";
+    }
+
+    dls::tableau<int> temp_access_index_sommet;
+    for (long i = 0; i < maillage.nombreDePolygones(); ++i) {
+        const long nombre_sommets = maillage.nombreDeSommetsPolygone(i);
+
+        if (nombre_sommets == 0) {
+            continue;
+        }
+
+        temp_access_index_sommet.redimensionne(nombre_sommets);
+        maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
+
+        fichier << "f";
+        for (long j = 0; j < nombre_sommets; ++j) {
+            fichier << " " << (temp_access_index_sommet[j] + 1);
+        }
+        fichier << "\n";
+    }
+}
+
 static void charge_STL_binaire(Maillage &maillage, std::ifstream &fichier)
 {
     /* lis l'en-tête */
