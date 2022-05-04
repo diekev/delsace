@@ -52,6 +52,79 @@ set(SOURCES_BOOLEEN
     booleen/Geometry_traits_operators.h
 )
 
+set(SOURCES_BOOLEEN_BLENDER
+    booleen_blender/BLI_allocator.hh
+    booleen_blender/BLI_array.hh
+    booleen_blender/BLI_assert.h
+    booleen_blender/BLI_compiler_attrs.h
+    booleen_blender/BLI_compiler_compat.h
+    booleen_blender/BLI_compiler_typecheck.h
+    booleen_blender/BLI_delaunay_2d.h
+    booleen_blender/BLI_function_ref.hh
+    booleen_blender/BLI_hash.h
+    booleen_blender/BLI_hash.hh
+    booleen_blender/BLI_hash_tables.hh
+    booleen_blender/BLI_index_range.hh
+    booleen_blender/BLI_kdopbvh.h
+    booleen_blender/BLI_listbase.h
+    booleen_blender/BLI_listbase_wrapper.hh
+    booleen_blender/BLI_map.hh
+    booleen_blender/BLI_map_slots.hh
+    booleen_blender/BLI_math.h
+    booleen_blender/BLI_math_base.h
+    booleen_blender/BLI_math_base.hh
+    booleen_blender/BLI_math_base_safe.h
+    booleen_blender/BLI_math_boolean.hh
+    booleen_blender/BLI_math_color.h
+    booleen_blender/BLI_math_geom.h
+    booleen_blender/BLI_math_inline.h
+    booleen_blender/BLI_math_interp.h
+    booleen_blender/BLI_math_matrix.h
+    booleen_blender/BLI_math_mpq.hh
+    booleen_blender/BLI_math_rotation.h
+    booleen_blender/BLI_math_solvers.h
+    booleen_blender/BLI_math_statistics.h
+    booleen_blender/BLI_math_time.h
+    booleen_blender/BLI_math_vec_mpq_types.hh
+    booleen_blender/BLI_math_vec_types.hh
+    booleen_blender/BLI_math_vector.h
+    booleen_blender/BLI_math_vector.hh
+    booleen_blender/BLI_memory_utils.hh
+    booleen_blender/BLI_mesh_boolean.hh
+    booleen_blender/BLI_mesh_intersect.hh
+    booleen_blender/BLI_probing_strategies.hh
+    booleen_blender/BLI_set.hh
+    booleen_blender/BLI_set_slots.hh
+    booleen_blender/BLI_simd.h
+    booleen_blender/BLI_span.hh
+    booleen_blender/BLI_stack.hh
+    booleen_blender/BLI_string.h
+    booleen_blender/BLI_string_ref.hh
+    booleen_blender/BLI_sys_types.h
+    booleen_blender/BLI_task.hh
+    booleen_blender/BLI_utildefines.h
+    booleen_blender/BLI_utildefines_variadic.h
+    booleen_blender/BLI_utility_mixins.hh
+    booleen_blender/BLI_vector.hh
+    booleen_blender/BLI_vector_set.hh
+    booleen_blender/BLI_vector_set_slots.hh
+
+    booleen_blender/MEM_guardedalloc.h
+
+    booleen_blender/DNA_listBase.h
+    booleen_blender/DNA_vec_types.h
+
+    booleen_blender/PIL_time.h
+
+#    booleen_blender/math_base_inline.c
+#    booleen_blender/math_base_safe_inline.c
+#    booleen_blender/math_color_inline.c
+#    booleen_blender/math_geom_inline.c
+#    booleen_blender/math_vector_inline.c
+
+    booleen_blender/mesh_boolean.cc
+)
+
 set(SOURCES_VORONOI
     voro/cell.cc
     voro/c_loops.cc
@@ -98,6 +171,7 @@ set(SOURCES
     fracture.hh
 
     ${SOURCES_BOOLEEN}
+    ${SOURCES_BOOLEEN_BLENDER}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
