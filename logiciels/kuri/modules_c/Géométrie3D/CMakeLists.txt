@@ -24,7 +24,6 @@ set(NOM_PROJET module_c_geometrie_3d)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-        /opt/lib/CGAL/include/
         /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
 )
 
@@ -48,6 +47,26 @@ set(SOURCES_BOOLEEN
     booleen/BoolPolyhedra.h
     booleen/CPolyhedron_from_polygon_builder_3.h
     booleen/Time_measure.h
+)
+
+set(SOURCES_BOOLEEN2
+    booleen2/boolean_operations.hpp
+    booleen2/boolops_cpolyhedron_builder.hpp
+    booleen2/boolops_definitions.hpp
+    booleen2/boolops_enriched_polyhedron.hpp
+    booleen2/boolops_polyhedra.hpp
+    booleen2/boolops_properties.h
+    booleen2/boolops_triangulation.hpp
+
+    booleen2/Geometry_traits.h
+    booleen2/properties.h
+
+    booleen2/Geometry_traits_cgal_polyhedron_3.h
+    booleen2/properties_polyhedron_3.h
+    booleen2/Wrappings_cgal_polyhedron_3.h
+    booleen2/Geometry_traits_cartesian.h
+    booleen2/Geometry_traits_cgal_exact_predicates_inexact_constructions_kernel.h
+    booleen2/Geometry_traits_operators.h
 )
 
 set(SOURCES_VORONOI
@@ -89,10 +108,14 @@ set(SOURCES
     outils.cc
     outils.hh
 
+    booleen_maillage.cc
+    booleen_maillage.hh
+
     fracture.cc
     fracture.hh
 
-    ${SOURCES_BOOLEEN}
+    #${SOURCES_BOOLEEN}
+    ${SOURCES_BOOLEEN2}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
