@@ -171,7 +171,7 @@ set(SOURCES
     fracture.hh
 
     ${SOURCES_BOOLEEN}
-    ${SOURCES_BOOLEEN_BLENDER}
+    # ${SOURCES_BOOLEEN_BLENDER}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
