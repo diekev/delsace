@@ -22,7 +22,7 @@
  *
  */
 
-#include "ipa.hh"
+#include "ipa.h"
 
 #include "creation.h"
 #include "fracture.hh"

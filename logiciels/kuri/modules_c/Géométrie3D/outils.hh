@@ -33,7 +33,7 @@
 
 using namespace dls;
 
-#include "ipa.hh"
+#include "ipa.h"
 
 inline std::string vers_std_string(const char *chemin, long taille_chemin)
 {
