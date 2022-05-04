@@ -68,6 +68,7 @@ struct cell {
 
 class BaseContenantParticules {
   public:
+    virtual ~BaseContenantParticules() = default;
     virtual bool compute_cell(voro::voronoicell_neighbor &c, voro::c_loop_order &l) = 0;
     virtual int **id() = 0;
     virtual voro::c_loop_order loop_order(voro::particle_order &po) = 0;
@@ -203,26 +204,32 @@ static std::unique_ptr<BaseContenantParticules> initialise_contenant(
     }
 
     if (utilise_rayon) {
-        auto cont_voro = new voro::container_poly(min.x,
-                                                  max.x,
-                                                  min.y,
-                                                  max.y,
-                                                  min.z,
-                                                  max.z,
-                                                  nombre_block.x,
-                                                  nombre_block.y,
-                                                  nombre_block.z,
-                                                  periodic_x,
-                                                  periodic_y,
-                                                  periodic_z,
-                                                  maillage_points.nombreDePoints());
+        auto cont_voro = new voro::container_poly(
+            min.x,
+            max.x,
+            min.y,
+            max.y,
+            min.z,
+            max.z,
+            nombre_block.x,
+            nombre_block.y,
+            nombre_block.z,
+            periodic_x,
+            periodic_y,
+            periodic_z,
+            static_cast<int>(maillage_points.nombreDePoints()));
 
         /* ajout des particules */
 
         for (auto i = 0; i < maillage_points.nombreDePoints(); ++i) {
             auto point = maillage_points.pointPourIndex(i);
             auto rayon = attr_rayon.lis_reel(i);
-            cont_voro->put(particle_order, i, point.x, point.y, point.z, rayon);
+            cont_voro->put(particle_order,
+                           i,
+                           static_cast<double>(point.x),
+                           static_cast<double>(point.y),
+                           static_cast<double>(point.z),
+                           static_cast<double>(rayon));
         }
 
         return std::make_unique<ContenantParticulesAvecRayon>(cont_voro);
@@ -240,11 +247,15 @@ static std::unique_ptr<BaseContenantParticules> initialise_contenant(
                                          periodic_x,
                                          periodic_y,
                                          periodic_z,
-                                         maillage_points.nombreDePoints());
+                                         static_cast<int>(maillage_points.nombreDePoints()));
 
     for (auto i = 0; i < maillage_points.nombreDePoints(); ++i) {
         auto point = maillage_points.pointPourIndex(i);
-        cont_voro->put(particle_order, i, point.x, point.y, point.z);
+        cont_voro->put(particle_order,
+                       i,
+                       static_cast<double>(point.x),
+                       static_cast<double>(point.y),
+                       static_cast<double>(point.z));
     }
 
     return std::make_unique<ContenantParticules>(cont_voro);
@@ -256,17 +267,6 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
                                Maillage const &maillage_points,
                                Maillage &maillage_sortie)
 {
-    auto limites = maillage_a_fracturer.boiteEnglobante();
-    auto min = dls::math::converti_type<double>(limites.min);
-    auto max = dls::math::converti_type<double>(limites.max);
-
-    /* Divise le domaine de calcul. */
-    auto nombre_block = dls::math::vec3i(8);
-
-    auto const periodic_x = params.periodique_x;
-    auto const periodic_y = params.periodique_y;
-    auto const periodic_z = params.periodique_z;
-
     voro::particle_order order_particules;
 
     auto cont_voro = initialise_contenant(
