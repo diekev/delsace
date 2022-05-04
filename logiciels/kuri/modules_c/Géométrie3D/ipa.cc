@@ -155,6 +155,14 @@ void GEO3D_importe_fichier_obj(AdaptriceMaillage *adaptrice,
     geo::charge_fichier_OBJ(maillage, vers_std_string(chemin, taille_chemin));
 }
 
+void GEO3D_exporte_fichier_obj(AdaptriceMaillage *adaptrice,
+                               const char *chemin,
+                               long taille_chemin)
+{
+    geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
+    geo::ecris_fichier_OBJ(maillage, vers_std_string(chemin, taille_chemin));
+}
+
 void GEO3D_importe_fichier_stl(AdaptriceMaillage *adaptrice,
                                const char *chemin,
                                long taille_chemin)
