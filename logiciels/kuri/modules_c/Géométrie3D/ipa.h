@@ -48,6 +48,10 @@ enum TypeAttributGeo3D {
 
 struct AdaptriceAttribut {
 #ifdef __cplusplus
+    AdaptriceAttribut() : donnees_utilisateur(nullptr)
+    {
+    }
+
   protected:
 #endif
     void (*lis_bool_pour_index)(void *, long, bool *);
@@ -285,8 +289,20 @@ void GEO3D_fracture_maillage(struct ParametresFracture *params,
                              struct AdaptriceMaillage *nuage_de_points,
                              struct AdaptriceMaillage *maillage_sortie);
 
+enum TypeOperationBooleenne {
+    OP_BOOL_INTERSECTION,
+    OP_BOOL_SOUSTRACTION,
+    OP_BOOL_UNION,
+};
+
+void GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
+                                        struct AdaptriceMaillage *maillage_b,
+                                        struct AdaptriceMaillage *maillage_sortie,
+                                        enum TypeOperationBooleenne operation);
+
 void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
                                     struct AdaptriceMaillage *maillage_sortie);
+
 #ifdef __cplusplus
 }
 #endif

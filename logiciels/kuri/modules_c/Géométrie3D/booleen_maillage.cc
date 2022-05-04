@@ -117,23 +117,23 @@ static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &m
     }
 }
 
-void bool_operation(Maillage const &maillage_a,
-                    Maillage const &maillage_b,
-                    Maillage &maillage_sortie)
+void booleen_maillages(Maillage const &maillage_a,
+                       Maillage const &maillage_b,
+                       const std::string &operation,
+                       Maillage &maillage_sortie)
 {
-    std::string m_operation = "UNION";  // "INTER", "MINUS"
-
     FEVV::MeshPolyhedron *mesh_A = convertis_vers_polyhedre(maillage_a);
     FEVV::MeshPolyhedron *mesh_B = convertis_vers_polyhedre(maillage_b);
     FEVV::MeshPolyhedron *output_mesh = new FEVV::MeshPolyhedron;
 
-    if (m_operation == "UNION")
+    if (operation == "UNION")
         FEVV::Filters::boolean_union(*mesh_A, *mesh_B, *output_mesh);
-    else if (m_operation == "INTER")
+    else if (operation == "INTER")
         FEVV::Filters::boolean_inter(*mesh_A, *mesh_B, *output_mesh);
     else
         FEVV::Filters::boolean_minus(*mesh_A, *mesh_B, *output_mesh);
 
+    std::cerr << "Après opération booléenne...\n";
     convertis_vers_maillage(output_mesh, maillage_sortie);
     delete mesh_A;
     delete mesh_B;

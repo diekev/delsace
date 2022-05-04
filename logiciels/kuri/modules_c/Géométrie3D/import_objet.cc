@@ -351,17 +351,23 @@ void charge_fichier_OBJ(Maillage &maillage, std::string const &chemin)
             parsat_normaux_polygones.nombre_de_sommets == parsat_polygones.nombre_de_sommets &&
             donnees.normaux.taille() == parsat_normaux_polygones.index_max + 1) {
             auto attr = maillage.ajouteAttributSommetsPolygone<VEC3>("N");
-            attr.copie(donnees.normaux);
+            if (attr) {
+                attr.copie(donnees.normaux);
+            }
         }
         else if (parsat_normaux_polygones.valide &&
                  !parsat_normaux_polygones.donnees_variantes_sur_polygone &&
                  donnees.normaux.taille() == donnees.polygones.taille()) {
             auto attr = maillage.ajouteAttributPolygone<VEC3>("N");
-            attr.copie(donnees.normaux);
+            if (attr) {
+                attr.copie(donnees.normaux);
+            }
         }
         else if (donnees.normaux.taille() == donnees.points.taille()) {
             auto attr = maillage.ajouteAttributPoint<VEC3>("N");
-            attr.copie(donnees.normaux);
+            if (attr) {
+                attr.copie(donnees.normaux);
+            }
         }
         else {
             // À FAIRE : rapporte erreur

@@ -136,6 +136,9 @@ class Maillage : public AdaptriceMaillage {
     {
         using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->ajoute_attribut_sur_points) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->ajoute_attribut_sur_points(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
@@ -145,13 +148,16 @@ class Maillage : public AdaptriceMaillage {
     auto accedeAttributPoint(const std::string &nom) const
         -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
     {
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->accede_attribut_sur_points) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->accede_attribut_sur_points(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
-        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -183,6 +189,9 @@ class Maillage : public AdaptriceMaillage {
     {
         using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->ajoute_attribut_sur_polygones) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->ajoute_attribut_sur_polygones(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
@@ -193,12 +202,15 @@ class Maillage : public AdaptriceMaillage {
         -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
     {
         AdaptriceAttribut adaptrice;
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
+        if (!this->accede_attribut_sur_polygones) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->accede_attribut_sur_polygones(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
-        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -208,6 +220,9 @@ class Maillage : public AdaptriceMaillage {
     {
         using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->ajoute_attribut_sur_sommets_polygones) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->ajoute_attribut_sur_sommets_polygones(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
@@ -217,13 +232,16 @@ class Maillage : public AdaptriceMaillage {
     auto accedeAttributSommetsPolygone(const std::string &nom) const
         -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
     {
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->accede_attribut_sur_sommets_polygones) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->accede_attribut_sur_sommets_polygones(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
-        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -245,6 +263,9 @@ class Maillage : public AdaptriceMaillage {
     {
         using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         AdaptriceAttribut adaptrice;
+        if (!this->ajoute_attribut_sur_maillage) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->ajoute_attribut_sur_maillage(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
@@ -255,12 +276,15 @@ class Maillage : public AdaptriceMaillage {
         -> std::optional<typename SelectriceClasseAttribut<TypeAttribut>::Type>
     {
         AdaptriceAttribut adaptrice;
+        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
+        if (!this->accede_attribut_sur_maillage) {
+            return ClasseAttribut::enveloppe(&adaptrice);
+        }
         this->accede_attribut_sur_maillage(
             this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
-        using ClasseAttribut = typename SelectriceClasseAttribut<TypeAttribut>::Type;
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 

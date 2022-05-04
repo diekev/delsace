@@ -209,8 +209,11 @@ class BoolPolyhedra {
         // convert input meshes to enriched Polyhedrons
         EnrichedPolyhedron gA;
         EnrichedPolyhedron gB;
+        std::cerr << "CGAL::copy_face_graph(_gA, gA);\n";
         CGAL::copy_face_graph(_gA, gA);
+        std::cerr << "CGAL::copy_face_graph(_gB, gB);\n";
         CGAL::copy_face_graph(_gB, gB);
+        std::cerr << "after CGAL::copy_face_graph;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
         duration_Inputs_copy = get_time_and_reset(time_start);
@@ -225,32 +228,44 @@ class BoolPolyhedra {
         }
 #endif  // BOOLEAN_OPERATIONS_DEBUG
 
+        std::cerr << "Init(&gA, &gB);\n";
         Init(&gA, &gB);
+        std::cerr << "after Init(&gA, &gB);\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
         duration_Init = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
 
+        std::cerr << "FindCouples;\n";
         FindCouples();
+        std::cerr << "after FindCouples;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
         duration_FindCouples = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
 
+        std::cerr << "nombre de couples " << m_Couples.size() << '\n';
+
         if (!m_Couples.empty()) {
+            std::cerr << "ComputeIntersections;\n";
             ComputeIntersections();
+            std::cerr << "after ComputeIntersections;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_ComputeIntersections = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
 
+            std::cerr << "CutIntersectedFacets;\n";
             CutIntersectedFacets();
+            std::cerr << "after CutIntersectedFacets;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_CutIntersectedFacets = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
 
+            std::cerr << "PropagateFacets;\n";
             PropagateFacets();
+            std::cerr << "after PropagateFacets;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_PropagateFacets = get_time_and_reset(time_start);
@@ -258,7 +273,9 @@ class BoolPolyhedra {
 
             // build output mesh
             EnrichedPolyhedron g_out;
+            std::cerr << "g_out.delegate(ppbuilder);\n";
             g_out.delegate(ppbuilder);
+            std::cerr << "after g_out.delegate(ppbuilder);\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_delegate = get_time_and_reset(time_start);
@@ -274,8 +291,12 @@ class BoolPolyhedra {
 #endif  // BOOLEAN_OPERATIONS_DEBUG
 
             // convert output mesh from enriched Polyhedrons
+            std::cerr << "after FindCouples;\n";
             CGAL::clear(_g_out);
+            std::cerr << "after FindCouples;\n";
+            std::cerr << "after FindCouples;\n";
             CGAL::copy_face_graph(g_out, _g_out);
+            std::cerr << "after FindCouples;\n";
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_Output_copy = get_time_and_reset(time_start);
@@ -558,12 +579,18 @@ class BoolPolyhedra {
     /*! \brief Compute the intersections*/
     void ComputeIntersections()
     {
+        std::cerr << __func__ << '\n';
         while (!m_Couples.empty()) {
             FacetId fA, fB;
             fA = m_Couples.begin()->first;
             fB = *m_Couples[fA].begin();
+            std::cerr << "InterTriangleTriangle\n";
             InterTriangleTriangle(fA, fB);
+            std::cerr << "après InterTriangleTriangle\n";
+            std::cerr << "rmCouple\n";
             rmCouple(fA, fB);
+            std::cerr << "après rmCouple\n";
+            std::cerr << "nombre de couples " << m_Couples.size() << '\n';
         }
     }
 
@@ -697,6 +724,7 @@ class BoolPolyhedra {
      */
     void rmCouple(FacetId &A, FacetId &B)
     {
+        std::cerr << __func__ << " " << A << " " << B << '\n';
         if (m_Couples[A].count(B) != 0)
             m_Couples[A].erase(B);
         if (m_Couples[A].empty())
@@ -793,6 +821,7 @@ class BoolPolyhedra {
 
         // if an edge of the first triangle is on the plane
         if (edgeA != 3 && edgeB == 3) {
+            std::cerr << "(edgeA != 3 && edgeB == 3)\n";
             fA2 = heA[edgeA]->opposite()->facet();
             nA2 = m_Inter_tri[fA2->Label].norm_dir;
             p = CGAL::cross_product(nA, nB) * CGAL::cross_product(nA2, nB);
@@ -825,6 +854,7 @@ class BoolPolyhedra {
         }
         // if an edge of the second triangle is on the plane
         else if (edgeA == 3 && edgeB != 3) {
+            std::cerr << "(edgeA == 3 && edgeB != 3)\n";
             fB2 = heB[edgeB]->opposite()->facet();
             nB2 = m_Inter_tri[fB2->Label].norm_dir;
             p = CGAL::cross_product(nA, nB) * CGAL::cross_product(nA, nB2);
@@ -857,6 +887,7 @@ class BoolPolyhedra {
         }
         // if an edge of each triangle is on the plane of the other
         else if (edgeA != 3 && edgeB != 3) {
+            std::cerr << "(edgeA != 3 && edgeB != 3)\n";
             // in this case, four triangles are concerned by the intersection
             // fA2 and fB2 are the two other concerned facets
             // we try to determine if fA and fA2 are inside or outside the second polyhedron, using
@@ -1000,8 +1031,10 @@ class BoolPolyhedra {
         inter[2].f = fB;
         inter[3].f = fB;
 
+        std::cerr << "the two intersection points between the edges of a triangle...\n";
         // the two intersection points between the edges of a triangle and the
         // other triangle are computed for the two triangles
+        std::cerr << "posBbin " << posBbin << '\n';
         switch (posBbin) {
             // common intersections : one point one one side of the plane and the two other points
             // on the other side
@@ -1060,9 +1093,13 @@ class BoolPolyhedra {
             case 16:
             case 32:
                 inter[0].he = heB[1];
+                std::cerr << "IsInTriangle(&inter[0]);\n";
                 IsInTriangle(&inter[0]);
+                std::cerr << "after IsInTriangle(&inter[0]);\n";
                 inter[1].he = heB[0]->opposite();
+                std::cerr << "IsInTriangle(&inter[1]);\n";
                 IsInTriangle(&inter[1]);
+                std::cerr << "after IsInTriangle(&inter[1]);\n";
                 break;
             case 4:
             case 8:
@@ -1075,6 +1112,8 @@ class BoolPolyhedra {
                 return;
         }
 
+        std::cerr << "common intersections : one point one one side of the plane and the two "
+                     "other points...\n";
         switch (posAbin) {
             // common intersections : one point one one side of the plane and the two other points
             // on the other side
@@ -1148,6 +1187,7 @@ class BoolPolyhedra {
                 return;
         }
 
+        std::cerr << "if two distincts points belongs to the two triangles...\n";
         // if two distincts points belongs to the two triangles
         if (IsSegment(inter)) {
             // we get this segment in ptInter
@@ -1295,11 +1335,14 @@ class BoolPolyhedra {
         Halfedge_handle he = inter->he;
         // if the intersection has been computed, the function returns directly the Id of the
         // intersection
+        std::cerr << "he->Label " << he->Label << "\n";
         if (m_Inter_tri[f->Label].RefInter.count(he->Label) != 0) {
             inter->Id = m_Inter_tri[f->Label].RefInter[he->Label];
+            std::cerr << "--  " << inter->Id << "\n";
             return;
         }
         // else, the calculation is done
+        std::cerr << "IsInTriangle the calculation is done\n";
 
         // this method is called when the intersection is exactly on the vertex pointed by the
         // halfedge
@@ -1307,44 +1350,67 @@ class BoolPolyhedra {
         // the intersection does not have an Id. 0xFFFFFFFF is set (this value means "no Id")
         inter->Id = 0xFFFFFFFF;
 
+        std::cerr << "Point3d_exact p\n";
         Point3d_exact p = point_to_exact(he->vertex()->point());
+        std::cerr << "Point3d_exact v0\n";
         Point3d_exact v0 = point_to_exact(f->facet_begin()->vertex()->point());
+        std::cerr << "Point3d_exact v1\n";
         Point3d_exact v1 = point_to_exact(f->facet_begin()->next()->vertex()->point());
+        std::cerr << "Point3d_exact v2\n";
         Point3d_exact v2 = point_to_exact(f->facet_begin()->next()->next()->vertex()->point());
 
         Vector_exact N = m_Inter_tri[f->Label].norm_dir;
         num_type u, v, w;
 
+        std::cerr << "u = ...\n";
         u = N * CGAL::cross_product(v0 - v2, p - v2);
+        std::cerr << "u = " << u << '\n';
         if (u < 0) {
             // the intersection is not in the triangle
             inter->res = 7;
             return;
         }
+        std::cerr << "v = ...\n";
         v = N * CGAL::cross_product(v1 - v0, p - v0);
+        std::cerr << "v = " << v << '\n';
         if (v < 0) {
             // the intersection is not in the triangle
             inter->res = 7;
             return;
         }
+        std::cerr << "w = ...\n";
         w = N * CGAL::cross_product(v2 - v1, p - v1);
+        std::cerr << "w = " << w << '\n';
         if (w < 0) {
             // the intersection is not in the triangle
+            std::cerr << "w = the intersection is not in the triangle\n";
             inter->res = 7;
             return;
         }
 
         // the point is in the triangle
+        std::cerr << "inter->pt = p\n";
         inter->pt = p;
 
         // creation of the code for the location of the intersection
+        std::cerr << "inter->res = 0\n";
         inter->res = 0;
-        if (u == 0)
+        std::cerr << "u == 0 " << (u == 0) << "\n";
+        if (u == 0) {
+            std::cerr << "inter->res += 1\n";
             inter->res += 1;  // intersection on he(0)
-        if (v == 0)
+        }
+        std::cerr << "v == 0 " << (v == 0) << "\n";
+        if (v == 0) {
+            std::cerr << "inter->res += 2\n";
             inter->res += 2;  // intersection on he(1)
-        if (w == 0)
+        }
+        std::cerr << "w == 0 " << (w == 0) << "\n";
+        if (w == 0) {
+            std::cerr << "inter->res += 4\n";
             inter->res += 4;  // intersection on he(2)
+        }
+        std::cerr << "IsInTriangle done\n";
     }
 
     /*! \brief Verify that the intersection is a segment

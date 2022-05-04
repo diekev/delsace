@@ -189,6 +189,33 @@ void GEO3D_fracture_maillage(struct ParametresFracture *params,
         *params, maillage_a_fracturer_, nuage_de_points_, maillage_sortie_);
 }
 
+void GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
+                                        struct AdaptriceMaillage *maillage_b,
+                                        struct AdaptriceMaillage *maillage_sortie,
+                                        enum TypeOperationBooleenne operation)
+{
+    RETOURNE_SI_NUL(maillage_a)
+    RETOURNE_SI_NUL(maillage_b)
+    RETOURNE_SI_NUL(maillage_sortie)
+
+    std::string str_operation;
+    if (operation == TypeOperationBooleenne::OP_BOOL_INTERSECTION) {
+        str_operation = "INTER";
+    }
+    else if (operation == TypeOperationBooleenne::OP_BOOL_SOUSTRACTION) {
+        str_operation = "MINUS";
+    }
+    else {
+        str_operation = "UNION";
+    }
+
+    geo::Maillage maillage_a_ = geo::Maillage::enveloppe(maillage_a);
+    geo::Maillage maillage_b_ = geo::Maillage::enveloppe(maillage_b);
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
+
+    geo::booleen_maillages(maillage_a_, maillage_b_, str_operation, maillage_sortie_);
+}
+
 void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
                                     struct AdaptriceMaillage *maillage_sortie)
 {

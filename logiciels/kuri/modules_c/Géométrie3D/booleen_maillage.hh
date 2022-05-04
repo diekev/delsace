@@ -24,9 +24,16 @@
 
 #pragma once
 
+#include <string>
+
 namespace geo {
 
 class Maillage;
+
+void booleen_maillages(Maillage const &maillage_a,
+                       Maillage const &maillage_b,
+                       const std::string &operation,
+                       Maillage &maillage_sortie);
 
 void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie);
 
