@@ -1909,15 +1909,12 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        auto chemin_parent = vers_std_path(it->chemin_dynamique).parent_path();
+        auto chemin_parent = vers_std_path(it->chemin_de_base(espace.options)).parent_path();
         if (chemin_parent.empty()) {
-            chemin_parent = vers_std_path(it->chemin_statique).parent_path();
-            if (chemin_parent.empty()) {
-                continue;
-            }
+            continue;
         }
 
-        if (it->chemin_dynamique) {
+        if (it->chemin_dynamique(espace.options)) {
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
@@ -1935,9 +1932,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        enchaineuse << " -l" << it->nom;
+        enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
     }
-    /* Ajout d'une liaison dynamic pour dire à ld de chercher les symboles des bibliothèques
+    /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
      * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
     enchaineuse << " -Wl,-Bdynamic";
 
