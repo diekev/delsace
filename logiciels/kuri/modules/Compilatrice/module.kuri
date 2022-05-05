@@ -27,6 +27,15 @@ compile_pour_débogage :: fonc ()
     compilatrice_ajourne_options(options)
 }
 
+compile_pour_débogage_avec_asan :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    options.utilise_asan = vrai
+    compilatrice_ajourne_options(options)
+}
+
 compile_pour_profilage :: fonc ()
 {
     options := compilatrice_obtiens_options()
