@@ -114,6 +114,8 @@ struct Bibliotheque {
     kuri::chaine chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
                         [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
+    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+
     kuri::tableau_compresse<Bibliotheque *, int> dependances{};
     tableau_page<Symbole> symboles{};
 
@@ -126,6 +128,7 @@ struct Bibliotheque {
     kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_dynamique(OptionsDeCompilation const &options) const;
+    kuri::chaine_statique nom_pour_liaison(OptionsDeCompilation const &options) const;
 
     bool peut_lier_statiquement() const
     {

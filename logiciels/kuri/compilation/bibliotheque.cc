@@ -154,6 +154,9 @@ long Bibliotheque::memoire_utilisee() const
             }
         }
     }
+    for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
+        memoire += noms[k].taille();
+    }
     memoire += dependances.taille_memoire();
     return memoire;
 }
@@ -167,29 +170,31 @@ static int plateforme_pour_options(OptionsDeCompilation const &options)
     return PLATEFORME_64_BIT;
 }
 
-static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chaine const *chemins,
-                                                             const OptionsDeCompilation &options)
+static int type_informations(kuri::chaine const *chemins, const OptionsDeCompilation &options)
 {
-#if 0
-    // À FAIRE : le nom devra changer pour la liaison
     if (options.compilation_pour == CompilationPour::DEBOGAGE) {
         if (options.utilise_asan && chemins[POUR_DEBOGAGE_ASAN]) {
-            return chemins[POUR_DEBOGAGE_ASAN];
+            return POUR_DEBOGAGE_ASAN;
         }
 
         if (chemins[POUR_DEBOGAGE]) {
-            return chemins[POUR_DEBOGAGE];
+            return POUR_DEBOGAGE;
         }
     }
 
     if (options.compilation_pour == CompilationPour::PROFILAGE) {
         if (chemins[POUR_PROFILAGE]) {
-            return chemins[POUR_PROFILAGE];
+            return POUR_PROFILAGE;
         }
     }
-#endif
 
-    return chemins[POUR_PRODUCTION];
+    return POUR_PRODUCTION;
+}
+
+static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chaine const *chemins,
+                                                             const OptionsDeCompilation &options)
+{
+    return chemins[type_informations(chemins, options)];
 }
 
 kuri::chaine_statique Bibliotheque::chemin_de_base(const OptionsDeCompilation &options) const
@@ -209,6 +214,14 @@ kuri::chaine_statique Bibliotheque::chemin_dynamique(const OptionsDeCompilation 
     auto const plateforme = plateforme_pour_options(options);
     auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
     return selectionne_chemin_pour_options(chemins_dynamiques, options);
+}
+
+kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation &options) const
+{
+    // À FAIRE : statique vs dynamique
+    auto const plateforme = plateforme_pour_options(options);
+    auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
+    return noms[type_informations(chemins_dynamiques, options)];
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *ident)
@@ -607,15 +620,15 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     // /chemin/de/base/libnom.so
     kuri::chaine noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 
-    noms[STATIQUE][POUR_PRODUCTION] = enchaine("lib", bibliotheque->nom, ".a");
-    noms[STATIQUE][POUR_PROFILAGE] = enchaine("lib", bibliotheque->nom, "_profile.a");
-    noms[STATIQUE][POUR_DEBOGAGE] = enchaine("lib", bibliotheque->nom, "_debogage.a");
-    noms[STATIQUE][POUR_DEBOGAGE_ASAN] = enchaine("lib", bibliotheque->nom, "_asan.a");
+    bibliotheque->noms[POUR_PRODUCTION] = bibliotheque->nom;
+    bibliotheque->noms[POUR_PROFILAGE] = enchaine(bibliotheque->nom, "_profile");
+    bibliotheque->noms[POUR_DEBOGAGE] = enchaine(bibliotheque->nom, "_debogage");
+    bibliotheque->noms[POUR_DEBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
 
-    noms[DYNAMIQUE][POUR_PRODUCTION] = enchaine("lib", bibliotheque->nom, ".so");
-    noms[DYNAMIQUE][POUR_PROFILAGE] = enchaine("lib", bibliotheque->nom, "_profile.so");
-    noms[DYNAMIQUE][POUR_DEBOGAGE] = enchaine("lib", bibliotheque->nom, "_debogage.so");
-    noms[DYNAMIQUE][POUR_DEBOGAGE_ASAN] = enchaine("lib", bibliotheque->nom, "_asan.so");
+    for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; i++) {
+        noms[STATIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".a");
+        noms[DYNAMIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".so");
+    }
 
     /* Commence par les versions 64-bit. */
     auto dossiers = dossiers_recherche_64_bits(compilatrice, site);

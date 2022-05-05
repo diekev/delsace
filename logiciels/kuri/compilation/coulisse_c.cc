@@ -1932,7 +1932,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        enchaineuse << " -l" << it->nom;
+        enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
     }
     /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
      * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
