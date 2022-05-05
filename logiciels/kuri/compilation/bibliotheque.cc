@@ -423,6 +423,57 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
     return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
 }
 
+struct ResultatRechercheBibliotheque {
+    kuri::chaine chemin_statique{};
+    kuri::chaine chemin_dynamique{};
+};
+
+static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
+    EspaceDeTravail &espace,
+    NoeudExpression *site,
+    kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
+    kuri::chaine const &nom_statique,
+    kuri::chaine const &nom_dynamique)
+{
+    auto chemin_statique_trouve = false;
+    auto chemin_dynamique_trouve = false;
+
+    auto resultat = ResultatRechercheBibliotheque();
+
+    POUR (dossiers) {
+        if (chemin_dynamique_trouve && chemin_statique_trouve) {
+            break;
+        }
+
+        if (!chemin_statique_trouve) {
+            const auto chemin_statique_test = enchaine(it, nom_statique);
+            if (fichier_existe(chemin_statique_test)) {
+                chemin_statique_trouve = true;
+                resultat.chemin_statique = chemin_statique_test;
+            }
+        }
+
+        if (!chemin_dynamique_trouve) {
+            const auto chemin_dynamique_test = enchaine(it, nom_dynamique);
+            if (fichier_existe(chemin_dynamique_test)) {
+                chemin_dynamique_trouve = true;
+                resultat.chemin_dynamique = chemin_dynamique_test;
+            }
+        }
+    }
+
+    if (chemin_dynamique_trouve) {
+        resultat.chemin_dynamique = resoud_chemin_dynamique_si_script_ld(
+            espace, site, resultat.chemin_dynamique);
+    }
+
+    if (chemin_dynamique_trouve || chemin_statique_trouve) {
+        return resultat;
+    }
+
+    return {};
+}
+
 void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &espace,
                                                             NoeudExpression *site,
                                                             Bibliotheque *bibliotheque)
@@ -467,35 +518,9 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     const auto nom_statique = enchaine("lib", bibliotheque->nom, ".a");
     const auto nom_dynamique = enchaine("lib", bibliotheque->nom, ".so");
 
-    kuri::chaine chemin_statique;
-    kuri::chaine chemin_dynamique;
+    auto resultat = recherche_bibliotheque(espace, site, dossiers, nom_statique, nom_dynamique);
 
-    auto chemin_statique_trouve = false;
-    auto chemin_dynamique_trouve = false;
-
-    POUR (dossiers) {
-        if (chemin_dynamique_trouve && chemin_statique_trouve) {
-            break;
-        }
-
-        if (!chemin_statique_trouve) {
-            const auto chemin_statique_test = enchaine(it, nom_statique);
-            if (fichier_existe(chemin_statique_test)) {
-                chemin_statique_trouve = true;
-                chemin_statique = chemin_statique_test;
-            }
-        }
-
-        if (!chemin_dynamique_trouve) {
-            const auto chemin_dynamique_test = enchaine(it, nom_dynamique);
-            if (fichier_existe(chemin_dynamique_test)) {
-                chemin_dynamique_trouve = true;
-                chemin_dynamique = chemin_dynamique_test;
-            }
-        }
-    }
-
-    if (!chemin_statique_trouve && !chemin_dynamique_trouve) {
+    if (!resultat.has_value()) {
         auto e = espace.rapporte_erreur(site,
                                         "Impossible de résoudre le chemin vers une bibliothèque");
         e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
@@ -507,18 +532,14 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
         return;
     }
 
-    if (chemin_dynamique_trouve) {
-        chemin_dynamique = resoud_chemin_dynamique_si_script_ld(espace, site, chemin_dynamique);
-    }
-
 #if 0
     std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
     std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
     std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
 #endif
 
-    bibliotheque->chemin_statique = chemin_statique;
-    bibliotheque->chemin_dynamique = chemin_dynamique;
+    bibliotheque->chemin_statique = resultat.value().chemin_statique;
+    bibliotheque->chemin_dynamique = resultat.value().chemin_dynamique;
 }
 
 long GestionnaireBibliotheques::memoire_utilisee() const
