@@ -78,8 +78,15 @@ class ContenantParticules final : public BaseContenantParticules {
     voro::container *cont = nullptr;
 
   public:
+    COPIE_CONSTRUCT(ContenantParticules);
+
     ContenantParticules(voro::container *cont_) : cont(cont_)
     {
+    }
+
+    ~ContenantParticules()
+    {
+        delete cont;
     }
 
     bool compute_cell(voro::voronoicell_neighbor &c, voro::c_loop_order &l) override
@@ -102,8 +109,15 @@ class ContenantParticulesAvecRayon final : public BaseContenantParticules {
     voro::container_poly *cont = nullptr;
 
   public:
+    COPIE_CONSTRUCT(ContenantParticulesAvecRayon);
+
     ContenantParticulesAvecRayon(voro::container_poly *cont_) : cont(cont_)
     {
+    }
+
+    ~ContenantParticulesAvecRayon()
+    {
+        delete cont;
     }
 
     bool compute_cell(voro::voronoicell_neighbor &c, voro::c_loop_order &l) override
@@ -351,22 +365,25 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
         for (auto i = 0; i < c.totpoly; ++i) {
             auto nombre_verts = c.poly_totvert[i];
             maillage_sortie.ajouteUnPolygone(&c.poly_indices[skip + 1], nombre_verts);
-            attr_C.ecris_couleur(index_polygone, math::vec4f(couleur, 1.0f));
+
+            if (attr_C) {
+                attr_C.ecris_couleur(index_polygone, math::vec4f(couleur, 1.0f));
+            }
 
             if (groupe) {
                 maillage_sortie.ajouteAuGroupe(groupe, index_polygone);
             }
 
-            if (params.cree_attribut_cellule_voisine) {
+            if (params.cree_attribut_cellule_voisine && attr_voisine) {
                 attr_voisine.ecris_entier(index_polygone, c.voisines[i]);
             }
 
-            if (params.cree_attribut_centroide) {
+            if (params.cree_attribut_centroide && attr_centroide) {
                 attr_centroide.ecris_vec3(
                     index_polygone, math::vec3f(c.centroid[0], c.centroid[1], c.centroid[2]));
             }
 
-            if (params.cree_attribut_volume_cellule) {
+            if (params.cree_attribut_volume_cellule && attr_volume) {
                 attr_volume.ecris_reel(index_polygone, c.volume);
             }
 

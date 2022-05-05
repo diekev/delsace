@@ -29,7 +29,8 @@
 
 #include "biblinternes/math/limites.hh"
 #include "biblinternes/math/vecteur.hh"
-#include "biblinternes/structures/tableau.hh"
+
+#include "structures/tableau.hh"
 
 using namespace dls;
 
@@ -85,7 +86,7 @@ struct SelectriceClasseAttribut;
             return {*adaptrice};                                                                  \
         }                                                                                         \
         op(type, nom);                                                                            \
-        void copie(dls::tableau<type> const &valeurs)                                             \
+        void copie(kuri::tableau<type> const &valeurs)                                            \
         {                                                                                         \
             for (long i = 0; i < valeurs.taille(); i++) {                                         \
                 ecris_##nom(i, valeurs[i]);                                                       \

@@ -33,9 +33,9 @@
 
 #include "outils.hh"
 
-static dls::tableau<std::string> morcelle(std::string const &texte, char const delimiteur)
+static kuri::tableau<std::string> morcelle(std::string const &texte, char const delimiteur)
 {
-    tableau<std::string> morceaux;
+    kuri::tableau<std::string> morceaux;
     std::string morceau;
     std::stringstream ss(texte.c_str());
 
@@ -54,18 +54,18 @@ namespace geo {
 
 struct GroupePrimitives {
     std::string nom = "";
-    dls::tableau<int> index{};
+    kuri::tableau<int> index{};
 };
 
 struct DonneesLectureOBJ {
-    dls::tableau<math::vec3f> points{};
-    dls::tableau<math::vec3f> normaux{};
-    dls::tableau<math::vec3f> parametres_point{};
-    dls::tableau<math::vec3f> coordonnees_texture_point{};
+    kuri::tableau<math::vec3f> points{};
+    kuri::tableau<math::vec3f> normaux{};
+    kuri::tableau<math::vec3f> parametres_point{};
+    kuri::tableau<math::vec3f> coordonnees_texture_point{};
 
-    dls::tableau<dls::tableau<int>> polygones{};
-    dls::tableau<dls::tableau<int>> normaux_polygones{};
-    dls::tableau<dls::tableau<int>> uv_polygones{};
+    kuri::tableau<kuri::tableau<int>> polygones{};
+    kuri::tableau<kuri::tableau<int>> normaux_polygones{};
+    kuri::tableau<kuri::tableau<int>> uv_polygones{};
 
     std::list<GroupePrimitives> groupes{};
     std::list<GroupePrimitives *> groupes_courant{};
@@ -116,9 +116,9 @@ static void lis_sommet(DonneesLectureOBJ &donnees, std::istringstream &is)
 static void lis_polygone(DonneesLectureOBJ &donnees, std::istringstream &is)
 {
     std::string info_poly;
-    dls::tableau<int> index_polygones;
-    dls::tableau<int> index_normaux;
-    dls::tableau<int> index_coords_uv;
+    kuri::tableau<int> index_polygones;
+    kuri::tableau<int> index_normaux;
+    kuri::tableau<int> index_coords_uv;
 
     while (is >> info_poly) {
         auto morceaux = morcelle(info_poly, '/');
@@ -162,7 +162,7 @@ static void lis_polygone(DonneesLectureOBJ &donnees, std::istringstream &is)
     }
 
     for (auto groupe : donnees.groupes_courant) {
-        groupe->index.ajoute(index_polygone);
+        groupe->index.ajoute(static_cast<int>(index_polygone));
     }
 }
 
@@ -178,7 +178,7 @@ static void lis_objet(DonneesLectureOBJ &donnees, std::istringstream &is)
 static void lis_ligne(DonneesLectureOBJ &donnees, std::istringstream &is)
 {
     std::string info_poly;
-    dls::tableau<int> index;
+    kuri::tableau<int> index;
 
     while (is >> info_poly) {
         index.ajoute(std::stoi(info_poly.c_str()) - 1);
@@ -191,7 +191,7 @@ static void lis_ligne(DonneesLectureOBJ &donnees, std::istringstream &is)
 static void lis_groupes_geometries(DonneesLectureOBJ &donnees, std::istringstream &is)
 {
     std::string groupe;
-    dls::tableau<std::string> groupes;
+    kuri::tableau<std::string> groupes;
 
     while (is >> groupe) {
         groupes.ajoute(groupe);
@@ -213,7 +213,7 @@ static void lis_groupe_nuancage(DonneesLectureOBJ &donnees, std::istringstream &
         return;
     }
 
-    int index = std::stoi(groupe.c_str());
+    // int index = std::stoi(groupe.c_str());
 
     // maillage.groupe_nuancage(index);
     // À FAIRE : non supporté pour le moment
@@ -227,7 +227,7 @@ struct ParsatTableauIndexSurPolygone {
 };
 
 static ParsatTableauIndexSurPolygone parse_tableau_index(
-    const dls::tableau<dls::tableau<int>> &valeurs)
+    const kuri::tableau<kuri::tableau<int>> &valeurs)
 {
     auto resultat = ParsatTableauIndexSurPolygone();
 
@@ -387,9 +387,9 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
 
     std::string mot;
 
-    dls::tableau<math::vec3f> tous_les_normaux;
-    dls::tableau<math::vec3f> tous_les_points;
-    dls::tableau<math::vec3i> tous_les_triangles;
+    kuri::tableau<math::vec3f> tous_les_normaux;
+    kuri::tableau<math::vec3f> tous_les_points;
+    kuri::tableau<math::vec3i> tous_les_triangles;
 
     math::vec3i triangle(0, 1, 2);
 
@@ -444,7 +444,7 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
     maillage.ajoutePoints(reinterpret_cast<float *>(tous_les_points.donnees()),
                           tous_les_points.taille());
 
-    dls::tableau<int> sommets_par_polygones(tous_les_triangles.taille());
+    kuri::tableau<int> sommets_par_polygones(tous_les_triangles.taille());
     std::fill(sommets_par_polygones.debut(), sommets_par_polygones.fin(), 3);
 
     maillage.ajouteListePolygones(reinterpret_cast<int *>(tous_les_triangles.donnees()),
@@ -470,7 +470,7 @@ void ecris_fichier_OBJ(Maillage const &maillage, std::string const &chemin)
         fichier << "v " << point.x << " " << point.y << " " << point.z << "\n";
     }
 
-    dls::tableau<int> temp_access_index_sommet;
+    kuri::tableau<int> temp_access_index_sommet;
     for (long i = 0; i < maillage.nombreDePolygones(); ++i) {
         const long nombre_sommets = maillage.nombreDeSommetsPolygone(i);
 
