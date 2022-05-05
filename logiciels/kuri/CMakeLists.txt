@@ -80,7 +80,7 @@ macro(definis_bibliotheque __statique_ou_partagee__ __nom__ __nom_cible__ __sour
     target_include_directories(${__nom_cible__} PUBLIC ${__inclusions__})
     target_link_libraries(${__nom_cible__} ${__bibliotheques__})
     set_target_properties(${__nom_cible__} PROPERTIES OUTPUT_NAME ${__nom__})
-    install(TARGETS ${__nom_cible__} ARCHIVE DESTINATION ${CHEMIN_INSTALLATION})
+    install(TARGETS ${__nom_cible__} DESTINATION ${CHEMIN_INSTALLATION})
 endmacro()
 
 # Compile un module C en une bibliothèque utilisable depuis le langage.
