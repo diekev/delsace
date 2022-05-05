@@ -78,6 +78,8 @@ class ContenantParticules final : public BaseContenantParticules {
     voro::container *cont = nullptr;
 
   public:
+    COPIE_CONSTRUCT(ContenantParticules);
+
     ContenantParticules(voro::container *cont_) : cont(cont_)
     {
     }
@@ -102,6 +104,8 @@ class ContenantParticulesAvecRayon final : public BaseContenantParticules {
     voro::container_poly *cont = nullptr;
 
   public:
+    COPIE_CONSTRUCT(ContenantParticulesAvecRayon);
+
     ContenantParticulesAvecRayon(voro::container_poly *cont_) : cont(cont_)
     {
     }

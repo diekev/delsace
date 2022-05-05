@@ -162,7 +162,7 @@ static void lis_polygone(DonneesLectureOBJ &donnees, std::istringstream &is)
     }
 
     for (auto groupe : donnees.groupes_courant) {
-        groupe->index.ajoute(index_polygone);
+        groupe->index.ajoute(static_cast<int>(index_polygone));
     }
 }
 
@@ -213,7 +213,7 @@ static void lis_groupe_nuancage(DonneesLectureOBJ &donnees, std::istringstream &
         return;
     }
 
-    int index = std::stoi(groupe.c_str());
+    // int index = std::stoi(groupe.c_str());
 
     // maillage.groupe_nuancage(index);
     // À FAIRE : non supporté pour le moment
