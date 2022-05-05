@@ -107,6 +107,9 @@ bool Bibliotheque::charge(EspaceDeTravail *espace)
         return true;
     }
 
+    kuri::chaine_statique chemin_dynamique =
+        chemins[PLATEFORME_64_BIT][DYNAMIQUE][POUR_PRODUCTION];
+
     if (chemin_dynamique == "") {
         espace
             ->rapporte_erreur(
@@ -116,7 +119,8 @@ bool Bibliotheque::charge(EspaceDeTravail *espace)
     }
 
     try {
-        this->bib = dls::systeme_fichier::shared_library(dls::chaine(chemin_dynamique).c_str());
+        this->bib = dls::systeme_fichier::shared_library(
+            dls::chaine(chemin_dynamique.pointeur(), chemin_dynamique.taille()).c_str());
         etat_recherche = EtatRechercheBibliotheque::TROUVEE;
     }
     catch (std::filesystem::filesystem_error const &e) {
@@ -143,10 +147,68 @@ long Bibliotheque::memoire_utilisee() const
     POUR_TABLEAU_PAGE (symboles) {
         memoire += it.nom.taille();
     }
-    memoire += chemin_statique.taille();
-    memoire += chemin_dynamique.taille();
+    for (int i = 0; i < NUM_TYPES_PLATEFORME; i++) {
+        for (int j = 0; j < NUM_TYPES_BIBLIOTHEQUE; j++) {
+            for (int k = 0; k < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; k++) {
+                memoire += chemins[i][j][k].taille();
+            }
+        }
+    }
     memoire += dependances.taille_memoire();
     return memoire;
+}
+
+static int plateforme_pour_options(OptionsDeCompilation const &options)
+{
+    if (options.architecture == ArchitectureCible::X86) {
+        return PLATEFORME_32_BIT;
+    }
+
+    return PLATEFORME_64_BIT;
+}
+
+static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chaine const *chemins,
+                                                             const OptionsDeCompilation &options)
+{
+#if 0
+    // À FAIRE : le nom devra changer pour la liaison
+    if (options.compilation_pour == CompilationPour::DEBOGAGE) {
+        if (options.utilise_asan && chemins[POUR_DEBOGAGE_ASAN]) {
+            return chemins[POUR_DEBOGAGE_ASAN];
+        }
+
+        if (chemins[POUR_DEBOGAGE]) {
+            return chemins[POUR_DEBOGAGE];
+        }
+    }
+
+    if (options.compilation_pour == CompilationPour::PROFILAGE) {
+        if (chemins[POUR_PROFILAGE]) {
+            return chemins[POUR_PROFILAGE];
+        }
+    }
+#endif
+
+    return chemins[POUR_PRODUCTION];
+}
+
+kuri::chaine_statique Bibliotheque::chemin_de_base(const OptionsDeCompilation &options) const
+{
+    return chemins_de_base[plateforme_pour_options(options)];
+}
+
+kuri::chaine_statique Bibliotheque::chemin_statique(const OptionsDeCompilation &options) const
+{
+    auto const plateforme = plateforme_pour_options(options);
+    auto chemins_statiques = chemins[plateforme][STATIQUE];
+    return selectionne_chemin_pour_options(chemins_statiques, options);
+}
+
+kuri::chaine_statique Bibliotheque::chemin_dynamique(const OptionsDeCompilation &options) const
+{
+    auto const plateforme = plateforme_pour_options(options);
+    auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
+    return selectionne_chemin_pour_options(chemins_dynamiques, options);
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *ident)
@@ -424,54 +486,110 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
 }
 
 struct ResultatRechercheBibliotheque {
-    kuri::chaine chemin_statique{};
-    kuri::chaine chemin_dynamique{};
+    kuri::chaine_statique chemin_de_base;
+    kuri::chaine chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 };
 
 static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
     EspaceDeTravail &espace,
     NoeudExpression *site,
     kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
-    kuri::chaine const &nom_statique,
-    kuri::chaine const &nom_dynamique)
+    kuri::chaine const noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE])
 {
-    auto chemin_statique_trouve = false;
-    auto chemin_dynamique_trouve = false;
-
     auto resultat = ResultatRechercheBibliotheque();
 
+    bool chemin_trouve[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+
     POUR (dossiers) {
-        if (chemin_dynamique_trouve && chemin_statique_trouve) {
+
+        resultat.chemin_de_base = "";
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+                chemin_trouve[i][j] = false;
+                resultat.chemins[i][j] = "";
+            }
+        }
+
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+                if (chemin_trouve[i][j]) {
+                    continue;
+                }
+
+                auto chemin_test = enchaine(it, noms[i][j]);
+                if (!fichier_existe(chemin_test)) {
+                    continue;
+                }
+
+                chemin_trouve[i][j] = true;
+                resultat.chemins[i][j] = chemin_test;
+            }
+        }
+        /* Les bibliothèques doivent être dans le même dossier. */
+        if (chemin_trouve[STATIQUE][POUR_PRODUCTION] ||
+            chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
+            resultat.chemin_de_base = it;
             break;
         }
-
-        if (!chemin_statique_trouve) {
-            const auto chemin_statique_test = enchaine(it, nom_statique);
-            if (fichier_existe(chemin_statique_test)) {
-                chemin_statique_trouve = true;
-                resultat.chemin_statique = chemin_statique_test;
-            }
-        }
-
-        if (!chemin_dynamique_trouve) {
-            const auto chemin_dynamique_test = enchaine(it, nom_dynamique);
-            if (fichier_existe(chemin_dynamique_test)) {
-                chemin_dynamique_trouve = true;
-                resultat.chemin_dynamique = chemin_dynamique_test;
-            }
-        }
     }
 
-    if (chemin_dynamique_trouve) {
-        resultat.chemin_dynamique = resoud_chemin_dynamique_si_script_ld(
-            espace, site, resultat.chemin_dynamique);
+    if (chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
+        resultat.chemins[DYNAMIQUE][POUR_PRODUCTION] = resoud_chemin_dynamique_si_script_ld(
+            espace, site, resultat.chemins[DYNAMIQUE][POUR_PRODUCTION]);
     }
 
-    if (chemin_dynamique_trouve || chemin_statique_trouve) {
+    if (chemin_trouve[STATIQUE][POUR_PRODUCTION] || chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
         return resultat;
     }
 
     return {};
+}
+
+static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
+    Compilatrice const &compilatrice, NoeudExpression *site)
+{
+    kuri::tablet<kuri::chaine_statique, 4> dossiers;
+    if (site) {
+        const auto fichier = compilatrice.fichier(site->lexeme->fichier);
+        const auto module = fichier->module;
+        dossiers.ajoute(module->chemin_bibliotheque_32bits);
+    }
+
+    dossiers.ajoute("/lib/i386-linux-gnu/");
+    dossiers.ajoute("/usr/lib/i386-linux-gnu/");
+    // pour les tables r16...
+    dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
+    return dossiers;
+}
+
+static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
+    Compilatrice const &compilatrice, NoeudExpression *site)
+{
+    kuri::tablet<kuri::chaine_statique, 4> dossiers;
+    if (site) {
+        const auto fichier = compilatrice.fichier(site->lexeme->fichier);
+        const auto module = fichier->module;
+        dossiers.ajoute(module->chemin_bibliotheque_64bits);
+    }
+
+    dossiers.ajoute("/lib/x86_64-linux-gnu/");
+    dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
+    // pour les tables r16...
+    dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
+    return dossiers;
+}
+
+static void copie_chemins(ResultatRechercheBibliotheque const &resultat,
+                          Bibliotheque *bibliotheque,
+                          int plateforme)
+{
+    for (int i = 0; i < NUM_TYPES_BIBLIOTHEQUE; i++) {
+        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; j++) {
+            bibliotheque->chemins[plateforme][i][j] = resultat.chemins[i][j];
+        }
+    }
+
+    bibliotheque->chemins_de_base[plateforme] = resultat.chemin_de_base;
 }
 
 void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &espace,
@@ -482,43 +600,26 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     // chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
     //                  /lib/i386-linux-gnu/ pour 32-bit
 
-    kuri::tablet<kuri::chaine_statique, 4> dossiers;
-    // À FAIRE(bibliotheques) : versions 32-bits, ou 64-bits
-    if (espace.options.architecture == ArchitectureCible::X86) {
-        if (site) {
-            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
-            const auto module = fichier->module;
-            dossiers.ajoute(module->chemin_bibliotheque_32bits);
-        }
-
-        dossiers.ajoute("/lib/i386-linux-gnu/");
-        dossiers.ajoute("/usr/lib/i386-linux-gnu/");
-        // pour les tables r16...
-        dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
-    }
-    else {
-        if (site) {
-            const auto fichier = compilatrice.fichier(site->lexeme->fichier);
-            const auto module = fichier->module;
-            dossiers.ajoute(module->chemin_bibliotheque_64bits);
-        }
-
-        dossiers.ajoute("/lib/x86_64-linux-gnu/");
-        dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
-        // pour les tables r16...
-        dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
-    }
-
     // essaye de déterminer le chemin
     // pour un fichier statique :
     // /chemin/de/base/libnom.a
     // pour un fichier dynamique :
     // /chemin/de/base/libnom.so
+    kuri::chaine noms[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 
-    const auto nom_statique = enchaine("lib", bibliotheque->nom, ".a");
-    const auto nom_dynamique = enchaine("lib", bibliotheque->nom, ".so");
+    noms[STATIQUE][POUR_PRODUCTION] = enchaine("lib", bibliotheque->nom, ".a");
+    noms[STATIQUE][POUR_PROFILAGE] = enchaine("lib", bibliotheque->nom, "_profile.a");
+    noms[STATIQUE][POUR_DEBOGAGE] = enchaine("lib", bibliotheque->nom, "_debogage.a");
+    noms[STATIQUE][POUR_DEBOGAGE_ASAN] = enchaine("lib", bibliotheque->nom, "_asan.a");
 
-    auto resultat = recherche_bibliotheque(espace, site, dossiers, nom_statique, nom_dynamique);
+    noms[DYNAMIQUE][POUR_PRODUCTION] = enchaine("lib", bibliotheque->nom, ".so");
+    noms[DYNAMIQUE][POUR_PROFILAGE] = enchaine("lib", bibliotheque->nom, "_profile.so");
+    noms[DYNAMIQUE][POUR_DEBOGAGE] = enchaine("lib", bibliotheque->nom, "_debogage.so");
+    noms[DYNAMIQUE][POUR_DEBOGAGE_ASAN] = enchaine("lib", bibliotheque->nom, "_asan.so");
+
+    /* Commence par les versions 64-bit. */
+    auto dossiers = dossiers_recherche_64_bits(compilatrice, site);
+    auto resultat = recherche_bibliotheque(espace, site, dossiers, noms);
 
     if (!resultat.has_value()) {
         auto e = espace.rapporte_erreur(site,
@@ -526,20 +627,23 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
         e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
         e.ajoute_message("Les chemins testés furent :\n");
         POUR (dossiers) {
-            e.ajoute_message("    ", it, "/", nom_statique, "\n");
-            e.ajoute_message("    ", it, "/", nom_dynamique, "\n");
+            e.ajoute_message("    ", it, "/", noms[STATIQUE][POUR_PRODUCTION], "\n");
+            e.ajoute_message("    ", it, "/", noms[DYNAMIQUE][POUR_PRODUCTION], "\n");
         }
+
         return;
     }
 
-#if 0
-    std::cerr << "Création d'une bibliothèque pour " << bibliotheque->nom << '\n';
-    std::cerr << "-- chemin statique  : " << chemin_statique << '\n';
-    std::cerr << "-- chemin dynamique : " << chemin_dynamique << '\n';
-#endif
+    copie_chemins(resultat.value(), bibliotheque, PLATEFORME_64_BIT);
 
-    bibliotheque->chemin_statique = resultat.value().chemin_statique;
-    bibliotheque->chemin_dynamique = resultat.value().chemin_dynamique;
+    /* Versions 32-bit. */
+    dossiers = dossiers_recherche_32_bits(compilatrice, site);
+    resultat = recherche_bibliotheque(espace, site, dossiers, noms);
+
+    if (resultat.has_value()) {
+        /* Pas d'erreur si non trouvés pour le moment. */
+        copie_chemins(resultat.value(), bibliotheque, PLATEFORME_32_BIT);
+    }
 }
 
 long GestionnaireBibliotheques::memoire_utilisee() const

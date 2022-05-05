@@ -36,6 +36,7 @@ struct Bibliotheque;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct NoeudExpression;
+struct OptionsDeCompilation;
 struct Statistiques;
 
 enum class EtatRechercheSymbole : unsigned char {
@@ -72,6 +73,31 @@ enum class EtatRechercheBibliotheque : unsigned char {
     INTROUVEE,
 };
 
+enum {
+    PLATEFORME_32_BIT,
+    PLATEFORME_64_BIT,
+
+    NUM_TYPES_PLATEFORME,
+};
+
+enum {
+    /* Bibliothèque statique (*.a sur Linux). */
+    STATIQUE,
+    /* Bibliothèque dynamique (*.so sur Linux). */
+    DYNAMIQUE,
+
+    NUM_TYPES_BIBLIOTHEQUE,
+};
+
+enum {
+    POUR_PRODUCTION,
+    POUR_PROFILAGE,
+    POUR_DEBOGAGE,
+    POUR_DEBOGAGE_ASAN,
+
+    NUM_TYPES_INFORMATION_BIBLIOTHEQUE,
+};
+
 struct Bibliotheque {
     /* l'identifiant qui sera utilisé après les directives #externe, défini via ident ::
      * #bibliothèque "nom" */
@@ -84,11 +110,9 @@ struct Bibliotheque {
 
     EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
 
-    /* Le chemin pour une bibliothèque statique (*.a sur Linux). */
-    kuri::chaine chemin_statique = "";
-
-    /* Le chemin pour la version dynamique (*.so sur Linux). */
-    kuri::chaine chemin_dynamique = "";
+    kuri::chaine chemins_de_base[NUM_TYPES_PLATEFORME];
+    kuri::chaine chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
+                        [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
     kuri::tableau_compresse<Bibliotheque *, int> dependances{};
     tableau_page<Symbole> symboles{};
@@ -99,9 +123,13 @@ struct Bibliotheque {
 
     long memoire_utilisee() const;
 
+    kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
+    kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
+    kuri::chaine_statique chemin_dynamique(OptionsDeCompilation const &options) const;
+
     bool peut_lier_statiquement() const
     {
-        return chemin_statique != "" && nom != "c";
+        return chemins[STATIQUE][PLATEFORME_64_BIT][POUR_PRODUCTION] != "" && nom != "c";
     }
 };
 
