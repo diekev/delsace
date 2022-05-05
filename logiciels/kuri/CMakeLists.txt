@@ -91,8 +91,16 @@ macro(compile_module_c __nom__ __nom_interface__ __entete_interface__ __dossier_
 
     set(CHEMIN_INSTALLATION ${RACINE_INSTALLATION}/modules/${__dossier__}/lib/x86_64-linux-gnu/)
 
-    definis_bibliotheque(STATIC ${__nom__} ${NOM_STATIQUE} "${__sources__}" "${__inclusions__}" "${__bibliotheques__}")
-    definis_bibliotheque(SHARED ${__nom__} ${NOM_DYNAMIQUE} "${__sources__}" "${__inclusions__}" "${__bibliotheques__}")
+    if(CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(NOM ${__nom__}_debogage)
+    elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
+        set(NOM ${__nom__}_profile)
+    else()
+        set(NOM ${__nom__})
+    endif()
+
+    definis_bibliotheque(STATIC ${NOM} ${NOM_STATIQUE} "${__sources__}" "${__inclusions__}" "${__bibliotheques__}")
+    definis_bibliotheque(SHARED ${NOM} ${NOM_DYNAMIQUE} "${__sources__}" "${__inclusions__}" "${__bibliotheques__}")
     set_property(TARGET ${NOM_DYNAMIQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
     # Compile l'interface, nous devons dépendre sur une cible de compilation,
