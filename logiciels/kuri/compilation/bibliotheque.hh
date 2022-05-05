@@ -110,11 +110,11 @@ struct Bibliotheque {
 
     EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
 
-    kuri::chaine chemins_de_base[NUM_TYPES_PLATEFORME];
+    kuri::chaine chemins_de_base[NUM_TYPES_PLATEFORME] = {};
     kuri::chaine chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
                         [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
-    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
     kuri::tableau_compresse<Bibliotheque *, int> dependances{};
     tableau_page<Symbole> symboles{};

@@ -499,7 +499,7 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
 }
 
 struct ResultatRechercheBibliotheque {
-    kuri::chaine_statique chemin_de_base;
+    kuri::chaine_statique chemin_de_base = "";
     kuri::chaine chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 };
 
