@@ -41,7 +41,7 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
 
     /* Exporte les points. */
     using vertex_descriptor = boost::graph_traits<FEVV::MeshPolyhedron>::vertex_descriptor;
-    dls::tableau<vertex_descriptor> vertices;
+    kuri::tableau<vertex_descriptor> vertices;
     vertices.reserve(maillage.nombreDePoints());
 
     for (long i = 0; i < maillage.nombreDePoints(); i++) {
@@ -52,7 +52,7 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
     }
 
     /* Exporte les polygones. */
-    dls::tableau<int> temp_access_index_sommet;
+    kuri::tableau<int> temp_access_index_sommet;
 
     for (long i = 0; i < maillage.nombreDePolygones(); i++) {
         const long nombre_sommets = maillage.nombreDeSommetsPolygone(i);
@@ -103,7 +103,7 @@ static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &m
     for (auto face_iter = polyhedre->facets_begin(); face_iter != polyhedre->facets_end();
          ++face_iter) {
 
-        dls::tableau<int> sommets;
+        kuri::tableau<int> sommets;
 
         auto edge_iter = face_iter->halfedge();
         auto edge_begin = edge_iter;
@@ -133,7 +133,6 @@ void booleen_maillages(Maillage const &maillage_a,
     else
         FEVV::Filters::boolean_minus(*mesh_A, *mesh_B, *output_mesh);
 
-    std::cerr << "Après opération booléenne...\n";
     convertis_vers_maillage(output_mesh, maillage_sortie);
     delete mesh_A;
     delete mesh_B;
