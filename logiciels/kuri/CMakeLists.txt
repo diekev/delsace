@@ -160,7 +160,6 @@ foreach(DOSSIER_TEST ${DOSSIERS_TESTS})
 endforeach(DOSSIER_TEST)
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
-# À FAIRE : exemples/tests/test_tri.kuri
 # À FAIRE : exemples/tests/test_fichier.kuri
 set(FICHIERS_TESTS
     exemples/applications/base64.kuri
