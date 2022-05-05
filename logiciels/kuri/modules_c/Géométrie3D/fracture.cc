@@ -84,6 +84,11 @@ class ContenantParticules final : public BaseContenantParticules {
     {
     }
 
+    ~ContenantParticules()
+    {
+        delete cont;
+    }
+
     bool compute_cell(voro::voronoicell_neighbor &c, voro::c_loop_order &l) override
     {
         return cont->compute_cell(c, l);
@@ -108,6 +113,11 @@ class ContenantParticulesAvecRayon final : public BaseContenantParticules {
 
     ContenantParticulesAvecRayon(voro::container_poly *cont_) : cont(cont_)
     {
+    }
+
+    ~ContenantParticulesAvecRayon()
+    {
+        delete cont;
     }
 
     bool compute_cell(voro::voronoicell_neighbor &c, voro::c_loop_order &l) override
