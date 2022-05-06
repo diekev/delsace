@@ -24,11 +24,32 @@ set(NOM_PROJET module_c_geometrie_3d)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+        /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
 )
 
 set(BIBLIOTHEQUES
     bib_outils
     memoire
+)
+
+set(SOURCES_BOOLEEN
+    booleen/boolean_operations.hpp
+    booleen/boolops_cpolyhedron_builder.hpp
+    booleen/boolops_definitions.hpp
+    booleen/boolops_enriched_polyhedron.hpp
+    booleen/boolops_polyhedra.hpp
+    booleen/boolops_properties.h
+    booleen/boolops_triangulation.hpp
+
+    booleen/Geometry_traits.h
+    booleen/properties.h
+
+    booleen/Geometry_traits_cgal_polyhedron_3.h
+    booleen/properties_polyhedron_3.h
+    booleen/Wrappings_cgal_polyhedron_3.h
+    booleen/Geometry_traits_cartesian.h
+    booleen/Geometry_traits_cgal_exact_predicates_inexact_constructions_kernel.h
+    booleen/Geometry_traits_operators.h
 )
 
 set(SOURCES_VORONOI
@@ -70,11 +91,18 @@ set(SOURCES
     outils.cc
     outils.hh
 
+    booleen_maillage.cc
+    booleen_maillage.hh
+
     fracture.cc
     fracture.hh
 
+    ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
 compile_module_c(${NOM_PROJET} geometrie3d ipa.h Géométrie3D "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
+
+desactive_drapeaux_compilation_c(${NOM_PROJET}_statique)
+desactive_drapeaux_compilation_c(${NOM_PROJET}_dynamique)

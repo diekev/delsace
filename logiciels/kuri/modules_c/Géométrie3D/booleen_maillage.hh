@@ -24,31 +24,23 @@
 
 #pragma once
 
-struct ParametresFracture;
-
 #include "biblinternes/structures/tableau.hh"
+#include <string>
 
 namespace geo {
 
 class Maillage;
+struct CelluleVoronoi;
 
-struct CelluleVoronoi {
-    dls::tableau<double> verts{};
-    dls::tableau<int> poly_totvert{};
-    dls::tableau<int> poly_indices{};
-    dls::tableau<int> voisines{};
+bool booleen_maillages(Maillage const &maillage_a,
+                       Maillage const &maillage_b,
+                       const std::string &operation,
+                       Maillage &maillage_sortie);
 
-    float centroid[3] = {0.0f, 0.0f, 0.0f};
-    float volume = 0.0f;
-    int index = 0;
-    int totvert = 0;
-    int totpoly = 0;
-    int pad = 0;
-};
+void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie);
 
-void fracture_maillage_voronoi(const ParametresFracture &params,
-                               Maillage const &maillage_a_fracturer,
-                               Maillage const &maillage_points,
-                               Maillage &maillage_sortie);
+bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
+                                              dls::tableau<CelluleVoronoi> const &cellules,
+                                              Maillage &maillage_sortie);
 
 }  // namespace geo

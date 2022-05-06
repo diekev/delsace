@@ -29,6 +29,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "voro/voro++.hh"
 
+#include "booleen_maillage.hh"
 #include "outils.hh"
 
 namespace geo {
@@ -49,22 +50,6 @@ namespace geo {
  * %C the centroid of the voronoi cell
  * c  centroid section delimiter
  */
-
-struct cell {
-    dls::tableau<double> verts{};
-    dls::tableau<int> poly_totvert{};
-    dls::tableau<int> poly_indices{};
-    dls::tableau<int> voisines{};
-
-    float centroid[3] = {0.0f, 0.0f, 0.0f};
-    float volume = 0.0f;
-    int index = 0;
-    int totvert = 0;
-    int totpoly = 0;
-    int pad = 0;
-
-    cell() = default;
-};
 
 class BaseContenantParticules {
   public:
@@ -138,7 +123,7 @@ class ContenantParticulesAvecRayon final : public BaseContenantParticules {
 
 static void container_compute_cells(std::unique_ptr<BaseContenantParticules> const &cn,
                                     voro::particle_order &po,
-                                    dls::tableau<cell> &cells)
+                                    dls::tableau<CelluleVoronoi> &cells)
 {
     voro::voronoicell_neighbor vc;
     voro::c_loop_order vl = cn->loop_order(po);
@@ -146,7 +131,7 @@ static void container_compute_cells(std::unique_ptr<BaseContenantParticules> con
     if (!vl.start()) {
         return;
     }
-    cell c;
+    CelluleVoronoi c;
 
     int **id_particules = cn->id();
 
@@ -287,12 +272,15 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
         params, maillage_a_fracturer, maillage_points, order_particules);
 
     /* création des cellules */
-    auto cellules = dls::tableau<cell>();
+    auto cellules = dls::tableau<CelluleVoronoi>();
     cellules.reserve(maillage_points.nombreDePoints());
 
     /* calcul des cellules */
     container_compute_cells(cont_voro, order_particules, cellules);
 
+#if 1
+    construit_maillage_pour_cellules_voronoi(maillage_a_fracturer, cellules, maillage_sortie);
+#else
     /* conversion des données */
     long nombre_de_points = 0;
     long nombre_de_polygones = 0;
@@ -340,7 +328,6 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
     else {
         nom_base_groupe = "fracture";
     }
-
     auto gna = GNA();
 
     auto index_polygone = 0;
@@ -393,6 +380,7 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
 
         index_cellule += 1;
     }
+#endif
 }
 
 }  // namespace geo

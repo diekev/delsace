@@ -3,6 +3,12 @@
 importe Fondation
 importe SysFichier
 
+libgmp :: #bibliothèque "gmp"
+libmpfr :: #bibliothèque "mpfr"
+
+#dépendance_bibliothèque libmodule_c_geometrie_3d libgmp
+#dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr
+
 /* Structure contenant des fonctions de rappels devant être renseignées par
  * les applications clientes afin de créer la géométrie. */
 CréatriceGéométrie :: struct {
