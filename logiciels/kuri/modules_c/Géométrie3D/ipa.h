@@ -302,7 +302,7 @@ enum TypeOperationBooleenne {
     OP_BOOL_UNION,
 };
 
-void GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
+bool GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
                                         struct AdaptriceMaillage *maillage_b,
                                         struct AdaptriceMaillage *maillage_sortie,
                                         enum TypeOperationBooleenne operation);

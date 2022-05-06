@@ -35,6 +35,11 @@
         return;                                                                                   \
     }
 
+#define RETOURNE_FAUX_SI_NUL(x)                                                                   \
+    if (!x) {                                                                                     \
+        return false;                                                                             \
+    }
+
 /**
  * Crée une boîte avec les tailles spécifiées.
  */
@@ -189,14 +194,14 @@ void GEO3D_fracture_maillage(struct ParametresFracture *params,
         *params, maillage_a_fracturer_, nuage_de_points_, maillage_sortie_);
 }
 
-void GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
+bool GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
                                         struct AdaptriceMaillage *maillage_b,
                                         struct AdaptriceMaillage *maillage_sortie,
                                         enum TypeOperationBooleenne operation)
 {
-    RETOURNE_SI_NUL(maillage_a)
-    RETOURNE_SI_NUL(maillage_b)
-    RETOURNE_SI_NUL(maillage_sortie)
+    RETOURNE_FAUX_SI_NUL(maillage_a)
+    RETOURNE_FAUX_SI_NUL(maillage_b)
+    RETOURNE_FAUX_SI_NUL(maillage_sortie)
 
     std::string str_operation;
     if (operation == TypeOperationBooleenne::OP_BOOL_INTERSECTION) {
@@ -213,7 +218,7 @@ void GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
     geo::Maillage maillage_b_ = geo::Maillage::enveloppe(maillage_b);
     geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
 
-    geo::booleen_maillages(maillage_a_, maillage_b_, str_operation, maillage_sortie_);
+    return geo::booleen_maillages(maillage_a_, maillage_b_, str_operation, maillage_sortie_);
 }
 
 void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,

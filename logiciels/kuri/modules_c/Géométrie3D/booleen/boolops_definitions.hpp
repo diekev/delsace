@@ -43,7 +43,7 @@ typedef typename EnrichedPolyhedron::Point_3 Point3d;
  * \def BOOLEAN_OPERATIONS_TIME
  * \brief Enables computation time measuring
  */
-#define BOOLEAN_OPERATIONS_TIME
+//#define BOOLEAN_OPERATIONS_TIME
 
 /*!
  * \enum Bool_Op
@@ -139,4 +139,14 @@ inline double get_time_and_reset(std::chrono::time_point<std::chrono::steady_clo
     time_start = time_now;
 
     return duration.count();
+}
+
+inline bool operator==(num_type a, int b)
+{
+    return a == num_type(b);
+}
+
+inline bool operator!=(num_type a, int b)
+{
+    return a != num_type(b);
 }

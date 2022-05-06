@@ -30,7 +30,7 @@ namespace geo {
 
 class Maillage;
 
-void booleen_maillages(Maillage const &maillage_a,
+bool booleen_maillages(Maillage const &maillage_a,
                        Maillage const &maillage_b,
                        const std::string &operation,
                        Maillage &maillage_sortie);

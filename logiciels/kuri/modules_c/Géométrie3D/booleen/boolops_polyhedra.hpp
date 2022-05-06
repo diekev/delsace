@@ -772,7 +772,7 @@ class BoolPolyhedra {
             // if p == 0, fA2 is coplanar with the plane of fB
             // in that case, it is necessary to consider the boolean
             // operator used to determine if there is a contact or not
-            else if (p == 0) {
+            else if (p == num_type(0)) {
                 switch (m_BOOP) {
                     case UNION:
                         if (posA[(edgeA + 1) % 3] * (nA2 * nB) > 0)
@@ -799,12 +799,12 @@ class BoolPolyhedra {
             p = CGAL::cross_product(nA, nB) * CGAL::cross_product(nA, nB2);
             // if p is negative, the two triangles of the second polyhedron (including edgeB) are
             // on the same side so there is no intersection
-            if (p < 0)
+            if (p < num_type(0))
                 stop = true;
             // if p == 0, fB2 is coplanar with the plane of fA
             // in that case, it is necessary to consider the boolean
             // operator used to determine if there is a contact or not
-            else if (p == 0) {
+            else if (p == num_type(0)) {
                 switch (m_BOOP) {
                     case UNION:
                         if (posB[(edgeB + 1) % 3] < 0)
@@ -868,24 +868,24 @@ class BoolPolyhedra {
 
             // firstly, we search the position of fA
             // if fA is inside the poyhedron, Intersection = true
-            if (posB_A * posB2_A > 0)  // fB and fB2 on the same side
+            if (posB_A * posB2_A > num_type(0))  // fB and fB2 on the same side
             {
-                if (posB_B2 > 0)
+                if (posB_B2 > num_type(0))
                     Intersection = true;
             }
-            else if (posB_A * posB2_A < 0)  // fB and fB2 on opposite side
+            else if (posB_A * posB2_A < num_type(0))  // fB and fB2 on opposite side
             {
-                if (posA_B < 0)
+                if (posA_B < num_type(0))
                     Intersection = true;
             }
             else  // fA and fB2 coplanar
             {
-                if (posA_B * posB2_B < 0) {
+                if (posA_B * posB2_B < num_type(0)) {
                     if (posB_B2 > 0)
                         Intersection = true;
                 }
                 else {
-                    if (nAnB2 < 0) {
+                    if (nAnB2 < num_type(0)) {
                         if (m_BOOP == UNION)
                             Intersection = true;
                     }
@@ -898,24 +898,24 @@ class BoolPolyhedra {
 
             // secondly, we search the position of fA2
             // if fA2 is inside the poyhedron, "Intersection" is inverted
-            if (posB_A2 * posB2_A2 > 0)  // fB and fB2 on the same side
+            if (posB_A2 * posB2_A2 > num_type(0))  // fB and fB2 on the same side
             {
                 if (posB_B2 > 0)
                     Intersection = !Intersection;
             }
-            else if (posB_A2 * posB2_A2 < 0)  // fB and fB2 on opposite side
+            else if (posB_A2 * posB2_A2 < num_type(0))  // fB and fB2 on opposite side
             {
                 if (posA2_B < 0)
                     Intersection = !Intersection;
             }
-            else if (posB2_A2 == 0)  // fA2 and fB2 coplanar
+            else if (posB2_A2 == num_type(0))  // fA2 and fB2 coplanar
             {
-                if (posA2_B * posB2_B < 0) {
+                if (posA2_B * posB2_B < num_type(0)) {
                     if (posB_B2 > 0)
                         Intersection = !Intersection;
                 }
                 else {
-                    if (nA2nB2 < 0) {
+                    if (nA2nB2 < num_type(0)) {
                         if (m_BOOP == UNION)
                             Intersection = !Intersection;
                     }
@@ -927,12 +927,12 @@ class BoolPolyhedra {
             }
             else  // fA2 and fB coplanar
             {
-                if (posA2_B2 * posB_B2 < 0) {
-                    if (posB_B2 > 0)
+                if (posA2_B2 * posB_B2 < num_type(0)) {
+                    if (posB_B2 > num_type(0))
                         Intersection = !Intersection;
                 }
                 else {
-                    if (nA2nB < 0) {
+                    if (nA2nB < num_type(0)) {
                         if (m_BOOP == UNION)
                             Intersection = !Intersection;
                     }
@@ -955,7 +955,8 @@ class BoolPolyhedra {
             rmCouple(fA2->Label, fB2->Label);
 
             // it is possible that the direction of the intersection have to be inverted
-            if (posB_A * posA2_A > 0 && posB_A * posB2_A >= 0 && posB2_B * posA_B > 0)
+            if (posB_A * posA2_A > num_type(0) && posB_A * posB2_A >= num_type(0) &&
+                posB2_B * posA_B > num_type(0))
                 invert_direction = true;
         }
 
@@ -1222,22 +1223,22 @@ class BoolPolyhedra {
         e2 = v2 - v0;
         dir = s2 - s1;
         p = CGAL::cross_product(dir, e2);
-        tmp = (num_type)1 / (p * e1);
+        tmp = num_type(1) / (p * e1);
         s = s1 - v0;
         u = tmp * s * p;
-        if (u < 0 || u > 1) {
+        if (u < num_type(0) || u > num_type(1)) {
             // the intersection is not in the triangle
             inter->res = 7;
             return;
         }
         q = CGAL::cross_product(s, e1);
         v = tmp * dir * q;
-        if (v < 0 || v > 1) {
+        if (v < num_type(0) || v > num_type(1)) {
             // the intersection is not in the triangle
             inter->res = 7;
             return;
         }
-        if (u + v > 1) {
+        if (u + v > num_type(1)) {
             // the intersection is not in the triangle
             inter->res = 7;
             return;
@@ -1248,11 +1249,11 @@ class BoolPolyhedra {
 
         // creation of the code for the location of the intersection
         inter->res = 0;
-        if (u == 0)
+        if (u == num_type(0))
             inter->res += 1;  // intersection on he(0)
-        if (v == 0)
+        if (v == num_type(0))
             inter->res += 2;  // intersection on he(1)
-        if (u + v == 1)
+        if (u + v == num_type(1))
             inter->res += 4;  // intersection on he(2)
     }
 
