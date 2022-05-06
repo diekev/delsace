@@ -15,6 +15,10 @@
  * \file BoolPolyhedra.h
  * \author Cyril Leconte
  */
+
+// Avant boolean_operations pour calmer les erreurs de compilations...
+#include <CGAL/Simple_cartesian.h>
+
 #include <CGAL/IO/Polyhedron_iostream.h>
 
 #include <CGAL/AABB_traits.h>
@@ -327,6 +331,36 @@ class BoolPolyhedra {
     }
 
   private:
+    /*! \brief Initialisation of the tags, and triangulation of the input polyhedron.
+     */
+    void InitEnrichedPolyhedron(EnrichedPolyhedron *pMA)
+    {
+        // triangulation of the polyhedron
+        // this is necessary for the AABB-tree, and simplify the computation of the
+        // intersections
+        if (!pMA->is_pure_triangle())
+            triangulate(pMA);
+        // initialize the tags
+        for (Vertex_iterator pVertex = pMA->vertices_begin(); pVertex != pMA->vertices_end();
+             ++pVertex) {
+            pVertex->Label = 0xFFFFFFFF;
+        }
+        for (Facet_iterator pFacet = pMA->facets_begin(); pFacet != pMA->facets_end(); ++pFacet) {
+            pFacet->Label = 0xFFFFFFFF;
+            pFacet->IsExt = false;
+            pFacet->IsOK = false;
+        }
+#ifdef BOOLEAN_OPERATIONS_DEBUG_VERBOSE
+        {
+            // init HE property maps to be able to compare
+            // with Mepp1
+            EnrichedPolyhedron::Halfedge_iterator pHe;
+            for (pHe = pMA->halfedges_begin(); pHe != pMA->halfedges_end(); pHe++)
+                pHe->Label = 42424242;
+        }
+#endif  // BOOLEAN_OPERATIONS_DEBUG_VERBOSE
+    }
+
     /*! \brief Initialisation of the tags, and triangulation of the two input polyhedra
      * \param pMA : The first polyhedron
      * \param pMB : The second polyhedron*/
@@ -336,47 +370,8 @@ class BoolPolyhedra {
         m_pA = pMA;
         m_pB = pMB;
 
-        // triangulation of the two input polyhedra
-        // this is necessary for the AABB-tree, and simplify the computation of the
-        // intersections
-        if (!m_pA->is_pure_triangle())
-            triangulate(m_pA);
-        if (!m_pB->is_pure_triangle())
-            triangulate(m_pB);
-
-        // initialize the tags
-        for (Vertex_iterator pVertex = m_pA->vertices_begin(); pVertex != m_pA->vertices_end();
-             ++pVertex) {
-            pVertex->Label = 0xFFFFFFFF;
-        }
-        for (Vertex_iterator pVertex = m_pB->vertices_begin(); pVertex != m_pB->vertices_end();
-             ++pVertex) {
-            pVertex->Label = 0xFFFFFFFF;
-        }
-        for (Facet_iterator pFacet = m_pA->facets_begin(); pFacet != m_pA->facets_end();
-             ++pFacet) {
-            pFacet->Label = 0xFFFFFFFF;
-            pFacet->IsExt = false;
-            pFacet->IsOK = false;
-        }
-        for (Facet_iterator pFacet = m_pB->facets_begin(); pFacet != m_pB->facets_end();
-             ++pFacet) {
-            pFacet->Label = 0xFFFFFFFF;
-            pFacet->IsExt = false;
-            pFacet->IsOK = false;
-        }
-
-#ifdef BOOLEAN_OPERATIONS_DEBUG_VERBOSE
-        {
-            // init HE property maps to be able to compare
-            // with Mepp1
-            EnrichedPolyhedron::Halfedge_iterator pHe;
-            for (pHe = m_pA->halfedges_begin(); pHe != m_pA->halfedges_end(); pHe++)
-                pHe->Label = 42424242;
-            for (pHe = m_pB->halfedges_begin(); pHe != m_pB->halfedges_end(); pHe++)
-                pHe->Label = 42424242;
-        }
-#endif  // BOOLEAN_OPERATIONS_DEBUG_VERBOSE
+        InitEnrichedPolyhedron(m_pA);
+        InitEnrichedPolyhedron(m_pB);
     }
 
     /*! \brief Triangulate the mesh
@@ -452,88 +447,62 @@ class BoolPolyhedra {
         HalfedgeId i = 0;
         FacetId j = 0;
 
-        // The AABB-tree is built on the polyhedron with the less number of facets
-        if (m_pA->size_of_facets() < m_pB->size_of_facets()) {
-            // Building the AABB-tree on the first polyhedron
-            for (pFacet = m_pA->facets_begin(); pFacet != m_pA->facets_end(); pFacet++)
-                triangles.push_back(Triangle(pFacet));
-            tree.rebuild(triangles.begin(), triangles.end());
+        EnrichedPolyhedron *smallest = nullptr;
+        EnrichedPolyhedron *biggest = nullptr;
 
-            // collision test with each facet of the second polyhedron
-            for (pFacet = m_pB->facets_begin(); pFacet != m_pB->facets_end(); pFacet++) {
-                //"primitives" is the list of the triangles intersected (as a list of triangles)
-                tree.all_intersected_primitives(Triangle(pFacet), std::back_inserter(primitives));
-                if (primitives.size() != 0) {
-                    m_Facet_Handle.push_back(pFacet);
-                    // update of the tags (the facet and the three incidents halfedges
-                    pFacet->Label = j++;
-                    pFacet->facet_begin()->Label = i++;
-                    pFacet->facet_begin()->next()->Label = i++;
-                    pFacet->facet_begin()->next()->next()->Label = i++;
-                    // creation of a Triangle_Cut structure to store the informations about the
-                    // intersections
-                    m_Inter_tri.push_back(
-                        Triangle_Cut(Compute_Normal_direction(pFacet->facet_begin()), false));
-                    do {
-                        // same operations for the intersected primitives (only one time)
-                        if (primitives.back()->facet()->Label == 0xFFFFFFFF) {
-                            m_Facet_Handle.push_back(primitives.back()->facet());
-                            primitives.back()->facet()->Label = j++;
-                            primitives.back()->facet()->facet_begin()->Label = i++;
-                            primitives.back()->facet()->facet_begin()->next()->Label = i++;
-                            primitives.back()->facet()->facet_begin()->next()->next()->Label = i++;
-                            m_Inter_tri.push_back(
-                                Triangle_Cut(Compute_Normal_direction(
-                                                 primitives.back()->facet()->facet_begin()),
-                                             true));
-                        }
-                        // store every couple of intersected facet
-                        m_Couples[primitives.back()->facet()->Label].insert(pFacet->Label);
-                        primitives.pop_back();
-                    } while (primitives.size() != 0);
-                }
-            }
+        if (m_pA->size_of_facets() < m_pB->size_of_facets()) {
+            smallest = m_pA;
+            biggest = m_pB;
         }
         else {
-            // Building the AABB-tree on the second polyhedron
-            for (pFacet = m_pB->facets_begin(); pFacet != m_pB->facets_end(); pFacet++)
-                triangles.push_back(Triangle(pFacet));
-            tree.rebuild(triangles.begin(), triangles.end());
+            smallest = m_pB;
+            biggest = m_pA;
+        }
 
-            // collision test with each facet of the first polyhedron
-            for (pFacet = m_pA->facets_begin(); pFacet != m_pA->facets_end(); pFacet++) {
-                //"primitives" is the list of the triangles intersected (as a list of triangles)
-                tree.all_intersected_primitives(Triangle(pFacet), std::back_inserter(primitives));
-                if (primitives.size() != 0) {
-                    m_Facet_Handle.push_back(pFacet);
-                    // update of the tags (the facet and the three incidents halfedges
-                    pFacet->Label = j++;
-                    pFacet->facet_begin()->Label = i++;
-                    pFacet->facet_begin()->next()->Label = i++;
-                    pFacet->facet_begin()->next()->next()->Label = i++;
-                    // creation of a Triangle_Cut structure to store the informations about the
-                    // intersections
-                    m_Inter_tri.push_back(
-                        Triangle_Cut(Compute_Normal_direction(pFacet->facet_begin()), true));
-                    do {
-                        // same operations for the intersected primitives (only one time)
-                        if (primitives.back()->facet()->Label == 0xFFFFFFFF) {
-                            m_Facet_Handle.push_back(primitives.back()->facet());
-                            primitives.back()->facet()->Label = j++;
-                            primitives.back()->facet()->facet_begin()->Label = i++;
-                            primitives.back()->facet()->facet_begin()->next()->Label = i++;
-                            primitives.back()->facet()->facet_begin()->next()->next()->Label = i++;
-                            m_Inter_tri.push_back(
-                                Triangle_Cut(Compute_Normal_direction(
-                                                 primitives.back()->facet()->facet_begin()),
-                                             false));
-                        }
-                        // store every couple of intersected facet
-                        m_Couples[pFacet->Label].insert(primitives.back()->facet()->Label);
-                        primitives.pop_back();
-                    } while (primitives.size() != 0);
-                }
+        // Building the AABB-tree on the smallest polyhedron
+        for (pFacet = smallest->facets_begin(); pFacet != smallest->facets_end(); pFacet++)
+            triangles.push_back(Triangle(pFacet));
+        tree.rebuild(triangles.begin(), triangles.end());
+
+        // collision test with each facet of the biggest polyhedron
+        for (pFacet = biggest->facets_begin(); pFacet != biggest->facets_end(); pFacet++) {
+            //"primitives" is the list of the triangles intersected (as a list of triangles)
+            tree.all_intersected_primitives(Triangle(pFacet), std::back_inserter(primitives));
+            if (primitives.size() == 0) {
+                continue;
             }
+
+            m_Facet_Handle.push_back(pFacet);
+            // update of the tags (the facet and the three incidents halfedges
+            pFacet->Label = j++;
+            pFacet->facet_begin()->Label = i++;
+            pFacet->facet_begin()->next()->Label = i++;
+            pFacet->facet_begin()->next()->next()->Label = i++;
+            // creation of a Triangle_Cut structure to store the informations about the
+            // intersections
+            m_Inter_tri.push_back(
+                Triangle_Cut(Compute_Normal_direction(pFacet->facet_begin()), smallest != m_pA));
+            do {
+                // same operations for the intersected primitives (only one time)
+                if (primitives.back()->facet()->Label == 0xFFFFFFFF) {
+                    m_Facet_Handle.push_back(primitives.back()->facet());
+                    primitives.back()->facet()->Label = j++;
+                    primitives.back()->facet()->facet_begin()->Label = i++;
+                    primitives.back()->facet()->facet_begin()->next()->Label = i++;
+                    primitives.back()->facet()->facet_begin()->next()->next()->Label = i++;
+                    m_Inter_tri.push_back(Triangle_Cut(
+                        Compute_Normal_direction(primitives.back()->facet()->facet_begin()),
+                        smallest == m_pA));
+                }
+                // store every couple of intersected facet
+                if (smallest == m_pA) {
+                    m_Couples[primitives.back()->facet()->Label].insert(pFacet->Label);
+                }
+                else {
+                    m_Couples[pFacet->Label].insert(primitives.back()->facet()->Label);
+                }
+                primitives.pop_back();
+            } while (primitives.size() != 0);
         }
 
 #ifdef BOOLEAN_OPERATIONS_DEBUG_VERBOSE

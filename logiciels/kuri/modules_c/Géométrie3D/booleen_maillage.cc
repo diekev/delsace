@@ -24,9 +24,6 @@
 
 #include "booleen_maillage.hh"
 
-// Avant boolean_operations pour calmer les erreurs de compilations...
-#include <CGAL/Simple_cartesian.h>
-
 #include "booleen/boolean_operations.hpp"
 #include "booleen/properties_polyhedron_3.h"
 
