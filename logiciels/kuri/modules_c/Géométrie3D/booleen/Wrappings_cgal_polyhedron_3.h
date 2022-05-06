@@ -10,5 +10,4 @@
 // WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #pragma once
 
-#include "DataStructures_cgal_polyhedron_3.h"
 #include "Geometry_traits_cgal_polyhedron_3.h"

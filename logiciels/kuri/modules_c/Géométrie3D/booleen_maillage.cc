@@ -31,13 +31,13 @@
 
 namespace geo {
 
-static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
+static EnrichedPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
 {
-    FEVV::MeshPolyhedron *resultat = new FEVV::MeshPolyhedron;
+    EnrichedPolyhedron *resultat = new EnrichedPolyhedron;
     auto point_map = get(boost::vertex_point, *resultat);
 
     /* Exporte les points. */
-    using vertex_descriptor = boost::graph_traits<FEVV::MeshPolyhedron>::vertex_descriptor;
+    using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
     kuri::tableau<vertex_descriptor> vertices;
     vertices.reserve(maillage.nombreDePoints());
 
@@ -66,7 +66,7 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
 
         auto face = CGAL::Euler::add_face(face_vertices, *resultat);
 
-        if (face == boost::graph_traits<FEVV::MeshPolyhedron>::null_face()) {
+        if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
             std::cerr << "Erreur lors de la construction de la face !\n";
         }
     }
@@ -74,7 +74,7 @@ static FEVV::MeshPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
     return resultat;
 }
 
-static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &maillage)
+static void convertis_vers_maillage(EnrichedPolyhedron *polyhedre, Maillage &maillage)
 {
     const long num_verts = polyhedre->size_of_vertices();
     if (num_verts == 0) {
@@ -87,7 +87,7 @@ static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &m
          ++vert_iter) {
 
         auto point = vert_iter->point();
-        vert_iter->id() = id_vertex++;
+        vert_iter->Label = id_vertex++;
         maillage.ajouteUnPoint(point.x(), point.y(), point.z());
     }
 
@@ -105,7 +105,7 @@ static void convertis_vers_maillage(FEVV::MeshPolyhedron *polyhedre, Maillage &m
         auto edge_iter = face_iter->halfedge();
         auto edge_begin = edge_iter;
         do {
-            int sommet = edge_iter->vertex()->id();
+            int sommet = edge_iter->vertex()->Label;
             sommets.ajoute(sommet);
             edge_iter = edge_iter->next();
         } while (edge_iter != edge_begin);
@@ -119,9 +119,9 @@ bool booleen_maillages(Maillage const &maillage_a,
                        const std::string &operation,
                        Maillage &maillage_sortie)
 {
-    FEVV::MeshPolyhedron *mesh_A = convertis_vers_polyhedre(maillage_a);
-    FEVV::MeshPolyhedron *mesh_B = convertis_vers_polyhedre(maillage_b);
-    FEVV::MeshPolyhedron *output_mesh = new FEVV::MeshPolyhedron;
+    EnrichedPolyhedron *mesh_A = convertis_vers_polyhedre(maillage_a);
+    EnrichedPolyhedron *mesh_B = convertis_vers_polyhedre(maillage_b);
+    EnrichedPolyhedron *output_mesh = new EnrichedPolyhedron;
 
     try {
         if (operation == "UNION")
@@ -130,6 +130,13 @@ bool booleen_maillages(Maillage const &maillage_a,
             FEVV::Filters::boolean_inter(*mesh_A, *mesh_B, *output_mesh);
         else
             FEVV::Filters::boolean_minus(*mesh_A, *mesh_B, *output_mesh);
+    }
+    catch (std::exception &e) {
+        std::cerr << e.what() << "\n";
+        delete mesh_A;
+        delete mesh_B;
+        delete output_mesh;
+        return false;
     }
     catch (...) {
         delete mesh_A;
@@ -147,7 +154,7 @@ bool booleen_maillages(Maillage const &maillage_a,
 
 void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie)
 {
-    FEVV::MeshPolyhedron *polyedre = convertis_vers_polyhedre(maillage_entree);
+    EnrichedPolyhedron *polyedre = convertis_vers_polyhedre(maillage_entree);
     convertis_vers_maillage(polyedre, maillage_sortie);
     delete polyedre;
 }

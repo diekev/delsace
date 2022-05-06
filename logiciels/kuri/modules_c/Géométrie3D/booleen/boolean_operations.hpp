@@ -28,62 +28,11 @@ namespace Filters {
  * \param  gA      1st input mesh
  * \param  gB      2nd input mesh
  * \param  g_out   output mesh
- * \param  gt      the geometry traits to use
- *
- * \sa     the simplified variant that use the default geometry traits
- *         of the mesh.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
  */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_union(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out,
-              const GeometryTraits &/*gt*/)
+void boolean_union(EnrichedPolyhedron &gA, EnrichedPolyhedron &gB, EnrichedPolyhedron &g_out)
 {
-  BoolPolyhedra< HalfedgeGraph >(gA, gB, g_out, UNION);
+    BoolPolyhedra(gA, gB, g_out, UNION);
 }
-
-/**
- * \brief  Computes the union of two polyhedra.
- *
- *         Ref: "Exact and Efficient Booleans for Polyhedra", C. Leconte,
- *              H. Barki, F. Dupont, Rapport de recherche RR-LIRIS-2010-018,
- *              2010
- *
- *         Use the default geometry traits of the mesh.
- *
- * \param  gA      1st input mesh
- * \param  gB      2nd input mesh
- * \param  g_out   output mesh
- *
- * \sa     the variant that use the geometry traits provided by the user.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
- */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_union(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out)
-{
-  GeometryTraits gt(gA);
-  boolean_union< HalfedgeGraph, GeometryTraits >(gA, gB, g_out, gt);
-}
-
 
 //--------------------- INTERSECTION -------------------------
 
@@ -97,62 +46,11 @@ boolean_union(HalfedgeGraph &gA,
  * \param  gA      1st input mesh
  * \param  gB      2nd input mesh
  * \param  g_out   output mesh
- * \param  gt      the geometry traits to use
- *
- * \sa     the simplified variant that use the default geometry traits
- *         of the mesh.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
  */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_inter(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out,
-              const GeometryTraits &/*gt*/)
+void boolean_inter(EnrichedPolyhedron &gA, EnrichedPolyhedron &gB, EnrichedPolyhedron &g_out)
 {
-  BoolPolyhedra< HalfedgeGraph >(gA, gB, g_out, INTER);
+    BoolPolyhedra(gA, gB, g_out, INTER);
 }
-
-/**
- * \brief  Computes the intersection of two polyhedra.
- *
- *         Ref: "Exact and Efficient Booleans for Polyhedra", C. Leconte,
- *              H. Barki, F. Dupont, Rapport de recherche RR-LIRIS-2010-018,
- *              2010
- *
- *         Use the default geometry traits of the mesh.
- *
- * \param  gA      1st input mesh
- * \param  gB      2nd input mesh
- * \param  g_out   output mesh
- *
- * \sa     the variant that use the geometry traits provided by the user.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
- */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_inter(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out)
-{
-  GeometryTraits gt(gA);
-  boolean_inter< HalfedgeGraph, GeometryTraits >(gA, gB, g_out, gt);
-}
-
 
 //--------------------- SUBTRACTION -------------------------
 
@@ -166,63 +64,11 @@ boolean_inter(HalfedgeGraph &gA,
  * \param  gA      1st input mesh
  * \param  gB      2nd input mesh
  * \param  g_out   output mesh
- * \param  gt      the geometry traits to use
- *
- * \sa     the simplified variant that use the default geometry traits
- *         of the mesh.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
  */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_minus(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out,
-              const GeometryTraits &/*gt*/)
+void boolean_minus(EnrichedPolyhedron &gA, EnrichedPolyhedron &gB, EnrichedPolyhedron &g_out)
 {
-  BoolPolyhedra< HalfedgeGraph >(gA, gB, g_out, MINUS);
+    BoolPolyhedra(gA, gB, g_out, MINUS);
 }
 
-/**
- * \brief  Computes the subtraction of two polyhedra.
- *
- *         Ref: "Exact and Efficient Booleans for Polyhedra", C. Leconte,
- *              H. Barki, F. Dupont, Rapport de recherche RR-LIRIS-2010-018,
- *              2010
- *
- *         Use the default geometry traits of the mesh.
- *
- * \param  gA      1st input mesh
- * \param  gB      2nd input mesh
- * \param  g_out   output mesh
- *
- * \sa     the variant that use the geometry traits provided by the user.
- * 
- * \note   For compliance with the general project policy, the point maps
- *         of the input and output meshes should be passed as parameters.
- *         But the specific implementation of this filter can not use these
- *         property maps directly. In order to avoid passing unused 
- *         parameters, which later triggers compilation warning, it is 
- *         decided to derogate to the general project policy.
- */
-template< typename HalfedgeGraph,
-          typename GeometryTraits = FEVV::Geometry_traits< HalfedgeGraph > >
-void
-boolean_minus(HalfedgeGraph &gA,
-              HalfedgeGraph &gB,
-              HalfedgeGraph &g_out)
-{
-  GeometryTraits gt(gA);
-  boolean_minus< HalfedgeGraph, GeometryTraits >(gA, gB, g_out, gt);
-}
-
-
-} // namespace Filters
-} // namespace FEVV
-
+}  // namespace Filters
+}  // namespace FEVV

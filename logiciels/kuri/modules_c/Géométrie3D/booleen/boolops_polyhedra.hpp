@@ -130,7 +130,6 @@ typedef CGAL::AABB_tree<AABB_Traits> AABB_Tree;
 
 /*! \class BoolPolyhedra
  * \brief The class that compute a Boolean operation*/
-template <typename HalfedgeGraph>
 class BoolPolyhedra {
   private:
     /*! \struct Triangle_Cut
@@ -197,7 +196,10 @@ class BoolPolyhedra {
      * \param _gB : The second mesh
      * \param _g_out : The result mesh
      * \param BOOP : The Boolean operator. Must be UNION, INTER or MINUS*/
-    BoolPolyhedra(HalfedgeGraph &_gA, HalfedgeGraph &_gB, HalfedgeGraph &_g_out, Bool_Op BOOP)
+    BoolPolyhedra(EnrichedPolyhedron &gA,
+                  EnrichedPolyhedron &gB,
+                  EnrichedPolyhedron &_g_out,
+                  Bool_Op BOOP)
         : m_BOOP(BOOP)
     {
 #ifdef BOOLEAN_OPERATIONS_TIME
@@ -206,15 +208,9 @@ class BoolPolyhedra {
 #endif  // BOOLEAN_OPERATIONS_TIME
 
         // ensure both input meshes are closed (no border edge)
-        if (!(CGAL::is_closed(_gA) && CGAL::is_closed(_gB))) {
+        if (!(CGAL::is_closed(gA) && CGAL::is_closed(gB))) {
             throw std::runtime_error("Boolean Operation: only closed meshes are allowed.");
         }
-
-        // convert input meshes to enriched Polyhedrons
-        EnrichedPolyhedron gA;
-        EnrichedPolyhedron gB;
-        CGAL::copy_face_graph(_gA, gA);
-        CGAL::copy_face_graph(_gB, gB);
 
 #ifdef BOOLEAN_OPERATIONS_TIME
         duration_Inputs_copy = get_time_and_reset(time_start);
@@ -261,8 +257,8 @@ class BoolPolyhedra {
 #endif  // BOOLEAN_OPERATIONS_TIME
 
             // build output mesh
-            EnrichedPolyhedron g_out;
-            g_out.delegate(ppbuilder);
+            CGAL::clear(_g_out);
+            _g_out.delegate(ppbuilder);
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_delegate = get_time_and_reset(time_start);
@@ -276,10 +272,6 @@ class BoolPolyhedra {
             std::ofstream ofstrColorInput("boolean_operation__input_A_colorized.off");
             ofstrColorInput << gA;
 #endif  // BOOLEAN_OPERATIONS_DEBUG
-
-            // convert output mesh from enriched Polyhedrons
-            CGAL::clear(_g_out);
-            CGAL::copy_face_graph(g_out, _g_out);
 
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_Output_copy = get_time_and_reset(time_start);
