@@ -24,11 +24,13 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau.hh"
 #include <string>
 
 namespace geo {
 
 class Maillage;
+struct CelluleVoronoi;
 
 bool booleen_maillages(Maillage const &maillage_a,
                        Maillage const &maillage_b,
@@ -36,5 +38,9 @@ bool booleen_maillages(Maillage const &maillage_a,
                        Maillage &maillage_sortie);
 
 void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie);
+
+bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
+                                              dls::tableau<CelluleVoronoi> const &cellules,
+                                              Maillage &maillage_sortie);
 
 }  // namespace geo

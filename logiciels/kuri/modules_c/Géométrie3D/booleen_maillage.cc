@@ -27,6 +27,7 @@
 #include "booleen/boolean_operations.hpp"
 #include "booleen/properties_polyhedron_3.h"
 
+#include "fracture.hh"
 #include "outils.hh"
 
 namespace geo {
@@ -69,6 +70,54 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
         if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
             std::cerr << "Erreur lors de la construction de la face !\n";
         }
+    }
+
+    return resultat;
+}
+
+static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoronoi const &cellule)
+{
+    std::unique_ptr<EnrichedPolyhedron> resultat = std::make_unique<EnrichedPolyhedron>();
+    auto point_map = get(boost::vertex_point, *resultat);
+
+    /* Exporte les points. */
+    using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
+    kuri::tableau<vertex_descriptor> vertices;
+    vertices.reserve(cellule.totvert);
+
+    for (auto i = 0; i < cellule.totvert; ++i) {
+        auto px = static_cast<float>(cellule.verts[i * 3]);
+        auto py = static_cast<float>(cellule.verts[i * 3 + 1]);
+        auto pz = static_cast<float>(cellule.verts[i * 3 + 2]);
+        auto vd = CGAL::add_vertex(*resultat);
+        put(point_map, vd, Point3d(px, py, pz));
+        vertices.ajoute(vd);
+    }
+
+    /* Exporte les polygones. */
+    kuri::tableau<int> temp_access_index_sommet;
+
+    auto skip = 0;
+    for (auto i = 0; i < cellule.totpoly; ++i) {
+        auto nombre_sommets = cellule.poly_totvert[i];
+
+        temp_access_index_sommet.redimensionne(nombre_sommets);
+
+        std::vector<vertex_descriptor> face_vertices;
+        face_vertices.reserve(nombre_sommets);
+
+        /* Inverse l'ordre des sommets car il semblerait que l'algorithme de calcul booléen y est
+         * sensible et que les cellules ont des ordres différents de ce que nous générons. */
+        for (long j = nombre_sommets - 1; j >= 0; j--) {
+            face_vertices.push_back(vertices[cellule.poly_indices[skip + j + 1]]);
+        }
+
+        auto face = CGAL::Euler::add_face(face_vertices, *resultat);
+
+        if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
+            std::cerr << "Erreur lors de la construction de la face !\n";
+        }
+        skip += (nombre_sommets + 1);
     }
 
     return resultat;
@@ -155,6 +204,73 @@ bool booleen_maillages(Maillage const &maillage_a,
             sommets[1] = static_cast<int>(triangle[1]);
             sommets[2] = static_cast<int>(triangle[2]);
             maillage_sortie.ajouteUnPolygone(sommets, 3);
+        }
+    }
+    catch (std::exception &e) {
+        std::cerr << e.what() << "\n";
+        return false;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
+bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
+                                              dls::tableau<CelluleVoronoi> const &cellules,
+                                              Maillage &maillage_sortie)
+{
+    auto mesh_A = convertis_vers_polyhedre(maillage_a);
+
+    struct PointsEtTrianglesCellule {
+        std::vector<EnrichedPolyhedron::Point_3> vertices;
+        std::vector<std::vector<unsigned long>> triangles;
+    };
+
+    try {
+        dls::tableau<PointsEtTrianglesCellule> cellules_finales;
+        cellules_finales.reserve(cellules.taille());
+
+        long nombre_de_points = 0;
+        long nombre_de_triangles = 0;
+
+        for (auto const &cellule : cellules) {
+            auto mesh_B = convertis_vers_polyhedre(cellule);
+            BoolPolyhedra alg(Bool_Op::INTER);
+            alg.run(*mesh_A, *mesh_B);
+
+            auto &builder = alg.get_builder();
+
+            auto donnees = PointsEtTrianglesCellule();
+            donnees.vertices = builder.get_vertices();
+            donnees.triangles = builder.get_triangles();
+
+            nombre_de_points += donnees.vertices.size();
+            nombre_de_triangles += donnees.triangles.size();
+
+            cellules_finales.ajoute(donnees);
+        }
+
+        maillage_sortie.reserveNombreDePoints(nombre_de_points);
+        maillage_sortie.reserveNombreDePolygones(nombre_de_triangles);
+
+        int decalage_triangle = 0;
+
+        for (int i = 0; i < cellules.taille(); i++) {
+            for (auto &point : cellules_finales[i].vertices) {
+                maillage_sortie.ajouteUnPoint(point.x(), point.y(), point.z());
+            }
+
+            int sommets[3];
+            for (auto &triangle : cellules_finales[i].triangles) {
+                sommets[0] = static_cast<int>(triangle[0]) + decalage_triangle;
+                sommets[1] = static_cast<int>(triangle[1]) + decalage_triangle;
+                sommets[2] = static_cast<int>(triangle[2]) + decalage_triangle;
+                maillage_sortie.ajouteUnPolygone(sommets, 3);
+            }
+
+            decalage_triangle += cellules_finales[i].vertices.size();
         }
     }
     catch (std::exception &e) {
