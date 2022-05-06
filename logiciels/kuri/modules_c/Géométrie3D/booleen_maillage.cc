@@ -31,9 +31,9 @@
 
 namespace geo {
 
-static EnrichedPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
+static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage const &maillage)
 {
-    EnrichedPolyhedron *resultat = new EnrichedPolyhedron;
+    std::unique_ptr<EnrichedPolyhedron> resultat = std::make_unique<EnrichedPolyhedron>();
     auto point_map = get(boost::vertex_point, *resultat);
 
     /* Exporte les points. */
@@ -74,16 +74,16 @@ static EnrichedPolyhedron *convertis_vers_polyhedre(Maillage const &maillage)
     return resultat;
 }
 
-static void convertis_vers_maillage(EnrichedPolyhedron *polyhedre, Maillage &maillage)
+static void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage)
 {
-    const long num_verts = polyhedre->size_of_vertices();
+    const long num_verts = polyhedre.size_of_vertices();
     if (num_verts == 0) {
         return;
     }
     maillage.reserveNombreDePoints(num_verts);
 
     auto id_vertex = 0;
-    for (auto vert_iter = polyhedre->vertices_begin(); vert_iter != polyhedre->vertices_end();
+    for (auto vert_iter = polyhedre.vertices_begin(); vert_iter != polyhedre.vertices_end();
          ++vert_iter) {
 
         auto point = vert_iter->point();
@@ -91,13 +91,13 @@ static void convertis_vers_maillage(EnrichedPolyhedron *polyhedre, Maillage &mai
         maillage.ajouteUnPoint(point.x(), point.y(), point.z());
     }
 
-    const long num_faces = polyhedre->size_of_facets();
+    const long num_faces = polyhedre.size_of_facets();
     if (num_faces == 0) {
         return;
     }
     maillage.reserveNombreDePolygones(num_faces);
 
-    for (auto face_iter = polyhedre->facets_begin(); face_iter != polyhedre->facets_end();
+    for (auto face_iter = polyhedre.facets_begin(); face_iter != polyhedre.facets_end();
          ++face_iter) {
 
         kuri::tableau<int> sommets;
@@ -119,44 +119,59 @@ bool booleen_maillages(Maillage const &maillage_a,
                        const std::string &operation,
                        Maillage &maillage_sortie)
 {
-    EnrichedPolyhedron *mesh_A = convertis_vers_polyhedre(maillage_a);
-    EnrichedPolyhedron *mesh_B = convertis_vers_polyhedre(maillage_b);
-    EnrichedPolyhedron *output_mesh = new EnrichedPolyhedron;
+    auto mesh_A = convertis_vers_polyhedre(maillage_a);
+    auto mesh_B = convertis_vers_polyhedre(maillage_b);
 
     try {
-        if (operation == "UNION")
-            FEVV::Filters::boolean_union(*mesh_A, *mesh_B, *output_mesh);
-        else if (operation == "INTER")
-            FEVV::Filters::boolean_inter(*mesh_A, *mesh_B, *output_mesh);
-        else
-            FEVV::Filters::boolean_minus(*mesh_A, *mesh_B, *output_mesh);
+        Bool_Op op;
+        if (operation == "UNION") {
+            op = Bool_Op::UNION;
+        }
+        else if (operation == "INTER") {
+            op = Bool_Op::INTER;
+        }
+        else {
+            op = Bool_Op::MINUS;
+        }
+
+        BoolPolyhedra alg(op);
+        alg.run(*mesh_A, *mesh_B);
+
+        /* Construction manuelle car CGAL ne permet de créer des polyèdres avec des arêtes
+         * partagées par plus de 2 faces, et c'est plus rapide. */
+        auto &builder = alg.get_builder();
+
+        auto &vertices = builder.get_vertices();
+        maillage_sortie.reserveNombreDePoints(vertices.size());
+        for (auto &point : vertices) {
+            maillage_sortie.ajouteUnPoint(point.x(), point.y(), point.z());
+        }
+
+        auto &triangles = builder.get_triangles();
+        maillage_sortie.reserveNombreDePolygones(triangles.size());
+        int sommets[3];
+        for (auto &triangle : triangles) {
+            sommets[0] = static_cast<int>(triangle[0]);
+            sommets[1] = static_cast<int>(triangle[1]);
+            sommets[2] = static_cast<int>(triangle[2]);
+            maillage_sortie.ajouteUnPolygone(sommets, 3);
+        }
     }
     catch (std::exception &e) {
         std::cerr << e.what() << "\n";
-        delete mesh_A;
-        delete mesh_B;
-        delete output_mesh;
         return false;
     }
     catch (...) {
-        delete mesh_A;
-        delete mesh_B;
-        delete output_mesh;
         return false;
     }
 
-    convertis_vers_maillage(output_mesh, maillage_sortie);
-    delete mesh_A;
-    delete mesh_B;
-    delete output_mesh;
     return true;
 }
 
 void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie)
 {
-    EnrichedPolyhedron *polyedre = convertis_vers_polyhedre(maillage_entree);
-    convertis_vers_maillage(polyedre, maillage_sortie);
-    delete polyedre;
+    auto polyedre = convertis_vers_polyhedre(maillage_entree);
+    convertis_vers_maillage(*polyedre, maillage_sortie);
 }
 
 }  // namespace geo

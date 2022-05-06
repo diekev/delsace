@@ -190,6 +190,10 @@ class BoolPolyhedra {
     };
 
   public:
+    BoolPolyhedra(Bool_Op BOOP) : m_BOOP(BOOP)
+    {
+    }
+
     /*! \brief Constructor.
      * \brief Computes a boolean operation
      * \param _gA : The first mesh
@@ -200,7 +204,17 @@ class BoolPolyhedra {
                   EnrichedPolyhedron &gB,
                   EnrichedPolyhedron &_g_out,
                   Bool_Op BOOP)
-        : m_BOOP(BOOP)
+        : BoolPolyhedra(BOOP)
+    {
+        run(gA, gB, _g_out);
+    }
+
+    /*! \brief Destructor*/
+    ~BoolPolyhedra()
+    {
+    }
+
+    void run(EnrichedPolyhedron &gA, EnrichedPolyhedron &gB)
     {
 #ifdef BOOLEAN_OPERATIONS_TIME
         auto time_total_start = std::chrono::steady_clock::now();
@@ -256,10 +270,6 @@ class BoolPolyhedra {
             duration_PropagateFacets = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
 
-            // build output mesh
-            CGAL::clear(_g_out);
-            _g_out.delegate(ppbuilder);
-
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_delegate = get_time_and_reset(time_start);
 #endif  // BOOLEAN_OPERATIONS_TIME
@@ -276,50 +286,69 @@ class BoolPolyhedra {
 #ifdef BOOLEAN_OPERATIONS_TIME
             duration_Output_copy = get_time_and_reset(time_start);
             duration_total = get_time_and_reset(time_total_start);
-
-            // print short stats about times and mesh sizes
-            std::cout << "Computation time :" << std::endl;
-            std::cout << " + Copying input meshes       : " << tr(duration_Inputs_copy) << " s"
-                      << std::endl;
-            std::cout << " + Initialization             : " << tr(duration_Init) << " s"
-                      << std::endl;
-            std::cout << " + Finding the Intersections  : " << tr(duration_FindCouples) << " s"
-                      << std::endl;
-            std::cout << " + Compute the Intersections  : " << tr(duration_ComputeIntersections)
-                      << " s" << std::endl;
-            std::cout << " + Cut the Intersected Facets : " << tr(duration_CutIntersectedFacets)
-                      << " s" << std::endl;
-            std::cout << " + Complete the result        : " << tr(duration_PropagateFacets) << " s"
-                      << std::endl;
-            std::cout << " + Create the polyhedron      : " << tr(duration_delegate) << " s"
-                      << std::endl;
-            std::cout << " + Copying output mesh        : " << tr(duration_Output_copy) << " s"
-                      << std::endl;
-            std::cout << "---------------------------------------" << std::endl;
-            std::cout << " Total                        : " << tr(duration_total) << " s"
-                      << std::endl;
-
-            std::cout << std::endl;
-            std::cout << "Details :" << std::endl;
-            std::cout << std::endl;
-            std::cout << "Polyedron A :" << std::endl;
-            std::cout << "Number of Facets :                   " << m_pA->size_of_facets()
-                      << std::endl;
-            std::cout << std::endl;
-            std::cout << "Polyedron B :" << std::endl;
-            std::cout << "Number of Facets :                   " << m_pB->size_of_facets()
-                      << std::endl;
-            std::cout << std::endl;
-            std::cout << "Result :" << std::endl;
-            std::cout << "Number of Facets :                   " << g_out.size_of_facets()
-                      << std::endl;
 #endif  // BOOLEAN_OPERATIONS_TIME
         }
     }
 
-    /*! \brief Destructor*/
-    ~BoolPolyhedra()
+    void run(EnrichedPolyhedron &gA, EnrichedPolyhedron &gB, EnrichedPolyhedron &g_out)
     {
+        run(gA, gB);
+        build_output(g_out);
+    }
+
+    void build_output(EnrichedPolyhedron &g_out)
+    {
+        // build output mesh
+        CGAL::clear(g_out);
+        g_out.delegate(ppbuilder);
+
+#ifdef BOOLEAN_OPERATIONS_TIME
+        print_timings(g_out);
+#endif
+    }
+
+    void print_timings(EnrichedPolyhedron &g_out)
+    {
+
+        // print short stats about times and mesh sizes
+        std::cout << "Computation time :" << std::endl;
+        std::cout << " + Copying input meshes       : " << tr(duration_Inputs_copy) << " s"
+                  << std::endl;
+        std::cout << " + Initialization             : " << tr(duration_Init) << " s" << std::endl;
+        std::cout << " + Finding the Intersections  : " << tr(duration_FindCouples) << " s"
+                  << std::endl;
+        std::cout << " + Compute the Intersections  : " << tr(duration_ComputeIntersections)
+                  << " s" << std::endl;
+        std::cout << " + Cut the Intersected Facets : " << tr(duration_CutIntersectedFacets)
+                  << " s" << std::endl;
+        std::cout << " + Complete the result        : " << tr(duration_PropagateFacets) << " s"
+                  << std::endl;
+        std::cout << " + Create the polyhedron      : " << tr(duration_delegate) << " s"
+                  << std::endl;
+        std::cout << " + Copying output mesh        : " << tr(duration_Output_copy) << " s"
+                  << std::endl;
+        std::cout << "---------------------------------------" << std::endl;
+        std::cout << " Total                        : " << tr(duration_total) << " s" << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "Details :" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Polyedron A :" << std::endl;
+        std::cout << "Number of Facets :                   " << m_pA->size_of_facets()
+                  << std::endl;
+        std::cout << std::endl;
+        std::cout << "Polyedron B :" << std::endl;
+        std::cout << "Number of Facets :                   " << m_pB->size_of_facets()
+                  << std::endl;
+        std::cout << std::endl;
+        std::cout << "Result :" << std::endl;
+        std::cout << "Number of Facets :                   " << g_out.size_of_facets()
+                  << std::endl;
+    }
+
+    CPolyhedron_from_polygon_builder_3<HDS> &get_builder()
+    {
+        return ppbuilder;
     }
 
   private:
