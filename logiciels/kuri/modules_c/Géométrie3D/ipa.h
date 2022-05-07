@@ -30,6 +30,23 @@ extern "C" {
 typedef unsigned char bool;
 #endif
 
+/* Structure de rappels pour gérer les longs calculs. Ceci sert à interrompre au besoin lesdits
+ * longs calculs. */
+struct Interruptrice {
+    void (*commence)(void *, const char *message);
+    void (*termine)(void *);
+    bool (*doit_interrompre)(void *, int pourcentage);
+    void *donnees;
+};
+
+/* Structure servant principalement à passer des messages d'erreurs. */
+struct ContexteEvaluation {
+    void (*rapporte_erreur)(void *, const char *, long);
+    void (*rapporte_avertissement)(void *, const char *, long);
+
+    void *donnees_utilisateur;
+};
+
 /* Structure servant à rafiner les polygones n'étant ni des triangles, ni des quadrilatères. */
 struct RafineusePolygone {
     void (*ajoute_triangle)(struct RafineusePolygone *, long v1, long v2, long v3);
