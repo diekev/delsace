@@ -1254,6 +1254,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             continue;
         }
 
+        if (it->annule) {
+            continue;
+        }
+
         /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
          * et bien dans la phase pour la génération de code. */
         if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
@@ -1410,7 +1414,18 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
      * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
     auto message = espace->change_de_phase(m_compilatrice->messagere,
                                            PhaseCompilation::AVANT_GENERATION_OBJET);
+
+    /* Nous avions déjà créé une unité pour générer le code machine, mais un métaprogramme a sans
+     * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
+     * d'attente. */
+    if (espace->unite_pour_code_machine) {
+        espace->unite_pour_code_machine->annule = true;
+    }
+
     auto unite_code_machine = requiers_generation_code_machine(espace, espace->programme);
+
+    espace->unite_pour_code_machine = unite_code_machine;
+
     if (message) {
         unite_code_machine->mute_attente(Attente::sur_message(message));
     }
