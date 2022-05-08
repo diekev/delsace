@@ -47,7 +47,7 @@ template <typename TypePlage, typename TypeOp>
 void boucle_parallele(
 		TypePlage &&plage,
 		TypeOp &&operation,
-		typename TypePlage::const_iterator taille_grain = 1)
+        int taille_grain = 1)
 {
 	auto const taille = taille_plage(plage);
 
@@ -61,17 +61,17 @@ void boucle_parallele(
 		return;
 	}
 
-	tbb::parallel_for(TypePlage(plage.begin(), plage.end(), static_cast<typename TypePlage::size_type>(taille_grain)), operation);
+    tbb::parallel_for(plage, operation, tbb::simple_partitioner());
 }
 
 template <typename TypePlage, typename TypeOp>
 void boucle_parallele_legere(TypePlage &&plage, TypeOp &&operation)
 {
-	boucle_parallele(plage, operation, 1024);
+    boucle_parallele(plage, operation, 1024);
 }
 
 template <typename TypePlage, typename TypeOp>
 void boucle_parallele_lourde(TypePlage &&plage, TypeOp &&operation)
 {
-	boucle_parallele(plage, operation, 1);
+    boucle_parallele(plage, operation, 1);
 }
