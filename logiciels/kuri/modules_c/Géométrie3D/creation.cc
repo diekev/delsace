@@ -692,7 +692,9 @@ void cree_icosphere(Maillage &maillage,
         }
     }
 
-    for (int i = 0; i < subdivision; i++) {
+    /* La sphère est déjà à un niveau de subdivions, donc nous évitons le dernier niveau
+     * de subdivision. */
+    for (int i = 0; i < subdivision - 1; i++) {
         subdivise_polyedre(polyedre);
     }
 
