@@ -101,6 +101,7 @@ void cree_cylindre(Maillage &maillage,
  */
 void cree_icosphere(Maillage &maillage,
                     const float rayon,
+                    const int subdivision,
                     const float centre_x = 0.0f,
                     const float centre_y = 0.0f,
                     const float centre_z = 0.0f);

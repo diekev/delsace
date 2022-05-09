@@ -259,6 +259,7 @@ void GEO3D_cree_cylindre(struct AdaptriceMaillage *adaptrice,
  */
 void GEO3D_cree_icosphere(struct AdaptriceMaillage *adaptrice,
                           const float rayon,
+                          const int subdivision,
                           const float centre_x,
                           const float centre_y,
                           const float centre_z);

@@ -145,12 +145,13 @@ void GEO3D_cree_cylindre(AdaptriceMaillage *adaptrice,
  */
 void GEO3D_cree_icosphere(AdaptriceMaillage *adaptrice,
                           const float rayon,
+                          const int subdivision,
                           const float centre_x,
                           const float centre_y,
                           const float centre_z)
 {
     geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
-    geo::cree_icosphere(maillage, rayon, centre_x, centre_y, centre_z);
+    geo::cree_icosphere(maillage, rayon, subdivision, centre_x, centre_y, centre_z);
 }
 
 void GEO3D_importe_fichier_obj(AdaptriceMaillage *adaptrice,
