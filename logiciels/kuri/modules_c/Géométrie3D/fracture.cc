@@ -198,7 +198,10 @@ static std::unique_ptr<BaseContenantParticules> initialise_contenant(
 
         if (opt_attr.has_value()) {
             attr_rayon = opt_attr.value();
-            utilise_rayon = true;
+
+            if (attr_rayon) {
+                utilise_rayon = true;
+            }
         }
     }
 
