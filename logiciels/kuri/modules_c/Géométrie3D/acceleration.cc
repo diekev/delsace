@@ -87,10 +87,10 @@ static HierarchieBoiteEnglobante *bvhtree_new(int nombre_elements,
         auto numnodes = nombre_elements + implicit_needed_branches(tree_type, nombre_elements) +
                         tree_type;
 
-        tree->nodes.redimensionne(numnodes);
+        tree->nodes.redimensionne(numnodes, nullptr);
         tree->nodebv.redimensionne(axis * numnodes);
-        tree->nodechild.redimensionne(tree_type * numnodes);
-        tree->nodearray.redimensionne(numnodes);
+        tree->nodechild.redimensionne(tree_type * numnodes, nullptr);
+        tree->nodearray.redimensionne(numnodes, HierarchieBoiteEnglobante::Noeud());
 
         /* link the dynamic bv and child links */
         for (i = 0; i < numnodes; i++) {
@@ -579,11 +579,10 @@ HierarchieBoiteEnglobante *cree_hierarchie_boite_englobante(const Maillage &mail
 
         cos.redimensionne(nombre_de_sommets);
         for (long j = 0; j < nombre_de_sommets; j++) {
-            auto point = maillage.pointPourIndex(temp_access_index_sommet[j]);
-            cos.ajoute(point);
+            cos[j] = maillage.pointPourIndex(temp_access_index_sommet[j]);
         }
 
-        insere(arbre_hbe, i, cos.donnees(), static_cast<int>(cos.taille()));
+        insere(arbre_hbe, i, cos.donnees(), nombre_de_sommets);
     }
 
     balance(arbre_hbe);
@@ -593,17 +592,12 @@ HierarchieBoiteEnglobante *cree_hierarchie_boite_englobante(const Maillage &mail
 
 /* ********************************************************************************** */
 
-static void construit_niveau_pour_noeud(HierarchieBoiteEnglobante::Noeud *racine,
-                                        HierarchieBoiteEnglobante::Noeud *noeud,
-                                        kuri::tableau<int> &niveaux_pour_noeud,
-                                        int niveau)
+static void construit_niveau_pour_noeud(HierarchieBoiteEnglobante::Noeud *noeud, int niveau)
 {
     for (int i = 0; i < noeud->nombre_enfants; i++) {
         auto enfant = noeud->enfants[i];
-        auto index_enfant = std::distance(racine, enfant);
-
-        niveaux_pour_noeud[index_enfant] = niveau + 1;
-        construit_niveau_pour_noeud(racine, enfant, niveaux_pour_noeud, niveau + 1);
+        enfant->niveau = niveau + 1;
+        construit_niveau_pour_noeud(enfant, niveau + 1);
     }
 }
 
@@ -681,20 +675,18 @@ void visualise_hierarchie_au_niveau(HierarchieBoiteEnglobante &hierarchie,
         limites.ajoute(racine->limites);
     }
     else {
-        kuri::tableau<int> niveaux_pour_noeud(hierarchie.nodes.taille());
-        for (auto &v : niveaux_pour_noeud) {
-            v = 0;
+        for (auto &noeud : hierarchie.nodearray) {
+            noeud.niveau = -1;
         }
 
-        construit_niveau_pour_noeud(&hierarchie.nodearray[0], racine, niveaux_pour_noeud, 0);
+        construit_niveau_pour_noeud(racine, 0);
 
-        for (int i = 0; i < niveaux_pour_noeud.taille(); i++) {
-            if (niveaux_pour_noeud[i] != niveau) {
+        for (auto &noeud : hierarchie.nodearray) {
+            if (noeud.niveau != niveau) {
                 continue;
             }
 
-            auto noeud = hierarchie.nodes[i];
-            limites.ajoute(noeud->limites);
+            limites.ajoute(noeud.limites);
         }
     }
 

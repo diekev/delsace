@@ -40,6 +40,7 @@ struct HierarchieBoiteEnglobante {
         int index = 0;
         char nombre_enfants = 0;
         char axe_principal = 0;
+        char niveau = 0;
     };
 
     float epsilon{};
