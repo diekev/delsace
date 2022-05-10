@@ -328,6 +328,19 @@ bool GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
 void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
                                     struct AdaptriceMaillage *maillage_sortie);
 
+/* ************************************* */
+
+struct HierarchieBoiteEnglobante;
+
+struct HierarchieBoiteEnglobante *GEO3D_cree_hierarchie_boite_englobante(
+    struct AdaptriceMaillage *pour_maillage);
+
+void GEO3D_detruit_hierarchie_boite_englobante(struct HierarchieBoiteEnglobante *hbe);
+
+void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobante *hbe,
+                                                 int niveau,
+                                                 struct AdaptriceMaillage *maillage_sortie);
+
 #ifdef __cplusplus
 }
 #endif

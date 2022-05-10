@@ -24,6 +24,7 @@
 
 #include "ipa.h"
 
+#include "acceleration.hh"
 #include "booleen_maillage.hh"
 #include "creation.h"
 #include "fracture.hh"
@@ -230,4 +231,38 @@ void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
     geo::Maillage maillage_entree_ = geo::Maillage::enveloppe(maillage_entree);
     geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
     geo::test_conversion_polyedre(maillage_entree_, maillage_sortie_);
+}
+
+/* ************************************* */
+
+struct HierarchieBoiteEnglobante *GEO3D_cree_hierarchie_boite_englobante(
+    struct AdaptriceMaillage *pour_maillage)
+{
+    if (!pour_maillage) {
+        return nullptr;
+    }
+
+    geo::Maillage maillage = geo::Maillage::enveloppe(pour_maillage);
+    return geo::cree_hierarchie_boite_englobante(maillage);
+}
+
+void GEO3D_detruit_hierarchie_boite_englobante(HierarchieBoiteEnglobante *hbe)
+{
+    if (!hbe) {
+        return;
+    }
+
+    memoire::deloge("HierarchieBoiteEnglobante", hbe);
+}
+
+void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobante *hbe,
+                                                 int niveau,
+                                                 struct AdaptriceMaillage *maillage_sortie)
+{
+    if (!hbe || !maillage_sortie) {
+        return;
+    }
+
+    geo::Maillage maillage = geo::Maillage::enveloppe(maillage_sortie);
+    geo::visualise_hierarchie_au_niveau(*hbe, niveau, maillage);
 }

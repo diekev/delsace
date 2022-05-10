@@ -82,6 +82,8 @@ set(SOURCES_VORONOI
 )
 
 set(SOURCES
+    acceleration.cc
+    acceleration.hh
     creation.cc
     creation.h
     import_objet.cc
