@@ -32,7 +32,7 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     }
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur.Couleur
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> Couleur.Couleur
 {
     x := pos.x * image.largeur comme r32
     y := pos.y * image.hauteur comme r32

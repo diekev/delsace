@@ -1,7 +1,7 @@
 // ------------------------------------
 // vecteurs de nombres réels
 
-Vec2r :: struct {
+Vec2 :: struct {
     x := 0.0
     y := 0.0
 }
@@ -264,7 +264,7 @@ vec_depuis_nor :: fonc (n: Norm3) -> Vec3
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
 // vecteur normal (N) pour échantillonner une capmat.
-calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
+calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2
 {
     // Création rapide d'une base orthonormale
     a := 1.0 / (1.0 + I.z);
@@ -272,7 +272,7 @@ calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
     b1 := crée_vec3r(1.0 - I.x * I.x * a, b, -I.x);
     b2 := crée_vec3r(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2r( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
+    uv_capmat := Vec2( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
 
     si inversé {
         uv_capmat.x = -uv_capmat.x;
