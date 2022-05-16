@@ -124,6 +124,15 @@ opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
     retourne r
 }
 
+opérateur / :: fonc (u: Vec3, v: Vec3) -> Vec3
+{
+    r : Vec3
+    r.x = u.x / v.x
+    r.y = u.y / v.y
+    r.z = u.z / v.z
+    retourne r
+}
+
 opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
 {
     r : Vec3
