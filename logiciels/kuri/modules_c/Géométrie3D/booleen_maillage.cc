@@ -24,6 +24,7 @@
 
 #include "booleen_maillage.hh"
 
+#include "biblinternes/outils/gna.hh"
 #include "booleen/boolean_operations.hpp"
 #include "booleen/properties_polyhedron_3.h"
 
@@ -281,8 +282,57 @@ bool booleen_maillages(Maillage const &maillage_a,
     return true;
 }
 
+// Calcul du volume d'un maillage triangulé selon la méthode de
+// http://chenlab.ece.cornell.edu/Publication/Cha/icip01_Cha.pdf
+static float calcule_volume(std::vector<EnrichedPolyhedron::Point_3> vertices,
+                            std::vector<std::vector<unsigned long>> triangles)
+{
+    double volume = 0.0;
+
+    for (const auto &triangle : triangles) {
+        auto p1 = vertices[triangle[0]];
+        auto p2 = vertices[triangle[1]];
+        auto p3 = vertices[triangle[2]];
+        auto v321 = p3.x() * p2.y() * p1.z();
+        auto v231 = p2.x() * p3.y() * p1.z();
+        auto v312 = p3.x() * p1.y() * p2.z();
+        auto v132 = p1.x() * p3.y() * p2.z();
+        auto v213 = p2.x() * p1.y() * p3.z();
+        auto v123 = p1.x() * p2.y() * p3.z();
+        volume += (1.0 / 6.0) * (-v321 + v231 + v312 - v132 - v213 + v123);
+    }
+
+    return static_cast<float>(abs(volume));
+}
+
+static math::vec3f calcule_centroide(std::vector<EnrichedPolyhedron::Point_3> vertices,
+                                     std::vector<std::vector<unsigned long>> triangles)
+{
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+
+    int compte = 0;
+
+    for (const auto &triangle : triangles) {
+        for (const auto index : triangle) {
+            x += vertices[index].x();
+            y += vertices[index].y();
+            z += vertices[index].z();
+            compte += 1;
+        }
+    }
+
+    x /= compte;
+    y /= compte;
+    z /= compte;
+
+    return math::vec3f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+}
+
 bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
                                               dls::tableau<CelluleVoronoi> const &cellules,
+                                              const ParametresFracture &params,
                                               Maillage &maillage_sortie)
 {
     auto mesh_A = convertis_vers_polyhedre(maillage_a);
@@ -335,6 +385,70 @@ bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
             }
 
             decalage_triangle += cellules_finales[i].vertices.size();
+        }
+
+        auto attr_C = maillage_sortie.ajouteAttributPolygone<COULEUR>("C");
+        auto gna = GNA();
+
+        if (attr_C) {
+            auto index_polygone = 0;
+            auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
+            for (int i = 0; i < cellules.taille(); i++) {
+                for (int j = 0; j < cellules_finales[i].triangles.size(); j++) {
+                    attr_C.ecris_couleur(index_polygone++, math::vec4f(couleur, 1.0f));
+                }
+            }
+        }
+
+        if (params.cree_attribut_volume_cellule) {
+            AttributReel attr_volume = maillage_sortie.ajouteAttributPolygone<R32>("volume");
+
+            if (attr_volume) {
+                auto index_polygone = 0;
+                for (int i = 0; i < cellules.taille(); i++) {
+                    auto volume = calcule_volume(cellules_finales[i].vertices,
+                                                 cellules_finales[i].triangles);
+
+                    for (int j = 0; j < cellules_finales[i].triangles.size(); j++) {
+                        attr_volume.ecris_reel(index_polygone++, volume);
+                    }
+                }
+            }
+        }
+
+        if (params.cree_attribut_centroide) {
+            AttributVec3 attr_centroide = maillage_sortie.ajouteAttributPolygone<VEC3>(
+                "centroide");
+
+            if (attr_centroide) {
+                auto index_polygone = 0;
+                for (int i = 0; i < cellules.taille(); i++) {
+                    auto centroide = calcule_centroide(cellules_finales[i].vertices,
+                                                       cellules_finales[i].triangles);
+
+                    for (int j = 0; j < cellules_finales[i].triangles.size(); j++) {
+                        attr_centroide.ecris_vec3(index_polygone++, centroide);
+                    }
+                }
+            }
+        }
+
+#if 0
+        if (params.cree_attribut_cellule_voisine) {
+            AttributEntier attr_voisine = maillage_sortie.ajouteAttributPolygone<Z32>("voisine");
+            if (attr_voisine) {
+                // À FAIRE : préserve l'origine des triangles pour savoir de quel polygone ils viennent
+            }
+        }
+#endif
+
+        std::string nom_base_groupe;
+        if (params.ptr_nom_base_groupe) {
+            nom_base_groupe = vers_std_string(params.ptr_nom_base_groupe,
+                                              params.taille_nom_base_groupe);
+        }
+        else {
+            nom_base_groupe = "fracture";
         }
     }
     catch (std::exception &e) {

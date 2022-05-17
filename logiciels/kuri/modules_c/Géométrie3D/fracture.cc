@@ -282,7 +282,8 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
     container_compute_cells(cont_voro, order_particules, cellules);
 
 #if 1
-    construit_maillage_pour_cellules_voronoi(maillage_a_fracturer, cellules, maillage_sortie);
+    construit_maillage_pour_cellules_voronoi(
+        maillage_a_fracturer, cellules, params, maillage_sortie);
 #else
     /* conversion des données */
     long nombre_de_points = 0;
