@@ -7,6 +7,16 @@ Couleur :: struct {
     a := 0.0
 }
 
+// Utiliser Couleur est difficile avec la génération de code
+// dans les métaprogrammes à cause du nom du module (nous générons
+// "Couleur" au lieu de "Couleur.Couleur").
+CouleurRVBA :: struct {
+    r := 0.0
+    v := 0.0
+    b := 0.0
+    a := 0.0
+}
+
 // -------------------------------------------------------------------------
 
 Spectre :: struct {
