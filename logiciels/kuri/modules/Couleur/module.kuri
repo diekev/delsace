@@ -11,10 +11,10 @@ Couleur :: struct {
 // dans les métaprogrammes à cause du nom du module (nous générons
 // "Couleur" au lieu de "Couleur.Couleur").
 CouleurRVBA :: struct {
-    r := 0.0
-    v := 0.0
-    b := 0.0
-    a := 0.0
+    r := 0.0  @mutable
+    v := 0.0  @mutable
+    b := 0.0  @mutable
+    a := 0.0  @mutable
 }
 
 // -------------------------------------------------------------------------

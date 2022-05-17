@@ -2,8 +2,8 @@
 // vecteurs de nombres réels
 
 Vec2 :: struct {
-    x := 0.0
-    y := 0.0
+    x := 0.0  @mutable
+    y := 0.0  @mutable
 }
 
 opérateur == :: fonc (u: Vec2, v: Vec2) -> bool
@@ -32,10 +32,10 @@ crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
 }
 
 Vec4 :: struct {
-    x := 0.0
-    y := 0.0
-    z := 0.0
-    w := 0.0
+    x := 0.0  @mutable
+    y := 0.0  @mutable
+    z := 0.0  @mutable
+    w := 0.0  @mutable
 }
 
 produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32
