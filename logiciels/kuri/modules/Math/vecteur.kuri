@@ -31,7 +31,7 @@ crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
     retourne Vec3( x = x, y = y, z = z )
 }
 
-Vec4r :: struct {
+Vec4 :: struct {
     x := 0.0
     y := 0.0
     z := 0.0
@@ -205,14 +205,14 @@ opérateur >= :: fonc (v1: Vec3, v2: Vec3) -> bool
     retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
 }
 
-crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4r
+crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4
 {
-    retourne Vec4r( x = x, y = y, z = z, w = w )
+    retourne Vec4( x = x, y = y, z = z, w = w )
 }
 
-multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
+multiplie :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4r
+    résultat : Vec4
 
     si v != 0.0 {
         résultat.x = v1.x * v
@@ -224,9 +224,9 @@ multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
     retourne résultat
 }
 
-soustrait :: fonc (v1: Vec4r, v: r32) -> Vec4r
+soustrait :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4r
+    résultat : Vec4
 
     résultat.x = v1.x - v
     résultat.y = v1.y - v
