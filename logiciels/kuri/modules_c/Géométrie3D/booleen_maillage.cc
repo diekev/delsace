@@ -392,8 +392,8 @@ bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
 
         if (attr_C) {
             auto index_polygone = 0;
-            auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
             for (int i = 0; i < cellules.taille(); i++) {
+                auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
                 for (int j = 0; j < cellules_finales[i].triangles.size(); j++) {
                     attr_C.ecris_couleur(index_polygone++, math::vec4f(couleur, 1.0f));
                 }
