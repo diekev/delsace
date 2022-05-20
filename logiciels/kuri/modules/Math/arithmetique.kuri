@@ -184,7 +184,7 @@ racine_cubique :: fonc (n: r64) -> r64
     retourne (limite_basse + limite_haute) * 0.5
 }
 
-// À FAIRE : certaines fonctions ne de sens que pour les nombres relatifs ou réels
+// À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
 
 abs :: fonc(a : $T) -> T #enligne
 {
