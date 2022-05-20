@@ -16,6 +16,63 @@ opérateur != :: fonc (u: Vec2, v: Vec2) -> bool
     retourne !(u == v)
 }
 
+opérateur - :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x - v.x, u.y - v.y)
+}
+
+opérateur * :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x * v.x, u.y * v.y)
+}
+
+opérateur * :: fonc (u: Vec2, v: r32) -> Vec2
+{
+    retourne Vec2(u.x * v, u.y * v)
+}
+
+opérateur / :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x / v.x, u.y / v.y)
+}
+
+opérateur / :: fonc (u: Vec2, v: r32) -> Vec2
+{
+    retourne Vec2(u.x / v, u.y / v)
+}
+
+produit_scalaire :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne u.x * v.x + u.y * v.y
+}
+
+produit_vectoriel :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne u.x * v.y - u.y * v.x
+}
+
+longueur :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne longueur(u - v)
+}
+
+longueur :: fonc (u: Vec2) -> r32
+{
+    retourne racine_carrée(produit_scalaire(u, u))
+}
+
+// projection vectorielle
+projette :: fonc (a: Vec2, b: Vec2) -> Vec2
+{
+    retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b
+}
+
+// rejection vectorielle, a1 doit être une projection
+rejette :: fonc (a1: Vec2, a: Vec2) -> Vec2
+{
+    retourne a - a1
+}
+
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
     x: r32  @mutable
@@ -30,6 +87,12 @@ crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
 {
     retourne Vec3( x = x, y = y, z = z )
 }
+
+new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
+{
+    init_de(Vec3)(vec)
+    retourne vrai
+} @Python "new"
 
 Vec4 :: struct {
     x := 0.0  @mutable
