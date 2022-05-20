@@ -27,12 +27,12 @@ log :: fonc (a: r32) -> r32
     retourne log(a comme r64) comme r32
 }
 
-sol :: fonc (a: r32) -> r32
+plancher :: fonc (a: r32) -> r32
 {
     retourne floor(a) comme r32
 }
 
-sol :: fonc (a: r64) -> r64
+plancher :: fonc (a: r64) -> r64
 {
     retourne floor(a)
 }

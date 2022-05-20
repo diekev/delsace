@@ -200,7 +200,7 @@ blurHashForPixels :: fonc (
             actualMaximumValue = max(abs(ac[i]), actualMaximumValue)
         }
 
-		quantisedMaximumValue := max(0, min(82, sol(actualMaximumValue * 166.0 - 0.5) comme z32))
+		quantisedMaximumValue := max(0, min(82, plancher(actualMaximumValue * 166.0 - 0.5) comme z32))
 		maximumValue = (quantisedMaximumValue + 1) comme r32 / 166.0
 		ptr = encode_int(quantisedMaximumValue, 1, ptr)
 	}
