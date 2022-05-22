@@ -128,6 +128,7 @@ class Maillage : public AdaptriceMaillage {
     void reserveNombreDePoints(long nombre) const;
 
     void ajouteUnPoint(float x, float y, float z) const;
+    void ajouteUnPoint(math::vec3f xyz) const;
 
     void remplacePointALIndex(long n, math::vec3f const &point);
 
