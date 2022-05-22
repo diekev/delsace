@@ -21,10 +21,13 @@
 
 set(NOM_PROJET module_c_geometrie_3d)
 
+find_package(Eigen3 REQUIRED)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
         /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
+        ${EIGEN3_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
@@ -98,6 +101,9 @@ set(SOURCES
 
     fracture.cc
     fracture.hh
+
+    triangulation.cc
+    triangulation.hh
 
     ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}

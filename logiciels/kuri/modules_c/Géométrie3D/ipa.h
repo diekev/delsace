@@ -341,6 +341,11 @@ void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobant
                                                  int niveau,
                                                  struct AdaptriceMaillage *maillage_sortie);
 
+/* ************************************* */
+
+void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
+                                     struct AdaptriceMaillage *maillage_sortie);
+
 #ifdef __cplusplus
 }
 #endif

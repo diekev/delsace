@@ -30,6 +30,7 @@
 #include "fracture.hh"
 #include "import_objet.h"
 #include "outils.hh"
+#include "triangulation.hh"
 
 #define RETOURNE_SI_NUL(x)                                                                        \
     if (!x) {                                                                                     \
@@ -265,4 +266,16 @@ void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobant
 
     geo::Maillage maillage = geo::Maillage::enveloppe(maillage_sortie);
     geo::visualise_hierarchie_au_niveau(*hbe, niveau, maillage);
+}
+
+/* ************************************* */
+
+void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
+                                     struct AdaptriceMaillage *maillage_sortie)
+{
+    RETOURNE_SI_NUL(maillage_entree)
+    RETOURNE_SI_NUL(maillage_sortie)
+    geo::Maillage maillage_entree_ = geo::Maillage::enveloppe(maillage_entree);
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
+    geo::calcule_enveloppe_convexe(maillage_entree_, maillage_sortie_);
 }
