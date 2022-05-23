@@ -1844,6 +1844,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
     of.close();
 
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
     auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
@@ -1858,6 +1859,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
         return false;
     }
+#endif
 
     return true;
 }
@@ -1871,6 +1873,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
 {
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
     compile_objet_r16(
         std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()),
         espace.options.architecture);
@@ -1964,4 +1969,5 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     temps_executable = debut_executable.temps();
     return true;
+#endif
 }
