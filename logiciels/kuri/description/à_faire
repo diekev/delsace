@@ -40,6 +40,7 @@
 
     }
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
+- crash pour les expressions du type `x. - 1`, le point est superflux, nous devrions émettre une erreur
 
 // -----------------------------------
 // Architecture/Qualité de code
