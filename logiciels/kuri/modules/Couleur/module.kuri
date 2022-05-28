@@ -18,6 +18,12 @@ CouleurRVBA :: struct {
     a := 0.0  @mutable
 }
 
+init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
+{
+    init_de(CouleurRVBA)(couleur)
+    retourne vrai
+} @Python "new"
+
 opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     si couleur1.r != couleur2.r {
