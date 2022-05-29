@@ -819,11 +819,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
 
     enchaineuse.ajoute_au_tampon(code_initialisation_contexte, "\n")
 
-    // À FAIRE : supprimer ceci quand les globales seront proprement initialisées
-    enchaineuse.ajoute_au_tampon("    Py_None = *_Py_NoneStruct\n")
-    enchaineuse.ajoute_au_tampon("    Py_True = *_Py_TrueStruct\n")
-    enchaineuse.ajoute_au_tampon("    Py_False = *_Py_FalseStruct\n")
-    enchaineuse.ajoute_au_tampon("    Py_NotImplemented = *_Py_NotImplementedStruct\n")
+    enchaineuse.ajoute_au_tampon("    __init_globales_kuri()\n")
     enchaineuse.ajoute_au_tampon("    initialise_méthodes_du_module()\n")
     enchaineuse.ajoute_au_tampon("    initialise_définition_module()\n")
 
