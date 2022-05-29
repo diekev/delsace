@@ -520,11 +520,6 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
 
     // genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
-    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
-    // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-    repr_inter_programme.fonctions.ajoute(atome_principale);
-
     auto generatrice = GeneratriceCodeASM(espace);
     generatrice.genere_code(
         repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);

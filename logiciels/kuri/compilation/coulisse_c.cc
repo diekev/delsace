@@ -618,6 +618,11 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
+
+    // À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
+    // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
+    // la fonction principale défini par les programmes.
+    enchaineuse << "#define __principale principale\n\n";
 }
 
 static bool est_type_tableau_fixe(Type *type)
@@ -1678,11 +1683,6 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
         &espace,
         static_cast<AtomeFonction *>(decl_init_globales->atome),
         repr_inter_programme.globales);
-
-    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
-    // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-    repr_inter_programme.ajoute_fonction(atome_principale);
 
     /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
      * qui appelera le point d'entrée. */

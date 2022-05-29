@@ -72,12 +72,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(EspaceDeTravail *espace)
-{
-    m_espace = espace;
-    return genere_ri_pour_fonction_principale();
-}
-
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     EspaceDeTravail *espace,
     const kuri::tableau<AtomeGlobale *> &globales,
@@ -3468,48 +3462,6 @@ void ConstructriceRI::genere_ri_pour_initialisation_globales(
     fonction_init->instructions.ajoute(di);
 
     fonction_courante = nullptr;
-}
-
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
-{
-    nombre_labels = 0;
-
-    // déclare une fonction de type int(ContexteProgramme) appelée __principale
-    auto types_entrees = kuri::tablet<Type *, 6>();
-    auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
-    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
-
-    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale");
-    fonction->type = type_fonction;
-    fonction->sanstrace = true;
-    fonction->nombre_utilisations = 1;
-
-    /* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
-     * car nous y devons prédéclarer les valeurs de retours. */
-    fonction->param_sortie = cree_allocation(
-        nullptr, m_compilatrice.typeuse[TypeBase::Z32], ID::valeur);
-
-    fonction_courante = fonction;
-
-    cree_label(nullptr);
-
-    // ----------------------------------
-    // appel notre fonction principale en passant le contexte et le tableau
-    auto fonc_princ = m_espace->fonction_principale;
-
-    static Lexeme lexeme_appel_principale = {
-        "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-    lexeme_appel_principale.ident = ID::principale;
-
-    static NoeudExpression site_appel_principale;
-    site_appel_principale.lexeme = &lexeme_appel_principale;
-
-    auto valeur_princ = cree_appel(&site_appel_principale, fonc_princ->atome);
-
-    // return
-    cree_retour(nullptr, valeur_princ);
-
-    return fonction;
 }
 
 void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(

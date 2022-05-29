@@ -105,7 +105,6 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
                                                NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale(EspaceDeTravail *espace);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         const kuri::tableau<AtomeGlobale *> &globales,
@@ -233,7 +232,6 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(NoeudExpression *noeud);
     void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
     void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale();
     void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
     void genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
                                           Atome *place,
