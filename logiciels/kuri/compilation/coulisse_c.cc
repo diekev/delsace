@@ -1693,6 +1693,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 }
 
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
+                                                   ConstructriceRI &constructrice_ri,
                                                    EspaceDeTravail &espace,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1702,10 +1703,16 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
 
     /* Garantie l'utilisation des fonctions racines. */
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
             ++nombre_fonctions_racines;
+        }
+
+        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
+            decl_init_globales = it;
         }
     }
 
@@ -1713,6 +1720,11 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
         return false;
+    }
+
+    if (decl_init_globales) {
+        constructrice_ri.genere_ri_pour_initialisation_globales(
+            &espace, decl_init_globales, repr_inter_programme.globales);
     }
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
@@ -1734,7 +1746,7 @@ static bool genere_code_C(Compilatrice &compilatrice,
     }
 
     return genere_code_C_depuis_fonctions_racines(
-        compilatrice, espace, programme, bibliotheques, fichier_sortie);
+        compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
