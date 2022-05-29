@@ -1672,10 +1672,16 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
 
+    // Génére le corps de la fonction d'initialisation des globales.
+    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
+    constructrice_ri.genere_ri_pour_initialisation_globales(
+        &espace,
+        static_cast<AtomeFonction *>(decl_init_globales->atome),
+        repr_inter_programme.globales);
+
     // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
     // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(
-        &espace, repr_inter_programme.globales);
+    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
     repr_inter_programme.ajoute_fonction(atome_principale);
 
     /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire

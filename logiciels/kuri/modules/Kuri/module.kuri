@@ -850,6 +850,11 @@ __fini_exécution_kuri :: fonc () #sanstrace #interface
     // Ici seront ajoutées toutes les expression des directives #ajoute_fini.
 }
 
+__init_globales_kuri :: fonc () #sanstrace #interface
+{
+    // Ici seront ajoutées l'initialisation de toutes les globales ayant besoin d'une initialisation spécifique
+}
+
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc () -> z32 #principale
 
@@ -880,6 +885,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     __initialise_contexte_extra(ctx, *trace_appel, *base_allocatrice, *stockage_temporaire)
 
     __init_exécution_kuri()
+
+    __init_globales_kuri()
 
     info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale()\n")
     trace_appel.info_appel = *info_appel

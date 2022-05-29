@@ -25,6 +25,7 @@
 #include "gestionnaire_code.hh"
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
 
@@ -950,7 +951,10 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
         /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
          * attendre la génération de code final avant de générer la RI pour ces fonctions. */
-        if (entete->ident == ID::init_execution_kuri || entete->ident == ID::fini_execution_kuri) {
+        if (dls::outils::est_element(entete->ident,
+                                     ID::init_execution_kuri,
+                                     ID::fini_execution_kuri,
+                                     ID::init_globales_kuri)) {
             return false;
         }
 
@@ -1395,6 +1399,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     /* Requiers la génération de RI pour les fonctions ajoute_fini et ajoute_init. */
     auto decl_ajoute_fini = m_compilatrice->interface_kuri->decl_fini_execution_kuri;
     auto decl_ajoute_init = m_compilatrice->interface_kuri->decl_init_execution_kuri;
+    auto decl_init_globales = m_compilatrice->interface_kuri->decl_init_globales_kuri;
 
     auto ri_requise = false;
     if (!decl_ajoute_fini->corps->possede_drapeau(RI_FUT_GENEREE)) {
@@ -1403,6 +1408,10 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     }
     if (!decl_ajoute_init->corps->possede_drapeau(RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_init);
+        ri_requise = true;
+    }
+    if (!decl_init_globales->corps->possede_drapeau(RI_FUT_GENEREE)) {
+        requiers_generation_ri(espace, decl_init_globales);
         ri_requise = true;
     }
 

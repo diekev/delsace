@@ -72,11 +72,10 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
-    EspaceDeTravail *espace, kuri::tableau<AtomeGlobale *> const &globales)
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(EspaceDeTravail *espace)
 {
     m_espace = espace;
-    return genere_ri_pour_fonction_principale(globales);
+    return genere_ri_pour_fonction_principale();
 }
 
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
@@ -3273,6 +3272,15 @@ AtomeConstante *ConstructriceRI::transtype_base_info_type(AtomeConstante *info_t
     return cree_transtype_constant(type_pointeur_info_type, info_type);
 }
 
+void ConstructriceRI::genere_ri_pour_initialisation_globales(
+    EspaceDeTravail *espace,
+    AtomeFonction *fonction_init,
+    const kuri::tableau<AtomeGlobale *> &globales)
+{
+    m_espace = espace;
+    genere_ri_pour_initialisation_globales(fonction_init, globales);
+}
+
 void ConstructriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                                          unsigned int index,
                                                          Type *pour_type)
@@ -3424,32 +3432,16 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
     return constante_chaine;
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
-    kuri::tableau<AtomeGlobale *> const &globales)
+void ConstructriceRI::genere_ri_pour_initialisation_globales(
+    AtomeFonction *fonction_init, kuri::tableau<AtomeGlobale *> const &globales)
 {
     nombre_labels = 0;
+    fonction_courante = fonction_init;
 
-    // déclare une fonction de type int(ContexteProgramme) appelée __principale
-    auto types_entrees = kuri::tablet<Type *, 6>();
-    auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
-    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    /* Sauvegarde le retour. */
+    auto di = fonction_init->instructions.derniere();
+    fonction_init->instructions.supprime_dernier();
 
-    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale");
-    fonction->type = type_fonction;
-    fonction->sanstrace = true;
-    fonction->nombre_utilisations = 1;
-
-    /* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
-     * car nous y devons prédéclarer les valeurs de retours. */
-    fonction->param_sortie = cree_allocation(
-        nullptr, m_compilatrice.typeuse[TypeBase::Z32], ID::valeur);
-
-    fonction_courante = fonction;
-
-    cree_label(nullptr);
-
-    // ----------------------------------
-    // initialise les variables globales
     auto constructeurs_globaux = m_compilatrice.constructeurs_globaux.verrou_lecture();
 
     POUR (*constructeurs_globaux) {
@@ -3471,6 +3463,35 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
 
         genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
     }
+
+    /* Restaure le retour. */
+    fonction_init->instructions.ajoute(di);
+
+    fonction_courante = nullptr;
+}
+
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
+{
+    nombre_labels = 0;
+
+    // déclare une fonction de type int(ContexteProgramme) appelée __principale
+    auto types_entrees = kuri::tablet<Type *, 6>();
+    auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
+    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+
+    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale");
+    fonction->type = type_fonction;
+    fonction->sanstrace = true;
+    fonction->nombre_utilisations = 1;
+
+    /* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
+     * car nous y devons prédéclarer les valeurs de retours. */
+    fonction->param_sortie = cree_allocation(
+        nullptr, m_compilatrice.typeuse[TypeBase::Z32], ID::valeur);
+
+    fonction_courante = fonction;
+
+    cree_label(nullptr);
 
     // ----------------------------------
     // appel notre fonction principale en passant le contexte et le tableau

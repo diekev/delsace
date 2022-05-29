@@ -24,6 +24,8 @@
 
 #include "programme.hh"
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -126,9 +128,13 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
         return false;
     }
 
+    using dls::outils::est_element;
+
     POUR (m_fonctions) {
-        if (!it->possede_drapeau(RI_FUT_GENEREE) && it->ident != ID::init_execution_kuri &&
-            it->ident != ID::fini_execution_kuri) {
+        if (!it->possede_drapeau(RI_FUT_GENEREE) && !est_element(it->ident,
+                                                                 ID::init_execution_kuri,
+                                                                 ID::fini_execution_kuri,
+                                                                 ID::init_globales_kuri)) {
             assert_rappel(it->unite, [&]() {
                 std::cerr << "Aucune unité pour de compilation pour :\n";
                 erreur::imprime_site(*m_espace, it);
