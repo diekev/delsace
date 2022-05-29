@@ -623,6 +623,8 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
     // la fonction principale défini par les programmes.
     enchaineuse << "#define __principale principale\n\n";
+
+    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
 static bool est_type_tableau_fixe(Type *type)
@@ -1683,11 +1685,6 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
         &espace,
         static_cast<AtomeFonction *>(decl_init_globales->atome),
         repr_inter_programme.globales);
-
-    /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
-     * qui appelera le point d'entrée. */
-    auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
-    atome_fonc->nom = "main";
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
