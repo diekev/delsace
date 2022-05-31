@@ -46,7 +46,15 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
 
             enchaineuse.ajoute_au_tampon("    si ", type_membre.fonctions.pour_discrimination, "(valeur) {\n")
             enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom, "PourPython).notre_instance\n")
-            si it.type.est_basique {
+            si it.type.drapeaux.TYPE_EST_ÉNUM {
+                enchaineuse.ajoute_au_tampon("    si PyUnicode_Check(valeur) {\n")
+                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_membre.fonctions.pour_valeur_unicode_enum, "(valeur, info_de(", it.type.nom, ")) comme ", it.type.nom, "\n")
+                enchaineuse.ajoute_au_tampon("    }\n")
+                enchaineuse.ajoute_au_tampon("    sinon {\n")
+                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n")
+                enchaineuse.ajoute_au_tampon("    }\n")
+            }
+            sinon si it.type.est_basique {
                 enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_membre.fonctions.pour_extraction_valeur, "(valeur)\n")
             }
             sinon {
