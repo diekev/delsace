@@ -42,6 +42,9 @@
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
 - crash pour les expressions du type `x. - 1`, le point est superflux, nous devrions émettre une erreur
 
+        // À FAIRE(langage) : crash lors de l'indexage via une énumération dans la machine virtuelle
+        compilatrice.bits_fonctions_pour_canaux[it.type_chaine_recherchée comme z32] |= (1 << it.index_prise_recherche_chaine) comme n64
+
 // -----------------------------------
 // Architecture/Qualité de code
 
