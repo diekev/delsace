@@ -261,7 +261,12 @@ aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32
 
 aléatoire_bilatérale :: fonc (série: &SérieAléatoire) -> r32
 {
-    retourne série.aléatoire_unilatérale() * 2.0 - 1.0
+    retourne bilatéral_de(série.aléatoire_unilatérale())
+}
+
+vec3_aléatoire :: fonc (série: &SérieAléatoire) -> Vec3
+{
+    retourne Vec3(série.aléatoire_bilatérale(), série.aléatoire_bilatérale(), série.aléatoire_bilatérale())
 }
 
 // -------------------------------------------------------------------------
