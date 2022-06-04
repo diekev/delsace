@@ -521,7 +521,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     lexème_body := Lexème(genre = GenreLexème.DébutTag, nom = TAG_body)
-    élément := parseuse.insère_élément_html(lexème_body)
+    _ := parseuse.insère_élément_html(lexème_body)
     parseuse.mode_insertion = insère_mode_DansBody
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
@@ -1150,7 +1150,7 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_script {
         // À FAIRE : JavaScript execution context stack
 
-        script := parseuse.noeud_courant()
+        _ /* script */ := parseuse.noeud_courant()
         dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
 
@@ -1321,12 +1321,12 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
     parseuse.adoption_activée = faux
 }
 
-insère_mode_DansTexteTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
+insère_mode_DansTexteTable :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
 {
     panique("algorithme d'insertion incomplet")
 }
 
-insère_mode_DansCaption :: fonc (parseuse: *Parseuse, lexème: Lexème)
+insère_mode_DansCaption :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
 {
     panique("algorithme d'insertion incomplet")
 }
@@ -1730,12 +1730,12 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
     erreur_de_parsage(parseuse, "lexème inattendu dans <select>")
 }
 
-insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
+insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
 {
     panique("algorithme d'insertion incomplet")
 }
 
-insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse, lexème: Lexème)
+insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
 {
     panique("algorithme d'insertion incomplet")
 }
