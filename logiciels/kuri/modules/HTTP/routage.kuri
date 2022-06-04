@@ -356,109 +356,68 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 
 __fonctions_parsage_routes : []FonctionParsage
 
-ajoute_fonction_de_parsage_routes :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
-{
-    ajoute_fonction(*__fonctions_parsage_routes, info, fonction)
-}
-
 trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 {
     retourne trouve_fonction_pour_type(__fonctions_parsage_routes, info)
 }
 
-issitialise_routes :: fonc ()
+fonction_routage_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-	déloge(__fonctions_parsage_routes)
+    résultat : DonnéesFonctionPourTableFonction
+
+    si fonction.params.taille != 1 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre")
+        retourne résultat
+    }
+
+    type_premier_paramètre := fonction.params[0].type
+    si type_premier_paramètre != info_de(chaine) {
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».")
+        retourne résultat
+    }
+
+    si fonction.params_sorties.taille != 2 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        retourne résultat
+    }
+
+    type_première_sortie := fonction.params_sorties[0].type
+
+    si type_première_sortie != info_de(bool) {
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
+        retourne résultat
+    }
+
+    résultat.fonction = fonction
+    résultat.info_type = fonction.params_sorties[1].type
+    retourne résultat
+}
+
+génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
+{
+    nom_enveloppe := enchaine("parsage_routes_", données.fonction.nom)
+
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+    ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
 }
 
 génère_initialisation_routes :: fonc ()
 {
-    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageRouteHTTP")
-    diffère déloge(fonctions_de_parsage)
+    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP"
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"
+    créatrice_table_fonctions.données_pour_fonction = fonction_routage_est_valide
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_routage
+	créatrice_table_fonctions.initialise_types_de_bases = vrai
+    créatrice_table_fonctions.ajoute_module("Introspection")
+    créatrice_table_fonctions.ajoute_module("HTTP")
 
-    saufsi fonctions_de_parsage {
-        retourne
-    }
-
-	enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère détruit_tampons(*enchaineuse)
-
-    // Il nous faut les modules.
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
-
-	modules_importés : []chaine
-    diffère déloge(modules_importés)
-	tableau_ajoute(*modules_importés, "Fondation")
-
-	/* Création des enveloppes pour les fonctions de parsage. */
-    pour fonctions_de_parsage {
-        // valide les types
-        si it.params.taille != 1 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre")
-            retourne
-        }
-
-        type_premier_paramètre := it.params[0].type
-        si type_premier_paramètre != info_de(chaine) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».")
-            retourne
-        }
-
-		si it.params_sorties.taille != 2 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-            retourne
-		}
-
-		type_première_sortie := it.params_sorties[0].type
-
-		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
-            retourne
-		}
-
-		nom_module := compilatrice_module_pour_code(it)
-		si nom_module {
-			pour module_importé dans modules_importés {
-				si module_importé == nom_module {
-					arrête
-				}
-			}
-			sansarrêt {
-				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
-				tableau_ajoute(*modules_importés, nom_module)
-			}
-		}
-
-        ajoute_au_tampon(*enchaineuse, "parsage_routes_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
-		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
-    }
-
-    /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_routes_http :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
-    ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*__fonctions_parsage_routes)\n")
-
-    pour fonctions_de_parsage {
-        type_deuxième_paramètre := it.params_sorties[1].type
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_routes(info_de(")
-        imprime_type(*enchaineuse, type_deuxième_paramètre)
-        ajoute_au_tampon(*enchaineuse, "), parsage_routes_", it.nom, ")\n")
-    }
-
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_routes_http()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_routes_http()\n")
-
-    sources := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(sources)
-
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+    crée_table_fonctions(créatrice_table_fonctions)
 }
