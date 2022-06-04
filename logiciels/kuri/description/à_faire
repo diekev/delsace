@@ -44,7 +44,11 @@
 
         // À FAIRE(langage) : crash lors de l'indexage via une énumération dans la machine virtuelle
         compilatrice.bits_fonctions_pour_canaux[it.type_chaine_recherchée comme z32] |= (1 << it.index_prise_recherche_chaine) comme n64
+Crash pour les expressions du style
+    - #pré_exécutable déloge(__globale)
 
+Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
+    - nous ne devrions utiliser que la fonction du module courant
 // -----------------------------------
 // Architecture/Qualité de code
 
