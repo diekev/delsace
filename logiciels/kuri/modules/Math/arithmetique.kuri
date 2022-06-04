@@ -326,3 +326,18 @@ exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
 
     retourne résultat   
 }
+
+bilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne x * 2.0 - 1.0
+}
+
+unilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne (x + 1.0) * 0.5
+}
+
+relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
+{
+    retourne 2.0 * (x comme r32 / taille comme r32) - 1.0
+}
