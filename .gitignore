@@ -36,6 +36,7 @@ logiciels/kuri/parsage/empreinte_parfaite.hh
 logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh
 
+logiciels/kuri/modules/Image/interface_image.kuri
 logiciels/kuri/modules/OpenVDB/interface_openvdb_kuri.kuri
 logiciels/kuri/modules/Géométrie3D/interface_geometrie3d.kuri
 
