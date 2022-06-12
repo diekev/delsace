@@ -1661,6 +1661,18 @@ static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_pr
     }
 }
 
+static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
+                                            ConstructriceRI &constructrice_ri,
+                                            AtomeFonction *fonction,
+                                            ProgrammeRepreInter &repr_inter_programme)
+{
+    constructrice_ri.genere_ri_pour_initialisation_globales(
+        &espace, fonction, repr_inter_programme.globales);
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne sont
+     * peut-être pas encore dans la liste. */
+    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
+}
+
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1681,10 +1693,8 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     // Génére le corps de la fonction d'initialisation des globales.
     auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
-    constructrice_ri.genere_ri_pour_initialisation_globales(
-        &espace,
-        static_cast<AtomeFonction *>(decl_init_globales->atome),
-        repr_inter_programme.globales);
+    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
+    genere_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
@@ -1723,8 +1733,8 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     }
 
     if (decl_init_globales) {
-        constructrice_ri.genere_ri_pour_initialisation_globales(
-            &espace, decl_init_globales, repr_inter_programme.globales);
+        genere_ri_fonction_init_globale(
+            espace, constructrice_ri, decl_init_globales, repr_inter_programme);
     }
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);

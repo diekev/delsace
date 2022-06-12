@@ -650,8 +650,13 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
  * constructeurs globaux... */
 void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
 {
+    fonctions.ajoute(fonction);
+    ajourne_globales_pour_fonction(fonction);
+}
+
+void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction)
+{
     auto globales_utilisees = cree_ensemble(this->globales);
     VisiteuseAtome visiteuse{};
     rassemble_globales_supplementaires(*this, fonction, visiteuse, globales_utilisees);
-    fonctions.ajoute(fonction);
 }

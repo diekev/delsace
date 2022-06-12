@@ -239,6 +239,7 @@ struct ProgrammeRepreInter {
     kuri::tableau<Type *> types{};
 
     void ajoute_fonction(AtomeFonction *fonction);
+    void ajourne_globales_pour_fonction(AtomeFonction *fonction);
 };
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme,
