@@ -754,7 +754,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     retourne nom_enveloppe
 }
 
-exécute_pré_exécutable :: fonc ()
+génère_initialisation_mysql :: fonc ()
 {
     créatrice_table_fonctions : CréatriceTableFonction
     créatrice_table_fonctions.annotation_désirée = "ParsageMySQL"
