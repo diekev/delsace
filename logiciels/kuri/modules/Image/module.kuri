@@ -51,6 +51,9 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
 charge "interface_image"
 
 liboiio :: #bibliothèque "OpenImageIO"
+liboiio_util :: #bibliothèque "OpenImageIO_Util"
+
+#dépendance_bibliothèque liboiio liboiio_util
 #dépendance_bibliothèque libimage liboiio
 
 nombre_éléments_données :: fonc (image: ImageIO) -> z64
