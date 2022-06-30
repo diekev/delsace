@@ -80,6 +80,8 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
+- tests des énums drapeaux dans les conditions des boucles
+    voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
 
 // -----------------------------------
 // Avertissements
