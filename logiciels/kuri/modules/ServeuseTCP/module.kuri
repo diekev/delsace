@@ -85,6 +85,11 @@ détruit_serveuse :: fonc (serveuse: *ServeuseTCP)
     détruit_contexte(serveuse.ctx)
 }
 
+données_utilisateur :: fonc (serveuse: *ServeuseTCP, $T: type_de_données) -> *T
+{
+    retourne serveuse.ctx.données_utilisateur(T)
+}
+
 lance :: fonc (serveuse: *ServeuseTCP)
 {
     serveuse.boucle_évènements.lance()
