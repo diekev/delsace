@@ -14,7 +14,7 @@
     }
 
     serveuse.rappel_quand_ouverture(quand_ouverture)
-    serveuse.rappel_quand_lecture(quand_lecture)
+    serveuse.rappel_quand_données_reçues(quand_données_reçues)
 
     serveuse.lance()
 
