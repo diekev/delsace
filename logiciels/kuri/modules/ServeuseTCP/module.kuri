@@ -58,7 +58,7 @@ ServeuseTCP :: struct {
 
 crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> ServeuseTCP
 {
-    serveuse: ServeuseTCP(T)
+    serveuse: ServeuseTCP
 
     boucle_évènements := crée_boucle()
     ctx := crée_contexte_vide(boucle_évènements, T)
