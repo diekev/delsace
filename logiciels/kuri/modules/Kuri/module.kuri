@@ -771,6 +771,13 @@ tableau_vole_mémoire :: fonc (tableau: &[]$T) -> []T
     retourne résultat
 }
 
+tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
+{
+    pour & v dans tableau {
+        v = valeur
+    }
+}
+
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> z64 #externe libc
