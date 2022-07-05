@@ -146,87 +146,90 @@ install(
 	DESTINATION ${RACINE_INSTALLATION}
 )
 
-set(DOSSIERS_TESTS
-    exemples/applications/BDD
-    exemples/applications/EditeurTexte
-    exemples/applications/Eliza
-    exemples/applications/Jeu
-    exemples/applications/NASA
-)
+##############################################################"
 
-foreach(DOSSIER_TEST ${DOSSIERS_TESTS})
-    get_filename_component(NOM_DOSSIER ${DOSSIER_TEST} NAME)
-    add_test(NAME compilation_${NOM_DOSSIER} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${DOSSIER_TEST}/principale.kuri)
-endforeach(DOSSIER_TEST)
+macro(compile_fichier __nom_dossier__ __nom_fichier__)
+    string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
+    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
+    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+endmacro()
+
+macro(compile_fichier_principale __nom_dossier__)
+    compile_fichier(${__nom_dossier__} principale)
+endmacro()
+
+macro(execute_fichier __nom_dossier__ __nom_fichier__)
+    compile_fichier(${__nom_dossier__} ${__nom_fichier__})
+    add_test(NAME exécution_${__nom_dossier__}_${__nom_fichier__} COMMAND ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
+endmacro()
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
-# À FAIRE : exemples/tests/test_fichier.kuri
-set(FICHIERS_TESTS
-    exemples/applications/base64.kuri
-    exemples/applications/calendrier_républicain.kuri
-    exemples/applications/chemin_complet.kuri
-    exemples/applications/cliente.kuri
-    exemples/applications/crée_test_compilateur.kuri
-    exemples/applications/json.kuri
-    exemples/applications/labyrinthe.kuri
-    exemples/applications/serveuse.kuri
-    exemples/applications/serveuse_ssl.kuri
-    exemples/applications/sudoku.kuri
-    exemples/demos/demo_ajoute_init_fini.kuri
-    exemples/demos/demo_exécution.kuri
-    exemples/demos/demo_expansion_argument_variadique.kuri
-    exemples/demos/demo_info_type_fonction.kuri
-    exemples/demos/demo_logement.kuri
-    exemples/demos/demo_operateur_crochet.kuri
-    exemples/demos/demo_operateur_point.kuri
-    exemples/demos/demo_operateur_surcharge.kuri
-    exemples/demos/demo_pointeurs.kuri
-    exemples/demos/demo_reference.kuri
-    exemples/demos/demo_si.kuri
-    exemples/demos/demo_surcharge_fonctions.kuri
-    exemples/demos/demo_syntax_appel_uniforme.kuri
-    exemples/demos/demo_typage.kuri
-    exemples/tests/test_assert_dans_fonction.kuri
-    exemples/tests/test_annotations.kuri
-    exemples/tests/test_boucle_pour.kuri
-    exemples/tests/test_corps_texte.kuri
-    exemples/tests/test_chaines_littérales.kuri
-    exemples/tests/test_couleur_terminal.kuri
-    exemples/tests/test_dessin_texte.kuri
-    exemples/tests/test_emploi.kuri
-    exemples/tests/test_énum.kuri
-    exemples/tests/test_énum_drapeau.kuri
-    exemples/tests/test_erreur.kuri
-    exemples/tests/test_logement.kuri
-    exemples/tests/test_memoire.kuri
-    exemples/tests/test_metaprogrammation.kuri
-    exemples/tests/test_metaprogramme_imprime.kuri
-    exemples/tests/test_moultfilage.kuri
-    exemples/tests/test_operateur.kuri
-    exemples/tests/test_plage_boucle.kuri
-    exemples/tests/test_polymorphisme.kuri
-    exemples/tests/test_ppm.kuri
-    exemples/tests/test_structure_poly.kuri
-    exemples/tests/test_sys_fichier.kuri
-    exemples/tests/test_unicode.kuri
-    exemples/tests/test_valeur_polymorphique_fonction.kuri
-    exemples/tests/tous_les_modules.kuri
-    modules/GHTML/test/test_ghtml.kuri
-    modules/HTML/Autres/entropisation.kuri
-    modules/HTML/Autres/formattage.kuri
-    modules/HTML/Autres/minification.kuri
-    modules/HTML/Autres/stats_parsage.kuri
-    modules/HTML/Autres/vérification.kuri
-    modules/LABT/Programmes/principale.kuri
-    modules/OutilsMaintenance/Programmes/formattage.kuri
-    modules/OutilsMaintenance/Programmes/suppression_lignes_vides.kuri
-    modules/OutilsMaintenance/Programmes/triage_imports.kuri
-)
+# À FAIRE : exemples/tests test_fichier.kuri
+compile_fichier_principale(exemples/applications/BDD)
+compile_fichier_principale(exemples/applications/EditeurTexte)
+compile_fichier_principale(exemples/applications/Eliza)
+compile_fichier_principale(exemples/applications/Jeu)
+compile_fichier_principale(exemples/applications/NASA)
 
-foreach(FICHIER_TEST ${FICHIERS_TESTS})
-    string(REPLACE "/" "_" nom_test_pour_fichier ${FICHIER_TEST})
-    add_test(NAME ${nom_test_pour_fichier} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${FICHIER_TEST} --tests)
-endforeach(FICHIER_TEST)
+compile_fichier(exemples/applications base64)
+compile_fichier(exemples/applications calendrier_républicain)
+compile_fichier(exemples/applications chemin_complet)
+compile_fichier(exemples/applications cliente)
+compile_fichier(exemples/applications crée_test_compilateur)
+compile_fichier(exemples/applications json)
+compile_fichier(exemples/applications labyrinthe)
+compile_fichier(exemples/applications serveuse)
+compile_fichier(exemples/applications serveuse_ssl)
+compile_fichier(exemples/applications sudoku)
+compile_fichier(exemples/demos demo_ajoute_init_fini)
+compile_fichier(exemples/demos demo_exécution)
+compile_fichier(exemples/demos demo_expansion_argument_variadique)
+compile_fichier(exemples/demos demo_info_type_fonction)
+compile_fichier(exemples/demos demo_logement)
+compile_fichier(exemples/demos demo_operateur_crochet)
+compile_fichier(exemples/demos demo_operateur_point)
+compile_fichier(exemples/demos demo_operateur_surcharge)
+compile_fichier(exemples/demos demo_pointeurs)
+compile_fichier(exemples/demos demo_reference)
+compile_fichier(exemples/demos demo_si)
+compile_fichier(exemples/demos demo_surcharge_fonctions)
+compile_fichier(exemples/demos demo_syntax_appel_uniforme)
+compile_fichier(exemples/demos demo_typage)
+compile_fichier(exemples/tests test_assert_dans_fonction)
+compile_fichier(exemples/tests test_annotations)
+compile_fichier(exemples/tests test_boucle_pour)
+compile_fichier(exemples/tests test_corps_texte)
+compile_fichier(exemples/tests test_chaines_littérales)
+compile_fichier(exemples/tests test_couleur_terminal)
+compile_fichier(exemples/tests test_dessin_texte)
+compile_fichier(exemples/tests test_emploi)
+compile_fichier(exemples/tests test_énum)
+compile_fichier(exemples/tests test_énum_drapeau)
+compile_fichier(exemples/tests test_erreur)
+compile_fichier(exemples/tests test_logement)
+compile_fichier(exemples/tests test_memoire)
+compile_fichier(exemples/tests test_metaprogrammation)
+compile_fichier(exemples/tests test_metaprogramme_imprime)
+compile_fichier(exemples/tests test_moultfilage)
+compile_fichier(exemples/tests test_operateur)
+compile_fichier(exemples/tests test_plage_boucle)
+compile_fichier(exemples/tests test_polymorphisme)
+compile_fichier(exemples/tests test_ppm)
+compile_fichier(exemples/tests test_structure_poly)
+compile_fichier(exemples/tests test_sys_fichier)
+compile_fichier(exemples/tests test_unicode)
+compile_fichier(exemples/tests test_valeur_polymorphique_fonction)
+compile_fichier(exemples/tests tous_les_modules)
+compile_fichier(modules/GHTML/test test_ghtml)
+compile_fichier(modules/HTML/Autres entropisation)
+compile_fichier(modules/HTML/Autres formattage)
+compile_fichier(modules/HTML/Autres minification)
+compile_fichier(modules/HTML/Autres stats_parsage)
+compile_fichier(modules/HTML/Autres vérification)
+compile_fichier(modules/LABT/Programmes principale)
+compile_fichier(modules/OutilsMaintenance/Programmes formattage)
+compile_fichier(modules/OutilsMaintenance/Programmes suppression_lignes_vides)
+compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
 
 set(FICHIERS_TESTS_COROUTINE
     exemples/demos/demo_coro_nombre_premier.kuri
