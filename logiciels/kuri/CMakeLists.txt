@@ -206,7 +206,6 @@ set(FICHIERS_TESTS
     exemples/tests/test_plage_boucle.kuri
     exemples/tests/test_polymorphisme.kuri
     exemples/tests/test_ppm.kuri
-    exemples/tests/test_recherche.kuri
     exemples/tests/test_structure_poly.kuri
     exemples/tests/test_sys_fichier.kuri
     exemples/tests/test_unicode.kuri
