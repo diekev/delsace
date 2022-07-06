@@ -26,8 +26,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-class half;
-typedef half r16;
+typedef unsigned short r16;
 #else
 typedef unsigned char bool;
 typedef unsigned short r16;

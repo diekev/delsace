@@ -714,7 +714,7 @@ DEFINIS_CONVERTISSEUSE_VALEUR(int32_t, int32_t, z32, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(uint32_t, uint32_t, n32, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(int64_t, int64_t, z64, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(uint64_t, uint64_t, n64, 1);
-DEFINIS_CONVERTISSEUSE_VALEUR(half, half, r16, 1);
+// DEFINIS_CONVERTISSEUSE_VALEUR(half, half, r16, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(float, float, r32, 1);
 DEFINIS_CONVERTISSEUSE_VALEUR(double, double, r64, 1);
 
@@ -746,11 +746,11 @@ DEFINIS_CONVERTISSEUSE_VALEUR(Imath::M44d, double, r64, 16);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Quatf, float, r32, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::Quatd, double, r64, 4);
 
-DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3h, half, r16, 3);
+// DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3h, half, r16, 3);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3f, float, r32, 3);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3c, uint8_t, n8, 3);
 
-DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
+// DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4f, float, r32, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
 #pragma GCC diagnostic pop
@@ -911,7 +911,7 @@ static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse,
     GERE_ATTRIBUT(AbcGeom::IInt32GeomParam)
     GERE_ATTRIBUT(AbcGeom::IUInt64GeomParam)
     GERE_ATTRIBUT(AbcGeom::IInt64GeomParam)
-    GERE_ATTRIBUT(AbcGeom::IHalfGeomParam)
+    // GERE_ATTRIBUT(AbcGeom::IHalfGeomParam)
     GERE_ATTRIBUT(AbcGeom::IFloatGeomParam)
     GERE_ATTRIBUT(AbcGeom::IDoubleGeomParam)
     GERE_ATTRIBUT(AbcGeom::IStringGeomParam)
@@ -955,11 +955,11 @@ static void convertis_attribut(ConvertisseuseImportAttributs *convertisseuse,
     GERE_ATTRIBUT(AbcGeom::IQuatfGeomParam)
     GERE_ATTRIBUT(AbcGeom::IQuatdGeomParam)
 
-    GERE_ATTRIBUT(AbcGeom::IC3hGeomParam)
+    // GERE_ATTRIBUT(AbcGeom::IC3hGeomParam)
     GERE_ATTRIBUT(AbcGeom::IC3fGeomParam)
     GERE_ATTRIBUT(AbcGeom::IC3cGeomParam)
 
-    GERE_ATTRIBUT(AbcGeom::IC4hGeomParam)
+    // GERE_ATTRIBUT(AbcGeom::IC4hGeomParam)
     GERE_ATTRIBUT(AbcGeom::IC4fGeomParam)
     GERE_ATTRIBUT(AbcGeom::IC4cGeomParam)
 
