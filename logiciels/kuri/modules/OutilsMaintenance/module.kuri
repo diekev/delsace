@@ -184,18 +184,6 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
     retourne faux
 }
 
-// À FAIRE : bouge ça dans un module d'outils ou autre (copie de HTML)
-fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
-{
-    pour liste {
-        si valeur == it {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_dossier() {
