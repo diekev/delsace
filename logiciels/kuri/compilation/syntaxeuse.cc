@@ -654,7 +654,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
 {
     auto expression = analyse_expression_primaire(racine_expression, lexeme_final);
 
-    while (apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
+    while (!fini() && apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
         auto nouvelle_precedence = precedence_pour_operateur(lexeme_courant()->genre);
 
         if (nouvelle_precedence < donnees_precedence.precedence) {
@@ -1578,7 +1578,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
                 kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
-                while (true) {
+                while (!fini()) {
                     auto expr = analyse_expression({}, GenreLexeme::RETIENS, GenreLexeme::VIRGULE);
                     expressions.ajoute(expr);
 
@@ -1616,7 +1616,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
                 kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
-                while (true) {
+                while (!fini()) {
                     auto expr = analyse_expression(
                         {}, GenreLexeme::RETOURNE, GenreLexeme::VIRGULE);
                     expressions.ajoute(expr);
@@ -1747,7 +1747,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
     auto params = kuri::tablet<NoeudExpression *, 16>();
 
-    while (apparie_expression()) {
+    while (!fini() && apparie_expression()) {
         auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
         params.ajoute(expr);
 
@@ -1796,7 +1796,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
     auto paires_discr = kuri::tablet<NoeudPaireDiscr *, 32>();
 
-    while (!apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
         if (apparie(GenreLexeme::SINON)) {
             consomme();
 
@@ -1841,7 +1841,7 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 {
     bool eu_direction = false;
 
-    while (true) {
+    while (!fini()) {
         switch (lexeme_courant()->genre) {
             default:
             {
@@ -2059,7 +2059,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 
 void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
 {
-    while (apparie(GenreLexeme::AROBASE)) {
+    while (!fini() && apparie(GenreLexeme::AROBASE)) {
         consomme();
 
         if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
@@ -2194,7 +2194,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     auto eu_declarations = false;
 
-    while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto valeur_poly = false;
 
         if (apparie(GenreLexeme::DOLLAR)) {
@@ -2252,7 +2252,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
         }
 
-        while (true) {
+        while (!fini()) {
             auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
             noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
 
@@ -2285,7 +2285,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 eu_parenthese = true;
             }
 
-            while (true) {
+            while (!fini()) {
                 auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
                 if (!decl_sortie->est_declaration_variable()) {
@@ -2362,7 +2362,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        while (apparie(GenreLexeme::DIRECTIVE)) {
+        while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
             consomme();
 
             auto ident_directive = lexeme_courant()->ident;
@@ -2542,7 +2542,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
 
-    while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (!param->est_declaration_variable()) {
@@ -2591,7 +2591,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     /* analyse les types de retour de la fonction */
     consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
-    while (true) {
+    while (!fini()) {
         auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
         if (!decl_sortie->est_declaration_variable()) {
@@ -2624,7 +2624,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
     noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
 
-    while (apparie(GenreLexeme::DIRECTIVE)) {
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
         auto directive = lexeme_courant()->ident;
@@ -2762,7 +2762,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         consomme();
     }
 
-    while (apparie(GenreLexeme::DIRECTIVE)) {
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
         auto ident_directive = lexeme_courant()->ident;
