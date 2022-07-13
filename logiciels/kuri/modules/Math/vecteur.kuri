@@ -16,9 +16,19 @@ opérateur != :: fonc (u: Vec2, v: Vec2) -> bool
     retourne !(u == v)
 }
 
+opérateur + :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x + v.x, u.y + v.y)
+}
+
 opérateur - :: fonc (u: Vec2, v: Vec2) -> Vec2
 {
     retourne Vec2(u.x - v.x, u.y - v.y)
+}
+
+opérateur - :: fonc (u: Vec2) -> Vec2
+{
+    retourne Vec2(-u.x, -u.y)
 }
 
 opérateur * :: fonc (u: Vec2, v: Vec2) -> Vec2
@@ -61,6 +71,12 @@ longueur :: fonc (u: Vec2) -> r32
     retourne racine_carrée(produit_scalaire(u, u))
 }
 
+longueur_carrée :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    w := v - u
+    retourne produit_scalaire(w, w)
+}
+
 // projection vectorielle
 projette :: fonc (a: Vec2, b: Vec2) -> Vec2
 {
@@ -71,6 +87,26 @@ projette :: fonc (a: Vec2, b: Vec2) -> Vec2
 rejette :: fonc (a1: Vec2, a: Vec2) -> Vec2
 {
     retourne a - a1
+}
+
+angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
+{
+    a = normalise(a)
+    b = normalise(b)
+
+    /* Plus précis que acos(produit_scalaire(a, b)). */
+    si produit_scalaire(a, b) >= 0.0 {
+        retourne 2.0 * arcsinus_borné(longueur(a, b) * 0.5)
+    }
+
+    b2 := -b
+    retourne M_PI - 2.0 * arcsinus_borné(longueur(a, b2) * 0.5)
+}
+
+normalise :: fonc (v: Vec2) -> Vec2 #enligne
+{
+    l := longueur(v)
+    retourne v / l
 }
 
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
