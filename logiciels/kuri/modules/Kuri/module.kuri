@@ -746,6 +746,26 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
+tableau_supprime_si :: fonc (tableau: *[]$T, prédicat: fonc(T)(bool))
+{
+    temp := mémoire(tableau)
+
+    nouveau_tableau : []T
+    tableau_réserve(*nouveau_tableau, tableau.taille)
+
+    pour temp {
+        si prédicat(it) {
+            continue
+        }
+
+        tableau_ajoute(*nouveau_tableau, it)
+    }
+
+    déloge(temp)
+
+    mémoire(tableau) = nouveau_tableau
+}
+
 tableau_supprime_valeur :: fonc (tabl: *[]$T, valeur: T)
 {
     tmp := mémoire(tabl)
@@ -776,6 +796,42 @@ tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
     pour & v dans tableau {
         v = valeur
     }
+}
+
+est_adresse_borne_tableau :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    si adresse == tableau.pointeur {
+        retourne vrai
+    }
+
+    si adresse == (tableau.pointeur + tableau.taille - 1) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en incluant le premier et le dernier élément. */
+est_adresse_élément_bornes_incluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille - 1
+    retourne premier <= adresse <= dernier
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en excluant le premier et le dernier élément. */
+est_adresse_élément_bornes_excluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille
+    retourne premier < adresse < dernier
+}
+
+index_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
+{
+    retourne (adresse - tableau.pointeur)
 }
 
 // --------------------------------
