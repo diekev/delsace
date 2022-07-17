@@ -62,17 +62,62 @@ struct Triangle {
     float aire = 0.0f;
     Triangle *precedent = nullptr, *suivant = nullptr;
 
-    Triangle() = default;
-
-    Triangle(type_vec const &v_0, type_vec const &v_1, type_vec const &v_2)
-        : v0(v_0), v1(v_1), v2(v_2)
+    /* Fragmente le triangle en 4 sous-triangles en introduisant un point au centre de chaque côté.
+     */
+    std::array<Triangle, 4> fragmente() const
     {
+        auto const v01 = (v0 + v1) * 0.5f;
+        auto const v12 = (v1 + v2) * 0.5f;
+        auto const v20 = (v2 + v0) * 0.5f;
+
+        std::array<Triangle, 4> resultat = {
+            Triangle{v0, v01, v20, index_orig},
+            Triangle{v01, v1, v12, index_orig},
+            Triangle{v12, v2, v20, index_orig},
+            Triangle{v20, v01, v12, index_orig},
+        };
+
+        return resultat;
     }
 };
 
 static float calcule_aire(const Triangle &triangle)
 {
     return calcule_aire(triangle.v0, triangle.v1, triangle.v2);
+}
+
+static dls::math::vec3f point_aleatoire(const Triangle &triangle, GNA &gna)
+{
+    auto const v0 = triangle.v0;
+    auto const v1 = triangle.v1;
+    auto const v2 = triangle.v2;
+    auto const e0 = v1 - v0;
+    auto const e1 = v2 - v0;
+
+    auto r = gna.uniforme(0.0f, 1.0f);
+    auto s = gna.uniforme(0.0f, 1.0f);
+
+    if (r + s >= 1.0f) {
+        r = 1.0f - r;
+        s = 1.0f - s;
+    }
+
+    return v0 + r * e0 + s * e1;
+}
+
+static bool est_triangle_couvert(const Triangle &triangle,
+                                 const dls::math::vec3f point_courant,
+                                 const float rayon,
+                                 GrilleParticules &grille)
+{
+    /* Commençons d'abord par le point ajouté. */
+    if (longueur(triangle.v0 - point_courant) <= rayon &&
+        longueur(triangle.v1 - point_courant) <= rayon &&
+        longueur(triangle.v2 - point_courant) <= rayon) {
+        return true;
+    }
+
+    return grille.triangle_couvert(triangle.v0, triangle.v1, triangle.v2, rayon);
 }
 
 static dls::tableau<Triangle> convertis_maillage_triangles(Maillage const &surface, void *groupe)
@@ -217,83 +262,158 @@ static void ajoute_triangle_boite(BoiteTriangle *boite,
     boite->aire_totale += triangle->aire;
 }
 
-static BoiteTriangle *choisis_boite(BoiteTriangle boites[], GNA &gna)
-{
-    auto aire_totale_boites = 0.0f;
+class GestionnaireFragment {
+    mutable BoiteTriangle boites[NOMBRE_BOITE] = {};
+    float aire_maximum = 0.0f;
 
-    auto nombre_boite_vide = 0;
-    for (auto i = 0; i < NOMBRE_BOITE; ++i) {
-        if (boites[i].triangles.vide()) {
-            ++nombre_boite_vide;
-            continue;
-        }
-
-        aire_totale_boites += boites[i].aire_totale;
+  public:
+    explicit GestionnaireFragment(const float aire_max) : aire_maximum(aire_max)
+    {
     }
 
-    if (nombre_boite_vide == NOMBRE_BOITE) {
+    void ajoute_fragment_initial(Triangle const &triangle)
+    {
+        auto aire = static_cast<float>(calcule_aire(triangle));
+        auto const index_boite = index_pour_boite(aire);
+
+        if (index_boite < 0 || index_boite >= 64) {
+            //            this->ajoute_avertissement("Erreur lors de la génération de l'index d'une
+            //            boîte !",
+            //                                       "\n   Index : ",
+            //                                       index_boite,
+            //                                       "\n   Aire triangle : ",
+            //                                       aire,
+            //                                       "\n   Aire totale : ",
+            //                                       donnees_aires.aire_maximum);
+            return;
+        }
+
+        ajoute_triangle_boite(
+            &boites[index_boite], triangle.v0, triangle.v1, triangle.v2, triangle.index_orig);
+    }
+
+    void ajoute_fragment(Triangle const &triangle, const float aire)
+    {
+        auto const index_boite = index_pour_boite(aire);
+        if (index_boite < 0 || index_boite >= 64) {
+            return;
+        }
+        auto &b = boites[index_boite];
+
+        auto t = b.triangles.ajoute(triangle.v0, triangle.v1, triangle.v2);
+        t->index_orig = triangle.index_orig;
+        b.aire_totale += aire;
+    }
+
+    Triangle *choisis_fragment(GNA &gna) const
+    {
+        BoiteTriangle *boite = choisis_boite(gna);
+        if (boite == nullptr) {
+            return nullptr;
+        }
+
+        auto triangle = choisis_triangle(boite, gna);
+        if (triangle == nullptr) {
+            return nullptr;
+        }
+
+        /* Supprime directement le triangle de la boite, car :
+         * - soit le triangle sera couvert
+         * - soit le triangle sera fragmenté.
+         * Dans les deux cas, il sera supprimé de la boite. */
+        boite->aire_totale -= triangle->aire;
+        boite->triangles.enleve(triangle);
+
+        return triangle;
+    }
+
+  private:
+    int index_pour_boite(const float aire) const
+    {
+        return static_cast<int>(std::log2(aire_maximum / aire));
+    }
+
+    /* Choisis une boîte avec une probabilité proportionnelle à l'aire
+     * total des fragments de la boîte. */
+    BoiteTriangle *choisis_boite(GNA &gna) const
+    {
+        auto aire_totale_boites = 0.0f;
+
+        auto nombre_boite_vide = 0;
+        for (auto &boite : boites) {
+            if (boite.triangles.vide()) {
+                ++nombre_boite_vide;
+                continue;
+            }
+
+            aire_totale_boites += boite.aire_totale;
+        }
+
+        if (nombre_boite_vide == NOMBRE_BOITE) {
+            return nullptr;
+        }
+
+        auto prob_selection = gna.uniforme(0.0f, 1.0f) * aire_totale_boites;
+        auto aire_courante = 0.0f;
+
+        for (auto &boite : boites) {
+            if (boite.triangles.vide()) {
+                continue;
+            }
+
+            if (prob_selection >= aire_courante &&
+                prob_selection <= aire_courante + boite.aire_totale) {
+                return &boite;
+            }
+
+            aire_courante += boite.aire_totale;
+        }
+
         return nullptr;
     }
 
-    auto prob_selection = gna.uniforme(0.0f, 1.0f) * aire_totale_boites;
-    auto aire_courante = 0.0f;
-
-    for (auto i = 0; i < NOMBRE_BOITE; i++) {
-        if (boites[i].triangles.vide()) {
-            continue;
-        }
-
-        if (prob_selection >= aire_courante &&
-            prob_selection <= aire_courante + boites[i].aire_totale) {
-            return &boites[i];
-        }
-
-        aire_courante += boites[i].aire_totale;
-    }
-
-    return nullptr;
-}
-
-static Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna)
-{
+    /* Sélectionne un triangle proportionellement à son aire. */
+    Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna) const
+    {
 #if 1
-    static_cast<void>(gna);
-    return boite->triangles.premier_triangle();
+        static_cast<void>(gna);
+        return boite->triangles.premier_triangle();
 #else
-    if (false) {  // cause un crash
-        auto tri = boite->triangles.premier_triangle();
-        boite->aire_totale = 0.0f;
+        if (false) {  // cause un crash
+            auto tri = boite->triangles.premier_triangle();
+            boite->aire_totale = 0.0f;
 
-        while (tri != nullptr) {
-            boite->aire_totale += tri->aire;
-            tri = tri->suivant;
+            while (tri != nullptr) {
+                boite->aire_totale += tri->aire;
+                tri = tri->suivant;
+            }
         }
-    }
 
-    auto debut = compte_tick_ms();
+        auto debut = compte_tick_ms();
 
-    while (true) {
-        auto tri = boite->triangles.premier_triangle();
+        while (true) {
+            auto tri = boite->triangles.premier_triangle();
 
-        while (tri != nullptr) {
-            auto const probabilite_triangle = tri->aire / boite->aire_totale;
+            while (tri != nullptr) {
+                auto const probabilite_triangle = tri->aire / boite->aire_totale;
 
-            if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
-                return tri;
+                if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
+                    return tri;
+                }
+
+                tri = tri->suivant;
             }
 
-            tri = tri->suivant;
+            /* Évite les boucles infinies. */
+            if ((compte_tick_ms() - debut) > 1000) {
+                break;
+            }
         }
 
-        /* Évite les boucles infinies. */
-        if ((compte_tick_ms() - debut) > 1000) {
-            break;
-        }
-    }
-
-    return boite->triangles.premier_triangle();
+        return boite->triangles.premier_triangle();
 #endif
-}
+    }
+};
 
 struct DonneesAiresTriangles {
     dls::tableau<float> aire_par_triangle{};
@@ -365,27 +485,10 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
     auto const donnees_aires = calcule_donnees_aires(triangles_entree);
 
     /* Place les triangles dans les boites. */
-    BoiteTriangle boites[NOMBRE_BOITE];
+    GestionnaireFragment gestionnaire_fragments(donnees_aires.aire_maximum);
 
     for (auto const &triangle : triangles_entree) {
-        auto aire = static_cast<float>(calcule_aire(triangle));
-
-        auto const index_boite = static_cast<int>(std::log2(donnees_aires.aire_maximum / aire));
-
-        if (index_boite < 0 || index_boite >= 64) {
-            //            this->ajoute_avertissement("Erreur lors de la génération de l'index d'une
-            //            boîte !",
-            //                                       "\n   Index : ",
-            //                                       index_boite,
-            //                                       "\n   Aire triangle : ",
-            //                                       aire,
-            //                                       "\n   Aire totale : ",
-            //                                       donnees_aires.aire_maximum);
-            continue;
-        }
-
-        ajoute_triangle_boite(
-            &boites[index_boite], triangle.v0, triangle.v1, triangle.v2, triangle.index_orig);
+        gestionnaire_fragments.ajoute_fragment_initial(triangle);
     }
 
     /* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
@@ -412,35 +515,16 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 
     /* Tant qu'il reste des triangles à remplir... */
     while (true) {
-        /* Choisis une boîte avec une probabilité proportionnelle à l'aire
-         * total des fragments de la boîte. */
-        BoiteTriangle *boite = choisis_boite(boites, gna);
-
-        /* Toutes les boites sont vides, arrêt de l'algorithme. */
-        if (boite == nullptr) {
+        /* Sélectionne un triangle proportionellement à son aire. */
+        auto triangle = gestionnaire_fragments.choisis_fragment(gna);
+        if (triangle == nullptr) {
+            /* Plus aucun fragment. */
             break;
         }
 
-        /* Sélectionne un triangle proportionellement à son aire. */
-        auto triangle = choisis_triangle(boite, gna);
-
-        /* Choisis un point aléatoire p sur le triangle en prenant une
+        /* Choisis un point aléatoire sur le triangle en prenant une
          * coordonnée barycentrique aléatoire. */
-        auto const v0 = triangle->v0;
-        auto const v1 = triangle->v1;
-        auto const v2 = triangle->v2;
-        auto const e0 = v1 - v0;
-        auto const e1 = v2 - v0;
-
-        auto r = gna.uniforme(0.0f, 1.0f);
-        auto s = gna.uniforme(0.0f, 1.0f);
-
-        if (r + s >= 1.0f) {
-            r = 1.0f - r;
-            s = 1.0f - s;
-        }
-
-        auto point = v0 + r * e0 + s * e1;
+        auto point = point_aleatoire(*triangle, gna);
 
         /* Vérifie que le point respecte la condition de distance minimal */
         auto ok = grille_particule.verifie_distance_minimal(point, distance);
@@ -453,73 +537,27 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 
         /* Vérifie si le triangle est complétement couvert par un point de
          * l'ensemble. */
-        auto couvert = false;
-        {
-            /* Commençons d'abord par le point ajouté. */
-            if (longueur(triangle->v0 - point) <= distance &&
-                longueur(triangle->v1 - point) <= distance &&
-                longueur(triangle->v2 - point) <= distance) {
-                couvert = true;
-            }
+        if (est_triangle_couvert(*triangle, point, distance, grille_particule)) {
+            continue;
         }
 
-        if (!couvert) {
-            couvert = grille_particule.triangle_couvert(
-                triangle->v0, triangle->v1, triangle->v2, distance);
-        }
+        /* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
+         * qui ne ne sont pas totalement couvert à la liste, sauf si son
+         * aire est plus petite que le seuil d'acceptance. */
+        auto const triangles_fils = triangle->fragmente();
 
-        if (couvert) {
-            /* Si couvert, jète le triangle. */
-            boite->aire_totale -= triangle->aire;
-            boite->triangles.enleve(triangle);
-        }
-        else {
-            /* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
-             * qui ne ne sont pas totalement couvert à la liste, sauf si son
-             * aire est plus petite que le seuil d'acceptance. */
+        for (auto triangle_fils : triangles_fils) {
+            auto const aire = calcule_aire(triangle_fils);
 
-            /* On coupe le triangle en quatre en introduisant un point au
-             * centre de chaque coté. */
-            auto const v01 = (v0 + v1) * 0.5f;
-            auto const v12 = (v1 + v2) * 0.5f;
-            auto const v20 = (v2 + v0) * 0.5f;
-
-            Triangle triangle_fils[4] = {
-                Triangle{v0, v01, v20},
-                Triangle{v01, v1, v12},
-                Triangle{v12, v2, v20},
-                Triangle{v20, v01, v12},
-            };
-
-            for (auto i = 0; i < 4; ++i) {
-                auto const aire = calcule_aire(triangle_fils[i]);
-
-                if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
-                    boite->aire_totale -= aire;
-                    continue;
-                }
-
-                couvert = grille_particule.triangle_couvert(
-                    triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2, distance);
-
-                if (couvert) {
-                    continue;
-                }
-
-                auto const index_boite0 = static_cast<int>(
-                    std::log2(donnees_aires.aire_maximum / aire));
-
-                if (index_boite0 >= 0 && index_boite0 < 64) {
-                    auto &b = boites[index_boite0];
-
-                    auto t = b.triangles.ajoute(
-                        triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
-                    t->index_orig = triangle->index_orig;
-                    b.aire_totale += aire;
-                }
+            if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
+                continue;
             }
 
-            boite->triangles.enleve(triangle);
+            if (est_triangle_couvert(triangle_fils, point, distance, grille_particule)) {
+                continue;
+            }
+
+            gestionnaire_fragments.ajoute_fragment(triangle_fils, aire);
         }
 
         /* Évite les boucles infinies. */
