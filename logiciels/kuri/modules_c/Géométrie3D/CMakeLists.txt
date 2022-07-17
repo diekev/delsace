@@ -32,6 +32,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
     bib_outils
+    bib_structures
     memoire
 )
 
@@ -95,6 +96,8 @@ set(SOURCES
     ipa.h
     outils.cc
     outils.hh
+    particules.cc
+    particules.hh
 
     booleen_maillage.cc
     booleen_maillage.hh

@@ -30,6 +30,7 @@
 #include "fracture.hh"
 #include "import_objet.h"
 #include "outils.hh"
+#include "particules.hh"
 #include "triangulation.hh"
 
 #define RETOURNE_SI_NUL(x)                                                                        \
@@ -278,4 +279,18 @@ void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
     geo::Maillage maillage_entree_ = geo::Maillage::enveloppe(maillage_entree);
     geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(maillage_sortie);
     geo::calcule_enveloppe_convexe(maillage_entree_, maillage_sortie_);
+}
+
+/* ************************************* */
+
+void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticules *params,
+                                            struct AdaptriceMaillage *surface,
+                                            struct AdaptriceMaillage *points_resultants)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(surface)
+    RETOURNE_SI_NUL(points_resultants)
+    geo::Maillage maillage_entree_ = geo::Maillage::enveloppe(surface);
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(points_resultants);
+    geo::distribue_particules_sur_surface(*params, maillage_entree_, maillage_sortie_);
 }

@@ -346,6 +346,24 @@ void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobant
 void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
                                      struct AdaptriceMaillage *maillage_sortie);
 
+/* ************************************* */
+
+struct ParametreDistributionParticules {
+    int graine;
+
+    /* Distance minimale entre deux points. */
+    float distance_minimale;
+
+    /* Paramètres pour contenir la génération de particules aux primitives d'un groupe. */
+    bool utilise_groupe;
+    const char *ptr_nom_groupe_primitive;
+    long taille_nom_groupe_primitive;
+};
+
+void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticules *params,
+                                            struct AdaptriceMaillage *surface,
+                                            struct AdaptriceMaillage *points_resultants);
+
 #ifdef __cplusplus
 }
 #endif
