@@ -168,14 +168,14 @@ struct BoiteTriangle {
     void ajoute_triangle(Triangle const &triangle)
     {
         ajoute_sous_triangle(triangle);
-        aire_minimum = std::min(aire_minimum, triangle.aire);
+        aire_minimum = std::min(aire_minimum, calcule_aire(triangle));
         aire_maximum = 2 * aire_minimum;
     }
 
     void ajoute_sous_triangle(Triangle const &triangle)
     {
         triangles.ajoute(triangle);
-        aire_totale += triangle.aire;
+        aire_totale += calcule_aire(triangle);
     }
 
     void enleve_triangle(Triangle const *triangle)
@@ -183,7 +183,7 @@ struct BoiteTriangle {
         auto index = std::distance(&triangles[0], const_cast<Triangle *>(triangle));
         std::swap(triangles[index], triangles.back());
         triangles.pop_back();
-        aire_totale -= triangle->aire;
+        aire_totale -= calcule_aire(*triangle);
     }
 };
 
@@ -308,41 +308,26 @@ class GestionnaireFragment {
     Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna) const
     {
 #if 1
+        /* À FAIRE : la méthode en dessous ne semble pas sélectionner tous les triangles. */
         static_cast<void>(gna);
         return &boite->triangles[0];
 #else
-        if (false) {  // cause un crash
-            auto tri = boite->triangles.premier_triangle();
-            boite->aire_totale = 0.0f;
-
-            while (tri != nullptr) {
-                boite->aire_totale += tri->aire;
-                tri = tri->suivant;
-            }
-        }
-
-        auto debut = compte_tick_ms();
+        auto triangle_potentiel = gna.uniforme(0l, boite->triangles.taille() - 1);
+        auto const prob_selection = gna.uniforme(0.0f, 1.0f);
 
         while (true) {
-            auto tri = boite->triangles.premier_triangle();
+            auto triangle = &boite->triangles[triangle_potentiel];
+            auto aire = calcule_aire(*triangle);
+            auto const probabilite_triangle = aire / boite->aire_maximum;
 
-            while (tri != nullptr) {
-                auto const probabilite_triangle = tri->aire / boite->aire_totale;
-
-                if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
-                    return tri;
-                }
-
-                tri = tri->suivant;
+            if (gna.uniforme(0.0f, 1.0f) < probabilite_triangle) {
+                return triangle;
             }
 
-            /* Évite les boucles infinies. */
-            if ((compte_tick_ms() - debut) > 1000) {
-                break;
-            }
+            triangle_potentiel = gna.uniforme(0l, boite->triangles.taille() - 1);
         }
 
-        return boite->triangles.premier_triangle();
+        return nullptr;
 #endif
     }
 };
