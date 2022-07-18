@@ -375,6 +375,11 @@ struct ParametreDistributionParticules {
     bool utilise_groupe;
     const char *ptr_nom_groupe_primitive;
     long taille_nom_groupe_primitive;
+
+    /* Paramètres pour exporter un attribut pour les rayons. */
+    bool exporte_rayon;
+    const char *ptr_nom_rayon;
+    long taille_nom_rayon;
 };
 
 void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticules *params,

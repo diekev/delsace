@@ -365,6 +365,7 @@ static DonneesAiresTriangles calcule_donnees_aires(dls::tableau<Triangle> const 
 struct PointCree {
     dls::math::vec3f position;
     long index_triangle;
+    float rayon;
 };
 
 struct CouverturePonctuelle {
@@ -466,7 +467,8 @@ static dls::tableau<PointCree> distribue_particules_sur_surface(
 
         if (ok) {
             grille_particule.ajoute(point);
-            resultat.ajoute({point, triangle->index_orig});
+            /* Le rayon est la moitié de la distance entre les points. */
+            resultat.ajoute({point, triangle->index_orig, distance * 0.5f});
             debut = compte_tick_ms();
             points_restants--;
         }
@@ -585,6 +587,18 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
     // À FAIRE : transfère les attributs.
     for (auto const &point : resultat) {
         points_resultants.ajouteUnPoint(point.position);
+    }
+
+    auto const nom_attr_rayon = vers_std_string(params.ptr_nom_rayon, params.taille_nom_rayon);
+    if (params.exporte_rayon && nom_attr_rayon != "") {
+        int index_point = 0;
+        AttributReel attr_rayon = points_resultants.ajouteAttributPoint<R32>(nom_attr_rayon);
+
+        if (attr_rayon) {
+            for (auto const &point : resultat) {
+                attr_rayon.ecris_reel(index_point++, point.rayon);
+            }
+        }
     }
 }
 
