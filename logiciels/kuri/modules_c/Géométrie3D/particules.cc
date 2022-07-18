@@ -106,17 +106,17 @@ static dls::math::vec3f point_aleatoire(const Triangle &triangle, GNA &gna)
 
 static bool est_triangle_couvert(const Triangle &triangle,
                                  const dls::math::vec3f point_courant,
-                                 const float rayon,
+                                 const float distance,
                                  GrilleParticules &grille)
 {
     /* Commençons d'abord par le point ajouté. */
-    if (longueur(triangle.v0 - point_courant) <= rayon &&
-        longueur(triangle.v1 - point_courant) <= rayon &&
-        longueur(triangle.v2 - point_courant) <= rayon) {
+    if (longueur(triangle.v0 - point_courant) <= distance &&
+        longueur(triangle.v1 - point_courant) <= distance &&
+        longueur(triangle.v2 - point_courant) <= distance) {
         return true;
     }
 
-    return grille.triangle_couvert(triangle.v0, triangle.v1, triangle.v2, rayon);
+    return grille.triangle_couvert(triangle.v0, triangle.v1, triangle.v2, distance);
 }
 
 static dls::tableau<Triangle> convertis_maillage_triangles(Maillage const &surface, void *groupe)
@@ -367,6 +367,40 @@ struct PointCree {
     long index_triangle;
 };
 
+struct CouverturePonctuelle {
+    float distance_minimale = 0.0f;
+    int nombre_requis = 0;
+};
+
+static CouverturePonctuelle determine_couverture_ponctuelle(
+    ParametreDistributionParticules const &params, float const aire_totale)
+{
+    CouverturePonctuelle resultat;
+
+    switch (params.determination_quantite_points) {
+        case DET_QT_PNT_PAR_DISTANCE:
+        {
+            auto const distance = params.distance_minimale;
+            auto const aire_cercle = constantes<float>::PI * (distance * distance);
+            auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) /
+                                                         aire_cercle);
+            resultat.distance_minimale = distance;
+            resultat.nombre_requis = nombre_points;
+            break;
+        }
+        case DET_QT_PNT_PAR_NOMBRE_ABSOLU:
+        {
+            auto const nombre_points = params.nombre_absolu;
+            resultat.distance_minimale = sqrt(((aire_totale * DENSITE_CERCLE) / (nombre_points)) /
+                                              constantes<float>::PI);
+            resultat.nombre_requis = nombre_points;
+            break;
+        }
+    }
+
+    return resultat;
+}
+
 void distribue_particules_sur_surface(ParametreDistributionParticules const &params,
                                       Maillage const &surface,
                                       Maillage &points_resultants)
@@ -410,12 +444,10 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 
     /* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
     auto const seuil_aire = donnees_aires.aire_minimum / 10000.0f;
-    auto const distance = params.distance_minimale;
 
-    /* Calcule le nombre maximum de point. */
-    auto const aire_cercle = constantes<float>::PI * (distance * 0.5f) * (distance * 0.5f);
-    auto const nombre_points = static_cast<long>((donnees_aires.aire_totale * DENSITE_CERCLE) /
-                                                 aire_cercle);
+    /* Calcule la couverture ponctuelle. */
+    auto const couverture = determine_couverture_ponctuelle(params, donnees_aires.aire_totale);
+    auto const distance = couverture.distance_minimale;
 
     auto const graine = params.graine;
 
@@ -428,10 +460,11 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
     auto debut = compte_tick_ms();
 
     auto resultat = dls::tableau<PointCree>();
-    resultat.reserve(nombre_points);
+    resultat.reserve(couverture.nombre_requis);
 
-    /* Tant qu'il reste des triangles à remplir... */
-    while (true) {
+    /* Tant qu'il reste des triangles à remplir, ou des points à distribuer. */
+    auto points_restants = couverture.nombre_requis;
+    while (points_restants != 0) {
         /* Sélectionne un triangle proportionellement à son aire. */
         auto triangle = gestionnaire_fragments.choisis_fragment(gna);
         if (triangle == nullptr) {
@@ -450,6 +483,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
             grille_particule.ajoute(point);
             resultat.ajoute({point, triangle->index_orig});
             debut = compte_tick_ms();
+            points_restants--;
         }
 
         /* Vérifie si le triangle est complétement couvert par un point de

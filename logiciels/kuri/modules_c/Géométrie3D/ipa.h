@@ -348,8 +348,17 @@ void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
 
 /* ************************************* */
 
+enum DeterminationQuantitePoints {
+    DET_QT_PNT_PAR_NOMBRE_ABSOLU,
+    DET_QT_PNT_PAR_DISTANCE,
+};
+
 struct ParametreDistributionParticules {
     int graine;
+
+    enum DeterminationQuantitePoints determination_quantite_points;
+
+    int nombre_absolu;
 
     /* Distance minimale entre deux points. */
     float distance_minimale;
