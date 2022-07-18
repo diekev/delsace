@@ -60,7 +60,6 @@ struct Triangle {
     long index_orig = 0;
 
     float aire = 0.0f;
-    Triangle *precedent = nullptr, *suivant = nullptr;
 
     /* Fragmente le triangle en 4 sous-triangles en introduisant un point au centre de chaque côté.
      */
@@ -158,95 +157,34 @@ static dls::tableau<Triangle> convertis_maillage_triangles(Maillage const &surfa
     return triangles;
 }
 
-class ListeTriangle {
-    Triangle *m_premier_triangle = nullptr;
-    Triangle *m_dernier_triangle = nullptr;
-
-  public:
-    ListeTriangle() = default;
-
-    ListeTriangle(ListeTriangle const &) = default;
-    ListeTriangle &operator=(ListeTriangle const &) = default;
-
-    ~ListeTriangle()
-    {
-        auto triangle = m_premier_triangle;
-        while (triangle != nullptr) {
-            auto tri_suiv = triangle->suivant;
-            memoire::deloge("Triangle", triangle);
-            triangle = tri_suiv;
-        }
-    }
-
-    Triangle *ajoute(dls::math::vec3f const &v0,
-                     dls::math::vec3f const &v1,
-                     dls::math::vec3f const &v2)
-    {
-        auto triangle = memoire::loge<Triangle>("Triangle", v0, v1, v2);
-        triangle->aire = calcule_aire(*triangle);
-        triangle->precedent = nullptr;
-        triangle->suivant = nullptr;
-
-        if (m_premier_triangle == nullptr) {
-            m_premier_triangle = triangle;
-        }
-        else {
-            triangle->precedent = m_dernier_triangle;
-            m_dernier_triangle->suivant = triangle;
-        }
-
-        m_dernier_triangle = triangle;
-
-        return triangle;
-    }
-
-    void enleve(Triangle *triangle)
-    {
-        if (triangle->precedent) {
-            triangle->precedent->suivant = triangle->suivant;
-        }
-
-        if (triangle->suivant) {
-            triangle->suivant->precedent = triangle->precedent;
-        }
-
-        if (triangle == m_premier_triangle) {
-            m_premier_triangle = triangle->suivant;
-
-            if (m_premier_triangle) {
-                m_premier_triangle->precedent = nullptr;
-            }
-        }
-
-        if (triangle == m_dernier_triangle) {
-            m_dernier_triangle = triangle->precedent;
-
-            if (m_dernier_triangle) {
-                m_dernier_triangle->precedent = nullptr;
-            }
-        }
-
-        memoire::deloge("Triangle", triangle);
-    }
-
-    Triangle *premier_triangle()
-    {
-        return m_premier_triangle;
-    }
-
-    bool vide() const
-    {
-        return m_premier_triangle == nullptr;
-    }
-};
-
 struct BoiteTriangle {
     float aire_minimum = std::numeric_limits<float>::max();
     float aire_maximum = 0.0f;  // = 2 * aire_minimum
     float aire_totale = 0.0f;
     float pad{};
 
-    ListeTriangle triangles{};
+    dls::tableau<Triangle> triangles{};
+
+    void ajoute_triangle(Triangle const &triangle)
+    {
+        ajoute_sous_triangle(triangle);
+        aire_minimum = std::min(aire_minimum, triangle.aire);
+        aire_maximum = 2 * aire_minimum;
+    }
+
+    void ajoute_sous_triangle(Triangle const &triangle)
+    {
+        triangles.ajoute(triangle);
+        aire_totale += triangle.aire;
+    }
+
+    void enleve_triangle(Triangle const *triangle)
+    {
+        auto index = std::distance(&triangles[0], const_cast<Triangle *>(triangle));
+        std::swap(triangles[index], triangles.back());
+        triangles.pop_back();
+        aire_totale -= triangle->aire;
+    }
 };
 
 static void ajoute_triangle_boite(BoiteTriangle *boite,
@@ -255,11 +193,9 @@ static void ajoute_triangle_boite(BoiteTriangle *boite,
                                   dls::math::vec3f const &v2,
                                   long index)
 {
-    auto triangle = boite->triangles.ajoute(v0, v1, v2);
-    triangle->index_orig = index;
-    boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
-    boite->aire_maximum = 2 * boite->aire_minimum;
-    boite->aire_totale += triangle->aire;
+    auto triangle = Triangle{v0, v1, v2, index};
+    triangle.aire = calcule_aire(triangle);
+    boite->ajoute_triangle(triangle);
 }
 
 class GestionnaireFragment {
@@ -299,10 +235,7 @@ class GestionnaireFragment {
             return;
         }
         auto &b = boites[index_boite];
-
-        auto t = b.triangles.ajoute(triangle.v0, triangle.v1, triangle.v2);
-        t->index_orig = triangle.index_orig;
-        b.aire_totale += aire;
+        b.ajoute_sous_triangle(triangle);
     }
 
     Triangle *choisis_fragment(GNA &gna) const
@@ -321,8 +254,7 @@ class GestionnaireFragment {
          * - soit le triangle sera couvert
          * - soit le triangle sera fragmenté.
          * Dans les deux cas, il sera supprimé de la boite. */
-        boite->aire_totale -= triangle->aire;
-        boite->triangles.enleve(triangle);
+        boite->enleve_triangle(triangle);
 
         return triangle;
     }
@@ -341,7 +273,7 @@ class GestionnaireFragment {
 
         auto nombre_boite_vide = 0;
         for (auto &boite : boites) {
-            if (boite.triangles.vide()) {
+            if (boite.triangles.est_vide()) {
                 ++nombre_boite_vide;
                 continue;
             }
@@ -357,7 +289,7 @@ class GestionnaireFragment {
         auto aire_courante = 0.0f;
 
         for (auto &boite : boites) {
-            if (boite.triangles.vide()) {
+            if (boite.triangles.est_vide()) {
                 continue;
             }
 
@@ -377,7 +309,7 @@ class GestionnaireFragment {
     {
 #if 1
         static_cast<void>(gna);
-        return boite->triangles.premier_triangle();
+        return &boite->triangles[0];
 #else
         if (false) {  // cause un crash
             auto tri = boite->triangles.premier_triangle();
