@@ -401,6 +401,94 @@ static CouverturePonctuelle determine_couverture_ponctuelle(
     return resultat;
 }
 
+class RayonnementUniforme {
+    float rayon = 0.0f;
+
+  public:
+    RayonnementUniforme(float r) : rayon(r)
+    {
+    }
+
+    float operator()()
+    {
+        return rayon;
+    }
+};
+
+template <typename Rayonnement>
+static dls::tableau<PointCree> distribue_particules_sur_surface(
+    GestionnaireFragment &gestionnaire_fragments,
+    GrilleParticules &grille_particule,
+    CouverturePonctuelle const &couverture,
+    GNA &gna,
+    float const seuil_aire,
+    Rayonnement rayonnement)
+{
+    auto debut = compte_tick_ms();
+
+    auto resultat = dls::tableau<PointCree>();
+    resultat.reserve(couverture.nombre_requis);
+
+    /* Tant qu'il reste des triangles à remplir, ou des points à distribuer. */
+    auto points_restants = couverture.nombre_requis;
+    while (points_restants != 0) {
+        /* Sélectionne un triangle proportionellement à son aire. */
+        auto triangle = gestionnaire_fragments.choisis_fragment(gna);
+        if (triangle == nullptr) {
+            /* Plus aucun fragment. */
+            break;
+        }
+
+        /* Choisis un point aléatoire sur le triangle en prenant une
+         * coordonnée barycentrique aléatoire. */
+        auto point = point_aleatoire(*triangle, gna);
+
+        auto distance = rayonnement();
+
+        /* Vérifie que le point respecte la condition de distance minimal */
+        auto ok = grille_particule.verifie_distance_minimal(point, distance);
+
+        if (ok) {
+            grille_particule.ajoute(point);
+            resultat.ajoute({point, triangle->index_orig});
+            debut = compte_tick_ms();
+            points_restants--;
+        }
+
+        /* Vérifie si le triangle est complétement couvert par un point de
+         * l'ensemble. */
+        if (est_triangle_couvert(*triangle, point, distance, grille_particule)) {
+            continue;
+        }
+
+        /* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
+         * qui ne ne sont pas totalement couvert à la liste, sauf si son
+         * aire est plus petite que le seuil d'acceptance. */
+        auto const triangles_fils = triangle->fragmente();
+
+        for (auto triangle_fils : triangles_fils) {
+            auto const aire = calcule_aire(triangle_fils);
+
+            if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
+                continue;
+            }
+
+            if (est_triangle_couvert(triangle_fils, point, distance, grille_particule)) {
+                continue;
+            }
+
+            gestionnaire_fragments.ajoute_fragment(triangle_fils, aire);
+        }
+
+        /* Évite les boucles infinies. */
+        if ((compte_tick_ms() - debut) > 1000) {
+            break;
+        }
+    }
+
+    return resultat;
+}
+
 void distribue_particules_sur_surface(ParametreDistributionParticules const &params,
                                       Maillage const &surface,
                                       Maillage &points_resultants)
@@ -457,65 +545,13 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
                                              dls::math::point3d(donnees_aires.limites_max),
                                              distance);
 
-    auto debut = compte_tick_ms();
-
-    auto resultat = dls::tableau<PointCree>();
-    resultat.reserve(couverture.nombre_requis);
-
-    /* Tant qu'il reste des triangles à remplir, ou des points à distribuer. */
-    auto points_restants = couverture.nombre_requis;
-    while (points_restants != 0) {
-        /* Sélectionne un triangle proportionellement à son aire. */
-        auto triangle = gestionnaire_fragments.choisis_fragment(gna);
-        if (triangle == nullptr) {
-            /* Plus aucun fragment. */
-            break;
-        }
-
-        /* Choisis un point aléatoire sur le triangle en prenant une
-         * coordonnée barycentrique aléatoire. */
-        auto point = point_aleatoire(*triangle, gna);
-
-        /* Vérifie que le point respecte la condition de distance minimal */
-        auto ok = grille_particule.verifie_distance_minimal(point, distance);
-
-        if (ok) {
-            grille_particule.ajoute(point);
-            resultat.ajoute({point, triangle->index_orig});
-            debut = compte_tick_ms();
-            points_restants--;
-        }
-
-        /* Vérifie si le triangle est complétement couvert par un point de
-         * l'ensemble. */
-        if (est_triangle_couvert(*triangle, point, distance, grille_particule)) {
-            continue;
-        }
-
-        /* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
-         * qui ne ne sont pas totalement couvert à la liste, sauf si son
-         * aire est plus petite que le seuil d'acceptance. */
-        auto const triangles_fils = triangle->fragmente();
-
-        for (auto triangle_fils : triangles_fils) {
-            auto const aire = calcule_aire(triangle_fils);
-
-            if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
-                continue;
-            }
-
-            if (est_triangle_couvert(triangle_fils, point, distance, grille_particule)) {
-                continue;
-            }
-
-            gestionnaire_fragments.ajoute_fragment(triangle_fils, aire);
-        }
-
-        /* Évite les boucles infinies. */
-        if ((compte_tick_ms() - debut) > 1000) {
-            break;
-        }
-    }
+    auto resultat = distribue_particules_sur_surface(
+        gestionnaire_fragments,
+        grille_particule,
+        couverture,
+        gna,
+        seuil_aire,
+        RayonnementUniforme(couverture.distance_minimale));
 
     // À FAIRE : transfère les attributs.
     for (auto const &point : resultat) {
