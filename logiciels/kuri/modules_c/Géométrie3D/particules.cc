@@ -238,17 +238,19 @@ class GestionnaireFragment {
         b.ajoute_sous_triangle(triangle);
     }
 
-    Triangle *choisis_fragment(GNA &gna) const
+    std::optional<Triangle> choisis_fragment(GNA &gna) const
     {
         BoiteTriangle *boite = choisis_boite(gna);
         if (boite == nullptr) {
-            return nullptr;
+            return {};
         }
 
         auto triangle = choisis_triangle(boite, gna);
         if (triangle == nullptr) {
-            return nullptr;
+            return {};
         }
+
+        auto res = *triangle;
 
         /* Supprime directement le triangle de la boite, car :
          * - soit le triangle sera couvert
@@ -256,7 +258,7 @@ class GestionnaireFragment {
          * Dans les deux cas, il sera supprimé de la boite. */
         boite->enleve_triangle(triangle);
 
-        return triangle;
+        return res;
     }
 
   private:
@@ -307,11 +309,10 @@ class GestionnaireFragment {
     /* Sélectionne un triangle proportionellement à son aire. */
     Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna) const
     {
-#if 1
-        /* À FAIRE : la méthode en dessous ne semble pas sélectionner tous les triangles. */
-        static_cast<void>(gna);
-        return &boite->triangles[0];
-#else
+        if (boite->triangles.taille() == 1) {
+            return &boite->triangles[0];
+        }
+
         auto triangle_potentiel = gna.uniforme(0l, boite->triangles.taille() - 1);
         auto const prob_selection = gna.uniforme(0.0f, 1.0f);
 
@@ -328,7 +329,6 @@ class GestionnaireFragment {
         }
 
         return nullptr;
-#endif
     }
 };
 
@@ -447,10 +447,10 @@ static dls::tableau<PointCree> distribue_particules_sur_surface(
 
     /* Tant qu'il reste des triangles à remplir, ou des points à distribuer. */
     auto points_restants = couverture.nombre_requis;
-    while (points_restants != 0) {
+    while (true) {
         /* Sélectionne un triangle proportionellement à son aire. */
         auto triangle = gestionnaire_fragments.choisis_fragment(gna);
-        if (triangle == nullptr) {
+        if (!triangle.has_value()) {
             /* Plus aucun fragment. */
             break;
         }
