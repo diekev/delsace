@@ -415,6 +415,22 @@ class RayonnementUniforme {
     }
 };
 
+class RayonnementAleatoire {
+    float min = 0.0f;
+    float max = 0.0f;
+    GNA &gna;
+
+  public:
+    RayonnementAleatoire(GNA &gna_, float min_, float max_) : min(min_), max(max_), gna(gna_)
+    {
+    }
+
+    float operator()()
+    {
+        return gna.uniforme(min, max);
+    }
+};
+
 template <typename Rayonnement>
 static dls::tableau<PointCree> distribue_particules_sur_surface(
     GestionnaireFragment &gestionnaire_fragments,
@@ -545,13 +561,26 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
                                              dls::math::point3d(donnees_aires.limites_max),
                                              distance);
 
-    auto resultat = distribue_particules_sur_surface(
-        gestionnaire_fragments,
-        grille_particule,
-        couverture,
-        gna,
-        seuil_aire,
-        RayonnementUniforme(couverture.distance_minimale));
+    dls::tableau<PointCree> resultat;
+
+    if (params.type_rayonnement == TypeRayonnementPoint::RAYONNEMENT_UNIFORME) {
+        resultat = distribue_particules_sur_surface(
+            gestionnaire_fragments,
+            grille_particule,
+            couverture,
+            gna,
+            seuil_aire,
+            RayonnementUniforme(couverture.distance_minimale));
+    }
+    else {
+        resultat = distribue_particules_sur_surface(
+            gestionnaire_fragments,
+            grille_particule,
+            couverture,
+            gna,
+            seuil_aire,
+            RayonnementAleatoire(gna, couverture.distance_minimale, params.distance_maximale));
+    }
 
     // À FAIRE : transfère les attributs.
     for (auto const &point : resultat) {

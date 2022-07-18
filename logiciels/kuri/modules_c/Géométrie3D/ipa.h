@@ -353,6 +353,11 @@ enum DeterminationQuantitePoints {
     DET_QT_PNT_PAR_DISTANCE,
 };
 
+enum TypeRayonnementPoint {
+    RAYONNEMENT_UNIFORME,
+    RAYONNEMENT_ALEATOIRE,
+};
+
 struct ParametreDistributionParticules {
     int graine;
 
@@ -360,8 +365,11 @@ struct ParametreDistributionParticules {
 
     int nombre_absolu;
 
+    enum TypeRayonnementPoint type_rayonnement;
+
     /* Distance minimale entre deux points. */
     float distance_minimale;
+    float distance_maximale;
 
     /* Paramètres pour contenir la génération de particules aux primitives d'un groupe. */
     bool utilise_groupe;
