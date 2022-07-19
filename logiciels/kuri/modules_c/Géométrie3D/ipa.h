@@ -386,6 +386,35 @@ void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticul
                                             struct AdaptriceMaillage *surface,
                                             struct AdaptriceMaillage *points_resultants);
 
+struct ParametresDistributionPoisson2D {
+    /* Graine pour ensemmencer le générateur de nombre aléatoire. */
+    unsigned graine;
+
+    /* Distance minimale à respecter entre deux points. */
+    float distance_minimale;
+
+    /* Longueur de la zone à remplir. */
+    float longueur;
+
+    /* Largeur de la zone à remplir. */
+    float largeur;
+
+    /* Point de départ de la génération des points. */
+    float origine_x;
+    float origine_y;
+
+    /* Rappel pour déterminer si un point peut être ajouté à la coordonnée définie les paramètres x
+     * et y. Ceci peut par exemple être utile pour exclure des points se situant en dehors d'un
+     * polygone non rectangulaire. */
+    bool (*peut_ajouter_point)(void *, float x, float y);
+
+    /* Données utilisateur pour le rappel. */
+    void *donnees_utilisateur;
+};
+
+void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *params,
+                                       struct AdaptriceMaillage *points_resultants);
+
 #ifdef __cplusplus
 }
 #endif

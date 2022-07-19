@@ -25,6 +25,7 @@
 #pragma once
 
 struct ParametreDistributionParticules;
+struct ParametresDistributionPoisson2D;
 
 namespace geo {
 
@@ -33,5 +34,8 @@ class Maillage;
 void distribue_particules_sur_surface(ParametreDistributionParticules const &params,
                                       Maillage const &surface,
                                       Maillage &points_resultants);
+
+void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
+                          Maillage &points_resultants);
 
 }  // namespace geo

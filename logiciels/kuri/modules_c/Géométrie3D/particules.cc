@@ -28,6 +28,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/grille_particules.hh"
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "outils.hh"
@@ -599,6 +600,191 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
                 attr_rayon.ecris_reel(index_point++, point.rayon);
             }
         }
+    }
+}
+
+/* **************************************************************** */
+
+namespace bridson {
+
+// A configuration structure to customise the poisson_disc_distribution
+// algorithm below.
+//
+//   width, height - Defines the range of x as (0, width] and the range
+//                   of y as (0, height].
+//
+//   min_distance  - The smallest distance allowed between two points. Also,
+//                   points will never be further apart than twice this
+//                   distance.
+//
+//   max_attempts  - The algorithm stochastically attempts to place a new point
+//                   around a current point. This number limits the number of
+//                   attempts per point. A lower number will speed up the
+//                   algorithm but at some cost, possibly significant, to the
+//                   result's aesthetics.
+//
+//   start         - An optional parameter. If set to anything other than
+//                   point's default values (infinity, infinity) the algorithm
+//                   will start from this point. Otherwise a point is chosen
+//                   randomly. Expected to be within the region defined by
+//                   width and height.
+struct config {
+    float largeur = 1.0f;
+    float hauteur = 1.0f;
+    float distance_minimale = 0.05f;
+    int maximum_de_tentatives = 30;
+    dls::math::point2f origine{constantes<float>::INFINITE};
+};
+
+// This implements the algorithm described in 'Fast Poisson Disk Sampling in
+// Arbitrary Dimensions' by Robert Bridson. This produces a random set of
+// points such that no two points are closer than conf.min_distance apart or
+// further apart than twice that distance.
+//
+// Parameters
+//
+//   conf    - The configuration, as detailed above.
+//
+//   random  - A callback of the form float(float limit) that returns a random
+//             value ranging from 0 (inclusive) to limit (exclusive).
+//
+//   in_area - A callback of the form bool(point) that returns whether a point
+//             is within a valid area. This can be used to create shapes other
+//             than rectangles. Points can't be outside of the defined limits of
+//             the width and height specified. See the notes section for more.
+//
+//   output  - A callback of the form void(point). All points that are part of
+//             the final Poisson disc distribution are passed here.
+//
+// Notes
+//
+//   The time complexity is O(n) where n is the number of points.
+//
+//   The in_area callback must prevent points from leaving the region defined by
+//   width and height (i.e., 0 <= x < width and 0 <= y < height). If this is
+//   not done invalid memory accesses will occur and most likely a segmentation
+//   fault.
+template <typename T, typename T2, typename T3>
+void poisson_disc_distribution(config conf, T &&random, T2 &&in_area, T3 &&output)
+{
+    auto cell_size = conf.distance_minimale / std::sqrt(2.0f);
+    auto grid_width = static_cast<int>(std::ceil(conf.largeur / cell_size));
+    auto grid_height = static_cast<int>(std::ceil(conf.hauteur / cell_size));
+
+    dls::tableau<dls::math::point2f> grid(grid_width * grid_height,
+                                          dls::math::point2f(constantes<float>::INFINITE));
+    dls::pile<dls::math::point2f> process;
+
+    auto squared_distance = [](const dls::math::point2f &a, const dls::math::point2f &b) {
+        auto delta_x = a.x - b.x;
+        auto delta_y = a.y - b.y;
+
+        return delta_x * delta_x + delta_y * delta_y;
+    };
+
+    auto point_around = [&conf, &random](dls::math::point2f p) {
+        auto radius = random(conf.distance_minimale) + conf.distance_minimale;
+        auto angle = random(constantes<float>::TAU);
+
+        p.x += std::cos(angle) * radius;
+        p.y += std::sin(angle) * radius;
+
+        return p;
+    };
+
+    auto set = [cell_size, grid_width, &grid](const dls::math::point2f &p) {
+        auto x = static_cast<int>(p.x / cell_size);
+        auto y = static_cast<int>(p.y / cell_size);
+        grid[y * grid_width + x] = p;
+    };
+
+    auto add = [&process, &output, &set](const dls::math::point2f &p) {
+        process.empile(p);
+        output(p);
+        set(p);
+    };
+
+    auto point_too_close = [&](const dls::math::point2f &p) {
+        auto x_index = static_cast<int>(std::floor(p.x / cell_size));
+        auto y_index = static_cast<int>(std::floor(p.y / cell_size));
+
+        if (!dls::math::sont_environ_egaux(grid[y_index * grid_width + x_index].x,
+                                           constantes<float>::INFINITE)) {
+            return true;
+        }
+
+        auto min_dist_squared = conf.distance_minimale * conf.distance_minimale;
+        auto min_x = std::max(x_index - 2, 0);
+        auto min_y = std::max(y_index - 2, 0);
+        auto max_x = std::min(x_index + 2, grid_width - 1);
+        auto max_y = std::min(y_index + 2, grid_height - 1);
+
+        for (auto y = min_y; y <= max_y; ++y) {
+            for (auto x = min_x; x <= max_x; ++x) {
+                auto point = grid[y * grid_width + x];
+                auto exists = !dls::math::sont_environ_egaux(point.x, constantes<float>::INFINITE);
+
+                if (exists && squared_distance(p, point) < min_dist_squared) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    if (dls::math::sont_environ_egaux(conf.origine.x, constantes<float>::INFINITE)) {
+        do {
+            conf.origine.x = random(conf.largeur);
+            conf.origine.y = random(conf.hauteur);
+        } while (!in_area(conf.origine));
+    }
+
+    add(conf.origine);
+
+    while (!process.est_vide()) {
+        auto point = process.depile();
+
+        for (int i = 0; i != conf.maximum_de_tentatives; ++i) {
+            auto p = point_around(point);
+
+            if (in_area(p) && !point_too_close(p)) {
+                add(p);
+            }
+        }
+    }
+}
+
+}  // namespace bridson
+
+void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
+                          Maillage &points_resultants)
+{
+    bridson::config conf;
+    conf.distance_minimale = params.distance_minimale;
+    conf.largeur = params.largeur;
+    conf.hauteur = params.longueur;
+    conf.origine.x = params.origine_x;
+    conf.origine.y = params.origine_y;
+
+    auto gna = GNA(params.graine);
+
+    auto vertices = dls::tableau<dls::math::vec2f>();
+
+    bridson::poisson_disc_distribution(
+        conf,
+        // random
+        [&gna](float range) { return gna.uniforme(0.0f, range); },
+        // in_area
+        [&](dls::math::point2f const &p) {
+            return params.peut_ajouter_point(params.donnees_utilisateur, p.x, p.y);
+        },
+        // output
+        [&vertices](dls::math::point2f const &p) { vertices.ajoute(dls::math::vec2f(p.x, p.y)); });
+
+    points_resultants.reserveNombreDePoints(vertices.taille());
+    for (auto &point : vertices) {
+        points_resultants.ajouteUnPoint(point.x, point.y, 0.0f);
     }
 }
 

@@ -294,3 +294,12 @@ void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticul
     geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(points_resultants);
     geo::distribue_particules_sur_surface(*params, maillage_entree_, maillage_sortie_);
 }
+
+void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *params,
+                                       struct AdaptriceMaillage *points_resultants)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(points_resultants)
+    geo::Maillage maillage_sortie_ = geo::Maillage::enveloppe(points_resultants);
+    geo::distribue_poisson_2d(*params, maillage_sortie_);
+}
