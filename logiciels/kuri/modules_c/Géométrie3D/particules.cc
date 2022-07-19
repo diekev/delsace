@@ -31,6 +31,7 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "acceleration.hh"
 #include "outils.hh"
 
 #include <limits>
@@ -847,23 +848,19 @@ static bool construit_sphere(dls::math::vec3f const &x0,
     return true;
 }
 
-static dls::tableau<int> trouve_points_voisins(Maillage const &points,
+static dls::tableau<int> trouve_points_voisins(arbre_3df const &points,
                                                dls::math::vec3f const &point,
                                                const int index_point,
                                                const float radius)
 {
     dls::tableau<int> resultat;
-    for (auto i = 0; i < points.nombreDePoints(); ++i) {
-        if (i == index_point) {
-            continue;
-        }
-
-        auto pi = points.pointPourIndex(i);
-
-        if (longueur(point - pi) <= radius) {
-            resultat.ajoute(i);
-        }
-    }
+    points.cherche_points(
+        point, radius, [&](long index, dls::math::vec3f const &, float, float &) {
+            if (index == index_point) {
+                return;
+            }
+            resultat.ajoute(index);
+        });
     return resultat;
 }
 
@@ -925,9 +922,14 @@ void construit_maillage_alpha(Maillage const &points,
         maillage_resultat.ajouteUnPoint(points.pointPourIndex(i));
     }
 
+    auto arbre = arbre_3df();
+    arbre.construit_avec_fonction(points.nombreDePoints(), [&](long i) -> dls::math::vec3f {
+        return points.pointPourIndex(i);
+    });
+
     for (auto i = 0; i < points.nombreDePoints(); ++i) {
         auto point = points.pointPourIndex(i);
-        auto N1 = trouve_points_voisins(points, point, i, 2.0f * rayon);
+        auto N1 = trouve_points_voisins(arbre, point, i, 2.0f * rayon);
         construit_triangle(points, maillage_resultat, i, rayon, N1, point);
     }
 }
