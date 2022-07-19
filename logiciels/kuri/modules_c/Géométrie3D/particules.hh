@@ -38,4 +38,8 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
                           Maillage &points_resultants);
 
+void construit_maillage_alpha(Maillage const &points,
+                              const float rayon,
+                              Maillage &maillage_resultat);
+
 }  // namespace geo

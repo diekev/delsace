@@ -788,4 +788,148 @@ void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
     }
 }
 
+/* ************************************************************************** */
+
+/**
+ * Implémentation de l'algorithme de génération de maillage alpha de
+ * "Enhancing Particle Methods for Fluid Simulation in Computer Graphics",
+ * Hagit Schechter, 2013
+ * https://www.cs.ubc.ca/~rbridson/docs/schechter_phd.pdf
+ *
+ * Voir également :
+ * - https://lidarwidgets.com/samples/bpa_tvcg.pdf (Ball Pivoting Algorithm)
+ */
+
+static bool construit_sphere(dls::math::vec3f const &x0,
+                             dls::math::vec3f const &x1,
+                             dls::math::vec3f const &x2,
+                             float const rayon,
+                             dls::math::vec3f &centre)
+{
+    auto const x0x1 = x0 - x1;
+    auto const lx0x1 = longueur(x0x1);
+
+    auto const x1x2 = x1 - x2;
+    auto const lx1x2 = longueur(x1x2);
+
+    auto const x2x0 = x2 - x0;
+    auto const lx2x0 = longueur(x2x0);
+
+    auto n = produit_croix(x0x1, x1x2);
+    auto ln = longueur(n);
+
+    auto radius_x = (lx0x1 * lx1x2 * lx2x0) / (2.0f * ln);
+
+    if (radius_x > rayon) {
+        return false;
+    }
+
+    auto const abs_n_sqr = (ln * ln);
+    auto const inv_abs_n_sqr2 = 1.0f / (2.0f * abs_n_sqr);
+
+    auto alpha = (longueur_carree(x1x2) * produit_scalaire(x0x1, x0 - x2)) * inv_abs_n_sqr2;
+    auto beta = (longueur_carree(x0 - x2) * produit_scalaire(x1 - x0, x1x2)) * inv_abs_n_sqr2;
+    auto gamma = (longueur_carree(x0x1) * produit_scalaire(x2x0, x2 - x1)) * inv_abs_n_sqr2;
+
+    auto l = alpha * x0 + beta * x1 + gamma * x2;
+
+    /* NOTE : selon le papier, c'est censé être
+     * (radius_x * radius_x - radius * radius)
+     * mais cela donne un nombre négatif, résultant en un NaN... */
+    auto t = std::sqrt(abs(radius_x * radius_x - rayon * rayon));
+
+    centre = l + t * n;
+
+    if (est_nan(centre)) {
+        return false;
+    }
+
+    return true;
+}
+
+static dls::tableau<int> trouve_points_voisins(Maillage const &points,
+                                               dls::math::vec3f const &point,
+                                               const int index_point,
+                                               const float radius)
+{
+    dls::tableau<int> resultat;
+    for (auto i = 0; i < points.nombreDePoints(); ++i) {
+        if (i == index_point) {
+            continue;
+        }
+
+        auto pi = points.pointPourIndex(i);
+
+        if (longueur(point - pi) <= radius) {
+            resultat.ajoute(i);
+        }
+    }
+    return resultat;
+}
+
+static bool tous_les_autres_points_sont_exclus(Maillage const &points,
+                                               dls::tableau<int> const &N1,
+                                               int j,
+                                               int k,
+                                               dls::math::vec3f center,
+                                               float rayon)
+{
+    for (auto i(0); i < N1.taille(); ++i) {
+        if (i == j || i == k) {
+            continue;
+        }
+
+        if (longueur(points.pointPourIndex(N1[i]) - center) <= rayon) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static void construit_triangle(Maillage const &points,
+                               Maillage &maillage_resultat,
+                               int i,
+                               float const radius,
+                               dls::tableau<int> const &N1,
+                               dls::math::vec3f const &pi)
+{
+    for (auto j = 0; j < N1.taille() - 1; ++j) {
+        auto const pj = points.pointPourIndex(N1[j]);
+
+        for (auto k = j + 1; k < N1.taille(); ++k) {
+            auto const pk = points.pointPourIndex(N1[k]);
+
+            dls::math::vec3f center;
+            if (!construit_sphere(pi, pj, pk, radius, center)) {
+                continue;
+            }
+
+            /* Vérifie qu'il n'est pas de points à l'intérieur de la sphère. */
+            if (!tous_les_autres_points_sont_exclus(points, N1, j, k, center, radius)) {
+                continue;
+            }
+
+            int poly[3] = {i, N1[j], N1[k]};
+            maillage_resultat.ajouteUnPolygone(poly, 3);
+            /* Ne retournons de suite, il peut y avoir d'autres triangles. */
+        }
+    }
+}
+
+void construit_maillage_alpha(Maillage const &points,
+                              const float rayon,
+                              Maillage &maillage_resultat)
+{
+    for (auto i = 0; i < points.nombreDePoints(); ++i) {
+        maillage_resultat.ajouteUnPoint(points.pointPourIndex(i));
+    }
+
+    for (auto i = 0; i < points.nombreDePoints(); ++i) {
+        auto point = points.pointPourIndex(i);
+        auto N1 = trouve_points_voisins(points, point, i, 2.0f * rayon);
+        construit_triangle(points, maillage_resultat, i, rayon, N1, point);
+    }
+}
+
 }  // namespace geo
