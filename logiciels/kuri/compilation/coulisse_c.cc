@@ -567,6 +567,10 @@ struct ConvertisseuseTypeC {
 
 /* ************************************************************************** */
 
+/* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
+ * l'accès au contexte. */
+#define AJOUTE_TRACE_APPEL
+
 static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
@@ -949,6 +953,7 @@ struct GeneratriceCodeC {
                 auto inst_appel = inst->comme_appel();
 
                 /* La fonction d'initialisation des globales n'a pas de site. */
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace && inst_appel->site) {
                     auto const &lexeme = inst_appel->site->lexeme;
                     auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
@@ -970,6 +975,7 @@ struct GeneratriceCodeC {
                     os << ligne.taille();
                     os << ");\n";
                 }
+#endif
 
                 auto arguments = kuri::tablet<kuri::chaine, 10>();
 
@@ -1002,9 +1008,11 @@ struct GeneratriceCodeC {
 
                 os << ");\n";
 
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace) {
                     os << "  TERMINE_RECORD_TRACE_APPEL;\n";
                 }
+#endif
 
                 break;
             }
