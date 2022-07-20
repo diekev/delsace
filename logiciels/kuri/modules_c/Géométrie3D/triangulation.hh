@@ -30,4 +30,6 @@ namespace geo {
 
 void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &resultat);
 
-}
+void triangulation_delaunay_2d_points_3d(Maillage const &points, Maillage &resultat);
+
+}  // namespace geo

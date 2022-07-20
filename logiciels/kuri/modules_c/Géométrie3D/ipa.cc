@@ -314,3 +314,13 @@ void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
     geo::Maillage maillage_resultat_ = geo::Maillage::enveloppe(maillage_resultat);
     geo::construit_maillage_alpha(points_, rayon, maillage_resultat_);
 }
+
+void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
+                                               struct AdaptriceMaillage *resultat)
+{
+    RETOURNE_SI_NUL(points)
+    RETOURNE_SI_NUL(resultat)
+    geo::Maillage points_ = geo::Maillage::enveloppe(points);
+    geo::Maillage maillage_resultat_ = geo::Maillage::enveloppe(resultat);
+    geo::triangulation_delaunay_2d_points_3d(points_, maillage_resultat_);
+}

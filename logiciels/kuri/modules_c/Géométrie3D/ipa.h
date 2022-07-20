@@ -419,6 +419,9 @@ void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
                                     const float rayon,
                                     struct AdaptriceMaillage *maillage_resultat);
 
+void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
+                                               struct AdaptriceMaillage *resultat);
+
 #ifdef __cplusplus
 }
 #endif
