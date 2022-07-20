@@ -22,15 +22,16 @@
 set(NOM_PROJET exetron)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(SOURCES
-	exétron.cc
-	exétron.h
+    exétron.cc
+    exétron.h
 )
 
 set(BIBLIOTHEQUES
+    tbb
 )
 
 compile_module_c(${NOM_PROJET} exétron exétron.h Exétron "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
