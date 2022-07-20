@@ -18,6 +18,18 @@ copysign :: fonc (a: r64, b: r64) -> r64 #externe libcmath
 log :: fonc (a: r64) -> r64 #externe libcmath
 exp :: fonc (a: r64) -> r64 #externe libcmath
 roundf :: fonc (a: r32) -> r32 #externe libcmath
+fmod :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+fmodf :: fonc (a: r32, b: r32) -> r32 #externe libcmath
+
+mod :: fonc (a: r32, b: r32) -> r32 #enligne
+{
+    retourne fmodf(a, b)
+}
+
+mod :: fonc (a: r64, b: r32) -> r64 #enligne
+{
+    retourne fmod(a, b)
+}
 
 exp :: fonc (a: r32) -> r32
 {
@@ -353,4 +365,34 @@ unilatéral_de :: fonc (x: r32) -> r32 #enligne
 relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
 {
     retourne 2.0 * (x comme r32 / taille comme r32) - 1.0
+}
+
+enveloppe :: fonc (v: r32) -> r32 #enligne
+{
+	v = mod(v, 1.0)
+	si v < 0.0 {
+		v += 1.0
+	}
+	retourne v
+}
+
+part_entière :: fonc (v: r32) -> z32 #enligne
+{
+	retourne v comme z32
+}
+
+part_réelle :: fonc (v: r32) -> r32 #enligne
+{
+	retourne v - part_entière(v) comme r32
+}
+
+restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
+{
+	si valeur <= min {
+		retourne min
+	}
+	si valeur < max {
+		retourne valeur
+	}
+	retourne max
 }
