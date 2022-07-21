@@ -1,6 +1,7 @@
 // aucune erreur n'est lancée/compilation infinie quand on accède à une valeur inconnue
 
 importe Fondation
+importe Support
 
 principale :: fonc () -> z32
 {

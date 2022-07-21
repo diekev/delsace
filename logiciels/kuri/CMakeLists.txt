@@ -154,6 +154,13 @@ macro(compile_fichier __nom_dossier__ __nom_fichier__)
     add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
 endmacro()
 
+macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
+    string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
+    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
+    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    set_tests_properties(compilation_${NOM_DOSSIER}_${__nom_fichier__} PROPERTIES WILL_FAIL TRUE)
+endmacro()
+
 macro(compile_fichier_principale __nom_dossier__)
     compile_fichier(${__nom_dossier__} principale)
 endmacro()
@@ -245,6 +252,8 @@ foreach(FICHIER_TEST ${FICHIERS_TESTS_COROUTINE})
 endforeach(FICHIER_TEST)
 
 add_test(NAME test_spec_bdd COMMAND bundle exec rspec WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/exemples/applications/BDD)
+
+include(bugs/test_bugs.txt)
 
 if(CHEMIN_DELSACE_PRIVE)
   include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)

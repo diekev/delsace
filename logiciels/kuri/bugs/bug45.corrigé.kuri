@@ -1,5 +1,7 @@
 // aucune erreur quand la valeur de retour d'un appel n'est pas utilisée
 
+importe Support
+
 principale :: fonc () -> z32
 {
     erreur_survenue := #exécute compile_script_erroné(«
