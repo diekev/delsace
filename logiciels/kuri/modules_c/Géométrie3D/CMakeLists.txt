@@ -107,6 +107,7 @@ set(SOURCES
 
     triangulation.cc
     triangulation.hh
+    triangulation_delaunay.hh
 
     ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}
