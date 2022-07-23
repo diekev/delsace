@@ -147,6 +147,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
+    m_tacheronne.assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+
     decl_entete->est_metaprogramme = true;
 
     // le type de la fonction est fonc () -> (type_expression)
@@ -194,7 +198,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(directive->lexeme, nullptr);
+    decl_corps->bloc = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
@@ -216,6 +220,13 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     }
 
     decl_corps->bloc->expressions->ajoute(expr_ret);
+
+    /* Bloc corps. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc paramètres. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc constantes. */
+    m_tacheronne.assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -2665,9 +2676,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, bloc_parent);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(
-        lexeme, fonction->bloc_constantes);
+    m_tacheronne.assembleuse->bloc_courant(bloc_parent);
+
+    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2695,6 +2707,9 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
+
+    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->depile_bloc();
 
     return metaprogramme;
 }
