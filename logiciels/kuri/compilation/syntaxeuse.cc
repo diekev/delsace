@@ -2885,7 +2885,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     analyse_annotations(noeud_decl->annotations);
 
-    /* À FAIRE : pour les NoeudCode nous devons réellemnt avoir tous les types. */
+    /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types. */
     if (cree_tache || true) {
         requiers_typage(noeud_decl);
     }
@@ -2902,7 +2902,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
     m_unite->espace->rapporte_erreur_sans_site(message_erreur, erreur::Genre::SYNTAXAGE);
-    // avance le curseur pour ne pas être bloqué
+    /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }
 
