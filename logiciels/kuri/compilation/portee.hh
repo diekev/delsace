@@ -64,4 +64,6 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
 
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle);
 
+bool bloc_est_dans_differe(NoeudBloc const *bloc);
+
 NoeudExpression *derniere_instruction(NoeudBloc const *b);

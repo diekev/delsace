@@ -2280,6 +2280,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     auto type_fonc = fonction_courante()->type->comme_fonction();
     auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
 
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
+
     if (inst->expression == nullptr) {
         inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
 

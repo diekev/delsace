@@ -602,6 +602,8 @@ struct NoeudBloc : NoeudExpression {
 
 	// NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
 	NoeudExpression *appartiens_a_boucle
+        // À FAIRE: utilisation de variant
+        NoeudExpression *appartiens_a_differe
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées

@@ -1515,6 +1515,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
             if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
                 inst->expression = analyse_bloc();
+                static_cast<NoeudBloc *>(inst->expression)->appartiens_a_differe = inst;
             }
             else {
                 inst->expression = analyse_expression(
