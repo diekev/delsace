@@ -537,6 +537,36 @@ static void visite_type(Type *type, std::function<void(Type *)> rappel)
 }
 #endif
 
+static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
+{
+    /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
+     * aurions ajoutées (qui ne sont pas dans le programme initiale). */
+    auto type_utilises = cree_ensemble(repr_inter.types);
+
+    VisiteuseType visiteuse{};
+    auto ajoute_type_si_necessaire = [&](Type *type_racine) {
+        visiteuse.visite_type(type_racine, [&](Type *type) {
+            if (type_utilises.possede(type)) {
+                return;
+            }
+
+            type_utilises.insere(type);
+            repr_inter.types.ajoute(type);
+        });
+    };
+
+    POUR (repr_inter.fonctions) {
+        ajoute_type_si_necessaire(it->type);
+        for (auto &inst : it->instructions) {
+            ajoute_type_si_necessaire(inst->type);
+        }
+    }
+
+    POUR (repr_inter.globales) {
+        ajoute_type_si_necessaire(it->type);
+    }
+}
+
 ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme)
 {
     auto resultat = ProgrammeRepreInter{};
@@ -586,34 +616,7 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
      * tableaux, et les infos-types. */
     rassemble_globales_supplementaires(resultat);
 
-    {
-        /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
-         * aurions ajoutées (qui ne sont pas dans le programme initiale). */
-        auto type_utilises = cree_ensemble(resultat.types);
-
-        VisiteuseType visiteuse{};
-        auto ajoute_type_si_necessaire = [&](Type *type_racine) {
-            visiteuse.visite_type(type_racine, [&](Type *type) {
-                if (type_utilises.possede(type)) {
-                    return;
-                }
-
-                type_utilises.insere(type);
-                resultat.types.ajoute(type);
-            });
-        };
-
-        POUR (resultat.fonctions) {
-            ajoute_type_si_necessaire(it->type);
-            for (auto &inst : it->instructions) {
-                ajoute_type_si_necessaire(inst->type);
-            }
-        }
-
-        POUR (resultat.globales) {
-            ajoute_type_si_necessaire(it->type);
-        }
-    }
+    rassemble_types_supplementaires(resultat);
 
     return resultat;
 }
@@ -659,4 +662,6 @@ void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction
     auto globales_utilisees = cree_ensemble(this->globales);
     VisiteuseAtome visiteuse{};
     rassemble_globales_supplementaires(*this, fonction, visiteuse, globales_utilisees);
+    /* Les types ont peut-être changé. */
+    rassemble_types_supplementaires(*this);
 }
