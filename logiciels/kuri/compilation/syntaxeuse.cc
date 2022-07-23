@@ -582,7 +582,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         consomme();
     }
@@ -598,7 +598,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         consomme();
     }
@@ -612,7 +612,7 @@ void Syntaxeuse::analyse_une_chose()
 
                 if (noeud->est_declaration_variable()) {
                     noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
-                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                    requiers_typage(noeud);
                 }
             }
 
@@ -988,7 +988,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 }
 
                 if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
-                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                    requiers_typage(noeud);
                 }
 
                 return noeud;
@@ -1028,7 +1028,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
@@ -1036,7 +1036,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
@@ -1044,7 +1044,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else {
@@ -1274,7 +1274,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             donnees_precedence, racine_expression, lexeme_final);
                         m_est_declaration_type_opaque = false;
                         noeud->bloc_parent->membres->ajoute(noeud);
-                        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                        requiers_typage(noeud);
                         return noeud;
                     }
 
@@ -2443,7 +2443,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         if (noeud->est_externe) {
             consomme(GenreLexeme::POINT_VIRGULE,
@@ -2485,7 +2485,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
             if (doit_etre_type) {
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_corps);
+                requiers_typage(noeud_corps);
             }
         }
     }
@@ -2652,7 +2652,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         consomme();
     }
 
-    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+    requiers_typage(noeud);
 
     auto noeud_corps = noeud->corps;
     auto ancien_est_dans_fonction = est_dans_fonction;
@@ -2887,7 +2887,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     /* À FAIRE : pour les NoeudCode nous devons réellemnt avoir tous les types. */
     if (cree_tache || true) {
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_decl);
+        requiers_typage(noeud_decl);
     }
 
     if (noeud_decl->bloc_constantes) {
@@ -2904,4 +2904,14 @@ void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
     m_unite->espace->rapporte_erreur_sans_site(message_erreur, erreur::Genre::SYNTAXAGE);
     // avance le curseur pour ne pas être bloqué
     consomme();
+}
+
+void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
+{
+    /* N'envoie plus rien vers le typage si nous avons une erreur. */
+    if (m_possede_erreur) {
+        return;
+    }
+
+    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
 }
