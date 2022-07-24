@@ -2436,6 +2436,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::corps_texte) {
                 noeud->corps->est_corps_texte = true;
             }
+            else if (ident_directive == ID::debogue) {
+                noeud->drapeaux |= DEBOGUE;
+            }
             else {
                 rapporte_erreur("Directive inconnue");
             }

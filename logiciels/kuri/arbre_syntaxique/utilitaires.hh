@@ -66,6 +66,7 @@ enum DrapeauxNoeud : unsigned int {
     ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
     DROITE_CONDITION = (1 << 24),
     EST_UTILISEE = (1 << 25),  // decl var
+    DEBOGUE = (1 << 26),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

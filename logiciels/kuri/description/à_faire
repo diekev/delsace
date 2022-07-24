@@ -13,7 +13,7 @@
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
 - ajout de #dump pour imprimer des informations (code binaire, etc.)
-- ajout de #debug pour imprimer ce qui se passe pour une unité de compilation
+- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
 
 // -----------------------------------
