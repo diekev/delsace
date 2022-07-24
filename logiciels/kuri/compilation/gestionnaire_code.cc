@@ -1286,15 +1286,22 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
+    auto espace_errone_existe = false;
+
     POUR (programmes_en_cours) {
         auto espace = it->espace();
 
         /* Vérifie si une erreur existe. */
-        if (espace->possede_erreur && !espace->options.continue_si_erreur) {
-            m_compilatrice->messagere->purge_messages();
-            espace->change_de_phase(m_compilatrice->messagere,
-                                    PhaseCompilation::COMPILATION_TERMINEE);
-            return true;
+        if (espace->possede_erreur) {
+            if (!espace->options.continue_si_erreur) {
+                m_compilatrice->messagere->purge_messages();
+                espace->change_de_phase(m_compilatrice->messagere,
+                                        PhaseCompilation::COMPILATION_TERMINEE);
+                return true;
+            }
+
+            espace_errone_existe = true;
+            continue;
         }
 
         tente_de_garantir_fonction_point_d_entree(espace);
@@ -1312,6 +1319,15 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
                 it->ri_generees()) {
                 finalise_programme_avant_generation_code_machine(espace, it);
             }
+        }
+    }
+
+    if (espace_errone_existe) {
+        programmes_en_cours.efface_si(
+            [](Programme *programme) -> bool { return programme->espace()->possede_erreur; });
+
+        if (programmes_en_cours.est_vide()) {
+            return true;
         }
     }
 
