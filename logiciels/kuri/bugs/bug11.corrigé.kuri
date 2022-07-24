@@ -1,20 +1,23 @@
 // Les blocs différés contenu dans le corps des boucles ne sont pas exécutés lors des instructions continue ou arrête
 
 importe Support
+importe Fondation
 
-// À FAIRE : meilleur test
 principale :: fonc () -> z32
 {
-    diffère {
-        //imprime("Bloc différé avant la boucle\n")
-    }
-
+    delta := 5
+    différations := 0
     sentinel := 0
     i := 0
 
+    diffère {
+        //imprime("Bloc différé avant la boucle\n")
+        sentinel += delta
+    }
+
     boucle {
         diffère {
-            sentinel = 5
+            sentinel += delta
             //imprime("Bloc différé dans la boucle\n")
         }
 
@@ -22,15 +25,23 @@ principale :: fonc () -> z32
 
         si i % 2 == 0 {
             //imprime("continue\n")
+            différations += 1
             continue
         }
         sinon si i == 11 {
             //imprime("arrête\n")
+            différations += 1
             arrête
         }
+
+        /* Décrémente pour que le bloc différé ici ne soit pas
+         * pris en compte. */
+        sentinel -= delta
     }
 
-    saufsi (sentinel == 5) {
+    /* Nous avons 5 * (i % 2 == 0) et 1 * (i == 11), donc
+     * 6 * delta. */ 
+    saufsi (sentinel == différations * delta) {
         retourne 1
     }
     retourne 0
