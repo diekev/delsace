@@ -1,4 +1,4 @@
-// la capacité des tabeleaux n'est pas remise à zéro quand nous les délogeons
+/* La capacité des tableaux n'est pas remise à zéro quand nous les délogeons. */
 
 principale :: fonc () -> z32
 {
