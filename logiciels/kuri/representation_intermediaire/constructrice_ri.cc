@@ -3498,6 +3498,29 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     fonction_courante = nullptr;
 }
 
+/* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le contexte
+ * global. Ceci nécessitera d'avoir une deuxième version de la génération de code pour les
+ * structures avec des instructions constantes. */
+static bool construction_tableau_globale_peut_etre_constante(
+    NoeudExpression const &expression, TransformationType const &transformation)
+{
+    if (!expression.est_construction_tableau()) {
+        return false;
+    }
+
+    if (transformation.type != TypeTransformation::INUTILE) {
+        return false;
+    }
+
+    auto const type_pointe = type_dereference_pour(expression.type);
+
+    if (type_pointe->est_structure() || type_pointe->est_union()) {
+        return false;
+    }
+
+    return true;
+}
+
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
 {
     if (decl->possede_drapeau(EST_CONSTANTE)) {
@@ -3525,8 +3548,8 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                         expression = expression->substitution;
                     }
 
-                    if (expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU &&
-                        it.transformations[i].type == TypeTransformation::INUTILE) {
+                    if (construction_tableau_globale_peut_etre_constante(*expression,
+                                                                         it.transformations[i])) {
                         genere_ri_pour_noeud(expression);
                         valeur = static_cast<AtomeConstante *>(depile_valeur());
                     }

@@ -67,6 +67,6 @@ execute_fichier(./ bug66)
 execute_fichier(./ bug67)
 execute_fichier(./ bug68)
 compile_fichier(./ bug69) # _avec_erreur
-execute_fichier(./ bug70)
+execute_fichier(./ bug70.corrigé)
 execute_fichier(./ bug71)
 execute_fichier(./ bug72)
