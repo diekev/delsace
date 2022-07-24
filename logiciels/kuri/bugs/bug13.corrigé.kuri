@@ -2,16 +2,16 @@
 
 // Il est impossible d'assigner une valeur à un paramètre qui possède une valeur par défaut
 
-importe Support
-
-test :: fonc (a := 0) -> rien
+test :: fonc (a := 0) -> bool
 {
     a = 5
-    imprime_succès(a == 5)
+    retourne (a == 5)
 }
 
 principale :: fonc () -> z32
 {
-    test()
+    saufsi test() {
+        retourne 1
+    }
     retourne 0
 }

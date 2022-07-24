@@ -1,7 +1,5 @@
 // les types variadiques n'ayant pas de types tableaux correspondant ne sont pas convertis en C
 
-importe Support
-
 Struct :: struct {
     x : z32
 }
@@ -9,6 +7,5 @@ Struct :: struct {
 principale :: fonc () -> z32
 {
     x : ...Struct
-    imprime_succès(vrai)
     retourne 0
 }

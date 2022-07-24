@@ -1,0 +1,43 @@
+/* Crash dans la création d'un tableau global de structures. */
+    - voir Jorjala/bruit.grad3
+
+importe Math
+
+gradient := [
+    Vec3(  1.0,  1.0,  0.0 ),
+    Vec3( -1.0,  1.0,  0.0 ),
+    Vec3(  1.0, -1.0,  0.0 ),
+    Vec3( -1.0, -1.0,  0.0 ),
+    Vec3(  1.0,  0.0,  1.0 ),
+    Vec3( -1.0,  0.0,  1.0 ),
+    Vec3(  1.0,  0.0, -1.0 ),
+    Vec3( -1.0,  0.0, -1.0 ),
+    Vec3(  0.0,  1.0,  1.0 ),
+    Vec3(  0.0, -1.0,  1.0 ),
+    Vec3(  0.0,  1.0, -1.0 ),
+    Vec3(  0.0, -1.0, -1.0 )]
+
+principale :: fonc () -> z32
+{
+    gradient_locale := [
+        Vec3(  1.0,  1.0,  0.0 ),
+        Vec3( -1.0,  1.0,  0.0 ),
+        Vec3(  1.0, -1.0,  0.0 ),
+        Vec3( -1.0, -1.0,  0.0 ),
+        Vec3(  1.0,  0.0,  1.0 ),
+        Vec3( -1.0,  0.0,  1.0 ),
+        Vec3(  1.0,  0.0, -1.0 ),
+        Vec3( -1.0,  0.0, -1.0 ),
+        Vec3(  0.0,  1.0,  1.0 ),
+        Vec3(  0.0, -1.0,  1.0 ),
+        Vec3(  0.0,  1.0, -1.0 ),
+        Vec3(  0.0, -1.0, -1.0 )]
+
+    pour gradient {
+        si it != gradient_locale[index_it] {
+            retourne 1
+        }
+    }
+
+    retourne 0
+}

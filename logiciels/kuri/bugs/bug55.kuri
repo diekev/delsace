@@ -13,6 +13,5 @@ Parent :: struct {
 principale :: fonc () -> z32
 {
     e := Parent.Enfant(z = 1.0)
-    imprime_succès(vrai)
     retourne 0
 }

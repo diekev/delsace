@@ -9,6 +9,8 @@ principale :: fonc () -> z32
     send :: fonc (a: z32) #externe
     send :: fonc (b: z64) #externe
     »)
-    imprime_succès(erreur_survenue)
+    saufsi (erreur_survenue) {
+        retourne 1
+    }
     retourne 0
 }

@@ -1,7 +1,5 @@
 // la capacité des tabeleaux n'est pas remise à zéro quand nous les délogeons
 
-importe Support
-
 principale :: fonc () -> z32
 {
     tabl : []z32
@@ -18,6 +16,5 @@ principale :: fonc () -> z32
 
     déloge(tabl)
 
-    imprime_succès(vrai)
     retourne 0
 }

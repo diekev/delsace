@@ -1,18 +1,11 @@
 // la génération de la RI ou du code C est mauvaise pour les déréférencement de tableau fixe
 
-importe Support
-
 /* Démonstration du bug. */
 remplis_tableau_via_mémoire :: fonc (tabl: *[3]z32)
 {
     mémoire(tabl)[0] = 1
     mémoire(tabl)[1] = 2
     mémoire(tabl)[2] = 3
-
-    // ceci fonctionne
-    // tabl[0][0] = 1
-    // tabl[0][1] = 2
-    // tabl[0][2] = 3
 }
 
 /* Code qui fonctionne. */

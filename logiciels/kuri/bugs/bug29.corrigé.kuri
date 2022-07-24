@@ -1,16 +1,16 @@
 // ne peut pas passer un pointeur à un eini via l'opérateur de prise d'adresse
 
-importe Support
-
-passe_eini :: fonc (e: eini)
+passe_eini :: fonc (e: eini) -> bool
 {
     a : *z32 = mémoire(e.pointeur comme **z32)
-    imprime_succès(mémoire(a) == 127)
+    retourne (mémoire(a) == 127)
 }
 
 principale :: fonc () -> z32
 {
     a : z32 = 127
-    passe_eini(*a)
+    saufsi passe_eini(*a) {
+        retourne 1
+    }
     retourne 0
 }

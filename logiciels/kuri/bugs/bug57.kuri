@@ -19,6 +19,8 @@ test_arithmétique_pointeur :: fonc () -> bool
 principale :: fonc () -> z32
 {
     succès := #exécute test_arithmétique_pointeur()
-    imprime_succès(succès)
+    saufsi (succès) {
+        retourne 1
+    }
     retourne 0
 }

@@ -26,13 +26,3 @@ compile_script_erroné :: fonc (script: chaine) -> bool
     // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
     retourne compilatrice_possède_erreur(espace)
 }
-
-imprime_succès :: fonc (s: bool)
-{
-    si s {
-        imprime("SUCCÈS\n")
-    }
-    sinon {
-        imprime("ÉCHEC\n")
-    }
-}

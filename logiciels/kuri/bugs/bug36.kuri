@@ -17,6 +17,8 @@ principale :: fonc () -> z32
         retourne mémoire(x)
     }
     ")
-    imprime_succès(erreur_survenue)
+    saufsi (erreur_survenue) {
+        retourne 1
+    }
     retourne 0
 }

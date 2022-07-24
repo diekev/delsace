@@ -5,7 +5,6 @@ importe Support
 principale :: fonc () -> z32
 {
     diffère {
-        imprime_succès(vrai)
         retourne 1
     }
 

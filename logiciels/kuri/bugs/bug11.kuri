@@ -30,6 +30,8 @@ principale :: fonc () -> z32
         }
     }
 
-    imprime_succès(sentinel == 5)
+    saufsi (sentinel == 5) {
+        retourne 1
+    }
     retourne 0
 }

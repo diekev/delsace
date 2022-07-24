@@ -14,6 +14,5 @@ test_construit_poly :: fonc (t : $T) -> T
 principale :: fonc () -> z32
 {
     s := test_construit_poly(STRUCT())
-    imprime_succès(vrai)
     retourne 0
 }

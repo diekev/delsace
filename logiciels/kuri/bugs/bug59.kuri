@@ -16,6 +16,8 @@ test :: fonc () -> bool
 principale :: fonc () -> z32
 {
     succès := #exécute test()
-    imprime_succès(succès)
+    saufsi (succès) {
+        retourne 1
+    }
     retourne 0
 }
