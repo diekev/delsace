@@ -562,8 +562,7 @@ void Syntaxeuse::quand_termine()
 
 void Syntaxeuse::analyse_une_chose()
 {
-    if (apparie(GenreLexeme::POINT_VIRGULE)) {
-        consomme();
+    if (ignore_point_virgule_implicite()) {
         return;
     }
 
@@ -787,10 +786,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 m_noeud_expression_virgule = ancien_noeud_virgule;
             }
 
-            // point-virgule implicite dans l'expression
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
-            }
+            ignore_point_virgule_implicite();
 
             consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
 
@@ -1709,8 +1705,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -1752,9 +1747,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
         auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
         params.ajoute(expr);
 
-        /* point-virgule implicite */
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -2116,8 +2109,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -2358,10 +2350,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
         }
 
-        /* ignore les points-virgules implicites */
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
-        }
+        ignore_point_virgule_implicite();
 
         while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
             consomme();
@@ -2462,10 +2451,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             m_tacheronne.assembleuse->depile_bloc();
         }
         else {
-            /* ignore les points-virgules implicites */
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
-            }
+            ignore_point_virgule_implicite();
 
             auto noeud_corps = noeud->corps;
 
@@ -2650,10 +2636,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         noeud->drapeaux |= FORCE_ENLIGNE;
     }
 
-    /* ignore les points-virgules implicites */
-    if (apparie(GenreLexeme::POINT_VIRGULE)) {
-        consomme();
-    }
+    ignore_point_virgule_implicite();
 
     requiers_typage(noeud);
 
@@ -2814,10 +2797,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     auto analyse_membres = true;
 
     if (noeud_decl->est_externe) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
-            analyse_membres = false;
-        }
+        analyse_membres = !ignore_point_virgule_implicite();
     }
 
     if (analyse_membres) {
@@ -2827,8 +2807,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
+            if (ignore_point_virgule_implicite()) {
                 continue;
             }
 
@@ -2917,4 +2896,14 @@ void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
     }
 
     m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+}
+
+bool Syntaxeuse::ignore_point_virgule_implicite()
+{
+    if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        consomme();
+        return true;
+    }
+
+    return false;
 }
