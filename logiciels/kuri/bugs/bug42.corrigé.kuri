@@ -4,11 +4,6 @@ importe Support
 
 principale :: fonc () -> z32
 {
-    erreur_survenue := #exécute compile_script_erroné("
     a := MonÉnum.Valeur
-    ")
-    saufsi (erreur_survenue) {
-        retourne 1
-    }
     retourne 0
 }

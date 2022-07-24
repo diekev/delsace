@@ -1,0 +1,16 @@
+/* Crash lors de l'émission d'une panique dans la MV.
+ * Les infos des fonctions et des appels ne sont alors
+ * pas encore créées.
+ */
+
+émets_panique :: fonc ()
+{
+    panique("Quelque chose...")
+}
+
+#exécute émets_panique()
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

@@ -1,20 +1,10 @@
 // aucune erreur n'est lancée/compilation infinie quand on accède à une valeur inconnue
 
 importe Fondation
-importe Support
 
 principale :: fonc () -> z32
 {
-    erreur_survenue := #exécute compile_script_erroné(«
-    principale :: fonc () -> z32
-    {
-        botte_de_paille := "botte_de_paille"
-        bdf := avance(bdf, 2); // bdf n'est pas déclarée quand nous l'utilisons
-        retourne 0
-    }
-    »)
-    saufsi (erreur_survenue) {
-        retourne 1
-    }
+    botte_de_paille := "botte_de_paille"
+    bdf := avance(bdf, 2); // bdf n'est pas déclarée quand nous l'utilisons
     retourne 0
 }

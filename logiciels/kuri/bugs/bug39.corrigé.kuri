@@ -6,16 +6,20 @@ MonÉnum :: énum z32 {
     VALEUR
 }
 
-test_impression_énum :: fonc ()
+test_impression_énum :: fonc () -> bool
 {
     a := MonÉnum.VALEUR
-    imprime("%\n", a)
+    c := imprime_chaine("%", a)
+
+    retourne c == "VALEUR"
 }
 
-#exécute test_impression_énum()
+#assert test_impression_énum()
 
 principale :: fonc () -> z32
 {
-    test_impression_énum()
+    saufsi test_impression_énum() {
+        retourne 1
+    }
     retourne 0
 }
