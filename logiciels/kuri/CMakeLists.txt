@@ -146,19 +146,22 @@ install(
 	DESTINATION ${RACINE_INSTALLATION}
 )
 
-##############################################################"
+##############################################################
 
 macro(compile_fichier __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
+    set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
-    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND timeout 10 kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
 endmacro()
 
 macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
+    set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
-    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND timeout 10 kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
-    set_tests_properties(compilation_${NOM_DOSSIER}_${__nom_fichier__} PROPERTIES WILL_FAIL TRUE)
+    add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    set_tests_properties(${NOM_TEST} PROPERTIES WILL_FAIL TRUE TIMEOUT 10)
 endmacro()
 
 macro(compile_fichier_principale __nom_dossier__)
@@ -167,7 +170,9 @@ endmacro()
 
 macro(execute_fichier __nom_dossier__ __nom_fichier__)
     compile_fichier(${__nom_dossier__} ${__nom_fichier__})
-    add_test(NAME exécution_${__nom_dossier__}_${__nom_fichier__} COMMAND timeout 10 ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
+    set(NOM_TEST exécution_${__nom_dossier__}_${__nom_fichier__})
+    add_test(NAME ${NOM_TEST} COMMAND ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
+    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
 endmacro()
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
