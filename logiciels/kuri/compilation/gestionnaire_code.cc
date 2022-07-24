@@ -1293,10 +1293,18 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
         /* Vérifie si une erreur existe. */
         if (espace->possede_erreur) {
+            /* Nous devons continuer d'envoyer des messages si l'erreur
+             * ne provoque pas la fin de la compilation de tous les espaces.
+             * À FAIRE : même si un message est ajouté, purge_message provoque
+             * une compilation infinie. */
             if (!espace->options.continue_si_erreur) {
                 m_compilatrice->messagere->purge_messages();
-                espace->change_de_phase(m_compilatrice->messagere,
-                                        PhaseCompilation::COMPILATION_TERMINEE);
+            }
+
+            espace->change_de_phase(m_compilatrice->messagere,
+                                    PhaseCompilation::COMPILATION_TERMINEE);
+
+            if (!espace->options.continue_si_erreur) {
                 return true;
             }
 
