@@ -2126,6 +2126,19 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
+                        auto decl_it = it->comme_entete_fonction();
+
+                        /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans
+                         * celles-ci, afin de pouvoir comparer des fonctions externes même si elles
+                         * sont définies par des modules différents. */
+                        if (it->possede_drapeau(EST_EXTERNE) &&
+                            decl->possede_drapeau(EST_EXTERNE) &&
+                            decl_it->ident_bibliotheque == decl->ident_bibliotheque) {
+                            rapporte_erreur_redefinition_fonction(decl, it);
+                            eu_erreur = true;
+                            break;
+                        }
+
                         if (it->type == decl->type) {
                             rapporte_erreur_redefinition_fonction(decl, it);
                             eu_erreur = true;
