@@ -151,13 +151,13 @@ install(
 macro(compile_fichier __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
-    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND timeout 10 kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
 endmacro()
 
 macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
-    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
+    add_test(NAME compilation_${NOM_DOSSIER}_${__nom_fichier__} COMMAND timeout 10 kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
     set_tests_properties(compilation_${NOM_DOSSIER}_${__nom_fichier__} PROPERTIES WILL_FAIL TRUE)
 endmacro()
 
@@ -167,7 +167,7 @@ endmacro()
 
 macro(execute_fichier __nom_dossier__ __nom_fichier__)
     compile_fichier(${__nom_dossier__} ${__nom_fichier__})
-    add_test(NAME exécution_${__nom_dossier__}_${__nom_fichier__} COMMAND ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
+    add_test(NAME exécution_${__nom_dossier__}_${__nom_fichier__} COMMAND timeout 10 ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
 endmacro()
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
