@@ -1751,6 +1751,10 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
         auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
         params.ajoute(expr);
 
+        if (expr->est_declaration_variable()) {
+            rapporte_erreur("Obtenu une déclaration de variable dans l'expression d'appel");
+        }
+
         if (ignore_point_virgule_implicite()) {
             continue;
         }
