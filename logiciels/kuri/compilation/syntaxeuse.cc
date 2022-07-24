@@ -1689,6 +1689,10 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_contexte)
 {
+    /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
+     * un point-vigule implicite ici que de le faire pour chaque instruction. */
+    ignore_point_virgule_implicite();
+
     auto lexeme = lexeme_courant();
     empile_etat("dans l'analyse du bloc", lexeme);
 

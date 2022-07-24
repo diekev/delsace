@@ -6,11 +6,9 @@
 // je pense que le bug doit également être présent pour les boucles
 
 importe Fondation
-importe Support
 
 principale :: fonc () -> z32
 {
-    erreur_survenue := #exécute compile_script_erroné("
     a := 7
     b := 8
     c := 9
@@ -24,11 +22,27 @@ principale :: fonc () -> z32
         (b == c)
         {
 
-    }")
-
-    saufsi erreur_survenue {
-        retourne 1
     }
+
+    pour 10
+    {
+
+    }
+
+    tantque a != 0
+    {
+        a -= 1
+    }
+
+    boucle
+    {
+        arrête
+    }
+
+    répète
+    {
+        a += 1
+    } tantque a != 5
 
     retourne 0
 }
