@@ -51,6 +51,17 @@ CheminFichier :: struct {
     chn : chaine
 }
 
+new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
+{
+    chm.chn = copie_chaine(chn)
+    retourne vrai
+} @Python "new"
+
+new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
+{
+    retourne copie_chaine(chm.chn)
+} @Python "str"
+
 construit_chemin :: fonc(chn : chaine) -> CheminFichier
 {
     chemin := CheminFichier( chn = chn )

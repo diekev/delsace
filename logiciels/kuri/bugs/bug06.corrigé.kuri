@@ -11,6 +11,5 @@ principale :: fonc () -> z32
 
     déloge(mémoire(indirection))
 
-    imprime_succès(vrai)
     retourne 0
 }

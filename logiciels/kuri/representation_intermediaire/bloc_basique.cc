@@ -97,6 +97,13 @@ void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
     }
 }
 
+void Bloc::remplace_parent(Bloc *parent, Bloc *par)
+{
+    enleve_du_tableau(parents, parent);
+    ajoute_parent(par);
+    par->ajoute_enfant(this);
+}
+
 void Bloc::enleve_parent(Bloc *parent)
 {
     enleve_du_tableau(parents, parent);

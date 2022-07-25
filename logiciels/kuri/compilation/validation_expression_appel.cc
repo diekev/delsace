@@ -40,8 +40,7 @@
 using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
 
 struct Monomorpheuse {
-    using paire_item = dls::paire<IdentifiantCode *, Type *>;
-    kuri::tablet<paire_item, 6> items{};
+    kuri::tablet<ItemMonomorphisation, 6> items{};
 
     using paire_type = dls::paire<Type *, Type *>;
     kuri::tablet<paire_type, 6> paires_types{};
@@ -51,40 +50,90 @@ struct Monomorpheuse {
 
     ErreurAppariement erreur{};
 
-    void ajoute_item(IdentifiantCode *ident)
-    {
-        POUR (items) {
-            if (it.premier == ident) {
-                return;
-            }
-        }
+    EspaceDeTravail &m_espace;
 
-        items.ajoute({ident, nullptr});
+    Monomorpheuse(EspaceDeTravail &espace) : m_espace(espace)
+    {
     }
 
-    bool ajoute_contrainte(IdentifiantCode *ident, Type *type_contrainte, Type *type_donne)
+    void ajoute_item(IdentifiantCode *ident)
     {
-        // si le type n'obéis pas à la contrainte, retourne
-        if (type_contrainte->est_type_de_donnees() && !type_donne->est_type_de_donnees()) {
+        auto item = item_pour_ident(ident);
+        if (item) {
+            return;
+        }
+        /* Par défaut, nous considérons que l'item est pour un type, et non une valeur, car le code
+         * fut d'abord écris pour les types. Il faudra sans doute revoir le système. */
+        items.ajoute({ident, nullptr, {}, true});
+    }
+
+    bool ajoute_contrainte(IdentifiantCode *ident,
+                           Type *type_contrainte,
+                           Type *type_donne,
+                           NoeudExpression *expr)
+    {
+        auto item = item_pour_ident(ident);
+        if (!item) {
             return false;
         }
 
-        auto type = type_donne->comme_type_de_donnees()->type_connu;
-
-        if (!type) {
-            return false;
-        }
-
-        POUR (items) {
-            if (it.premier != ident) {
-                continue;
+        /* Cas pour un type de données ($T: type_de_données). */
+        if (type_contrainte->est_type_de_donnees()) {
+            if (!type_donne->est_type_de_donnees()) {
+                return false;
             }
 
-            it.second = type;
+            auto type = type_donne->comme_type_de_donnees()->type_connu;
+            if (!type) {
+                return false;
+            }
+
+            item->type = type;
+            item->est_type = true;
             return true;
         }
 
-        return false;
+        /* Cas pour une constante typée ($N: z32). */
+        item->est_type = false;
+
+        if (type_contrainte->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            if (!ajoute_paire_types(type_contrainte, type_donne)) {
+                return false;
+            }
+
+            /* À FAIRE: apparie_type doit pouvoir gérer les fonctions. */
+            item->type = type_donne;
+        }
+        else {
+            if (!(type_contrainte == type_donne ||
+                  (type_donne->est_entier_constant() && est_type_entier(type_contrainte)))) {
+                return false;
+            }
+
+            item->type = type_contrainte;
+        }
+
+        auto valeur = evalue_expression(m_espace.compilatrice(), expr->bloc_parent, expr);
+        if (valeur.est_errone) {
+            m_espace.rapporte_erreur(expr, "La valeur n'est pas constante");
+            return false;
+        }
+
+        item->valeur = valeur.valeur;
+        return true;
+    }
+
+    ItemMonomorphisation *item_pour_ident(IdentifiantCode const *ident)
+    {
+        POUR (items) {
+            if (it.ident != ident) {
+                continue;
+            }
+
+            return &it;
+        }
+
+        return nullptr;
     }
 
     bool ajoute_paire_types(Type *type_poly, Type *type_cible)
@@ -223,20 +272,24 @@ struct Monomorpheuse {
                 return false;
             }
 
-            for (auto &item : items) {
-                if (item.premier == ident) {
-                    if (item.second == nullptr) {
-                        item.second = type;
-                    }
-                    break;
-                }
+            auto item = item_pour_ident(ident);
+            if (!item) {
+                return false;
+            }
+            /* Nous voulons un type ici, et nous avons l'identifiant d'une valeur : il y a conflit.
+             */
+            if (!item->est_type) {
+                return false;
+            }
+            if (item->type == nullptr) {
+                item->type = type;
             }
         }
 
         POUR (items) {
-            if (it.second == nullptr) {
+            if (it.type == nullptr) {
                 erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
-                                                                                     it.premier);
+                                                                                     it.ident);
                 return false;
             }
         }
@@ -314,8 +367,8 @@ struct Monomorpheuse {
             auto type = type_polymorphique->comme_polymorphique();
 
             POUR (items) {
-                if (it.premier == type->ident) {
-                    resultat = it.second;
+                if (it.ident == type->ident) {
+                    resultat = it.type;
                     break;
                 }
             }
@@ -373,6 +426,23 @@ struct Monomorpheuse {
         return resultat;
     }
 };
+
+static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
+                                           NoeudDeclarationEnteteFonction *decl)
+{
+    decl->bloc_constantes->membres.avec_verrou_lecture(
+        [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+            POUR (membres) {
+                monomorpheuse.ajoute_item(it->ident);
+            }
+        });
+
+    POUR (decl->params) {
+        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            monomorpheuse.ajoute_item(it->ident);
+        }
+    }
+}
 
 struct ApparieuseParams {
   private:
@@ -745,38 +815,25 @@ static ResultatAppariement apparie_appel_fonction(
             return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
         }
 
-        // prend les paramètres polymorphiques
-        auto bloc_constantes = decl->bloc_constantes;
+        auto monomorpheuse = Monomorpheuse(espace);
+        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
 
-        if (bloc_constantes->membres->taille() != args.taille()) {
-            return ErreurAppariement::mecomptage_arguments(
-                expr, bloc_constantes->membres->taille(), args.taille());
-        }
+        // À FAIRE : vérifie que toutes les constantes ont été renseignées.
+        // À FAIRE : gère proprement la validation du type de la constante
 
-        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
         kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-
+        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
         POUR (args) {
             if (noms_rencontres.possede(it.ident)) {
                 return ErreurAppariement::renommage_argument(it.expr, it.ident);
             }
-
             noms_rencontres.insere(it.ident);
 
-            auto param = NoeudDeclarationVariable::nul();
-
-            for (auto &p : (*bloc_constantes->membres.verrou_lecture())) {
-                if (p->ident == it.ident) {
-                    param = p->comme_declaration_variable();
-                    break;
-                }
-            }
-
-            if (param == nullptr) {
+            auto item = monomorpheuse.item_pour_ident(it.ident);
+            if (item == nullptr) {
                 return ErreurAppariement::menommage_arguments(it.expr, it.ident);
             }
 
-            // À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
             auto type = it.expr->type->comme_type_de_donnees();
             items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
         }
@@ -841,21 +898,10 @@ static ResultatAppariement apparie_appel_fonction(
 
     auto type_donnees_argument_variadique = dernier_type_parametre;
 
-    auto monomorpheuse = Monomorpheuse();
+    auto monomorpheuse = Monomorpheuse(espace);
 
     if (decl->est_polymorphe) {
-        decl->bloc_constantes->membres.avec_verrou_lecture(
-            [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    monomorpheuse.ajoute_item(it->ident);
-                }
-            });
-
-        POUR (decl->params) {
-            if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        }
+        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
 
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
@@ -864,7 +910,7 @@ static ResultatAppariement apparie_appel_fonction(
             auto slot = slots[i];
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type)) {
+                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
@@ -1094,13 +1140,8 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-
     if (decl->est_polymorphe) {
-        items_monomorphisation.reserve(static_cast<int>(monomorpheuse.items.taille()));
-
-        POUR (monomorpheuse.items) {
-            items_monomorphisation.ajoute({it.premier, it.second, ValeurExpression(), true});
-        }
+        copie_tablet_tableau(monomorpheuse.items, items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
@@ -1571,9 +1612,12 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->ident = it.ident;
-        decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
 
-        if (!it.est_type) {
+        if (it.est_type) {
+            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
+        }
+        else {
+            decl_constante->type = it.type;
             decl_constante->valeur_expression = it.valeur;
         }
 

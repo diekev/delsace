@@ -49,11 +49,13 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration const *decl)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+                                   NoeudDeclaration const *decl,
+                                   NoeudBloc *bloc_final)
 {
     auto bloc_courant = bloc;
 
-    while (bloc_courant != nullptr) {
+    while (bloc_courant != bloc_final) {
         auto membres = bloc_courant->membres.verrou_lecture();
         bloc_courant->nombre_recherches += 1;
         POUR (*membres) {
@@ -184,6 +186,19 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
     }
 
     return nullptr;
+}
+
+bool bloc_est_dans_differe(NoeudBloc const *bloc)
+{
+    while (bloc->bloc_parent) {
+        if (bloc->appartiens_a_differe) {
+            return true;
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return false;
 }
 
 NoeudExpression *derniere_instruction(NoeudBloc const *b)

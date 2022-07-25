@@ -1,6 +1,4 @@
-// Les typedefs de tableaux fixes de structures ne peuvent être définis avant celles-ci
-
-importe Support
+// Coulisse C : les typedefs de tableaux fixes de structures ne peuvent être définis avant celles-ci
 
 MaStructure :: struct {
     x := 0
@@ -12,6 +10,5 @@ MonAutreStructure :: struct {
 
 principale :: fonc () -> z32
 {
-    imprime_succès(vrai)
     retourne 0
 }

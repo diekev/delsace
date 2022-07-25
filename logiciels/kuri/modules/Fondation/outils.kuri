@@ -54,3 +54,14 @@ possède_valeur :: fonc (résultat: Résultat($T)) -> bool #enligne
 		}
 	}
 }
+
+fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
+{
+    pour liste {
+        si valeur == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}

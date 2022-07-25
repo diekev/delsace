@@ -40,7 +40,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
             const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
             Enchaineuse enchaineuse;
-            enchaineuse << "/usr/bin/g++-9 -c  -fPIC ";
+            enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -c  -fPIC ";
             enchaineuse << chemin_fichier.c_str();
             enchaineuse << " -o ";
             enchaineuse << chemin_objet;
@@ -73,7 +73,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
             std::filesystem::create_directories(std_path.parent_path());
 
             Enchaineuse enchaineuse;
-            enchaineuse << "/usr/bin/g++-9 -shared -fPIC ";
+            enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -shared -fPIC ";
             enchaineuse << chemin_fichier.c_str();
             enchaineuse << " -o ";
             enchaineuse << chemin_objet;
@@ -110,7 +110,7 @@ void compile_objet_r16(const std::filesystem::path &chemin_racine_kuri,
         const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
         Enchaineuse enchaineuse;
-        enchaineuse << "/usr/bin/g++-9 -c -m32 ";
+        enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -c -m32 ";
         enchaineuse << chemin_fichier.c_str();
         enchaineuse << " -o ";
         enchaineuse << chemin_objet;

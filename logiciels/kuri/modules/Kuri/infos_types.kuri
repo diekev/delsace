@@ -60,6 +60,28 @@ InfoTypeMembreStructure :: struct #interface {
   annotations: []*AnnotationCode
 }
 
+possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne vrai
+		}
+	}
+
+	retourne faux
+}
+
+trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne it
+		}
+	}
+
+	retourne nul
+}
+
 InfoTypeStructure :: struct #interface {
 	empl base : InfoType
 
@@ -93,6 +115,7 @@ InfoTypeÉnum :: struct #interface {
 	valeurs : []z32
 	noms : []chaine
 	est_drapeau : bool
+	type_sous_jacent: *InfoTypeEntier
 }
 
 InfoTypeOpaque :: struct #interface {

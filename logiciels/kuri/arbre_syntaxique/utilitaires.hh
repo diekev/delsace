@@ -44,7 +44,7 @@ enum DrapeauxNoeud : unsigned int {
     EST_EXTERNE = (1 << 1),                      // decl var, decl fonction
     FORCE_ENLIGNE = (1 << 2),                    // decl fonction
     FORCE_HORSLIGNE = (1 << 3),                  // decl fonction
-    DISPONIBLE__ = (1 << 4),                     // disponible
+    EST_MEMBRE_STRUCTURE = (1 << 4),             // decl structure, decl union
     FORCE_SANSTRACE = (1 << 5),                  // decl fonction
     EST_ASSIGNATION_COMPOSEE = (1 << 6),         // operateur binaire
     EST_VARIADIQUE = (1 << 7),                   // decl var
@@ -66,6 +66,7 @@ enum DrapeauxNoeud : unsigned int {
     ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
     DROITE_CONDITION = (1 << 24),
     EST_UTILISEE = (1 << 25),  // decl var
+    DEBOGUE = (1 << 26),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

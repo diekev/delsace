@@ -67,6 +67,11 @@ ContenuHTTP :: struct {
     contenu: chaine
 }
 
+contenu_url_form_encoded :: fonc (chn: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("application/x-www-form-urlencoded", chn)
+}
+
 contenu_html :: fonc (html: chaine) -> ContenuHTTP
 {
     retourne ContenuHTTP("text/html;charset=utf-8", html)
@@ -84,6 +89,16 @@ crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuH
     message.contenu = contenu.contenu
     ajoute_entête(*message, "Content-Type", contenu.type)
     message.code_état = code_état
+
+    retourne message
+}
+
+crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClienteHTTP
+{
+    message: MessageClienteHTTP
+    message.version = "HTTP/1.1"
+    message.contenu = contenu.contenu
+    ajoute_entête(*message, "Content-Type", contenu.type)
 
     retourne message
 }

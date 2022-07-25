@@ -155,7 +155,6 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 
 	si (c0 & 0xC0) == 0xC0 {
         c1 := caractère[1] comme z32
-        c2 := caractère[2] comme z32
 		résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
 	}
 

@@ -551,6 +551,10 @@ class tablet {
         else {
             m_memoire = memoire::loge_tableau<T>("tablet", nouvelle_capacite);
 
+            for (int i = 0; i < nouvelle_capacite; ++i) {
+                new (&m_memoire[i]) T();
+            }
+
             for (int i = 0; i < m_taille; ++i) {
                 m_memoire[i] = std::move(m_tablet[i]);
             }
@@ -591,7 +595,7 @@ class tablet {
 };
 
 template <typename T, size_t N, typename... Ts>
-auto cree_tablet(T arg, Ts &&... args)
+auto cree_tablet(T arg, Ts &&...args)
 {
     tablet<T, N> resultat;
     resultat.reserve(1 + static_cast<long>(sizeof...(Ts)));

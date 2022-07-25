@@ -141,12 +141,14 @@ void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &
     }
 }
 
-void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
+                                            bool peut_envoyer_changement_de_phase)
 {
     nombre_taches_typage -= 1;
     assert(nombre_taches_typage >= 0);
 
-    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
+    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE &&
+        peut_envoyer_changement_de_phase) {
         change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
 
         /* Il est possible que les dernières tâches de typages soient pour des choses qui n'ont pas

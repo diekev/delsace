@@ -147,6 +147,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
+    m_tacheronne.assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+
     decl_entete->est_metaprogramme = true;
 
     // le type de la fonction est fonc () -> (type_expression)
@@ -194,7 +198,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(directive->lexeme, nullptr);
+    decl_corps->bloc = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
@@ -216,6 +220,13 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     }
 
     decl_corps->bloc->expressions->ajoute(expr_ret);
+
+    /* Bloc corps. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc paramètres. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc constantes. */
+    m_tacheronne.assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -885,13 +896,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto enfant3 = inst->bloc;
             auto feuilles = enfant1->comme_virgule();
 
+            auto requiers_index = feuilles->expressions.taille() == 2;
+
             for (auto &f : feuilles->expressions) {
-                /* transforme les références en déclarations, nous faisons ça ici et non lors
+                /* Transforme les références en déclarations, nous faisons ça ici et non lors
                  * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
                  * les cas où nous avons une fonction polymorphique : les données des déclarations
-                 * ne sont pas copiées */
+                 * ne sont pas copiées.
+                 * Afin de ne pas faire de travail inutile, toutes les variables, saufs les
+                 * variables d'indexage ne sont pas initialisées. Les variables d'indexages doivent
+                 * l'être puisqu'elles sont directement testées avec la condition de fin de la
+                 * boucle.
+                 */
+                auto init = NoeudExpression::nul();
+                if (requiers_index && f != feuilles->expressions.derniere()) {
+                    init = m_tacheronne.assembleuse->cree_non_initialisation(f->lexeme);
+                }
+
                 f = m_tacheronne.assembleuse->cree_declaration_variable(
-                    f->comme_reference_declaration(), nullptr);
+                    f->comme_reference_declaration(), init);
                 auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
                 if (decl_f != nullptr) {
@@ -905,8 +928,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto variable = feuilles->expressions[0];
             inst->ident = variable->ident;
-
-            auto requiers_index = feuilles->expressions.taille() == 2;
 
             auto type = enfant2->type;
             if (type->est_opaque()) {
@@ -1283,91 +1304,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
              * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
              * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
              * avoir à attendre. */
-            auto visites = kuri::ensemblon<Type *, 16>();
-            auto pile = kuri::pile<Type *>();
-            pile.empile(type);
+            kuri::ensemblon<Type *, 16> types_utilises;
+            types_utilises.insere(type);
+            auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
+                                                                         TYPE_FUT_VALIDE);
 
-            while (!pile.est_vide()) {
-                auto type_courant = pile.depile();
-
-                if (visites.possede(type_courant)) {
-                    continue;
-                }
-
-                visites.insere(type_courant);
-
-                if ((type_courant->drapeaux & TYPE_FUT_VALIDE) == 0 &&
-                    type_courant != racine_validation()->type) {
-                    return Attente::sur_type(type_courant);
-                }
-
-                switch (type_courant->genre) {
-                    case GenreType::POLYMORPHIQUE:
-                    case GenreType::TUPLE:
-                    case GenreType::EINI:
-                    case GenreType::CHAINE:
-                    case GenreType::RIEN:
-                    case GenreType::BOOL:
-                    case GenreType::OCTET:
-                    case GenreType::TYPE_DE_DONNEES:
-                    case GenreType::REEL:
-                    case GenreType::ENTIER_CONSTANT:
-                    case GenreType::ENTIER_NATUREL:
-                    case GenreType::ENTIER_RELATIF:
-                    case GenreType::ENUM:
-                    case GenreType::ERREUR:
-                    {
-                        break;
-                    }
-                    case GenreType::FONCTION:
-                    {
-                        auto type_fonction = type_courant->comme_fonction();
-                        POUR (type_fonction->types_entrees) {
-                            pile.empile(it);
-                        }
-                        pile.empile(type_fonction->type_sortie);
-                        break;
-                    }
-                    case GenreType::UNION:
-                    case GenreType::STRUCTURE:
-                    {
-                        auto type_compose = static_cast<TypeCompose *>(type_courant);
-                        POUR (type_compose->membres) {
-                            pile.empile(it.type);
-                        }
-                        break;
-                    }
-                    case GenreType::REFERENCE:
-                    {
-                        pile.empile(type_courant->comme_reference()->type_pointe);
-                        break;
-                    }
-                    case GenreType::POINTEUR:
-                    {
-                        pile.empile(type_courant->comme_pointeur()->type_pointe);
-                        break;
-                    }
-                    case GenreType::VARIADIQUE:
-                    {
-                        pile.empile(type_courant->comme_variadique()->type_pointe);
-                        break;
-                    }
-                    case GenreType::TABLEAU_DYNAMIQUE:
-                    {
-                        pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
-                        break;
-                    }
-                    case GenreType::TABLEAU_FIXE:
-                    {
-                        pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
-                        break;
-                    }
-                    case GenreType::OPAQUE:
-                    {
-                        pile.empile(type_courant->comme_opaque()->type_opacifie);
-                        break;
-                    }
-                }
+            if (attente_possible && attente_possible->est<AttenteSurType>() &&
+                attente_possible->type() != racine_validation()->type) {
+                return attente_possible.value();
             }
 
             expr->type = type;
@@ -2182,6 +2126,19 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
+                        auto decl_it = it->comme_entete_fonction();
+
+                        /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans
+                         * celles-ci, afin de pouvoir comparer des fonctions externes même si elles
+                         * sont définies par des modules différents. */
+                        if (it->possede_drapeau(EST_EXTERNE) &&
+                            decl->possede_drapeau(EST_EXTERNE) &&
+                            decl_it->ident_bibliotheque == decl->ident_bibliotheque) {
+                            rapporte_erreur_redefinition_fonction(decl, it);
+                            eu_erreur = true;
+                            break;
+                        }
+
                         if (it->type == decl->type) {
                             rapporte_erreur_redefinition_fonction(decl, it);
                             eu_erreur = true;
@@ -2346,6 +2303,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 {
     auto type_fonc = fonction_courante()->type->comme_fonction();
     auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
+
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
 
     if (inst->expression == nullptr) {
         inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
@@ -2675,6 +2638,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 
     if (decl->possede_drapeau(EST_CONSTANTE)) {
+        if (decl->est_declaration_variable()) {
+            auto valeur = decl->comme_declaration_variable()->valeur_expression;
+            /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
+             * avoir à s'en soucier plus tard. */
+            if (valeur.est_fonction()) {
+                decl = valeur.fonction();
+                expr->declaration_referee = decl;
+            }
+        }
+
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
@@ -2716,9 +2689,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, bloc_parent);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(
-        lexeme, fonction->bloc_constantes);
+    m_tacheronne.assembleuse->bloc_courant(bloc_parent);
+
+    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2746,6 +2720,9 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
+
+    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->depile_bloc();
 
     return metaprogramme;
 }
@@ -3640,6 +3617,12 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (it->possede_drapeau(EMPLOYE)) {
+            if (!it->type->est_structure()) {
+                espace->rapporte_erreur(it,
+                                        "Ne peut pas employer un type n'étant pas une structure");
+                return CodeRetourValidation::Erreur;
+            }
+
             type_struct->types_employes.ajoute(it->type->comme_structure());
             continue;
         }
@@ -3844,7 +3827,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "typage et redéfinition");
 
         POUR (decls_et_refs) {
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+            auto bloc_final = NoeudBloc::nul();
+            if (it.decl->possede_drapeau(EST_PARAMETRE) ||
+                it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
+                bloc_final = it.decl->bloc_parent->bloc_parent;
+            }
+            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
             if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
                 if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
@@ -4052,9 +4040,11 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
                 graphe->cree_noeud_globale(decl_var);
             }
-
-            auto bloc_parent = decl_var->bloc_parent;
-            bloc_parent->membres->ajoute(decl_var);
+            else {
+                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
+                auto bloc_parent = decl_var->bloc_parent;
+                bloc_parent->membres->ajoute(decl_var);
+            }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
         }

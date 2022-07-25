@@ -190,6 +190,8 @@ struct Tacheronne {
 
     ContexteValidationDeclaration contexte_validation_declaration{};
 
+    tableau_page<Lexeme> lexemes_extra{};
+
     double temps_validation = 0.0;
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;

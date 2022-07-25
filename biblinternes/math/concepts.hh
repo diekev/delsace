@@ -29,7 +29,7 @@
 #include <type_traits>
 
 template <typename T>
-concept bool ConceptNombre = requires(T a, T b)
+concept ConceptNombre = requires(T a, T b)
 {
 	a + b;
 	a - b;
@@ -49,7 +49,7 @@ concept bool ConceptNombre = requires(T a, T b)
 };
 
 template <typename T>
-concept bool ConceptNombreEntier = requires(T a, T b)
+concept ConceptNombreEntier = requires(T a, T b)
 {
 	a & b;
 	a >> b;
@@ -60,7 +60,7 @@ concept bool ConceptNombreEntier = requires(T a, T b)
  * Concept pour les valeurs décimales.
  */
 template <typename T>
-concept bool ConceptDecimal = std::is_floating_point<T>::value;
+concept ConceptDecimal = std::is_floating_point<T>::value;
 #else
 #	define ConceptNombre typename
 #	define ConceptDecimal typename

@@ -1,7 +1,3 @@
-// Bug corrigé
-
-importe Support
-
 // Les conditions des controles de flux ne sont pas court-circuitées
 // quand ont a une condition du style a && b, si a est faux nous pourrions
 // ne pas évaluer b
@@ -62,6 +58,5 @@ principale :: fonc () -> z32
         } tantque tabl.taille == 4 || tabl[4] == 6
     }
 
-    imprime_succès(vrai)
     retourne 0
 }

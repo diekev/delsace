@@ -25,6 +25,7 @@
 #include "gestionnaire_code.hh"
 
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
 
@@ -950,7 +951,10 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
         /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
          * attendre la génération de code final avant de générer la RI pour ces fonctions. */
-        if (entete->ident == ID::init_execution_kuri || entete->ident == ID::fini_execution_kuri) {
+        if (dls::outils::est_element(entete->ident,
+                                     ID::init_execution_kuri,
+                                     ID::fini_execution_kuri,
+                                     ID::init_globales_kuri)) {
             return false;
         }
 
@@ -998,6 +1002,41 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
     return false;
 }
 
+static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
+{
+    kuri::ensemble<Module *> modules_visites;
+
+    POUR_TABLEAU_PAGE (sys_module.modules) {
+        for (auto fichier : it.fichiers) {
+            if (!fichier->fut_charge) {
+                return false;
+            }
+
+            if (!fichier->fut_parse) {
+                return false;
+            }
+        }
+
+        if (it.bloc == nullptr) {
+            return false;
+        }
+
+        for (auto decl : (*it.bloc->membres.verrou_lecture())) {
+            if (decl->est_entete_fonction() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return false;
+            }
+        }
+
+        for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
+            if (decl->est_importe() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     assert(unite->noeud);
@@ -1038,9 +1077,15 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         unite->mute_attente(Attente::sur_message(message));
     }
 
+    auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
+        *m_compilatrice->sys_module.verrou_lecture());
+
+    // std::cerr << "peut_envoyer_changement_de_phase: " << peut_envoyer_changement_de_phase <<
+    // '\n';
+
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
-    espace->tache_typage_terminee(m_compilatrice->messagere);
+    espace->tache_typage_terminee(m_compilatrice->messagere, peut_envoyer_changement_de_phase);
 
     if (noeud->est_entete_fonction()) {
         m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
@@ -1213,6 +1258,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             continue;
         }
 
+        if (it->annule) {
+            continue;
+        }
+
         /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
          * et bien dans la phase pour la génération de code. */
         if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
@@ -1237,15 +1286,30 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
+    auto espace_errone_existe = false;
+
     POUR (programmes_en_cours) {
         auto espace = it->espace();
 
         /* Vérifie si une erreur existe. */
-        if (espace->possede_erreur && !espace->options.continue_si_erreur) {
-            m_compilatrice->messagere->purge_messages();
+        if (espace->possede_erreur) {
+            /* Nous devons continuer d'envoyer des messages si l'erreur
+             * ne provoque pas la fin de la compilation de tous les espaces.
+             * À FAIRE : même si un message est ajouté, purge_message provoque
+             * une compilation infinie. */
+            if (!espace->options.continue_si_erreur) {
+                m_compilatrice->messagere->purge_messages();
+            }
+
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::COMPILATION_TERMINEE);
-            return true;
+
+            if (!espace->options.continue_si_erreur) {
+                return true;
+            }
+
+            espace_errone_existe = true;
+            continue;
         }
 
         tente_de_garantir_fonction_point_d_entree(espace);
@@ -1263,6 +1327,15 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
                 it->ri_generees()) {
                 finalise_programme_avant_generation_code_machine(espace, it);
             }
+        }
+    }
+
+    if (espace_errone_existe) {
+        programmes_en_cours.efface_si(
+            [](Programme *programme) -> bool { return programme->espace()->possede_erreur; });
+
+        if (programmes_en_cours.est_vide()) {
+            return true;
         }
     }
 
@@ -1350,6 +1423,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     /* Requiers la génération de RI pour les fonctions ajoute_fini et ajoute_init. */
     auto decl_ajoute_fini = m_compilatrice->interface_kuri->decl_fini_execution_kuri;
     auto decl_ajoute_init = m_compilatrice->interface_kuri->decl_init_execution_kuri;
+    auto decl_init_globales = m_compilatrice->interface_kuri->decl_init_globales_kuri;
 
     auto ri_requise = false;
     if (!decl_ajoute_fini->corps->possede_drapeau(RI_FUT_GENEREE)) {
@@ -1358,6 +1432,10 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     }
     if (!decl_ajoute_init->corps->possede_drapeau(RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_init);
+        ri_requise = true;
+    }
+    if (!decl_init_globales->corps->possede_drapeau(RI_FUT_GENEREE)) {
+        requiers_generation_ri(espace, decl_init_globales);
         ri_requise = true;
     }
 
@@ -1369,7 +1447,18 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
      * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
     auto message = espace->change_de_phase(m_compilatrice->messagere,
                                            PhaseCompilation::AVANT_GENERATION_OBJET);
+
+    /* Nous avions déjà créé une unité pour générer le code machine, mais un métaprogramme a sans
+     * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
+     * d'attente. */
+    if (espace->unite_pour_code_machine) {
+        espace->unite_pour_code_machine->annule = true;
+    }
+
     auto unite_code_machine = requiers_generation_code_machine(espace, espace->programme);
+
+    espace->unite_pour_code_machine = unite_code_machine;
+
     if (message) {
         unite_code_machine->mute_attente(Attente::sur_message(message));
     }
@@ -1404,4 +1493,10 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
     }
 
     unites_en_attente = nouvelles_unites;
+}
+
+void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
+{
+    auto programme = espace->programme;
+    programme->ajourne_pour_nouvelles_options_espace();
 }

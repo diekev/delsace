@@ -557,12 +557,10 @@ ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
 
     if (!input->read_image(image->donnees)) {
         input->close();
-        OIIO::ImageInput::destroy(input);
         return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
     }
 
     input->close();
-    OIIO::ImageInput::destroy(input);
 
     return ResultatOperation::OK;
 }
@@ -581,12 +579,10 @@ ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
 
     if (!out->write_image(OIIO::TypeDesc::FLOAT, image->donnees)) {
         out->close();
-        OIIO::ImageOutput::destroy(out);
         return ResultatOperation::IMAGE_INEXISTANTE;
     }
 
     out->close();
-    OIIO::ImageOutput::destroy(out);
 
     return ResultatOperation::OK;
 }
@@ -619,7 +615,6 @@ void IMG_calcul_empreinte_floue(
 
     if (!input->read_image(OIIO::TypeDesc::UINT8, donnees.data())) {
         input->close();
-        OIIO::ImageInput::destroy(input);
         return;
     }
 
@@ -636,6 +631,5 @@ void IMG_calcul_empreinte_floue(
     *taille_resultat = static_cast<long>(res.size());
 
     input->close();
-    OIIO::ImageInput::destroy(input);
 }
 }

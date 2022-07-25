@@ -175,6 +175,8 @@ class GestionnaireCode {
      * message sont marquées comme prêtes. */
     void interception_message_terminee(EspaceDeTravail *espace);
 
+    void ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace);
+
   private:
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
 

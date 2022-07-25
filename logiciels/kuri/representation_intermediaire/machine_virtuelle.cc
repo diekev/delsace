@@ -24,6 +24,8 @@
 
 #include "machine_virtuelle.hh"
 
+#include <fstream>
+
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -35,6 +37,9 @@
 #include "compilation/metaprogramme.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "structures/ensemble.hh"
+#include "structures/table_hachage.hh"
 
 #include "instructions.hh"
 
@@ -647,6 +652,21 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
+        auto code = depile<NoeudCode *>(site);
+        auto module = static_cast<Module *>(nullptr);
+
+        if (code) {
+            const auto fichier = compilatrice.fichier(code->chemin_fichier);
+            if (fichier) {
+                module = fichier->module;
+            }
+        }
+
+        empile(site, module);
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 
@@ -813,7 +833,8 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     m_metaprogramme = metaprogramme;
 }
 
-void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
+void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme,
+                                                 int compte_executees)
 {
     auto de = metaprogramme->donnees_execution;
     de->profondeur_appel = profondeur_appel;
@@ -832,13 +853,21 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     intervalle_adresses_pile_execution = {};
 
     m_metaprogramme = nullptr;
+
+    de->instructions_executees += compte_executees;
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.ajoute_echantillon(metaprogramme, compte_executees);
+    }
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions()
+#define INSTRUCTIONS_PAR_BATCH 1000
+
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
+    int &compte_executees)
 {
     auto frame = &frames[profondeur_appel - 1];
 
-    for (auto i = 0; i < 1000; ++i) {
+    for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
 #ifdef DEBOGUE_INTERPRETEUSE
         auto &sortie = std::cerr;
         imprime_tab(sortie, profondeur_appel);
@@ -1214,6 +1243,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         pointeur_pile = pointeur_debut_retour;
                     }
 
+                    compte_executees = i + 1;
                     return ResultatInterpretation::TERMINE;
                 }
 
@@ -1238,6 +1268,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1251,6 +1282,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 #endif
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1260,6 +1292,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1284,6 +1317,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse = depile<void *>(site);
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1296,11 +1330,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                     if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
+                        compte_executees = i + 1;
                         return resultat;
                     }
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                        compte_executees = i + 1;
                         return ResultatInterpretation::ERREUR;
                     }
                 }
@@ -1332,14 +1368,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie depuis une adresse nulle !");
+                    rapporte_erreur_execution(site, "Assignation depuis une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie vers une adresse nulle !");
+                    rapporte_erreur_execution(site, "Assignation vers une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1385,18 +1421,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
                         .ajoute_message(
                             "Le type du site  est         : ", chaine_type(site->type), "\n");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_de)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie depuis une adresse nulle !");
+                    rapporte_erreur_execution(site, "Copie depuis une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 if (adresse_est_nulle(adresse_ou)) {
-                    m_metaprogramme->unite->espace->rapporte_erreur(
-                        site, "Copie vers une adresse nulle !");
+                    rapporte_erreur_execution(site, "Copie vers une adresse nulle !");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1415,6 +1452,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
                         .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1470,6 +1508,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 m_metaprogramme->unite->espace->rapporte_erreur(
                     dernier_site, "Erreur interne : Opération inconnue dans la MV !");
+                compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
         }
@@ -1477,6 +1516,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         dernier_site = site;
     }
 
+    compte_executees = INSTRUCTIONS_PAR_BATCH;
     return ResultatInterpretation::OK;
 }
 
@@ -1485,6 +1525,20 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     erreur::imprime_site(*m_metaprogramme->unite->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
         erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
+    }
+}
+
+void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
+                                                 kuri::chaine_statique message)
+{
+    auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
+
+    e.ajoute_message("Trace d'appel :\n\n");
+
+    /* La première frame d'appel possède le même lexème que la directive d'exécution du
+     * métaprogramme, donc ignorons-là également. */
+    for (int i = profondeur_appel - 1; i >= 1; --i) {
+        e.ajoute_site(frames[i].site);
     }
 }
 
@@ -1518,7 +1572,7 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
      * désinstallation ajournement les données d'exécution. */
     installe_metaprogramme(metaprogramme);
     appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
-    desinstalle_metaprogramme(metaprogramme);
+    desinstalle_metaprogramme(metaprogramme, 0);
     m_metaprogrammes.ajoute(metaprogramme);
 }
 
@@ -1549,7 +1603,8 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
         installe_metaprogramme(it);
 
-        auto res = execute_instructions();
+        int compte_executees = 0;
+        auto res = execute_instructions(compte_executees);
 
         if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
             // RÀF
@@ -1569,7 +1624,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             i -= 1;
         }
 
-        desinstalle_metaprogramme(it);
+        desinstalle_metaprogramme(it, compte_executees);
 
         if (stop || compilatrice.possede_erreur()) {
             break;
@@ -1597,6 +1652,8 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
         return;
     }
 
+    instructions_executees += donnees->instructions_executees;
+
     // À FAIRE : récupère la mémoire
     memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
     donnees = nullptr;
@@ -1607,6 +1664,11 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.memoire_mv += donnees_execution.memoire_utilisee();
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
+    stats.instructions_executees += instructions_executees;
+
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.cree_rapports(compilatrice.format_rapport_profilage);
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
@@ -1633,4 +1695,142 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
     os << "-- adresse où   : " << patch.decalage_ou << '\n';
 
     return os;
+}
+
+InformationProfilage &Profileuse::informations_pour(MetaProgramme *metaprogramme)
+{
+    POUR (informations_pour_metaprogrammes) {
+        if (it.metaprogramme == metaprogramme) {
+            return it;
+        }
+    }
+
+    auto informations = InformationProfilage();
+    informations.metaprogramme = metaprogramme;
+    informations_pour_metaprogrammes.ajoute(informations);
+    return informations_pour_metaprogrammes.derniere();
+}
+
+void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
+{
+    if (poids == 0) {
+        return;
+    }
+
+    auto &informations = informations_pour(metaprogramme);
+
+    auto echantillon = EchantillonProfilage();
+    echantillon.profondeur_frame_appel = metaprogramme->donnees_execution->profondeur_appel;
+    echantillon.poids = poids;
+
+    for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
+        echantillon.frames[i] = metaprogramme->donnees_execution->frames[i];
+    }
+
+    informations.echantillons.ajoute(echantillon);
+}
+
+void Profileuse::cree_rapports(FormatRapportProfilage format)
+{
+    POUR (informations_pour_metaprogrammes) {
+        cree_rapport(it, format);
+    }
+}
+
+static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
+{
+    if (fonction->decl) {
+        auto decl = fonction->decl;
+        if (decl->est_initialisation_type) {
+            auto type_param = decl->params[0]->type->comme_pointeur()->type_pointe;
+            os << "init_de(" << chaine_type(type_param) << ')';
+        }
+        else if (decl->ident) {
+            os << decl->ident->nom;
+        }
+        else {
+            os << fonction->nom;
+        }
+    }
+    else {
+        os << fonction->nom;
+    }
+}
+
+static void cree_rapport_format_echantillons_total_plus_fonction(
+    const InformationProfilage &informations, std::ostream &os)
+{
+    auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
+    auto fonctions = kuri::ensemble<AtomeFonction *>();
+
+    POUR (informations.echantillons) {
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            auto valeur = table.valeur_ou(frame.fonction, 0);
+            table.insere(frame.fonction, valeur + 1);
+
+            fonctions.insere(frame.fonction);
+        }
+    }
+
+    auto fonctions_et_echantillons = kuri::tableau<PaireEnchantillonFonction>();
+
+    fonctions.pour_chaque_element([&](AtomeFonction *fonction) {
+        auto nombre_echantillons = table.valeur_ou(fonction, 0);
+        auto paire = PaireEnchantillonFonction{fonction, nombre_echantillons};
+        fonctions_et_echantillons.ajoute(paire);
+    });
+
+    std::sort(fonctions_et_echantillons.begin(),
+              fonctions_et_echantillons.end(),
+              [](auto &a, auto &b) { return a.nombre_echantillons > b.nombre_echantillons; });
+
+    POUR (fonctions_et_echantillons) {
+        os << it.nombre_echantillons << " : ";
+        imprime_nom_fonction(it.fonction, os);
+        os << '\n';
+    }
+}
+
+static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations,
+                                              std::ostream &os)
+{
+    POUR (informations.echantillons) {
+        if (it.profondeur_frame_appel == 0) {
+            continue;
+        }
+
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            imprime_nom_fonction(frame.fonction, os);
+
+            if (i < it.profondeur_frame_appel - 1) {
+                os << ";";
+            }
+        }
+
+        os << " " << it.poids << '\n';
+    }
+}
+
+void Profileuse::cree_rapport(const InformationProfilage &informations,
+                              FormatRapportProfilage format)
+{
+    auto nom_fichier = "/tmp/métaprogramme" +
+                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
+
+    std::ofstream os(nom_fichier);
+
+    switch (format) {
+        case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
+        {
+            cree_rapport_format_echantillons_total_plus_fonction(informations, os);
+            break;
+        }
+        case FormatRapportProfilage::BRENDAN_GREGG:
+        {
+            cree_rapport_format_brendan_gregg(informations, os);
+            break;
+        }
+    }
 }

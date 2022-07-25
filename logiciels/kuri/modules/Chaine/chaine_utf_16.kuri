@@ -155,12 +155,9 @@ taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64 #enligne
     retourne résultat
 }
 
-// Fonction de comparaison pour qsort.
-compare_chaine_utf16 :: fonc (attr1: *rien, attr2: *rien) -> z32
+// Fonction de comparaison pour tri_rapide.
+compare_chaine_utf16 :: fonc (a1: ChaineUTF16, a2: ChaineUTF16) -> z32
 {
-    a1 := mémoire(attr1 comme *ChaineUTF16)
-    a2 := mémoire(attr2 comme *ChaineUTF16)
-
     si a1 < a2 {
         retourne -1
     }

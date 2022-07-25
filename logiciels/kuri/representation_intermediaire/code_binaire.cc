@@ -811,7 +811,7 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
 
 bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 {
-    /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
+    /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
     if (fonction->decl && fonction->decl->est_externe) {
         auto &donnees_externe = fonction->donnees_externe;
         auto decl = fonction->decl;
@@ -820,6 +820,19 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
+            /* Nous ne pouvons appeler une fonction prenant un pointeur de fonction car le pointeur
+             * pourrait être une fonction interne dont l'adresse ne sera pas celle d'une fonction
+             * exécutable (pour le système d'exploitation) mais l'adresse de l'AtomeFonction
+             * correspondant qui est utilisée dans la machine virtuelle. */
+            POUR (decl->params) {
+                if (it->type->est_fonction()) {
+                    espace->rapporte_erreur(fonction->decl,
+                                            "Impossible d'appeler dans un métaprogramme une "
+                                            "fonction externe utilisant un pointeur de fonction");
+                    return false;
+                }
+            }
+
             if (!decl->symbole->charge(espace, decl)) {
                 return false;
             }
@@ -827,8 +840,8 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
         }
 
-        if (fonction->decl->est_variadique) {
-            // les fonctions variadiques doivent être préparées pour chaque appel
+        if (decl->est_variadique) {
+            /* Les fonctions variadiques doivent être préparées pour chaque appel. */
             return true;
         }
 
@@ -851,8 +864,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
         if (status != FFI_OK) {
             espace->rapporte_erreur(
-                fonction->decl,
-                "Impossible de préparer l'interface d'appel forrain pour la fonction");
+                decl, "Impossible de préparer l'interface d'appel forrain pour la fonction");
             return false;
         }
 
@@ -1003,9 +1015,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
         {
             auto appel = instruction->comme_appel();
 
-            // évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
-            // instructions, une fois pour l'opérande les fonctions retournant « rien » ne peuvent
-            // être opérandes
+            /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
+             * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
+             * être opérandes. */
             if (appel->type->genre != GenreType::RIEN && !pour_operande) {
                 return;
             }

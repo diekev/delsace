@@ -1,16 +1,119 @@
 // ------------------------------------
 // vecteurs de nombres réels
 
-Vec2r :: struct {
-    x := 0.0
-    y := 0.0
+Vec2 :: struct {
+    x := 0.0  @mutable
+    y := 0.0  @mutable
+}
+
+opérateur == :: fonc (u: Vec2, v: Vec2) -> bool
+{
+    retourne u.x == v.x && u.y == v.y
+}
+
+opérateur != :: fonc (u: Vec2, v: Vec2) -> bool
+{
+    retourne !(u == v)
+}
+
+opérateur + :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x + v.x, u.y + v.y)
+}
+
+opérateur - :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x - v.x, u.y - v.y)
+}
+
+opérateur - :: fonc (u: Vec2) -> Vec2
+{
+    retourne Vec2(-u.x, -u.y)
+}
+
+opérateur * :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x * v.x, u.y * v.y)
+}
+
+opérateur * :: fonc (u: Vec2, v: r32) -> Vec2
+{
+    retourne Vec2(u.x * v, u.y * v)
+}
+
+opérateur / :: fonc (u: Vec2, v: Vec2) -> Vec2
+{
+    retourne Vec2(u.x / v.x, u.y / v.y)
+}
+
+opérateur / :: fonc (u: Vec2, v: r32) -> Vec2
+{
+    retourne Vec2(u.x / v, u.y / v)
+}
+
+produit_scalaire :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne u.x * v.x + u.y * v.y
+}
+
+produit_vectoriel :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne u.x * v.y - u.y * v.x
+}
+
+longueur :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    retourne longueur(u - v)
+}
+
+longueur :: fonc (u: Vec2) -> r32
+{
+    retourne racine_carrée(produit_scalaire(u, u))
+}
+
+longueur_carrée :: fonc (u: Vec2, v: Vec2) -> r32
+{
+    w := v - u
+    retourne produit_scalaire(w, w)
+}
+
+// projection vectorielle
+projette :: fonc (a: Vec2, b: Vec2) -> Vec2
+{
+    retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b
+}
+
+// rejection vectorielle, a1 doit être une projection
+rejette :: fonc (a1: Vec2, a: Vec2) -> Vec2
+{
+    retourne a - a1
+}
+
+angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
+{
+    a = normalise(a)
+    b = normalise(b)
+
+    /* Plus précis que acos(produit_scalaire(a, b)). */
+    si produit_scalaire(a, b) >= 0.0 {
+        retourne 2.0 * arcsinus_borné(longueur(a, b) * 0.5)
+    }
+
+    b2 := -b
+    retourne M_PI - 2.0 * arcsinus_borné(longueur(a, b2) * 0.5)
+}
+
+normalise :: fonc (v: Vec2) -> Vec2 #enligne
+{
+    l := longueur(v)
+    retourne v / l
 }
 
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
-    x: r32
-    y: r32
-    z: r32
+    x: r32  @mutable
+    y: r32  @mutable
+    z: r32  @mutable
 }
 
 Point3 :: #opaque Vec3
@@ -21,11 +124,17 @@ crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
     retourne Vec3( x = x, y = y, z = z )
 }
 
-Vec4r :: struct {
-    x := 0.0
-    y := 0.0
-    z := 0.0
-    w := 0.0
+new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
+{
+    init_de(Vec3)(vec)
+    retourne vrai
+} @Python "new"
+
+Vec4 :: struct {
+    x := 0.0  @mutable
+    y := 0.0  @mutable
+    z := 0.0  @mutable
+    w := 0.0  @mutable
 }
 
 produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32
@@ -114,6 +223,15 @@ opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
     retourne r
 }
 
+opérateur / :: fonc (u: Vec3, v: Vec3) -> Vec3
+{
+    r : Vec3
+    r.x = u.x / v.x
+    r.y = u.y / v.y
+    r.z = u.z / v.z
+    retourne r
+}
+
 opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
 {
     r : Vec3
@@ -186,14 +304,14 @@ opérateur >= :: fonc (v1: Vec3, v2: Vec3) -> bool
     retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
 }
 
-crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4r
+crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4
 {
-    retourne Vec4r( x = x, y = y, z = z, w = w )
+    retourne Vec4( x = x, y = y, z = z, w = w )
 }
 
-multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
+multiplie :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4r
+    résultat : Vec4
 
     si v != 0.0 {
         résultat.x = v1.x * v
@@ -205,9 +323,9 @@ multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
     retourne résultat
 }
 
-soustrait :: fonc (v1: Vec4r, v: r32) -> Vec4r
+soustrait :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4r
+    résultat : Vec4
 
     résultat.x = v1.x - v
     résultat.y = v1.y - v
@@ -264,7 +382,7 @@ vec_depuis_nor :: fonc (n: Norm3) -> Vec3
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
 // vecteur normal (N) pour échantillonner une capmat.
-calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
+calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2
 {
     // Création rapide d'une base orthonormale
     a := 1.0 / (1.0 + I.z);
@@ -272,7 +390,7 @@ calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
     b1 := crée_vec3r(1.0 - I.x * I.x * a, b, -I.x);
     b2 := crée_vec3r(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2r( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
+    uv_capmat := Vec2( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
 
     si inversé {
         uv_capmat.x = -uv_capmat.x;

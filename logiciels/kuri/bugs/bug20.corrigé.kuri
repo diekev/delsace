@@ -14,6 +14,5 @@ TAILLE_PAGE :: 8
 principale :: fonc () -> z32
 {
     foo()
-    imprime_succès(vrai)
     retourne 0
 }

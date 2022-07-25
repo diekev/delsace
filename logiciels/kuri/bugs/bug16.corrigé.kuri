@@ -2,14 +2,9 @@
 
 // Crash lors de l'accès à un membre inconnu d'un tableau
 
-importe Support
-
 principale :: fonc () -> z32
 {
-    erreur_survenue = #exécute compile_script_erroné("
-        a : []z32
-        a.ponteur = nul
-    ")
-    imprime_succès(erreur_survenue)
+    a : []z32
+    a.ponteur = nul
     retourne 0
 }

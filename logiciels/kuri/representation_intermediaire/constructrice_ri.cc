@@ -72,13 +72,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
-    EspaceDeTravail *espace, kuri::tableau<AtomeGlobale *> const &globales)
-{
-    m_espace = espace;
-    return genere_ri_pour_fonction_principale(globales);
-}
-
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     EspaceDeTravail *espace,
     const kuri::tableau<AtomeGlobale *> &globales,
@@ -1801,6 +1794,10 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     analyse_ri(*espace(), atome_fonc);
 
+    if (decl->possede_drapeau(DEBOGUE)) {
+        imprime_fonction(atome_fonc, std::cerr);
+    }
+
     fonction_courante = nullptr;
     this->m_pile.efface();
 }
@@ -2984,12 +2981,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             /* création de l'info type */
 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(7);
+            auto valeurs = kuri::tableau<AtomeConstante *>(8);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::ENUM, type);
             valeurs[3] = cree_chaine(type_enum->nom->nom);
             valeurs[4] = tableau_valeurs;
             valeurs[5] = tableau_noms;
             valeurs[6] = cree_constante_booleenne(type_enum->est_drapeau);
+            valeurs[7] = cree_info_type(type_enum->type_donnees, site);
 
             type->atome_info_type = cree_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_enum, std::move(valeurs));
@@ -3272,6 +3270,15 @@ AtomeConstante *ConstructriceRI::transtype_base_info_type(AtomeConstante *info_t
     return cree_transtype_constant(type_pointeur_info_type, info_type);
 }
 
+void ConstructriceRI::genere_ri_pour_initialisation_globales(
+    EspaceDeTravail *espace,
+    AtomeFonction *fonction_init,
+    const kuri::tableau<AtomeGlobale *> &globales)
+{
+    m_espace = espace;
+    genere_ri_pour_initialisation_globales(fonction_init, globales);
+}
+
 void ConstructriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                                          unsigned int index,
                                                          Type *pour_type)
@@ -3423,32 +3430,16 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
     return constante_chaine;
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
-    kuri::tableau<AtomeGlobale *> const &globales)
+void ConstructriceRI::genere_ri_pour_initialisation_globales(
+    AtomeFonction *fonction_init, kuri::tableau<AtomeGlobale *> const &globales)
 {
     nombre_labels = 0;
+    fonction_courante = fonction_init;
 
-    // déclare une fonction de type int(ContexteProgramme) appelée __principale
-    auto types_entrees = kuri::tablet<Type *, 6>();
-    auto type_sortie = m_compilatrice.typeuse[TypeBase::Z32];
-    auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    /* Sauvegarde le retour. */
+    auto di = fonction_init->instructions.derniere();
+    fonction_init->instructions.supprime_dernier();
 
-    auto fonction = m_compilatrice.cree_fonction(nullptr, "__principale");
-    fonction->type = type_fonction;
-    fonction->sanstrace = true;
-    fonction->nombre_utilisations = 1;
-
-    /* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
-     * car nous y devons prédéclarer les valeurs de retours. */
-    fonction->param_sortie = cree_allocation(
-        nullptr, m_compilatrice.typeuse[TypeBase::Z32], ID::valeur);
-
-    fonction_courante = fonction;
-
-    cree_label(nullptr);
-
-    // ----------------------------------
-    // initialise les variables globales
     auto constructeurs_globaux = m_compilatrice.constructeurs_globaux.verrou_lecture();
 
     POUR (*constructeurs_globaux) {
@@ -3471,23 +3462,10 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(
         genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
     }
 
-    // ----------------------------------
-    // appel notre fonction principale en passant le contexte et le tableau
-    auto fonc_princ = m_espace->fonction_principale;
+    /* Restaure le retour. */
+    fonction_init->instructions.ajoute(di);
 
-    static Lexeme lexeme_appel_principale = {
-        "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-    lexeme_appel_principale.ident = ID::principale;
-
-    static NoeudExpression site_appel_principale;
-    site_appel_principale.lexeme = &lexeme_appel_principale;
-
-    auto valeur_princ = cree_appel(&site_appel_principale, fonc_princ->atome);
-
-    // return
-    cree_retour(nullptr, valeur_princ);
-
-    return fonction;
+    fonction_courante = nullptr;
 }
 
 void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
@@ -3520,6 +3498,29 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     fonction_courante = nullptr;
 }
 
+/* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le contexte
+ * global. Ceci nécessitera d'avoir une deuxième version de la génération de code pour les
+ * structures avec des instructions constantes. */
+static bool construction_tableau_globale_peut_etre_constante(
+    NoeudExpression const &expression, TransformationType const &transformation)
+{
+    if (!expression.est_construction_tableau()) {
+        return false;
+    }
+
+    if (transformation.type != TypeTransformation::INUTILE) {
+        return false;
+    }
+
+    auto const type_pointe = type_dereference_pour(expression.type);
+
+    if (type_pointe->est_structure() || type_pointe->est_union()) {
+        return false;
+    }
+
+    return true;
+}
+
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
 {
     if (decl->possede_drapeau(EST_CONSTANTE)) {
@@ -3547,8 +3548,8 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                         expression = expression->substitution;
                     }
 
-                    if (expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU &&
-                        it.transformations[i].type == TypeTransformation::INUTILE) {
+                    if (construction_tableau_globale_peut_etre_constante(*expression,
+                                                                         it.transformations[i])) {
                         genere_ri_pour_noeud(expression);
                         valeur = static_cast<AtomeConstante *>(depile_valeur());
                     }

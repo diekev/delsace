@@ -562,8 +562,7 @@ void Syntaxeuse::quand_termine()
 
 void Syntaxeuse::analyse_une_chose()
 {
-    if (apparie(GenreLexeme::POINT_VIRGULE)) {
-        consomme();
+    if (ignore_point_virgule_implicite()) {
         return;
     }
 
@@ -582,7 +581,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         consomme();
     }
@@ -598,7 +597,7 @@ void Syntaxeuse::analyse_une_chose()
 
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         consomme();
     }
@@ -612,7 +611,7 @@ void Syntaxeuse::analyse_une_chose()
 
                 if (noeud->est_declaration_variable()) {
                     noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
-                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                    requiers_typage(noeud);
                 }
             }
 
@@ -654,7 +653,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
 {
     auto expression = analyse_expression_primaire(racine_expression, lexeme_final);
 
-    while (apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
+    while (!fini() && apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
         auto nouvelle_precedence = precedence_pour_operateur(lexeme_courant()->genre);
 
         if (nouvelle_precedence < donnees_precedence.precedence) {
@@ -787,10 +786,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 m_noeud_expression_virgule = ancien_noeud_virgule;
             }
 
-            // point-virgule implicite dans l'expression
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
-            }
+            ignore_point_virgule_implicite();
 
             consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
 
@@ -988,7 +984,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 }
 
                 if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
-                    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                    requiers_typage(noeud);
                 }
 
                 return noeud;
@@ -1028,7 +1024,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
@@ -1036,7 +1032,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
@@ -1044,7 +1040,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                requiers_typage(noeud);
                 return noeud;
             }
             else {
@@ -1274,8 +1270,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             donnees_precedence, racine_expression, lexeme_final);
                         m_est_declaration_type_opaque = false;
                         noeud->bloc_parent->membres->ajoute(noeud);
-                        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+                        requiers_typage(noeud);
                         return noeud;
+                    }
+
+                    if (directive == ID::cuisine) {
+                        recule();
+                        break;
                     }
 
                     m_position = position - 1;
@@ -1510,6 +1511,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
             if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
                 inst->expression = analyse_bloc();
+                static_cast<NoeudBloc *>(inst->expression)->appartiens_a_differe = inst;
             }
             else {
                 inst->expression = analyse_expression(
@@ -1573,7 +1575,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
                 kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
-                while (true) {
+                while (!fini()) {
                     auto expr = analyse_expression({}, GenreLexeme::RETIENS, GenreLexeme::VIRGULE);
                     expressions.ajoute(expr);
 
@@ -1611,7 +1613,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
                 kuri::tablet<NoeudExpression *, 6> expressions;
                 Lexeme *lexeme_virgule = nullptr;
 
-                while (true) {
+                while (!fini()) {
                     auto expr = analyse_expression(
                         {}, GenreLexeme::RETOURNE, GenreLexeme::VIRGULE);
                     expressions.ajoute(expr);
@@ -1687,6 +1689,10 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_contexte)
 {
+    /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
+     * un point-vigule implicite ici que de le faire pour chaque instruction. */
+    ignore_point_virgule_implicite();
+
     auto lexeme = lexeme_courant();
     empile_etat("dans l'analyse du bloc", lexeme);
 
@@ -1703,8 +1709,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -1742,13 +1747,15 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
     auto params = kuri::tablet<NoeudExpression *, 16>();
 
-    while (apparie_expression()) {
+    while (!fini() && apparie_expression()) {
         auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
         params.ajoute(expr);
 
-        /* point-virgule implicite */
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (expr->est_declaration_variable()) {
+            rapporte_erreur("Obtenu une déclaration de variable dans l'expression d'appel");
+        }
+
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -1791,7 +1798,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
     auto paires_discr = kuri::tablet<NoeudPaireDiscr *, 32>();
 
-    while (!apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
         if (apparie(GenreLexeme::SINON)) {
             consomme();
 
@@ -1836,7 +1843,7 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 {
     bool eu_direction = false;
 
-    while (true) {
+    while (!fini()) {
         switch (lexeme_courant()->genre) {
             default:
             {
@@ -2054,7 +2061,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 
 void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
 {
-    while (apparie(GenreLexeme::AROBASE)) {
+    while (!fini() && apparie(GenreLexeme::AROBASE)) {
         consomme();
 
         if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
@@ -2110,8 +2117,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
     while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
+        if (ignore_point_virgule_implicite()) {
             continue;
         }
 
@@ -2119,8 +2125,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
             auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
             if (noeud->est_reference_declaration()) {
-                expressions.ajoute(m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->comme_reference_declaration()));
+                auto decl_variable = m_tacheronne.assembleuse->cree_declaration_variable(
+                    noeud->comme_reference_declaration());
+                decl_variable->drapeaux |= EST_CONSTANTE;
+                expressions.ajoute(decl_variable);
             }
             else {
                 expressions.ajoute(noeud);
@@ -2187,7 +2195,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     auto eu_declarations = false;
 
-    while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto valeur_poly = false;
 
         if (apparie(GenreLexeme::DOLLAR)) {
@@ -2245,7 +2253,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
         }
 
-        while (true) {
+        while (!fini()) {
             auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
             noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
 
@@ -2278,7 +2286,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 eu_parenthese = true;
             }
 
-            while (true) {
+            while (!fini()) {
                 auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
                 if (!decl_sortie->est_declaration_variable()) {
@@ -2320,6 +2328,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
             }
 
+            noeud->param_sortie->drapeaux |= EST_PARAMETRE;
+
             if (eu_parenthese) {
                 consomme(
                     GenreLexeme::PARENTHESE_FERMANTE,
@@ -2327,27 +2337,30 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
         }
         else {
-            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(&lexeme_rien);
+            Lexeme *lexeme_rien = m_tacheronne.lexemes_extra.ajoute_element();
+            *lexeme_rien = *lexeme;
+            lexeme_rien->genre = GenreLexeme::RIEN;
+            lexeme_rien->chaine = "";
+
+            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(lexeme_rien);
 
             auto ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 
-            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(&lexeme_rien);
+            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_rien);
             ref->ident = ident;
 
             auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
             decl->expression_type = type_declare;
 
+            decl->drapeaux |= EST_PARAMETRE;
+
             noeud->params_sorties.ajoute(decl);
             noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
         }
 
-        /* ignore les points-virgules implicites */
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
-        }
+        ignore_point_virgule_implicite();
 
-        while (apparie(GenreLexeme::DIRECTIVE)) {
+        while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
             consomme();
 
             auto ident_directive = lexeme_courant()->ident;
@@ -2420,6 +2433,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::corps_texte) {
                 noeud->corps->est_corps_texte = true;
             }
+            else if (ident_directive == ID::debogue) {
+                noeud->drapeaux |= DEBOGUE;
+            }
             else {
                 rapporte_erreur("Directive inconnue");
             }
@@ -2427,7 +2443,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+        requiers_typage(noeud);
 
         if (noeud->est_externe) {
             consomme(GenreLexeme::POINT_VIRGULE,
@@ -2443,10 +2459,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             m_tacheronne.assembleuse->depile_bloc();
         }
         else {
-            /* ignore les points-virgules implicites */
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
-            }
+            ignore_point_virgule_implicite();
 
             auto noeud_corps = noeud->corps;
 
@@ -2469,7 +2482,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
             if (doit_etre_type) {
-                m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_corps);
+                requiers_typage(noeud_corps);
             }
         }
     }
@@ -2527,7 +2540,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
 
-    while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (!param->est_declaration_variable()) {
@@ -2576,7 +2589,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     /* analyse les types de retour de la fonction */
     consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
-    while (true) {
+    while (!fini()) {
         auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
         if (!decl_sortie->est_declaration_variable()) {
@@ -2609,8 +2622,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
     noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
 
-    while (apparie(GenreLexeme::DIRECTIVE)) {
-        consomme();
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
         auto directive = lexeme_courant()->ident;
@@ -2624,18 +2636,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         else {
             rapporte_erreur("Directive inconnue");
         }
+
+        consomme();
     }
 
     if (!dls::outils::possede_drapeau(noeud->drapeaux, FORCE_HORSLIGNE)) {
         noeud->drapeaux |= FORCE_ENLIGNE;
     }
 
-    /* ignore les points-virgules implicites */
-    if (apparie(GenreLexeme::POINT_VIRGULE)) {
-        consomme();
-    }
+    ignore_point_virgule_implicite();
 
-    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+    requiers_typage(noeud);
 
     auto noeud_corps = noeud->corps;
     auto ancien_est_dans_fonction = est_dans_fonction;
@@ -2746,7 +2757,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         consomme();
     }
 
-    while (apparie(GenreLexeme::DIRECTIVE)) {
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
 
         auto ident_directive = lexeme_courant()->ident;
@@ -2794,10 +2805,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     auto analyse_membres = true;
 
     if (noeud_decl->est_externe) {
-        if (apparie(GenreLexeme::POINT_VIRGULE)) {
-            consomme();
-            analyse_membres = false;
-        }
+        analyse_membres = !ignore_point_virgule_implicite();
     }
 
     if (analyse_membres) {
@@ -2807,8 +2815,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-            if (apparie(GenreLexeme::POINT_VIRGULE)) {
-                consomme();
+            if (ignore_point_virgule_implicite()) {
                 continue;
             }
 
@@ -2843,6 +2850,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 if (noeud->est_declaration_variable()) {
                     auto decl_membre = noeud->comme_declaration_variable();
                     analyse_annotations(decl_membre->annotations);
+                    noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
                 }
 
                 expressions.ajoute(noeud);
@@ -2867,8 +2875,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     analyse_annotations(noeud_decl->annotations);
 
-    if (cree_tache) {
-        m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud_decl);
+    /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types. */
+    if (cree_tache || true) {
+        requiers_typage(noeud_decl);
     }
 
     if (noeud_decl->bloc_constantes) {
@@ -2883,6 +2892,26 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
     m_unite->espace->rapporte_erreur_sans_site(message_erreur, erreur::Genre::SYNTAXAGE);
-    // avance le curseur pour ne pas être bloqué
+    /* Avance le curseur pour ne pas être bloqué. */
     consomme();
+}
+
+void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
+{
+    /* N'envoie plus rien vers le typage si nous avons une erreur. */
+    if (m_possede_erreur) {
+        return;
+    }
+
+    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+}
+
+bool Syntaxeuse::ignore_point_virgule_implicite()
+{
+    if (apparie(GenreLexeme::POINT_VIRGULE)) {
+        consomme();
+        return true;
+    }
+
+    return false;
 }

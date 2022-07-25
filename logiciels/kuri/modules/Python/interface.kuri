@@ -1,8 +1,9 @@
 // Interface pour la bibliothèque du langage Python permettant de définir des modules.
 
 importe GlibC
+importe Math
 
-libpython :: #bibliothèque "python3.7m"
+libpython :: #bibliothèque "python3.10"
 
 Py_ssize_t :: z64
 Py_hash_t :: Py_ssize_t
@@ -12,15 +13,13 @@ digit :: n32
 
 PyAsyncMethods :: struct #externe
 PyNumberMethods :: struct #externe
-PySequenceMethods :: struct #externe
 PyMappingMethods :: struct #externe
-PyBufferProcs :: struct #externe
 PyMemberDef :: struct #externe
 
 PyGetSetDef :: struct #externe {
     name: ChaineC
     get: fonc(*PyObject, *rien)(*PyObject)
-    set: fonc(*PyObject, *PyObject, *rien)(*PyObject)
+    set: fonc(*PyObject, *PyObject, *rien)(z32)
     doc: ChaineC
     closure: *rien
 }
@@ -78,14 +77,14 @@ PyTypeObject :: struct #externe {
 
     /* Assigned meaning in release 2.1 */
     /* rich comparisons */
-    tp_richcompare: *rien // À FAIRE: pointeur de fonction richcmpfunc
+    tp_richcompare: fonc(*PyObject,*PyObject,z32)(*PyObject)
 
     /* weak reference enabler */
     tp_weaklistoffset: Py_ssize_t
 
     /* Iterators */
-    tp_iter: *rien // À FAIRE: pointeur de fonction getiterfunc
-    tp_iternext: *rien // À FAIRE: pointeur de fonction iternextfunc
+    tp_iter: fonc(*PyObject)(*PyObject)
+    tp_iternext: fonc(*PyObject)(*PyObject)
 
     /* Attribute descriptor and subclassing stuff */
     tp_methods: *PyMethodDef
@@ -310,6 +309,9 @@ python_retourne_true :: fonc () -> *PyObject
 
 PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
 
+externe _Py_NotImplementedStruct : PyObject
+Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct
+
 // ---------------------------------------------------
 // Références
 
@@ -318,6 +320,13 @@ _Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
 Py_INCREF :: fonc (ob: *PyObject)
 {
     ob.ob_refcnt += 1
+}
+
+Py_XINCREF :: fonc (ob: *PyObject)
+{
+    si ob {
+        Py_INCREF(ob)
+    }
 }
 
 Py_DECREF :: fonc (ob: *PyObject)
@@ -336,6 +345,27 @@ Py_XDECREF :: fonc (ob: *PyObject)
 
     Py_DECREF(ob)
 }
+
+Py_NewRef :: fonc (ob: *PyObject) -> *PyObject
+{
+    Py_INCREF(ob)
+    retourne ob
+}
+
+Py_XNewRef :: fonc (ob: *PyObject) -> *PyObject
+{
+    Py_XINCREF(ob)
+    retourne ob
+}
+
+// ---------------------------------------------------
+/* Rich comparison opcodes */
+Py_LT :: 0
+Py_LE :: 1
+Py_EQ :: 2
+Py_NE :: 3
+Py_GT :: 4
+Py_GE :: 5
 
 // ---------------------------------------------------
 // Module
@@ -406,6 +436,61 @@ PyLong_Check :: fonc (ob: *PyObject) -> bool
 PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
 PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
 
+PyLong_AsZ8 :: fonc (ob: *PyObject) -> z8
+{
+    retourne PyLong_AsLong(ob) comme z8
+}
+
+PyLong_AsZ16 :: fonc (ob: *PyObject) -> z16
+{
+    retourne PyLong_AsLong(ob) comme z16
+}
+
+PyLong_AsZ32 :: fonc (ob: *PyObject) -> z32
+{
+    retourne PyLong_AsLong(ob) comme z32
+}
+
+PyLong_AsN8 :: fonc (ob: *PyObject) -> n8
+{
+    retourne PyLong_AsLong(ob) comme n8
+}
+
+PyLong_AsN16 :: fonc (ob: *PyObject) -> n16
+{
+    retourne PyLong_AsLong(ob) comme n16
+}
+
+PyLong_AsN32 :: fonc (ob: *PyObject) -> n32
+{
+    retourne PyLong_AsLong(ob) comme n32
+}
+
+PyLong_AsN64 :: fonc (ob: *PyObject) -> n64
+{
+    retourne PyLong_AsLong(ob) comme n64
+}
+
+PyLong_FromN8 :: fonc (l: n8) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN16 :: fonc (l: n16) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN32 :: fonc (l: n32) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
+PyLong_FromN64 :: fonc (l: n64) -> *PyObject
+{
+    retourne PyLong_FromLong(l comme z64)
+}
+
 // ---------------------------------------------------
 // Objet Réel/Double
 
@@ -418,6 +503,16 @@ PyFloat_Check :: fonc (ob: *PyObject) -> bool
 
 PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
 PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
+
+PyFloat_AsR32 :: fonc (ob: *PyObject) -> r32
+{
+    retourne PyFloat_AsDouble(ob) comme r32
+}
+
+PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
+{
+    retourne PyFloat_AsDouble(ob) comme r16
+}
 
 // ---------------------------------------------------
 // Objet Unicode
@@ -447,6 +542,403 @@ PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 {
     retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
+}
+
+// ---------------------------------------------------
+// Sequence Protocol
+
+lenfunc :: fonc (*PyObject)(Py_ssize_t)
+binaryfunc :: fonc (*PyObject, *PyObject)(*PyObject)
+ssizeargfunc :: fonc (*PyObject, Py_ssize_t)(*PyObject)
+ssizeobjargproc :: fonc (*PyObject, Py_ssize_t)(z32)
+objobjproc :: fonc (*PyObject, *PyObject)(z32)
+
+PySequenceMethods :: struct {
+    sq_length: lenfunc
+    sq_concat: binaryfunc
+    sq_repeat: ssizeargfunc
+    sq_item: ssizeargfunc
+    was_sq_slice: *rien
+    sq_ass_item: ssizeobjargproc
+    was_sq_ass_slice: *rien
+    sq_contains: objobjproc
+
+    sq_inplace_concat: binaryfunc
+    sq_inplace_repeat: ssizeargfunc
+}
+
+// ---------------------------------------------------
+// Buffer Interface
+
+Py_buffer :: struct {
+    buf: *rien
+    obj: *PyObject        /* owned reference */
+    len: Py_ssize_t
+    itemsize: Py_ssize_t  /* This is Py_ssize_t so it can be
+                             pointed to by strides in simple case.*/
+    readonly: z32
+    ndim: z32
+    format: *z8
+    shape: *Py_ssize_t
+    strides: *Py_ssize_t
+    suboffsets: *Py_ssize_t
+    internal: *rien
+}
+
+getbufferproc :: fonc (*PyObject, *Py_buffer, z32)(z32)
+releasebufferproc :: fonc (*PyObject, *Py_buffer)(rien)
+
+PyBufferProcs :: struct {
+    bf_getbuffer: getbufferproc
+    bf_releasebuffer: releasebufferproc
+}
+
+vectorcallfunc :: fonc (/* callable */*PyObject, /* args */ **PyObject, /* nargsf */ n64, /* kwnames */ *PyObject)(*PyObject)
+
+/* Maximum number of dimensions */
+PyBUF_MAX_NDIM :: 64
+
+/* Flags for getting buffers */
+PyBUF_SIMPLE :: 0
+PyBUF_WRITABLE :: 0x0001
+/*  we used to include an E, backwards compatible alias  */
+PyBUF_WRITEABLE :: PyBUF_WRITABLE
+PyBUF_FORMAT :: 0x0004
+PyBUF_ND :: 0x0008
+PyBUF_STRIDES :: (0x0010 | PyBUF_ND)
+PyBUF_C_CONTIGUOUS :: (0x0020 | PyBUF_STRIDES)
+PyBUF_F_CONTIGUOUS :: (0x0040 | PyBUF_STRIDES)
+PyBUF_ANY_CONTIGUOUS :: (0x0080 | PyBUF_STRIDES)
+PyBUF_INDIRECT :: (0x0100 | PyBUF_STRIDES)
+
+PyBUF_CONTIG :: (PyBUF_ND | PyBUF_WRITABLE)
+PyBUF_CONTIG_RO :: (PyBUF_ND)
+
+PyBUF_STRIDED :: (PyBUF_STRIDES | PyBUF_WRITABLE)
+PyBUF_STRIDED_RO :: (PyBUF_STRIDES)
+
+PyBUF_RECORDS :: (PyBUF_STRIDES | PyBUF_WRITABLE | PyBUF_FORMAT)
+PyBUF_RECORDS_RO :: (PyBUF_STRIDES | PyBUF_FORMAT)
+
+PyBUF_FULL :: (PyBUF_INDIRECT | PyBUF_WRITABLE | PyBUF_FORMAT)
+PyBUF_FULL_RO :: (PyBUF_INDIRECT | PyBUF_FORMAT)
+
+PyBUF_READ  :: 0x100
+PyBUF_WRITE :: 0x200
+
+// ---------------------------------------------------
+// Fonctions pour générer les interfaces de tampons
+
+/* Structure de base pour les objets supportant le protocol de tampon. */
+BasePyBuffer :: struct {
+    empl base: PyObject
+
+    /* Nombre de fois que le tampon fut exporté. */
+    exports: z32
+
+    remplis_champs_requis_py_buffer: fonc (*BasePyBuffer, *Py_buffer)(rien)
+}
+
+/* Détermine la chaine de formattage pour un type de données, selon
+ * https://docs.python.org/3/library/struct.html#struct-format-strings
+ * Les chaines retournées doivent être nul-terminées.
+ */
+format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
+{
+    discr info.id {
+        ENTIER {
+            info_entier := info comme *InfoTypeEntier
+            si info_entier.est_signé {
+                si info_entier.taille_en_octet == 1 {
+                    retourne "b\0"
+                }
+
+                si info_entier.taille_en_octet == 2 {
+                    retourne "h\0"
+                }
+
+                si info_entier.taille_en_octet == 4 {
+                    retourne "i\0"
+                }
+
+                si info_entier.taille_en_octet == 8 {
+                    retourne "l\0"
+                }
+            }
+            sinon {
+                si info_entier.taille_en_octet == 1 {
+                    retourne "B\0"
+                }
+    
+                si info_entier.taille_en_octet == 2 {
+                    retourne "H\0"
+                }
+    
+                si info_entier.taille_en_octet == 4 {
+                    retourne "I\0"
+                }
+    
+                si info_entier.taille_en_octet == 8 {
+                    retourne "L\0"
+                }
+            }
+        }
+        RÉEL {
+            si info.taille_en_octet == 2 {
+                retourne "e\0"
+            }
+
+            si info.taille_en_octet == 4 {
+                retourne "f\0"
+            }
+
+            si info.taille_en_octet == 8 {
+                retourne "d\0"
+            }
+        }
+        BOOLÉEN,
+        OCTET {
+            retourne "b\0"
+        }
+        TYPE_DE_DONNÉES {
+            retourne "L\0"
+        }
+        UNION {
+            // À FAIRE
+        }
+        STRUCTURE {
+            info_struct := info comme *InfoTypeStructure
+
+            si info_struct.membres.taille == 0 {
+                retourne "b\0"
+            }
+
+            type_premier_membre := info_struct.membres[0].id
+            pour info_struct.membres {
+                si type_premier_membre != it.id {
+                    arrête
+                }
+            }
+            sansarrêt {
+                /* Si tous les membres ont le même type (p.e. nous avons un vecteur),
+                 * utilisons le format du type partagé par tous les membres. */
+                retourne format_tampon_pour_info_type(type_premier_membre)
+            }
+
+            /* Sinon, retourne le formattage pour des octets. */
+            retourne "b\0"
+        }
+        ÉNUM {
+            info_énum := info comme *InfoTypeÉnum
+            retourne format_tampon_pour_info_type(info_énum.type_sous_jacent)
+        }
+        OPAQUE {
+            opaque := info comme *InfoTypeOpaque
+            retourne format_tampon_pour_info_type(opaque.type_opacifié)
+        }
+        TABLEAU {
+            tableau := info comme *InfoTypeTableau
+            retourne format_tampon_pour_info_type(tableau.type_pointé)
+        }
+        CHAINE,
+        RIEN,
+        EINI {
+            // À FAIRE
+        }
+        FONCTION,
+        POINTEUR {
+            retourne "P\0"
+        }
+    }
+
+    /* Retourne des octets par défaut. */
+    retourne "B\0"
+}
+
+remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: []$T)
+{
+    view.buf = tableau.pointeur
+    view.itemsize = taille_de(T) comme Py_ssize_t
+    view.len = (tableau.taille comme n32 * taille_de(T)) comme Py_ssize_t
+    view.format = format_tampon_pour_info_type(info_de(T)).pointeur
+
+    // À FAIRE : tableau de tableau
+    view.ndim = 1
+    view.shape = loge(Py_ssize_t)
+    mémoire(view.shape) = tableau.taille comme Py_ssize_t
+
+    view.strides = loge(Py_ssize_t)
+    mémoire(view.strides) = taille_de(T) comme Py_ssize_t
+
+    view.suboffsets = loge(Py_ssize_t)
+    mémoire(view.suboffsets) = 0
+}
+
+erreur_export_tampon :: fonc (view: *Py_buffer, message: chaine) -> z32
+{
+    view.obj = nul
+    PyErr_SetObject(PyExc_BufferError, PyUnicode_FromChaine(message))
+    retourne -1
+}
+
+/* https://docs.python.org/3/c-api/typeobj.html#c.PyBufferProcs.bf_getbuffer */
+impl_get_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer, flags: z32) -> z32
+{
+    objet_tampon := exporter comme *BasePyBuffer
+
+    /* 1. Check if the request can be met. If not, raise PyExc_BufferError, set view->obj to NULL and return -1. */
+    view.readonly = 1
+    si bit_est_actif(flags comme n64, PyBUF_WRITABLE comme n64) {
+        retourne erreur_export_tampon(view, "Impossible d'exporter le tampon pour une écriture")
+    }
+
+    /* 2. Fill in the requested fields. */
+    objet_tampon.remplis_champs_requis_py_buffer(objet_tampon, view)
+
+    saufsi bit_est_actif(flags comme n64, PyBUF_FORMAT comme n64) {
+        view.format = nul
+    }
+
+    /* 3. Increment an internal counter for the number of exports. */
+    objet_tampon.exports += 1
+
+    /* 4. Set view->obj to exporter and increment view->obj. */
+    view.obj = exporter
+    Py_INCREF(view.obj)
+
+    /* 5. Return 0. */
+    retourne 0
+}
+
+impl_release_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer)
+{
+    objet_tampon := exporter comme *BasePyBuffer
+    objet_tampon.exports -= 1
+
+    si objet_tampon.exports == 0 {
+        déloge(view.shape)
+        déloge(view.strides)
+        déloge(view.suboffsets)
+    }
+}
+
+/* Globale pour les fonctions fonctions génériques de protocol de tampon. */
+Py_BufferProtocol_Défaut : PyBufferProcs
+
+protocol_tampon_défaut :: fonc () -> *PyBufferProcs
+{
+    Py_BufferProtocol_Défaut.bf_getbuffer = impl_get_buffer_proc
+    Py_BufferProtocol_Défaut.bf_releasebuffer = impl_release_buffer_proc
+    retourne *Py_BufferProtocol_Défaut
+}
+
+// ---------------------------------------------------
+// Utilitaires
+
+PyType_ChaineNom :: fonc (obj: *PyObject) -> chaine
+{
+    retourne convertis_chaine_c(obj.ob_type.tp_name)
+}
+
+PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
+{
+    saufsi PyUnicode_Check(object) {
+        retourne faux
+    }
+
+    chn := PyUnicode_AsChaine(object)
+
+    pour info.noms {
+        si it == chn {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
+{
+    chn := PyUnicode_AsChaine(object)
+
+    pour info.noms {
+        si it == chn {
+            retourne info.valeurs[index_it]
+        }
+    }
+
+    retourne 0
+}
+
+PyUnicodeEnum_Value_z8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z8
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z8
+}
+
+PyUnicodeEnum_Value_z16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z16
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z16
+}
+
+PyUnicodeEnum_Value_z32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
+{
+    retourne PyUnicodeEnum_Value(object, info)
+}
+
+PyUnicodeEnum_Value_z64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z64
+{
+    retourne PyUnicodeEnum_Value(object, info) comme z64
+}
+
+PyUnicodeEnum_Value_n8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n8
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n8
+}
+
+PyUnicodeEnum_Value_n16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n16
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n16
+}
+
+PyUnicodeEnum_Value_n32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n32
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n32
+}
+
+PyUnicodeEnum_Value_n64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n64
+{
+    retourne PyUnicodeEnum_Value(object, info) comme n64
+}
+
+fonction_PyUnicodeEnum_Value_pour_info :: fonc (info_énum: *InfoTypeÉnum) -> chaine
+{
+    info := info_énum.type_sous_jacent
+
+    si info == info_de(z8) {
+        retourne "PyUnicodeEnum_Value_z8"
+    }
+    si info == info_de(z16) {
+        retourne "PyUnicodeEnum_Value_z16"
+    }
+    si info == info_de(z32) {
+        retourne "PyUnicodeEnum_Value_z32"
+    }
+    si info == info_de(z64) {
+        retourne "PyUnicodeEnum_Value_z64"
+    }
+    si info == info_de(n8) {
+        retourne "PyUnicodeEnum_Value_n8"
+    }
+    si info == info_de(n16) {
+        retourne "PyUnicodeEnum_Value_n16"
+    }
+    si info == info_de(n32) {
+        retourne "PyUnicodeEnum_Value_n32"
+    }
+    si info == info_de(n64) {
+        retourne "PyUnicodeEnum_Value_n64"
+    }
+    retourne "PyUnicodeEnum_Value"
 }
 
 // ---------------------------------------------------
@@ -505,3 +997,6 @@ externe PyExc_UnicodeError: *PyObject
 externe PyExc_UnicodeTranslateError: *PyObject
 externe PyExc_ValueError: *PyObject
 externe PyExc_ZeroDivisionError: *PyObject
+
+
+PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython

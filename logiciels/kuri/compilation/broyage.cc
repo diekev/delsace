@@ -538,5 +538,9 @@ kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
     enchaineuse << nom_broye.taille();
     enchaineuse << nom_broye;
 
+    /* Ajout du pointeur car les fonctions nichées dans des fonctions polymorphiques peuvent finir
+     * avec le même nom broyé. */
+    enchaineuse << decl;
+
     return enchaineuse.chaine();
 }

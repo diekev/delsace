@@ -1,0 +1,3 @@
+libOpenVDB :: #bibliothèque "openvdb"
+
+#dépendance_bibliothèque libmodule_c_openvdb libOpenVDB

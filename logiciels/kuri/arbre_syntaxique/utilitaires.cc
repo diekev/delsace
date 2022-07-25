@@ -2761,6 +2761,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->nom = type_enum->nom->nom;
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
+            info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
+                cree_info_type_pour(type_enum->type_donnees));
 
             info_type->noms.reserve(type_enum->membres.taille());
             info_type->valeurs.reserve(type_enum->membres.taille());
@@ -3603,6 +3605,12 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
             auto index_membre = 0;
             POUR (type_compose->membres) {
                 if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
+                    if (it.expression_valeur_defaut &&
+                        it.expression_valeur_defaut->est_non_initialisation()) {
+                        index_membre += 1;
+                        continue;
+                    }
+
                     auto ref_membre = assembleuse->cree_reference_membre(
                         &lexeme, ref_param, it.type, index_membre);
                     cree_initialisation_defaut_pour_type(it.type,

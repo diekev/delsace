@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
@@ -32,6 +33,7 @@
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
+#include "structures/ensemblon.hh"
 #include "structures/tablet.hh"
 
 #include "operateurs.hh"
@@ -526,12 +528,14 @@ struct TypeTuple : public TypeCompose {
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
     inline TypeRafine *Type::comme_##nom()                                                        \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<TypeRafine *>(this);                                                   \
     }                                                                                             \
     inline const TypeRafine *Type::comme_##nom() const                                            \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<const TypeRafine *>(this);                                             \
     }
 
@@ -692,3 +696,6 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 NoeudDeclaration *decl_pour_type(const Type *type);
 
 bool est_type_polymorphique(Type *type);
+
+std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau);

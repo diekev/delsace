@@ -173,13 +173,14 @@ using StatistiquesRI = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesTableaux = EntreesStats<EntreeTaille>;
 
 struct Statistiques {
-    long nombre_modules = 0ul;
-    long nombre_identifiants = 0ul;
-    long nombre_metaprogrammes_executes = 0ul;
-    long memoire_compilatrice = 0ul;
-    long memoire_ri = 0ul;
-    long memoire_mv = 0ul;
-    long memoire_bibliotheques = 0ul;
+    long nombre_modules = 0l;
+    long nombre_identifiants = 0l;
+    long nombre_metaprogrammes_executes = 0l;
+    long memoire_compilatrice = 0l;
+    long memoire_ri = 0l;
+    long memoire_mv = 0l;
+    long memoire_bibliotheques = 0l;
+    long instructions_executees = 0l;
     double temps_generation_code = 0.0;
     double temps_fichier_objet = 0.0;
     double temps_executable = 0.0;

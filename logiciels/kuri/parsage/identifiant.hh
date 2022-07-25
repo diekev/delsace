@@ -37,7 +37,7 @@ struct IdentifiantCode {
 
 struct TableIdentifiant {
   private:
-    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
+    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{"IdentifiantCode"};
     tableau_page<IdentifiantCode, 1024> identifiants{};
 
     Enchaineuse enchaineuse{};
@@ -140,11 +140,13 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fini, "ajoute_fini")                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_execution_kuri, "__init_exécution_kuri")               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fini_execution_kuri, "__fini_exécution_kuri")               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_globales_kuri, "__init_globales_kuri")                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pre_executable, "pré_exécutable")                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(AnnotationCode, "AnnotationCode")                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(zero, "zéro")                                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(resultat, "résultat")                                       \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__contexte_fil_principal, "__contexte_fil_principal")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__contexte_fil_principal, "__contexte_fil_principal")       \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(debogue, "débogue")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

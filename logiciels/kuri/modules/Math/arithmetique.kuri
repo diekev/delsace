@@ -8,6 +8,7 @@ sin :: fonc (a : r64) -> r64 #externe libcmath
 tan :: fonc (a : r64) -> r64 #externe libcmath
 acos :: fonc (a : r64) -> r64 #externe libcmath
 asin :: fonc (a : r64) -> r64 #externe libcmath
+asinf :: fonc (a : r32) -> r32 #externe libcmath
 atan :: fonc (a : r64) -> r64 #externe libcmath
 atan2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath
 pow :: fonc (a: r64, b: r64) -> r64 #externe libcmath
@@ -16,6 +17,19 @@ floor :: fonc (a: r64) -> r64 #externe libcmath
 copysign :: fonc (a: r64, b: r64) -> r64 #externe libcmath
 log :: fonc (a: r64) -> r64 #externe libcmath
 exp :: fonc (a: r64) -> r64 #externe libcmath
+roundf :: fonc (a: r32) -> r32 #externe libcmath
+fmod :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+fmodf :: fonc (a: r32, b: r32) -> r32 #externe libcmath
+
+mod :: fonc (a: r32, b: r32) -> r32 #enligne
+{
+    retourne fmodf(a, b)
+}
+
+mod :: fonc (a: r64, b: r32) -> r64 #enligne
+{
+    retourne fmod(a, b)
+}
 
 exp :: fonc (a: r32) -> r32
 {
@@ -27,12 +41,12 @@ log :: fonc (a: r32) -> r32
     retourne log(a comme r64) comme r32
 }
 
-sol :: fonc (a: r32) -> r32
+plancher :: fonc (a: r32) -> r32
 {
     retourne floor(a) comme r32
 }
 
-sol :: fonc (a: r64) -> r64
+plancher :: fonc (a: r64) -> r64
 {
     retourne floor(a)
 }
@@ -65,6 +79,17 @@ sinus :: fonc (a: r32) -> r32
 sinus :: fonc (a: r64) -> r64
 {
     retourne sin(a)
+}
+
+arcsinus_borné :: fonc (a: r32) -> r32 #enligne
+{
+    si a <= -1.0 {
+        retourne -M_PI_2
+    }
+    si a >= 1.0 {
+        retourne M_PI_2
+    }
+    retourne asinf(a)
 }
 
 puissance :: fonc (v: r32, exp: r32) -> r32
@@ -184,7 +209,7 @@ racine_cubique :: fonc (n: r64) -> r64
     retourne (limite_basse + limite_haute) * 0.5
 }
 
-// À FAIRE : certaines fonctions ne de sens que pour les nombres relatifs ou réels
+// À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
 
 abs :: fonc(a : $T) -> T #enligne
 {
@@ -287,4 +312,87 @@ divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
     }
 
     retourne résultat
+}
+
+bit_est_actif :: fonc (n: n64, index_bit: n64) -> bool #enligne
+{
+    retourne (n & (1 << index_bit)) != 0
+}
+
+index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
+{
+    pour > 64 {
+        si bit_est_actif(v, it comme n64) {
+            retourne it comme n64
+        }
+    }
+
+    retourne 0
+}
+
+/* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
+exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
+{
+    début := index_premier_bit_actif_gauche(exp)
+    résultat : n64 = 1
+
+    // À FAIRE(langage) : les nombres naturels font des boucles infinies avec "> début"
+    pour 0 ... début {
+        si bit_est_actif(exp, début - it) {
+            résultat *= résultat
+            résultat *= b
+        }
+        sinon {
+            résultat *= résultat
+        }
+
+        résultat %= mod
+    }
+
+    retourne résultat   
+}
+
+bilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne x * 2.0 - 1.0
+}
+
+unilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne (x + 1.0) * 0.5
+}
+
+relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
+{
+    retourne 2.0 * (x comme r32 / taille comme r32) - 1.0
+}
+
+enveloppe :: fonc (v: r32) -> r32 #enligne
+{
+	v = mod(v, 1.0)
+	si v < 0.0 {
+		v += 1.0
+	}
+	retourne v
+}
+
+part_entière :: fonc (v: r32) -> z32 #enligne
+{
+	retourne v comme z32
+}
+
+part_réelle :: fonc (v: r32) -> r32 #enligne
+{
+	retourne v - part_entière(v) comme r32
+}
+
+restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
+{
+	si valeur <= min {
+		retourne min
+	}
+	si valeur < max {
+		retourne valeur
+	}
+	retourne max
 }

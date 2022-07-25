@@ -54,6 +54,13 @@ struct NoeudDirectivePreExecutable;
 struct SiteSource;
 struct Statistiques;
 
+enum class SourceFichier {
+    /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
+    DISQUE,
+    /* Le fichier vient d'une instruction "ajoute_chaine_*". */
+    CHAINE_AJOUTEE,
+};
+
 struct Fichier {
     double temps_analyse = 0.0;
     double temps_chargement = 0.0;
@@ -81,6 +88,10 @@ struct Fichier {
 
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
+
+    SourceFichier source = SourceFichier::DISQUE;
+    /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
+    long decalage_fichier = 0;
 
     Fichier() = default;
 
@@ -188,7 +199,8 @@ struct SystemeModule {
     tableau_page<Module> modules{};
     tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{};
+    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
+        "Fichiers système modules"};
 
     Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 

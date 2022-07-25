@@ -1,0 +1,25 @@
+// L'impression de la valeur des énumérations ne fonctionnent pas dans les métaprogrammes
+
+importe Fondation
+
+MonÉnum :: énum z32 {
+    VALEUR
+}
+
+test_impression_énum :: fonc () -> bool
+{
+    a := MonÉnum.VALEUR
+    c := imprime_chaine("%", a)
+
+    retourne c == "VALEUR"
+}
+
+#assert test_impression_énum()
+
+principale :: fonc () -> z32
+{
+    saufsi test_impression_énum() {
+        retourne 1
+    }
+    retourne 0
+}

@@ -37,7 +37,9 @@ struct NoeudDeclaration;
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident);
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration const *decl);
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+                                   NoeudDeclaration const *decl,
+                                   NoeudBloc *bloc_final = nullptr);
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression const *noeud);
 
@@ -61,5 +63,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
                                              Fichier const *fichier);
 
 NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode const *ident_boucle);
+
+bool bloc_est_dans_differe(NoeudBloc const *bloc);
 
 NoeudExpression *derniere_instruction(NoeudBloc const *b);

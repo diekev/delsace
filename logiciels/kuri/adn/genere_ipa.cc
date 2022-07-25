@@ -38,6 +38,7 @@
 #include "structures/tableau.hh"
 
 #include "adn.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
 {
@@ -218,14 +219,16 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+
     if (nom_fichier_sortie.filename() == "ipa.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         genere_code_cpp(syntaxeuse.proteines, flux, true);
     }
     else if (nom_fichier_sortie.filename() == "ipa.cc") {
         {
-            std::ofstream fichier_sortie(argv[1]);
+            std::ofstream fichier_sortie(nom_fichier_tmp);
             auto flux = FluxSortieCPP(fichier_sortie);
             genere_code_cpp(syntaxeuse.proteines, flux, false);
         }
@@ -238,6 +241,8 @@ int main(int argc, const char **argv)
             genere_code_kuri(syntaxeuse.proteines, flux);
         }
     }
+
+    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
 
     return 0;
 }

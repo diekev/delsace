@@ -1,0 +1,11 @@
+// deux fonctions externes dans le même module peuvent avoir le même nom mais des types différents
+// il faut une erreur de compilation
+
+libc :: #bibliothèque "c"
+send :: fonc (a: z32) #externe libc
+send :: fonc (b: z64) #externe libc
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

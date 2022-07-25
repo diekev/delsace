@@ -3,6 +3,7 @@
 importe Fondation
 importe GlibC
 importe SysFichier
+importe Triage
 
 DonnéesFichier :: struct {
     /* Le chemin racine d'où est lancée l'exécution,
@@ -83,11 +84,11 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     données.données_utilisateurs = données_utilisateurs
 
     si rappel(données) {
-        écris_lignes_dans_fichier(chemin, lignes)
+        écris_lignes_dans_fichier(chemin, données.lignes)
     }
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -101,7 +102,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
                     continue
                 }
 
-                si chemin.extension() == ".kuri" {
+                si fait_partie_de(chemin.extension(), ...extensions) {
                     exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
                 }
             }
@@ -113,28 +114,6 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&Donn�
 }
 
 // -------------------------------------
-
-// Fonction de comparaison pour qsort.
-compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32
-{
-    a1 := mémoire(attr1 comme *chaine)
-    a2 := mémoire(attr2 comme *chaine)
-
-    si a1 < a2 {
-        retourne -1
-    }
-
-    si a1 == a2 {
-        retourne 0
-    }
-
-    retourne 1
-}
-
-tri_lignes :: fonc (lignes: &[]chaine)
-{
-    qsort(lignes.pointeur, lignes.taille comme n64, taille_de(chaine) comme n64, compare_chaines_qsort)
-}
 
 tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
@@ -156,7 +135,7 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
             bloc := tranche(lignes, première_ligne, dernière_ligne)
 
             si bloc.taille > 1 {
-                tri_lignes(bloc)
+                tri_rapide(bloc, compare_chaine)
                 lignes_furent_modifiés = vrai
             }
 
@@ -205,22 +184,20 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
     retourne faux
 }
 
-// -------------------------------------
-
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_dossier() {
-        exécute_rappel_pour_dossier(chemin, rappel, données_utilisateurs)
+        exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
     }
     sinon {
-        si chemin.extension() == ".kuri" {
+        si fait_partie_de(chemin.extension(), ...extensions) {
             exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
         }
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool))
 {
     données_utilisateurs: eini
-    exécute_rappel(chemin, rappel, données_utilisateurs)
+    exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
 }

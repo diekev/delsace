@@ -1,34 +1,58 @@
 
 // --------------------
+// Point2D
 
-Point :: struct {
+Point2D :: struct {
     x: r32
     y: r32
 }
 
-opérateur + :: fonc (p0: Point, p1: Point) -> Point
+crée_point :: fonc(x : r64, y : r64) -> Point2D
 {
-    retourne Point(p0.x + p1.x, p0.y + p1.y)
+	retourne Point2D( x = x, y = y )
 }
 
-opérateur + :: fonc (p0: Point, v: Vecteur) -> Point
+opérateur + :: fonc (p0: Point2D, p1: Point2D) -> Point2D
 {
-    retourne Point(p0.x + v.x, p0.y + v.y)
+    retourne Point2D(p0.x + p1.x, p0.y + p1.y)
 }
 
-opérateur - :: fonc (p0: Point, p1: Point) -> Vecteur
+opérateur + :: fonc (p0: Point2D, v: Vec2) -> Point2D
 {
-    retourne Vecteur(p0.x - p1.x, p0.y - p1.y)
+    retourne Point2D(p0.x + v.x, p0.y + v.y)
 }
 
-opérateur * :: fonc (p0: Point, r: r32) -> Point
+opérateur - :: fonc (p0: Point2D, p1: Point2D) -> Vec2
 {
-    retourne Point(p0.x * r, p0.y * r)
+    retourne Vec2(p0.x - p1.x, p0.y - p1.y)
 }
 
-opérateur / :: fonc (p0: Point, r: r32) -> Point
+opérateur * :: fonc (p0: Point2D, r: r32) -> Point2D
 {
-    retourne Point(p0.x / r, p0.y / r)
+    retourne Point2D(p0.x * r, p0.y * r)
+}
+
+opérateur / :: fonc (p0: Point2D, r: r32) -> Point2D
+{
+    retourne Point2D(p0.x / r, p0.y / r)
+}
+
+// --------------------
+// Point3D
+
+Point3D :: struct {
+    x: r32 @accessible
+    y: r32 @accessible
+    z: r32 @accessible
+} @Python
+
+opérateur - :: fonc (a: Point3D, b: Point3D) -> Vec3
+{
+    résultat : Vec3 = ---
+    résultat.x = a.x - b.x
+    résultat.y = a.y - b.y
+    résultat.z = a.z - b.z
+    retourne résultat
 }
 
 /*
@@ -39,74 +63,12 @@ Segment :: struct {
 }
 */
 
-Vecteur :: struct {
-    x: r32
-    y: r32
-}
-
-opérateur - :: fonc (u: Vecteur, v: Vecteur) -> Vecteur
-{
-    retourne Vecteur(u.x - v.x, u.y - v.y)
-}
-
-opérateur * :: fonc (u: Vecteur, v: Vecteur) -> Vecteur
-{
-    retourne Vecteur(u.x * v.x, u.y * v.y)
-}
-
-opérateur * :: fonc (u: Vecteur, v: r32) -> Vecteur
-{
-    retourne Vecteur(u.x * v, u.y * v)
-}
-
-opérateur / :: fonc (u: Vecteur, v: Vecteur) -> Vecteur
-{
-    retourne Vecteur(u.x / v.x, u.y / v.y)
-}
-
-opérateur / :: fonc (u: Vecteur, v: r32) -> Vecteur
-{
-    retourne Vecteur(u.x / v, u.y / v)
-}
-
-produit_scalaire :: fonc (u: Vecteur, v: Vecteur) -> r32
-{
-    retourne u.x * v.x + u.y * v.y
-}
-
-produit_vectoriel :: fonc (u: Vecteur, v: Vecteur) -> r32
-{
-    retourne u.x * v.y - u.y * v.x
-}
-
-longueur :: fonc (u: Vecteur, v: Vecteur) -> r32
-{
-    retourne longueur(u - v)
-}
-
-longueur :: fonc (u: Vecteur) -> r32
-{
-    retourne racine_carrée(produit_scalaire(u, u))
-}
-
-// projection vectorielle
-projette :: fonc (a: Vecteur, b: Vecteur) -> Vecteur
-{
-    retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b
-}
-
-// rejection vectorielle, a1 doit être une projection
-rejette :: fonc (a1: Vecteur, a: Vecteur) -> Vecteur
-{
-    retourne a - a1
-}
-
 // --------------------
 
 Triangle :: struct {
-    p0: Point
-    p1: Point
-    p2: Point
+    p0: Point2D
+    p1: Point2D
+    p2: Point2D
 }
 
 est_rectangle :: fonc (triangle: Triangle) -> bool
@@ -160,7 +122,7 @@ aire :: fonc (triangle: Triangle) -> r32
 }
 
 // Retourne une ligne perpendiculaire à [p0, p1] passant par p2, en somme, c'est une hauteur d'un triangle
-perpendiculaire_passant_par :: fonc (p0: Point, p1: Point, p2: Point) -> Ligne
+perpendiculaire_passant_par :: fonc (p0: Point2D, p1: Point2D, p2: Point2D) -> Ligne
 {
     c0 := p1 - p0
     c1 := p2 - p0
@@ -170,7 +132,7 @@ perpendiculaire_passant_par :: fonc (p0: Point, p1: Point, p2: Point) -> Ligne
 }
 
 // Le point d'intersection des perpendiculaires du triangles
-orthocentre :: fonc (triangle: Triangle) -> Point
+orthocentre :: fonc (triangle: Triangle) -> Point2D
 {
     l0 := perpendiculaire_passant_par(triangle.p0, triangle.p1, triangle.p2)
     l1 := perpendiculaire_passant_par(triangle.p1, triangle.p2, triangle.p0)
@@ -185,38 +147,38 @@ orthocentre :: fonc (triangle: Triangle) -> Point
 }
 
 // le point d'intersection des médianes du triangle
-médicentre :: fonc (triangle: Triangle) -> Point
+médicentre :: fonc (triangle: Triangle) -> Point2D
 {
     retourne (triangle.p0 + triangle.p1 + triangle.p2) / 3.0
 }
 
 Ligne :: struct {
-    origine: Point
-    point: Point
+    origine: Point2D
+    point: Point2D
 }
 
-point_d_intersection :: fonc (l0: Ligne, l1: Ligne) -> bool, Point
+point_d_intersection :: fonc (l0: Ligne, l1: Ligne) -> bool, Point2D
 {
-    retourne point_d_intersection(l0.origine, l0.point, l1.origine, l1.point)
+    retourne point_d_intersection(l0.origine, l0.point, l1.origine, l1.Point2D)
 }
 
-point_centrale :: fonc (p0: Point, p1: Point) -> Point
+point_centrale :: fonc (p0: Point2D, p1: Point2D) -> Point2D
 {
     retourne (p0 + p1) * 0.5
 }
 
-médiatrice :: fonc (p0: Point, p1: Point) -> Ligne
+médiatrice :: fonc (p0: Point2D, p1: Point2D) -> Ligne
 {
     centre := point_centrale(p0, p1)
     v := p0 - centre
-    orthogonale := Point(v.y, -v.x) // sense horaire, antihoraire serait -y, x
+    orthogonale := Point2D(v.y, -v.x) // sense horaire, antihoraire serait -y, x
     retourne Ligne(centre, centre + orthogonale)
 }
 
 // le point d'intersection de deux médiatrices du triangle
 // Une médiatrice est une ligne perpendiculaire à un coté du triangle, passant par le centre du coté
 // Le circoncentre définis le centre d'un cercle passant par tous les points du triangles.
-circoncentre :: fonc (triangle: Triangle) -> Point
+circoncentre :: fonc (triangle: Triangle) -> Point2D
 {
     b0 := médiatrice(triangle.p0, triangle.p1)
     b1 := médiatrice(triangle.p0, triangle.p2)
@@ -230,18 +192,18 @@ circoncentre :: fonc (triangle: Triangle) -> Point
     retourne point
 }
 
-centroide :: fonc (triangle: Triangle) -> Point
+centroide :: fonc (triangle: Triangle) -> Point2D
 {
     retourne médicentre(triangle)
 }
 
-centre_de_masse :: fonc (triangle: Triangle) -> Point
+centre_de_masse :: fonc (triangle: Triangle) -> Point2D
 {
     retourne centroide(triangle)
 }
 
 // Le point d'intersection des bissectrices du triangle.
-encentre :: fonc (triangle: Triangle) -> Point
+encentre :: fonc (triangle: Triangle) -> Point2D
 {
 
 }
@@ -256,7 +218,7 @@ ligne_de_euler :: fonc (triangle: Triangle) -> Ligne
 }
 
 Cercle :: struct {
-    origine: Point
+    origine: Point2D
     rayon: r32
 }
 
@@ -275,7 +237,7 @@ cercle_circonscrit :: fonc (triangle: Triangle) -> Cercle
 // OP, le segment alant de l'origine au point
 // OPi, le segment allant de l'origine au point inversé
 // r, le rayon du cercle
-inverse :: fonc (cercle_d_inversion: Cercle, point: Point) -> Point
+inverse :: fonc (cercle_d_inversion: Cercle, point: Point2D) -> Point2D
 {
     // Pi = O + OP / |OP| * distance
     // distance = r² / |OP|
@@ -291,9 +253,9 @@ inverse :: fonc (cercle_d_inversion: Cercle, point: Point) -> Point
     retourne cercle_d_inversion.origine + OP / l_OP * (rr / l_OP)
 }
 
-point_d_intersection :: fonc (o1: Point, p1: Point, o2: Point, p2: Point) -> bool, Point
+point_d_intersection :: fonc (o1: Point2D, p1: Point2D, o2: Point2D, p2: Point2D) -> bool, Point2D
 {
-    résultat : Point
+    résultat : Point2D
 
     x := o2 - o1
     d1 := p1 - o1

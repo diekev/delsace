@@ -6,6 +6,8 @@ fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_stati
 
 fonction compilatrice_module_courant() -> Module *
 
+fonction compilatrice_pointeur_module_pour_code(NoeudCode * code) -> Module *
+
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 
 fonction compilatrice_module_pour_code(NoeudCode * code) -> chaine_statique

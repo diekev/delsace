@@ -19,13 +19,16 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+find_package(Alembic REQUIRED)
+
 set(NOM_PROJET alembic)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-    /opt/lib/alembic/include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${ALEMBIC_INCLUDE_DIR}
     /opt/lib/openexr/include/
     /opt/lib/openexr/include/OpenEXR
+    /opt/lib/openexr/include/Imath
 )
 
 set(BIBLIOTHEQUES
@@ -33,23 +36,23 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-  AbcKuri/alembic_archive.cc
-  AbcKuri/alembic_export.cc
-  AbcKuri/alembic_import.cc
-  AbcKuri/utilitaires.cc
+    AbcKuri/alembic_archive.cc
+    AbcKuri/alembic_export.cc
+    AbcKuri/alembic_import.cc
+    AbcKuri/utilitaires.cc
 
-  alembic_ipa_c.cc
+    alembic_ipa_c.cc
 
-  AbcKuri/alembic_archive.hh
-  AbcKuri/alembic_export.hh
-  AbcKuri/alembic_import.hh
-  AbcKuri/utilitaires.hh
+    AbcKuri/alembic_archive.hh
+    AbcKuri/alembic_export.hh
+    AbcKuri/alembic_import.hh
+    AbcKuri/utilitaires.hh
 
-  alembic.h
-  alembic_ipa_c.h
-  alembic_types.h
+    alembic.h
+    alembic_ipa_c.h
+    alembic_types.h
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
 # À FAIRE : depends alembic_types.h

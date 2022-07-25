@@ -14,7 +14,7 @@
     }
 
     serveuse.rappel_quand_ouverture(quand_ouverture)
-    serveuse.rappel_quand_lecture(quand_lecture)
+    serveuse.rappel_quand_données_reçues(quand_données_reçues)
 
     serveuse.lance()
 
@@ -25,6 +25,7 @@
 
 importe ConnexionTCP
 importe Internet
+importe SysFichier
 
 /*
 
@@ -57,7 +58,7 @@ ServeuseTCP :: struct {
 
 crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> ServeuseTCP
 {
-    serveuse: ServeuseTCP(T)
+    serveuse: ServeuseTCP
 
     boucle_évènements := crée_boucle()
     ctx := crée_contexte_vide(boucle_évènements, T)
@@ -82,6 +83,11 @@ détruit_serveuse :: fonc (serveuse: *ServeuseTCP)
 {
     détruit_boucle(serveuse.boucle_évènements)
     détruit_contexte(serveuse.ctx)
+}
+
+données_utilisateur :: fonc (serveuse: *ServeuseTCP, $T: type_de_données) -> *T
+{
+    retourne serveuse.ctx.données_utilisateur(T)
 }
 
 lance :: fonc (serveuse: *ServeuseTCP)

@@ -235,7 +235,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                     }
                     case AtomeValeurConstante::Valeur::Genre::CARACTERE:
                     {
-                        os << valeur_constante->valeur.valeur_reelle;
+                        os << valeur_constante->valeur.valeur_entiere;
                         break;
                     }
                     case AtomeValeurConstante::Valeur::Genre::INDEFINIE:

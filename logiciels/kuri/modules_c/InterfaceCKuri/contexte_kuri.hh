@@ -45,7 +45,7 @@ struct ContexteKuri {
 
 #ifdef __cplusplus
 template <typename T, typename... Args>
-T *kuri_loge(ContexteKuri *ctx_kuri, Args &&... args)
+T *kuri_loge(ContexteKuri *ctx_kuri, Args &&...args)
 {
     T *ptr = static_cast<T *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof(T)));
     new (ptr) T(args...);

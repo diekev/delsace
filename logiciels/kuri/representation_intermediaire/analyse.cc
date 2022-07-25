@@ -66,9 +66,10 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
         if (bloc_courant->instructions.est_vide()) {
             // À FAIRE : précise en quoi une instruction de retour manque.
             espace
-                .rapporte_erreur(atome->decl,
-                                 "Alors que je traverse tous les chemins possibles à travers une "
-                                 "fonction, j'ai trouvé qui ne retourne pas de la fonction.")
+                .rapporte_erreur(
+                    atome->decl,
+                    "Alors que je traverse tous les chemins possibles à travers une "
+                    "fonction, j'ai trouvé un chemin qui ne retourne pas de la fonction.")
                 .ajoute_message("Erreur : instruction de retour manquante !");
             return false;
         }
@@ -524,6 +525,96 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace,
 
 /* ******************************************************************************************** */
 
+static void marque_blocs_atteignables(Bloc *racine)
+{
+    kuri::ensemble<Bloc *> blocs_visites;
+    kuri::file<Bloc *> a_visiter;
+
+    a_visiter.enfile(racine);
+
+    while (!a_visiter.est_vide()) {
+        auto bloc_courant = a_visiter.defile();
+
+        if (blocs_visites.possede(bloc_courant)) {
+            continue;
+        }
+
+        bloc_courant->est_atteignable = true;
+        blocs_visites.insere(bloc_courant);
+
+        POUR (bloc_courant->enfants) {
+            a_visiter.enfile(it);
+        }
+    }
+}
+
+static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
+{
+    POUR (fonction_et_blocs.blocs) {
+        if (it->instructions.taille() != 1 || it->parents.taille() == 0) {
+            continue;
+        }
+
+        auto di = it->instructions.derniere();
+
+        if (di->est_branche()) {
+            auto branche = di->comme_branche();
+
+            for (auto parent : it->parents) {
+                auto di_parent = parent->instructions.derniere();
+
+                if (di_parent->est_branche()) {
+                    di_parent->comme_branche()->label = branche->label;
+
+                    it->enfants[0]->remplace_parent(it, parent);
+                    parent->enleve_enfant(it);
+                }
+                else if (di_parent->est_branche_cond()) {
+                    auto branche_cond = di_parent->comme_branche_cond();
+                    if (branche_cond->label_si_vrai == it->label) {
+                        branche_cond->label_si_vrai = branche->label;
+                        it->enfants[0]->remplace_parent(it, parent);
+                        parent->enleve_enfant(it);
+                    }
+                    if (branche_cond->label_si_faux == it->label) {
+                        branche_cond->label_si_faux = branche->label;
+                        it->enfants[0]->remplace_parent(it, parent);
+                        parent->enleve_enfant(it);
+                    }
+                }
+            }
+        }
+    }
+
+    kuri::tableau<Bloc *, int> nouveaux_blocs;
+    nouveaux_blocs.reserve(fonction_et_blocs.blocs.taille());
+
+    marque_blocs_atteignables(fonction_et_blocs.blocs[0]);
+
+    POUR (fonction_et_blocs.blocs) {
+        if (!it->est_atteignable) {
+            continue;
+        }
+
+        nouveaux_blocs.ajoute(it);
+    }
+
+    auto fonction = fonction_et_blocs.fonction;
+    int decalage_instruction = 0;
+    POUR (nouveaux_blocs) {
+        fonction->instructions[decalage_instruction++] = it->label;
+
+        for (auto inst : it->instructions) {
+            fonction->instructions[decalage_instruction++] = inst;
+        }
+    }
+
+    fonction->instructions.redimensionne(decalage_instruction);
+    fonction_et_blocs.blocs = nouveaux_blocs;
+}
+
+/* ******************************************************************************************** */
+
 /* Performe différentes analyses de la RI. Ces analyses nous servent à valider un peu plus la
  * structures du programme. Nous pourrions les faire lors de la validation sémantique, mais ce
  * serait un peu plus complexe car l'arbre syntaxique, contrairement à la RI, a plus de cas
@@ -543,6 +634,8 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
     if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
         return;
     }
+
+    supprime_blocs_vides(fonction_et_blocs);
 
 #ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
     if (!detecte_declarations_inutilisees(espace, atome)) {

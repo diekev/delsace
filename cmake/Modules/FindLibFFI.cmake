@@ -26,7 +26,7 @@ find_path(LIBFFI_INCLUDE_DIR
 	    ffi.h ffitarget.h
 	HINTS
 	    ${_libffi_SEARCH_DIRS}
-	PATH_SULIBFFIXES
+        PATH_SUFFIXES
 		include
 )
 
@@ -35,14 +35,14 @@ find_library(LIBFFI_LIBRARY
 	    ffi
 	HINTS
 	    ${_libffi_SEARCH_DIRS}
-	PATH_SULIBFFIXES
+        PATH_SUFFIXES
 		lib64 lib
 )
 
 # handle the QUIETLY and REQUIRED arguments and set LIBFFI_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LIBFFI DEFAULT_MSG
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibFFI DEFAULT_MSG
 	LIBFFI_LIBRARY LIBFFI_INCLUDE_DIR)
 
 if(LIBFFI_FOUND)
