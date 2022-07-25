@@ -319,6 +319,9 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
             return Attente::sur_type(type_de);
         }
+        if (compilatrice.typeuse.type_annotation == nullptr) {
+            return Attente::sur_interface_kuri(ID::AnnotationCode);
+        }
         return TypeTransformation::CONSTRUIT_EINI;
     }
 

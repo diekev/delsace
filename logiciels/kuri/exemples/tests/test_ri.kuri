@@ -515,7 +515,7 @@ test_alloc_tableau :: fonc(n: z32) -> rien
 
 test_logement :: fonc() -> rien
 {
-    printf("allocatrice : %p\n".pointeur, contexte.allocatrice)
+    printf("allocatrice : %p\n".pointeur, contexte().allocatrice)
     test_alloc_scalaire()
     test_alloc_chaine()
     test_alloc_tableau(1024)
@@ -572,9 +572,9 @@ principale :: fonc() -> z32
 
     // -------------
 
-    printf("données alloc : %p\n".pointeur, contexte.données_allocatrice)
+    printf("données alloc : %p\n".pointeur, contexte().données_allocatrice)
 
-    stockage_temporaire := contexte.stockage_temporaire
+    stockage_temporaire := contexte().stockage_temporaire
     printf("Stockage temporaire : %p\n".pointeur, stockage_temporaire)
     printf("-- données          : %p\n".pointeur, stockage_temporaire.données)
 

@@ -323,3 +323,8 @@ crée_contexte_vide :: fonc (boucle_évènements: *Boucle, options: *OptionsCré
     initialise_rappels_pour_contexte_vide(ctx)
     retourne ctx
 }
+
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+{
+    retourne crée_contexte_vide(boucle_évènements, nul, T)
+}

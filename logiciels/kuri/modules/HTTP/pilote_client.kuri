@@ -1,0 +1,187 @@
+/* Un PiloteClienteHTTP est un objet utilisé pour se communiquer avec un serveur HTTP.
+ * Le pilote connait les chemins et paramètres des requêtes et permet d'avoir une IPA
+ * vers le service.
+ * Le code des pilotes peut être soit généré lors de la compilation du service, via
+ * la génération d'interface, soit écris manuellement.
+ * Les pilotes écris manuellement doivent dérivé de PiloteClienteHTTP.
+ */
+
+importe CodecDonnées
+importe Fondation
+importe Internet
+importe SysFichier
+
+MéthodeHTTP :: énum {
+    GET
+    POST
+    PUT
+    HEAD
+    UPDATE
+    DELETE
+}
+
+chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
+{
+    discr méthode {
+        GET {
+            retourne "GET"
+        }
+        POST {
+            retourne "POST"
+        }
+        PUT {
+            retourne "PUT"
+        }
+        HEAD {
+            retourne "HEAD"
+        }
+        UPDATE {
+            retourne "UPDATE"
+        }
+        DELETE {
+            retourne "DELETE"
+        }
+    }
+}
+
+// ----------------------------------------
+
+// À FAIRE : gestionnaire de cookies pour déterminer les cookies à envoyer.
+GestionnaireCookie :: struct {
+    cookies: []Cookie
+}
+
+ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cookie)
+{
+
+}
+
+est_localhost :: fonc (uri: URI) -> bool
+{
+    si uri.hôte == "localhost" {
+        retourne vrai
+    }
+
+    // À FAIRE : vérifie si l'adresse IP pointe vers localhost
+    retourne faux
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
+cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> []Cookie
+{
+    // trouve les cookies qui n'ont pas périmés
+    // si le schéma est http, seuls les cookies non sûrs sont envoyés, sauf si le domaine est localhost
+    //
+
+    envoie_cookies_sécurisé := uri.schéma == "https" || est_localhost(uri)
+
+    résultat : []Cookie
+
+    pour gestionnaire.cookies {
+        // il faut savoir si le domain peut recevoir le cookie
+    }
+
+    retourne résultat
+}
+
+// ----------------------------------------
+
+PiloteClienteHTTP :: struct {
+    cookies: []Cookie
+    uri_serveur: URI
+}
+
+débute_requête :: fonc (pilote: &PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
+{
+    message : MessageClienteHTTP
+    message.méthode = chaine_pour_méthode(méthode)
+    message.uri = uri
+
+    pour pilote.cookies {
+        ajoute_cookie(*message, copie_cookie(it))
+    }
+
+    retourne message
+}
+
+ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulaire: eini)
+{
+    chn := encode_format_url(formulaire)
+
+    message.ajoute_entête("Content-Type", "application/www-url-form-encoded")
+    // message.ajoute_entête("Content-Length", chn.taille)
+    // message.ajoute_contenu(chn)
+
+    message.contenu = chn
+}
+
+/* Envoie la requête de manière bloquante. */
+envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Résultat(MessageServeuseHTTP)
+{
+    message := chaine_pour_message_cliente(requête)
+    diffère déloge(message)
+
+    // ouvre_connexion serveuse
+    fichier := tente ouvre_connexion_serveur(requête.uri, vrai) piège err {
+        imprime("erreur : %\n", err)
+        retourne
+    }
+
+    tente écris(*fichier, message) piège err {
+        imprime("erreur : %\n", err)
+        retourne
+    }
+
+    // lis jusqu'à ce que nous n'ayons plus rien à lire
+    parseuse : ParseuseMessageServeuseHTTP
+    // À FAIRE : gestion de la mémoire des messages
+    // diffère réinitialise(*parseuse)
+
+    boucle {
+        contenu := tente lis_tout(*fichier) piège err {
+            imprime("erreur : %\n", err)
+            retourne
+        }
+
+        ajourne_données(*parseuse, contenu)
+
+        déloge(contenu)
+
+        si message_est_erroné(*parseuse) {
+            imprime("Erreur de parsage dans le message\n")
+            retourne
+        }
+
+        si message_prêt_pour_finalisation(*parseuse) {
+            arrête
+        }
+    }
+
+    _ := ferme(*fichier)
+
+    retourne finalise_message(*parseuse)
+}
+
+traite_réponse :: fonc (pilote: &PiloteClienteHTTP, réponse: &MessageServeuseHTTP)
+{
+    pour réponse.entêtes {
+        si it.nom == "Set-Cookie" {
+            cookie := parse_cookie_serveur(it.valeur)
+
+            saufsi fusionne_cookie(*pilote.cookies, cookie) {
+                détruit_cookie(cookie)
+            }
+        }
+    }
+}
+
+envoie_requête_et_traite_réponse :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Résultat(MessageServeuseHTTP)
+{
+    discr pilote.envoie_requête(requête) {
+        Quelque(réponse) {
+            pilote.traite_réponse(réponse)
+            retourne réponse
+        }
+        sinon {}
+    }
+}

@@ -52,6 +52,37 @@ struct DonneesExecution {
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
+    long instructions_executees = 0;
+};
+
+struct EchantillonProfilage {
+    FrameAppel frames[TAILLE_FRAMES_APPEL];
+    int profondeur_frame_appel = 0;
+    int poids = 0;
+};
+
+struct InformationProfilage {
+    MetaProgramme *metaprogramme = nullptr;
+    kuri::tableau<EchantillonProfilage> echantillons{};
+};
+
+struct PaireEnchantillonFonction {
+    AtomeFonction *fonction = nullptr;
+    int nombre_echantillons = 0;
+};
+
+enum class FormatRapportProfilage : int;
+
+struct Profileuse {
+    kuri::tableau<InformationProfilage> informations_pour_metaprogrammes{};
+
+    InformationProfilage &informations_pour(MetaProgramme *metaprogramme);
+
+    void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
+
+    void cree_rapports(FormatRapportProfilage format);
+
+    void cree_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
 };
 
 struct MachineVirtuelle {
@@ -90,8 +121,11 @@ struct MachineVirtuelle {
 
     int nombre_de_metaprogrammes_executes = 0;
     double temps_execution_metaprogammes = 0;
+    long instructions_executees = 0;
 
     MetaProgramme *m_metaprogramme = nullptr;
+
+    Profileuse profileuse{};
 
   public:
     bool stop = false;
@@ -123,10 +157,10 @@ struct MachineVirtuelle {
 
   private:
     template <typename T>
-    void empile(NoeudExpression *site, T valeur);
+    inline void empile(NoeudExpression *site, T valeur);
 
     template <typename T>
-    T depile(NoeudExpression *site);
+    inline T depile(NoeudExpression *site);
 
     void depile(NoeudExpression *site, long n);
 
@@ -142,15 +176,17 @@ struct MachineVirtuelle {
                                 NoeudExpression *site,
                                 ResultatInterpretation &resultat);
 
-    void empile_constante(NoeudExpression *site, FrameAppel *frame);
+    inline void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
     void installe_metaprogramme(MetaProgramme *metaprogramme);
 
-    void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
+    void desinstalle_metaprogramme(MetaProgramme *metaprogramme, int compte_executees);
 
-    ResultatInterpretation execute_instructions();
+    ResultatInterpretation execute_instructions(int &compte_executees);
 
     void imprime_trace_appel(NoeudExpression *site);
+
+    void rapporte_erreur_execution(NoeudExpression *site, kuri::chaine_statique message);
 
     bool adresse_est_assignable(void *adresse);
 

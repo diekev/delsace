@@ -27,6 +27,15 @@ compile_pour_débogage :: fonc ()
     compilatrice_ajourne_options(options)
 }
 
+compile_pour_débogage_avec_asan :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    options.utilise_asan = vrai
+    compilatrice_ajourne_options(options)
+}
+
 compile_pour_profilage :: fonc ()
 {
     options := compilatrice_obtiens_options()
@@ -144,10 +153,6 @@ fonction_n_a_qu_un_seul_paramètre :: fonc (fonction: *NoeudCodeEntêteFonction)
         retourne faux
     }
 
-    si fonction.params[0].type == info_de(ContexteProgramme) {
-        retourne fonction.params.taille == 2
-    }
-
     retourne fonction.params.taille == 1
 }
 
@@ -160,19 +165,11 @@ fonction_ne_retourne_que :: fonc (fonction: *NoeudCodeEntêteFonction, type_à_r
     retourne fonction.params_sorties[0].type == type_à_retourner
 }
 
-type_premier_paramètre_sans_contexte :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoType
+type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoType
 {
     si entête.params.taille == 0 {
         retourne nul
     }
 
-    si entête.params[0].type != info_de(ContexteProgramme) {
-        retourne entête.params[0].type
-    }
-
-    si entête.params.taille < 2 {
-        retourne nul
-    }
-
-    retourne entête.params[1].type
+    retourne entête.params[0].type
 }

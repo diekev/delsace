@@ -49,11 +49,13 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration const *decl)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+                                   NoeudDeclaration const *decl,
+                                   NoeudBloc *bloc_final)
 {
     auto bloc_courant = bloc;
 
-    while (bloc_courant != nullptr) {
+    while (bloc_courant != bloc_final) {
         auto membres = bloc_courant->membres.verrou_lecture();
         bloc_courant->nombre_recherches += 1;
         POUR (*membres) {
@@ -109,7 +111,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
     return decl;
 }
 
-void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc *bloc,
                                    IdentifiantCode const *ident)
 {
@@ -128,7 +130,7 @@ void trouve_declarations_dans_bloc(dls::tablet<NoeudDeclaration *, 10> &declarat
     }
 }
 
-void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10> &declarations,
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                              NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
@@ -137,6 +139,29 @@ void trouve_declarations_dans_bloc_ou_module(dls::tablet<NoeudDeclaration *, 10>
 
     /* cherche dans les modules importés */
     pour_chaque_element(fichier->modules_importes, [&](auto &module) {
+        trouve_declarations_dans_bloc(declarations, module->bloc, ident);
+        return kuri::DecisionIteration::Continue;
+    });
+}
+
+void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+                                             kuri::ensemblon<Module const *, 10> &modules_visites,
+                                             NoeudBloc *bloc,
+                                             IdentifiantCode const *ident,
+                                             Fichier const *fichier)
+{
+    if (!modules_visites.possede(fichier->module)) {
+        trouve_declarations_dans_bloc(declarations, bloc, ident);
+    }
+
+    modules_visites.insere(fichier->module);
+
+    /* cherche dans les modules importés */
+    pour_chaque_element(fichier->modules_importes, [&](auto &module) {
+        if (modules_visites.possede(module)) {
+            return kuri::DecisionIteration::Continue;
+        }
+        modules_visites.insere(module);
         trouve_declarations_dans_bloc(declarations, module->bloc, ident);
         return kuri::DecisionIteration::Continue;
     });
@@ -161,6 +186,19 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
     }
 
     return nullptr;
+}
+
+bool bloc_est_dans_differe(NoeudBloc const *bloc)
+{
+    while (bloc->bloc_parent) {
+        if (bloc->appartiens_a_differe) {
+            return true;
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return false;
 }
 
 NoeudExpression *derniere_instruction(NoeudBloc const *b)

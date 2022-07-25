@@ -13,6 +13,7 @@ crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
     image.tampon = loge_tableau(Couleur.Couleur, largeur * hauteur)
+    image.tampon.taille = largeur * hauteur
     image.largeur = largeur
     image.hauteur = hauteur
 
@@ -31,7 +32,7 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     }
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur.Couleur
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> Couleur.Couleur
 {
     x := pos.x * image.largeur comme r32
     y := pos.y * image.hauteur comme r32
@@ -50,11 +51,70 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
 charge "interface_image"
 
 liboiio :: #bibliothèque "OpenImageIO"
+liboiio_util :: #bibliothèque "OpenImageIO_Util"
+
+#dépendance_bibliothèque liboiio liboiio_util
 #dépendance_bibliothèque libimage liboiio
+
+nombre_éléments_données :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur * image.nombre_composants
+}
+
+alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
+{
+    image : ImageIO
+    image.hauteur = hauteur
+    image.largeur = largeur
+    image.nombre_composants = composants
+
+    données := loge_tableau(r32, image.nombre_éléments_données())
+    image.donnees = données.pointeur
+
+    retourne image
+}
+
+détruit_image :: fonc (image: &ImageIO)
+{
+    tableau : []r32 = ---
+    tableau.pointeur = image.données
+    tableau.taille = image.nombre_éléments_données()
+    déloge(tableau)
+
+    image.données = nul
+    image.hauteur = 0
+    image.largeur = 0
+    image.composants = 0
+}
+
+nombre_de_pixels :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur
+}
+
+pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> []T
+{
+    tableau : []T = ---
+    tableau.pointeur = image.donnees comme *T
+    tableau.taille = image.hauteur * image.largeur
+    retourne tableau
+}
+
+pixel_à_la_position :: fonc (image: ImageIO, x: z32, y: z32, $T: type_de_données) -> *T
+{
+    index := y * image.nombre_composants * image.largeur + x * image.nombre_composants
+    retourne *image.donnees[index] comme *T
+}
+
+premier_pixel_ligne :: fonc (image: ImageIO, y: z32, $T: type_de_données) -> *T
+{
+    décalage := y * image.nombre_composants * image.largeur
+    retourne *image.donnees[décalage] comme *T
+}
 
 écris_image :: fonc (chemin: chaine, image: ImageIO)
 {
-    _ := IMG_ecris_image(crée_chaine_c_temp(chemin), *image)
+    _ := IMG_ecris_image(crée_chaine_c_temp(chemin) comme *z8, *image)
 }
 
 calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
@@ -143,7 +203,7 @@ blurHashForPixels :: fonc (
             actualMaximumValue = max(abs(ac[i]), actualMaximumValue)
         }
 
-		quantisedMaximumValue := max(0, min(82, sol(actualMaximumValue * 166.0 - 0.5) comme z32))
+		quantisedMaximumValue := max(0, min(82, plancher(actualMaximumValue * 166.0 - 0.5) comme z32))
 		maximumValue = (quantisedMaximumValue + 1) comme r32 / 166.0
 		ptr = encode_int(quantisedMaximumValue, 1, ptr)
 	}

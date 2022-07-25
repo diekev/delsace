@@ -46,9 +46,13 @@ struct Bloc {
     /* les variables utilisées dans ce bloc */
     kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
 
+    bool est_atteignable = false;
+
     void ajoute_enfant(Bloc *enfant);
 
     void remplace_enfant(Bloc *enfant, Bloc *par);
+
+    void remplace_parent(Bloc *parent, Bloc *par);
 
     void enleve_parent(Bloc *parent);
 
@@ -77,6 +81,11 @@ void construit_liste_variables_utilisees(Bloc *bloc);
 
 Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label);
 
-kuri::tableau<Bloc *, int> convertis_en_blocs(ConstructriceRI &constructrice,
-                                              AtomeFonction *atome_fonc,
-                                              kuri::tableau<Bloc *, int> &blocs___);
+struct FonctionEtBlocs {
+    AtomeFonction *fonction = nullptr;
+    kuri::tableau<Bloc *, int> blocs{};
+
+    ~FonctionEtBlocs();
+};
+
+FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc);

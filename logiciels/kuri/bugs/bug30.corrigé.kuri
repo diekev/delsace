@@ -5,9 +5,6 @@ importe Support
 
 principale :: fonc () -> z32
 {
-    erreur_survenue := #exécute compile_script_erroné("
     x : z32 := 0
-    ")
-    imprime_succès(erreur_survenue)
     retourne 0
 }

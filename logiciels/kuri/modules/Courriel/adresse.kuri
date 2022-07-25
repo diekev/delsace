@@ -17,7 +17,7 @@ est_valide :: fonc (courriel: &AdresseCourriel) -> bool
 /* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
 parse_courriel_pour_info_type :: fonc (chn: chaine) -> bool, AdresseCourriel
 {
-    courriel := parse_adresse_courriel(chn)
+    courriel := parse_adresse_courriel(copie_chaine(chn))
     retourne courriel.est_valide(), courriel
 } @ParsageURL @ParsageJSON
 
@@ -53,12 +53,11 @@ génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonn�
     retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet)
 }
 
-rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, ptr: *AdresseCourriel)
 {
     adresse := génère_adresse_courriel_aléatoire(génératrice)
-    ptr := mémoire(valeur.pointeur comme **AdresseCourriel)
     mémoire(ptr) = adresse
-}
+} @FonctionGNA
 
 // -----------------------------------------------------
 // Parsage.

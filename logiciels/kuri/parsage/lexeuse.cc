@@ -691,10 +691,7 @@ void Lexeuse::performe_lexage()
     }
 
     if (m_taille_mot_courant != 0) {
-        rapporte_erreur("Des caractères en trop se trouvent à la fin du texte !",
-                        m_position_ligne,
-                        m_position_ligne,
-                        m_position_ligne + 1);
+        this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
     }
 
 #undef CAS_CARACTERE
@@ -1517,15 +1514,4 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
 
     m_taille_mot_courant = 0;
     m_dernier_id = GenreLexeme::NOMBRE_REEL;
-}
-
-SiteSource SiteSource::cree(const Fichier *fichier, const Lexeme *lexeme)
-{
-    SiteSource site;
-    site.fichier = fichier;
-    site.index_ligne = lexeme->ligne;
-    site.index_colonne = lexeme->colonne;
-    site.index_colonne_min = site.index_colonne;
-    site.index_colonne_max = static_cast<int>(site.index_colonne + lexeme->chaine.taille());
-    return site;
 }

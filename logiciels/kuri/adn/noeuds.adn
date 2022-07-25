@@ -393,6 +393,9 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	chaine nom_broye_
 
 	Monomorphisations *monomorphisations
+  /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
+   * dans le contexte du site. */
+  NoeudExpression *site_monomorphisation
 
   Annotation [] annotations [code copie]
 
@@ -599,6 +602,8 @@ struct NoeudBloc : NoeudExpression {
 
 	// NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
 	NoeudExpression *appartiens_a_boucle
+        // À FAIRE: utilisation de variant
+        NoeudExpression *appartiens_a_differe
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées

@@ -24,11 +24,12 @@
 
 #include "optimisations.hh"
 
-#include "biblinternes/structures/tablet.hh"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "structures/table_hachage.hh"
+#include "structures/tablet.hh"
 
 #include "analyse.hh"
 #include "bloc_basique.hh"
@@ -83,7 +84,7 @@ enum {
 
 struct CopieuseInstruction {
   private:
-    std::map<Atome *, Atome *> copies{};
+    kuri::table_hachage<Atome *, Atome *> copies{"Instructions copiées"};
     ConstructriceRI &constructrice;
 
   public:
@@ -93,7 +94,7 @@ struct CopieuseInstruction {
 
     void ajoute_substitution(Atome *a, Atome *b)
     {
-        copies.insert({a, b});
+        copies.insere(a, b);
     }
 
     kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
@@ -103,7 +104,7 @@ struct CopieuseInstruction {
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.find(it) != copies.end()) {
+            if (!it->est_label() && copies.possede(it)) {
                 continue;
             }
 
@@ -126,9 +127,10 @@ struct CopieuseInstruction {
 
         auto inst = atome->comme_instruction();
 
-        auto iter = copies.find(inst);
-        if (iter != copies.end()) {
-            return iter->second;
+        auto trouvee = false;
+        auto valeur = copies.trouve(inst, trouvee);
+        if (trouvee) {
+            return valeur;
         }
 
         auto nouvelle_inst = static_cast<Instruction *>(nullptr);
@@ -267,7 +269,7 @@ struct CopieuseInstruction {
 
         if (nouvelle_inst) {
             nouvelle_inst->type = inst->type;
-            copies.insert({inst, nouvelle_inst});
+            ajoute_substitution(inst, nouvelle_inst);
         }
 
         return nouvelle_inst;
@@ -381,7 +383,7 @@ struct Substitutrice {
         SubstitutDans substitut_dans = SubstitutDans::TOUT;
     };
 
-    dls::tablet<DonneesSubstitution, 16> substitutions{};
+    kuri::tablet<DonneesSubstitution, 16> substitutions{};
 
   public:
     void ajoute_substitution(Atome *original, Atome *substitut, SubstitutDans substitut_dans)
@@ -750,8 +752,8 @@ static bool operandes_sont_constantes(InstructionOpBinaire *op)
 
 static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *, int> &instructions)
 {
-    dls::tablet<std::pair<Atome *, Atome *>, 16> dernieres_valeurs;
-    dls::tablet<InstructionAccedeMembre *, 16> acces_membres;
+    kuri::tablet<std::pair<Atome *, Atome *>, 16> dernieres_valeurs;
+    kuri::tablet<InstructionAccedeMembre *, 16> acces_membres;
 
     auto renseigne_derniere_valeur = [&](Atome *ptr, Atome *valeur) {
         if (log_actif) {
@@ -884,7 +886,7 @@ bool propage_constantes_et_temporaires(kuri::tableau<Bloc *, int> &blocs)
 static void determine_assignations_inutiles(Bloc *bloc)
 {
     using paire_atomes = std::pair<Atome *, InstructionStockeMem *>;
-    auto anciennes_valeurs = dls::tablet<paire_atomes, 16>();
+    auto anciennes_valeurs = kuri::tablet<paire_atomes, 16>();
 
     auto indique_valeur_chargee = [&](Atome *atome) {
         POUR (anciennes_valeurs) {
@@ -1489,16 +1491,11 @@ void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
     // while (enligne_fonctions(constructrice, atome_fonc)) {}
     enligne_fonctions(constructrice, atome_fonc);
 
-    kuri::tableau<Bloc *, int> blocs___{};
-    auto blocs = convertis_en_blocs(constructrice, atome_fonc, blocs___);
+    auto fonction_et_blocs = convertis_en_blocs(atome_fonc);
 
-    performe_passes_optimisation(blocs);
+    performe_passes_optimisation(fonction_et_blocs.blocs);
 
-    transfere_instructions_blocs(blocs, atome_fonc);
-
-    POUR (blocs___) {
-        memoire::deloge("Bloc", it);
-    }
+    transfere_instructions_blocs(fonction_et_blocs.blocs, atome_fonc);
 
     desactive_log();
 }

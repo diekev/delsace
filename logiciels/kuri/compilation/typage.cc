@@ -34,7 +34,10 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "graphe_dependance.hh"
 #include "operateurs.hh"
+
 #include "statistiques/statistiques.hh"
+
+#include "structures/pile.hh"
 
 /* ************************************************************************** */
 
@@ -209,7 +212,7 @@ TypeReference::TypeReference(Type *type_pointe_) : TypeReference()
     type_pointe_->drapeaux |= POSSEDE_TYPE_REFERENCE;
 }
 
-TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie) : TypeFonction()
+TypeFonction::TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie) : TypeFonction()
 {
     this->types_entrees.reserve(static_cast<int>(entrees.taille()));
     POUR (entrees) {
@@ -784,7 +787,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     return type;
 }
 
-TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees)
+TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
+                                           kuri::tablet<Type *, 6> const &entrees)
 {
     if (it->types_entrees.taille() != entrees.taille()) {
         return nullptr;
@@ -802,7 +806,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *,
 // static int nombre_types_apparies = 0;
 // static int nombre_appels = 0;
 
-TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees,
+TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
                                      Type *type_sortie,
                                      bool ajoute_operateurs)
 {
@@ -907,7 +911,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     return type;
 }
 
-TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres)
+TypeUnion *Typeuse::union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres)
 {
     auto types_unions_ = types_unions.verrou_ecriture();
 
@@ -1012,7 +1016,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
     return type;
 }
 
-TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres)
+TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres)
 {
     auto types_tuples_ = types_tuples.verrou_ecriture();
 
@@ -1576,7 +1580,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     else if (type->genre == GenreType::FONCTION) {
         auto type_fonction = type->comme_fonction();
 
-        auto types_entrees = dls::tablet<Type *, 6>();
+        auto types_entrees = kuri::tablet<Type *, 6>();
         types_entrees.reserve(type_fonction->types_entrees.taille());
 
         POUR (type_fonction->types_entrees) {
@@ -1589,7 +1593,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     else if (type->genre == GenreType::TUPLE) {
         auto type_tuple = type->comme_tuple();
 
-        auto types_membres = dls::tablet<TypeCompose::Membre, 6>();
+        auto types_membres = kuri::tablet<TypeCompose::Membre, 6>();
 
         POUR (type_tuple->membres) {
             types_membres.ajoute({nullptr, normalise_type(typeuse, it.type)});
@@ -1734,7 +1738,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
 static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
 {
-    dls::tablet<kuri::chaine_statique, 6> noms;
+    kuri::tablet<kuri::chaine_statique, 6> noms;
 
     while (bloc) {
         if (bloc->ident) {
@@ -1830,4 +1834,105 @@ bool est_type_polymorphique(Type *type)
     }
 
     return false;
+}
+
+std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
+{
+    auto visites = kuri::ensemblon<Type *, 16>();
+    auto pile = kuri::pile<Type *>();
+
+    pour_chaque_element(types_utilises, [&pile](auto &type) {
+        pile.empile(type);
+        return kuri::DecisionIteration::Continue;
+    });
+
+    while (!pile.est_vide()) {
+        auto type_courant = pile.depile();
+
+        /* Les types variadiques ou pointeur nul peuvent avoir des types déréférencés nuls. */
+        if (!type_courant) {
+            continue;
+        }
+
+        if (visites.possede(type_courant)) {
+            continue;
+        }
+
+        visites.insere(type_courant);
+
+        if ((type_courant->drapeaux & drapeau) == 0) {
+            return Attente::sur_type(type_courant);
+        }
+
+        switch (type_courant->genre) {
+            case GenreType::POLYMORPHIQUE:
+            case GenreType::TUPLE:
+            case GenreType::EINI:
+            case GenreType::CHAINE:
+            case GenreType::RIEN:
+            case GenreType::BOOL:
+            case GenreType::OCTET:
+            case GenreType::TYPE_DE_DONNEES:
+            case GenreType::REEL:
+            case GenreType::ENTIER_CONSTANT:
+            case GenreType::ENTIER_NATUREL:
+            case GenreType::ENTIER_RELATIF:
+            case GenreType::ENUM:
+            case GenreType::ERREUR:
+            {
+                break;
+            }
+            case GenreType::FONCTION:
+            {
+                auto type_fonction = type_courant->comme_fonction();
+                POUR (type_fonction->types_entrees) {
+                    pile.empile(it);
+                }
+                pile.empile(type_fonction->type_sortie);
+                break;
+            }
+            case GenreType::UNION:
+            case GenreType::STRUCTURE:
+            {
+                auto type_compose = static_cast<TypeCompose *>(type_courant);
+                POUR (type_compose->membres) {
+                    pile.empile(it.type);
+                }
+                break;
+            }
+            case GenreType::REFERENCE:
+            {
+                pile.empile(type_courant->comme_reference()->type_pointe);
+                break;
+            }
+            case GenreType::POINTEUR:
+            {
+                pile.empile(type_courant->comme_pointeur()->type_pointe);
+                break;
+            }
+            case GenreType::VARIADIQUE:
+            {
+                pile.empile(type_courant->comme_variadique()->type_pointe);
+                break;
+            }
+            case GenreType::TABLEAU_DYNAMIQUE:
+            {
+                pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
+                break;
+            }
+            case GenreType::TABLEAU_FIXE:
+            {
+                pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
+                break;
+            }
+            case GenreType::OPAQUE:
+            {
+                pile.empile(type_courant->comme_opaque()->type_opacifie);
+                break;
+            }
+        }
+    }
+
+    return {};
 }

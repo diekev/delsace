@@ -97,10 +97,10 @@ principale :: fonc () -> z32
 
     allocatrice_gardée : AllocatriceGardée
     diffère imprime_liste_mémoire(*allocatrice_gardée)
-    // Il nous faut un logueur pour imprimer la liste de mémoire
-    contexte.logueur = mon_logueur
 
-    nouveau_contexte := contexte
+    // Il nous faut un logueur pour imprimer la liste de mémoire
+    nouveau_contexte := contexte()
+    nouveau_contexte.logueur = mon_logueur
     // l'allocation gardée a un certain coût...
     //nouveau_contexte.allocatrice = allocation_gardée
     //nouveau_contexte.données_allocatrice = *allocatrice_gardée

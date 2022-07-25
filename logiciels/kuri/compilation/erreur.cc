@@ -141,7 +141,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *b,
-                                    dls::tablet<ErreurAppariement, 10> const &erreurs)
+                                    kuri::tablet<ErreurAppariement, 10> const &erreurs)
 {
     auto e = espace.rapporte_erreur(
         b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
@@ -246,11 +246,6 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
                 e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == CONTEXTE_MANQUANT) {
-                e.ajoute_message("\tNe peut appeler une fonction avec contexte dans un bloc "
-                                 "n'ayant pas de contexte\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
             else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {

@@ -27,7 +27,6 @@
 #include <utility>
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
 #include "structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
@@ -385,7 +384,7 @@ struct AtomeFonction : public Atome {
     long decalage_appel_init_globale = 0;
 
     struct DonneesFonctionExterne {
-        dls::tablet<ffi_type *, 6> types_entrees{};
+        kuri::tablet<ffi_type *, 6> types_entrees{};
         ffi_cif cif{};
         void (*ptr_fonction)() = nullptr;
     };

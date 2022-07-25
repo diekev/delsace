@@ -5,6 +5,13 @@
 	mémoire(b) = temp;
 }
 
+permute :: fonc (a: &$T, b: &T) #enligne
+{
+    tmp : T = a
+    a = b
+    b = tmp
+}
+
 // Type pour représenter un résultat optionnel
 Résultat :: union ($T: type_de_données) {
     Quelque: T
@@ -46,4 +53,15 @@ possède_valeur :: fonc (résultat: Résultat($T)) -> bool #enligne
 			retourne faux
 		}
 	}
+}
+
+fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
+{
+    pour liste {
+        si valeur == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
 }

@@ -49,9 +49,9 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/pile.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/pile.hh"
 #include "structures/tableau.hh"
 
 using dls::outils::est_element;
@@ -208,7 +208,7 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
         dls::paire{dls::vue_chaine("float"), dls::vue_chaine("r32")},
         dls::paire{dls::vue_chaine("double"), dls::vue_chaine("r64")});
 
-    auto pile_morceaux = dls::pile<dls::chaine>();
+    auto pile_morceaux = kuri::pile<dls::chaine>();
 
     for (auto i = 0; i < morceaux.taille(); ++i) {
         auto &morceau = morceaux[i];
@@ -381,7 +381,7 @@ static dls::chaine converti_type(CXType const &cxtype,
                         decalage++;
                     }
 
-                    flux << " #nulctx fonc (";
+                    flux << " fonc (";
 
                     auto type_param = kuri::tableau<dls::chaine>();
 
@@ -776,7 +776,7 @@ struct TypedefTypeFonction {
 
     void imprime(std::ostream &os, dico_typedefs const &typedefs)
     {
-        os << nom_typedef << " :: #nulctx fonc ";
+        os << nom_typedef << " :: fonc ";
 
         auto virgule = "(";
 
@@ -1076,7 +1076,7 @@ struct Convertisseuse {
     /* pour les structures, unions, et énumérations anonymes */
     int nombre_anonymes = 0;
 
-    dls::pile<dls::chaine> noms_structure{};
+    kuri::pile<dls::chaine> noms_structure{};
 
     dico_typedefs typedefs{};
 
@@ -1213,7 +1213,12 @@ struct Convertisseuse {
                 else {
                     imprime_commentaire(cursor, flux_sortie);
                     auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                    if (nom != "ContexteKuri") {
+                    // À FAIRE : paramétrise ceci
+                    if (nom == "AdaptriceMaillage" || nom == "Interruptrice" ||
+                        nom == "ContexteEvaluation") {
+                        flux_sortie << "importe Géométrie3D\n\n";
+                    }
+                    else if (nom != "ContexteKuri") {
                         imprime_tab(flux_sortie);
                         flux_sortie << nom;
                         flux_sortie << " :: struct #externe;\n\n";
@@ -1271,7 +1276,7 @@ struct Convertisseuse {
                 auto enfants = rassemble_enfants(cursor);
 
                 if (!enfants.est_vide()) {
-                    flux_sortie << " := ";
+                    flux_sortie << " :: ";
                     converti_enfants(enfants, trans_unit, flux_sortie);
                 }
 

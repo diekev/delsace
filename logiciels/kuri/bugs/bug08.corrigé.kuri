@@ -2,8 +2,6 @@
 
 // Ne peut pas assigner une variable globale depuis une autre dans la coulisse C
 
-importe Support
-
 // Ceci vient de C.kuri
 // !!! ne pas oublier d'ajourner le fichier quand celà sera fait
 _PF_INET := 2
@@ -11,6 +9,8 @@ _AF_INET := _PF_INET
 
 principale :: fonc () -> z32
 {
-    imprime_succès(_AF_INET == _PF_INET)
+    saufsi _AF_INET == _PF_INET {
+        retourne 1
+    }
     retourne 0
 }

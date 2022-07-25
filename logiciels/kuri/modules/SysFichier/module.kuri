@@ -51,6 +51,17 @@ CheminFichier :: struct {
     chn : chaine
 }
 
+new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
+{
+    chm.chn = copie_chaine(chn)
+    retourne vrai
+} @Python "new"
+
+new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
+{
+    retourne copie_chaine(chm.chn)
+} @Python "str"
+
 construit_chemin :: fonc(chn : chaine) -> CheminFichier
 {
     chemin := CheminFichier( chn = chn )
@@ -675,6 +686,42 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
     }
 
     retourne vrai
+}
+
+nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
+{
+    pile : Pile(chaine)
+    diffère détruit(pile)
+    divise_et_empile_chemin(pile, chm)
+
+    /* Dépile le nom du fichier ou du fichier parent. */
+    _ := pile.dépile()
+
+    si pile.est_vide() {
+        retourne ""
+    }
+
+    retourne pile.dépile()
+}
+
+/* Retourne le nom du premier dossier après le dossier de base.
+ * Par exemple pour un chemin "/dossier1/dossier2", et une base "/dossier1",
+ * retourne "dossier2"
+ * À FAIRE : crée un test. */
+premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chaine
+{
+    chm.chn = avance(chm.chn, base.chn.taille)
+
+    pile: Pile(chaine)
+    diffère détruit(pile)
+
+    divise_et_empile_chemin(pile, chm)
+
+    tantque pile.taille() != 1 {
+        _ := pile.dépile()
+    }
+
+    retourne pile.dépile()
 }
 
 /*

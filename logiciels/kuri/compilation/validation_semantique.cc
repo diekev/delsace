@@ -24,25 +24,15 @@
 
 #include "validation_semantique.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/garde_portee.h"
-#include "biblinternes/structures/file_fixe.hh"
+#include "arbre_syntaxique/assembleuse.hh"
 
 #include "parsage/outils_lexemes.hh"
 
-#include "arbre_syntaxique/assembleuse.hh"
-#include "arbre_syntaxique/noeud_expression.hh"
-
-#include "broyage.hh"
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
-#include "monomorphisations.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
-#include "validation_expression_appel.hh"
-
-using dls::outils::possede_drapeau;
+#include "unite_compilation.hh"
 
 /* ************************************************************************** */
 
@@ -147,16 +137,6 @@ static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
     return Attente::sur_operateur(noeud);
 }
 
-static NoeudPousseContexte *trouve_pousse_contexte(NoeudBloc *bloc)
-{
-    POUR ((*bloc->expressions.verrou_ecriture())) {
-        if (it->est_pousse_contexte()) {
-            return it->comme_pousse_contexte();
-        }
-    }
-    return nullptr;
-}
-
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     NoeudDirectiveExecute *directive)
 {
@@ -167,8 +147,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
-    /* Le contexte sera ajouté via decl_creation_contexte de l'interface kuri. */
-    decl_entete->drapeaux |= FORCE_NULCTX;
+    m_tacheronne.assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+
     decl_entete->est_metaprogramme = true;
 
     // le type de la fonction est fonc () -> (type_expression)
@@ -211,12 +193,12 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
         decl_entete->param_sortie->type = type_expression;
     }
 
-    auto types_entrees = dls::tablet<Type *, 6>(0);
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
 
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(directive->lexeme, nullptr);
+    decl_corps->bloc = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
@@ -238,6 +220,13 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     }
 
     decl_corps->bloc->expressions->ajoute(expr_ret);
+
+    /* Bloc corps. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc paramètres. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc constantes. */
+    m_tacheronne.assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -314,9 +303,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (!corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(corps);
             }
-            auto pousse_contexte = trouve_pousse_contexte(corps->bloc);
             auto ajoute_fini = noeud->comme_ajoute_fini();
-            pousse_contexte->bloc->expressions->ajoute(ajoute_fini->expression);
+            corps->bloc->expressions->pousse_front(ajoute_fini->expression);
             ajoute_fini->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
@@ -333,9 +321,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (!corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(corps);
             }
-            auto pousse_contexte = trouve_pousse_contexte(corps->bloc);
             auto ajoute_init = noeud->comme_ajoute_init();
-            pousse_contexte->bloc->expressions->ajoute(ajoute_init->expression);
+            corps->bloc->expressions->pousse_front(ajoute_init->expression);
             ajoute_init->drapeaux |= DECLARATION_FUT_VALIDEE;
             break;
         }
@@ -427,17 +414,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
-            auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
-            auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille() + requiers_contexte);
-
-            if (requiers_contexte) {
-                types_entrees[0] = m_compilatrice.typeuse.type_contexte;
-            }
+            auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
 
             for (auto i = 0; i < decl->params.taille(); ++i) {
                 NoeudExpression *type_entree = decl->params[i];
 
-                if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte]) ==
+                if (resoud_type_final(type_entree, types_entrees[i]) ==
                     CodeRetourValidation::Erreur) {
                     return CodeRetourValidation::Erreur;
                 }
@@ -452,7 +434,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else {
-                dls::tablet<TypeCompose::Membre, 6> membres;
+                kuri::tablet<TypeCompose::Membre, 6> membres;
                 membres.reserve(decl->params_sorties.taille());
 
                 for (auto &type_declare : decl->params_sorties) {
@@ -721,7 +703,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 default:
                 {
-                    auto candidats = dls::tablet<OperateurCandidat, 10>();
+                    auto candidats = kuri::tablet<OperateurCandidat, 10>();
                     auto resultat = cherche_candidats_operateurs(
                         *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
                     if (resultat.has_value()) {
@@ -907,13 +889,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto enfant3 = inst->bloc;
             auto feuilles = enfant1->comme_virgule();
 
+            auto requiers_index = feuilles->expressions.taille() == 2;
+
             for (auto &f : feuilles->expressions) {
-                /* transforme les références en déclarations, nous faisons ça ici et non lors
+                /* Transforme les références en déclarations, nous faisons ça ici et non lors
                  * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
                  * les cas où nous avons une fonction polymorphique : les données des déclarations
-                 * ne sont pas copiées */
+                 * ne sont pas copiées.
+                 * Afin de ne pas faire de travail inutile, toutes les variables, saufs les
+                 * variables d'indexage ne sont pas initialisées. Les variables d'indexages doivent
+                 * l'être puisqu'elles sont directement testées avec la condition de fin de la
+                 * boucle.
+                 */
+                auto init = NoeudExpression::nul();
+                if (requiers_index && f != feuilles->expressions.derniere()) {
+                    init = m_tacheronne.assembleuse->cree_non_initialisation(f->lexeme);
+                }
+
                 f = m_tacheronne.assembleuse->cree_declaration_variable(
-                    f->comme_reference_declaration(), nullptr);
+                    f->comme_reference_declaration(), init);
                 auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
                 if (decl_f != nullptr) {
@@ -927,8 +921,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto variable = feuilles->expressions[0];
             inst->ident = variable->ident;
-
-            auto requiers_index = feuilles->expressions.taille() == 2;
 
             auto type = enfant2->type;
             if (type->est_opaque()) {
@@ -1305,91 +1297,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
              * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
              * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
              * avoir à attendre. */
-            auto visites = kuri::ensemblon<Type *, 16>();
-            auto pile = dls::pile<Type *>();
-            pile.empile(type);
+            kuri::ensemblon<Type *, 16> types_utilises;
+            types_utilises.insere(type);
+            auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
+                                                                         TYPE_FUT_VALIDE);
 
-            while (!pile.est_vide()) {
-                auto type_courant = pile.depile();
-
-                if (visites.possede(type_courant)) {
-                    continue;
-                }
-
-                visites.insere(type_courant);
-
-                if ((type_courant->drapeaux & TYPE_FUT_VALIDE) == 0 &&
-                    type_courant != racine_validation()->type) {
-                    return Attente::sur_type(type_courant);
-                }
-
-                switch (type_courant->genre) {
-                    case GenreType::POLYMORPHIQUE:
-                    case GenreType::TUPLE:
-                    case GenreType::EINI:
-                    case GenreType::CHAINE:
-                    case GenreType::RIEN:
-                    case GenreType::BOOL:
-                    case GenreType::OCTET:
-                    case GenreType::TYPE_DE_DONNEES:
-                    case GenreType::REEL:
-                    case GenreType::ENTIER_CONSTANT:
-                    case GenreType::ENTIER_NATUREL:
-                    case GenreType::ENTIER_RELATIF:
-                    case GenreType::ENUM:
-                    case GenreType::ERREUR:
-                    {
-                        break;
-                    }
-                    case GenreType::FONCTION:
-                    {
-                        auto type_fonction = type_courant->comme_fonction();
-                        POUR (type_fonction->types_entrees) {
-                            pile.empile(it);
-                        }
-                        pile.empile(type_fonction->type_sortie);
-                        break;
-                    }
-                    case GenreType::UNION:
-                    case GenreType::STRUCTURE:
-                    {
-                        auto type_compose = static_cast<TypeCompose *>(type_courant);
-                        POUR (type_compose->membres) {
-                            pile.empile(it.type);
-                        }
-                        break;
-                    }
-                    case GenreType::REFERENCE:
-                    {
-                        pile.empile(type_courant->comme_reference()->type_pointe);
-                        break;
-                    }
-                    case GenreType::POINTEUR:
-                    {
-                        pile.empile(type_courant->comme_pointeur()->type_pointe);
-                        break;
-                    }
-                    case GenreType::VARIADIQUE:
-                    {
-                        pile.empile(type_courant->comme_variadique()->type_pointe);
-                        break;
-                    }
-                    case GenreType::TABLEAU_DYNAMIQUE:
-                    {
-                        pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
-                        break;
-                    }
-                    case GenreType::TABLEAU_FIXE:
-                    {
-                        pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
-                        break;
-                    }
-                    case GenreType::OPAQUE:
-                    {
-                        pile.empile(type_courant->comme_opaque()->type_opacifie);
-                        break;
-                    }
-                }
+            if (attente_possible && attente_possible->est<AttenteSurType>() &&
+                attente_possible->type() != racine_validation()->type) {
+                return attente_possible.value();
             }
 
             expr->type = type;
@@ -1476,7 +1391,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            auto types_entrees = dls::tablet<Type *, 6>(1);
+            auto types_entrees = kuri::tablet<Type *, 6>(1);
             types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
 
             auto type_fonction = m_compilatrice.typeuse.type_fonction(
@@ -1559,6 +1474,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto inst = noeud->comme_pousse_contexte();
             auto variable = inst->expression;
+
+            if (m_compilatrice.typeuse.type_contexte == nullptr) {
+                return Attente::sur_interface_kuri(ID::ContexteProgramme);
+            }
+
+            if (!m_compilatrice.globale_contexte_programme_est_disponible()) {
+                static auto noeud_expr = NoeudExpressionReference();
+                noeud_expr.ident = ID::__contexte_fil_principal;
+                return Attente::sur_symbole(&noeud_expr);
+            }
+
+            if (!m_compilatrice.globale_contexte_programme->possede_drapeau(
+                    DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(m_compilatrice.globale_contexte_programme);
+            }
 
             if (variable->type != m_compilatrice.typeuse.type_contexte) {
                 espace
@@ -2036,16 +1966,11 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     // -----------------------------------
 
     TypeFonction *type_fonc = nullptr;
-    auto possede_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
     {
         CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (typage)");
 
-        dls::tablet<Type *, 6> types_entrees;
-        types_entrees.reserve(decl->params.taille() + possede_contexte);
-
-        if (possede_contexte) {
-            types_entrees.ajoute(m_compilatrice.typeuse.type_contexte);
-        }
+        kuri::tablet<Type *, 6> types_entrees;
+        types_entrees.reserve(decl->params.taille());
 
         POUR (decl->params) {
             types_entrees.ajoute(it->type);
@@ -2061,7 +1986,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
             }
         }
         else {
-            dls::tablet<TypeCompose::Membre, 6> membres;
+            kuri::tablet<TypeCompose::Membre, 6> membres;
             membres.reserve(decl->params_sorties.taille());
 
             for (auto &expr : decl->params_sorties) {
@@ -2130,7 +2055,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
         if (decl->params.taille() == 1) {
             auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
-            auto type1 = type_fonc->types_entrees[0 + possede_contexte];
+            auto type1 = type_fonc->types_entrees[0];
 
             for (auto i = 0; i < iter_op.taille(); ++i) {
                 auto op = &iter_op[i];
@@ -2151,8 +2076,8 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
             operateurs->ajoute_perso_unaire(decl->lexeme->genre, type1, type_resultat, decl);
         }
         else if (decl->params.taille() == 2) {
-            auto type1 = type_fonc->types_entrees[0 + possede_contexte];
-            auto type2 = type_fonc->types_entrees[1 + possede_contexte];
+            auto type1 = type_fonc->types_entrees[0];
+            auto type2 = type_fonc->types_entrees[1];
 
             for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre).plage()) {
                 if (op->type2 == type2) {
@@ -2192,6 +2117,19 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
                         if (it->ident != decl->ident) {
                             continue;
+                        }
+
+                        auto decl_it = it->comme_entete_fonction();
+
+                        /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans
+                         * celles-ci, afin de pouvoir comparer des fonctions externes même si elles
+                         * sont définies par des modules différents. */
+                        if (it->possede_drapeau(EST_EXTERNE) &&
+                            decl->possede_drapeau(EST_EXTERNE) &&
+                            decl_it->ident_bibliotheque == decl->ident_bibliotheque) {
+                            rapporte_erreur_redefinition_fonction(decl, it);
+                            eu_erreur = true;
+                            break;
                         }
 
                         if (it->type == decl->type) {
@@ -2281,7 +2219,7 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
 }
 
 static void rassemble_expressions(NoeudExpression *expr,
-                                  dls::tablet<NoeudExpression *, 6> &expressions)
+                                  kuri::tablet<NoeudExpression *, 6> &expressions)
 {
     if (expr == nullptr) {
         return;
@@ -2311,7 +2249,7 @@ struct VariableEtExpression {
 };
 
 static void rassemble_expressions(NoeudExpression *expr,
-                                  dls::tablet<VariableEtExpression, 6> &expressions)
+                                  kuri::tablet<VariableEtExpression, 6> &expressions)
 {
     /* pour les directives d'exécutions nous devons directement utiliser le résultat afin
      * d'éviter les problèmes si la substitution est une virgule (plusieurs résultats) */
@@ -2358,6 +2296,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 {
     auto type_fonc = fonction_courante()->type->comme_fonction();
     auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
+
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
 
     if (inst->expression == nullptr) {
         inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
@@ -2419,17 +2363,17 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::Erreur;
     }
 
-    dls::file_fixe<NoeudExpression *, 6> variables;
+    kuri::file_fixe<NoeudExpression *, 6> variables;
 
     POUR (fonction_courante()->params_sorties) {
         variables.enfile(it);
     }
 
     /* tri les expressions selon les noms */
-    dls::tablet<VariableEtExpression, 6> vars_et_exprs;
+    kuri::tablet<VariableEtExpression, 6> vars_et_exprs;
     rassemble_expressions(inst->expression, vars_et_exprs);
 
-    dls::tablet<NoeudExpression *, 6> expressions;
+    kuri::tablet<NoeudExpression *, 6> expressions;
     expressions.redimensionne(vars_et_exprs.taille());
 
     POUR (expressions) {
@@ -2509,7 +2453,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::OK;
     };
 
-    dls::tablet<DonneesAssignations, 6> donnees_retour;
+    kuri::tablet<DonneesAssignations, 6> donnees_retour;
 
     POUR (expressions) {
         DonneesAssignations donnees;
@@ -2604,7 +2548,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 	 * qu'un module soit nommé comme une structure dans celui-ci, donc une expression
 	 * du style X.X sera toujours erronnée.
 	 */
-	auto declarations = dls::tablet<NoeudDeclaration *, 10>();
+ auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
 	trouve_declarations_dans_bloc_ou_module(declarations, bloc_recherche, expr->ident, fichier);
 
 	if (declarations.taille() == 0) {
@@ -2627,7 +2571,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
 
     if (decl == nullptr) {
-        return Attente::sur_symbole(expr);
+        if (fonction_courante() && fonction_courante()->est_monomorphisation) {
+            auto site_monomorphisation = fonction_courante()->site_monomorphisation;
+
+            fichier = m_compilatrice.fichier(site_monomorphisation->lexeme->fichier);
+            decl = trouve_dans_bloc_ou_module(
+                site_monomorphisation->bloc_parent, expr->ident, fichier);
+        }
+        if (decl == nullptr) {
+            return Attente::sur_symbole(expr);
+        }
     }
 #endif
 
@@ -2678,6 +2631,16 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 
     if (decl->possede_drapeau(EST_CONSTANTE)) {
+        if (decl->est_declaration_variable()) {
+            auto valeur = decl->comme_declaration_variable()->valeur_expression;
+            /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
+             * avoir à s'en soucier plus tard. */
+            if (valeur.est_fonction()) {
+                decl = valeur.fonction();
+                expr->declaration_referee = decl;
+            }
+        }
+
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
@@ -2719,9 +2682,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, bloc_parent);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(
-        lexeme, fonction->bloc_constantes);
+    m_tacheronne.assembleuse->bloc_courant(bloc_parent);
+
+    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2739,7 +2703,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     fonction->params_sorties.ajoute(decl_sortie);
     fonction->param_sortie = decl_sortie;
 
-    auto types_entrees = dls::tablet<Type *, 6>(0);
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
 
     auto type_sortie = m_compilatrice.typeuse[TypeBase::CHAINE];
 
@@ -2749,6 +2713,9 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
+
+    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->depile_bloc();
 
     return metaprogramme;
 }
@@ -2829,11 +2796,6 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
                      /* Ignore les variables implicites des boucles « pour ». */
                      if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
-                         return DecisionVisiteNoeud::CONTINUE;
-                     }
-
-                     /* Le contexte peut ne pas être utilisé. */
-                     if (noeud->ident == ID::contexte) {
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
@@ -2945,26 +2907,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         entete = fonction;
     }
 
-    if (unite->index_courant == 0) {
-        auto requiers_contexte = !decl->entete->possede_drapeau(FORCE_NULCTX);
-
-        if (requiers_contexte) {
-            auto val_ctx = m_tacheronne.assembleuse->cree_reference_declaration(decl->lexeme);
-            val_ctx->type = m_compilatrice.typeuse.type_contexte;
-            val_ctx->bloc_parent = decl->bloc_parent;
-            val_ctx->ident = ID::contexte;
-
-            auto decl_ctx = m_tacheronne.assembleuse->cree_declaration_variable(decl->lexeme);
-            decl_ctx->bloc_parent = decl->bloc_parent;
-            decl_ctx->valeur = val_ctx;
-            decl_ctx->type = val_ctx->type;
-            decl_ctx->ident = val_ctx->ident;
-            decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            decl->bloc->membres->ajoute(decl_ctx);
-        }
-    }
-
     CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
 
     auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
@@ -3003,11 +2945,6 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
-        /* Le drapeaux nulctx est pour la génération de RI de l'entête, donc il
-         * faut le mettre après avoir validé le corps, la création d'un contexte
-         * au début de la fonction sera ajouté avant l'exécution du code donc il
-         * est possible d'utiliser le contexte dans le métaprogramme. */
-        entete->drapeaux |= FORCE_NULCTX;
         m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                              metaprogramme);
     }
@@ -3023,28 +2960,6 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
 {
     auto entete = decl->entete;
     decl->type = entete->type;
-
-    if (unite->index_courant == 0) {
-        auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
-
-        decl->bloc->membres->reserve(entete->params.taille() + requiers_contexte);
-
-        if (requiers_contexte) {
-            auto val_ctx = m_tacheronne.assembleuse->cree_reference_declaration(decl->lexeme);
-            val_ctx->type = m_compilatrice.typeuse.type_contexte;
-            val_ctx->bloc_parent = decl->bloc_parent;
-            val_ctx->ident = ID::contexte;
-
-            auto decl_ctx = m_tacheronne.assembleuse->cree_declaration_variable(decl->lexeme);
-            decl_ctx->bloc_parent = decl->bloc_parent;
-            decl_ctx->valeur = val_ctx;
-            decl_ctx->type = val_ctx->type;
-            decl_ctx->ident = val_ctx->ident;
-            decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            decl->bloc->membres->ajoute(decl_ctx);
-        }
-    }
 
     auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
     if (!est_ok(resultat_validation)) {
@@ -3695,6 +3610,12 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (it->possede_drapeau(EMPLOYE)) {
+            if (!it->type->est_structure()) {
+                espace->rapporte_erreur(it,
+                                        "Ne peut pas employer un type n'étant pas une structure");
+                return CodeRetourValidation::Erreur;
+            }
+
             type_struct->types_employes.ajoute(it->type->comme_structure());
             continue;
         }
@@ -3899,7 +3820,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "typage et redéfinition");
 
         POUR (decls_et_refs) {
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+            auto bloc_final = NoeudBloc::nul();
+            if (it.decl->possede_drapeau(EST_PARAMETRE) ||
+                it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
+                bloc_final = it.decl->bloc_parent->bloc_parent;
+            }
+            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
             if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
                 if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
@@ -4107,9 +4033,11 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
                 graphe->cree_noeud_globale(decl_var);
             }
-
-            auto bloc_parent = decl_var->bloc_parent;
-            bloc_parent->membres->ajoute(decl_var);
+            else {
+                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
+                auto bloc_parent = decl_var->bloc_parent;
+                bloc_parent->membres->ajoute(decl_var);
+            }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
         }
@@ -4147,7 +4075,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
     auto variable = inst->variable;
 
-    dls::file_fixe<NoeudExpression *, 6> variables;
+    kuri::file_fixe<NoeudExpression *, 6> variables;
 
     if (variable->est_virgule()) {
         auto virgule = variable->comme_virgule();
@@ -4173,7 +4101,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         variables.enfile(variable);
     }
 
-    dls::tablet<NoeudExpression *, 6> expressions;
+    kuri::tablet<NoeudExpression *, 6> expressions;
     rassemble_expressions(inst->expression, expressions);
 
     auto ajoute_variable = [this](DonneesAssignations &donnees,
@@ -4278,7 +4206,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         return CodeRetourValidation::OK;
     };
 
-    dls::tablet<DonneesAssignations, 6> donnees_assignations;
+    kuri::tablet<DonneesAssignations, 6> donnees_assignations;
 
     POUR (expressions) {
         if (it->est_non_initialisation()) {
@@ -4647,7 +4575,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
     type1 = enfant_expr->operande_droite->type;
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
@@ -4783,7 +4711,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
                 return Attente::sur_type(type_type2->type_connu);
             }
 
-            auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
+            auto membres = kuri::tablet<TypeCompose::Membre, 6>(2);
             membres[0] = {nullptr, type_type1->type_connu, ID::_0};
             membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 
@@ -4841,7 +4769,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         }
     }
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
@@ -4911,7 +4839,7 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
 
-    auto candidats = dls::tablet<OperateurCandidat, 10>();
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
     auto resultat = cherche_candidats_operateurs(
         *espace, type_bool, type_bool, type_op, candidats);
     if (resultat.has_value()) {

@@ -26,8 +26,13 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 
+#include "structures/ensemble.hh"
+#include "structures/file.hh"
+
+#include "bloc_basique.hh"
 #include "impression.hh"
 #include "instructions.hh"
 
@@ -36,37 +41,74 @@
 /* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
  * avoir une porte de sortie.
  *
- * À FAIRE(analyse_ri) : Il nous faudrait une structure en graphe afin de suivre tous les chemins
- * valides dans la fonction afin de pouvoir proprement détecter qu'une fonction retourne. Se baser
- * uniquement sur la dernière instruction de la fonction est fragile car la génération de RI peut
- * ajouter des labels inutilisés à la fin des fonctions (pour les discriminations, boucles, ou
- * encores les instructions si), mais nous pouvons aussi avoir une branche vers un bloc définis
- * avant celle-ci et étant le bloc de retour effectif de la fonction.
+ * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
+ * tous ont un retour défini.
  */
-static bool detecte_retour_manquant(EspaceDeTravail &espace, AtomeFonction *atome)
+static bool detecte_retour_manquant(EspaceDeTravail &espace,
+                                    FonctionEtBlocs const &fonction_et_blocs)
 {
-    auto di = atome->derniere_instruction();
+    auto const atome = fonction_et_blocs.fonction;
 
-    if (!di || !di->est_retour()) {
-        if (di) {
-            std::cerr << "La dernière instruction est ";
-            imprime_instruction(di, std::cerr);
-            imprime_fonction(atome, std::cerr);
-        }
-        else {
-            std::cerr << "La dernière instruction est nulle !\n";
+    kuri::ensemble<Bloc *> blocs_visites;
+    kuri::file<Bloc *> a_visiter;
+
+    a_visiter.enfile(fonction_et_blocs.blocs[0]);
+
+    while (!a_visiter.est_vide()) {
+        auto bloc_courant = a_visiter.defile();
+
+        if (blocs_visites.possede(bloc_courant)) {
+            continue;
         }
 
-        /* À FAIRE : la fonction peut être déclarée par la compilatrice (p.e. les initialisations
-         * des types) et donc peut ne pas avoir de déclaration. */
-        espace.rapporte_erreur(atome->decl, "Instruction de retour manquante");
-        return false;
+        blocs_visites.insere(bloc_courant);
+
+        if (bloc_courant->instructions.est_vide()) {
+            // À FAIRE : précise en quoi une instruction de retour manque.
+            espace
+                .rapporte_erreur(
+                    atome->decl,
+                    "Alors que je traverse tous les chemins possibles à travers une "
+                    "fonction, j'ai trouvé un chemin qui ne retourne pas de la fonction.")
+                .ajoute_message("Erreur : instruction de retour manquante !");
+            return false;
+        }
+
+        auto di = bloc_courant->instructions.derniere();
+
+        if (di->est_retour()) {
+            continue;
+        }
+
+        POUR (bloc_courant->enfants) {
+            a_visiter.enfile(it);
+        }
     }
+
+#if 0
+    // La génération de RI peut mettre des labels après des instructions « si » ou « discr » qui
+    // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
+    // de fonctions. Mais ce peut également être du code mort après un retour.
+    POUR (fonction_et_blocs.blocs) {
+        if (!blocs_visites.possede(it)) {
+            imprime_fonction(atome, std::cerr);
+            imprime_blocs(fonction_et_blocs.blocs, std::cerr);
+            espace
+                .rapporte_erreur(atome->decl,
+                                 "Erreur interne, un ou plusieurs blocs n'ont pas été visité !")
+                .ajoute_message("Le premier bloc non visité est le bloc ", it->label->id);
+            return false;
+        }
+    }
+#endif
 
     return true;
 }
 
 /* ********************************************************************************************* */
+
+// Il reste des choses à faire pour activer ceci
+#undef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
 
 static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 {
@@ -319,6 +361,8 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
     }
 }
 
+#ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+
 /**
  * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
  *
@@ -343,11 +387,6 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
     POUR (atome->params_entrees) {
         it->etat = EST_PARAMETRE_FONCTION;
-
-        /* Ignore le contexte implicite qui peut ne pas être utilisé. */
-        if (it->ident == ID::contexte) {
-            it->nombre_utilisations += 1;
-        }
     }
 
     atome->param_sortie->etat = EST_PARAMETRE_FONCTION;
@@ -412,11 +451,11 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         allocs_inutilisees.ajoute(alloc);
     }
 
-#if 0
+#    if 0
     if (allocs_inutilisees.taille() != 0) {
         imprime_fonction(atome, std::cerr, false, true);
     }
-#endif
+#    endif
 
     POUR (allocs_inutilisees) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
@@ -437,6 +476,142 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
     return true;
 }
+#endif
+
+/* ******************************************************************************************** */
+
+static bool atome_est_pour_creation_contexte(Compilatrice &compilatrice, AtomeFonction *atome)
+{
+    auto interface = compilatrice.interface_kuri;
+
+    /* atome->decl peut être nulle, vérifions d'abord que la fonction #création_contexte existe
+     * déjà. */
+    if (!interface->decl_creation_contexte) {
+        return false;
+    }
+
+    return interface->decl_creation_contexte == atome->decl;
+}
+
+static bool detecte_blocs_invalide(EspaceDeTravail &espace,
+                                   FonctionEtBlocs const &fonction_et_blocs)
+{
+    auto atome = fonction_et_blocs.fonction;
+
+    POUR (fonction_et_blocs.blocs) {
+        if (it->instructions.est_vide()) {
+            espace.rapporte_erreur(atome->decl, "Erreur interne : bloc vide dans la RI !\n");
+            return false;
+        }
+
+        auto di = it->instructions.derniere();
+
+        if (di->est_branche_ou_retourne()) {
+            continue;
+        }
+
+        /* La fonction #création_contexte n'a pas de retour, puisque ses instructions sont copiées
+         * dans d'autres fonctions. */
+        if (atome_est_pour_creation_contexte(espace.compilatrice(), atome)) {
+            continue;
+        }
+
+        espace.rapporte_erreur(
+            di->site, "Erreur interne : un bloc ne finit pas par une branche ou un retour !\n");
+    }
+
+    return true;
+}
+
+/* ******************************************************************************************** */
+
+static void marque_blocs_atteignables(Bloc *racine)
+{
+    kuri::ensemble<Bloc *> blocs_visites;
+    kuri::file<Bloc *> a_visiter;
+
+    a_visiter.enfile(racine);
+
+    while (!a_visiter.est_vide()) {
+        auto bloc_courant = a_visiter.defile();
+
+        if (blocs_visites.possede(bloc_courant)) {
+            continue;
+        }
+
+        bloc_courant->est_atteignable = true;
+        blocs_visites.insere(bloc_courant);
+
+        POUR (bloc_courant->enfants) {
+            a_visiter.enfile(it);
+        }
+    }
+}
+
+static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
+{
+    POUR (fonction_et_blocs.blocs) {
+        if (it->instructions.taille() != 1 || it->parents.taille() == 0) {
+            continue;
+        }
+
+        auto di = it->instructions.derniere();
+
+        if (di->est_branche()) {
+            auto branche = di->comme_branche();
+
+            for (auto parent : it->parents) {
+                auto di_parent = parent->instructions.derniere();
+
+                if (di_parent->est_branche()) {
+                    di_parent->comme_branche()->label = branche->label;
+
+                    it->enfants[0]->remplace_parent(it, parent);
+                    parent->enleve_enfant(it);
+                }
+                else if (di_parent->est_branche_cond()) {
+                    auto branche_cond = di_parent->comme_branche_cond();
+                    if (branche_cond->label_si_vrai == it->label) {
+                        branche_cond->label_si_vrai = branche->label;
+                        it->enfants[0]->remplace_parent(it, parent);
+                        parent->enleve_enfant(it);
+                    }
+                    if (branche_cond->label_si_faux == it->label) {
+                        branche_cond->label_si_faux = branche->label;
+                        it->enfants[0]->remplace_parent(it, parent);
+                        parent->enleve_enfant(it);
+                    }
+                }
+            }
+        }
+    }
+
+    kuri::tableau<Bloc *, int> nouveaux_blocs;
+    nouveaux_blocs.reserve(fonction_et_blocs.blocs.taille());
+
+    marque_blocs_atteignables(fonction_et_blocs.blocs[0]);
+
+    POUR (fonction_et_blocs.blocs) {
+        if (!it->est_atteignable) {
+            continue;
+        }
+
+        nouveaux_blocs.ajoute(it);
+    }
+
+    auto fonction = fonction_et_blocs.fonction;
+    int decalage_instruction = 0;
+    POUR (nouveaux_blocs) {
+        fonction->instructions[decalage_instruction++] = it->label;
+
+        for (auto inst : it->instructions) {
+            fonction->instructions[decalage_instruction++] = inst;
+        }
+    }
+
+    fonction->instructions.redimensionne(decalage_instruction);
+    fonction_et_blocs.blocs = nouveaux_blocs;
+}
 
 /* ******************************************************************************************** */
 
@@ -450,11 +625,21 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
-    if (!detecte_declarations_inutilisees(espace, atome)) {
+    auto fonction_et_blocs = convertis_en_blocs(atome);
+
+    if (!detecte_blocs_invalide(espace, fonction_et_blocs)) {
         return;
     }
 
-    if (!detecte_retour_manquant(espace, atome)) {
+    if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
         return;
     }
+
+    supprime_blocs_vides(fonction_et_blocs);
+
+#ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+    if (!detecte_declarations_inutilisees(espace, atome)) {
+        return;
+    }
+#endif
 }

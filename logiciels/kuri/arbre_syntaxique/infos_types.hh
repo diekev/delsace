@@ -86,7 +86,7 @@ struct InfoTypeMembreStructure {
     InfoType *info = nullptr;
     long decalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
-    kuri::tableau<AnnotationMembre> annotations{};
+    kuri::tableau<AnnotationMembre *> annotations{};
 };
 
 struct InfoTypeStructure : public InfoType {
@@ -114,6 +114,7 @@ struct InfoTypeEnum : public InfoType {
     kuri::tableau<int> valeurs{};  // À FAIRE typage selon énum
     kuri::tableau<kuri::chaine_statique> noms{};
     bool est_drapeau = false;
+    InfoTypeEntier *type_sous_jacent = nullptr;
 };
 
 struct InfoTypeOpaque : public InfoType {

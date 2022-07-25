@@ -25,6 +25,7 @@
 #include "coulisse_asm.hh"
 
 #include "structures/enchaineuse.hh"
+#include "structures/table_hachage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/instructions.hh"
@@ -39,8 +40,8 @@
 static constexpr const char *RSP = "rsp";
 
 struct GeneratriceCodeASM {
-    dls::dico<Atome const *, kuri::chaine> table_valeurs{};
-    dls::dico<Atome const *, kuri::chaine> table_globales{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales ASM"};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales ASM"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -518,12 +519,6 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     // genere_code_pour_types(compilatrice, graphe, enchaineuse);
-
-    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
-    // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(
-        &espace, repr_inter_programme.globales);
-    repr_inter_programme.fonctions.ajoute(atome_principale);
 
     auto generatrice = GeneratriceCodeASM(espace);
     generatrice.genere_code(

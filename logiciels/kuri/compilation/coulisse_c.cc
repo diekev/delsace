@@ -567,6 +567,10 @@ struct ConvertisseuseTypeC {
 
 /* ************************************************************************** */
 
+/* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
+ * l'accès au contexte. */
+#define AJOUTE_TRACE_APPEL
+
 static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
@@ -577,13 +581,13 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	static KsKuriInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
 	KsKuriTraceAppel ma_trace = { 0 }; \
 	ma_trace.info_fonction = &mon_info; \
-	ma_trace.prxC3xA9cxC3xA9dente = contexte.trace_appel; \
-	ma_trace.profondeur = contexte.trace_appel->profondeur + 1;
+ ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
+ ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
 	static KsKuriInfoAppelTraceAppel info_appel##_index = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
 	ma_trace.info_appel = &info_appel##_index; \
-	contexte.trace_appel = &ma_trace;
+ __contexte_fil_principal.trace_appel = &ma_trace;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
 	DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne)
@@ -592,7 +596,7 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	DEBUTE_RECORD_TRACE_APPEL_EX(__COUNTER__, _ligne, _colonne, _ligne_appel, _taille_ligne)
 
 #define TERMINE_RECORD_TRACE_APPEL \
-   contexte.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
+   __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
 	)";
 
 #if 0
@@ -614,11 +618,17 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse << "#endif\n";
     enchaineuse << "typedef unsigned char octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef struct KuriContexteProgramme KsKuriContexteProgramme;\n";
     enchaineuse << "typedef char ** KPKPKsz8;\n";
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
+
+    // À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
+    // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
+    // la fonction principale défini par les programmes.
+    enchaineuse << "#define __principale principale\n\n";
+
+    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
 static bool est_type_tableau_fixe(Type *type)
@@ -628,8 +638,8 @@ static bool est_type_tableau_fixe(Type *type)
 }
 
 struct GeneratriceCodeC {
-    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{};
-    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
+    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -943,6 +953,7 @@ struct GeneratriceCodeC {
                 auto inst_appel = inst->comme_appel();
 
                 /* La fonction d'initialisation des globales n'a pas de site. */
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace && inst_appel->site) {
                     auto const &lexeme = inst_appel->site->lexeme;
                     auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
@@ -964,8 +975,9 @@ struct GeneratriceCodeC {
                     os << ligne.taille();
                     os << ");\n";
                 }
+#endif
 
-                auto arguments = dls::tablet<kuri::chaine, 10>();
+                auto arguments = kuri::tablet<kuri::chaine, 10>();
 
                 POUR (inst_appel->args) {
                     arguments.ajoute(genere_code_pour_atome(it, os, false));
@@ -996,9 +1008,11 @@ struct GeneratriceCodeC {
 
                 os << ");\n";
 
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace) {
                     os << "  TERMINE_RECORD_TRACE_APPEL;\n";
                 }
+#endif
 
                 break;
             }
@@ -1655,6 +1669,18 @@ static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_pr
     }
 }
 
+static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
+                                            ConstructriceRI &constructrice_ri,
+                                            AtomeFonction *fonction,
+                                            ProgrammeRepreInter &repr_inter_programme)
+{
+    constructrice_ri.genere_ri_pour_initialisation_globales(
+        &espace, fonction, repr_inter_programme.globales);
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne sont
+     * peut-être pas encore dans la liste. */
+    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
+}
+
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1673,16 +1699,10 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
 
-    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
-    // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(
-        &espace, repr_inter_programme.globales);
-    repr_inter_programme.ajoute_fonction(atome_principale);
-
-    /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
-     * qui appelera le point d'entrée. */
-    auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
-    atome_fonc->nom = "main";
+    // Génére le corps de la fonction d'initialisation des globales.
+    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
+    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
+    genere_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
@@ -1691,6 +1711,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 }
 
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
+                                                   ConstructriceRI &constructrice_ri,
                                                    EspaceDeTravail &espace,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1700,10 +1721,16 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
 
     /* Garantie l'utilisation des fonctions racines. */
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
             ++nombre_fonctions_racines;
+        }
+
+        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
+            decl_init_globales = it;
         }
     }
 
@@ -1711,6 +1738,11 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
         return false;
+    }
+
+    if (decl_init_globales) {
+        genere_ri_fonction_init_globale(
+            espace, constructrice_ri, decl_init_globales, repr_inter_programme);
     }
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
@@ -1732,7 +1764,7 @@ static bool genere_code_C(Compilatrice &compilatrice,
     }
 
     return genere_code_C_depuis_fonctions_racines(
-        compilatrice, espace, programme, bibliotheques, fichier_sortie);
+        compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1771,7 +1803,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
                                                   OptionsDeCompilation const &ops)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << "/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ";
+    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c /tmp/compilation_kuri.c ";
 
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -fPIC ";
@@ -1786,7 +1818,11 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << chaine_pour_niveau_optimisation(ops.niveau_optimisation);
     }
     else if (ops.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g -Og -fsanitize=address ";
+        enchaineuse << " -g -Og ";
+
+        if (ops.utilise_asan) {
+            enchaineuse << " -fsanitize=address ";
+        }
     }
     else if (ops.compilation_pour == CompilationPour::PROFILAGE) {
         enchaineuse << " -pg ";
@@ -1841,6 +1877,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
     of.close();
 
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
     auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
@@ -1855,6 +1892,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
         return false;
     }
+#endif
 
     return true;
 }
@@ -1868,6 +1906,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
 {
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
     compile_objet_r16(
         std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()),
         espace.options.architecture);
@@ -1875,7 +1916,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     auto debut_executable = dls::chrono::compte_seconde();
 
     Enchaineuse enchaineuse;
-    enchaineuse << "/usr/bin/g++-9 ";
+    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
 
     if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -shared -fPIC ";
@@ -1885,7 +1926,11 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -pg ";
     }
     else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g  -fsanitize=address ";
+        enchaineuse << " -g ";
+
+        if (espace.options.utilise_asan) {
+            enchaineuse << " -fsanitize=address ";
+        }
     }
 
     enchaineuse << " /tmp/compilation_kuri.o ";
@@ -1902,15 +1947,12 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        auto chemin_parent = vers_std_path(it->chemin_dynamique).parent_path();
+        auto chemin_parent = vers_std_path(it->chemin_de_base(espace.options)).parent_path();
         if (chemin_parent.empty()) {
-            chemin_parent = vers_std_path(it->chemin_statique).parent_path();
-            if (chemin_parent.empty()) {
-                continue;
-            }
+            continue;
         }
 
-        if (it->chemin_dynamique) {
+        if (it->chemin_dynamique(espace.options)) {
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
@@ -1928,9 +1970,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        enchaineuse << " -l" << it->nom;
+        enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
     }
-    /* Ajout d'une liaison dynamic pour dire à ld de chercher les symboles des bibliothèques
+    /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
      * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
     enchaineuse << " -Wl,-Bdynamic";
 
@@ -1960,4 +2002,5 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     temps_executable = debut_executable.temps();
     return true;
+#endif
 }

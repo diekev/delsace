@@ -27,10 +27,10 @@
 #include "instructions.hh"
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "arbre_syntaxique/noeud_code.hh"
+
+#include "structures/tablet.hh"
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -81,7 +81,6 @@ struct ConstructriceRI {
     int taille_allouee = 0;
 
     NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
-    Atome *contexte = nullptr;
 
     bool expression_gauche = true;
 
@@ -90,7 +89,7 @@ struct ConstructriceRI {
     /* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
      * appelons les genere_ri_*, il faut dépiler la valeur que nous désirons, si
      * nous en désirons une */
-    dls::tablet<Atome *, 8> m_pile{};
+    kuri::tablet<Atome *, 8> m_pile{};
 
   public:
     AtomeFonction *fonction_courante = nullptr;
@@ -106,8 +105,6 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
                                                NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale(
-        EspaceDeTravail *espace, const kuri::tableau<AtomeGlobale *> &globales);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         const kuri::tableau<AtomeGlobale *> &globales,
@@ -165,6 +162,7 @@ struct ConstructriceRI {
     InstructionLabel *cree_label(NoeudExpression *site_);
     InstructionLabel *reserve_label(NoeudExpression *site_);
     void insere_label(InstructionLabel *label);
+    void insere_label_si_utilise(InstructionLabel *label);
     InstructionRetour *cree_retour(NoeudExpression *site_, Atome *valeur);
     InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_,
                                           Atome *ou,
@@ -220,6 +218,13 @@ struct ConstructriceRI {
     AtomeConstante *cree_info_type(Type *type, NoeudExpression *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
+    void genere_ri_pour_initialisation_globales(EspaceDeTravail *espace,
+                                                AtomeFonction *fonction_init,
+                                                const kuri::tableau<AtomeGlobale *> &globales);
+
+    void genere_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
+                                                const kuri::tableau<AtomeGlobale *> &globales);
+
   private:
     AtomeFonction *genere_fonction_init_globales_et_appel(
         const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
@@ -227,8 +232,6 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(NoeudExpression *noeud);
     void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
     void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale(
-        const kuri::tableau<AtomeGlobale *> &globales);
     void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
     void genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
                                           Atome *place,

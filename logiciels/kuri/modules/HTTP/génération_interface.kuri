@@ -1,5 +1,8 @@
 importe Compilatrice
+importe Ensemble
 importe Fondation
+importe GlibC
+importe SysFichier
 
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.
@@ -43,6 +46,10 @@ ParamètresGénérationInterface :: struct {
     données_fonctions: []DonnéesCréationPointDEntréePage
 
     module_à_importer: chaine
+
+    /* Pour les pilotes. */
+    génère_pilote: bool
+    dossier_pilote: chaine
 }
 
 génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInterface, fichier_racine: chaine)
@@ -89,10 +96,17 @@ génère_interface_serveuse :: fonc (paramètres : *ParamètresGénérationInter
             phase := message comme *MessagePhaseCompilation
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
                 crée_interface_pour_initialisations_routes(paramètres, espace)
+                crée_pilote_client(paramètres, espace)
                 arrête
             }
         }
     }
+
+    pour paramètres.données_fonctions {
+        déloge(it.règles_routage)
+    }
+
+    déloge(paramètres.données_fonctions)
 }
 
 InfoParamètreFonctionRappel :: struct {
@@ -153,7 +167,9 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.nouvelle_ligne()
 
     si infos_paramètres.formulaire.type != nul {
-        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chaine_pour_type(infos_paramètres.formulaire.type))
+        chn_type_formulaire := chaine_pour_type(infos_paramètres.formulaire.type)
+        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %)\n", chn_type_formulaire)
+        déloge(chn_type_formulaire)
 
         enchaineuse.ajoute_au_tampon("\tsaufsi résultat_parsage == RésultatParsageFormatURL.Succès {\n")
         enchaineuse.ajoute_au_tampon("\t\tretourne mauvaise_requête()\n")
@@ -287,7 +303,6 @@ est_résultat :: fonc (info: *InfoType) -> bool
 
 ClassificationParamètre :: énum {
     EST_INCONNU
-    EST_TYPE_CONTEXTE_PROGRAMME
     EST_TYPE_SERVEUSE
     EST_TYPE_CONNEXION
     EST_TYPE_PARAMÈTRE_ROUTAGE
@@ -310,10 +325,6 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
 
         si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRequête)) {
             retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_REQUÊTE
-        }
-
-        si est_struct_ou_employeuse_de(info_struct, info_de(ContexteProgramme)) {
-            retourne ClassificationParamètre.EST_TYPE_CONTEXTE_PROGRAMME
         }
     }
     sinon si type.id == id_info.POINTEUR {
@@ -348,8 +359,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
     infos_paramètres : InformationParamètres
     type_fonction := fonction.type comme *InfoTypeFonction
 
-    // NOTE : les index doivent être décalés de 1 car le ContexteProgramme est également présent.
-
     pour type_fonction.types_entrée {
         classification := classifie_paramètre(paramètres, it)
 
@@ -357,9 +366,6 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
             EST_INCONNU {
                 compilatrice_rapporte_erreur(fonction, "Type de paramètre non-supporté")
                 retourne faux, infos_paramètres
-            }
-            EST_TYPE_CONTEXTE_PROGRAMME {
-                continue
             }
             EST_TYPE_SERVEUSE {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -370,7 +376,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.serveuse.type = info_struct
-                infos_paramètres.serveuse.index = index_it - 1
+                infos_paramètres.serveuse.index = index_it
             }
             EST_TYPE_CONNEXION {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -381,7 +387,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.connexion.type = info_struct
-                infos_paramètres.connexion.index = index_it - 1
+                infos_paramètres.connexion.index = index_it
             }
             EST_TYPE_PARAMÈTRE_ROUTAGE {
                 info_struct := it comme *InfoTypeStructure
@@ -392,7 +398,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
-                infos_paramètres.paramètres_route.index = index_it - 1
+                infos_paramètres.paramètres_route.index = index_it
             }
             EST_TYPE_PARAMÈTRE_REQUÊTE {
                 info_struct := it comme *InfoTypeStructure
@@ -402,7 +408,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_requête.type = info_struct
-                infos_paramètres.paramètres_requête.index = index_it - 1
+                infos_paramètres.paramètres_requête.index = index_it
             }
             EST_TYPE_FORMULAIRE {
                 info_struct := it comme *InfoTypeStructure
@@ -413,7 +419,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.formulaire.type = info_struct
-                infos_paramètres.formulaire.index = index_it - 1
+                infos_paramètres.formulaire.index = index_it
             }
         }
     }
@@ -501,6 +507,7 @@ parse_fonction :: fonc (paramètres: *ParamètresGénérationInterface, fonction
 
     chemin_est_valide, règles_routage := valide_chemin(fonction, chemin, infos_paramètres.paramètres_route.type)
     saufsi chemin_est_valide {
+        déloge(règles_routage)
         retourne DonnéesCréationPointDEntréePage()
     }
 
@@ -599,6 +606,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     tableau_ajoute(*paramètres.données_fonctions, données)
 
     enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
@@ -623,6 +631,7 @@ crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresG�
     }
 
     enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
@@ -731,4 +740,161 @@ génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données
     }
     imprime_dans_enchaineuse(enchaineuse, "\t\t}\n")
     imprime_dans_enchaineuse(enchaineuse, "\t}\n")
+}
+
+crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
+{
+    saufsi paramètres.génère_pilote {
+        retourne
+    }
+
+    si paramètres.dossier_pilote == "" {
+        compilatrice_rapporte_erreur(espace, "Un pilote client fut demandé, mais le chemin de dossier n'est pas renseigné !\n")
+        retourne
+    }
+
+    chm_courant := chemin_courant()
+
+    chm_dossier_pilote := chm_courant / paramètres.dossier_pilote
+    chm_fichier_pilote := chm_dossier_pilote / "module.kuri"
+
+    diffère détruit_chemin(chm_courant)
+    diffère détruit_chemin(chm_dossier_pilote)
+    diffère détruit_chemin(chm_fichier_pilote)
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+        compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
+        retourne
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    génère_code_pilote_client(paramètres, espace, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    __ := ferme(*fichier)
+}
+
+génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[]*InfoTypeStructure)
+{
+    saufsi infos {
+        retourne
+    }
+
+    si ensemble_possède(types_utilisés, infos) {
+        retourne
+    }
+
+    ensemble_ajoute(types_utilisés, infos)
+
+    chn_type := chaine_pour_type(infos)
+    ajoute_au_tampon(enchaineuse, chn_type, " :: struct {\n")
+    déloge(chn_type)
+
+    pour infos.membres {
+        chn_type = chaine_pour_type(it.id)
+        ajoute_au_tampon(enchaineuse, "    ", it.nom, ": ", chn_type, "\n")
+        déloge(chn_type)
+    }
+
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+}
+
+génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, enchaineuse: *Enchaineuse)
+{
+    nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
+    diffère déloge(nom_type_pilote)
+
+    // À FAIRE : import des modules où se trouve les types
+    ajoute_au_tampon(enchaineuse, "importe Courriel\n")
+
+    /* Import des modules de bases requis pour le Pilote. */
+    ajoute_au_tampon(enchaineuse, "importe CodecDonnées\n")
+    ajoute_au_tampon(enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(enchaineuse, "importe HTTP\n")
+    ajoute_au_tampon(enchaineuse, "importe Internet\n\n")
+
+    /* Déclaration du type spécifique de pilote. */
+    ajoute_au_tampon(enchaineuse, nom_type_pilote, " :: struct {\n")
+    ajoute_au_tampon(enchaineuse, "    empl base: PiloteClienteHTTP\n")
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+
+    /* Déclaration d'une fonction de création. */
+    imprime_dans_enchaineuse(enchaineuse, "crée_pilote_% :: fonc (uri: URI) -> %\n", paramètres.nom_serveuse, nom_type_pilote)
+    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "    pilote: PiloteCréaduc\n")
+    ajoute_au_tampon(enchaineuse, "    pilote.uri_serveur = uri\n")
+    ajoute_au_tampon(enchaineuse, "    retourne pilote\n")
+    ajoute_au_tampon(enchaineuse, "}\n\n")
+
+    types_utilisés : []*InfoTypeStructure
+    diffère déloge(types_utilisés)
+
+    pour paramètres.données_fonctions {
+        infos_paramètres := it.infos_paramètres
+        type_formulaire := infos_paramètres.formulaire.type
+        type_paramètres_route := infos_paramètres.paramètres_route.type
+        type_paramètre_requête := infos_paramètres.paramètres_requête.type
+
+        génère_code_pour_structure(type_formulaire, enchaineuse, *types_utilisés)
+        génère_code_pour_structure(type_paramètres_route, enchaineuse, *types_utilisés)
+        génère_code_pour_structure(type_paramètre_requête, enchaineuse, *types_utilisés)
+
+        /* Déclaration de la fonction et de ses paramètres. */
+        imprime_dans_enchaineuse(enchaineuse, "% :: fonc (pilote: &%", it.nom_fonction, nom_type_pilote)
+
+        si type_formulaire {
+            chn_type := chaine_pour_type(type_formulaire)
+            ajoute_au_tampon(enchaineuse, ", formulaire: ", chn_type)
+            déloge(chn_type)
+        }
+
+        si type_paramètres_route {
+            chn_type := chaine_pour_type(type_paramètres_route)
+            ajoute_au_tampon(enchaineuse, ", paramètres_routage: ", chn_type)
+            déloge(chn_type)
+        }
+
+        si type_paramètre_requête {
+            chn_type := chaine_pour_type(type_paramètre_requête)
+            ajoute_au_tampon(enchaineuse, ", paramètres_requête: ", chn_type)
+            déloge(chn_type)
+        }
+
+        ajoute_au_tampon(enchaineuse, ") -> Résultat(MessageServeuseHTTP)\n")
+        ajoute_au_tampon(enchaineuse, "{\n")
+
+        /* Construction de l'uri. */
+        ajoute_au_tampon(enchaineuse, "    uri := pilote.uri_serveur\n")
+
+        si type_paramètres_route {
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin ,"\", paramètres_routage)\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin ,"\"\n")
+        }
+
+        si type_paramètre_requête {
+            ajoute_au_tampon(enchaineuse, "    uri.requête = encode_format_url(paramètres_requête)\n")
+        }
+
+        /* Construction de la requête. */
+        si type_formulaire {
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.POST, uri)\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.GET, uri)\n")
+        }
+        ajoute_au_tampon(enchaineuse, "    diffère détruit_message(*requête)\n")
+
+        si type_formulaire {
+            ajoute_au_tampon(enchaineuse, "    formulaire ajoute_contenu_depuis_formulaire(*requête, formulaire)\n")
+        }
+
+        /* Valeur de retour. */
+        ajoute_au_tampon(enchaineuse, "    retourne pilote.envoie_requête_et_traite_réponse(requête)\n")
+        ajoute_au_tampon(enchaineuse, "}\n\n")
+    }
 }

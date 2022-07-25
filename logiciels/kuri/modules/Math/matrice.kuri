@@ -1,3 +1,5 @@
+importe Fondation
+
 Mat4r :: struct {
     m : [4][4]r32
 }
@@ -191,6 +193,11 @@ multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
     retourne résultat
 }
 
+opérateur * :: fonc (m0: Mat4r, m1: Mat4r) -> Mat4r
+{
+    retourne multiplie(m0, m1)
+}
+
 transforme :: fonc (mat: Mat4r, vec: Vec3) -> Vec3
 {
     rés : Vec3
@@ -210,9 +217,9 @@ transforme :: fonc (mat: Mat4r, vec: Vec3) -> Vec3
     retourne rés
 }
 
-transforme :: fonc (mat: Mat4r, vec: Vec4r) -> Vec4r
+transforme :: fonc (mat: Mat4r, vec: Vec4) -> Vec4
 {
-    rés : Vec4r
+    rés : Vec4
 
     rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + vec.w * mat.m[3][0]
     rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + vec.w * mat.m[3][1]
@@ -220,13 +227,6 @@ transforme :: fonc (mat: Mat4r, vec: Vec4r) -> Vec4r
     rés.w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + vec.w * mat.m[3][3]
 
     retourne rés
-}
-
-échange :: fonc (a: *r32, b: *r32) -> rien
-{
-    tmp := mémoire(b)
-    mémoire(b) = mémoire(a)
-    mémoire(a) = tmp
 }
 
 inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool

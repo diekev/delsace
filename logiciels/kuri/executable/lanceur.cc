@@ -42,8 +42,6 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "date.hh"
-
 #include "biblinternes/chrono/chronometrage.hh"
 
 #define AVEC_THREADS
@@ -139,6 +137,29 @@ int main(int argc, char *argv[])
                 ++i;
                 nom_fichier_utilises = argv[i];
             }
+            else if (strcmp(argv[i], "--profile_exécution") == 0) {
+                compilatrice.profile_metaprogrammes = true;
+            }
+            else if (strcmp(argv[i], "--format_profile") == 0) {
+                ++i;
+
+                if (i >= argc) {
+                    std::cerr << "Argument manquant après --format_profile\n";
+                    return 1;
+                }
+
+                if (strcmp(argv[i], "défaut") == 0 || strcmp(argv[i], "gregg") == 0) {
+                    compilatrice.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+                }
+                else if (strcmp(argv[i], "échantillons_totaux") == 0) {
+                    compilatrice.format_rapport_profilage =
+                        FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
+                }
+                else {
+                    std::cerr << "Type de format de profile \"" << argv[i] << "\" inconnu\n";
+                    return 1;
+                }
+            }
             else {
             }
         }
@@ -217,18 +238,9 @@ int main(int argc, char *argv[])
         lance_tacheronne(&tacheronne_mp);
 #endif
 
-        if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
+        if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
             auto fichier_chaines = std::ofstream(".chaines_ajoutées");
-
-            auto d = hui_systeme();
-
-            fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
-                            << " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
-
-            POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
-                fichier_chaines << it;
-                fichier_chaines << '\n';
-            }
+            compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
         }
 
         /* restore le dossier d'origine */

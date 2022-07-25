@@ -246,10 +246,24 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 return res;
             }
 
+            if (decl->est_entete_fonction()) {
+                res.est_errone = false;
+                res.valeur = decl->comme_entete_fonction();
+                return res;
+            }
+
             if (decl->genre != GenreNoeud::DECLARATION_VARIABLE) {
                 res.est_errone = true;
                 res.noeud_erreur = b;
                 res.message_erreur = "La référence n'est pas celle d'une variable !";
+
+                return res;
+            }
+
+            if (!decl->possede_drapeau(EST_CONSTANTE)) {
+                res.est_errone = true;
+                res.noeud_erreur = b;
+                res.message_erreur = "La référence n'est pas celle d'une variable constante !";
 
                 return res;
             }
@@ -400,9 +414,13 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             res.est_errone = false;
 
             if (est_operateur_bool(inst->lexeme->genre)) {
-                if (res.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle()) {
                     res.valeur = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
+                }
+                else if (res1.valeur.est_booleenne()) {
+                    res.valeur = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.booleenne(), res2.valeur.booleenne());
                 }
                 else {
                     res.valeur = applique_operateur_binaire_comp(
@@ -410,7 +428,7 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
                 }
             }
             else {
-                if (res.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle()) {
                     res.valeur = applique_operateur_binaire(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
@@ -480,6 +498,18 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
             auto res = ResultatExpression();
             res.est_errone = false;
             res.valeur = b->comme_construction_tableau();
+            return res;
+        }
+        case GenreNoeud::DIRECTIVE_CUISINE:
+        {
+            auto cuisine = b->comme_cuisine();
+            auto expr = cuisine->expression;
+            auto appel = expr->comme_appel();
+            auto fonction = appel->expression->comme_entete_fonction();
+
+            auto res = ResultatExpression();
+            res.est_errone = false;
+            res.valeur = fonction;
             return res;
         }
     }

@@ -28,7 +28,6 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
 #include <mutex>
@@ -38,6 +37,7 @@
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 #include "lexemes.hh"
 
@@ -53,6 +53,13 @@ struct NoeudDeclarationCorpsFonction;
 struct NoeudDirectivePreExecutable;
 struct SiteSource;
 struct Statistiques;
+
+enum class SourceFichier {
+    /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
+    DISQUE,
+    /* Le fichier vient d'une instruction "ajoute_chaine_*". */
+    CHAINE_AJOUTEE,
+};
 
 struct Fichier {
     double temps_analyse = 0.0;
@@ -81,6 +88,10 @@ struct Fichier {
 
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
+
+    SourceFichier source = SourceFichier::DISQUE;
+    /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
+    long decalage_fichier = 0;
 
     Fichier() = default;
 
@@ -156,7 +167,7 @@ struct Module {
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
-    dls::tablet<Fichier *, 16> fichiers{};
+    kuri::tablet<Fichier *, 16> fichiers{};
     bool importe = false;
 
     kuri::chaine chemin_bibliotheque_32bits{};
@@ -188,7 +199,8 @@ struct SystemeModule {
     tableau_page<Module> modules{};
     tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{};
+    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
+        "Fichiers système modules"};
 
     Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 

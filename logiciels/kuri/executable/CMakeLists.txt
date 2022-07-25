@@ -41,9 +41,6 @@ set(BIBLIOTHEQUES
 
 add_executable(kuri
     lanceur.cc
-	date.cc
-
-	date.hh
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
@@ -110,33 +107,33 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${INCLUSIONS_DELSACE_CHRONO}
-	/usr/lib/llvm-9/include/
+        ${CLANG_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
 	stdc++fs
 	bib_outils
-	/usr/lib/llvm-9/lib/libclangTooling.a
-	/usr/lib/llvm-9/lib/libclangFrontend.a
-	/usr/lib/llvm-9/lib/libclangFrontendTool.a
-	/usr/lib/llvm-9/lib/libclangDriver.a
-	/usr/lib/llvm-9/lib/libclangSerialization.a
-	/usr/lib/llvm-9/lib/libclangCodeGen.a
-	/usr/lib/llvm-9/lib/libclangParse.a
-	/usr/lib/llvm-9/lib/libclangSema.a
-	/usr/lib/llvm-9/lib/libclangStaticAnalyzerFrontend.a
-	/usr/lib/llvm-9/lib/libclangStaticAnalyzerCheckers.a
-	/usr/lib/llvm-9/lib/libclangStaticAnalyzerCore.a
-	/usr/lib/llvm-9/lib/libclangAnalysis.a
-	/usr/lib/llvm-9/lib/libclangARCMigrate.a
-	/usr/lib/llvm-9/lib/libclangRewrite.a
-	/usr/lib/llvm-9/lib/libclangRewriteFrontend.a
-	/usr/lib/llvm-9/lib/libclangEdit.a
-	/usr/lib/llvm-9/lib/libclangAST.a
-	/usr/lib/llvm-9/lib/libclangLex.a
-	/usr/lib/llvm-9/lib/libclangBasic.a
-	/usr/lib/llvm-9/lib/libLLVM.so
-	/usr/lib/llvm-9/lib/libclang.so
+        /usr/lib/llvm-12/lib/libclangTooling.a
+        /usr/lib/llvm-12/lib/libclangFrontend.a
+        /usr/lib/llvm-12/lib/libclangFrontendTool.a
+        /usr/lib/llvm-12/lib/libclangDriver.a
+        /usr/lib/llvm-12/lib/libclangSerialization.a
+        /usr/lib/llvm-12/lib/libclangCodeGen.a
+        /usr/lib/llvm-12/lib/libclangParse.a
+        /usr/lib/llvm-12/lib/libclangSema.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerFrontend.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCheckers.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCore.a
+        /usr/lib/llvm-12/lib/libclangAnalysis.a
+        /usr/lib/llvm-12/lib/libclangARCMigrate.a
+        /usr/lib/llvm-12/lib/libclangRewrite.a
+        /usr/lib/llvm-12/lib/libclangRewriteFrontend.a
+        /usr/lib/llvm-12/lib/libclangEdit.a
+        /usr/lib/llvm-12/lib/libclangAST.a
+        /usr/lib/llvm-12/lib/libclangLex.a
+        /usr/lib/llvm-12/lib/libclangBasic.a
+        /usr/lib/llvm-12/lib/libLLVM.so
+        /usr/lib/llvm-12/lib/libclang.so
 	bib_json
 )
 

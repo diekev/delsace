@@ -47,6 +47,29 @@ struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
 struct Statistiques;
 
+enum class FormatRapportProfilage : int {
+    BRENDAN_GREGG,
+    ECHANTILLONS_TOTAL_POUR_FONCTION,
+};
+
+struct GestionnaireChainesAjoutees {
+  private:
+    kuri::tableau<kuri::chaine, int> m_chaines{};
+
+    /* Ceci est utilisé pour trouver la position de la chaine dans le fichier final.
+     * Nous commençons à 2, car le fichier est préfixé par la date et l'heure, et
+     * d'une ligne vide.
+     */
+    long nombre_total_de_lignes = 2;
+
+  public:
+    long ajoute(kuri::chaine chaine);
+
+    int nombre_de_chaines() const;
+
+    void imprime_dans(std::ostream &os);
+};
+
 struct Compilatrice {
     dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
@@ -66,11 +89,13 @@ struct Compilatrice {
     bool m_possede_erreur = false;
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
+    bool profile_metaprogrammes = false;
+    FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-    tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
+    dls::outils::Synchrone<GestionnaireChainesAjoutees> chaines_ajoutees_a_la_compilation{};
 
     tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
@@ -93,6 +118,10 @@ struct Compilatrice {
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
     NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
 
+    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
+    NoeudDeclarationVariable *globale_contexte_programme = nullptr;
+    std::mutex mutex_globale_contexte_programme{};
+
     /* Pour les executions des métaprogrammes. */
     std::mutex mutex_donnees_constantes_executions{};
     DonneesConstantesExecutions donnees_constantes_executions{};
@@ -110,7 +139,7 @@ struct Compilatrice {
     dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
     using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{};
+    dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
 
     std::mutex mutex_atomes_fonctions{};
     std::mutex mutex_atomes_globales{};
@@ -224,6 +253,10 @@ struct Compilatrice {
 
     EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
                                                   kuri::chaine const &nom);
+
+    /* ********************************************************************** */
+
+    bool globale_contexte_programme_est_disponible();
 
     /* ********************************************************************** */
 

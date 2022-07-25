@@ -52,6 +52,19 @@ void InterfaceKuri::mute_membre(NoeudDeclarationEnteteFonction *noeud)
 #undef INIT_MEMBRE
 }
 
+bool ident_est_pour_fonction_interface(const IdentifiantCode *ident)
+{
+#define COMPARE_NOM(membre, nom)                                                                  \
+    if (ident == nom) {                                                                           \
+        return true;                                                                              \
+    }
+
+    ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(COMPARE_NOM)
+
+#undef COMPARE_NOM
+    return false;
+}
+
 void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type)
 {
 #define INIT_TYPE(membre, nom)                                                                    \
@@ -63,4 +76,30 @@ void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Ty
     ENUMERE_TYPE_INTERFACE_MODULE_KURI(INIT_TYPE)
 
 #undef INIT_TYPE
+}
+
+bool ident_est_pour_type_interface(const IdentifiantCode *ident)
+{
+#define COMPARE_TYPE(membre, nom)                                                                 \
+    if (ident == nom) {                                                                           \
+        return true;                                                                              \
+    }
+
+    ENUMERE_TYPE_INTERFACE_MODULE_KURI(COMPARE_TYPE)
+
+#undef COMPARE_TYPE
+    return false;
+}
+
+bool est_type_interface_disponible(Typeuse &typeuse, const IdentifiantCode *ident)
+{
+#define COMPARE_TYPE(membre, nom)                                                                 \
+    if (ident == nom) {                                                                           \
+        return typeuse.membre != nullptr;                                                         \
+    }
+
+    ENUMERE_TYPE_INTERFACE_MODULE_KURI(COMPARE_TYPE)
+
+#undef COMPARE_TYPE
+    return false;
 }

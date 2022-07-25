@@ -291,107 +291,6 @@ Tacheronne::~Tacheronne()
     memoire::deloge("AssembleuseArbre", assembleuse);
 }
 
-static std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
-{
-    auto visites = kuri::ensemblon<Type *, 16>();
-    auto pile = dls::pile<Type *>();
-
-    pour_chaque_element(types_utilises, [&pile](auto &type) {
-        pile.empile(type);
-        return kuri::DecisionIteration::Continue;
-    });
-
-    while (!pile.est_vide()) {
-        auto type_courant = pile.depile();
-
-        /* Les types variadiques ou pointeur nul peuvent avoir des types déréférencés nuls. */
-        if (!type_courant) {
-            continue;
-        }
-
-        if (visites.possede(type_courant)) {
-            continue;
-        }
-
-        visites.insere(type_courant);
-
-        if ((type_courant->drapeaux & drapeau) == 0) {
-            return Attente::sur_type(type_courant);
-        }
-
-        switch (type_courant->genre) {
-            case GenreType::POLYMORPHIQUE:
-            case GenreType::TUPLE:
-            case GenreType::EINI:
-            case GenreType::CHAINE:
-            case GenreType::RIEN:
-            case GenreType::BOOL:
-            case GenreType::OCTET:
-            case GenreType::TYPE_DE_DONNEES:
-            case GenreType::REEL:
-            case GenreType::ENTIER_CONSTANT:
-            case GenreType::ENTIER_NATUREL:
-            case GenreType::ENTIER_RELATIF:
-            case GenreType::ENUM:
-            case GenreType::ERREUR:
-            {
-                break;
-            }
-            case GenreType::FONCTION:
-            {
-                auto type_fonction = type_courant->comme_fonction();
-                POUR (type_fonction->types_entrees) {
-                    pile.empile(it);
-                }
-                pile.empile(type_fonction->type_sortie);
-                break;
-            }
-            case GenreType::UNION:
-            case GenreType::STRUCTURE:
-            {
-                auto type_compose = static_cast<TypeCompose *>(type_courant);
-                POUR (type_compose->membres) {
-                    pile.empile(it.type);
-                }
-                break;
-            }
-            case GenreType::REFERENCE:
-            {
-                pile.empile(type_courant->comme_reference()->type_pointe);
-                break;
-            }
-            case GenreType::POINTEUR:
-            {
-                pile.empile(type_courant->comme_pointeur()->type_pointe);
-                break;
-            }
-            case GenreType::VARIADIQUE:
-            {
-                pile.empile(type_courant->comme_variadique()->type_pointe);
-                break;
-            }
-            case GenreType::TABLEAU_DYNAMIQUE:
-            {
-                pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
-                break;
-            }
-            case GenreType::TABLEAU_FIXE:
-            {
-                pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
-                break;
-            }
-            case GenreType::OPAQUE:
-            {
-                pile.empile(type_courant->comme_opaque()->type_opacifie);
-                break;
-            }
-        }
-    }
-
-    return {};
-}
-
 void Tacheronne::gere_tache()
 {
     auto temps_debut = dls::chrono::compte_seconde();
@@ -819,6 +718,10 @@ void Tacheronne::execute_metaprogrammes()
 
                 compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
+
+                /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler
+                 * free. */
+                free(const_cast<char *>(resultat.pointeur()));
             }
         }
 

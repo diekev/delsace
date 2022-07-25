@@ -299,7 +299,8 @@ trouve_info_membres_pour_colonnes :: fonc (agent: chaine, info: *InfoTypeStructu
 			}
 		}
 		sansarrêt {
-			imprime_log(agent, "le type ne possède pas la colonne % !\n", it)
+			message := imprime_chaine("Colonne '%' introuvable dans le type !", it)
+			panique(message)
 			déloge(infos_membres)
 			retourne infos_membres
 		}
@@ -581,6 +582,13 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 		membre := it
         chn := colonne_suivante(curseur)
 
+		/* La valeur peut être nulle (NULL) donc nous devons éviter de tenter de la parser,
+		 * ce qui ferait échouée le parsage de manière générale. */
+		/* À FAIRE(MySQL) : gestion des NULL potentiels (p.e. en utilisant le type « Optionnel »). */
+		si chn == "" {
+			continue
+		}
+
         fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
 
         saufsi fonction_de_parsage {
@@ -599,113 +607,163 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 }
 
 // -------------------------------------------------------
-// Parsage & Formattage
 
-ajoute_fonction_de_parsage_mysql :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
+sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
 {
-    ajoute_fonction(*fonctions_parsages_mysql, info, fonction)
-}
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
-issitialise_mysql :: fonc ()
-{
-	déloge(fonctions_parsages_mysql)
-}
+    ajoute_au_tampon(*enchaineuse, "SELECT ")
 
-importe Compilatrice
+    virgule := " "
+    pour colonnes {
+        ajoute_au_tampon(*enchaineuse, virgule, it)
+        virgule = ", "
+    }
 
-génère_initialisation_mysql :: fonc ()
-{
-    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageMySQL")
-    diffère déloge(fonctions_de_parsage)
+    ajoute_au_tampon(*enchaineuse, " FROM ", nom_table, ";")
 
-    saufsi fonctions_de_parsage {
+    requête := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(requête)
+
+	résultat_exécution := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat_exécution)
+
+    si résultat_exécution.curseurs.taille != 1 {
         retourne
     }
 
-	/*
-		modèle fonction de parsage : fonc (chaine, []octet) (bool)
-	 */
+    résultats := parse_liste_résultat(*résultat_exécution.curseurs[0], TypeRésultat, ...colonnes)
 
-	enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère détruit_tampons(*enchaineuse)
+    discr résultats {
+        Quelque(liste_de_résultat) {
+            /* Nous devons copier les chaines. */
+            pour & liste_de_résultat {
+                it = copie(it)
+            }
 
-    // Il nous faut les modules.
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe MySQL\n")
-
-	modules_importés : []chaine
-	tableau_ajoute(*modules_importés, "Fondation")
-
-	/* Création des enveloppes pour les fonctions de parsage. */
-    pour fonctions_de_parsage {
-        // valide les types
-        si it.params.taille != 1 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre")
+            retourne liste_de_résultat
+        }
+        sinon {
             retourne
         }
+    }
+}
 
-        type_premier_paramètre := it.params[0].type
-        si type_premier_paramètre != info_de(chaine) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».")
+exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
+{
+    résultat := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat)
+
+    si résultat.curseurs.taille != 1 {
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
+        retourne
+    }
+
+    rés := parse_liste_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    discr rés {
+        Quelque(liste) {
+            pour & liste {
+                it = copie(it)
+            }
+            retourne liste
+        }
+        sinon {
             retourne
         }
+    }
+}
 
-		si it.params_sorties.taille != 2 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-            retourne
-		}
+exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat(TypeRésultat)
+{
+    résultat := tente exécute(connexion, requête) piège err {
+        retourne
+    }
+    diffère détruit_résultat(résultat)
 
-		type_première_sortie := it.params_sorties[0].type
-
-		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».")
-            retourne
-		}
-
-		nom_module := compilatrice_module_pour_code(it)
-		si nom_module {
-			pour module_importé dans modules_importés {
-				si module_importé == nom_module {
-					arrête
-				}
-			}
-			sansarrêt {
-				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
-				tableau_ajoute(*modules_importés, nom_module)
-			}
-		}
-
-        ajoute_au_tampon(*enchaineuse, "parsage_mysql_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
-		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
+    si résultat.curseurs.taille != 1 {
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
+        retourne
     }
 
-    /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_mysql :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
-    ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*fonctions_parsages_mysql)\n")
-
-    pour fonctions_de_parsage {
-        type_deuxième_paramètre := it.params_sorties[1].type
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_mysql(info_de(")
-        imprime_type(*enchaineuse, type_deuxième_paramètre)
-        ajoute_au_tampon(*enchaineuse, "), parsage_mysql_", it.nom, ")\n")
+    rés := parse_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    discr rés {
+        Quelque(valeur) {
+            retourne copie(valeur)
+        }
+        sinon {
+            retourne
+        }
     }
+}
 
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_mysql()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_mysql()\n")
+// -------------------------------------------------------
+// Parsage & Formattage
 
-    sources := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(sources)
+importe Compilatrice
 
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
+{
+    résultat : DonnéesFonctionPourTableFonction
+
+	si fonction.params.taille != 1 {
+		compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre")
+		retourne résultat
+	}
+
+	type_premier_paramètre := fonction.params[0].type
+	si type_premier_paramètre != info_de(chaine) {
+		compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».")
+		retourne résultat
+	}
+
+	si fonction.params_sorties.taille != 2 {
+		compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+		retourne résultat
+	}
+
+	type_première_sortie := fonction.params_sorties[0].type
+
+	si type_première_sortie != info_de(bool) {
+		compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».")
+		retourne résultat
+	}
+
+    résultat.fonction = fonction
+    résultat.info_type = fonction.params_sorties[1].type
+    retourne résultat
+}
+
+génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
+{
+    nom_enveloppe := enchaine("parsage_mysql_", données.fonction.nom)
+
+	ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+	ajoute_au_tampon(enchaineuse, "{\n")
+	ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
+	ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+	ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+	ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+	ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
+}
+
+génère_initialisation_mysql :: fonc ()
+{
+    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions.annotation_désirée = "ParsageMySQL"
+    créatrice_table_fonctions.nom_table_fonctions = "fonctions_parsages_mysql"
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+    créatrice_table_fonctions.ajoute_module("MySQL")
+
+    crée_table_fonctions(créatrice_table_fonctions)
 }
 
 #pré_exécutable génère_initialisation_mysql()

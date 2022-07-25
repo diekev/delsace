@@ -24,6 +24,8 @@
 
 #include "programme.hh"
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -126,9 +128,13 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
         return false;
     }
 
+    using dls::outils::est_element;
+
     POUR (m_fonctions) {
-        if (!it->possede_drapeau(RI_FUT_GENEREE) && it->ident != ID::init_execution_kuri &&
-            it->ident != ID::fini_execution_kuri) {
+        if (!it->possede_drapeau(RI_FUT_GENEREE) && !est_element(it->ident,
+                                                                 ID::init_execution_kuri,
+                                                                 ID::fini_execution_kuri,
+                                                                 ID::init_globales_kuri)) {
             assert_rappel(it->unite, [&]() {
                 std::cerr << "Aucune unité pour de compilation pour :\n";
                 erreur::imprime_site(*m_espace, it);
@@ -226,6 +232,26 @@ kuri::ensemble<Module *> Programme::modules_utilises() const
         modules.insere(it->module);
     }
     return modules;
+}
+
+void Programme::ajourne_pour_nouvelles_options_espace()
+{
+    /* Recréer la coulisse. */
+    Coulisse::detruit(m_coulisse);
+    m_coulisse = Coulisse::cree_pour_options(espace()->options);
+
+    auto index = 0;
+    POUR (m_fonctions) {
+        /* Supprime le point d'entrée. */
+        if (it == espace()->fonction_point_d_entree &&
+            espace()->options.resultat != ResultatCompilation::EXECUTABLE) {
+            std::swap(m_fonctions[index], m_fonctions[m_fonctions.taille() - 1]);
+            m_fonctions.redimensionne(m_fonctions.taille() - 1);
+            break;
+        }
+
+        index += 1;
+    }
 }
 
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const
@@ -511,6 +537,36 @@ static void visite_type(Type *type, std::function<void(Type *)> rappel)
 }
 #endif
 
+static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
+{
+    /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
+     * aurions ajoutées (qui ne sont pas dans le programme initiale). */
+    auto type_utilises = cree_ensemble(repr_inter.types);
+
+    VisiteuseType visiteuse{};
+    auto ajoute_type_si_necessaire = [&](Type *type_racine) {
+        visiteuse.visite_type(type_racine, [&](Type *type) {
+            if (type_utilises.possede(type)) {
+                return;
+            }
+
+            type_utilises.insere(type);
+            repr_inter.types.ajoute(type);
+        });
+    };
+
+    POUR (repr_inter.fonctions) {
+        ajoute_type_si_necessaire(it->type);
+        for (auto &inst : it->instructions) {
+            ajoute_type_si_necessaire(inst->type);
+        }
+    }
+
+    POUR (repr_inter.globales) {
+        ajoute_type_si_necessaire(it->type);
+    }
+}
+
 ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme)
 {
     auto resultat = ProgrammeRepreInter{};
@@ -560,34 +616,7 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
      * tableaux, et les infos-types. */
     rassemble_globales_supplementaires(resultat);
 
-    {
-        /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
-         * aurions ajoutées (qui ne sont pas dans le programme initiale). */
-        auto type_utilises = cree_ensemble(resultat.types);
-
-        VisiteuseType visiteuse{};
-        auto ajoute_type_si_necessaire = [&](Type *type_racine) {
-            visiteuse.visite_type(type_racine, [&](Type *type) {
-                if (type_utilises.possede(type)) {
-                    return;
-                }
-
-                type_utilises.insere(type);
-                resultat.types.ajoute(type);
-            });
-        };
-
-        POUR (resultat.fonctions) {
-            ajoute_type_si_necessaire(it->type);
-            for (auto &inst : it->instructions) {
-                ajoute_type_si_necessaire(inst->type);
-            }
-        }
-
-        POUR (resultat.globales) {
-            ajoute_type_si_necessaire(it->type);
-        }
-    }
+    rassemble_types_supplementaires(resultat);
 
     return resultat;
 }
@@ -624,8 +653,15 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
  * constructeurs globaux... */
 void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
 {
+    fonctions.ajoute(fonction);
+    ajourne_globales_pour_fonction(fonction);
+}
+
+void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction)
+{
     auto globales_utilisees = cree_ensemble(this->globales);
     VisiteuseAtome visiteuse{};
     rassemble_globales_supplementaires(*this, fonction, visiteuse, globales_utilisees);
-    fonctions.ajoute(fonction);
+    /* Les types ont peut-être changé. */
+    rassemble_types_supplementaires(*this);
 }

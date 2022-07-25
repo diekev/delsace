@@ -35,19 +35,19 @@ OPENSSL_init_ssl :: fonc (opts: n64, settings: *OPENSSL_INIT_SETTINGS) -> z32 #e
 OPENSSL_init_crypto :: fonc (opts: n64, settings: *OPENSSL_INIT_SETTINGS) -> z32 #externe libssl
 
 // Déprécié, devient un macro
-SSL_library_init :: fonc () -> rien #nulctx
+SSL_library_init :: fonc () -> rien
 {
     _ := OPENSSL_init_ssl(0, nul)
 }
 
 // Déprécié, devient un macro
-SSL_load_error_strings :: fonc () -> rien #nulctx
+SSL_load_error_strings :: fonc () -> rien
 {
     _ := OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, nul)
 }
 
 OPENSSL_add_all_algorithms_conf :: fonc () -> rien #externe libssl
-OPENSSL_add_all_algorithms_noconf :: fonc () -> rien #nulctx
+OPENSSL_add_all_algorithms_noconf :: fonc () -> rien
 {
     _ := OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS | OPENSSL_INIT_ADD_ALL_DIGESTS, nul)
 }
@@ -85,7 +85,7 @@ TLS1_1_VERSION  : n16 : 0x0302
 TLS1_2_VERSION  : n16 : 0x0303
 TLS_MAX_VERSION : n16 : TLS1_2_VERSION
 
-pem_password_cb :: #nulctx fonc(*z8, z32, z32, *rien)(z32)
+pem_password_cb :: fonc(*z8, z32, z32, *rien)(z32)
 
 SSL_CTRL_SET_TMP_DH :: 3
 SSL_CTRL_MODE :: 33
@@ -95,25 +95,25 @@ SSL_CTRL_SET_MIN_PROTO_VERSION :: 123
 SSL_CTX_ctrl :: fonc (ssl: *SSL_CTX, cmd: z32, larg: z64, parg: *rien) -> z64 #externe libssl
 
 // Ceci est un macro en C
-SSL_CTX_set_mode :: fonc (ssl: *SSL_CTX, mode: z64) -> z64 #nulctx
+SSL_CTX_set_mode :: fonc (ssl: *SSL_CTX, mode: z64) -> z64
 {
     retourne SSL_CTX_ctrl(ssl, SSL_CTRL_MODE, mode, nul)
 }
 
 // Ceci est un macro en C
-SSL_CTX_set_read_ahead :: fonc (ssl: *SSL_CTX, oui_non: z32) -> rien #nulctx
+SSL_CTX_set_read_ahead :: fonc (ssl: *SSL_CTX, oui_non: z32) -> rien
 {
     _ := SSL_CTX_ctrl(ssl, SSL_CTRL_SET_READ_AHEAD, oui_non, nul)
 }
 
 // Ceci est un macro en C
-SSL_CTX_set_min_proto_version :: fonc (ssl: *SSL_CTX, version: n16) -> z64 #nulctx
+SSL_CTX_set_min_proto_version :: fonc (ssl: *SSL_CTX, version: n16) -> z64
 {
     retourne SSL_CTX_ctrl(ssl, SSL_CTRL_SET_MIN_PROTO_VERSION, version comme z64, nul)
 }
 
 // Ceci est un macro en C
-SSL_CTX_set_tmp_dh :: fonc (ssl: *SSL_CTX, dh: *DH) -> z64 #nulctx
+SSL_CTX_set_tmp_dh :: fonc (ssl: *SSL_CTX, dh: *DH) -> z64
 {
     retourne SSL_CTX_ctrl(ssl, SSL_CTRL_SET_TMP_DH, 0, dh)
 }
@@ -138,10 +138,10 @@ BIO_FLAGS_SHOULD_RETRY :: 0x08
 
 BIO_meth_new :: fonc (type: z32, name: ChaineC) -> *BIO_METHOD #externe libssl
 BIO_meth_free :: fonc (biom: *BIO_METHOD) -> rien #externe libssl
-BIO_meth_set_create :: fonc (bio: *BIO_METHOD, cb: #nulctx fonc(*BIO)(z32)) -> rien #externe libssl
-BIO_meth_set_write :: fonc (bio: *BIO_METHOD, cb: #nulctx fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
-BIO_meth_set_read :: fonc (bio: *BIO_METHOD, cb: #nulctx fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
-BIO_meth_set_ctrl :: fonc (bio: *BIO_METHOD, cb: #nulctx fonc(*BIO, z32, z64, *rien)(z64)) -> rien #externe libssl
+BIO_meth_set_create :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO)(z32)) -> rien #externe libssl
+BIO_meth_set_write :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
+BIO_meth_set_read :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
+BIO_meth_set_ctrl :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, z32, z64, *rien)(z64)) -> rien #externe libssl
 
 BIO_new :: fonc (type: *BIO_METHOD) -> *BIO #externe libssl
 BIO_new_mem_buf :: fonc (buf: *rien, len: z32) -> *BIO #externe libssl
@@ -153,13 +153,13 @@ BIO_set_flags :: fonc (bio: *BIO, flags: z32) #externe libssl
 BIO_set_init :: fonc (bio: *BIO, init: z32) #externe libssl
 
 // Macro en C.
-BIO_set_retry_read :: fonc (bio: *BIO) #enligne #nulctx
+BIO_set_retry_read :: fonc (bio: *BIO) #enligne
 {
     BIO_set_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_READ)
 }
 
 // Macro en C.
-BIO_set_retry_write :: fonc (bio: *BIO) #enligne #nulctx
+BIO_set_retry_write :: fonc (bio: *BIO) #enligne
 {
     BIO_set_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_WRITE)
 }
@@ -175,7 +175,7 @@ SSL_CTX_set_client_CA_list :: fonc (contexte_ssl: *SSL_CTX, ca_list: *STACK_OF_X
 
 SSL_CTX_load_verify_locations :: fonc (ctx: *SSL_CTX, CAfile: ChaineC, CApath: ChaineC) -> z32 #externe libssl
 
-verify_callback_type :: #nulctx fonc (z32, *X509_STORE_CTX)(z32)
+verify_callback_type :: fonc (z32, *X509_STORE_CTX)(z32)
 SSL_CTX_set_verify :: fonc (ctx: *SSL_CTX, mode: z32, cb: verify_callback_type) -> rien #externe libssl
 
 // ceci est un macro en C

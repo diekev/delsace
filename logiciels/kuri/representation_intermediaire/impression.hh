@@ -32,6 +32,8 @@ struct Atome;
 struct AtomeFonction;
 struct Instruction;
 
+void imprime_information_atome(Atome const *atome, std::ostream &os);
+
 void imprime_atome(Atome const *atome, std::ostream &os);
 
 void imprime_fonction(AtomeFonction const *atome_fonc,

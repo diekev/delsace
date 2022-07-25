@@ -32,6 +32,8 @@
 
 #include "../InterfaceCKuri/contexte_kuri.hh"
 
+#include <tbb/parallel_for.h>
+
 extern "C" {
 
 struct FilExecution {
@@ -171,5 +173,57 @@ void EXETRON_detruit_variable_condition(ContexteKuri *ctx_kuri,
                                         VariableCondition *condition_variable)
 {
     kuri_deloge(ctx_kuri, condition_variable);
+}
+
+static long taille_plage(PlageExecution const *plage)
+{
+    return plage->fin - plage->debut;
+}
+
+#define RETOURNE_SI_NUL                                                                           \
+    if (!donnees || !donnees->fonction || !plage) {                                               \
+        return;                                                                                   \
+    }
+
+void EXETRON_boucle_serie(PlageExecution const *plage, DonneesTacheParallele *donnees)
+{
+    RETOURNE_SI_NUL
+    donnees->fonction(donnees, plage);
+}
+
+void EXETRON_boucle_parallele(PlageExecution const *plage,
+                              DonneesTacheParallele *donnees,
+                              int granularite)
+{
+    RETOURNE_SI_NUL
+    auto const taille = taille_plage(plage);
+    if (taille == 0) {
+        return;
+    }
+
+    /* Vérifie si une seule tache peut être créée. */
+    if (taille <= granularite) {
+        EXETRON_boucle_serie(plage, donnees);
+        return;
+    }
+
+    using type_plage = tbb::blocked_range<long>;
+
+    tbb::parallel_for(type_plage(plage->debut, plage->fin), [&](const type_plage &plage_) {
+        PlageExecution plage_execution{plage_.begin(), plage_.end()};
+        donnees->fonction(donnees, &plage_execution);
+    });
+}
+
+void EXETRON_boucle_parallele_legere(PlageExecution const *plage, DonneesTacheParallele *donnees)
+{
+    RETOURNE_SI_NUL
+    EXETRON_boucle_parallele(plage, donnees, 1024);
+}
+
+void EXETRON_boucle_parallele_lourde(PlageExecution const *plage, DonneesTacheParallele *donnees)
+{
+    RETOURNE_SI_NUL
+    EXETRON_boucle_parallele(plage, donnees, 1);
 }
 }

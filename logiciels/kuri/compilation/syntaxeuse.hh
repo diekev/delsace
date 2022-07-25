@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
 
 struct Annotation;
@@ -115,4 +116,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
+
+    void requiers_typage(NoeudExpression *noeud);
+
+    bool ignore_point_virgule_implicite();
 };

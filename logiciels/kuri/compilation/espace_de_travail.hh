@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/dico.hh"
 
 #include "structures/table_hachage.hh"
 
@@ -71,6 +70,7 @@ struct EspaceDeTravail {
     OptionsDeCompilation options{};
 
     Programme *programme = nullptr;
+    UniteCompilation *unite_pour_code_machine = nullptr;
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
@@ -109,7 +109,8 @@ struct EspaceDeTravail {
     void tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier);
     void tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere);
+    void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
+                               bool peut_envoyer_changement_de_phase);
     void tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_execution_terminee(dls::outils::Synchrone<Messagere> &messagere);
@@ -121,7 +122,11 @@ struct EspaceDeTravail {
 
     Message *change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
                              PhaseCompilation nouvelle_phase);
-    PhaseCompilation phase_courante() const;
+
+    PhaseCompilation phase_courante() const
+    {
+        return phase;
+    }
 
     SiteSource site_source_pour(NoeudExpression const *noeud) const;
 

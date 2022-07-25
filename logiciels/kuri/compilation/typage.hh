@@ -25,14 +25,16 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"
+#include "structures/ensemblon.hh"
+#include "structures/tablet.hh"
 
 #include "operateurs.hh"
 
@@ -293,7 +295,7 @@ struct TypeFonction : public Type {
         genre = GenreType::FONCTION;
     }
 
-    TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie);
+    TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie);
 
     COPIE_CONSTRUCT(TypeFonction);
 
@@ -527,12 +529,14 @@ struct TypeTuple : public TypeCompose {
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
     inline TypeRafine *Type::comme_##nom()                                                        \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<TypeRafine *>(this);                                                   \
     }                                                                                             \
     inline const TypeRafine *Type::comme_##nom() const                                            \
     {                                                                                             \
-        assert(genre == GenreType::Genre);                                                        \
+        assert_rappel(genre == GenreType::Genre,                                                  \
+                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
         return static_cast<const TypeRafine *>(this);                                             \
     }
 
@@ -639,9 +643,9 @@ struct Typeuse {
 
     TypeVariadique *type_variadique(Type *type_pointe);
 
-    TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees);
+    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
 
-    TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees,
+    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees,
                                 Type *type_sortie,
                                 bool ajoute_operateurs = true);
 
@@ -653,7 +657,7 @@ struct Typeuse {
 
     TypeUnion *reserve_type_union(NoeudStruct *decl);
 
-    TypeUnion *union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres);
+    TypeUnion *union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres);
 
     TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
@@ -663,7 +667,7 @@ struct Typeuse {
 
     TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
-    TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
+    TypeTuple *cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres);
 
     inline Type *operator[](TypeBase type_base) const
     {
@@ -693,3 +697,6 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 NoeudDeclaration *decl_pour_type(const Type *type);
 
 bool est_type_polymorphique(Type *type);
+
+std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau);

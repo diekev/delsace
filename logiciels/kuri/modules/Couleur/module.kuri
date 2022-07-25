@@ -1,7 +1,242 @@
+importe Fondation
+importe Math
 
 Couleur :: struct {
     r := 0.0
     v := 0.0
     b := 0.0
     a := 0.0
+}
+
+// Utiliser Couleur est difficile avec la génération de code
+// dans les métaprogrammes à cause du nom du module (nous générons
+// "Couleur" au lieu de "Couleur.Couleur").
+CouleurRVBA :: struct {
+    r := 0.0  @mutable
+    v := 0.0  @mutable
+    b := 0.0  @mutable
+    a := 0.0  @mutable
+}
+
+init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
+{
+    init_de(CouleurRVBA)(couleur)
+    retourne vrai
+} @Python "new"
+
+opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+{
+    si couleur1.r != couleur2.r {
+        retourne faux
+    }
+
+    si couleur1.v != couleur2.v {
+        retourne faux
+    }
+
+    si couleur1.b != couleur2.b {
+        retourne faux
+    }
+
+    si couleur1.a != couleur2.a {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+opérateur != :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+{
+    retourne !(couleur1 == couleur2)
+}
+
+restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
+{
+    résultat := couleur
+    restreint(*résultat.r, min, max)
+    restreint(*résultat.v, min, max)
+    restreint(*résultat.b, min, max)
+    restreint(*résultat.a, min, max)
+    retourne résultat
+}
+
+CouleurTSV :: struct {
+    t: r32
+    s: r32
+    v: r32
+}
+
+rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
+{
+    r := couleur.r
+    v := couleur.v
+    b := couleur.b
+
+    k := 0.0
+
+    si v < b {
+        permute(v, b)
+        k = -1.0
+    }
+
+    min_vb := b
+    si r < v {
+        permute(r, v)
+        k = -2.0 / 6.0 - k
+        min_vb = min(v, b)
+    }
+
+    chroma := r - min_vb
+
+    résultat : CouleurTSV = ---
+    résultat.t = abs(k + (v - b) / (6.0 * chroma + 1e-20));
+    résultat.s = chroma / (r + 1e-20)
+    résultat.v = r
+    retourne résultat
+}
+
+tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
+{
+    h := couleur.t
+    s := couleur.s
+    v := couleur.v
+
+    nr := abs(h * 6.0 - 3.0) - 1.0
+    nv := 2.0 - abs(h * 6.0 - 2.0)
+    nb := 2.0 - abs(h * 6.0 - 4.0)
+
+    restreint(*nr, 0.0, 1.0)
+    restreint(*nb, 0.0, 1.0)
+    restreint(*nv, 0.0, 1.0)
+
+    résultat : CouleurRVBA = ---
+    résultat.r = ((nr - 1.0) * s + 1.0) * v;
+    résultat.v = ((nv - 1.0) * s + 1.0) * v;
+    résultat.b = ((nb - 1.0) * s + 1.0) * v;
+    retourne résultat
+}
+
+CouleurTSL :: struct {
+    t: r32
+    s: r32
+    l: r32
+}
+
+rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
+{
+    r := couleur.r
+    v := couleur.v
+    b := couleur.b
+
+    cmax := max(r, v, b)
+    cmin := min(r, v, b)
+
+    t := 0.0
+    s := 0.0
+    l := min(1.0, (cmax + cmin) * 0.5)
+
+    si (cmax == cmin) {
+        /* achromatic, t et s sont déjà à zéro */
+    }
+    sinon {
+        d := cmax - cmin
+
+        s = si l > 0.5 {
+            d / (2.0 - cmax - cmin)
+        }
+        sinon {
+            d / (cmax + cmin)
+        }
+
+        si (cmax == r) {
+            t = (v - b) / d
+            si v < b {
+                t += 6.0
+            }
+        }
+        sinon si (cmax == v) {
+            t = (b - r) / d + 2.0
+        }
+        sinon {
+            t = (r - v) / d + 4.0
+        }
+    }
+
+    t /= 6.0
+
+    résultat : CouleurTSL = ---
+    résultat.t = t
+    résultat.s = s
+    résultat.l = l
+    retourne résultat
+}
+
+tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
+{
+    h := couleur.t
+    s := couleur.s
+    l := couleur.l
+
+    nr := abs(h * 6.0 - 3.0) - 1.0;
+    ng := 2.0 - abs(h * 6.0 - 2.0)
+    nb := 2.0 - abs(h * 6.0 - 4.0)
+
+    restreint(*nr, 0.0, 1.0)
+    restreint(*nb, 0.0, 1.0)
+    restreint(*ng, 0.0, 1.0)
+
+    chroma := (1.0 - abs(2.0 * l - 1.0)) * s
+
+    résultat : CouleurRVBA = ---
+    résultat.r = (nr - 0.5) * chroma + l
+    résultat.v = (ng - 0.5) * chroma + l
+    résultat.b = (nb - 0.5) * chroma + l
+    retourne résultat
+}
+
+// -------------------------------------------------------------------------
+
+Spectre :: struct {
+    x: r32
+    y: r32
+    z: r32
+}
+
+opérateur + :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+{
+    retourne Spectre(s1.x + s2.x, s1.y + s2.y, s1.z + s2.z)
+}
+
+opérateur * :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+{
+    retourne Spectre(s1.x * s2.x, s1.y * s2.y, s1.z * s2.z)
+}
+
+opérateur * :: fonc (s1: r32, s2: Spectre) -> Spectre
+{
+    retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z)
+}
+
+/* Conversion d'espaces colorimétriques. */
+
+linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
+{
+    résultat : Spectre = ---
+
+    résultat.x = linéaire_vers_srgb(spectre.x) comme r32 / 255.0
+    résultat.y = linéaire_vers_srgb(spectre.y) comme r32 / 255.0
+    résultat.z = linéaire_vers_srgb(spectre.z) comme r32 / 255.0
+
+    retourne résultat
+}
+
+linéaire_vers_srgb :: fonc (value: r32) -> z32
+{
+	v := max(0.0, min(1.0, value))
+
+    si v <= 0.0031308 {
+        retourne (v * 12.92 * 255.0 + 0.5) comme z32
+    }
+
+    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
 }

@@ -4,17 +4,15 @@
 
 importe Support
 
+Structure :: struct {
+    valeur: z32
+}
+
+tableau := []Structure = [
+    Structure(valeur = 0)
+]")
+
 principale :: fonc () -> z32
 {
-    erreur_survenue := #exécute compile_script_erroné("
-    Structure :: struct {
-        valeur: z32
-    }
-
-    tableau := []Structure = [
-        Structure(valeur = 0)
-    ]")
-
-    imprime_succès(erreur_survenue)
     retourne 0
 }

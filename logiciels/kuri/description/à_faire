@@ -12,6 +12,8 @@
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
+- ajout de #dump pour imprimer des informations (code binaire, etc.)
+- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
 
 // -----------------------------------
@@ -38,7 +40,15 @@
 
     }
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
+- crash pour les expressions du type `x. - 1`, le point est superflux, nous devrions émettre une erreur
 
+        // À FAIRE(langage) : crash lors de l'indexage via une énumération dans la machine virtuelle
+        compilatrice.bits_fonctions_pour_canaux[it.type_chaine_recherchée comme z32] |= (1 << it.index_prise_recherche_chaine) comme n64
+Crash pour les expressions du style
+    - #pré_exécutable déloge(__globale)
+
+Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
+    - nous ne devrions utiliser que la fonction du module courant
 // -----------------------------------
 // Architecture/Qualité de code
 
@@ -58,6 +68,9 @@
 - ajout d'une fonction visite_noeud :
     -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
     -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
+- transforme les PositionCode en globales:
+    -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
+
 
 // -----------------------------------
 // Fonctionnalités diverses
@@ -67,6 +80,8 @@
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
+- tests des énums drapeaux dans les conditions des boucles
+    voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
 
 // -----------------------------------
 // Avertissements
@@ -199,8 +214,6 @@ Résultat de l'algorithme d'unification :
 -- pour la cuisson de paramètres non-constants : remplace les paramètres par des constantes
 
 // --------------------------- Contexte Implicite
-
-utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
 permettre aux utilisateurs du langage d'y ajouter des variables
 
@@ -391,7 +404,7 @@ déclaration d'énum, de structures, et d'unions anonymes :
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type
     voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
 
-- pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
+- pouvoir passer des pointeur comme référence
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 

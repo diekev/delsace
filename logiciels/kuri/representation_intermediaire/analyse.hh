@@ -27,6 +27,7 @@
 #include "structures/tableau.hh"
 
 struct AtomeFonction;
+struct ConstructriceRI;
 struct EspaceDeTravail;
 struct Instruction;
 

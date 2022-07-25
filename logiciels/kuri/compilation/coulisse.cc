@@ -40,7 +40,11 @@ Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
         }
         case TypeCoulisse::LLVM:
         {
+#ifdef AVEC_LLVM
             return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+#else
+            return nullptr;
+#endif
         }
         case TypeCoulisse::ASM:
         {
@@ -64,11 +68,13 @@ void Coulisse::detruit(Coulisse *coulisse)
         memoire::deloge("CoulisseC", c);
         coulisse = nullptr;
     }
+#ifdef AVEC_LLVM
     else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
         memoire::deloge("CoulisseLLVM", c);
         coulisse = nullptr;
     }
+#endif
     else if (dynamic_cast<CoulisseASM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseASM *>(coulisse);
         memoire::deloge("CoulisseASM", c);

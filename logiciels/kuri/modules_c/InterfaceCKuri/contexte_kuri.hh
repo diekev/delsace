@@ -45,11 +45,18 @@ struct ContexteKuri {
 
 #ifdef __cplusplus
 template <typename T, typename... Args>
-T *kuri_loge(ContexteKuri *ctx_kuri, Args &&... args)
+T *kuri_loge(ContexteKuri *ctx_kuri, Args &&...args)
 {
     T *ptr = static_cast<T *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof(T)));
     new (ptr) T(args...);
     return ptr;
+}
+
+template <typename T>
+T *kuri_reloge(ContexteKuri *ctx, T *objet, unsigned long nouvelle_taille)
+{
+    void *nouveau_pointeur = ctx->reloge_memoire(ctx, objet, sizeof(T), nouvelle_taille);
+    return static_cast<T *>(nouveau_pointeur);
 }
 
 template <typename T>

@@ -12,6 +12,8 @@ foo :: fonc () -> rien
 principale :: fonc () -> z32
 {
     ptr := foo
-    imprime_succès(ptr != nul)
+    saufsi (ptr != nul) {
+        retourne 1
+    }
     retourne 0
 }

@@ -1,4 +1,5 @@
 importe Chaine
+importe Fondation
 
 PileÉlémentsOuverts :: struct {
     éléments: []*Élément

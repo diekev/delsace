@@ -9,7 +9,6 @@ foo :: fonc ()
 principale :: fonc () -> z32
 {
     foo2()
-    imprime_succès(vrai)
     retourne 0
 }
 

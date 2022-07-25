@@ -32,7 +32,7 @@
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
-#include "outils.hh"
+#include "outils_independants_des_lexemes.hh"
 
 struct FluxSortieKuri {
   private:

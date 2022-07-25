@@ -1,16 +1,13 @@
 // ambigüité entre des fonctions de mêmes noms et de même paramètres si l'une des deux fonctions est
 // variadique mais aucun argument variadique n'est spécifié dans l'appel
 
-importe Support
-
 foo :: fonc (args: ...eini)
 {
-    imprime_succès(faux)
+    panique("La mauvaise fonction fut appelée !")
 }
 
 foo :: fonc ()
 {
-    imprime_succès(vrai)
 }
 
 principale :: fonc () -> z32

@@ -131,8 +131,9 @@ set(SOURCES
 )
 
 if(AVEC_LLVM)
-	set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
-	set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
+    set(INCLUSIONS "${INCLUSIONS}" ${LLVM_INCLUDE_DIR})
+    set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" ${LLVM_LIBRARY})
+    set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
 endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

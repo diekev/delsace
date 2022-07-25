@@ -179,7 +179,7 @@ struct Attente {
      * attendre. */
     bool est_valide() const
     {
-        return attente.index() != std::variant_npos;
+        return attente.index() != std::variant_npos && attente.index() != 0;
     }
 
     template <typename T>

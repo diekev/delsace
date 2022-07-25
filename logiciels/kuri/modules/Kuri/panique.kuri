@@ -6,7 +6,7 @@ importe GlibC
 
 imprime_panique :: fonc () -> rien #sanstrace
 {
-    trace := contexte.trace_appel
+    trace := contexte().trace_appel
 
     tantque trace != nul {
         info_fonction := trace.info_fonction
@@ -32,8 +32,9 @@ imprime_panique :: fonc () -> rien #sanstrace
 
 panique :: fonc (message: chaine) -> rien #sanstrace #interface
 {
-    si contexte.rappel_panique != nul {
-        contexte.rappel_panique()
+    rappel := contexte().rappel_panique
+    si rappel != nul {
+        rappel()
     }
 
     imprime("\n\x1b[1;31mErreur :\x1b[0m %\n\n", message)
@@ -42,8 +43,9 @@ panique :: fonc (message: chaine) -> rien #sanstrace #interface
 
 panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface
 {
-    si contexte.rappel_panique != nul {
-        contexte.rappel_panique()
+    rappel := contexte().rappel_panique
+    si rappel != nul {
+        rappel()
     }
 
     imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites du tableau, la taille est de % mais l'index est de %\n\n", taille, index);
@@ -52,8 +54,9 @@ panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #
 
 panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface
 {
-    si contexte.rappel_panique != nul {
-        contexte.rappel_panique()
+    rappel := contexte().rappel_panique
+    si rappel != nul {
+        rappel()
     }
 
     imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites de la chaine, la taille est de % mais l'index est de %\n\n", taille, index);

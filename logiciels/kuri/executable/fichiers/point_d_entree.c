@@ -78,15 +78,16 @@ n16 DLS_depuis_r64(r64 v)
 	return DLS_depuis_r32((float)(v));
 }
 
-#include <errno.h>
-int lis_errno()
-{
-	return errno;
-}
+int __point_d_entree_systeme(int argc, char **argv);
 
-int vraie_principale(int argc, char **argv);
+int principale();
+
+int __principale()
+{
+  return principale();
+}
 
 int main(int argc, char **argv)
 {
-	return vraie_principale(argc, argv);
+  return __point_d_entree_systeme(argc, argv);
 }

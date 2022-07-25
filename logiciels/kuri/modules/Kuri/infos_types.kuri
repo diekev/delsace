@@ -57,7 +57,29 @@ InfoTypeMembreStructure :: struct #interface {
 	id : *InfoType
 	décalage : z64 // décalage en octets dans la structure
 	drapeaux : Drapeaux
-	annotations: []AnnotationCode
+  annotations: []*AnnotationCode
+}
+
+possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne vrai
+		}
+	}
+
+	retourne faux
+}
+
+trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne it
+		}
+	}
+
+	retourne nul
 }
 
 InfoTypeStructure :: struct #interface {
@@ -93,6 +115,7 @@ InfoTypeÉnum :: struct #interface {
 	valeurs : []z32
 	noms : []chaine
 	est_drapeau : bool
+	type_sous_jacent: *InfoTypeEntier
 }
 
 InfoTypeOpaque :: struct #interface {

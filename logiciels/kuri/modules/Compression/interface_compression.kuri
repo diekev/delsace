@@ -8,16 +8,16 @@ ContexteCompression :: struct {
     /**
      * Définis la taille du stockage temporaire qui sera utilisé par la bibliothèque.
      */
-    taille_stockage_temporaire :  #nulctx fonc (*ContexteCompression)(n32)
+    taille_stockage_temporaire :  fonc (*ContexteCompression)(n32)
     /**
      * Retourne un pointeur vers le stockage temporaire à utiliser. Chaque invocation de ce rappel
      * doit retourner un stockage différent.
      */
-    cree_stockage_temporaire :  #nulctx fonc (*ContexteCompression,n32)(*n8)
+    cree_stockage_temporaire :  fonc (*ContexteCompression,n32)(*n8)
     /**
      * Détruit le stockage temporaire créé via cree_stockage_temporaire.
      */
-    detruit_stockage_temporaire :  #nulctx fonc (*ContexteCompression,*n8,n32)(rien)
+    detruit_stockage_temporaire :  fonc (*ContexteCompression,*n8,n32)(rien)
     /**
      * Un pointeur vers des données utilisateur possibles, qui peut être mis en place par
      * l'application cliente.
@@ -33,19 +33,19 @@ FluxCompression :: struct {
     /**
      * Lis max quantité de données depuis le flux, et retourne la quantité lue.
      */
-    lis :  #nulctx fonc (*FluxCompression,n32,*n8)(n32)
+    lis :  fonc (*FluxCompression,n32,*n8)(n32)
     /**
      * Écris max quantité de données depuis le flux, et retourne la quantité lue.
      */
-    ecris :  #nulctx fonc (*FluxCompression,n32,*n8)(n32)
+    ecris :  fonc (*FluxCompression,n32,*n8)(n32)
     /**
      * Doit retourner vrai si le flux possede une erreur.
      */
-    possede_erreur :  #nulctx fonc (*FluxCompression)(bool)
+    possede_erreur :  fonc (*FluxCompression)(bool)
     /**
      * Retourne vrai si nous avons dépasser la fin du flux.
      */
-    fin_de_flux :  #nulctx fonc (*FluxCompression)(bool)
+    fin_de_flux :  fonc (*FluxCompression)(bool)
     /**
      * Un pointeur vers des données utilisateur possibles, qui peut être mis en place par
      * l'application cliente.

@@ -616,14 +616,11 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR, type, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR_EGAL, type, type_bool, indice);
     ajoute_basique(GenreLexeme::SUPERIEUR, type, type_bool, indice);
@@ -662,11 +659,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
-
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
@@ -699,12 +692,12 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
                                                     Type *type1,
                                                     Type *type2,
                                                     GenreLexeme type_op,
-                                                    dls::tablet<OperateurCandidat, 10> &candidats)
+                                                    kuri::tablet<OperateurCandidat, 10> &candidats)
 {
     assert(type1);
     assert(type2);
 
-    auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
+    auto op_candidats = kuri::tablet<OperateurBinaire const *, 10>();
 
     POUR (type1->operateurs.operateurs(type_op).plage()) {
         op_candidats.ajoute(it);

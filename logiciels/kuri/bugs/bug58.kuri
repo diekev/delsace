@@ -10,6 +10,5 @@ Poly :: struct ($T: type_de_données) {
 principale :: fonc () -> z32
 {
     p := Poly(T = z32)(x = 5)
-    imprime_succès(vrai)
     retourne 0
 }

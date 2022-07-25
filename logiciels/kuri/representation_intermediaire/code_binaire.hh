@@ -30,13 +30,11 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
-#include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tablet.hh"
 
+#include "structures/pile.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 struct Atome;
 struct AtomeConstante;
@@ -53,6 +51,7 @@ struct MetaProgramme;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -61,6 +60,11 @@ struct NoeudPour;
 struct NoeudStruct;
 struct Type;
 struct TypeFonction;
+
+struct ContexteGenerationCodeBinaire {
+    EspaceDeTravail *espace = nullptr;
+    const NoeudDeclarationEnteteFonction *fonction = nullptr;
+};
 
 using octet_t = unsigned char;
 
@@ -257,7 +261,9 @@ struct Chunk {
     void agrandis_si_necessaire(long taille);
 
     int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
-    void emets_assignation(NoeudExpression *site, Type *type);
+    void emets_assignation(ContexteGenerationCodeBinaire contexte,
+                           NoeudExpression *site,
+                           Type *type);
     void emets_charge(NoeudExpression *site, Type *type);
     void emets_charge_variable(NoeudExpression *site, int pointeur, Type *type);
     void emets_reference_globale(NoeudExpression *site, int pointeur);
@@ -308,6 +314,8 @@ class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
     DonneesConstantesExecutions *donnees_executions = nullptr;
 
+    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
     MetaProgramme *metaprogramme = nullptr;
@@ -318,7 +326,7 @@ class ConvertisseuseRI {
     kuri::tableau<PatchLabel> patchs_labels{};
 
 #ifdef OPTIMISE_ALLOCS
-    dls::pile<int> pile_taille{};
+    kuri::pile<int> pile_taille{};
     int dernier_decalage_pile = 0;
 #endif
 
@@ -346,6 +354,8 @@ class ConvertisseuseRI {
 
     int ajoute_globale(AtomeGlobale *globale);
     int genere_code_pour_globale(AtomeGlobale *atome_globale);
+
+    ContexteGenerationCodeBinaire contexte() const;
 };
 
 ffi_type *converti_type_ffi(Type *type);

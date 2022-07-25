@@ -186,7 +186,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     discr recherche_page {
         page {}
         erreur_ {
-            retourne enchaine("<p>", recherche_page.erreur_, "</p>")
+            retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", recherche_page.erreur_, "</pre><div>")
         }
         sinon {
             retourne enchaine("<p>Erreur interne</p>")
@@ -201,6 +201,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     }
 
     données_génération : DonnéesGénération
+    données_génération.nom_court_page = nom_court
     données_génération.valeur = données
 
     enchaineuse : Enchaineuse
@@ -210,7 +211,8 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 
     si erreur_ {
-        retourne enchaine("<p>", erreur_, "</p>")
+        diffère déloge(erreur_)
+        retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", erreur_, "</pre><div>")
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)

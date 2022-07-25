@@ -24,18 +24,37 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/file_fixe.hh"
-#include "biblinternes/structures/tablet.hh"
+#include <variant>
 
-#include "arbre_syntaxique/noeud_expression.hh"
+#include "arbre_syntaxique/utilitaires.hh"
 
 #include "structures/ensemble.hh"
+#include "structures/file_fixe.hh"
+#include "structures/tablet.hh"
+
+#include "attente.hh"
 
 struct Compilatrice;
+struct EspaceDeTravail;
 struct Lexeme;
 struct MetaProgramme;
+struct NoeudAssignation;
+struct NoeudBloc;
+struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationTypeOpaque;
+struct NoeudDeclarationVariable;
+struct NoeudDirectiveCuisine;
+struct NoeudDirectiveExecute;
+struct NoeudDiscr;
+struct NoeudEnum;
+struct NoeudExpressionBinaire;
+struct NoeudExpressionLitteraleBool;
+struct NoeudExpressionMembre;
+struct NoeudRetour;
+struct NoeudStruct;
 struct Tacheronne;
+struct TransformationType;
 struct TypeCompose;
 struct TypeEnum;
 struct TypeTableauFixe;
@@ -80,21 +99,21 @@ struct ContexteValidationDeclaration {
     };
 
     /* Les variables déclarées, entre les virgules, si quelqu'une. */
-    dls::tablet<NoeudExpression *, 6> feuilles_variables{};
+    kuri::tablet<NoeudExpression *, 6> feuilles_variables{};
 
     /* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
-    dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
+    kuri::tablet<DeclarationEtReference, 6> decls_et_refs{};
 
     /* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
-    dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
+    kuri::tablet<NoeudExpression *, 6> feuilles_expressions{};
 
     /* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir
      * le résultat de son évaluation. */
-    file_fixe<NoeudExpression *, 6> variables{};
+    kuri::file_fixe<NoeudExpression *, 6> variables{};
 
     /* Les données finales pour les assignations, faisant correspondre les expressions aux
      * variables. */
-    dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+    kuri::tablet<DonneesAssignations, 6> donnees_assignations{};
 
     /* Données temporaires pour la constructions des donnees_assignations. */
     DonneesAssignations donnees_temp{};

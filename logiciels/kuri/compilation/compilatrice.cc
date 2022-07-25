@@ -34,9 +34,12 @@
 
 #include "parsage/lexeuse.hh"
 
+#include "structures/date.hh"
+
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "portee.hh"
 #include "programme.hh"
 
 /* ************************************************************************** */
@@ -79,6 +82,40 @@ static double vers_r64(uint16_t f)
 static uint16_t depuis_r64(double f)
 {
     return DLS_depuis_r64(f);
+}
+
+/* ************************************************************************** */
+
+long GestionnaireChainesAjoutees::ajoute(kuri::chaine chaine)
+{
+    long decalage = nombre_total_de_lignes;
+
+    POUR (chaine) {
+        nombre_total_de_lignes += (it == '\n');
+    }
+
+    /* Nous ajoutons une ligne car toutes les chaines sont suffixées d'une ligne. */
+    nombre_total_de_lignes += 1;
+    m_chaines.ajoute(chaine);
+    return decalage;
+}
+
+int GestionnaireChainesAjoutees::nombre_de_chaines() const
+{
+    return m_chaines.taille();
+}
+
+void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
+{
+    auto d = hui_systeme();
+
+    os << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee << " à " << d.heure
+       << ':' << d.minute << ':' << d.seconde << "\n\n";
+
+    POUR (m_chaines) {
+        os << it;
+        os << "\n";
+    }
 }
 
 /* ************************************************************************** */
@@ -367,6 +404,29 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation
     return espace;
 }
 
+bool Compilatrice::globale_contexte_programme_est_disponible()
+{
+    if (globale_contexte_programme == nullptr) {
+        std::unique_lock verrouille(mutex_globale_contexte_programme);
+
+        if (globale_contexte_programme == nullptr) {
+            if (module_kuri == nullptr || module_kuri->bloc == nullptr) {
+                return false;
+            }
+
+            auto decl = trouve_dans_bloc(module_kuri->bloc, ID::__contexte_fil_principal);
+
+            if (!decl) {
+                return false;
+            }
+
+            globale_contexte_programme = decl->comme_declaration_variable();
+        }
+    }
+
+    return globale_contexte_programme != nullptr;
+}
+
 ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 {
     auto rappel_erreur = [this, espace](SiteSource site, kuri::chaine message) {
@@ -397,6 +457,7 @@ void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
     /* À FAIRE : il faut ajourner la coulisse selon l'espace, et peut-être arrêter la compilation
      * du code. */
     espace_de_travail_defaut->options = *options;
+    gestionnaire_code->ajourne_espace_pour_nouvelles_options(espace_de_travail_defaut);
 }
 
 void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
@@ -410,11 +471,13 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 {
     auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-    chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
+    auto decalage = chaines_ajoutees_a_la_compilation->ajoute(
+        kuri::chaine(c.pointeur(), c.taille()));
 
     /* Les fichiers sont comparés selon leurs chemins, donc il nous faut un chemin unique pour
      * chaque nouvelle chaine. */
-    auto nom_fichier = enchaine("chaine_ajoutée", chaines_ajoutees_a_la_compilation->taille());
+    auto nom_fichier = enchaine("chaine_ajoutée",
+                                chaines_ajoutees_a_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
     auto resultat = this->trouve_ou_cree_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);
@@ -422,6 +485,8 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     assert(resultat.est<FichierNeuf>());
 
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    fichier->source = SourceFichier::CHAINE_AJOUTEE;
+    fichier->decalage_fichier = decalage;
     fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
     gestionnaire_code->requiers_lexage(espace, fichier);
 }
@@ -612,11 +677,6 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
 
     auto params = kuri::tableau<Atome *, int>();
     params.reserve(decl->params.taille());
-
-    if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
-        auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
-        params.ajoute(atome);
-    }
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);

@@ -15,7 +15,7 @@ imprime_prompt_vous :: fonc () -> rien
 
 lis_entrée :: fonc () -> chaine
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     chn : chaine
@@ -101,7 +101,7 @@ génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 
 génère_réponse_pour_message :: fonc (message: chaine) -> chaine
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     mots : []chaine

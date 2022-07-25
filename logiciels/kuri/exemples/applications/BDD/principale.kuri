@@ -25,7 +25,7 @@ principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     cm : CoulisseMémoire

@@ -518,16 +518,6 @@ kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
     enchaineuse << decl->params.taille();
     enchaineuse << "_";
 
-    if (!decl->possede_drapeau(FORCE_NULCTX)) {
-        nom_ascii = "contexte";
-        enchaineuse << nom_ascii.taille();
-        enchaineuse << nom_ascii;
-
-        kuri::chaine const &nom_broye = "KsContexteProgramme";
-        enchaineuse << nom_broye.taille();
-        enchaineuse << nom_broye;
-    }
-
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
 
@@ -547,6 +537,10 @@ kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
     auto const &nom_broye = nom_broye_type(type_fonc->type_sortie);
     enchaineuse << nom_broye.taille();
     enchaineuse << nom_broye;
+
+    /* Ajout du pointeur car les fonctions nichées dans des fonctions polymorphiques peuvent finir
+     * avec le même nom broyé. */
+    enchaineuse << decl;
 
     return enchaineuse.chaine();
 }

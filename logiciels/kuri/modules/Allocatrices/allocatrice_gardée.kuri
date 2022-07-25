@@ -90,17 +90,6 @@ entête_depuis_lien :: fonc (lien: *rien) -> *EntêteMémoire #enligne
     retourne lien comme *EntêteMémoire
 }
 
-imprime_trace :: fonc (tableau: []TraceAppel, enchaineuse: *Enchaineuse)
-{
-    pour tableau {
-        trace := it
-        info_fonction := trace.info_fonction
-        info_appel := trace.info_appel
-        imprime_dans_enchaineuse(enchaineuse, "%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
-        imprime_dans_enchaineuse(enchaineuse, "%\n", info_appel.texte);
-    }
-}
-
 /* Imprime la liste de blocs de mémoire non-libérés. L'impression se fait via le log du contexte courant.
  * ATTENTION : puisque cette fonction alloue de la mémoire, il ne faut pas l'appeler dans le même contexte
  * que celui où se trouve l'allocatrice ! */
@@ -134,51 +123,6 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
     déloge(rapport)
 }
 
-nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
-{
-    résultat := 0
-    trace := racine
-
-    tantque trace != nul {
-        résultat += 1
-        trace = trace.précédente
-    }
-
-    retourne résultat
-}
-
-copie_trace_appel :: fonc (racine: *TraceAppel, tableau: []TraceAppel)
-{
-    trace := racine
-    index := 0
-
-    tantque trace != nul {
-        copie : TraceAppel
-        copie.info_appel = trace.info_appel
-        copie.info_fonction = trace.info_fonction
-        tableau.pointeur[index] = copie
-        index += 1
-        trace = trace.précédente
-    }
-}
-
-enregistre_trace_appels :: fonc (racine: *TraceAppel) -> []TraceAppel
-{
-    n := nombre_de_trace(racine)
-    t := malloc(taille_de(TraceAppel) comme z64 * n)
-
-    tableau_traces : []TraceAppel
-    tableau_traces.pointeur = t
-    tableau_traces.taille = n
-    copie_trace_appel(racine, tableau_traces)
-    retourne tableau_traces
-}
-
-libère_tableau_trace_appels :: fonc (tableau_traces: []TraceAppel)
-{
-    free(tableau_traces.pointeur)
-}
-
 loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
     taille_à_allouer := taille_à_allouer_avec_entête(taille)
@@ -187,7 +131,7 @@ loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *Inf
     entête.info = info
     entête.taille = taille_alignée(taille)
 
-    traces := enregistre_trace_appels(contexte.trace_appel)
+    traces := enregistre_liste_trace_appels(contexte().trace_appel)
     entête.traces = traces
 
     // À FAIRE: mutex
@@ -217,8 +161,8 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
 
     entête.taille = taille_alignée(nouvelle_taille)
     entête.info = info
-    libère_tableau_trace_appels(entête.traces)
-    entête.traces = enregistre_trace_appels(contexte.trace_appel)
+    détruit_liste_trace_appels(entête.traces)
+    entête.traces = enregistre_liste_trace_appels(contexte().trace_appel)
     ajoute_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
 
     retourne pointeur_depuis_entête(entête)
@@ -239,7 +183,7 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
     si entête.taille == taille_allouée {
         /* Si les tailles diffèrent, ne libère pas la mémoire, pour générer un rapport. */
         enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
-        libère_tableau_trace_appels(entête.traces)
+        détruit_liste_trace_appels(entête.traces)
         free(entête)
     }
     sinon {
@@ -272,6 +216,8 @@ allocation_gardée :: fonc (
             retourne déloge_mémoire(allocatrice, ancien_pointeur, ancienne_taille, info)
         }
     }
+
+    retourne nul
 }
 
 /*
@@ -288,7 +234,7 @@ principale :: fonc () -> z32
 {
     allocatrice_gardée : AllocatriceGardée
 
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = allocation_gardée
     nouveau_contexte.données_allocatrice = *allocatrice_gardée
 
@@ -297,7 +243,7 @@ principale :: fonc () -> z32
         //déloge(a)
     }
 
-    contexte.logueur = mon_logueur
+    __contexte_fil_principal.logueur = mon_logueur
     imprime_liste_mémoire(*allocatrice_gardée)
 
     retourne 0

@@ -83,7 +83,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 	retourne nchn
 }
 
-construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
+construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
 	ret : chaine
 	ret.pointeur = ptr
@@ -94,6 +94,17 @@ construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
 chaine_depuis_tableau_octets :: fonc (données: []octet) -> chaine
 {
     retourne construit_chaine(données.pointeur comme *z8, données.taille)
+}
+
+calcule_empreinte :: fonc(chn : chaine) -> n64
+{
+    empreinte : n64 = 5381
+
+    pour c dans chn {
+        empreinte = ((empreinte << 5) + empreinte) + c comme n64
+    }
+
+	retourne empreinte
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
@@ -465,31 +476,65 @@ fini_par :: fonc (ligne: chaine, motifs: ...chaine) -> bool
     retourne faux
 }
 
-/*
-remplace :: fonc (ligne: chaine, c: z8) -> chaine
+remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
 {
-	// À FAIRE
-	retourne ligne
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pos_motif : z64 = 0
+    répète {
+        pos_motif = cherche_aiguille_par_boyer_moore_horspool(texte, motif)
+
+        si pos_motif == -1 {
+            ajoute_au_tampon(*enchaineuse, texte)
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, texte.sous_chaine(0, pos_motif))
+            ajoute_au_tampon(*enchaineuse, par)
+
+            texte = avance(texte, pos_motif + motif.taille)
+        }
+    } tantque pos_motif != -1
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-remplace :: fonc (ligne: chaine, motif: chaine) -> chaine
+remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
 {
-	// À FAIRE
-	retourne ligne
+	résultat := copie_chaine(ligne)
+    pour & résultat {
+        si it == c {
+            it = par
+        }
+    }
+	retourne résultat
 }
 
-compte :: fonc (ligne: chaine, c: z8) -> z64
+compte_occurences_de :: fonc (ligne: chaine, motif: chaine) -> z64
 {
-	// À FAIRE
-	retourne 0
+    résultat := 0
+    pos_motif : z64 = 0
+    répète {
+        pos_motif = cherche_aiguille_par_boyer_moore_horspool(texte, motif)
+        si pos_motif != -1 {
+            résultat += 1
+        }
+    } tantque pos_motif != -1
+
+    retourne résultat
 }
 
-compte :: fonc (ligne: chaine, motif: chaine) -> z64
+compte_occurences_de :: fonc (ligne: chaine, c: z8) -> z64
 {
-	// À FAIRE
-	retourne 0
+	résultat := 0
+    pour résultat {
+        si it == c {
+            résultat += 1
+        }
+    }
+	retourne résultat
 }
-*/
 
 compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
 {
@@ -812,6 +857,11 @@ cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheA
             retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
         }
     }
+}
+
+contiens :: fonc (chn: chaine, sous_chaine: chaine, par := ChercheAiguillePar.ForceBrute) -> bool
+{
+    retourne cherche_aiguille(chn, sous_chaine, par) != -1
 }
 
 /* Une simple parseuse pour travailler sur des chaines.

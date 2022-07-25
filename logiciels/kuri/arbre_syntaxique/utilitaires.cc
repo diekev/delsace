@@ -1310,6 +1310,47 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto pousse_contexte = noeud->comme_pousse_contexte();
             simplifie(pousse_contexte->bloc);
+
+            auto bloc_substitution = assem->cree_bloc_seul(pousse_contexte->lexeme,
+                                                           pousse_contexte->bloc_parent);
+
+            auto contexte_courant = espace->compilatrice().globale_contexte_programme;
+            auto ref_contexte_courant = assem->cree_reference_declaration(pousse_contexte->lexeme,
+                                                                          contexte_courant);
+
+            // sauvegarde_contexte := __contexte_fil_principal
+            auto sauvegarde_contexte = assem->cree_declaration_variable(
+                pousse_contexte->lexeme, contexte_courant->type, nullptr, ref_contexte_courant);
+            auto ref_sauvegarde_contexte = assem->cree_reference_declaration(
+                pousse_contexte->lexeme, sauvegarde_contexte);
+            bloc_substitution->membres->ajoute(sauvegarde_contexte);
+            bloc_substitution->expressions->ajoute(sauvegarde_contexte);
+
+            // __contexte_fil_principal = expr
+            auto permute_contexte = assem->cree_assignation_variable(
+                pousse_contexte->lexeme, ref_contexte_courant, pousse_contexte->expression);
+            bloc_substitution->expressions->ajoute(permute_contexte);
+
+            /* Il est possible qu'une instruction de retour se trouve dans le bloc, donc nous
+             * devons différer la restauration du contexte :
+             *
+             * diffère __contexte_fil_principal = sauvegarde_contexte
+             */
+            auto differe = assem->cree_differe(pousse_contexte->lexeme);
+            differe->bloc_parent = bloc_substitution;
+            differe->expression = assem->cree_assignation_variable(
+                pousse_contexte->lexeme, ref_contexte_courant, ref_sauvegarde_contexte);
+            bloc_substitution->expressions->ajoute(differe);
+
+            /* À FAIRE : surécrire le bloc_parent d'un bloc avec un bloc de substitution peut avoir
+             * des conséquences incertaines mais nous avons du bloc de substitution dans la liste
+             * des ancêtres du bloc afin que l'instruction diffère soit gérée dans la RI. */
+            pousse_contexte->bloc->bloc_parent = bloc_substitution;
+
+            /* Finalement ajoute le code du bloc, après l'instruction de différation. */
+            bloc_substitution->expressions->ajoute(pousse_contexte->bloc);
+
+            pousse_contexte->substitution = bloc_substitution;
             return;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -1700,7 +1741,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			/* À FAIRE : utilisation du type */
 			auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
 
-			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
+			auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
 			rassemble_feuilles(enfant1, feuilles);
 
 			auto idx = static_cast<NoeudExpression *>(nullptr);
@@ -1776,7 +1817,7 @@ static void rassemble_operations_chainees(NoeudExpression *racine,
 NoeudExpression *Simplificatrice::cree_expression_pour_op_chainee(
     kuri::tableau<NoeudExpressionBinaire> &comparaisons, Lexeme const *lexeme_op_logique)
 {
-    dls::pile<NoeudExpression *> exprs;
+    kuri::pile<NoeudExpression *> exprs;
 
     for (auto i = comparaisons.taille() - 1; i >= 0; --i) {
         auto &it = comparaisons[i];
@@ -1995,7 +2036,9 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
      * l'énumération. */
     auto type_sous_jacent = type_enum->type_donnees;
-    auto ref_b = expression;
+
+    simplifie(expression);
+    auto ref_b = expression->substitution ? expression->substitution : expression;
 
     auto comme = assem->cree_comme(var->lexeme);
     comme->type = type_sous_jacent;
@@ -2143,7 +2186,7 @@ void Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
 
 	constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 
-	auto feuilles = dls::tablet<NoeudExpression *, 10>{};
+	auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
 	rassemble_feuilles(enfant, feuilles);
 
 	for (auto i = 0l; i < feuilles.taille(); ++i) {
@@ -2668,8 +2711,9 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->drapeaux = it.drapeaux;
 
                 if (it.decl) {
-                    for (auto annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute({annotation.nom, annotation.valeur});
+                    for (auto &annotation : it.decl->annotations) {
+                        info_type_membre->annotations.ajoute(
+                            reinterpret_cast<AnnotationMembre *>(&annotation));
                     }
                 }
 
@@ -2714,8 +2758,9 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->drapeaux = it.drapeaux;
 
                 if (it.decl) {
-                    for (auto annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute({annotation.nom, annotation.valeur});
+                    for (auto &annotation : it.decl->annotations) {
+                        info_type_membre->annotations.ajoute(
+                            reinterpret_cast<AnnotationMembre *>(&annotation));
                     }
                 }
 
@@ -2735,6 +2780,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->nom = type_enum->nom->nom;
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
+            info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
+                cree_info_type_pour(type_enum->type_donnees));
 
             info_type->noms.reserve(type_enum->membres.taille());
             info_type->valeurs.reserve(type_enum->membres.taille());
@@ -3245,7 +3292,7 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
             type_param = typeuse.type_pointeur_pour(type_normalise, false, false);
         }
 
-        auto types_entrees = dls::tablet<Type *, 6>();
+        auto types_entrees = kuri::tablet<Type *, 6>();
         types_entrees.ajoute(type_param);
 
         auto type_fonction = typeuse.type_fonction(types_entrees, typeuse[TypeBase::RIEN], false);
@@ -3290,8 +3337,7 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
         }
 
         entete->type = type_fonction;
-        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_NULCTX |
-                             FORCE_SANSTRACE);
+        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_SANSTRACE);
 
         type->fonction_init = entete;
     }
@@ -3342,7 +3388,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
             appel->parametres_resolus.ajoute(prise_adresse);
-            appel->drapeaux |= FORCE_NULCTX;
             assembleuse->bloc_courant()->expressions->ajoute(appel);
             break;
         }
@@ -3448,7 +3493,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_pointe, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
-            appel->drapeaux |= FORCE_NULCTX;
             appel->parametres_resolus.ajoute(ref_it);
 
             pour->bloc->expressions->ajoute(appel);
@@ -3481,7 +3525,6 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_opacifie, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonc_init, typeuse[TypeBase::RIEN]);
-            appel->drapeaux |= FORCE_NULCTX;
             appel->parametres_resolus.ajoute(comme);
             assembleuse->bloc_courant()->expressions->ajoute(appel);
             break;
@@ -3581,6 +3624,12 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
             auto index_membre = 0;
             POUR (type_compose->membres) {
                 if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
+                    if (it.expression_valeur_defaut &&
+                        it.expression_valeur_defaut->est_non_initialisation()) {
+                        index_membre += 1;
+                        continue;
+                    }
+
                     auto ref_membre = assembleuse->cree_reference_membre(
                         &lexeme, ref_param, it.type, index_membre);
                     cree_initialisation_defaut_pour_type(it.type,

@@ -3,6 +3,27 @@
 importe Fondation
 importe GlibC
 importe SysFichier
+importe Triage
+
+DonnéesFichier :: struct {
+    /* Le chemin racine d'où est lancée l'exécution,
+     * par exemple le chemin passé dans la ligne de commande
+     * pour les programmes en ligne de commande. */
+    racine_exécution: CheminFichier
+    chemin: CheminFichier
+    lignes: []chaine
+
+    données_utilisateurs: eini
+}
+
+données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
+{
+    si données_fichier.données_utilisateurs.info != info_de(TypeDonnéesPersonnelles) {
+        retourne nul
+    }
+
+    retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
+}
 
 tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 {
@@ -48,7 +69,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
@@ -56,12 +77,18 @@ exécute_rappel_pour_fichier :: fonc (chemin: CheminFichier, rappel: fonc(&[]cha
     lignes := divise(contenu, '\n')
     diffère déloge(lignes)
 
-    si rappel(lignes) {
-        écris_lignes_dans_fichier(chemin, lignes)
+    données: DonnéesFichier
+    données.racine_exécution = racine
+    données.lignes = lignes
+    données.chemin = chemin
+    données.données_utilisateurs = données_utilisateurs
+
+    si rappel(données) {
+        écris_lignes_dans_fichier(chemin, données.lignes)
     }
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -75,8 +102,8 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]cha
                     continue
                 }
 
-                si chemin.extension() == ".kuri" {
-                    exécute_rappel_pour_fichier(chemin, rappel)
+                si fait_partie_de(chemin.extension(), ...extensions) {
+                    exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
                 }
             }
             sinon {
@@ -88,40 +115,15 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, rappel: fonc(&[]cha
 
 // -------------------------------------
 
-// Fonction de comparaison pour qsort.
-compare_chaines_qsort :: fonc (attr1: *rien, attr2: *rien) -> z32 #nulctx
-{
-    pousse_contexte __contexte_fil_principal {
-        a1 := mémoire(attr1 comme *chaine)
-        a2 := mémoire(attr2 comme *chaine)
-
-        si a1 < a2 {
-            retourne -1
-        }
-
-        si a1 == a2 {
-            retourne 0
-        }
-    }
-
-    retourne 1
-}
-
-tri_lignes :: fonc (lignes: &[]chaine)
-{
-    qsort(lignes.pointeur, lignes.taille comme n64, taille_de(chaine) comme n64, compare_chaines_qsort)
-}
-
-tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
     première_ligne := -1
     dernière_ligne := -1
 
     lignes_furent_modifiés := faux
 
-    // À FAIRE(langage) : itération sur des références
-    lignes_pour_itération : []chaine = lignes
-    pour lignes_pour_itération {
+    lignes := données_fichier.lignes
+    pour lignes {
         si it.commence_par("importe ") {
             si première_ligne == -1 {
                 première_ligne = index_it comme z32
@@ -133,7 +135,7 @@ tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
             bloc := tranche(lignes, première_ligne, dernière_ligne)
 
             si bloc.taille > 1 {
-                tri_lignes(bloc)
+                tri_rapide(bloc, compare_chaine)
                 lignes_furent_modifiés = vrai
             }
 
@@ -147,15 +149,15 @@ tri_imports_pour_fichier :: fonc (lignes: &[]chaine) -> bool
 
 // -------------------------------------
 
-supprime_lignes_vides_redondantes_pour_fichier :: fonc (lignes: &[]chaine) -> bool
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
 {
     dernière_ligne_fut_vide := faux
 
     nouvelles_lignes : []chaine
     diffère déloge(nouvelles_lignes)
 
-    lignes_pour_itération : []chaine = lignes
-    pour lignes_pour_itération {
+    lignes := données_fichier.lignes
+    pour lignes {
         si it == "" {
             si dernière_ligne_fut_vide {
                 continue
@@ -182,16 +184,20 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (lignes: &[]chaine) -> bo
     retourne faux
 }
 
-// -------------------------------------
-
-exécute_rappel :: fonc (chemin: CheminFichier, rappel: fonc(&[]chaine)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_dossier() {
-        exécute_rappel_pour_dossier(chemin, rappel)
+        exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
     }
     sinon {
-        si chemin.extension() == ".kuri" {
-            exécute_rappel_pour_fichier(chemin, rappel)
+        si fait_partie_de(chemin.extension(), ...extensions) {
+            exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
         }
     }
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool))
+{
+    données_utilisateurs: eini
+    exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
 }

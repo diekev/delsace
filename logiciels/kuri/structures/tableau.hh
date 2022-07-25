@@ -37,6 +37,9 @@ struct tableau {
     TypeIndex capacite = 0;
 
   public:
+    using iteratrice = T *;
+    using iteratrice_const = T const *;
+
     tableau() = default;
 
     explicit tableau(TypeIndex taille_initiale)
@@ -47,8 +50,9 @@ struct tableau {
 
     tableau(std::initializer_list<T> &&liste) : tableau(static_cast<TypeIndex>(liste.size()))
     {
+        auto ptr = this->pointeur;
         for (auto &&elem : liste) {
-            ajoute(elem);
+            *ptr++ = elem;
         }
     }
 
@@ -140,7 +144,20 @@ struct tableau {
             return;
         }
 
-        this->pointeur[this->taille_ - 1].~T();
+        this->pointeur[this->taille_ - 1] = {};
+        this->taille_ -= 1;
+    }
+
+    void supprime_premier()
+    {
+        if (this->taille_ == 0) {
+            return;
+        }
+
+        for (auto i = 0; i < this->taille_ - 1; i++) {
+            this->pointeur[i] = this->pointeur[i + 1];
+        }
+
         this->taille_ -= 1;
     }
 
@@ -219,24 +236,44 @@ struct tableau {
         return this->taille_ == 0;
     }
 
-    T *begin()
+    T *debut()
     {
         return this->pointeur;
+    }
+
+    T const *debut() const
+    {
+        return this->pointeur;
+    }
+
+    T *fin()
+    {
+        return this->begin() + this->taille_;
+    }
+
+    T const *fin() const
+    {
+        return this->begin() + this->taille_;
+    }
+
+    T *begin()
+    {
+        return debut();
     }
 
     T const *begin() const
     {
-        return this->pointeur;
+        return debut();
     }
 
     T *end()
     {
-        return this->begin() + this->taille_;
+        return fin();
     }
 
     T const *end() const
     {
-        return this->begin() + this->taille_;
+        return fin();
     }
 
     T &a(TypeIndex index)
@@ -249,6 +286,21 @@ struct tableau {
         return this->pointeur[index];
     }
 
+    T &premiere()
+    {
+        return this->pointeur[0];
+    }
+
+    T const &premiere() const
+    {
+        return this->pointeur[0];
+    }
+
+    T &derniere()
+    {
+        return this->pointeur[this->taille_ - 1];
+    }
+
     T const &derniere() const
     {
         return this->pointeur[this->taille_ - 1];
@@ -259,6 +311,16 @@ struct tableau {
         std::swap(pointeur, autre.pointeur);
         std::swap(capacite, autre.capacite);
         std::swap(taille_, autre.taille_);
+    }
+
+    void efface(T *debut_, T *fin_)
+    {
+        auto taille_a_effacer = fin_ - debut_;
+        while (debut_ != fin_) {
+            *debut_ = {};
+            debut_++;
+        }
+        this->taille_ -= taille_a_effacer;
     }
 };
 

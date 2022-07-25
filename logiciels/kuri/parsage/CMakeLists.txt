@@ -45,6 +45,7 @@ set(SOURCES
 	lexeuse.cc
 	modules.cc
 	outils_lexemes.cc
+        site_source.cc
 
 	base_syntaxeuse.hh
 	empreinte_parfaite.hh
@@ -54,6 +55,7 @@ set(SOURCES
 	lexeuse.hh
 	modules.hh
 	outils_lexemes.hh
+        site_source.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
