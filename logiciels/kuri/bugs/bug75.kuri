@@ -1,0 +1,19 @@
+/* Mauvaise génération de RI pour des controles de flux complexe.
+ * Il semblerait que « sansarrêt » produise une erreur. */
+
+principale :: fonc () -> z32
+{
+    pour x dans 10 {
+        boucle {
+            pour 2 {
+                si it % 2 == 3 {
+                    arrête
+                }
+            }
+            sansarrêt {
+                arrête
+            }
+        }
+    }
+    retourne 0
+}
