@@ -641,6 +641,24 @@ tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien #enligne
     mémoire(tabl) = tmp
 }
 
+tableau_ajoute_élément :: fonc (tableau: *[]$T) -> *T
+{
+    valeur: T
+    tableau_ajoute(tableau, valeur)
+    /* Utilise ".pointeur" car [] s'applique au pointeur du tableau. */
+    retourne *tableau.pointeur[tableau.taille - 1]
+}
+
+élément_tableau_index_relatif :: fonc (tabl: []$T, index: z64) -> *T
+{
+    si index >= 0 {
+        retourne *tabl[index]
+    }
+
+    index = tabl.taille - index
+    retourne *tabl[index]
+}
+
 tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 {
     si taille <= tabl.capacité {
