@@ -2679,6 +2679,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     empile_etat("dans le syntaxage de la structure", lexeme_mot_cle);
     consomme();
 
+    if (!gauche->est_reference_declaration()) {
+        this->rapporte_erreur("Expression inattendue pour nommer la structure");
+    }
+
     auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
     noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
     noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
