@@ -655,7 +655,7 @@ tableau_ajoute_élément :: fonc (tableau: *[]$T) -> *T
         retourne *tabl[index]
     }
 
-    index = tabl.taille - index
+    index = tabl.taille + index
     retourne *tabl[index]
 }
 
