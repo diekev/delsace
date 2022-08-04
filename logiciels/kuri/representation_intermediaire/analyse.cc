@@ -625,7 +625,10 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
  */
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
-    auto fonction_et_blocs = convertis_en_blocs(atome);
+    FonctionEtBlocs fonction_et_blocs;
+    if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
+        return;
+    }
 
     if (!detecte_blocs_invalide(espace, fonction_et_blocs)) {
         return;

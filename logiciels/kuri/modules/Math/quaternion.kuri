@@ -142,7 +142,7 @@ interpolation_sphérique :: fonc (a: Quaternion, t: r32, b: Quaternion) -> Quate
 	un :: 1.0
 	cos_theta := produit_scalaire(a, b)
 
-	/* Si les deux quaternions sont presques parallèle, retourne une
+	/* Si les deux quaternions sont presque parallèles, retourne une
 	 * interpolation linéaire de ceux-ci pour éviter une instabilité numérique.
 	 */
 	si cos_theta >= 0.9995 {
@@ -154,6 +154,18 @@ interpolation_sphérique :: fonc (a: Quaternion, t: r32, b: Quaternion) -> Quate
 	qperp := normalise(b - a * thetap)
 
 	retourne a * cos(thetap) + qperp * sin(thetap)
+}
+
+/* https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion */
+pivote :: fonc (v: Vec3, q: Quaternion) -> Vec3
+{
+	/* Extrait la partie vectorielle du quaternion. */
+	u := q.vecteur
+
+    /* Extrait la partie scalaire du quaternion. */
+    s := q.poids
+
+	retourne 2.0 * produit_scalaire(u, v) * u + (s * s - produit_scalaire(u, u)) * v + 2.0 * s * produit_vectoriel(*u, *v)
 }
 
 /*
