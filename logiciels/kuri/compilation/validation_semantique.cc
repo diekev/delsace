@@ -3553,6 +3553,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                         return CodeRetourValidation::Erreur;
                     }
 
+                    if (var->type->est_variadique()) {
+                        rapporte_erreur("Ne peut avoir un type variadique dans une union",
+                                        decl_var,
+                                        erreur::Genre::TYPE_DIFFERENTS);
+                        return CodeRetourValidation::Erreur;
+                    }
+
                     if (var->type->est_structure() || var->type->est_union()) {
                         if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             return Attente::sur_type(var->type);
@@ -3661,6 +3668,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
                 if (var->type->est_rien()) {
                     rapporte_erreur("Ne peut avoir un type « rien » dans une structure",
+                                    decl_var,
+                                    erreur::Genre::TYPE_DIFFERENTS);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (var->type->est_variadique()) {
+                    rapporte_erreur("Ne peut avoir un type variadique dans une structure",
                                     decl_var,
                                     erreur::Genre::TYPE_DIFFERENTS);
                     return CodeRetourValidation::Erreur;
