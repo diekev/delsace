@@ -1437,7 +1437,10 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             if (boucle->bloc_sansarret) {
                 insere_label(label_pour_sansarret);
                 genere_ri_pour_noeud(boucle->bloc_sansarret);
-                cree_branche(boucle, label_apres_boucle);
+                di = fonction_courante->derniere_instruction();
+                if (!di->est_branche_ou_retourne()) {
+                    cree_branche(boucle, label_apres_boucle);
+                }
             }
 
             if (boucle->bloc_sinon) {

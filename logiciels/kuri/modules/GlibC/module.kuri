@@ -500,12 +500,25 @@ action_pour_erreur_de_segmentation :: fonc (signum: z32 @inutilisée)
     panique("violation de segmentation")
 }
 
-système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
+action_pour_exception_en_point_flottant :: fonc (signum: z32 @inutilisée)
+{
+    panique("exception en point flottant")
+}
+
+ajoute_action_pour_erreur :: fonc (signal: z32, rappel: sighandler_t) -> bool
 {
     act: sigaction_struct
-    act.sa_handler = action_pour_erreur_de_segmentation
+    act.sa_handler = rappel
 
-    si sigaction(SIGSEGV, *act, nul) == -1 {
+    retourne sigaction(signal, *act, nul) != -1
+}
+
+système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
+{
+    saufsi ajoute_action_pour_erreur(SIGSEGV, action_pour_erreur_de_segmentation) {
+        retourne
+    }
+    saufsi ajoute_action_pour_erreur(SIGFPE, action_pour_exception_en_point_flottant) {
         retourne
     }
 }
