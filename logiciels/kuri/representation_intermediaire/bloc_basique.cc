@@ -340,7 +340,7 @@ void construit_liste_variables_utilisees(Bloc *bloc)
     }
 }
 
-Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
+static Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
 {
     POUR (blocs) {
         if (it->label == label) {

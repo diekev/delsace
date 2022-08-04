@@ -79,8 +79,6 @@ void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
 
 void construit_liste_variables_utilisees(Bloc *bloc);
 
-Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label);
-
 struct FonctionEtBlocs {
     AtomeFonction *fonction = nullptr;
     kuri::tableau<Bloc *, int> blocs{};
