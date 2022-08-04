@@ -25,6 +25,7 @@
 #include "bloc_basique.hh"
 
 #include "constructrice_ri.hh"
+#include "espace_de_travail.hh"
 #include "impression.hh"
 #include "instructions.hh"
 #include "log.hh"
@@ -363,21 +364,28 @@ static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, Instruction
     return bloc;
 }
 
-FonctionEtBlocs::~FonctionEtBlocs()
+static void detruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
         memoire::deloge("Bloc", it);
     }
+    blocs.efface();
 }
 
-FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc)
+FonctionEtBlocs::~FonctionEtBlocs()
 {
+    detruit_blocs(blocs);
+}
+
+bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc)
+{
+    detruit_blocs(blocs);
+
     /* blocs_pour_labels est pour rassembler tous les blocs créés et trouver un bloc selon un label
      * pour la création des blocs. */
     kuri::tableau<Bloc *, int> blocs_pour_labels;
 
-    FonctionEtBlocs resultat;
-    resultat.fonction = atome_fonc;
+    fonction = atome_fonc;
 
     auto numero_instruction = atome_fonc->params_entrees.taille();
 
@@ -393,7 +401,13 @@ FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc)
     POUR (atome_fonc->instructions) {
         if (it->est_label()) {
             bloc_courant = trouve_bloc_pour_label(blocs_pour_labels, it->comme_label());
-            resultat.blocs.ajoute(bloc_courant);
+
+            if (!bloc_courant) {
+                espace.rapporte_erreur(it->site, "Erreur interne, aucun bloc pour le label");
+                return false;
+            }
+
+            blocs.ajoute(bloc_courant);
             continue;
         }
 
@@ -402,6 +416,13 @@ FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc)
         if (it->est_branche()) {
             auto bloc_cible = trouve_bloc_pour_label(blocs_pour_labels,
                                                      it->comme_branche()->label);
+
+            if (!bloc_cible) {
+                espace.rapporte_erreur(
+                    it->site,
+                    "Erreur interne, aucun bloc pour le label de la branche inconditionnelle");
+                return false;
+            }
             bloc_courant->ajoute_enfant(bloc_cible);
             continue;
         }
@@ -413,11 +434,22 @@ FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc)
             auto bloc_si_vrai = trouve_bloc_pour_label(blocs_pour_labels, label_si_vrai);
             auto bloc_si_faux = trouve_bloc_pour_label(blocs_pour_labels, label_si_faux);
 
+            if (!bloc_si_vrai) {
+                espace.rapporte_erreur(
+                    it->site, "Erreur interne, aucun bloc pour le label de la branche si vrai");
+                return false;
+            }
+            if (!bloc_si_faux) {
+                espace.rapporte_erreur(
+                    it->site, "Erreur interne, aucun bloc pour le label de la branche si faux");
+                return false;
+            }
+
             bloc_courant->ajoute_enfant(bloc_si_vrai);
             bloc_courant->ajoute_enfant(bloc_si_faux);
             continue;
         }
     }
 
-    return resultat;
+    return true;
 }

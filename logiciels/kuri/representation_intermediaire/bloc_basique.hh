@@ -28,6 +28,7 @@
 
 struct AtomeFonction;
 struct ConstructriceRI;
+struct EspaceDeTravail;
 struct Instruction;
 struct InstructionAllocation;
 struct InstructionLabel;
@@ -84,6 +85,6 @@ struct FonctionEtBlocs {
     kuri::tableau<Bloc *, int> blocs{};
 
     ~FonctionEtBlocs();
-};
 
-FonctionEtBlocs convertis_en_blocs(AtomeFonction *atome_fonc);
+    bool convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc);
+};

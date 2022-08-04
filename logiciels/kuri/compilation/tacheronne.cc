@@ -652,7 +652,7 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
         return;
     }
 
-    optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
+    optimise_code(*unite->espace, constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
 }
 
 void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
