@@ -135,6 +135,7 @@ set(BIBLIOTHEQUES
         /usr/lib/llvm-12/lib/libLLVM.so
         /usr/lib/llvm-12/lib/libclang.so
 	bib_json
+        kuri_structures
 )
 
 add_executable(${NOM_PROJET}

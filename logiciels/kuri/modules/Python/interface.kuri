@@ -765,7 +765,7 @@ remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: 
     // À FAIRE : tableau de tableau
     view.ndim = 1
     view.shape = loge(Py_ssize_t)
-    mémoire(view.shape) = tableau.taille comme Py_ssize_t
+    mémoire(view.shape) = tableau.taille
 
     view.strides = loge(Py_ssize_t)
     mémoire(view.strides) = taille_de(T) comme Py_ssize_t

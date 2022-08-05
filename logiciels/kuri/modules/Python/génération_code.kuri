@@ -367,7 +367,7 @@ génère_fonctions_protocole_séquences :: fonc (enchaineuse: *Enchaineuse, type
     enchaineuse.ajoute_au_tampon("sq_length_pour_", type.nom, " :: fonc (self: *PyObject) -> Py_ssize_t\n")
     enchaineuse.ajoute_au_tampon("{\n")
     enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-    enchaineuse.ajoute_au_tampon("    retourne notre_instance.taille comme Py_ssize_t\n")
+    enchaineuse.ajoute_au_tampon("    retourne notre_instance.taille\n")
     enchaineuse.ajoute_au_tampon("}\n")
 
     /* sq_item */

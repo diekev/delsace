@@ -218,7 +218,7 @@ racine_cubique :: fonc (n: r64) -> r64
 
 abs :: fonc(a : $T) -> T #enligne
 {
-    si a < 0 comme T { retourne -a } sinon { retourne a; }
+    si a < 0 { retourne -a } sinon { retourne a; }
 	//retourne si a < 0 { -a } sinon { a }
 }
 
