@@ -2619,6 +2619,12 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
         expr->declaration_referee = decl;
         decl->drapeaux |= EST_UTILISEE;
+        if (decl->est_declaration_variable()) {
+            auto decl_var = decl->comme_declaration_variable();
+            if (decl_var->declaration_vient_d_un_emploi) {
+                decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
+            }
+        }
         expr->type = decl->type;
 
         /* si nous avons une valeur polymorphique, crée un type de données
