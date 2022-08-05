@@ -254,8 +254,8 @@ vec3_aléatoire :: fonc (série: &SérieAléatoire) -> Vec3
 
 aléatoire_entre :: fonc (série: &SérieAléatoire, min: $T, max: T) -> T
 {
-    résultat := série.aléatoire_unilatérale() comme T
-    retourne résultat * (max - min) + min
+    résultat := série.aléatoire_unilatérale()
+    retourne (résultat * ((max - min) comme r32)) comme T + min
 }
 
 // -------------------------------------------------------------------------
