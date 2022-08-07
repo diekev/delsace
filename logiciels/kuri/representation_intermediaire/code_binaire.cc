@@ -1331,6 +1331,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
+                    const long taille = valeur_constante->valeur.valeur_tableau.taille;
+
+                    for (auto i = 0; i < taille; i++) {
+                        genere_code_binaire_pour_constante(pointeur[i], chunk);
+                    }
+
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
