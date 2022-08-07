@@ -1538,6 +1538,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    assert_rappel(false, [&]() {
+                        std::cerr << "Les valeurs de globales de type tableau fixe ne sont pas "
+                                     "générées dans le code binaire pour le moment.\n";
+                        std::cerr << "Le type est " << chaine_type(constante->type) << '\n';
+                    });
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
