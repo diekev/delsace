@@ -188,7 +188,13 @@ struct MachineVirtuelle {
 
     void rapporte_erreur_execution(NoeudExpression *site, kuri::chaine_statique message);
 
-    bool adresse_est_assignable(void *adresse);
+    bool adresse_est_assignable(const void *adresse);
 
     ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction, NoeudExpression *site);
+
+    bool adressage_est_possible(NoeudExpression *site,
+                                const void *adresse_ou,
+                                const void *adresse_de,
+                                const long taille,
+                                bool assignation);
 };

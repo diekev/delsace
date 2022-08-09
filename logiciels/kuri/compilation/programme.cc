@@ -379,21 +379,29 @@ static kuri::ensemble<T> cree_ensemble(const kuri::tableau<T> &tableau)
 /* La seule raison d'existence pour cette fonction est de rassembler les globales pour les chaines
  * et InfoType. */
 static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
+                                               Atome *atome,
+                                               VisiteuseAtome &visiteuse,
+                                               kuri::ensemble<AtomeGlobale *> &globales_utilisees)
+{
+    visiteuse.visite_atome(atome, [&](Atome *atome) {
+        if (atome->genre_atome == Atome::Genre::GLOBALE) {
+            if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome))) {
+                return;
+            }
+
+            repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
+            globales_utilisees.insere(static_cast<AtomeGlobale *>(atome));
+        }
+    });
+}
+
+static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
                                                AtomeFonction *fonction,
                                                VisiteuseAtome &visiteuse,
                                                kuri::ensemble<AtomeGlobale *> &globales_utilisees)
 {
     POUR (fonction->instructions) {
-        visiteuse.visite_atome(it, [&](Atome *atome) {
-            if (atome->genre_atome == Atome::Genre::GLOBALE) {
-                if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome))) {
-                    return;
-                }
-
-                repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
-                globales_utilisees.insere(static_cast<AtomeGlobale *>(atome));
-            }
-        });
+        rassemble_globales_supplementaires(repr_inter, it, visiteuse, globales_utilisees);
     }
 }
 
@@ -401,6 +409,17 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
 {
     auto globales_utilisees = cree_ensemble(repr_inter.globales);
     VisiteuseAtome visiteuse{};
+
+    /* Prend en compte les globales pouvant être ajoutées via l'initialisation des tableaux fixes
+     * devant être convertis. */
+    POUR (repr_inter.globales) {
+        if (!it->initialisateur) {
+            continue;
+        }
+
+        rassemble_globales_supplementaires(
+            repr_inter, it->initialisateur, visiteuse, globales_utilisees);
+    }
 
     POUR (repr_inter.fonctions) {
         visiteuse.reinitialise();
