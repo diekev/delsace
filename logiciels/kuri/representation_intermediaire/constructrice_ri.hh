@@ -151,6 +151,8 @@ struct ConstructriceRI {
                                bool est_constante);
     AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
+    AtomeConstante *cree_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
+                                                       TypeTableauFixe *type_tableau_fixe);
 
     InstructionBranche *cree_branche(NoeudExpression *site_,
                                      InstructionLabel *label,

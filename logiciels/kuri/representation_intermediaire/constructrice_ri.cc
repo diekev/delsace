@@ -170,6 +170,12 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(AtomeConstante *tableau_fix
 {
     auto type_tableau_fixe = tableau_fixe->type->comme_tableau_fixe();
     auto globale_tableau_fixe = cree_globale(type_tableau_fixe, tableau_fixe, false, true);
+    return cree_initialisation_tableau_global(globale_tableau_fixe, type_tableau_fixe);
+}
+
+AtomeConstante *ConstructriceRI::cree_initialisation_tableau_global(
+    AtomeGlobale *globale_tableau_fixe, TypeTableauFixe *type_tableau_fixe)
+{
     auto ptr_premier_element = cree_acces_index_constant(globale_tableau_fixe, cree_z64(0));
     auto valeur_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tableau_dyn = m_compilatrice.typeuse.type_tableau_dynamique(
@@ -3501,27 +3507,49 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     fonction_courante = nullptr;
 }
 
-/* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le contexte
- * global. Ceci nécessitera d'avoir une deuxième version de la génération de code pour les
- * structures avec des instructions constantes. */
-static bool construction_tableau_globale_peut_etre_constante(
-    NoeudExpression const &expression, TransformationType const &transformation)
+enum class TypeConstructionGlobale {
+    /* L'expression est un tableau fixe que nous pouvons simplement construire. */
+    TABLEAU_CONSTANT,
+    /* L'expression est un tableau fixe que nous devons convertir vers un tableau
+     * dynamique. */
+    TABLEAU_FIXE_A_CONVERTIR,
+    /* L'expression peut-être construite via un simple constructeur. */
+    NORMALE,
+    /* L'expression est nulle, la valeur défaut du type devra être utilisée. */
+    PAR_VALEUR_DEFAUT,
+    /* L'expression est une expression de non-initialisation. */
+    SANS_INITIALISATION,
+};
+
+static TypeConstructionGlobale type_construction_globale(NoeudExpression const *expression,
+                                                         TransformationType const &transformation)
 {
-    if (!expression.est_construction_tableau()) {
-        return false;
+    if (!expression) {
+        return TypeConstructionGlobale::PAR_VALEUR_DEFAUT;
     }
 
-    if (transformation.type != TypeTransformation::INUTILE) {
-        return false;
+    if (expression->est_non_initialisation()) {
+        return TypeConstructionGlobale::SANS_INITIALISATION;
     }
 
-    auto const type_pointe = type_dereference_pour(expression.type);
+    if (expression->est_construction_tableau()) {
+        if (transformation.type != TypeTransformation::INUTILE) {
+            return TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
+        }
 
-    if (type_pointe->est_structure() || type_pointe->est_union()) {
-        return false;
+        auto const type_pointe = type_dereference_pour(expression->type);
+
+        /* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le
+         * contexte global. Ceci nécessitera d'avoir une deuxième version de la génération de code
+         * pour les structures avec des instructions constantes. */
+        if (type_pointe->est_structure() || type_pointe->est_union()) {
+            return TypeConstructionGlobale::NORMALE;
+        }
+
+        return TypeConstructionGlobale::TABLEAU_CONSTANT;
     }
 
-    return true;
+    return TypeConstructionGlobale::NORMALE;
 }
 
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
@@ -3542,23 +3570,53 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                 atome->ident = var->ident;
 
                 auto expression = it.expression;
-
-                if (!expression) {
-                    valeur = genere_initialisation_defaut_pour_type(var->type);
+                if (expression && expression->substitution) {
+                    expression = expression->substitution;
                 }
-                else if (!expression->est_non_initialisation()) {
-                    if (expression->substitution) {
-                        expression = expression->substitution;
-                    }
 
-                    if (construction_tableau_globale_peut_etre_constante(*expression,
-                                                                         it.transformations[i])) {
+                auto const type_construction = type_construction_globale(expression,
+                                                                         it.transformations[i]);
+
+                switch (type_construction) {
+                    case TypeConstructionGlobale::TABLEAU_CONSTANT:
+                    {
                         genere_ri_pour_noeud(expression);
                         valeur = static_cast<AtomeConstante *>(depile_valeur());
+                        break;
                     }
-                    else {
+                    case TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
+                    {
+                        auto type_tableau_fixe = expression->type->comme_tableau_fixe();
+
+                        /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
+                         * d'initialiser le tableau dynamique. */
+                        auto globale_tableau = cree_globale(
+                            expression->type, nullptr, false, false);
+
+                        /* La construction du tableau deva se faire via la fonction
+                         * d'initialisation des globales. */
+                        m_compilatrice.constructeurs_globaux->ajoute(
+                            {globale_tableau, expression, {}});
+
+                        valeur = cree_initialisation_tableau_global(globale_tableau,
+                                                                    type_tableau_fixe);
+                        break;
+                    }
+                    case TypeConstructionGlobale::NORMALE:
+                    {
                         m_compilatrice.constructeurs_globaux->ajoute(
                             {atome, expression, it.transformations[i]});
+                        break;
+                    }
+                    case TypeConstructionGlobale::PAR_VALEUR_DEFAUT:
+                    {
+                        valeur = genere_initialisation_defaut_pour_type(var->type);
+                        break;
+                    }
+                    case TypeConstructionGlobale::SANS_INITIALISATION:
+                    {
+                        /* Rien à faire. */
+                        break;
                     }
                 }
 

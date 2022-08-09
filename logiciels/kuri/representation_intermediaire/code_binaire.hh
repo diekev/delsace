@@ -31,6 +31,8 @@
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
 
+#include "compilation/operateurs.hh"
+
 #include "structures/pile.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
@@ -289,6 +291,12 @@ struct Chunk {
                                  int index_label_si_faux);
 
     void emets_label(NoeudExpression *site, int index);
+
+    void emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type);
+    void emets_operation_binaire(NoeudExpression *site,
+                                 OperateurBinaire::Genre op,
+                                 Type *type_gauche,
+                                 Type *type_droite);
 };
 
 void desassemble(Chunk const &chunk, const char *nom, std::ostream &os);
