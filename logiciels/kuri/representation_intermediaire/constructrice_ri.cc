@@ -170,6 +170,12 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(AtomeConstante *tableau_fix
 {
     auto type_tableau_fixe = tableau_fixe->type->comme_tableau_fixe();
     auto globale_tableau_fixe = cree_globale(type_tableau_fixe, tableau_fixe, false, true);
+    return cree_initialisation_tableau_global(globale_tableau_fixe, type_tableau_fixe);
+}
+
+AtomeConstante *ConstructriceRI::cree_initialisation_tableau_global(
+    AtomeGlobale *globale_tableau_fixe, TypeTableauFixe *type_tableau_fixe)
+{
     auto ptr_premier_element = cree_acces_index_constant(globale_tableau_fixe, cree_z64(0));
     auto valeur_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tableau_dyn = m_compilatrice.typeuse.type_tableau_dynamique(
@@ -3504,6 +3510,9 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
 enum class TypeConstructionGlobale {
     /* L'expression est un tableau fixe que nous pouvons simplement construire. */
     TABLEAU_CONSTANT,
+    /* L'expression est un tableau fixe que nous devons convertir vers un tableau
+     * dynamique. */
+    TABLEAU_FIXE_A_CONVERTIR,
     /* L'expression peut-être construite via un simple constructeur. */
     NORMALE,
     /* L'expression est nulle, la valeur défaut du type devra être utilisée. */
@@ -3525,7 +3534,7 @@ static TypeConstructionGlobale type_construction_globale(NoeudExpression const *
 
     if (expression->est_construction_tableau()) {
         if (transformation.type != TypeTransformation::INUTILE) {
-            return TypeConstructionGlobale::NORMALE;
+            return TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
         }
 
         auto const type_pointe = type_dereference_pour(expression->type);
@@ -3573,6 +3582,24 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                     {
                         genere_ri_pour_noeud(expression);
                         valeur = static_cast<AtomeConstante *>(depile_valeur());
+                        break;
+                    }
+                    case TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
+                    {
+                        auto type_tableau_fixe = expression->type->comme_tableau_fixe();
+
+                        /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
+                         * d'initialiser le tableau dynamique. */
+                        auto globale_tableau = cree_globale(
+                            expression->type, nullptr, false, false);
+
+                        /* La construction du tableau deva se faire via la fonction
+                         * d'initialisation des globales. */
+                        m_compilatrice.constructeurs_globaux->ajoute(
+                            {globale_tableau, expression, {}});
+
+                        valeur = cree_initialisation_tableau_global(globale_tableau,
+                                                                    type_tableau_fixe);
                         break;
                     }
                     case TypeConstructionGlobale::NORMALE:
