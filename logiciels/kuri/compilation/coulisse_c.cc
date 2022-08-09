@@ -1353,17 +1353,16 @@ struct GeneratriceCodeC {
         POUR (globales) {
             auto valeur_globale = it;
 
-            if (!valeur_globale->est_constante) {
-                continue;
-            }
-
             auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
             if (valeur_globale->est_externe) {
                 os << "extern ";
             }
-            else {
+            else if (valeur_globale->est_constante) {
                 os << "static const ";
+            }
+            else {
+                os << "static ";
             }
 
             os << nom_broye_type(type) << ' ';
