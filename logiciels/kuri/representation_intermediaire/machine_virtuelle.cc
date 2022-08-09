@@ -1363,17 +1363,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto type = LIS_POINTEUR(Type);
                 // saute l'identifiant
                 frame->pointeur += 8;
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "alloue : " << type->taille_octet << '\n';
                 this->pointeur_pile += type->taille_octet;
-                // std::cerr << "Empile " << type->taille_octet << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
 
                 if (type->taille_octet == 0) {
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(
                             site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
                         .ajoute_message("La type est : ", chaine_type(type), ".\n");
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 break;
@@ -1391,8 +1389,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
-                // std::cerr << "Empile " << taille << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
                 break;
             }
             case OP_REFERENCE_VARIABLE:
