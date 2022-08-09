@@ -52,7 +52,7 @@
     ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
         reinterpret_cast<Symbole::type_fonction>(fonction)
 
-inline bool adresse_est_nulle(void *adresse)
+inline bool adresse_est_nulle(const void *adresse)
 {
     /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
@@ -1348,33 +1348,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille = LIS_4_OCTETS();
                 auto adresse_ou = depile<void *>(site);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "adresse_ou : " << adresse_ou << '\n';
-                //				std::cerr << "adresse_de : " << adresse_de << '\n';
-                //				std::cerr << "taille     : " << taille << '\n';
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(
-                            site,
-                            "Erreur interne : superposition de la copie dans la machine "
-                            "virtuelle lors d'une assignation !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
-                }
-
-                if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur_execution(site, "Assignation depuis une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur_execution(site, "Assignation vers une adresse nulle !");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, true)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1409,49 +1384,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = depile<void *>(site);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(
-                            site,
-                            "Erreur interne : superposition de la copie dans la machine "
-                            "virtuelle lors d'un chargement !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur_execution(site, "Copie depuis une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur_execution(site, "Copie vers une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-#if 0
-                // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
-                if (!adresse_est_assignable(adresse_de)) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Copie depuis une adresse non-chargeable !")
-                        .ajoute_message("L'adresse est : ", adresse_de, "\n");
-                    return ResultatInterpretation::ERREUR;
-                }
-#endif
-
-                if (!adresse_est_assignable(adresse_ou)) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
-                        .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, false)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1542,7 +1475,66 @@ void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
     }
 }
 
-bool MachineVirtuelle::adresse_est_assignable(void *adresse)
+bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
+                                              const void *adresse_ou,
+                                              const void *adresse_de,
+                                              const long taille,
+                                              bool assignation)
+{
+    auto const taille_disponible = std::abs(static_cast<const char *>(adresse_de) -
+                                            static_cast<const char *>(adresse_ou));
+    if (taille_disponible < taille) {
+        auto message = assignation ? "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'une assignation !" :
+                                     "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'un chargement !";
+        m_metaprogramme->unite->espace->rapporte_erreur(site, message)
+            .ajoute_message("La taille à copier est de    : ", taille, ".\n")
+            .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+            .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+            .ajoute_message("Le type du site est          : ", chaine_type(site->type), "\n")
+            .ajoute_message("Le taille du type est        : ", site->type->taille_octet, "\n")
+            .ajoute_message("Le taille disponible est     : ", taille_disponible, "\n");
+        return false;
+    }
+
+    if (adresse_est_nulle(adresse_de)) {
+        auto message = assignation ? "Assignation depuis une adresse nulle !" :
+                                     "Chargement depuis une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
+
+    if (adresse_est_nulle(adresse_ou)) {
+        auto message = assignation ? "Assignation vers une adresse nulle !" :
+                                     "Chargement vers une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
+
+    if (!assignation) {
+        if (!adresse_est_assignable(adresse_ou)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
+                .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+            return false;
+        }
+
+#if 0
+        // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
+        if (!adresse_est_assignable(adresse_de)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie depuis une adresse non-chargeable !")
+                .ajoute_message("L'adresse est : ", adresse_de, "\n");
+            return false;
+        }
+#endif
+    }
+
+    return true;
+}
+
+bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
 {
     return intervalle_adresses_globales.possede_inclusif(adresse) ||
            intervalle_adresses_pile_execution.possede_inclusif(adresse);
