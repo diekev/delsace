@@ -383,14 +383,14 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
                                                VisiteuseAtome &visiteuse,
                                                kuri::ensemble<AtomeGlobale *> &globales_utilisees)
 {
-    visiteuse.visite_atome(atome, [&](Atome *atome) {
-        if (atome->genre_atome == Atome::Genre::GLOBALE) {
-            if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome))) {
+    visiteuse.visite_atome(atome, [&](Atome *atome_local) {
+        if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
+            if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome_local))) {
                 return;
             }
 
-            repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome));
-            globales_utilisees.insere(static_cast<AtomeGlobale *>(atome));
+            repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome_local));
+            globales_utilisees.insere(static_cast<AtomeGlobale *>(atome_local));
         }
     });
 }
