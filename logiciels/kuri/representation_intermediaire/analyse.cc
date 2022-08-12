@@ -500,7 +500,8 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace,
 
     POUR (fonction_et_blocs.blocs) {
         if (it->instructions.est_vide()) {
-            espace.rapporte_erreur(atome->decl, "Erreur interne : bloc vide dans la RI !\n");
+            auto site = it->label->site ? it->label->site : atome->decl;
+            espace.rapporte_erreur(site, "Erreur interne : bloc vide dans la RI !\n");
             return false;
         }
 
