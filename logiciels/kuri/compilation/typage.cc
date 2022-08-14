@@ -1708,9 +1708,14 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
         /* Pour les unions sûres, il nous faut prendre en compte le
          * membre supplémentaire. */
         if (!type_union->est_nonsure) {
-            /* ajoute une marge d'alignement */
-            auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
-            taille_union += padding;
+            /* Il est possible que tous les membres soit de type « rien » ou que l'union soit
+             * déclarée sans membre. */
+            if (taille_union != 0) {
+                /* ajoute une marge d'alignement */
+                auto const padding = (max_alignement - (taille_union % max_alignement)) %
+                                     max_alignement;
+                taille_union += padding;
+            }
 
             type_union->decalage_index = taille_union;
 
@@ -1718,7 +1723,8 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
             taille_union += static_cast<unsigned>(taille_de(int));
 
             /* ajoute une marge d'alignement finale */
-            padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+            auto const padding = (max_alignement - (taille_union % max_alignement)) %
+                                 max_alignement;
             taille_union += padding;
         }
 
