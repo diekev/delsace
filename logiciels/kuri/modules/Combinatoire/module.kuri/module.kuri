@@ -1,0 +1,117 @@
+importe Fondation
+importe Outils
+
+/* Divers algorithmes de génération de la suite de Prouet-Thue-Morse
+ * https://fr.wikipedia.org/wiki/Suite_de_Prouhet-Thue-Morse
+ */
+
+/* Génère N valeur de la suite Prouet-Thue-Morse.
+ * \param rappel: une fonction qui reçoie vrai ou faux selon la suite. */
+génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc(bool)(rien))
+{
+    pour n {
+        x := compte_nombre_de_bits_actifs(it)
+        rappel(x % 2 == 0)
+    }
+}
+
+/* Génère une suite correspondant aux nombre de « B » entre « A » pour les
+ * N premières valeurs de la suite Prouet-Thue-Morse.
+ * \param rappel: une fonction qui reçoie le compte de « B » à chaque fois
+ * qu'un « A » est généré selon la suite. */
+génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a :: fonc (n: n32, rappel: fonc(z32)(rien))
+{
+    compte_courant := 0
+
+    pour n {
+        // Ajout de 1 pour ignorer le premier 'A'
+        x := compte_nombre_de_bits_actifs(it + 1)
+
+        si x % 2 == 0 {
+            rappel(compte_courant)
+            compte_courant = 0
+            continue
+        }
+
+        compte_courant += 1
+    }
+}
+
+génère_suite_prouet_thue_morse_remplacement :: fonc (n: n32) -> chaine
+{
+    suite_courante := "AB"
+    résultat : chaine
+
+    tantque résultat.taille < n comme z64 {
+        résultat = copie_chaine("")
+
+        pour c dans suite_courante {
+            si c == 'A' {
+                chaine_ajoute(*résultat, "AB")
+            }
+            sinon {
+                chaine_ajoute(*résultat, "BA")
+            }
+        }
+
+        suite_courante = résultat
+    }
+
+    retourne résultat
+}
+
+génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
+{
+    résultat := copie_chaine("AB")
+
+    tantque résultat.taille < n comme z64 {
+        chaine_ajoute(*résultat, résultat)
+
+        tmp := résultat.sous_chaine(résultat.taille / 2, résultat.taille)
+
+        pour & tmp {
+            it = si it == 'A' {
+                'B'
+            }
+            sinon {
+                'A'
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+/*
+
+rappel_générique :: fonc (est_un: bool)
+{
+    si est_un {
+        imprime("A")
+    }
+    sinon {
+        imprime("B")
+    }
+}
+
+rappel_générique_z32 :: fonc (compte: z32)
+{
+    // imprime("%", compte)
+    imprime("A")
+    pour compte {
+        imprime("B")
+    }
+}
+
+test :: fonc ()
+{
+    génère_suite_prouet_thue_morse(64, rappel_générique)
+    imprime("\n")
+    chn := génère_suite_prouet_thue_morse_remplacement(64)
+    imprime("%\n", chn)
+    chn = génère_suite_prouet_thue_morse_double_et_inverse(64)
+    imprime("%\n", chn)
+    génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a(64, rappel_générique_z32)
+    imprime("\n")
+}
+*/
