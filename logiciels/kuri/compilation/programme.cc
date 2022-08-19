@@ -412,7 +412,12 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
 
     /* Prend en compte les globales pouvant être ajoutées via l'initialisation des tableaux fixes
      * devant être convertis. */
-    POUR (repr_inter.globales) {
+    /* Itération avec un index car l'insertion de nouvelles globales invaliderait les
+     * itérateurs. */
+    auto const nombre_de_globales = repr_inter.globales.taille();
+    for (auto i = 0; i < nombre_de_globales; i++) {
+        auto it = repr_inter.globales[i];
+
         if (!it->initialisateur) {
             continue;
         }
