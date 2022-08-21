@@ -2367,6 +2367,9 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
             auto decl_expr_piegee =
                 noeud->expression_piegee->comme_reference_declaration()->declaration_referee;
             static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
+
+            cree_stocke_mem(noeud->expression_piegee, var_expr_piegee, valeur_expression);
+
             genere_ri_pour_noeud(noeud->bloc);
         }
 
