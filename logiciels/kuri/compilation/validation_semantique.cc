@@ -2888,10 +2888,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     decl->type = entete->type;
 
     auto est_corps_texte = decl->est_corps_texte;
-    MetaProgramme *metaprogramme = nullptr;
 
-    if (unite->index_courant == 0 && est_corps_texte) {
-        metaprogramme = cree_metaprogramme_corps_texte(
+    if (est_corps_texte && !decl->possede_drapeau(METAPROGRAMME_CORPS_TEXTE_FUT_CREE)) {
+        auto metaprogramme = cree_metaprogramme_corps_texte(
             decl->bloc, entete->bloc_parent, decl->lexeme);
         metaprogramme->corps_texte_pour_fonction = entete;
 
@@ -2917,6 +2916,10 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
             }
         }
 
+        decl->drapeaux |= METAPROGRAMME_CORPS_TEXTE_FUT_CREE;
+
+        /* Puisque nous validons le #corps_texte, l'entête pour la fonction courante doit être
+         * celle de la fonction de métaprogramme. */
         entete = fonction;
     }
 
@@ -2958,6 +2961,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
+        /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
+         * métaprogramme : nous ne pouvons pas prendre l'adresse du métaprogramme créé ci-dessus.
+         * À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
+         * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
+         * la fonction soit validée afin de le compiler.
+         */
+        auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
         m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                              metaprogramme);
     }
