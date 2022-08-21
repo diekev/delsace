@@ -2908,6 +2908,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         nouveau_corps->bloc_parent = decl->bloc_parent;
 
         fonction->est_monomorphisation = entete->est_monomorphisation;
+        fonction->site_monomorphisation = entete->site_monomorphisation;
 
         // préserve les constantes polymorphiques
         if (fonction->est_monomorphisation) {
