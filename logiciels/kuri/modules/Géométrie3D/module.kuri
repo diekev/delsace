@@ -5,7 +5,9 @@ importe SysFichier
 
 libgmp :: #bibliothèque "gmp"
 libmpfr :: #bibliothèque "mpfr"
+libtbb :: #bibliothèque "tbb"
 
+#dépendance_bibliothèque libmodule_c_geometrie_3d libtbb
 #dépendance_bibliothèque libmodule_c_geometrie_3d libgmp
 #dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr
 

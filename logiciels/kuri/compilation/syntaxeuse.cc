@@ -2879,8 +2879,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     analyse_annotations(noeud_decl->annotations);
 
-    /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types. */
-    if (cree_tache || true) {
+    /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types, donc
+     * !est_dans_fonction. */
+    if (cree_tache || !est_dans_fonction) {
         requiers_typage(noeud_decl);
     }
 

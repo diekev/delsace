@@ -84,12 +84,12 @@ static const char *copie_extra_entete_fonction = R"(
 			})";
 
 static const char *copie_extra_bloc = R"(
-			copie->membres->reserve(orig->membres->taille());
-			POUR (*copie->expressions.verrou_lecture()) {
-				if (it->est_declaration()) {
-					copie->membres->ajoute(it->comme_declaration());
-				}
-			})";
+            copie->membres->reserve(orig->membres->taille());
+            POUR (*copie->expressions.verrou_lecture()) {
+                if (it->est_declaration_type() || it->est_entete_fonction()) {
+                    copie->membres->ajoute(it->comme_declaration());
+                }
+            })";
 
 struct GeneratriceCodeCPP {
     kuri::tableau<Proteine *> proteines{};
@@ -458,6 +458,7 @@ struct GeneratriceCodeCPP {
             // Pour les structure et les fonctions, il nous faut proprement gérer les blocs parents
 
             if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
+                os << "\t\t\tnracine->type = nullptr;\n";
                 os << "\t\t\tif (orig->bloc_constantes) {\n";
                 os << "\t\t\t\tcopie->bloc_constantes = copie_noeud(assem, orig->bloc_constantes, "
                       "bloc_parent)->comme_bloc();\n";

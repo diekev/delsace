@@ -2604,6 +2604,13 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
+        /* Ne vérifions pas seulement le drapeau DECLARATION_FUT_VALIDEE, car la référence peut
+         * être vers le type en validation (p.e. un pointeur vers une autre instance de la
+         * structure). */
+        if (!decl->type) {
+            return Attente::sur_declaration(decl);
+        }
+
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
         expr->genre_valeur = GenreValeur::DROITE;
@@ -2888,10 +2895,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     decl->type = entete->type;
 
     auto est_corps_texte = decl->est_corps_texte;
-    MetaProgramme *metaprogramme = nullptr;
 
-    if (unite->index_courant == 0 && est_corps_texte) {
-        metaprogramme = cree_metaprogramme_corps_texte(
+    if (est_corps_texte && !decl->possede_drapeau(METAPROGRAMME_CORPS_TEXTE_FUT_CREE)) {
+        auto metaprogramme = cree_metaprogramme_corps_texte(
             decl->bloc, entete->bloc_parent, decl->lexeme);
         metaprogramme->corps_texte_pour_fonction = entete;
 
@@ -2909,6 +2915,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         nouveau_corps->bloc_parent = decl->bloc_parent;
 
         fonction->est_monomorphisation = entete->est_monomorphisation;
+        fonction->site_monomorphisation = entete->site_monomorphisation;
 
         // préserve les constantes polymorphiques
         if (fonction->est_monomorphisation) {
@@ -2917,6 +2924,10 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
             }
         }
 
+        decl->drapeaux |= METAPROGRAMME_CORPS_TEXTE_FUT_CREE;
+
+        /* Puisque nous validons le #corps_texte, l'entête pour la fonction courante doit être
+         * celle de la fonction de métaprogramme. */
         entete = fonction;
     }
 
@@ -2958,6 +2969,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
+        /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
+         * métaprogramme : nous ne pouvons pas prendre l'adresse du métaprogramme créé ci-dessus.
+         * À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
+         * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
+         * la fonction soit validée afin de le compiler.
+         */
+        auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
         m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                              metaprogramme);
     }
@@ -3369,6 +3387,17 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
     auto &graphe = m_compilatrice.graphe_dependance;
+
+    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
+     * nous ferait modifier l'original). */
+    if (decl->type == nullptr) {
+        if (decl->est_union) {
+            decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
+        }
+        else {
+            decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
+        }
+    }
 
     auto noeud_dependance = graphe->cree_noeud_type(decl->type);
     decl->noeud_dependance = noeud_dependance;
