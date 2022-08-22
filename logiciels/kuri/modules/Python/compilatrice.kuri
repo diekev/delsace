@@ -493,6 +493,16 @@ ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, nom_module:
         si it == nom_module {
             retourne
         }
+
+        /* À FAIRE(langage) : permet de trouver les chemins des modules et les comparer.
+         * Ceci est n'est qu'un hack pour comparer les imports relatifs. */
+        si it[it.taille - 1] == '"' {
+            it = recule(it, 1)
+
+            si it.fini_par(nom_module) {
+                retourne
+            }
+        }
     }
 
     tableau_ajoute(*compilatrice.modules_kuri_à_importer, nom_module)

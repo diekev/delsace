@@ -615,6 +615,18 @@ ResultatFichier Compilatrice::trouve_ou_cree_fichier(Module *module,
     return resultat_fichier;
 }
 
+MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
+    NoeudDeclarationEnteteFonction const *entete)
+{
+    POUR_TABLEAU_PAGE ((*metaprogrammes.verrou_ecriture())) {
+        if (it.fonction == entete) {
+            return &it;
+        }
+    }
+
+    return nullptr;
+}
+
 Fichier *Compilatrice::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme_)
 {
     auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexeme->fichier);
