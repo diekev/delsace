@@ -2604,6 +2604,13 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
+        /* Ne vérifions pas seulement le drapeau DECLARATION_FUT_VALIDEE, car la référence peut
+         * être vers le type en validation (p.e. un pointeur vers une autre instance de la
+         * structure). */
+        if (!decl->type) {
+            return Attente::sur_declaration(decl);
+        }
+
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
         expr->genre_valeur = GenreValeur::DROITE;
@@ -3380,6 +3387,17 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
     auto &graphe = m_compilatrice.graphe_dependance;
+
+    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
+     * nous ferait modifier l'original). */
+    if (decl->type == nullptr) {
+        if (decl->est_union) {
+            decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
+        }
+        else {
+            decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
+        }
+    }
 
     auto noeud_dependance = graphe->cree_noeud_type(decl->type);
     decl->noeud_dependance = noeud_dependance;
