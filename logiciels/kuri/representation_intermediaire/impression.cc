@@ -524,25 +524,40 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     os << chaine_type(type_fonction->type_sortie);
     os << '\n';
 
+    numerote_instructions(*atome_fonc);
+
     auto numero_instruction = atome_fonc->params_entrees.taille();
-    imprime_instructions(atome_fonc->instructions,
-                         numero_instruction,
-                         os,
-                         inclus_nombre_utilisations,
-                         surligne_inutilisees);
+    imprime_instructions(
+        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees);
+}
+
+int numerote_instructions(AtomeFonction const &fonction)
+{
+    int resultat = 0;
+
+    POUR (fonction.params_entrees) {
+        it->comme_instruction()->numero = resultat++;
+    }
+
+    if (!fonction.param_sortie->type->est_rien()) {
+        fonction.param_sortie->comme_instruction()->numero = resultat++;
+    }
+
+    POUR (fonction.instructions) {
+        it->numero = resultat++;
+    }
+
+    return resultat;
 }
 
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
-                          int numero_de_base,
                           std::ostream &os,
                           bool inclus_nombre_utilisations,
                           bool surligne_inutilisees)
 {
-    auto numero_instruction = numero_de_base;
     auto max_utilisations = 0;
 
     POUR (instructions) {
-        it->numero = numero_instruction++;
         max_utilisations = std::max(max_utilisations, it->nombre_utilisations);
     }
 
