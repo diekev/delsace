@@ -325,12 +325,12 @@ void imprime_atome(Atome const *atome, std::ostream &os)
     imprime_atome_ex(atome, os, false);
 }
 
-void imprime_instruction(Instruction const *inst, std::ostream &os)
+void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 {
     switch (inst->genre) {
         case Instruction::Genre::INVALIDE:
         {
-            os << "  invalide\n";
+            os << "  invalide";
             break;
         }
         case Instruction::Genre::ALLOCATION:
@@ -339,10 +339,10 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             os << "  alloue " << chaine_type(type_pointeur->type_pointe) << ' ';
 
             if (inst->ident != nullptr) {
-                os << inst->ident->nom << '\n';
+                os << inst->ident->nom;
             }
             else {
-                os << "val" << inst->numero << '\n';
+                os << "val" << inst->numero;
             }
 
             break;
@@ -365,14 +365,14 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
                 os << virgule;
             }
 
-            os << ")\n";
+            os << ")";
 
             break;
         }
         case Instruction::Genre::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
-            os << "  branche %" << inst_branche->label->numero << "\n";
+            os << "  branche %" << inst_branche->label->numero;
             break;
         }
         case Instruction::Genre::BRANCHE_CONDITION:
@@ -381,7 +381,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             os << "  si ";
             imprime_atome_ex(inst_branche->condition, os, true);
             os << " alors %" << inst_branche->label_si_vrai->numero << " sinon %"
-               << inst_branche->label_si_faux->numero << '\n';
+               << inst_branche->label_si_faux->numero;
             break;
         }
         case Instruction::Genre::CHARGE_MEMOIRE:
@@ -402,7 +402,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
                 os << " %" << inst_chargee->numero;
             }
 
-            os << '\n';
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
@@ -422,13 +421,12 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 
             os << ", " << chaine_type(inst_stocke->valeur->type) << ' ';
             imprime_atome_ex(inst_stocke->valeur, os, true);
-            os << '\n';
             break;
         }
         case Instruction::Genre::LABEL:
         {
             auto inst_label = inst->comme_label();
-            os << "label " << inst_label->id << '\n';
+            os << "label " << inst_label->id;
             break;
         }
         case Instruction::Genre::OPERATION_UNAIRE:
@@ -436,7 +434,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             auto inst_un = inst->comme_op_unaire();
             os << "  " << chaine_pour_genre_op(inst_un->op) << ' ' << chaine_type(inst_un->type);
             imprime_atome_ex(inst_un->valeur, os, true);
-            os << '\n';
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -447,7 +444,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_bin->valeur_gauche, os, true);
             os << ", ";
             imprime_atome_ex(inst_bin->valeur_droite, os, true);
-            os << '\n';
             break;
         }
         case Instruction::Genre::RETOUR:
@@ -461,7 +457,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 
                 imprime_atome_ex(atome, os, true);
             }
-            os << '\n';
             break;
         }
         case Instruction::Genre::ACCEDE_INDEX:
@@ -471,7 +466,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, true);
-            os << '\n';
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
@@ -481,7 +475,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, true);
-            os << '\n';
             break;
         }
         case Instruction::Genre::TRANSTYPE:
@@ -489,16 +482,23 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
             auto inst_transtype = inst->comme_transtype();
             os << "  transtype (" << static_cast<int>(inst_transtype->op) << ") ";
             imprime_atome_ex(inst_transtype->valeur, os, true);
-            os << " vers " << chaine_type(inst_transtype->type) << '\n';
+            os << " vers " << chaine_type(inst_transtype->type);
             break;
         }
     }
 }
 
+void imprime_instruction(Instruction const *inst, std::ostream &os)
+{
+    imprime_instruction_ex(inst, os);
+    os << '\n';
+}
+
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       std::ostream &os,
                       bool inclus_nombre_utilisations,
-                      bool surligne_inutilisees)
+                      bool surligne_inutilisees,
+                      std::function<void(const Instruction &, std::ostream &)> rappel)
 {
     os << "fonction " << atome_fonc->nom;
 
@@ -528,7 +528,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     auto numero_instruction = atome_fonc->params_entrees.taille();
     imprime_instructions(
-        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees);
+        atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
 }
 
 int numerote_instructions(AtomeFonction const &fonction)
@@ -553,7 +553,8 @@ int numerote_instructions(AtomeFonction const &fonction)
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
                           std::ostream &os,
                           bool inclus_nombre_utilisations,
-                          bool surligne_inutilisees)
+                          bool surligne_inutilisees,
+                          std::function<void(const Instruction &, std::ostream &)> rappel)
 {
     auto max_utilisations = 0;
 
@@ -589,7 +590,13 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 
         os << "%" << it->numero << ' ';
 
-        imprime_instruction(it, os);
+        imprime_instruction_ex(it, os);
+
+        if (rappel) {
+            rappel(*it, os);
+        }
+
+        os << '\n';
 
         if (surligne_inutilisees && it->nombre_utilisations == 0) {
             std::cerr << "\033[0m";
