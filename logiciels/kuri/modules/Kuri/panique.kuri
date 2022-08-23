@@ -4,9 +4,16 @@ importe Fondation
 // pour exit
 importe GlibC
 
-imprime_panique :: fonc () -> rien #sanstrace
+imprime_trace_appel :: fonc () #sanstrace
 {
     trace := contexte().trace_appel
+
+    /* Il est possible de ne pas avoir de trace d'appel.
+     * La trace du contexte est toujours valide, mais la trace précédente est alors nulle. */
+    saufsi trace && trace.précédente {
+        imprime("Aucune trace d'appel disponible\n\n")
+        retourne
+    }
 
     tantque trace != nul {
         info_fonction := trace.info_fonction
@@ -25,7 +32,11 @@ imprime_panique :: fonc () -> rien #sanstrace
 
         trace = trace.précédente
     }
+}
 
+imprime_panique :: fonc () -> rien #sanstrace
+{
+    imprime_trace_appel()
     imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n")
     exit(1)
 }
