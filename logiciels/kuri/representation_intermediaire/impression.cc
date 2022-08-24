@@ -432,7 +432,8 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
-            os << "  " << chaine_pour_genre_op(inst_un->op) << ' ' << chaine_type(inst_un->type);
+            os << "  " << chaine_pour_genre_op(inst_un->op) << ' ' << chaine_type(inst_un->type)
+               << ' ';
             imprime_atome_ex(inst_un->valeur, os, true);
             break;
         }
