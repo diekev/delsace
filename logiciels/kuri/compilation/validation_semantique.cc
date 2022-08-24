@@ -2540,6 +2540,21 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     return CodeRetourValidation::OK;
 }
 
+static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
+{
+    if (decl->est_entete_fonction()) {
+        auto const entete = decl->comme_entete_fonction();
+        return entete->est_polymorphe;
+    }
+
+    if (decl->est_structure()) {
+        auto const structure = decl->comme_structure();
+        return structure->est_polymorphe;
+    }
+
+    return false;
+}
+
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
@@ -2626,6 +2641,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
                 return CodeRetourValidation::Erreur;
             }
             return Attente::sur_declaration(decl);
+        }
+
+        if (est_declaration_polymorphique(decl) &&
+            !expr->possede_drapeau(GAUCHE_EXPRESSION_APPEL)) {
+            espace->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
+            return CodeRetourValidation::Erreur;
         }
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
