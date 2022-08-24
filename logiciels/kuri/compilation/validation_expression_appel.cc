@@ -618,8 +618,11 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
             candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
         }
+
+        return CodeRetourValidation::OK;
     }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
         auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
         auto accede = acces->accedee;
@@ -685,21 +688,21 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         }
 
         candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
-    }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
-        candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
-    }
-    else {
-        if (appelee->type->genre == GenreType::FONCTION) {
-            candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
-        }
-        else {
-            contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
-            return CodeRetourValidation::Erreur;
-        }
+        return CodeRetourValidation::OK;
     }
 
-    return CodeRetourValidation::OK;
+    if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+        candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->type->genre == GenreType::FONCTION) {
+        candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
+    return CodeRetourValidation::Erreur;
 }
 
 static ResultatAppariement apparie_appel_pointeur(
