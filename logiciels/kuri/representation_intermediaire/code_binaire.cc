@@ -1322,6 +1322,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                     else if (type->est_type_de_donnees()) {
                         chunk.emets_constante(static_cast<long>(valeur_entiere));
                     }
+                    else if (type->est_reel()) {
+                        if (type->taille_octet == 4) {
+                            chunk.emets_constante(static_cast<float>(valeur_entiere));
+                        }
+                        else {
+                            chunk.emets_constante(static_cast<double>(valeur_entiere));
+                        }
+                    }
 
                     break;
                 }
