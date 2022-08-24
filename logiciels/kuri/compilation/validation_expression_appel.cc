@@ -701,6 +701,22 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         return CodeRetourValidation::OK;
     }
 
+    if (appelee->est_construction_structure() || appelee->est_appel()) {
+        if (appelee->type->est_type_de_donnees()) {
+            auto type = appelee->type->comme_type_de_donnees()->type_connu;
+
+            if (type->est_structure()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_structure()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            if (type->est_union()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_union()->decl});
+                return CodeRetourValidation::OK;
+            }
+        }
+    }
+
     contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
     return CodeRetourValidation::Erreur;
 }
