@@ -655,9 +655,20 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
         auto type_accede = accede->type;
 
-        while (type_accede->genre == GenreType::POINTEUR ||
-               type_accede->genre == GenreType::REFERENCE) {
-            type_accede = type_dereference_pour(type_accede);
+        if (type_accede->est_type_de_donnees()) {
+            /* Construction d'une structure ou union. */
+            type_accede = type_accede->comme_type_de_donnees()->type_connu;
+
+            if (!type_accede) {
+                contexte.rapporte_erreur("Impossible d'accéder à un « type_de_données »", acces);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+        else {
+            while (type_accede->genre == GenreType::POINTEUR ||
+                   type_accede->genre == GenreType::REFERENCE) {
+                type_accede = type_dereference_pour(type_accede);
+            }
         }
 
         if (type_accede->genre == GenreType::STRUCTURE) {
@@ -681,6 +692,28 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             }
 
             if (membre_trouve != false) {
+                if (acces->type->est_type_de_donnees()) {
+                    auto type_membre = acces->type->comme_type_de_donnees()->type_connu;
+                    if (!type_accede) {
+                        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                                 "dans une expression d'appel",
+                                                 acces);
+                        return CodeRetourValidation::Erreur;
+                    }
+
+                    if (type_membre->est_structure()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_structure()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+
+                    if (type_membre->est_union()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_union()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+                }
+
                 candidates.ajoute({CANDIDATE_EST_ACCES, acces});
                 acces->index_membre = index_membre;
                 return CodeRetourValidation::OK;
