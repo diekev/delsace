@@ -1,5 +1,5 @@
 /* Crash dans la Machine virtuelle quand un entier constant est
- * trantypé. */
+ * transtypé. */
 
 absolue :: fonc (a: $T) -> T
 {
