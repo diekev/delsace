@@ -33,6 +33,7 @@
 
 #include "compilation/operateurs.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/pile.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
@@ -299,7 +300,7 @@ struct Chunk {
                                  Type *type_droite);
 };
 
-void desassemble(Chunk const &chunk, const char *nom, std::ostream &os);
+void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
 long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os);
 
 struct Globale {

@@ -665,7 +665,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
     }
 }
 
-void desassemble(const Chunk &chunk, const char *nom, std::ostream &os)
+void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
     for (auto decalage = 0l; decalage < chunk.compte;) {
