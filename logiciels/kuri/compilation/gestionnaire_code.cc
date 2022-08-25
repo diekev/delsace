@@ -599,11 +599,17 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
+        auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
             if (it->espace() != espace) {
                 continue;
             }
-            it->ajoute_racine(noeud->comme_entete_fonction());
+
+            it->ajoute_racine(entete);
+
+            if (entete->corps && !entete->corps->unite) {
+                requiers_typage(espace, entete->corps);
+            }
         }
     }
 
