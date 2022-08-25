@@ -597,7 +597,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type->genre == GenreType::REFERENCE) {
                 type = type_dereference_pour(type);
-                transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+
+                /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
+                 * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
+                if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
+                    transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+                }
             }
 
             if (expr->type == nullptr) {
