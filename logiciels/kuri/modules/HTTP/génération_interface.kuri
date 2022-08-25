@@ -268,6 +268,9 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         sinon si type_membre == info_de(CodeEtContenuHTPP) {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu)\n")
         }
+        sinon si type_membre == info_de(ChangementProtocole) {
+            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_changement_protocole(__valeur)\n")
+        }
 
         enchaineuse.imprime_dans_enchaineuse("\t\t}\n")
     }
@@ -563,6 +566,10 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
         }
 
         si type_membre == info_de(ErreurHTTP) {
+            continue
+        }
+
+        si type_membre == info_de(ChangementProtocole) {
             continue
         }
 

@@ -216,10 +216,11 @@ static void aplatis_arbre(NoeudExpression *racine,
                 // de l'accédée, la branche de membre pouvant être une fonction, ferait échouer la
                 // validation sémantique
                 auto ref_membre = static_cast<NoeudExpressionMembre *>(appelee);
-                aplatis_arbre(ref_membre->accedee, arbre_aplatis, drapeau);
+                aplatis_arbre(
+                    ref_membre->accedee, arbre_aplatis, drapeau | GAUCHE_EXPRESSION_APPEL);
             }
             else {
-                aplatis_arbre(appelee, arbre_aplatis, drapeau);
+                aplatis_arbre(appelee, arbre_aplatis, drapeau | GAUCHE_EXPRESSION_APPEL);
             }
 
             POUR (expr->parametres) {
@@ -346,6 +347,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         {
+            racine->drapeaux |= drapeau;
             arbre_aplatis.ajoute(racine);
             break;
         }

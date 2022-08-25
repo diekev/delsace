@@ -91,6 +91,28 @@ static const char *copie_extra_bloc = R"(
                 }
             })";
 
+static const char *copie_extra_structure = R"(
+            nracine->type = nullptr;
+            if (orig->bloc_constantes) {
+                copie->bloc_constantes = copie_noeud(assem, orig->bloc_constantes, bloc_parent)->comme_bloc();
+                bloc_parent = copie->bloc_constantes;
+                copie->est_polymorphe = orig->est_polymorphe;
+
+                /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
+                 * sont placés par la Syntaxeuse directement dans les membres. */
+                POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
+                    auto copie_membre = copie_noeud(assem, it, bloc_parent);
+                    copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+                }
+
+                /* Nous devons placer les membres dans les paramètres polymorphiques afin que la validation des
+                 * expressions d'appel fonctionne. */
+                POUR (*copie->bloc_constantes->membres.verrou_ecriture()) {
+                    copie->params_polymorphiques.ajoute(it->comme_declaration_variable());
+                }
+            }
+)";
+
 struct GeneratriceCodeCPP {
     kuri::tableau<Proteine *> proteines{};
     kuri::tableau<ProteineStruct *> proteines_struct{};
@@ -458,12 +480,7 @@ struct GeneratriceCodeCPP {
             // Pour les structure et les fonctions, il nous faut proprement gérer les blocs parents
 
             if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
-                os << "\t\t\tnracine->type = nullptr;\n";
-                os << "\t\t\tif (orig->bloc_constantes) {\n";
-                os << "\t\t\t\tcopie->bloc_constantes = copie_noeud(assem, orig->bloc_constantes, "
-                      "bloc_parent)->comme_bloc();\n";
-                os << "\t\t\t\tbloc_parent = copie->bloc_constantes;\n";
-                os << "\t\t\t}\n";
+                os << copie_extra_structure;
             }
             else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
                 os << "\t\t\tcopie->bloc_constantes = assem->cree_bloc_seul(nullptr, "

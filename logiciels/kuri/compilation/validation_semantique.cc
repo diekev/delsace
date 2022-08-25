@@ -597,7 +597,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type->genre == GenreType::REFERENCE) {
                 type = type_dereference_pour(type);
-                transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+
+                /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
+                 * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
+                if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
+                    transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+                }
             }
 
             if (expr->type == nullptr) {
@@ -1862,6 +1867,41 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     return CodeRetourValidation::Erreur;
 }
 
+static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const &fonction1,
+                                            NoeudDeclarationEnteteFonction const &fonction2)
+{
+    if (fonction1.ident != fonction2.ident) {
+        return false;
+    }
+
+    /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans celles-ci, afin de
+     * pouvoir comparer des fonctions externes même si elles sont définies par des modules
+     * différents. */
+    if (fonction1.possede_drapeau(EST_EXTERNE) && fonction2.possede_drapeau(EST_EXTERNE) &&
+        fonction1.ident_bibliotheque == fonction2.ident_bibliotheque) {
+        return true;
+    }
+
+    if (fonction1.type != fonction2.type) {
+        return false;
+    }
+
+    /* Il est valide de redéfinir la fonction principale dans un autre espace. */
+    if (fonction1.ident == ID::principale) {
+        if (!fonction1.unite || !fonction2.unite) {
+            /* S'il manque une unité, nous revérifierons lors de la validation de la deuxième
+             * fonction. */
+            return false;
+        }
+
+        if (fonction1.unite->espace != fonction2.unite->espace) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
@@ -2115,25 +2155,10 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
-                        if (it->ident != decl->ident) {
-                            continue;
-                        }
-
                         auto decl_it = it->comme_entete_fonction();
 
-                        /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans
-                         * celles-ci, afin de pouvoir comparer des fonctions externes même si elles
-                         * sont définies par des modules différents. */
-                        if (it->possede_drapeau(EST_EXTERNE) &&
-                            decl->possede_drapeau(EST_EXTERNE) &&
-                            decl_it->ident_bibliotheque == decl->ident_bibliotheque) {
-                            rapporte_erreur_redefinition_fonction(decl, it);
-                            eu_erreur = true;
-                            break;
-                        }
-
-                        if (it->type == decl->type) {
-                            rapporte_erreur_redefinition_fonction(decl, it);
+                        if (fonctions_ont_memes_definitions(*decl, *decl_it)) {
+                            rapporte_erreur_redefinition_fonction(decl, decl_it);
                             eu_erreur = true;
                             break;
                         }
@@ -2533,6 +2558,21 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     return CodeRetourValidation::OK;
 }
 
+static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
+{
+    if (decl->est_entete_fonction()) {
+        auto const entete = decl->comme_entete_fonction();
+        return entete->est_polymorphe;
+    }
+
+    if (decl->est_structure()) {
+        auto const structure = decl->comme_structure();
+        return structure->est_polymorphe;
+    }
+
+    return false;
+}
+
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
@@ -2619,6 +2659,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
                 return CodeRetourValidation::Erreur;
             }
             return Attente::sur_declaration(decl);
+        }
+
+        if (est_declaration_polymorphique(decl) &&
+            !expr->possede_drapeau(GAUCHE_EXPRESSION_APPEL)) {
+            espace->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
+            return CodeRetourValidation::Erreur;
         }
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels

@@ -376,11 +376,7 @@ void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
         espace->possede_erreur = true;
     }
 
-    if (espace && espace->options.continue_si_erreur) {
-        ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
-    }
-    else {
-        // ordonnanceuse->supprime_toutes_les_taches();
+    if (!espace || !espace->options.continue_si_erreur) {
         m_possede_erreur = true;
         m_code_erreur = genre;
     }

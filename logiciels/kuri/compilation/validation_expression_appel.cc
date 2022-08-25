@@ -618,8 +618,11 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
             candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
         }
+
+        return CodeRetourValidation::OK;
     }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
         auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
         auto accede = acces->accedee;
@@ -652,9 +655,20 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
         auto type_accede = accede->type;
 
-        while (type_accede->genre == GenreType::POINTEUR ||
-               type_accede->genre == GenreType::REFERENCE) {
-            type_accede = type_dereference_pour(type_accede);
+        if (type_accede->est_type_de_donnees()) {
+            /* Construction d'une structure ou union. */
+            type_accede = type_accede->comme_type_de_donnees()->type_connu;
+
+            if (!type_accede) {
+                contexte.rapporte_erreur("Impossible d'accéder à un « type_de_données »", acces);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+        else {
+            while (type_accede->genre == GenreType::POINTEUR ||
+                   type_accede->genre == GenreType::REFERENCE) {
+                type_accede = type_dereference_pour(type_accede);
+            }
         }
 
         if (type_accede->genre == GenreType::STRUCTURE) {
@@ -678,6 +692,28 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             }
 
             if (membre_trouve != false) {
+                if (acces->type->est_type_de_donnees()) {
+                    auto type_membre = acces->type->comme_type_de_donnees()->type_connu;
+                    if (!type_accede) {
+                        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                                 "dans une expression d'appel",
+                                                 acces);
+                        return CodeRetourValidation::Erreur;
+                    }
+
+                    if (type_membre->est_structure()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_structure()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+
+                    if (type_membre->est_union()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_union()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+                }
+
                 candidates.ajoute({CANDIDATE_EST_ACCES, acces});
                 acces->index_membre = index_membre;
                 return CodeRetourValidation::OK;
@@ -685,21 +721,37 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         }
 
         candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
+        return CodeRetourValidation::OK;
     }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
         candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
+        return CodeRetourValidation::OK;
     }
-    else {
-        if (appelee->type->genre == GenreType::FONCTION) {
-            candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
-        }
-        else {
-            contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
-            return CodeRetourValidation::Erreur;
+
+    if (appelee->type->genre == GenreType::FONCTION) {
+        candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->est_construction_structure() || appelee->est_appel()) {
+        if (appelee->type->est_type_de_donnees()) {
+            auto type = appelee->type->comme_type_de_donnees()->type_connu;
+
+            if (type->est_structure()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_structure()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            if (type->est_union()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_union()->decl});
+                return CodeRetourValidation::OK;
+            }
         }
     }
 
-    return CodeRetourValidation::OK;
+    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
+    return CodeRetourValidation::Erreur;
 }
 
 static ResultatAppariement apparie_appel_pointeur(
@@ -1662,6 +1714,7 @@ static NoeudStruct *monomorphise_au_besoin(
     auto copie = copie_noeud(
                      contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)
                      ->comme_structure();
+    copie->est_polymorphe = false;
     copie->est_monomorphisation = true;
     copie->polymorphe_de_base = decl_struct;
 
