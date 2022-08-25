@@ -1872,14 +1872,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
-        enchaineuse << " -o ";
-        enchaineuse << ((ops.nom_sortie == "") ? "a" : ops.nom_sortie);
-        enchaineuse << ".o";
-    }
-    else {
-        enchaineuse << " -o /tmp/compilation_kuri.o";
-    }
+    enchaineuse << " -o " << nom_sortie_fichier_objet(ops);
 
     return enchaineuse.chaine();
 }
@@ -2006,16 +1999,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -m32 ";
     }
 
-    enchaineuse << " -o ";
-    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        auto nom_sortie = ((espace.options.nom_sortie == "") ? "a" : espace.options.nom_sortie);
-        enchaineuse << nom_sortie << ".so";
-    }
-    else {
-        auto nom_sortie = ((espace.options.nom_sortie == "") ? "a.out" :
-                                                               espace.options.nom_sortie);
-        enchaineuse << nom_sortie;
-    }
+    enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
 
     auto commande = enchaineuse.chaine();
 
