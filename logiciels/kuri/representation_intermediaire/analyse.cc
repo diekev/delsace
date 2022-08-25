@@ -697,7 +697,6 @@ static bool est_stockage_valide(InstructionStockeMem const &stockage,
                                 SourceAdresseAtome source,
                                 SourceAdresseAtome destination)
 {
-    auto const ou = stockage.ou;
     auto const valeur = stockage.valeur;
 
     /* Nous ne sommes intéressés que par les stockage d'adresses. */

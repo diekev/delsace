@@ -527,7 +527,6 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     numerote_instructions(*atome_fonc);
 
-    auto numero_instruction = atome_fonc->params_entrees.taille();
     imprime_instructions(
         atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
 }
