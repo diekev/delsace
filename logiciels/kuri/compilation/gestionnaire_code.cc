@@ -1321,6 +1321,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
         return kuri::DecisionIteration::Continue;
     });
 
+    if (m_compilatrice->possede_erreur()) {
+        ordonnanceuse.supprime_toutes_les_taches();
+    }
+
     unites_en_attente = nouvelles_unites;
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
@@ -1333,6 +1337,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
+    if (m_compilatrice->possede_erreur()) {
+        return true;
+    }
+
     auto espace_errone_existe = false;
 
     POUR (programmes_en_cours) {
