@@ -1874,7 +1874,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
 
     if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
         enchaineuse << " -o ";
-        enchaineuse << ops.nom_sortie;
+        enchaineuse << ((ops.nom_sortie == "") ? "a" : ops.nom_sortie);
         enchaineuse << ".o";
     }
     else {
@@ -2007,12 +2007,14 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     }
 
     enchaineuse << " -o ";
-
     if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << espace.options.nom_sortie << ".so";
+        auto nom_sortie = ((espace.options.nom_sortie == "") ? "a" : espace.options.nom_sortie);
+        enchaineuse << nom_sortie << ".so";
     }
     else {
-        enchaineuse << espace.options.nom_sortie;
+        auto nom_sortie = ((espace.options.nom_sortie == "") ? "a.out" :
+                                                               espace.options.nom_sortie);
+        enchaineuse << nom_sortie;
     }
 
     auto commande = enchaineuse.chaine();
