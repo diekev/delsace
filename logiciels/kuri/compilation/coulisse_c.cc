@@ -637,6 +637,21 @@ static bool est_type_tableau_fixe(Type *type)
            (type->est_opaque() && type->comme_opaque()->type_opacifie->est_tableau_fixe());
 }
 
+static bool est_pointeur_vers_tableau_fixe(Type const *type)
+{
+    if (!type->est_pointeur()) {
+        return false;
+    }
+
+    auto const type_pointeur = type->comme_pointeur();
+
+    if (!type_pointeur->type_pointe) {
+        return false;
+    }
+
+    return est_type_tableau_fixe(type_pointeur->type_pointe);
+}
+
 struct GeneratriceCodeC {
     kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
     kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
@@ -1047,7 +1062,19 @@ struct GeneratriceCodeC {
                 assert(valeur != "");
 
                 if (valeur[0] == '&') {
-                    table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                    /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
+                     * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
+                     * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
+                     * membre de la structure qui est le tableau, et sert également à proprement
+                     * générer le code pour les indexages. */
+                    if (est_pointeur_vers_tableau_fixe(
+                            charge->type->comme_pointeur()->type_pointe)) {
+                        table_valeurs.insere(inst_charge,
+                                             enchaine("&(*", valeur.sous_chaine(1), ")"));
+                    }
+                    else {
+                        table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                    }
                 }
                 else {
                     table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
@@ -1845,14 +1872,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
-        enchaineuse << " -o ";
-        enchaineuse << ops.nom_sortie;
-        enchaineuse << ".o";
-    }
-    else {
-        enchaineuse << " -o /tmp/compilation_kuri.o";
-    }
+    enchaineuse << " -o " << nom_sortie_fichier_objet(ops);
 
     return enchaineuse.chaine();
 }
@@ -1979,14 +1999,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -m32 ";
     }
 
-    enchaineuse << " -o ";
-
-    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << espace.options.nom_sortie << ".so";
-    }
-    else {
-        enchaineuse << espace.options.nom_sortie;
-    }
+    enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
 
     auto commande = enchaineuse.chaine();
 

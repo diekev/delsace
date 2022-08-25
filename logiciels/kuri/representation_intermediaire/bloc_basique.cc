@@ -301,8 +301,11 @@ void imprime_bloc(Bloc *bloc,
     }
     os << "]\n";
 
-    imprime_instructions(
-        bloc->instructions, decalage_instruction, os, false, surligne_inutilisees);
+    POUR (bloc->instructions) {
+        it->numero = decalage_instruction++;
+    }
+
+    imprime_instructions(bloc->instructions, os, false, surligne_inutilisees);
 }
 
 void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)

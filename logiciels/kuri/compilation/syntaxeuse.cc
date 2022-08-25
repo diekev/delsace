@@ -2479,11 +2479,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             est_dans_fonction = ancien_est_dans_fonction;
 
             analyse_annotations(noeud->annotations);
-
-            auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
-            if (doit_etre_type) {
-                requiers_typage(noeud_corps);
-            }
         }
     }
 

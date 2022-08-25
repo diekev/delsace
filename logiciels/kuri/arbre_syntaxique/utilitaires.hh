@@ -68,6 +68,7 @@ enum DrapeauxNoeud : unsigned int {
     EST_UTILISEE = (1 << 25),  // decl var
     DEBOGUE = (1 << 26),
     METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
+    GAUCHE_EXPRESSION_APPEL = (1 << 28),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

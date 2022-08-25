@@ -1752,7 +1752,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            // mémoire(@expr) = ...
+            // mémoire(*expr) = ...
             if (inst_mem->expression->genre_valeur == GenreValeur::DROITE &&
                 !inst_mem->expression->est_comme()) {
                 empile_valeur(valeur);

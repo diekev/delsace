@@ -1,0 +1,21 @@
+// les nombres réels ne sont pas imprimés correctement via les métaprogrammes
+
+importe Fondation
+
+imprime_réel :: fonc () -> chaine
+{
+    x := 1.0
+    retourne imprime_chaine("%", x)
+}
+
+principale :: fonc () -> z32
+{
+    chn_compilée := #exécute imprime_réel()
+    chn_exécutée := imprime_réel()
+
+    si chn_compilée != chn_exécutée {
+        retourne 1
+    }
+
+    retourne 0
+}

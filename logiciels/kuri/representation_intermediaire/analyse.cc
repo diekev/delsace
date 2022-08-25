@@ -616,6 +616,308 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
 
 /* ******************************************************************************************** */
 
+/* Les sources possibles de l'adresse d'un atome (à savoir, d'un pointeur). */
+enum class SourceAdresseAtome : unsigned char {
+    /* La source est inconnue, également utilisée comme valeur nulle. */
+    INCONNUE,
+    /* Nous avons l'adresse d'une globale. */
+    GLOBALE,
+    /* Nous avons une constante représentant une adresse. */
+    CONSTANTE,
+    /* Nous avons un paramètre d'entrée de la fonction. */
+    PARAMETRE_ENTREE,
+    /* Nous avons un paramètre de sortie de la fonction. */
+    PARAMETRE_SORTIE,
+    /* Nous avons l'adresse d'une locale. */
+    LOCALE,
+    /* Nous avons une adresse retourner par un appel de fonction. */
+    VALEUR_RETOUR_FONCTION,
+};
+
+static std::ostream &operator<<(std::ostream &os, SourceAdresseAtome type)
+{
+    switch (type) {
+        case SourceAdresseAtome::INCONNUE:
+        {
+            os << "INCONNUE";
+            break;
+        }
+        case SourceAdresseAtome::GLOBALE:
+        {
+            os << "GLOBALE";
+            break;
+        }
+        case SourceAdresseAtome::CONSTANTE:
+        {
+            os << "CONSTANTE";
+            break;
+        }
+        case SourceAdresseAtome::PARAMETRE_ENTREE:
+        {
+            os << "PARAMETRE_ENTREE";
+            break;
+        }
+        case SourceAdresseAtome::PARAMETRE_SORTIE:
+        {
+            os << "PARAMETRE_SORTIE";
+            break;
+        }
+        case SourceAdresseAtome::LOCALE:
+        {
+            os << "LOCALE";
+            break;
+        }
+        case SourceAdresseAtome::VALEUR_RETOUR_FONCTION:
+        {
+            os << "LOCALE";
+            break;
+        }
+    }
+
+    return os;
+}
+
+static inline bool est_stockage_adresse_valide(SourceAdresseAtome source,
+                                               SourceAdresseAtome destination)
+{
+    if (source == SourceAdresseAtome::CONSTANTE) {
+        return true;
+    }
+
+    if (source != SourceAdresseAtome::LOCALE) {
+        return true;
+    }
+
+    return destination == SourceAdresseAtome::LOCALE ||
+           destination == SourceAdresseAtome::CONSTANTE ||
+           destination == SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
+}
+
+static bool est_stockage_valide(InstructionStockeMem const &stockage,
+                                SourceAdresseAtome source,
+                                SourceAdresseAtome destination)
+{
+    auto const valeur = stockage.valeur;
+
+    /* Nous ne sommes intéressés que par les stockage d'adresses. */
+    if (!valeur->type->est_pointeur()) {
+        return true;
+    }
+
+    if (est_stockage_adresse_valide(source, destination)) {
+        return true;
+    }
+
+    return false;
+}
+
+static SourceAdresseAtome determine_source_adresse_atome(
+    AtomeFonction const &fonction,
+    Atome const &atome,
+    kuri::tableau<SourceAdresseAtome> const &sources)
+{
+    if (atome.est_globale() || atome.est_fonction()) {
+        return SourceAdresseAtome::GLOBALE;
+    }
+
+    /* Pour « nul », mais également les arithmétiques de pointeurs, ou encore les pointeurs connus
+     * lors de la compilation. */
+    if (atome.est_constante()) {
+        return SourceAdresseAtome::CONSTANTE;
+    }
+
+    POUR (fonction.params_entrees) {
+        if (&atome == it) {
+            return SourceAdresseAtome::PARAMETRE_ENTREE;
+        }
+    }
+
+    if (&atome == fonction.param_sortie) {
+        return SourceAdresseAtome::PARAMETRE_SORTIE;
+    }
+
+    if (atome.est_instruction()) {
+        return sources[atome.comme_instruction()->numero];
+    }
+
+    return SourceAdresseAtome::LOCALE;
+}
+
+static void rapporte_erreur_stockage_invalide(
+    EspaceDeTravail &espace,
+    AtomeFonction const &fonction,
+    InstructionStockeMem const &stockage,
+    SourceAdresseAtome source,
+    SourceAdresseAtome destination,
+    kuri::tableau<SourceAdresseAtome> const &sources,
+    kuri::tableau<SourceAdresseAtome> const &sources_pour_charge)
+{
+#undef IMPRIME_INFORMATIONS
+
+#ifdef IMPRIME_INFORMATIONS
+    auto const valeur = stockage.valeur;
+    std::cerr << "Stockage d'un pointeur de " << source << " vers " << destination << '\n';
+
+    std::cerr << "--------- Instruction défaillante :\n";
+    imprime_instruction(&stockage, std::cerr);
+    std::cerr << "\n";
+    std::cerr << "--------- Dernière valeur :\n";
+    if (valeur->est_instruction()) {
+        imprime_instruction(valeur->comme_instruction(), std::cerr);
+    }
+    else {
+        imprime_atome(valeur, std::cerr);
+    }
+    std::cerr << "\n";
+    std::cerr << "--------- Fonction défaillante :\n";
+    imprime_fonction(
+        &fonction, std::cerr, false, false, [&](const Instruction &instruction, std::ostream &os) {
+            os << " " << sources[instruction.numero]
+               << " (si charge : " << sources_pour_charge[instruction.numero] << ")";
+        });
+    std::cerr << "\n";
+#else
+    static_cast<void>(fonction);
+    static_cast<void>(source);
+    static_cast<void>(sources);
+    static_cast<void>(sources_pour_charge);
+#endif
+
+    if (destination == SourceAdresseAtome::PARAMETRE_SORTIE) {
+        espace.rapporte_erreur(stockage.site, "Retour d'une adresse locale.");
+    }
+    else if (destination == SourceAdresseAtome::GLOBALE) {
+        espace.rapporte_erreur(stockage.site, "Stockage d'une adresse locale dans une globale.");
+    }
+    else {
+        espace.rapporte_erreur(stockage.site, "Stockage d'une adresse locale.");
+    }
+}
+
+/* Essaie de détecter si nous retournons une adresse locale, qui serait invalide après le retour de
+ * la fonction.
+ * À FAIRE : tests
+ * - adresses dans des tableaux ou structures mixtes étant retournés
+ */
+static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
+                                                  AtomeFonction const &fonction)
+{
+    /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
+     * vraie fonction. */
+    if (fonction.decl && fonction.decl->ident == ID::cree_contexte) {
+        return true;
+    }
+
+    auto const taille_sources = numerote_instructions(fonction);
+
+    /* Pour chaque instruction, stocke la source de l'adresse. */
+    kuri::tableau<SourceAdresseAtome> sources(taille_sources);
+    POUR (sources) {
+        it = SourceAdresseAtome::INCONNUE;
+    }
+
+    /* Afin de différencier l'adresse d'une variable de celle de son contenu, ceci stocke pour
+     * chaque instruction la source de l'adresse pointé par la variable. */
+    kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
+
+    for (auto i = 0; i < fonction.params_entrees.taille(); i++) {
+        sources[i] = SourceAdresseAtome::PARAMETRE_ENTREE;
+        sources_pour_charge[i] = SourceAdresseAtome::PARAMETRE_ENTREE;
+    }
+
+    int index = fonction.params_entrees.taille();
+    sources[index] = SourceAdresseAtome::PARAMETRE_SORTIE;
+    sources_pour_charge[index] = SourceAdresseAtome::PARAMETRE_SORTIE;
+
+    POUR (fonction.instructions) {
+        if (it->est_alloc()) {
+            sources[it->numero] = SourceAdresseAtome::LOCALE;
+            continue;
+        }
+
+        /* INCOMPLET : il serait bien de savoir ce qui est retourné : l'adresse d'une globale, d'un
+         * paramètre, etc. */
+        if (it->est_appel()) {
+            sources[it->numero] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
+            sources_pour_charge[it->numero] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
+            continue;
+        }
+
+        if (it->est_charge()) {
+            if (it->comme_charge()->chargee->est_instruction()) {
+                auto inst = it->comme_charge()->chargee->comme_instruction();
+                sources[it->numero] = sources_pour_charge[inst->numero];
+            }
+            else {
+                sources[it->numero] = determine_source_adresse_atome(
+                    fonction, *it->comme_charge()->chargee, sources);
+            }
+
+            continue;
+        }
+
+        if (it->est_transtype()) {
+            sources[it->numero] = determine_source_adresse_atome(
+                fonction, *it->comme_transtype()->valeur, sources);
+            continue;
+        }
+
+        if (it->est_acces_membre()) {
+            auto accede = it->comme_acces_membre()->accede;
+            sources[it->numero] = determine_source_adresse_atome(fonction, *accede, sources);
+            if (accede->est_instruction()) {
+                sources_pour_charge[it->numero] =
+                    sources_pour_charge[accede->comme_instruction()->numero];
+            }
+            continue;
+        }
+
+        if (it->est_acces_index()) {
+            auto accede = it->comme_acces_index()->accede;
+            sources[it->numero] = determine_source_adresse_atome(fonction, *accede, sources);
+            if (accede->est_instruction()) {
+                sources_pour_charge[it->numero] =
+                    sources_pour_charge[accede->comme_instruction()->numero];
+            }
+            continue;
+        }
+
+        if (it->est_stocke_mem()) {
+            auto const stockage = it->comme_stocke_mem();
+            auto const ou = stockage->ou;
+            auto const valeur = stockage->valeur;
+
+            auto const source_adresse_destination = determine_source_adresse_atome(
+                fonction, *ou, sources);
+            auto const source_adresse_source = determine_source_adresse_atome(
+                fonction, *valeur, sources);
+
+            if (!est_stockage_valide(
+                    *stockage, source_adresse_source, source_adresse_destination)) {
+                rapporte_erreur_stockage_invalide(espace,
+                                                  fonction,
+                                                  *stockage,
+                                                  source_adresse_source,
+                                                  source_adresse_destination,
+                                                  sources,
+                                                  sources_pour_charge);
+                return false;
+            }
+
+            if (ou->est_instruction()) {
+                sources_pour_charge[ou->comme_instruction()->numero] = source_adresse_source;
+            }
+
+            continue;
+        }
+    }
+
+    return true;
+}
+
+/* ********************************************************************************************
+ */
+
 /* Performe différentes analyses de la RI. Ces analyses nous servent à valider un peu plus la
  * structures du programme. Nous pourrions les faire lors de la validation sémantique, mais ce
  * serait un peu plus complexe car l'arbre syntaxique, contrairement à la RI, a plus de cas
@@ -636,6 +938,10 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
     }
 
     if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
+        return;
+    }
+
+    if (!detecte_utilisations_adresses_locales(espace, *atome)) {
         return;
     }
 

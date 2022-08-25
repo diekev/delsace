@@ -599,11 +599,17 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
+        auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
             if (it->espace() != espace) {
                 continue;
             }
-            it->ajoute_racine(noeud->comme_entete_fonction());
+
+            it->ajoute_racine(entete);
+
+            if (entete->corps && !entete->corps->unite) {
+                requiers_typage(espace, entete->corps);
+            }
         }
     }
 
@@ -1002,6 +1008,27 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
     return false;
 }
 
+static bool declaration_est_invalide(NoeudExpression *decl)
+{
+    if (decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        return false;
+    }
+
+    auto const unite = decl->unite;
+    if (!unite) {
+        /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
+        return true;
+    }
+
+    if (unite->espace->possede_erreur) {
+        /* Si l'espace responsable de l'unité de l'entête possède une erreur, nous devons
+         * ignorer les entêtes invalides, car sinon la compilation serait infinie. */
+        return false;
+    }
+
+    return true;
+}
+
 static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
 {
     kuri::ensemble<Module *> modules_visites;
@@ -1022,13 +1049,13 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sy
         }
 
         for (auto decl : (*it.bloc->membres.verrou_lecture())) {
-            if (decl->est_entete_fonction() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
                 return false;
             }
         }
 
         for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
-            if (decl->est_importe() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (decl->est_importe() && declaration_est_invalide(decl)) {
                 return false;
             }
         }
@@ -1235,6 +1262,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 #endif
 
     POUR (unites_en_attente) {
+        if (it->espace->possede_erreur) {
+            continue;
+        }
+
         it->marque_prete_si_attente_resolue();
 
         if (!it->est_prete()) {
@@ -1242,7 +1273,6 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
             if (it->est_bloquee()) {
                 it->rapporte_erreur();
-                // À FAIRE(gestion) : verrou mort pour l'effacement des tâches
                 unites_en_attente.efface();
                 ordonnanceuse.supprime_toutes_les_taches();
                 return;
@@ -1274,6 +1304,27 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
         ordonnanceuse.cree_tache_pour_unite(it);
     }
 
+    /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée
+     * durant la création de tâches ci-dessus, et que l'erreur ne génère pas une fin totale de la
+     * compilation. Nous ne pouvons faire ceci ailleurs (dans la fonction qui rapporte l'erreur)
+     * puisque nous possédons déjà un verrou sur l'ordonnanceuse, et nous risquerions d'avoir un
+     * verrou mort. */
+    kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
+    POUR (programmes_en_cours) {
+        if (it->espace()->possede_erreur) {
+            espaces_errones.insere(it->espace());
+        }
+    }
+
+    pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
+        ordonnanceuse.supprime_toutes_les_taches_pour_espace(espace);
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (m_compilatrice->possede_erreur()) {
+        ordonnanceuse.supprime_toutes_les_taches();
+    }
+
     unites_en_attente = nouvelles_unites;
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
@@ -1286,6 +1337,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
+    if (m_compilatrice->possede_erreur()) {
+        return true;
+    }
+
     auto espace_errone_existe = false;
 
     POUR (programmes_en_cours) {

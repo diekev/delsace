@@ -665,7 +665,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
     }
 }
 
-void desassemble(const Chunk &chunk, const char *nom, std::ostream &os)
+void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
     for (auto decalage = 0l; decalage < chunk.compte;) {
@@ -1321,6 +1321,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                     }
                     else if (type->est_type_de_donnees()) {
                         chunk.emets_constante(static_cast<long>(valeur_entiere));
+                    }
+                    else if (type->est_reel()) {
+                        if (type->taille_octet == 4) {
+                            chunk.emets_constante(static_cast<float>(valeur_entiere));
+                        }
+                        else {
+                            chunk.emets_constante(static_cast<double>(valeur_entiere));
+                        }
                     }
 
                     break;
