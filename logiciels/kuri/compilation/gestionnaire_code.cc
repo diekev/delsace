@@ -1235,6 +1235,10 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 #endif
 
     POUR (unites_en_attente) {
+        if (it->espace->possede_erreur) {
+            continue;
+        }
+
         it->marque_prete_si_attente_resolue();
 
         if (!it->est_prete()) {
@@ -1242,7 +1246,6 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
             if (it->est_bloquee()) {
                 it->rapporte_erreur();
-                // À FAIRE(gestion) : verrou mort pour l'effacement des tâches
                 unites_en_attente.efface();
                 ordonnanceuse.supprime_toutes_les_taches();
                 return;
@@ -1273,6 +1276,23 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
         ordonnanceuse.cree_tache_pour_unite(it);
     }
+
+    /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée
+     * durant la création de tâches ci-dessus, et que l'erreur ne génère pas une fin totale de la
+     * compilation. Nous ne pouvons faire ceci ailleurs (dans la fonction qui rapporte l'erreur)
+     * puisque nous possédons déjà un verrou sur l'ordonnanceuse, et nous risquerions d'avoir un
+     * verrou mort. */
+    kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
+    POUR (programmes_en_cours) {
+        if (it->espace()->possede_erreur) {
+            espaces_errones.insere(it->espace());
+        }
+    }
+
+    pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
+        ordonnanceuse.supprime_toutes_les_taches_pour_espace(espace);
+        return kuri::DecisionIteration::Continue;
+    });
 
     unites_en_attente = nouvelles_unites;
 
