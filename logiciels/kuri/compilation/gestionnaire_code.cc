@@ -1008,6 +1008,27 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
     return false;
 }
 
+static bool declaration_est_invalide(NoeudExpression *decl)
+{
+    if (decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        return false;
+    }
+
+    auto const unite = decl->unite;
+    if (!unite) {
+        /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
+        return true;
+    }
+
+    if (unite->espace->possede_erreur) {
+        /* Si l'espace responsable de l'unité de l'entête possède une erreur, nous devons
+         * ignorer les entêtes invalides, car sinon la compilation serait infinie. */
+        return false;
+    }
+
+    return true;
+}
+
 static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
 {
     kuri::ensemble<Module *> modules_visites;
@@ -1028,13 +1049,13 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sy
         }
 
         for (auto decl : (*it.bloc->membres.verrou_lecture())) {
-            if (decl->est_entete_fonction() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
                 return false;
             }
         }
 
         for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
-            if (decl->est_importe() && !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (decl->est_importe() && declaration_est_invalide(decl)) {
                 return false;
             }
         }
