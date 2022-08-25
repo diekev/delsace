@@ -1874,6 +1874,41 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     return CodeRetourValidation::Erreur;
 }
 
+static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const &fonction1,
+                                            NoeudDeclarationEnteteFonction const &fonction2)
+{
+    if (fonction1.ident != fonction2.ident) {
+        return false;
+    }
+
+    /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans celles-ci, afin de
+     * pouvoir comparer des fonctions externes même si elles sont définies par des modules
+     * différents. */
+    if (fonction1.possede_drapeau(EST_EXTERNE) && fonction2.possede_drapeau(EST_EXTERNE) &&
+        fonction1.ident_bibliotheque == fonction2.ident_bibliotheque) {
+        return true;
+    }
+
+    if (fonction1.type != fonction2.type) {
+        return false;
+    }
+
+    /* Il est valide de redéfinir la fonction principale dans un autre espace. */
+    if (fonction1.ident == ID::principale) {
+        if (!fonction1.unite || !fonction2.unite) {
+            /* S'il manque une unité, nous revérifierons lors de la validation de la deuxième
+             * fonction. */
+            return false;
+        }
+
+        if (fonction1.unite->espace != fonction2.unite->espace) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
@@ -2127,25 +2162,10 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
-                        if (it->ident != decl->ident) {
-                            continue;
-                        }
-
                         auto decl_it = it->comme_entete_fonction();
 
-                        /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans
-                         * celles-ci, afin de pouvoir comparer des fonctions externes même si elles
-                         * sont définies par des modules différents. */
-                        if (it->possede_drapeau(EST_EXTERNE) &&
-                            decl->possede_drapeau(EST_EXTERNE) &&
-                            decl_it->ident_bibliotheque == decl->ident_bibliotheque) {
-                            rapporte_erreur_redefinition_fonction(decl, it);
-                            eu_erreur = true;
-                            break;
-                        }
-
-                        if (it->type == decl->type) {
-                            rapporte_erreur_redefinition_fonction(decl, it);
+                        if (fonctions_ont_memes_definitions(*decl, *decl_it)) {
+                            rapporte_erreur_redefinition_fonction(decl, decl_it);
                             eu_erreur = true;
                             break;
                         }
