@@ -1090,13 +1090,6 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         unites_en_attente.ajoute(unite);
     }
 
-    /* Le point d'entrée n'est pas appelé, il nous faut requerir le typage du corps manuellement.
-     */
-    if (noeud->ident == ID::__point_d_entree_systeme && noeud->est_entete_fonction() &&
-        noeud != m_compilatrice->fonction_point_d_entree) {
-        requiers_typage(espace, noeud->comme_entete_fonction()->corps);
-    }
-
     if (message) {
         requiers_noeud_code(espace, noeud);
         auto unite_message = cree_unite_pour_message(espace, message);
