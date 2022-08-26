@@ -1263,6 +1263,31 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
     }
 }
 
+static Type *type_entier_sous_jacent(Typeuse &typeuse, Type *type)
+{
+    if (type->est_entier_constant()) {
+        return typeuse[TypeBase::Z32];
+    }
+
+    if (type->est_enum()) {
+        return type->comme_enum()->type_donnees;
+    }
+
+    if (type->est_erreur()) {
+        return type->comme_erreur()->type_donnees;
+    }
+
+    if (type->est_type_de_donnees()) {
+        return typeuse[TypeBase::Z64];
+    }
+
+    if (type->est_octet()) {
+        return typeuse[TypeBase::N8];
+    }
+
+    return type;
+}
+
 void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
 {
     switch (constante->genre) {
@@ -1292,10 +1317,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                 {
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-                    auto type = constante->type;
+                    auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                        constante->type);
 
-                    if (type->genre == GenreType::ENTIER_NATUREL ||
-                        type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+                    if (type->genre == GenreType::ENTIER_NATUREL) {
                         if (type->taille_octet == 1) {
                             chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
                         }
@@ -1322,15 +1347,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                         else if (type->taille_octet == 8) {
                             chunk.emets_constante(static_cast<long>(valeur_entiere));
                         }
-                    }
-                    else if (type->genre == GenreType::ENTIER_CONSTANT) {
-                        chunk.emets_constante(static_cast<int>(valeur_entiere));
-                    }
-                    else if (type->est_octet()) {
-                        chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
-                    }
-                    else if (type->est_type_de_donnees()) {
-                        chunk.emets_constante(static_cast<long>(valeur_entiere));
                     }
                     else if (type->est_reel()) {
                         if (type->taille_octet == 4) {
