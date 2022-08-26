@@ -1421,7 +1421,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
 void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
 {
-    // Ne compile le point d'entrée que pour les exécutbables
+    // Ne compile le point d'entrée que pour les exécutables
     if (espace->options.resultat != ResultatCompilation::EXECUTABLE) {
         return;
     }
