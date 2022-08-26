@@ -516,21 +516,25 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 case CONSTANTE_ENTIER_RELATIF | BITS_8:
                 {
                     LIS_CONSTANTE(char);
+                    os << " z8";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_16:
                 {
                     LIS_CONSTANTE(short);
+                    os << " z16";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_32:
                 {
                     LIS_CONSTANTE(int);
+                    os << " z32";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_64:
                 {
                     LIS_CONSTANTE(long);
+                    os << " z64";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_8:
@@ -538,31 +542,37 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                     // erreur de compilation pour transtype inutile avec drapeaux stricts
                     os << static_cast<long>(chunk.code[decalage]);
                     decalage += 1;
+                    os << " n8";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_16:
                 {
                     LIS_CONSTANTE(unsigned short);
+                    os << " n16";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_32:
                 {
                     LIS_CONSTANTE(unsigned int);
+                    os << " n32";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_64:
                 {
                     LIS_CONSTANTE(unsigned long);
+                    os << " n64";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_32:
                 {
                     LIS_CONSTANTE(float);
+                    os << " r32";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_64:
                 {
                     LIS_CONSTANTE(double);
+                    os << " r64";
                     break;
                 }
             }
