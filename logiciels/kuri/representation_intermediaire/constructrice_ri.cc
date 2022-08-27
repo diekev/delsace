@@ -2007,8 +2007,57 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 valeur = cree_charge_mem(noeud, valeur);
             }
 
-            valeur = cree_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::DEFAUT);
+            auto type_valeur = valeur->type;
+            auto type_cible = transformation.type_cible;
+            auto type_transtypage = TypeTranstypage::DEFAUT;
+
+            // À FAIRE(transtypage) : tous les cas
+            if (type_cible->est_entier_naturel()) {
+                if (type_valeur->est_enum()) {
+                    type_valeur = type_valeur->comme_enum()->type_donnees;
+
+                    if (type_valeur->taille_octet < type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
+                    }
+                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
+                    }
+                }
+                else if (type_valeur->est_erreur()) {
+                    type_valeur = type_valeur->comme_erreur()->type_donnees;
+
+                    if (type_valeur->taille_octet < type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
+                    }
+                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
+                    }
+                }
+            }
+            else if (type_cible->est_entier_relatif()) {
+                if (type_valeur->est_enum()) {
+                    type_valeur = type_valeur->comme_enum()->type_donnees;
+
+                    if (type_valeur->taille_octet < type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
+                    }
+                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
+                    }
+                }
+                else if (type_valeur->est_erreur()) {
+                    type_valeur = type_valeur->comme_erreur()->type_donnees;
+
+                    if (type_valeur->taille_octet < type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
+                    }
+                    else if (type_valeur->taille_octet > type_cible->taille_octet) {
+                        type_transtypage = TypeTranstypage::DIMINUE_RELATIF;
+                    }
+                }
+            }
+
+            valeur = cree_transtype(noeud, type_cible, valeur, type_transtypage);
             break;
         }
         case TypeTransformation::POINTEUR_VERS_ENTIER:

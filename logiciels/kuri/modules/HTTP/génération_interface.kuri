@@ -281,7 +281,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.imprime_dans_enchaineuse("\t}\n")
     enchaineuse.nouvelle_ligne()
 
-    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, *message_serveuse)\n")
+    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, message_serveuse)\n")
     enchaineuse.ajoute_au_tampon("\tretourne message_serveuse\n")
     enchaineuse.ajoute_au_tampon("}\n")
 }

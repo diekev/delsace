@@ -218,6 +218,7 @@ struct GeneratriceCodeCPP {
     {
         os << "#include \"noeud_expression.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
+        os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/outils_lexemes.hh\"\n";
         os << "#include \"assembleuse.hh\"\n";
         os << "#include <iostream>\n";
@@ -266,6 +267,8 @@ struct GeneratriceCodeCPP {
 
             os << "\t\t\timprime_tab(os, profondeur);\n";
             os << "\t\t\tos << \"<" << it->accede_nom_comme();
+
+            os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
 
             // À FAIRE : ceci ne prend pas en compte les ancêtres
             if (it->possede_enfants()) {
