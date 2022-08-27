@@ -239,7 +239,7 @@ mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (*Prise, []oct
 
 mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (*Prise)(rien))
 {
-    ctx.quand_écriture_ = ctx.est_ssl() {
+    ctx.quand_écriture_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_écriture(ctx comme *ContextePriseSSL, rappel)
     }
     sinon {
