@@ -108,7 +108,7 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
 /* ********************************************************************************************* */
 
 // Il reste des choses à faire pour activer ceci
-#undef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
+#define ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
 
 static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 {
