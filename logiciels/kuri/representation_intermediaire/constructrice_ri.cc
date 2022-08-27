@@ -1803,9 +1803,9 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     analyse_ri(*espace(), atome_fonc);
 
-    if (decl->possede_drapeau(DEBOGUE)) {
-        imprime_fonction(atome_fonc, std::cerr);
-    }
+    //    if (decl->possede_drapeau(DEBOGUE)) {
+    //        imprime_fonction(atome_fonc, std::cerr);
+    //    }
 
     fonction_courante = nullptr;
     this->m_pile.efface();

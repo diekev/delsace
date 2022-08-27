@@ -363,6 +363,188 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
 
 #ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
 
+static bool est_atome_controllant_le_flux(Atome const *a)
+{
+    if (!a->est_instruction()) {
+        return a->est_globale();
+    }
+
+    if (a->etat & EST_PARAMETRE_FONCTION) {
+        return true;
+    }
+
+    auto const inst = a->comme_instruction();
+
+    if (inst->est_retour() || inst->est_branche_cond()) {
+        return true;
+    }
+
+    if (!inst->est_appel()) {
+        return false;
+    }
+
+    auto const appel = inst->comme_appel();
+
+    if (appel->appele->est_fonction()) {
+        auto const fonction = static_cast<AtomeFonction const *>(appel->appele);
+        if (fonction->decl && fonction->decl->est_initialisation_type) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+struct Graphe {
+  private:
+    using connexion = std::pair<Atome *, Atome *>;
+
+    kuri::tableau<connexion> connexions{};
+
+  public:
+    /* a est utilisé par b */
+    void ajoute_connexion(Atome *a, Atome *b)
+    {
+        connexions.ajoute({a, b});
+    }
+
+    bool est_utilise(Atome *a) const
+    {
+        POUR (connexions) {
+            if (it.first != a) {
+                continue;
+            }
+
+            // std::cerr << "Atome " << a << " est utilisé par " << it.second << '\n';
+
+            if (atome_est_utilise_dans_le_controle_de_flux(a, it.second)) {
+                //                std::cerr << "Atome " << a->ident->nom << " est utilisé par "
+                //                          <<
+                //                          static_cast<int>(it.second->comme_instruction()->genre)
+                //                          << "\n";
+                return true;
+            }
+        }
+
+        // std::cerr << "Atome " << a->ident->nom << " n'est pas utilisé !\n";
+        return false;
+    }
+
+    bool atome_est_utilise_dans_le_controle_de_flux(Atome const *variable, Atome *a) const
+    {
+        if (est_atome_controllant_le_flux(a)) {
+            return true;
+        }
+
+        a->nombre_utilisations = 1;
+
+        /* Les atomes peuvent dépendre d'eux-mêmes (it = it + 1). */
+        kuri::ensemblon<Atome *, 16> visites;
+
+        kuri::file<Atome *> a_visiter;
+        a_visiter.enfile(a);
+
+        while (!a_visiter.est_vide()) {
+            Atome *courant = a_visiter.defile();
+
+            courant->nombre_utilisations = 1;
+
+            if (visites.possede(courant)) {
+                continue;
+            }
+
+            visites.insere(courant);
+
+            POUR (connexions) {
+                if (it.first != courant) {
+                    continue;
+                }
+
+                if (est_atome_controllant_le_flux(it.second)) {
+                    return true;
+                }
+
+                if (it.second->est_instruction()) {
+                    auto inst = it.second->comme_instruction();
+
+                    if (inst->est_acces_membre()) {
+                        a_visiter.enfile(inst->comme_acces_membre()->accede);
+                    }
+                    else if (inst->est_acces_index()) {
+                        a_visiter.enfile(inst->comme_acces_index()->accede);
+                    }
+                    else if (inst->est_stocke_mem()) {
+                        if (variable->etat & EST_PARAMETRE_FONCTION) {
+                            return true;
+                        }
+                    }
+                }
+
+                it.second->nombre_utilisations = 1;
+                a_visiter.enfile(it.second);
+            }
+        }
+
+        return false;
+    }
+};
+
+static kuri::tableau<InstructionAllocation *> allocations_a_verifier(AtomeFonction *atome)
+{
+    kuri::tableau<InstructionAllocation *> resultat;
+
+    POUR (atome->params_entrees) {
+        it->etat = EST_PARAMETRE_FONCTION;
+        resultat.ajoute(it->comme_instruction()->comme_alloc());
+    }
+
+    POUR (atome->instructions) {
+        if (!it->est_alloc()) {
+            continue;
+        }
+
+        if (it->ident == nullptr) {
+            continue;
+        }
+
+        /* Les variables d'indexion des boucles pour peuvent ne pas être utilisées. */
+        if (it->ident == ID::it || it->ident == ID::index_it) {
+            continue;
+        }
+
+        /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
+         * utilisée, bien que ceci ne soit pas encore formalisé dans le langage. */
+        if (it->ident->nom == "_") {
+            continue;
+        }
+
+        resultat.ajoute(it->comme_alloc());
+    }
+
+    return resultat;
+}
+
+static NoeudDeclarationVariable *declaration_pour_allocation(InstructionAllocation *alloc)
+{
+    if (!alloc->site) {
+        return nullptr;
+    }
+
+    if (alloc->site->est_declaration_variable()) {
+        return alloc->site->comme_declaration_variable();
+    }
+
+    if (alloc->site->est_empl()) {
+        auto variable = alloc->site->comme_empl()->expression;
+
+        if (variable->est_declaration_variable()) {
+            return variable->comme_declaration_variable();
+        }
+    }
+
+    return nullptr;
+}
+
 /**
  * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
  *
@@ -379,12 +561,55 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
  */
 static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonction *atome)
 {
+    auto const decl = atome->decl;
+
     /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
      * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
-    if (atome->decl && atome->decl->est_initialisation_type) {
+    if (decl && decl->est_initialisation_type) {
         return true;
     }
 
+#    if 1
+    if (!decl || !decl->possede_drapeau(DEBOGUE)) {
+        return true;
+    }
+
+    Graphe g;
+
+    // Ne prend en compte :
+    // - les stockages vers un paramètre d'entrée
+
+    POUR (atome->instructions) {
+        if (it->est_stocke_mem()) {
+            auto const stockage = it->comme_stocke_mem();
+            g.ajoute_connexion(stockage->valeur, stockage->ou);
+        }
+
+        visite_atome(it, [&](Atome *atome_courant) {
+            // std::cerr << "Atome " << atome_courant << " est utilisé par " << it << '\n';
+            g.ajoute_connexion(atome_courant, it);
+        });
+    }
+
+    kuri::tableau<InstructionAllocation *> allocs_inutilisees;
+    auto allocs_a_verifier = allocations_a_verifier(atome);
+
+    POUR (allocs_a_verifier) {
+        if (g.est_utilise(it)) {
+            continue;
+        }
+
+        auto decl_alloc = declaration_pour_allocation(it);
+        if (decl_alloc && possede_annotation(decl_alloc, "inutilisée")) {
+            continue;
+        }
+
+        allocs_inutilisees.ajoute(it);
+    }
+
+    imprime_fonction(atome, std::cerr, false, true);
+
+#    else
     POUR (atome->params_entrees) {
         it->etat = EST_PARAMETRE_FONCTION;
     }
@@ -451,12 +676,13 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         allocs_inutilisees.ajoute(alloc);
     }
 
-#    if 0
+#        if 0
     if (allocs_inutilisees.taille() != 0) {
         imprime_fonction(atome, std::cerr, false, true);
     }
-#    endif
+#        endif
 
+#    endif
     POUR (allocs_inutilisees) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
             espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
@@ -466,14 +692,13 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         }
     }
 
-    POUR (atome->instructions) {
-        if (!it->est_appel() || it->nombre_utilisations != 0) {
-            continue;
-        }
+    //    POUR (atome->instructions) {
+    //        if (!it->est_appel() || it->nombre_utilisations != 0) {
+    //            continue;
+    //        }
 
-        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
-    }
-
+    //        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
+    //    }
     return true;
 }
 #endif
