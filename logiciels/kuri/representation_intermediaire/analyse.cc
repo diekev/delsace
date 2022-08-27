@@ -403,7 +403,7 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         }
 
         /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
-         * utilisée, bien que ceci ne soit pas en score formalisé dans le langage. */
+         * utilisée, bien que ceci ne soit pas encore formalisé dans le langage. */
         if (it->ident && it->ident->nom == "_") {
             it->nombre_utilisations += 1;
             continue;
