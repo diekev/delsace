@@ -217,6 +217,8 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 
 enum {
     EST_PARAMETRE_FONCTION = (1 << 1),
+    EST_CHARGE = (1 << 2),
+    EST_STOCKE = (1 << 3),
 };
 
 static Atome *dereference_instruction(Instruction *inst)
@@ -379,20 +381,34 @@ static bool est_atome_controllant_le_flux(Atome const *a)
         return true;
     }
 
-    if (!inst->est_appel()) {
-        return false;
-    }
+    if (inst->est_appel()) {
+        auto const appel = inst->comme_appel();
 
-    auto const appel = inst->comme_appel();
-
-    if (appel->appele->est_fonction()) {
-        auto const fonction = static_cast<AtomeFonction const *>(appel->appele);
-        if (fonction->decl && fonction->decl->est_initialisation_type) {
-            return false;
+        if (appel->appele->est_fonction()) {
+            auto const fonction = static_cast<AtomeFonction const *>(appel->appele);
+            if (fonction->decl && fonction->decl->est_initialisation_type) {
+                return false;
+            }
         }
+        return true;
     }
 
-    return true;
+    if (inst->est_stocke_mem()) {
+        auto const stockage = inst->comme_stocke_mem();
+
+        auto resultat = false;
+        visite_atome(stockage->ou, [&](Atome *courant) {
+            if (courant->est_globale()) {
+                resultat = true;
+            }
+            else if (courant->etat & EST_PARAMETRE_FONCTION) {
+                resultat = true;
+            }
+        });
+        return resultat;
+    }
+
+    return false;
 }
 
 struct Graphe {
@@ -473,11 +489,11 @@ struct Graphe {
                     else if (inst->est_acces_index()) {
                         a_visiter.enfile(inst->comme_acces_index()->accede);
                     }
-                    else if (inst->est_stocke_mem()) {
-                        if (variable->etat & EST_PARAMETRE_FONCTION) {
-                            return true;
-                        }
-                    }
+                    //                    else if (inst->est_stocke_mem()) {
+                    //                        if (variable->etat & EST_PARAMETRE_FONCTION) {
+                    //                            return true;
+                    //                        }
+                    //                    }
                 }
 
                 it.second->nombre_utilisations = 1;
@@ -545,35 +561,31 @@ static NoeudDeclarationVariable *declaration_pour_allocation(InstructionAllocati
     return nullptr;
 }
 
-/**
- * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
- *
- * À FAIRE(analyse_ri) :
- * - fonctions nichées inutilisées
- * - retours appels inutilisées
- * - les valeurs des itérations des boucles « pour » inutilisées dans le programme, sont marquées
- *   comme utilisées ici car elles le sont via l'incrémentation : il faudra un système plus subtil
- *   par exemple :
- *    pour i dans tabs {
- *      imprime("\t")
- *    }
- *   « i » est inutilisé, mais ne génère pas d'avertissement
- */
-static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonction *atome)
+static void imprime_declarations_inutilisees(
+    EspaceDeTravail &espace,
+    AtomeFonction *atome,
+    kuri::tableau<InstructionAllocation *> const &allocs_inutilisees)
 {
-    auto const decl = atome->decl;
-
-    /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
-     * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
-    if (decl && decl->est_initialisation_type) {
-        return true;
+    POUR (allocs_inutilisees) {
+        if (it->etat & EST_PARAMETRE_FONCTION) {
+            espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
+        }
+        else {
+            espace.rapporte_avertissement(it->site, "Variable locale inutilisée");
+        }
     }
 
-#    if 1
-    if (!decl || !decl->possede_drapeau(DEBOGUE)) {
-        return true;
-    }
+    //    POUR (atome->instructions) {
+    //        if (!it->est_appel() || it->nombre_utilisations != 0) {
+    //            continue;
+    //        }
 
+    //        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
+    //    }
+}
+
+static bool detecte_declarations_inutilisees_graphe(EspaceDeTravail &espace, AtomeFonction *atome)
+{
     Graphe g;
 
     // Ne prend en compte :
@@ -583,6 +595,8 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         if (it->est_stocke_mem()) {
             auto const stockage = it->comme_stocke_mem();
             g.ajoute_connexion(stockage->valeur, stockage->ou);
+            // g.ajoute_connexion(stockage->valeur, stockage);
+            continue;
         }
 
         visite_atome(it, [&](Atome *atome_courant) {
@@ -607,9 +621,56 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         allocs_inutilisees.ajoute(it);
     }
 
+    // imprime_fonction(atome, std::cerr, false, true);
+
+    imprime_declarations_inutilisees(espace, atome, allocs_inutilisees);
+
+    return true;
+}
+
+static bool detecte_declarations_inutilisees_chargements(EspaceDeTravail &espace,
+                                                         AtomeFonction *atome)
+{
+    POUR (atome->instructions) {
+        if (it->est_stocke_mem()) {
+            it->comme_stocke_mem()->ou->etat |= EST_STOCKE;
+        }
+        else if (it->est_charge()) {
+            it->comme_charge()->chargee->etat |= EST_CHARGE;
+        }
+    }
+
+    kuri::tableau<InstructionAllocation *> allocs_inutilisees;
+    auto allocs_a_verifier = allocations_a_verifier(atome);
+
+    POUR (allocs_a_verifier) {
+        if (it->etat & EST_CHARGE) {
+            continue;
+        }
+
+        if ((it->etat & (EST_STOCKE | EST_PARAMETRE_FONCTION)) ==
+            (EST_STOCKE | EST_PARAMETRE_FONCTION)) {
+            continue;
+        }
+
+        auto decl_alloc = declaration_pour_allocation(it);
+        if (decl_alloc && possede_annotation(decl_alloc, "inutilisée")) {
+            continue;
+        }
+
+        allocs_inutilisees.ajoute(it);
+    }
+
     imprime_fonction(atome, std::cerr, false, true);
 
-#    else
+    imprime_declarations_inutilisees(espace, atome, allocs_inutilisees);
+
+    return true;
+}
+
+static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail &espace,
+                                                                AtomeFonction *atome)
+{
     POUR (atome->params_entrees) {
         it->etat = EST_PARAMETRE_FONCTION;
     }
@@ -676,29 +737,50 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
         allocs_inutilisees.ajoute(alloc);
     }
 
-#        if 0
+#    if 0
     if (allocs_inutilisees.taille() != 0) {
         imprime_fonction(atome, std::cerr, false, true);
     }
-#        endif
-
 #    endif
-    POUR (allocs_inutilisees) {
-        if (it->etat & EST_PARAMETRE_FONCTION) {
-            espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
-        }
-        else {
-            espace.rapporte_avertissement(it->site, "Variable locale inutilisée");
-        }
+
+    imprime_declarations_inutilisees(espace, atome, allocs_inutilisees);
+
+    return true;
+}
+
+/**
+ * Trouve les paramètres, variables locales, ou les retours d'appels de fonctions non-utilisés.
+ *
+ * À FAIRE(analyse_ri) :
+ * - fonctions nichées inutilisées
+ * - retours appels inutilisées
+ * - les valeurs des itérations des boucles « pour » inutilisées dans le programme, sont marquées
+ *   comme utilisées ici car elles le sont via l'incrémentation : il faudra un système plus subtil
+ *   par exemple :
+ *    pour i dans tabs {
+ *      imprime("\t")
+ *    }
+ *   « i » est inutilisé, mais ne génère pas d'avertissement
+ */
+static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonction *atome)
+{
+    auto const decl = atome->decl;
+
+    /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
+     * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
+    if (decl && decl->est_initialisation_type) {
+        return true;
     }
 
-    //    POUR (atome->instructions) {
-    //        if (!it->est_appel() || it->nombre_utilisations != 0) {
-    //            continue;
-    //        }
-
-    //        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
+#    if 1
+    //    if (!decl || !decl->possede_drapeau(DEBOGUE)) {
+    //        return true;
     //    }
+
+    detecte_declarations_inutilisees_graphe(espace, atome);
+#    else
+    detecte_declarations_inutilisees_compte_utilisation(espace, atome);
+#    endif
     return true;
 }
 #endif
