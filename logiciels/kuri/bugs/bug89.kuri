@@ -1,0 +1,16 @@
+/* Boucle infini si une boucle « pour » utilise « > » avec un nombre naturel.
+ * Voir note « les nombres naturels font des boucles infinies avec "> début" » dans le module Math.
+ */
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    début : n32 = 10
+
+    pour > début {
+        imprime("%\n", it)
+    }
+
+    retourne 0
+}

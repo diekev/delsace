@@ -1,0 +1,8 @@
+/* Aucune erreur de compilation si une expression n'étant pas valide dans le contexte globale y est utilisée. */
+
+ - ça marche
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

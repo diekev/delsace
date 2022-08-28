@@ -1,5 +1,4 @@
 /* Crash dans la création d'un tableau global de structures. */
-    - voir Jorjala/bruit.grad3
 
 importe Math
 
