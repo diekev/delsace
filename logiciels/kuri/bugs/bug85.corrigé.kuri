@@ -1,6 +1,5 @@
 /* Erreur de compilation si nous tentons de construire une union depuis un
- * pointeur vers un type employant un type membre.
- * Voir note « construction d'union depuis un type dérivé » dans le module Courriel. */
+ * pointeur vers un type employant un type membre. */
 
 StructureDeBase :: struct {
     x : r32
