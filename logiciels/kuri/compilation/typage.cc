@@ -1494,15 +1494,22 @@ bool est_type_booleen_implicite(Type *type)
 
 void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif)
 {
-    assert(type_le_plus_grand);
     assert(!est_nonsure);
 
-    auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
-    membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
-    membres_[1] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
-
     type_structure = typeuse.reserve_type_structure(nullptr);
-    type_structure->membres = std::move(membres_);
+
+    if (type_le_plus_grand) {
+        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
+        membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
+        membres_[1] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
+        type_structure->membres = std::move(membres_);
+    }
+    else {
+        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(1);
+        membres_[0] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
+        type_structure->membres = std::move(membres_);
+    }
+
     type_structure->taille_octet = this->taille_octet;
     type_structure->alignement = this->alignement;
     type_structure->nom = this->nom;
@@ -1718,6 +1725,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
             /* ajoute la taille du membre actif */
             taille_union += static_cast<unsigned>(taille_de(int));
+            max_alignement = std::max(static_cast<unsigned>(taille_de(int)), max_alignement);
 
             /* ajoute une marge d'alignement finale */
             taille_union += marge_pour_alignement(max_alignement, taille_union);
