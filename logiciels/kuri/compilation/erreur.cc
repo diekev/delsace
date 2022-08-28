@@ -390,6 +390,12 @@ void membre_inconnu(EspaceDeTravail const &espace,
         message = "de la structure";
     }
 
+    /* Les discriminations sur des unions peuvent avoir des expressions d'appel pour capturer le
+     * membre. */
+    if (membre->est_appel()) {
+        membre = membre->comme_appel()->expression;
+    }
+
     auto candidat = trouve_candidat(membres, membre->ident->nom);
 
     auto e = espace.rapporte_erreur(
