@@ -1,6 +1,5 @@
 /* L'initialisation de membre de type chaine ne se fait pas avec la valeur par
  * défaut assignée dans la structure.
- * Voir note « ceci ne fonctionne pas si dans la structure » dans Créaduc.
  */
 
 StructureDeBase :: struct {
