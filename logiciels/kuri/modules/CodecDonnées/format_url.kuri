@@ -64,9 +64,8 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
                 }
             }
             sansarrêt {
-                a := (it comme n8 >> 4) & 0xff
-                // À FAIRE(langage) : n8 & 0xff donne des valeurs étranges
-                b := (it comme n8) % 16
+                a := (it comme n8 >> 4) & 0xf
+                b := (it comme n8) & 0xf
                 // À FAIRE(enchaineuse, langage) : type pour les caractères
                 ajoute_au_tampon(enchaineuse, "%")
                 ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[a])

@@ -3361,6 +3361,11 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         case GenreType::VARIADIQUE:
         case GenreType::UNION:
         {
+            if (expr_valeur_defaut) {
+                cree_assignation(assembleuse, ref_param, expr_valeur_defaut);
+                break;
+            }
+
             static Lexeme lexeme_op = {};
             lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
             auto prise_adresse = assembleuse->cree_expression_unaire(&lexeme_op);
