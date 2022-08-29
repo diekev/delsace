@@ -176,7 +176,6 @@ ParseuseCommande :: struct {
     empl base: ParseuseChaine
 }
 
-// À FAIRE(langage) : construction d'union depuis un type dérivé
 parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat_(*CommandeSMTP, ErreurParsageCommande)
 {
     parseuse.chn = texte
@@ -200,7 +199,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
 
         commande := loge(CommandeSMTP_EHLO)
         commande.domaine = domaine
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "MAIL FROM") {
@@ -210,7 +209,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
             Ok(adresse) {
                 commande := loge(CommandeSMTP_MAIL_FROM)
                 commande.adresse = adresse
-                retourne commande comme *CommandeSMTP
+                retourne commande
             }
             Erreur(err) {
                 retourne err
@@ -228,7 +227,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
             Ok(adresse) {
                 commande := loge(CommandeSMTP_RCPT_TO)
                 commande.adresse = adresse
-                retourne commande comme *CommandeSMTP
+                retourne commande
             }
             Erreur(err) {
                 retourne err
@@ -245,7 +244,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_DATA)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "AUTH LOGIN") {
@@ -254,7 +253,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_AUTH_LOGIN)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "QUIT") {
@@ -263,13 +262,13 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_QUIT)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     // Selon le contexte, il faudra soit attendre sur CRLF ou CRLF.CRLF
     commande := loge(CommandeSMTP_DonnéesDiverses)
     commande.données = texte
-    retourne commande comme *CommandeSMTP
+    retourne commande
 }
 
 parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat_(AdresseCourriel, ErreurParsageCommande)

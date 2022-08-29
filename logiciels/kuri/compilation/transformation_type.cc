@@ -303,6 +303,16 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                     TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
             }
 
+            if (type_de->est_pointeur() && it.type->est_pointeur()) {
+                auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
+                auto type_pointe_vers = it.type->comme_pointeur()->type_pointe;
+
+                if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
+                    return TransformationType{
+                        TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
+                }
+            }
+
             if (est_type_entier(it.type) && type_de->genre == GenreType::ENTIER_CONSTANT) {
                 return TransformationType{
                     TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};

@@ -1494,15 +1494,22 @@ bool est_type_booleen_implicite(Type *type)
 
 void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif)
 {
-    assert(type_le_plus_grand);
     assert(!est_nonsure);
 
-    auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
-    membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
-    membres_[1] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
-
     type_structure = typeuse.reserve_type_structure(nullptr);
-    type_structure->membres = std::move(membres_);
+
+    if (type_le_plus_grand) {
+        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
+        membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
+        membres_[1] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
+        type_structure->membres = std::move(membres_);
+    }
+    else {
+        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(1);
+        membres_[0] = {nullptr, typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif};
+        type_structure->membres = std::move(membres_);
+    }
+
     type_structure->taille_octet = this->taille_octet;
     type_structure->alignement = this->alignement;
     type_structure->nom = this->nom;
@@ -1610,6 +1617,11 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     return resultat;
 }
 
+static inline uint marge_pour_alignement(const uint alignement, const uint taille_octet)
+{
+    return (alignement - (taille_octet % alignement)) % alignement;
+}
+
 template <bool COMPACTE>
 void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 {
@@ -1634,9 +1646,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
             });
 
             alignement_max = std::max(alignement_type, alignement_max);
-
-            auto rembourrage = (alignement_type - (decalage % alignement_type)) % alignement_type;
-            decalage += rembourrage;
+            decalage += marge_pour_alignement(alignement_type, decalage);
         }
 
         it.decalage = decalage;
@@ -1650,16 +1660,12 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     }
     else {
         /* Ajout d'un rembourrage si nécessaire. */
-        auto rembourrage = (alignement_max - (decalage % alignement_max)) % alignement_max;
-        decalage += rembourrage;
-
+        decalage += marge_pour_alignement(alignement_max, decalage);
         type->alignement = alignement_max;
     }
 
     if (alignement_desire != 0) {
-        auto rembourrage = (alignement_desire - (decalage % alignement_desire)) %
-                           alignement_desire;
-        decalage += rembourrage;
+        decalage += marge_pour_alignement(alignement_desire, decalage);
         type->alignement = alignement_desire;
     }
 
@@ -1712,20 +1718,17 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
              * déclarée sans membre. */
             if (taille_union != 0) {
                 /* ajoute une marge d'alignement */
-                auto const padding = (max_alignement - (taille_union % max_alignement)) %
-                                     max_alignement;
-                taille_union += padding;
+                taille_union += marge_pour_alignement(max_alignement, taille_union);
             }
 
             type_union->decalage_index = taille_union;
 
             /* ajoute la taille du membre actif */
             taille_union += static_cast<unsigned>(taille_de(int));
+            max_alignement = std::max(static_cast<unsigned>(taille_de(int)), max_alignement);
 
             /* ajoute une marge d'alignement finale */
-            auto const padding = (max_alignement - (taille_union % max_alignement)) %
-                                 max_alignement;
-            taille_union += padding;
+            taille_union += marge_pour_alignement(max_alignement, taille_union);
         }
 
         type_union->type_le_plus_grand = type_le_plus_grand;

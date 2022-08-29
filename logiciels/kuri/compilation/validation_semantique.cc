@@ -4707,6 +4707,12 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
 
     auto type2 = expression_type->type;
 
+    if (!type2) {
+        rapporte_erreur("Impossible de déterminer le type, ceci n'est peut-être pas un type",
+                        enfant2);
+        return CodeRetourValidation::Erreur;
+    }
+
     if (type2->genre != GenreType::TYPE_DE_DONNEES) {
         rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
                         enfant2);

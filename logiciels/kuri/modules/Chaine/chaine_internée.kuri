@@ -223,7 +223,7 @@ trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 
     résultat := trouve(*table_des_chaines, type_chaine)
 
-    // À FAIRE(langage) : les discriminations ne fonctionned pas sur les types pointeus ou autres
+    // À FAIRE(langage) : les discriminations ne fonctionnent pas sur les types pointeus ou autres
     TypePointeurChaineInternée :: *ChaineInternée
 
     discr résultat {
