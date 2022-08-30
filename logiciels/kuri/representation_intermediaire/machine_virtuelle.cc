@@ -657,15 +657,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto code = depile<NoeudCode *>(site);
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
         auto nom_module = kuri::chaine_statique("");
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                const auto module = fichier->module;
-                nom_module = module->nom()->nom;
-            }
-        }
-
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        const auto module = fichier->module;
+        nom_module = module->nom()->nom;
         empile(site, nom_module);
         return;
     }
@@ -673,15 +668,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
-        auto module = static_cast<Module *>(nullptr);
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                module = fichier->module;
-            }
-        }
-
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        auto module = fichier->module;
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun module correspond au module du noeud code");
         empile(site, module);
         return;
     }
