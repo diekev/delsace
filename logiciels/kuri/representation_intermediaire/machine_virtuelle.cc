@@ -479,6 +479,11 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     return true;
 }
 
+#define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
+    if (!pointeur) {                                                                              \
+        rapporte_erreur_execution(site, message);                                                 \
+    }
+
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
@@ -506,6 +511,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         auto &messagere = compilatrice.messagere;
         messagere->commence_interception(espace_recu);
@@ -517,6 +523,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         if (espace_recu->metaprogramme != m_metaprogramme) {
             /* L'espace du « site » est celui de métaprogramme, et non
@@ -552,6 +559,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
         auto options = depile<OptionsDeCompilation *>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options de compilation nulles");
         compilatrice.ajourne_options_compilation(options);
         return;
     }
@@ -559,6 +567,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_compilation(espace, chaine);
         return;
     }
@@ -566,6 +575,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_fichier_compilation(espace, chaine);
         return;
     }
@@ -574,6 +584,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto chaine = depile<kuri::chaine_statique>(site);
         auto module = depile<Module *>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_au_module(espace, module, chaine);
         return;
     }
@@ -581,6 +593,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
         auto options = depile<OptionsDeCompilation *>(site);
         auto nom = depile<kuri::chaine_statique>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
         auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
         empile(site, espace);
         return;
@@ -597,6 +610,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         return;
     }
@@ -606,12 +620,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(site, compilatrice.possede_erreur(espace));
         return;
     }
@@ -625,6 +641,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
         auto message = depile<Message *>(site);
+        RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
         compilatrice.gestionnaire_code->message_recu(message);
         return;
     }
@@ -638,31 +655,23 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
         auto nom_module = kuri::chaine_statique("");
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                const auto module = fichier->module;
-                nom_module = module->nom()->nom;
-            }
-        }
-
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        const auto module = fichier->module;
+        nom_module = module->nom()->nom;
         empile(site, nom_module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
-        auto module = static_cast<Module *>(nullptr);
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                module = fichier->module;
-            }
-        }
-
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        auto module = fichier->module;
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun module correspond au module du noeud code");
         empile(site, module);
         return;
     }
