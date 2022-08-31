@@ -141,6 +141,10 @@ void calcule_enveloppe_convexe(const Maillage &maillage_pour, Maillage &resultat
 
 void triangulation_delaunay_2d_points_3d(Maillage const &points, Maillage &resultat)
 {
+    if (points.nombreDePoints() == 0) {
+        return;
+    }
+
     std::vector<double> vertices;
     vertices.reserve(points.nombreDePoints() * 2);
     for (auto i = 0; i < points.nombreDePoints(); i++) {
