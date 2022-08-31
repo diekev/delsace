@@ -761,6 +761,10 @@ void poisson_disc_distribution(config conf, T &&random, T2 &&in_area, T3 &&outpu
 void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
                           Maillage &points_resultants)
 {
+    if (params.longueur == 0.0f || params.largeur == 0.0f) {
+        return;
+    }
+
     bridson::config conf;
     conf.distance_minimale = params.distance_minimale;
     conf.largeur = params.largeur;
