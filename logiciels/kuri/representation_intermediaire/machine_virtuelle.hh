@@ -37,6 +37,8 @@ struct MetaProgramme;
 struct Statistiques;
 struct TypeFonction;
 
+struct Erreur;
+
 struct FrameAppel {
     AtomeFonction *fonction = nullptr;
     NoeudExpression *site = nullptr;
@@ -197,4 +199,5 @@ struct MachineVirtuelle {
                                 const void *adresse_de,
                                 const long taille,
                                 bool assignation);
+    void ajoute_trace_appel(Erreur &e);
 };
