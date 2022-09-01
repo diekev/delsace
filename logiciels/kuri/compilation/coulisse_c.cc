@@ -1110,7 +1110,10 @@ struct GeneratriceCodeC {
             case Instruction::Genre::LABEL:
             {
                 auto inst_label = inst->comme_label();
-                os << "\nlabel" << inst_label->id << ":;\n";
+                if (inst_label->id != 0) {
+                    os << "\n";
+                }
+                os << "label" << inst_label->id << ":;\n";
                 break;
             }
             case Instruction::Genre::OPERATION_UNAIRE:
