@@ -915,6 +915,333 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     return true;
 }
 
+/* ****************************************************************************************** */
+
+struct Graphe {
+  private:
+    struct Connexion {
+        Atome *utilise;
+        Atome *utilisateur;
+        int index_bloc;
+    };
+
+    kuri::tableau<Connexion> connexions{};
+
+  public:
+    /* a est utilisé par b */
+    void ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+    {
+        connexions.ajoute({a, b, index_bloc});
+    }
+
+    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc)
+    {
+        POUR (instructions) {
+            visite_operandes_instruction(it, [&](Atome *atome_courant) {
+                ajoute_connexion(atome_courant, it, index_bloc);
+            });
+        }
+    }
+
+    bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
+    {
+        POUR (connexions) {
+            if (it.utilise == inst && index_bloc != it.index_bloc) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    template <typename Fonction>
+    void visite_utilisateurs(Instruction *inst, Fonction rappel) const
+    {
+        POUR (connexions) {
+            if (it.utilise == inst) {
+                rappel(it.utilisateur);
+            }
+        }
+    }
+};
+
+static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_stocke_mem()) {
+        return false;
+    }
+
+    auto const stockage = inst0->comme_stocke_mem();
+    return stockage->ou == inst1;
+}
+
+static bool est_appel_initialisation(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_appel()) {
+        return false;
+    }
+
+    /* Ne vérifions pas que l'appelée est une initialisation de type, ce pourrait être déguisé via
+     * un pointeur de fonction. */
+    auto appel = inst0->comme_appel();
+
+    POUR (appel->args) {
+        if (it == inst1) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_charge()) {
+        return false;
+    }
+
+    auto const charge = inst0->comme_charge();
+    return charge->chargee == inst1;
+}
+
+#define ASSIGNE_SI_EGAUX(a, b, c)                                                                 \
+    if (a == b) {                                                                                 \
+        a = c;                                                                                    \
+    }
+
+enum {
+    EST_A_SUPPRIMER = 123,
+};
+
+static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
+{
+    for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
+        auto inst0 = bloc->instructions[i + 0];
+        auto inst1 = bloc->instructions[i + 1];
+        auto inst2 = bloc->instructions[i + 2];
+
+        if (!inst0->est_alloc()) {
+            continue;
+        }
+
+        if (!est_stockage_vers(inst1, inst0)) {
+            continue;
+        }
+
+        if (!est_chargement_de(inst2, inst0)) {
+            continue;
+        }
+
+        /* Si l'allocation n'est pas uniquement dans ce bloc, ce n'est pas une temporaire. */
+        if (!g.est_uniquement_utilise_dans_bloc(inst0, index_bloc)) {
+            continue;
+        }
+
+        /* Si le chargement n'est pas uniquement dans ce bloc, ce n'est pas une temporaire.
+         * Ceci survient notamment dans la génération de code pour les vérifications des bornes des
+         * tableaux ou chaines. */
+        if (!g.est_uniquement_utilise_dans_bloc(inst2, index_bloc)) {
+            continue;
+        }
+
+        auto est_utilisee_uniquement_pour_charge_et_stocke = true;
+        g.visite_utilisateurs(inst0, [&](Atome *utilisateur) {
+            if (utilisateur != inst1 && utilisateur != inst2) {
+                est_utilisee_uniquement_pour_charge_et_stocke = false;
+            }
+        });
+
+        if (!est_utilisee_uniquement_pour_charge_et_stocke) {
+            continue;
+        }
+
+        g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
+            if (!utilisateur->est_instruction()) {
+                return;
+            }
+
+            auto utilisatrice = utilisateur->comme_instruction();
+            auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
+
+            if (utilisatrice->est_appel()) {
+                auto appel = utilisatrice->comme_appel();
+
+                ASSIGNE_SI_EGAUX(appel->appele, inst2, nouvelle_valeur)
+                POUR (appel->args) {
+                    ASSIGNE_SI_EGAUX(it, inst2, nouvelle_valeur)
+                }
+            }
+            else if (utilisatrice->est_stocke_mem()) {
+                auto stockage = utilisatrice->comme_stocke_mem();
+                ASSIGNE_SI_EGAUX(stockage->ou, inst2, nouvelle_valeur)
+                ASSIGNE_SI_EGAUX(stockage->valeur, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_op_binaire()) {
+                auto op_binaire = utilisatrice->comme_op_binaire();
+                ASSIGNE_SI_EGAUX(op_binaire->valeur_droite, inst2, nouvelle_valeur)
+                ASSIGNE_SI_EGAUX(op_binaire->valeur_gauche, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_op_unaire()) {
+                auto op_unaire = utilisatrice->comme_op_unaire();
+                ASSIGNE_SI_EGAUX(op_unaire->valeur, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_branche_cond()) {
+                auto branche_cond = utilisatrice->comme_branche_cond();
+                ASSIGNE_SI_EGAUX(branche_cond->condition, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_transtype()) {
+                auto transtype = utilisatrice->comme_transtype();
+                ASSIGNE_SI_EGAUX(transtype->valeur, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_acces_membre()) {
+                auto membre = utilisatrice->comme_acces_membre();
+                ASSIGNE_SI_EGAUX(membre->accede, inst2, nouvelle_valeur)
+            }
+            else if (utilisatrice->est_acces_index()) {
+                auto index = utilisatrice->comme_acces_index();
+                ASSIGNE_SI_EGAUX(index->accede, inst2, nouvelle_valeur)
+                ASSIGNE_SI_EGAUX(index->index, inst2, nouvelle_valeur)
+            }
+            else {
+                return;
+            }
+
+            inst0->etat = EST_A_SUPPRIMER;
+            inst1->etat = EST_A_SUPPRIMER;
+            inst2->etat = EST_A_SUPPRIMER;
+        });
+    }
+
+    auto nouvelle_fin = std::stable_partition(
+        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
+            return inst->etat != EST_A_SUPPRIMER;
+        });
+
+    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
+
+    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+}
+
+static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
+                                                    Instruction *alloc,
+                                                    int debut_recherche)
+{
+    for (int i = debut_recherche; i < bloc->instructions.taille() - 1; i++) {
+        if (est_appel_initialisation(bloc->instructions[i], alloc)) {
+            return i;
+        }
+
+        if (est_stockage_vers(bloc->instructions[i], alloc)) {
+            return i;
+        }
+    }
+
+    return {};
+}
+
+static void rapproche_allocations_des_stockages(Bloc *bloc)
+{
+    for (int i = 0; i < bloc->instructions.taille() - 2; i++) {
+        auto inst_i = bloc->instructions[i];
+
+        if (!inst_i->est_alloc()) {
+            continue;
+        }
+
+        auto const index_stockage = trouve_stockage_dans_bloc(bloc, inst_i, i + 1);
+        if (!index_stockage.has_value()) {
+            continue;
+        }
+
+        std::rotate(&bloc->instructions[i],
+                    &bloc->instructions[i + 1],
+                    &bloc->instructions[index_stockage.value()]);
+    }
+}
+
+#undef IMPRIME_STATS
+
+#ifdef IMPRIME_STATS
+static int instructions_supprimees = 0;
+static int instructions_totales = 0;
+#endif
+
+static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
+{
+    POUR (fonction.instructions) {
+        visite_operandes_instruction(it, [&](Atome *atome_courant) {
+            if (!atome_courant->est_instruction()) {
+                return;
+            }
+
+            auto inst = atome_courant->comme_instruction();
+
+            if (inst->etat == EST_A_SUPPRIMER) {
+                std::cerr << *fonction.decl << '\n';
+
+                if (fonction.decl->est_initialisation_type) {
+                    auto type_param =
+                        fonction.decl->params[0]->type->comme_pointeur()->type_pointe;
+                    std::cerr << "La fonction est pour l'initialisation du type "
+                              << chaine_type(type_param) << '\n';
+                }
+
+                std::cerr << "L'instruction supprimée est ";
+                imprime_instruction(inst, std::cerr);
+                std::cerr << "\n";
+
+                std::cerr << "L'utilisateur est ";
+                imprime_instruction(it, std::cerr);
+                std::cerr << "\n";
+
+                espace.rapporte_erreur(
+                    inst->site,
+                    "Erreur interne : la fonction référence une instruction supprimée");
+            }
+        });
+    }
+}
+
+static void supprime_allocations_temporaires(const FonctionEtBlocs &fonction_et_blocs)
+{
+    auto const fonction = fonction_et_blocs.fonction;
+
+    Graphe g;
+    auto index_bloc = 0;
+    POUR (fonction_et_blocs.blocs) {
+        g.construit(it->instructions, index_bloc++);
+    }
+
+    index_bloc = 0;
+    POUR (fonction_et_blocs.blocs) {
+        rapproche_allocations_des_stockages(it);
+        supprime_allocations_temporaires(g, it, index_bloc++);
+    }
+
+#ifdef IMPRIME_STATS
+    auto const ancien_compte = fonction->instructions.taille();
+#endif
+    fonction->instructions.efface();
+
+    POUR (fonction_et_blocs.blocs) {
+        fonction->instructions.ajoute(it->label);
+        for (auto i = 0; i < it->instructions.taille(); i++) {
+            fonction->instructions.ajoute(it->instructions[i]);
+        }
+    }
+
+#ifdef IMPRIME_STATS
+    auto const supprimees = (ancien_compte - fonction->instructions.taille());
+    instructions_totales += ancien_compte;
+
+    if (supprimees != 0) {
+        instructions_supprimees += supprimees;
+        std::cerr << "Supprimé " << instructions_supprimees << " / " << instructions_totales
+                  << " instructions\n";
+    }
+#endif
+}
+
 /* ********************************************************************************************
  */
 
@@ -946,6 +1273,10 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
     }
 
     supprime_blocs_vides(fonction_et_blocs);
+
+    supprime_allocations_temporaires(fonction_et_blocs);
+
+    valide_fonction(espace, *atome);
 
 #ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
     if (!detecte_declarations_inutilisees(espace, atome)) {
