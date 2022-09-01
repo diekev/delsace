@@ -1472,7 +1472,11 @@ void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
     auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
 
     e.ajoute_message("Trace d'appel :\n\n");
+    ajoute_trace_appel(e);
+}
 
+void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
+{
     /* La première frame d'appel possède le même lexème que la directive d'exécution du
      * métaprogramme, donc ignorons-là également. */
     for (int i = profondeur_appel - 1; i >= 1; --i) {
@@ -1556,7 +1560,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
                               "d'appel vers une fonction ne faisant pas partie du métaprogramme.")
             .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
                             static_cast<void *>(ptr_fonction),
-                            "\n");
+                            "\n")
+            .ajoute_donnees([&](Erreur &e) { ajoute_trace_appel(e); });
         return ResultatInterpretation::ERREUR;
     }
 
