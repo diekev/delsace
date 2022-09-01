@@ -619,6 +619,7 @@ struct NoeudPaireDiscr : NoeudExpression {
 
     NoeudExpression * expression [code enfant]
     NoeudBloc * bloc [code enfant]
+    NoeudExpression * variable_capturée
 }
 
 struct NoeudDiscr : NoeudExpression {
