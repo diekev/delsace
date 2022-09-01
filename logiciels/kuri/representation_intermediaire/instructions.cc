@@ -238,3 +238,90 @@ void visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
     VisiteuseAtome visiteuse{};
     visiteuse.visite_atome(racine, rappel);
 }
+
+void visite_operandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel)
+{
+    switch (inst->genre) {
+        case Instruction::Genre::APPEL:
+        {
+            auto appel = inst->comme_appel();
+
+            /* appele peut être un pointeur de fonction */
+            rappel(appel->appele);
+
+            POUR (appel->args) {
+                rappel(it);
+            }
+
+            break;
+        }
+        case Instruction::Genre::CHARGE_MEMOIRE:
+        {
+            auto charge = inst->comme_charge();
+            rappel(charge->chargee);
+            break;
+        }
+        case Instruction::Genre::STOCKE_MEMOIRE:
+        {
+            auto stocke = inst->comme_stocke_mem();
+            rappel(stocke->valeur);
+            rappel(stocke->ou);
+            break;
+        }
+        case Instruction::Genre::OPERATION_UNAIRE:
+        {
+            auto op = inst->comme_op_unaire();
+            rappel(op->valeur);
+            break;
+        }
+        case Instruction::Genre::OPERATION_BINAIRE:
+        {
+            auto op = inst->comme_op_binaire();
+            rappel(op->valeur_droite);
+            rappel(op->valeur_gauche);
+            break;
+        }
+        case Instruction::Genre::ACCEDE_INDEX:
+        {
+            auto acces = inst->comme_acces_index();
+            rappel(acces->index);
+            rappel(acces->accede);
+            break;
+        }
+        case Instruction::Genre::ACCEDE_MEMBRE:
+        {
+            auto acces = inst->comme_acces_membre();
+            rappel(acces->index);
+            rappel(acces->accede);
+            break;
+        }
+        case Instruction::Genre::TRANSTYPE:
+        {
+            auto transtype = inst->comme_transtype();
+            rappel(transtype->valeur);
+            break;
+        }
+        case Instruction::Genre::BRANCHE_CONDITION:
+        {
+            auto branche = inst->comme_branche_cond();
+            rappel(branche->condition);
+            break;
+        }
+        case Instruction::Genre::RETOUR:
+        {
+            auto retour = inst->comme_retour();
+            if (retour->valeur) {
+                rappel(retour->valeur);
+            }
+            break;
+        }
+        case Instruction::Genre::ALLOCATION:
+        case Instruction::Genre::INVALIDE:
+        case Instruction::Genre::BRANCHE:
+        case Instruction::Genre::LABEL:
+        {
+            /* Pas de sous-atome. */
+            break;
+        }
+    }
+}
