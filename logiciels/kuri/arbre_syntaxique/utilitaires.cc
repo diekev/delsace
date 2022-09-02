@@ -2290,29 +2290,48 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
     static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
 
-    auto si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
-    auto si_courant = si;
+    auto la_discriminee = discr->expression_discriminee;
 
-    discr->substitution = si;
+    /* Création d'un bloc afin de pouvoir déclarer une variable temporaire qui contiendra la valeur
+     * discriminée. */
+    auto bloc = assem->cree_bloc_seul(discr->lexeme, discr->bloc_parent);
+    discr->substitution = bloc;
 
-    auto expression = NoeudExpression::nul();
+    auto decl_variable = assem->cree_declaration_variable(
+        la_discriminee->lexeme, la_discriminee->type, nullptr, la_discriminee);
+
+    bloc->membres->ajoute(decl_variable);
+    bloc->expressions->ajoute(decl_variable);
+
+    auto ref_decl = assem->cree_reference_declaration(decl_variable->lexeme, decl_variable);
+
+    NoeudExpression *expression = ref_decl;
+
     if (N == DISCR_UNION || N == DISCR_UNION_ANONYME) {
-        /* nous utilisons directement un accès de membre... il faudra proprement gérer les unions
-         */
-        expression = assem->cree_reference_membre(discr->expression_discriminee->lexeme,
-                                                  discr->expression_discriminee,
-                                                  typeuse[TypeBase::Z32],
-                                                  1);
+        /* La discrimination se fait via le membre actif. Il faudra proprement gérer les unions
+         * dans la RI. */
+        expression = assem->cree_reference_membre(
+            expression->lexeme, expression, typeuse[TypeBase::Z32], 1);
     }
-    else {
-        expression = discr->expression_discriminee;
-    }
+
+    /* Génération de l'arbre de « si ». */
+    auto si_courant = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
+    bloc->expressions->ajoute(si_courant);
 
     for (auto i = 0; i < discr->paires_discr.taille(); ++i) {
         auto &it = discr->paires_discr[i];
         auto virgule = it->expression->comme_virgule();
 
-        // crée les comparaisons
+        /* Remplace l'expression de la variable capturée par une référence vers la variable
+         * temporaire. Sinon, nous réévaluerons l'expression, ce qui en cas d'un appel créérait
+         * deux appels différents. */
+        if (it->variable_capturee) {
+            auto init_var = it->variable_capturee->comme_declaration_variable()->expression;
+            init_var->comme_comme()->expression = ref_decl;
+        }
+
+        /* Création des comparaisons. Les expressions sont comparées avec la variable discriminée,
+         * les virgules remplacées par des « || ». */
         kuri::tableau<NoeudExpressionBinaire> comparaisons;
 
         for (auto expr : virgule->expressions) {
@@ -2342,7 +2361,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
                 comparaison.operande_droite = constante;
             }
             else {
-                /* cette expression est simplifiée via cree_expression_pour_op_chainee */
+                /* Cette expression est simplifiée via cree_expression_pour_op_chainee. */
                 comparaison.operande_droite = expr;
             }
 
@@ -2355,7 +2374,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         si_courant->bloc_si_vrai = it->bloc;
 
         if (i != (discr->paires_discr.taille() - 1)) {
-            si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
+            auto si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
             si_courant->bloc_si_faux = si;
             si_courant = si;
         }

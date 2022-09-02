@@ -610,9 +610,9 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
     retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille)
 }
 
-fichier_entrée_standarde := Fichier( desc = 0 )
-fichier_sortie_standarde := Fichier( desc = 1 )
-fichier_sortie_erreur    := Fichier( desc = 2 )
+fichier_entrée_standarde := Fichier( desc = STDIN_FILENO )
+fichier_sortie_standarde := Fichier( desc = STDOUT_FILENO )
+fichier_sortie_erreur    := Fichier( desc = STDERR_FILENO )
 
 entrée_standarde :: fonc () -> *Fichier
 {
@@ -627,4 +627,16 @@ sortie_standarde :: fonc () -> *Fichier
 sortie_erreur :: fonc () -> *Fichier
 {
     retourne *fichier_sortie_erreur
+}
+
+/* Fais pointer ancien_fichier vers nouveau_fichier. Après cette opération lire
+ * depuis et écrire dans ancien_fichier aura le même effet que lire depuis et
+ * écrire dans nouveau_fichier. */
+référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier)
+{
+    _ := dup2(ancien_fichier.desc, nouveau_fichier.desc)
+
+    si ancien_fichier.desc != nouveau_fichier.desc {
+        __ := ferme(*ancien_fichier)
+    }
 }

@@ -1,6 +1,7 @@
 importe Fondation
 importe Moteur
 importe SysFichier
+importe Allocatrices
 
 // tutoriel : http://notes.eatonphil.com/database-basics.html
 
@@ -11,20 +12,8 @@ imprime_prompt :: fonc () -> rien
 
 // ------------------------------------------------------------
 
-// crée utilisateurs (nom texte, id entier);
-// insère dans utilisateurs valeurs ("Thor", 1237);
-// insère dans utilisateurs valeurs ("Carter", 789);
-// sélectionne nom, id depuis utilisateurs;
-// sélectionne id, nom depuis utilisateurs;
-
-// crée utilisateurs (nom texte, id entier);insère dans utilisateurs valeurs ("Thor", 1237);insère dans utilisateurs valeurs ("Carter", 789);sélectionne id, nom depuis utilisateurs;
-
-// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
-// @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
-principale :: fonc () -> z32
+lance_boucle_exécution :: fonc ()
 {
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
-
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
@@ -122,6 +111,25 @@ principale :: fonc () -> z32
     }
 
     détruit_coulisse(*cm)
+}
+
+// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
+// @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
+principale :: fonc () -> z32
+{
+    allocatrice_gardée : AllocatriceGardée
+    diffère imprime_liste_mémoire(*allocatrice_gardée)
+
+    mémoire_courante := mémoire_utilisée()
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante) }
+
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = allocation_gardée
+    nouveau_contexte.données_allocatrice = *allocatrice_gardée
+
+    pousse_contexte nouveau_contexte {
+        lance_boucle_exécution()
+    }    
 
     retourne 0
 }
