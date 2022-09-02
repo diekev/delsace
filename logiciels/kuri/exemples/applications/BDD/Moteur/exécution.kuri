@@ -58,6 +58,15 @@ ErreurExécution :: erreur {
     TypageColonneInvalide
 }
 
+imprime_tampon :: fonc (tampon: []octet, message: chaine)
+{
+    imprime("% :\n", message)
+    pour tampon {
+        imprime("%", it)
+    }
+    imprime("\n")
+}
+
 insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExécution
 {
     table := trouve_table(cm, inst.table.valeur)
@@ -77,6 +86,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
 
     // Utilisation d'un tampon pour stocker les valeurs afin de ne pas polluer la base en cas d'erreur
     tampon_insertion := loge_tableau(octet, table.taille_octet_ligne)
+    tampon_insertion.taille = table.taille_octet_ligne
     diffère { déloge(tampon_insertion); }
 
     pour expr, idx_valeur dans inst.valeurs {

@@ -173,11 +173,13 @@ macro(execute_fichier __nom_dossier__ __nom_fichier__)
     set(NOM_TEST exécution_${__nom_dossier__}_${__nom_fichier__})
     add_test(NAME ${NOM_TEST} COMMAND ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/a.out)
     set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${NOM_TEST} PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__})
 endmacro()
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
 # À FAIRE : exemples/tests test_fichier.kuri
 compile_fichier_principale(exemples/applications/BDD)
+execute_fichier(exemples/applications/BDD/spec test_specs_bdd)
 compile_fichier_principale(exemples/applications/EditeurTexte)
 compile_fichier_principale(exemples/applications/Eliza)
 compile_fichier_principale(exemples/applications/Jeu)
@@ -256,8 +258,6 @@ foreach(FICHIER_TEST ${FICHIERS_TESTS_COROUTINE})
     add_test(NAME compilation_${NOM_FICHIER} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${FICHIER_TEST})
     set_tests_properties(compilation_${NOM_FICHIER} PROPERTIES WILL_FAIL TRUE)
 endforeach(FICHIER_TEST)
-
-add_test(NAME test_spec_bdd COMMAND bundle exec rspec WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/exemples/applications/BDD)
 
 include(bugs/test_bugs.txt)
 
