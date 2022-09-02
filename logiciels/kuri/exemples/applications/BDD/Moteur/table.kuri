@@ -77,7 +77,7 @@ détruit_table :: fonc (table: *Table) -> rien
 imprime_table :: fonc (table: *Table) -> rien
 {
     curseur := curseur_début_de_table(table)
-    diffère { déloge(curseur); }
+    diffère { déloge(curseur); }
 
     ligne_titre : LigneTabuleuse
 
