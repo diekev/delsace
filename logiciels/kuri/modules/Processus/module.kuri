@@ -177,7 +177,7 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Résult
         Enfant {
             /* Le processus enfant sera lu. */
             canal.prépare_pour_lecture()
-            remplace_processus_par_programme(programme, arguments)
+            remplace_processus_par_programme(programme, ...arguments)
         }
         Parent {
             /* Le processus père écrira. */
