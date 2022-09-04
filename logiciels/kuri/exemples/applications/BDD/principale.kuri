@@ -72,10 +72,16 @@ principale :: fonc () -> z32
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = allocation_gardée
     nouveau_contexte.données_allocatrice = *allocatrice_gardée
+    nouveau_contexte.logueur = mon_log
 
     pousse_contexte nouveau_contexte {
         lance_boucle_exécution()
     }    
 
     retourne 0
+}
+
+mon_log :: fonc (message: chaine, ident: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
+{
+    imprime("%\n", message)
 }
