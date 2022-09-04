@@ -88,3 +88,14 @@ db > +-----+--------+
 +-----+--------+
 Exécution réussie.
 db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si un point virgule manque.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier)
+.sors
+
++ Résultat :
+db > Attendu un point virgule à la fin de l'instruction
+db > Fin du programme, mémoire utilisée : 0o
