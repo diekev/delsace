@@ -1,7 +1,68 @@
 importe Fondation
 importe Sérialisation
 
-crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
+Exécutrice :: struct {
+    possède_erreur: bool
+    message_erreur: chaine
+}
+
+réinitialise :: fonc (exécutrice: &Exécutrice)
+{
+    exécutrice.possède_erreur = faux
+    déloge(exécutrice.message_erreur)
+}
+
+rapporte_erreur :: fonc (exécutrice: &Exécutrice, message: chaine, args: ...eini)
+{
+    si exécutrice.possède_erreur {
+        retourne
+    }
+
+    exécutrice.message_erreur = imprime_chaine(message, ...args)
+    exécutrice.possède_erreur = vrai
+}
+
+RésultatExécution :: union {
+    Table: *Table
+    Erreur: chaine
+    ArrêteExécution: z32
+    Rien
+}
+
+exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *Instruction) -> RésultatExécution
+{
+    discr inst.genre {
+        CRÉE {
+            crée_table(exécutrice, cm, inst comme *InstructionCréationTable)
+        }
+        SÉLECTIONNE {
+            inst_sélection := inst comme *InstructionSélection
+            résultat := sélectionne(exécutrice, cm, inst_sélection)
+
+            saufsi résultat {
+                retourne exécutrice.message_erreur
+            }
+
+            retourne résultat
+        }
+        INSÈRE {
+            inst_insertion := inst comme *InstructionInsère
+            insère(exécutrice, cm, inst_insertion)
+
+            si exécutrice.possède_erreur {
+                retourne exécutrice.message_erreur
+            }
+        }
+        MÉTA_TABLES {
+            retourne sélectionne_tables(cm)
+        }
+        MÉTA_SORS {
+            retourne 0
+        }
+    }
+}
+
+crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
     colonnes : []Colonne
     décalage := 0
@@ -48,16 +109,6 @@ trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
     retourne nul
 }
 
-ErreurExécution :: erreur {
-    CapacitéExcédée
-    ColonneInexistante
-    ExpressionNonLittérale
-    NombreNégatif
-    TableInexistante
-    TexteTropLarge
-    TypageColonneInvalide
-}
-
 imprime_tampon :: fonc (tampon: []octet, message: chaine)
 {
     imprime("% :\n", message)
@@ -67,18 +118,19 @@ imprime_tampon :: fonc (tampon: []octet, message: chaine)
     imprime("\n")
 }
 
-insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExécution
+insère :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionInsère)
 {
-    table := trouve_table(cm, inst.table.valeur)
+    nom_table := inst.table.valeur
+    table := trouve_table(cm, nom_table)
 
     si table == nul {
-        retourne ErreurExécution.TableInexistante
+        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table)
+        retourne
     }
 
-    // ---------------------
-
     si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
-        retourne ErreurExécution.CapacitéExcédée
+        exécutrice.rapporte_erreur("La table % est pleine.", nom_table)
+        retourne
     }
 
     // À FAIRE : log de préécriture
@@ -94,32 +146,37 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
 
         si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
             si colonne.genre != TypeColonne.ENTIER {
-                retourne ErreurExécution.TypageColonneInvalide
+                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
+                retourne
             }
 
             entier := extrait_nombre_entier(expr.littérale.valeur) comme z32
 
             si entier < 0 {
-                retourne ErreurExécution.NombreNégatif
+                exécutrice.rapporte_erreur("L'ID doit être positif.\n")
+                retourne
             }
 
             sérialise_entier(tampon_insertion, décalage, entier)
         }
         sinon si expr.littérale.genre == GenreLexème.CHAINE {
             si colonne.genre != TypeColonne.CHAINE {
-                retourne ErreurExécution.TypageColonneInvalide
+                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
+                retourne
             }
 
             chn := expr.littérale.valeur
 
             si chn.taille > 251 {
-                retourne ErreurExécution.TexteTropLarge
+                exécutrice.rapporte_erreur("La chaine est trop longue.\n")
+                retourne
             }
 
             sérialise_chaine(tampon_insertion, décalage, chn)
         }
         sinon {
-            retourne ErreurExécution.TypageColonneInvalide
+            exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
+            retourne
         }
 
         décalage += colonne.taille
@@ -128,31 +185,32 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
     // ---------------------
 
     curseur := curseur_fin_de_table(table)
-    diffère { déloge(curseur); }
+    diffère { déloge(curseur); }
 
     ligne := valeur_curseur(curseur)
 
     copie_mem(src = tampon_insertion, dst = ligne, taille = ligne.taille)
 
     table.nombre_de_lignes += 1
-
-    retourne 0 comme ErreurExécution
 }
 
-RésultatSélection :: union {
-    e : ErreurExécution
-    t : *Table
-}
-
-sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> RésultatSélection
+sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionSélection) -> *Table
 {
-    table := trouve_table(cm, inst.depuis.valeur)
+    nom_table := inst.depuis.valeur
+    table := trouve_table(cm, nom_table)
 
     si table == nul {
-        retourne ErreurExécution.TableInexistante
+        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table)
+        retourne nul
     }
 
     colonnes_résultat : []Colonne
+
+    diffère {
+        si exécutrice.possède_erreur {
+            déloge(colonnes_résultat)
+        }
+    }
 
     index_colonnes : []z64
     diffère { déloge(index_colonnes); }
@@ -160,8 +218,8 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
     // trouve les colonnes dans la table
     pour expr dans inst.items {
         si expr.genre != GenreExpression.LITTÉRALE {
-            déloge(colonnes_résultat)
-            retourne ErreurExécution.ExpressionNonLittérale
+            exécutrice.rapporte_erreur("Erreur : expression non-littérale rencontrée !\n")
+            retourne nul
         }
 
         lit := expr.littérale
@@ -184,8 +242,8 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
         }
 
         si !trouvée {
-            déloge(colonnes_résultat)
-            retourne ErreurExécution.ColonneInexistante
+            exécutrice.rapporte_erreur("Erreur : la colonne %.% n'existe pas !\n", nom_table, lit.valeur)
+            retourne nul
         }
     }
 

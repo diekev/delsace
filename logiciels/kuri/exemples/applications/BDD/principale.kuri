@@ -31,83 +31,33 @@ lance_boucle_exécution :: fonc ()
         asa := parse(entrée)
         diffère détruit_asa(*asa)
 
+        exécutrice : Exécutrice
+
         pour inst dans asa.instructions {
-            discr inst.genre {
-                CRÉE {
-                    crée_table(*cm, inst comme *InstructionCréationTable)
+            résultat := exécutrice.exécute_instruction(*cm, inst)
+
+            discr résultat {
+                Erreur(message) {
+                    imprime("%\n", message)
+                    exécutrice.réinitialise() 
                 }
-                SÉLECTIONNE {
-                    inst_sélection := inst comme *InstructionSélection
-
-                    résultat := tente sélectionne(*cm, inst_sélection) piège err {
-                        discr err {
-                            ColonneInexistante {
-                                // À FAIRE : une bonne d'extraire les erreurs (ajouter des messages d'erreurs aux instructions ?)
-                                //imprime("Erreur : la colonne %.% n'existe pas !\n", inst_sélection.depuis.valeur, lit.valeur)
-                                imprime("Erreur : la colonne n'existe pas !\n")
-                            }
-                            TableInexistante {
-                                imprime("Erreur : la table % n'existe pas !\n", inst_sélection.depuis.valeur)
-                            }
-                            ExpressionNonLittérale {
-                                imprime("Erreur : expression non-littérale rencontrée !\n")
-                            }
-                            sinon {
-                                imprime("Erreur inconnue %\n", err)
-                            }
-                        }
-
-                        imprime("Exécution invalide.\n")
-                        arrête
-                    }
-
-                    imprime_table(résultat)
-                    ferme_base_de_données(résultat)
+                Table(table) {
+                    imprime_table(table)
+                    ferme_base_de_données(table)
+                    imprime("Exécution réussie.\n")
                 }
-                INSÈRE {
-                    inst_insertion := inst comme *InstructionInsère
-
-                    tente insère(*cm, inst_insertion) piège err {
-                        discr err {
-                            CapacitéExcédée {
-                                imprime("Erreur: table pleine.\n")
-                            }
-                            TableInexistante {
-                                imprime("La table % n'existe pas !\n", inst_insertion.table.valeur)
-                            }
-                            NombreNégatif {
-                                imprime("L'ID doit être positif.\n")
-                            }
-                            TexteTropLarge {
-                                imprime("La chaine est trop longue.\n")
-                            }
-                            TypageColonneInvalide {
-                                imprime("Le typage de la colonne est invalide.\n")
-                            }
-                            sinon {
-                                imprime("Erreur inconnue %\n", err)
-                            }
-                        }
-
-                        imprime("Exécution invalide.\n")
-                        arrête
-                    }
-                }
-                MÉTA_TABLES {
-                    résultat := sélectionne_tables(*cm)
-
-                    imprime_table(résultat)
-                    ferme_base_de_données(résultat)
-                }
-                MÉTA_SORS {
+                ArrêteExécution {
                     retourne
                 }
+                Rien {
+                    imprime("Exécution réussie.\n")
+                }
+                sinon {
+                    imprime("Erreur interne : résultat d'exécution inconnu.\n")
+                }
             }
-
-            imprime("Exécution réussie.\n")
         }
     }
-
 }
 
 // @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
