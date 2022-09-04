@@ -133,6 +133,17 @@ lance_test_cas :: fonc (cas: CasÀTester) -> bool
         imprime("Échec !\n")
         imprime("Requiers % résultats\n", résultat.taille)
         imprime("Obtenu % résultats\n", cas.résultat.taille)
+
+        imprime("\nRésultat requis :\n")
+        pour résultat {
+            imprime("%\n", it)
+        }
+
+        imprime("\nRésultat obtenu :\n")
+        pour cas.résultat {
+            imprime("%\n", it)
+        }
+    
         retourne faux
     }
 
