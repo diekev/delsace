@@ -2,6 +2,9 @@ GenreInstruction :: énum z32 {
     CRÉE
     SÉLECTIONNE
     INSÈRE
+
+    MÉTA_SORS
+    MÉTA_TABLES
 }
 
 Instruction :: struct {

@@ -19,6 +19,7 @@ db > +--------+
 | Tables |
 +--------+
 +--------+
+Exécution réussie.
 db > Fin du programme, mémoire utilisée : 0o
 
 ------------------------------------------------
@@ -36,6 +37,7 @@ db > +--------------+
 +--------------+
 | utilisateurs |
 +--------------+
+Exécution réussie.
 db > Fin du programme, mémoire utilisée : 0o
 
 ------------------------------------------------

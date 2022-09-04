@@ -38,6 +38,10 @@ détruit_asa :: fonc (asa: *ASA) -> rien
                 déloge(inst_insère.valeurs)
                 déloge(inst_insère)
             }
+            MÉTA_SORS,
+            MÉTA_TABLES {
+                déloge(inst)
+            }
         }
     }
 
@@ -121,6 +125,26 @@ apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, genre: GenreLexème) -> bo
     retourne vrai
 }
 
+apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, identifiant: chaine) -> bool
+{
+    si syntaxeuse.fini() {
+        retourne faux
+    }
+
+    lexème := syntaxeuse.lexème_courant()
+
+    si lexème.genre != GenreLexème.IDENTIFIANT {
+        retourne faux
+    }
+
+    si lexème.valeur != identifiant {
+        retourne faux
+    }
+
+    syntaxeuse.avance()
+    retourne vrai
+}
+
 rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine, args: ...eini)
 {
     si syntaxeuse.possède_erreur {
@@ -154,6 +178,23 @@ parse_instruction :: fonc (syntaxeuse: &Syntaxeuse)
         MOT_CLÉ_SÉLECTIONNE {
             syntaxeuse.avance()
             syntaxeuse.parse_instruction_sélectionne()
+        }
+        POINT {
+            syntaxeuse.avance()
+
+            si syntaxeuse.apparie_et_consomme("sors") {
+                inst := syntaxeuse.crée_instruction(Instruction)
+                inst.genre = GenreInstruction.MÉTA_SORS
+                retourne
+            }
+
+            si syntaxeuse.apparie_et_consomme("tables") {
+                inst := syntaxeuse.crée_instruction(Instruction)
+                inst.genre = GenreInstruction.MÉTA_TABLES
+                retourne
+            }
+
+            syntaxeuse.rapporte_erreur("Méta commande inconnue")
         }
         sinon {
             syntaxeuse.rapporte_erreur("Attendu un mot-clé : obtenu %", lexème.genre)
