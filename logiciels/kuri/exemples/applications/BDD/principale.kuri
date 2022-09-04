@@ -110,7 +110,6 @@ lance_boucle_exécution :: fonc ()
 
 }
 
-// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
 // @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
 principale :: fonc () -> z32
 {

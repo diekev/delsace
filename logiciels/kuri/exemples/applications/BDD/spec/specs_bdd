@@ -101,3 +101,14 @@ crée utilisateurs (nom texte, id entier)
 + Résultat :
 db > Attendu un point virgule à la fin de l'instruction
 db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si une méta commande est inconnues.
+
++ Commandes :
+.tabels
+.sors
+
++ Résultat :
+db > Méta commande inconnue
+db > Fin du programme, mémoire utilisée : 0o
