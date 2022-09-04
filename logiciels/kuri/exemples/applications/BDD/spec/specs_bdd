@@ -41,6 +41,19 @@ Exécution réussie.
 db > Fin du programme, mémoire utilisée : 0o
 
 ------------------------------------------------
++ Cas : On ne peut pas créer deux tables du même nom.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+crée utilisateurs (nom texte, id entier);
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > Erreur : redéfinition de la table utilisateurs
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
 + Cas : On peut créer une table, y insérer une ligne et la retrouver.
 
 + Commandes :

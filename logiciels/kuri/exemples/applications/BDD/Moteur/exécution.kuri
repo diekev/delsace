@@ -34,6 +34,10 @@ exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, 
     discr inst.genre {
         CRÉE {
             crée_table(exécutrice, cm, inst comme *InstructionCréationTable)
+
+            si exécutrice.possède_erreur {
+                retourne exécutrice.message_erreur
+            }
         }
         SÉLECTIONNE {
             inst_sélection := inst comme *InstructionSélection
@@ -64,6 +68,13 @@ exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, 
 
 crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
+    nom_table := inst.nom.valeur
+
+    si trouve_table(cm, nom_table) != nul {
+        exécutrice.rapporte_erreur("Erreur : redéfinition de la table %", nom_table)
+        retourne
+    }
+
     colonnes : []Colonne
     décalage := 0
 
