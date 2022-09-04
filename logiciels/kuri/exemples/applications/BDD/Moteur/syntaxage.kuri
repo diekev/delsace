@@ -56,57 +56,109 @@ parse :: fonc (chn: chaine) -> ASA
 
     diffère { déloge(lexèmes); }
 
+    syntaxeuse: Syntaxeuse
+    syntaxeuse.lexèmes = lexèmes
+
+    tantque !syntaxeuse.fini() {
+        syntaxeuse.parse_instruction()
+    }
+
     asa : ASA
+    asa.instructions = syntaxeuse.instructions
 
-    curseur := 0
-
-    tantque curseur < lexèmes.taille {
-        inst := parse_instruction(lexèmes, *curseur)
-
-        si inst == nul {
-            imprime("Impossible de parser les lexèmes\n")
-            arrête
-        }
-
-        tableau_ajoute(*asa.instructions, inst)
+    si syntaxeuse.possède_erreur {
+        imprime("%\n", syntaxeuse.message_erreur)
+        détruit_asa(*asa)
     }
 
     retourne asa
 }
 
-// @amélioration : retourne aussi le curseur au lieu d'utilisation un pointeur
-// @amélioration : retourne une erreur (besoin d'un système d'erreur)
-parse_instruction :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *Instruction
+Syntaxeuse :: struct {
+    lexèmes: []Lexème
+    curseur: z32
+
+    possède_erreur: bool
+    message_erreur: chaine
+
+    instructions: []*Instruction
+}
+
+fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool #enligne
 {
-    curseur := mémoire(ancien_curseur)
-    diffère { mémoire(ancien_curseur) = curseur; }
+    si syntaxeuse.possède_erreur {
+        retourne vrai
+    }
+    retourne syntaxeuse.curseur >= syntaxeuse.lexèmes.taille
+}
 
-    discr lexèmes[curseur].genre {
-        MOT_CLÉ_CRÉE {
-            curseur += 1
-            inst := parse_instruction_crée(lexèmes, *curseur)
+avance :: fonc (syntaxeuse: &Syntaxeuse) #enligne
+{
+    syntaxeuse.curseur += 1
+}
 
-            retourne inst
-        }
-        MOT_CLÉ_INSÈRE {
-            curseur += 1
-            inst := parse_instruction_insère(lexèmes, *curseur)
+lexème_courant :: fonc (syntaxeuse: &Syntaxeuse) -> Lexème #enligne
+{
+    retourne syntaxeuse.lexèmes[syntaxeuse.curseur]
+}
 
-            retourne inst
-        }
-        MOT_CLÉ_SÉLECTIONNE {
-            curseur += 1
-            inst := parse_instruction_sélectionne(lexèmes, *curseur)
+lexème_précédent :: fonc (syntaxeuse: &Syntaxeuse) -> Lexème #enligne
+{
+    retourne syntaxeuse.lexèmes[syntaxeuse.curseur - 1]
+}
 
-            retourne inst
-        }
-        sinon {
-            imprime("Attendu un mot-clé : obtenu %\n", lexèmes[curseur].genre)
-            retourne nul
-        }
+apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, genre: GenreLexème) -> bool
+{
+    si syntaxeuse.fini() {
+        retourne faux
     }
 
-    retourne nul
+    si syntaxeuse.lexème_courant().genre != genre {
+        retourne faux
+    }
+
+    syntaxeuse.avance()
+    retourne vrai
+}
+
+rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine, args: ...eini)
+{
+    si syntaxeuse.possède_erreur {
+        retourne
+    }
+
+    syntaxeuse.message_erreur = imprime_chaine(message, ...args)
+    syntaxeuse.possède_erreur = vrai
+}
+
+crée_instruction :: fonc (syntaxeuse: &Syntaxeuse, $T: type_de_données) -> *T
+{
+    inst := loge(T)
+    tableau_ajoute(*syntaxeuse.instructions, inst)
+    retourne inst
+}
+
+parse_instruction :: fonc (syntaxeuse: &Syntaxeuse)
+{
+    lexème := syntaxeuse.lexème_courant()
+
+    discr lexème.genre {
+        MOT_CLÉ_CRÉE {
+            syntaxeuse.avance()
+            syntaxeuse.parse_instruction_crée()
+        }
+        MOT_CLÉ_INSÈRE {
+            syntaxeuse.avance()
+            syntaxeuse.parse_instruction_insère()
+        }
+        MOT_CLÉ_SÉLECTIONNE {
+            syntaxeuse.avance()
+            syntaxeuse.parse_instruction_sélectionne()
+        }
+        sinon {
+            syntaxeuse.rapporte_erreur("Attendu un mot-clé : obtenu %", lexème.genre)
+        }
+    }
 }
 
 // 1. SÉLECTIONNE (déjà consommé lors de l'appel)
@@ -114,49 +166,31 @@ parse_instruction :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *Instru
 // 3. DEPUIS
 // 4. $table
 // 5. ;
-parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionSélection
+parse_instruction_sélectionne :: fonc (syntaxeuse: &Syntaxeuse)
 {
-    curseur := mémoire(ancien_curseur)
-    diffère { mémoire(ancien_curseur) = curseur; }
+    inst := syntaxeuse.crée_instruction(InstructionSélection)
 
-    inst := loge(InstructionSélection)
-    inst.genre = GenreInstruction.SÉLECTIONNE
-    inst.items.taille = 0
-    inst.items.pointeur = nul
-
-    si !parse_expressions(lexèmes, *curseur, *inst.items) {
-        imprime("Impossible de parser les expressions\n")
-        déloge(inst) // @fuite de mémoire
-        retourne nul
+    saufsi syntaxeuse.parse_expressions(*inst.items) {
+        syntaxeuse.rapporte_erreur("Impossible de parser les expressions")
+        retourne
     }
 
-    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DEPUIS {
-        imprime("Attendu 'depuis'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_DEPUIS) {
+        syntaxeuse.rapporte_erreur("Attendu 'depuis' après 'sélectionne'")
+        retourne
     }
 
-    curseur += 1
-
-    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
-        imprime("Attendu 'identifiant'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
+        syntaxeuse.rapporte_erreur("Attendu 'identifiant'")
+        retourne
     }
 
-    inst.depuis = lexèmes[curseur]
+    inst.depuis = syntaxeuse.lexème_précédent()
 
-    curseur += 1
-
-    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
-        imprime("Attendu ';'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
+        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction")
+        retourne
     }
-
-    curseur += 1
-
-    retourne inst
 }
 
 // 1. CRÉE  (déjà consommé lors de l'appel)
@@ -165,38 +199,28 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
 // 4. [nom-colonne type-colonne, ...]
 // 5. )
 // 6. ;
-parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionCréationTable
+parse_instruction_crée :: fonc (syntaxeuse: &Syntaxeuse)
 {
-    curseur := mémoire(ancien_curseur)
-    diffère { mémoire(ancien_curseur) = curseur; }
-
-    inst := loge(InstructionCréationTable)
-    inst.genre = GenreInstruction.CRÉE
-    inst.colonnes.taille = 0
-    inst.colonnes.pointeur = nul
+    inst := syntaxeuse.crée_instruction(InstructionCréationTable)
 
     // 2. $nom-table
-    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
-        imprime("Attendu 'identifiant'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
+        syntaxeuse.rapporte_erreur("Attendu 'identifiant'")
+        retourne
     }
 
-    inst.nom = lexèmes[curseur]
-
-    curseur += 1
+    inst.nom = syntaxeuse.lexème_précédent()
 
     // 3. (
-    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
-        imprime("Attendu '('\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_OUVRANTE) {
+        syntaxeuse.rapporte_erreur("Attendu '('")
+        retourne
     }
 
-    curseur += 1
+    tantque !syntaxeuse.fini() {
+        lexème := syntaxeuse.lexème_courant()
 
-    boucle {
-        si lexèmes[curseur].genre == GenreLexème.PARENTHÈSE_FERMANTE {
+        si lexème.genre == GenreLexème.PARENTHÈSE_FERMANTE {
             arrête
         }
 
@@ -204,54 +228,42 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
         tableau_ajoute(*inst.colonnes, desc)
 
         // nom-colonne
-        si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
-            imprime("Attendu 'identifiant'\n")
-            déloge(inst)
-            retourne nul
+        si lexème.genre != GenreLexème.IDENTIFIANT {
+            syntaxeuse.rapporte_erreur("Attendu 'identifiant'")
+            retourne
         }
 
-        desc.nom = lexèmes[curseur]
+        desc.nom = lexème
 
-        curseur += 1
+        syntaxeuse.avance()
+        lexème = syntaxeuse.lexème_courant()
 
         // type-colonne
-        si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_TEXTE && lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_ENTIER {
-            imprime("Attendu 'entier' ou 'texte'\n")
-            déloge(inst)
-            retourne nul
+        si lexème.genre != GenreLexème.MOT_CLÉ_TEXTE && lexème.genre != GenreLexème.MOT_CLÉ_ENTIER {
+            syntaxeuse.rapporte_erreur("Attendu 'entier' ou 'texte'")
+            retourne
         }
 
-        desc.type_données = lexèmes[curseur]
+        desc.type_données = lexème
 
-        curseur += 1
+        syntaxeuse.avance()
 
-        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
-            curseur += 1
-        }
-        sinon {
+        saufsi syntaxeuse.apparie_et_consomme(GenreLexème.VIRGULE) {
             arrête
         }
     }
 
     // 5. )
-    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
-        imprime("Attendu ')'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_FERMANTE) {
+        syntaxeuse.rapporte_erreur("Attendu ')'")
+        retourne
     }
-
-    curseur += 1
 
     // 6. ;
-    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
-        imprime("Attendu ';'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
+        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction")
+        retourne
     }
-
-    curseur += 1
-
-    retourne inst
 }
 
 // 1. INSÈRE
@@ -262,108 +274,75 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
 // 6. $expression [, ...]
 // 7. )
 // 8. ;
-parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionInsère
+parse_instruction_insère :: fonc (syntaxeuse: &Syntaxeuse)
 {
-    curseur := mémoire(ancien_curseur)
-    diffère { mémoire(ancien_curseur) = curseur; }
-
-    inst := loge(InstructionInsère)
-    inst.genre = GenreInstruction.INSÈRE
-    inst.valeurs.taille = 0
-    inst.valeurs.pointeur = nul
+    inst := syntaxeuse.crée_instruction(InstructionInsère)
 
     // 2. DANS
-    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DANS {
-        imprime("Attendu 'dans'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_DANS) {
+        syntaxeuse.rapporte_erreur("Attendu 'dans'")
+        retourne
     }
-
-    curseur += 1
 
     // 3. $nom-table
-    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
-        imprime("Attendu 'identifiant'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
+        syntaxeuse.rapporte_erreur("Attendu 'identifiant'")
+        retourne
     }
 
-    inst.table = lexèmes[curseur]
-
-    curseur += 1
+    inst.table = syntaxeuse.lexème_précédent()
 
     // 4. VALEURS
-    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_VALEURS {
-        imprime("Attendu 'valeurs'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_VALEURS) {
+        syntaxeuse.rapporte_erreur("Attendu 'valeurs'")
+        retourne
     }
-
-    curseur += 1
 
     // 5. (
-    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
-        imprime("Attendu '('\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_OUVRANTE) {
+        syntaxeuse.rapporte_erreur("Attendu '('")
+        retourne
     }
 
-    curseur += 1
-
     // 6. $expression [, ...]
-    si !parse_expressions(lexèmes, *curseur, *inst.valeurs) {
-        imprime("Impossible de parser les expresssions pour INSÈRE !\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.parse_expressions(*inst.valeurs) {
+        syntaxeuse.rapporte_erreur("Impossible de parser les expresssions pour INSÈRE !")
+        retourne
     }
 
     // 7. )
-    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
-        imprime("Attendu '('\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_FERMANTE) {
+        syntaxeuse.rapporte_erreur("Attendu '('")
+        retourne
     }
-
-    curseur += 1
 
     // 8. ;
-    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
-        imprime("Attendu ';'\n")
-        déloge(inst)
-        retourne nul
+    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
+        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction")
+        retourne
     }
-
-    curseur += 1
-
-    retourne inst
 }
 
-parse_expressions :: fonc (lexèmes: []Lexème, ancien_curseur: *z32, exprs: *[]*Expression) -> bool
+parse_expressions :: fonc (syntaxeuse: &Syntaxeuse, exprs: *[]*Expression) -> bool
 {
-    curseur := mémoire(ancien_curseur)
-    diffère { mémoire(ancien_curseur) = curseur; }
-
-    // @amélioration : évite les dépassement de bornes
-    boucle {
-        genre := lexèmes[curseur].genre
+    tantque !syntaxeuse.fini() {
+        lexème := syntaxeuse.lexème_courant()
+        genre := lexème.genre
 
         si genre != GenreLexème.IDENTIFIANT && genre != GenreLexème.NUMÉRIQUE && genre != GenreLexème.CHAINE {
-            imprime("Attendu 'identifiant'\n")
+            syntaxeuse.rapporte_erreur("Attendu 'identifiant'")
             retourne faux
         }
 
         expr := loge(Expression)
         expr.genre = GenreExpression.LITTÉRALE
-        expr.littérale = lexèmes[curseur]
+        expr.littérale = lexème
 
         tableau_ajoute(exprs, expr)
 
-        curseur += 1
+        syntaxeuse.avance()
 
-        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
-            curseur += 1
-        }
-        sinon {
+        saufsi syntaxeuse.apparie_et_consomme(GenreLexème.VIRGULE) {
             arrête
         }
     }
