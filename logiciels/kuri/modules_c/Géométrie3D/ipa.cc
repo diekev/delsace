@@ -31,6 +31,7 @@
 #include "import_objet.h"
 #include "outils.hh"
 #include "particules.hh"
+#include "terrains.hh"
 #include "triangulation.hh"
 
 #define RETOURNE_SI_NUL(x)                                                                        \
@@ -323,4 +324,45 @@ void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
     geo::Maillage points_ = geo::Maillage::enveloppe(points);
     geo::Maillage maillage_resultat_ = geo::Maillage::enveloppe(resultat);
     geo::triangulation_delaunay_2d_points_3d(points_, maillage_resultat_);
+}
+
+void GEO3D_simule_erosion_vent(struct ParametresErosionVent *params,
+                               struct AdaptriceTerrain *terrain,
+                               struct AdaptriceTerrain *terrain_pour_facteur)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    geo::simule_erosion_vent(*params, *terrain, terrain_pour_facteur);
+}
+
+void GEO3D_incline_terrain(struct ParametresInclinaisonTerrain const *params,
+                           struct AdaptriceTerrain *terrain)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    geo::incline_terrain(*params, *terrain);
+}
+
+void GEO3D_filtrage_terrain(ParametresFiltrageTerrain const *params, AdaptriceTerrain *terrain)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    geo::filtrage_terrain(*params, *terrain);
+}
+
+void GEO3D_erosion_simple(struct ParametresErosionSimple const *params,
+                          struct AdaptriceTerrain *terrain,
+                          struct AdaptriceTerrain *terrain_pour_facteur)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    geo::erosion_simple(*params, *terrain, terrain_pour_facteur);
+}
+
+void GEO3D_erosion_complexe(struct ParametresErosionComplexe *params,
+                            struct AdaptriceTerrain *terrain)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    geo::erosion_complexe(*params, *terrain);
 }

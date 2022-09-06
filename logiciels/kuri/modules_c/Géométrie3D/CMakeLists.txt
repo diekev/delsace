@@ -26,6 +26,7 @@ find_package(Eigen3 REQUIRED)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../jorjala/
         /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
         ${EIGEN3_INCLUDE_DIR}
 )
@@ -108,6 +109,9 @@ set(SOURCES
     triangulation.cc
     triangulation.hh
     triangulation_delaunay.hh
+
+    terrains.cc
+    terrains.hh
 
     ${SOURCES_BOOLEEN}
     ${SOURCES_VORONOI}
