@@ -19,6 +19,7 @@ db > +--------+
 | Tables |
 +--------+
 +--------+
+Exécution réussie.
 db > Fin du programme, mémoire utilisée : 0o
 
 ------------------------------------------------
@@ -36,6 +37,20 @@ db > +--------------+
 +--------------+
 | utilisateurs |
 +--------------+
+Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : On ne peut pas créer deux tables du même nom.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+crée utilisateurs (nom texte, id entier);
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > Erreur : redéfinition de la table utilisateurs
 db > Fin du programme, mémoire utilisée : 0o
 
 ------------------------------------------------
@@ -87,4 +102,26 @@ db > +-----+--------+
 | 789 | Carter |
 +-----+--------+
 Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si un point virgule manque.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier)
+.sors
+
++ Résultat :
+db > Attendu un point virgule à la fin de l'instruction
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si une méta commande est inconnues.
+
++ Commandes :
+.tabels
+.sors
+
++ Résultat :
+db > Méta commande inconnue
 db > Fin du programme, mémoire utilisée : 0o

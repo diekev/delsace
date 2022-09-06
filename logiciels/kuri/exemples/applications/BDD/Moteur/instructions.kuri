@@ -2,6 +2,9 @@ GenreInstruction :: énum z32 {
     CRÉE
     SÉLECTIONNE
     INSÈRE
+
+    MÉTA_SORS
+    MÉTA_TABLES
 }
 
 Instruction :: struct {
@@ -13,6 +16,8 @@ InstructionInsère :: struct {
 
     table : Lexème
     valeurs: []*Expression
+
+    genre = GenreInstruction.INSÈRE
 }
 
 GenreExpression :: énum z32 {
@@ -34,6 +39,8 @@ InstructionCréationTable :: struct {
 
     nom: Lexème
     colonnes : []*DéfinitionColonne
+
+    genre = GenreInstruction.CRÉE
 }
 
 InstructionSélection :: struct {
@@ -41,4 +48,6 @@ InstructionSélection :: struct {
 
     items : []*Expression
     depuis : Lexème
+
+    genre = GenreInstruction.SÉLECTIONNE
 }

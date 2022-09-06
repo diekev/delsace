@@ -23,6 +23,7 @@ GenreLexème :: énum z32 {
     PARENTHÈSE_FERMANTE
     VIRGULE
     POINT_VIRGULE
+    POINT
 
     ESPACE
 
@@ -250,6 +251,9 @@ lèxe :: fonc (chn: chaine) -> []Lexème
 
         discr c {
             '\n' {
+                si !finalise_courant(*état, GenreLexème.ESPACE) {
+                    arrête
+                }
                 état.ligne += 1
                 état.colonne = 0
             }
@@ -275,6 +279,11 @@ lèxe :: fonc (chn: chaine) -> []Lexème
             }
             ';' {
                 si !finalise_courant(*état, GenreLexème.POINT_VIRGULE) {
+                    arrête
+                }
+            }
+            '.' {
+                si !finalise_courant(*état, GenreLexème.POINT) {
                     arrête
                 }
             }
