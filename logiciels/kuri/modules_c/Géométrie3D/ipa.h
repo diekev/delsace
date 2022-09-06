@@ -422,6 +422,91 @@ void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
 void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
                                                struct AdaptriceMaillage *resultat);
 
+/* ************************************* */
+
+struct ParametresErosionVent {
+    float direction;
+    int repetitions;
+    float erosion_amont;
+    float erosion_avale;
+};
+
+struct AdaptriceTerrain {
+    void (*accede_resolution)(struct AdaptriceTerrain *donnees, int *res_x, int *res_y);
+
+    void (*accede_pointeur_donnees)(struct AdaptriceTerrain *terrain, float **pointeur_donnees);
+};
+
+void GEO3D_simule_erosion_vent(struct ParametresErosionVent *params,
+                               struct AdaptriceTerrain *terrain,
+                               struct AdaptriceTerrain *terrain_pour_facteur);
+
+struct ParametresInclinaisonTerrain {
+    float facteur;
+    float decalage;
+    bool inverse;
+};
+
+void GEO3D_incline_terrain(struct ParametresInclinaisonTerrain const *params,
+                           struct AdaptriceTerrain *terrain);
+
+enum TypeFiltreTerrain {
+    BOITE,
+    TRIANGULAIRE,
+    QUADRATIC,
+    CUBIQUE,
+    GAUSSIEN,
+    MITCHELL,
+    CATROM,
+};
+
+struct ParametresFiltrageTerrain {
+    enum TypeFiltreTerrain type;
+    float rayon;
+};
+
+void GEO3D_filtrage_terrain(struct ParametresFiltrageTerrain const *params,
+                            struct AdaptriceTerrain *terrain);
+
+struct ParametresErosionSimple {
+    int iterations;
+    bool inverse;
+    bool superficielle;
+    bool rugueux;
+    bool pente;
+};
+
+void GEO3D_erosion_simple(struct ParametresErosionSimple const *params,
+                          struct AdaptriceTerrain *terrain,
+                          struct AdaptriceTerrain *grille_poids);
+
+struct ParametresErosionComplexe {
+    int iterations;
+
+    /* Paramètres pour l'érosion hydraulique (rivières). */
+    int iterations_rivieres;
+    float quantite_pluie;
+    float variance_pluie;
+    float cap_trans;
+    float permea_sol;
+    float taux_sedimentation;
+    float dep_pente;
+    float evaporation;
+    float taux_fluvial;
+
+    /* Paramètre pour l'érosion d'avalanche. */
+    int iterations_avalanche;
+    float angle_talus;
+    float quantite_avale;
+
+    /* Paramètre pour l'érosion générale. */
+    int iterations_diffusion;
+    float diffusion_thermale;
+};
+
+void GEO3D_erosion_complexe(struct ParametresErosionComplexe *params,
+                            struct AdaptriceTerrain *terrain);
+
 #ifdef __cplusplus
 }
 #endif
