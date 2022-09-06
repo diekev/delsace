@@ -30,6 +30,8 @@ struct ParametresInclinaisonTerrain;
 struct ParametresFiltrageTerrain;
 struct ParametresErosionComplexe;
 struct ParametresErosionSimple;
+struct ParametresProjectionTerrain;
+struct Maillage;
 
 namespace geo {
 
@@ -46,5 +48,9 @@ void erosion_simple(ParametresErosionSimple const &params,
                     AdaptriceTerrain *grille_poids);
 
 void erosion_complexe(ParametresErosionComplexe &params, AdaptriceTerrain &terrain);
+
+void projette_geometrie_sur_terrain(ParametresProjectionTerrain const &params,
+                                    AdaptriceTerrain &terrain,
+                                    Maillage const &geometrie);
 
 }  // namespace geo

@@ -366,3 +366,14 @@ void GEO3D_erosion_complexe(struct ParametresErosionComplexe *params,
     RETOURNE_SI_NUL(terrain)
     geo::erosion_complexe(*params, *terrain);
 }
+
+void GEO3D_projette_geometrie_sur_terrain(struct ParametresProjectionTerrain const *params,
+                                          struct AdaptriceTerrain *terrain,
+                                          struct AdaptriceMaillage *geometrie)
+{
+    RETOURNE_SI_NUL(params)
+    RETOURNE_SI_NUL(terrain)
+    RETOURNE_SI_NUL(geometrie)
+    geo::Maillage maillage = geo::Maillage::enveloppe(geometrie);
+    geo::projette_geometrie_sur_terrain(*params, *terrain, maillage);
+}

@@ -434,6 +434,10 @@ struct ParametresErosionVent {
 struct AdaptriceTerrain {
     void (*accede_resolution)(struct AdaptriceTerrain *donnees, int *res_x, int *res_y);
 
+    void (*accede_taille)(struct AdaptriceTerrain *donnees, float *taille_x, float *taille_y);
+
+    void (*accede_position)(struct AdaptriceTerrain *donnees, float *x, float *y, float *z);
+
     void (*accede_pointeur_donnees)(struct AdaptriceTerrain *terrain, float **pointeur_donnees);
 };
 
@@ -506,6 +510,16 @@ struct ParametresErosionComplexe {
 
 void GEO3D_erosion_complexe(struct ParametresErosionComplexe *params,
                             struct AdaptriceTerrain *terrain);
+
+struct ParametresProjectionTerrain {
+    float distance_max;
+
+    bool utilise_touche_la_plus_eloignee;
+};
+
+void GEO3D_projette_geometrie_sur_terrain(struct ParametresProjectionTerrain const *params,
+                                          struct AdaptriceTerrain *terrain,
+                                          struct AdaptriceMaillage *geometrie);
 
 #ifdef __cplusplus
 }
