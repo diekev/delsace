@@ -26,6 +26,7 @@
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/phys/collision.hh"
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
@@ -35,7 +36,9 @@
 #include "wolika/grille_dense.hh"
 #include "wolika/outils.hh"
 
+#include "acceleration.hh"
 #include "ipa.h"
+#include "outils.hh"
 
 namespace geo {
 
@@ -203,10 +206,26 @@ static wlk::desc_grille_2d descripteur_terrain(AdaptriceTerrain &terrain)
 {
     wlk::desc_grille_2d resultat;
     terrain.accede_resolution(&terrain, &resultat.resolution.x, &resultat.resolution.y);
+
+#if 0
     resultat.etendue.max.x = static_cast<float>(resultat.resolution.x);
     resultat.etendue.max.y = static_cast<float>(resultat.resolution.y);
     resultat.type_donnees = wlk::type_grille::R32;
     resultat.taille_pixel = 1.0;
+#else
+
+    dls::math::vec3f position;
+    terrain.accede_position(&terrain, &position.x, &position.y, &position.z);
+
+    dls::math::vec2f taille;
+    terrain.accede_taille(&terrain, &taille.x, &taille.y);
+
+    resultat.etendue.min.x = position.x - (taille.x * 0.5f);
+    resultat.etendue.min.y = position.y - (taille.y * 0.5f);
+    resultat.etendue.max.x = position.x + (taille.x * 0.5f);
+    resultat.etendue.max.y = position.y + (taille.y * 0.5f);
+    resultat.taille_pixel = static_cast<double>(taille.x) / resultat.resolution.x;
+#endif
     return resultat;
 }
 
@@ -1018,5 +1037,121 @@ void erosion_complexe(ParametresErosionComplexe &params, AdaptriceTerrain &terra
     copie_donnees_calque(grille_entree, terrain);
 }
 #endif
+
+struct DelegueTraverse {
+    Maillage const &maillage;
+
+    mutable dls::phys::esectd entresection{};
+
+    bool utilise_touche_la_plus_eloignee = false;
+
+    dls::phys::esectd intersecte_element(int index, dls::phys::rayond const &rayon) const
+    {
+        auto nombre_de_sommets = maillage.nombreDeSommetsPolygone(index);
+        kuri::tableau<int> temp_access_index_sommet;
+        temp_access_index_sommet.redimensionne(nombre_de_sommets);
+
+        maillage.indexPointsSommetsPolygone(index, temp_access_index_sommet.donnees());
+
+        auto cos = kuri::tableau<dls::math::vec3f>();
+        cos.redimensionne(nombre_de_sommets);
+        for (long j = 0; j < nombre_de_sommets; j++) {
+            cos[j] = maillage.pointPourIndex(temp_access_index_sommet[j]);
+        }
+
+        auto v0 = dls::math::converti_type_point<double>(cos[0]);
+        auto v1 = dls::math::converti_type_point<double>(cos[1]);
+
+        auto touche = false;
+        auto distance = 0.0;
+
+        for (long j = 2; j < nombre_de_sommets; j++) {
+            auto v2 = dls::math::converti_type_point<double>(cos[j]);
+
+            if (entresecte_triangle(v0, v1, v2, rayon, distance)) {
+                touche = true;
+                break;
+            }
+
+            v1 = v2;
+        }
+
+        auto resultat = dls::phys::esectd();
+        resultat.touche = touche;
+        resultat.distance = distance;
+        ajourne_entresection(resultat);
+        return resultat;
+    }
+
+    void ajourne_entresection(dls::phys::esectd const &esect) const
+    {
+        if (!esect.touche) {
+            return;
+        }
+
+        if (!entresection.touche) {
+            entresection = esect;
+            return;
+        }
+
+        if (utilise_touche_la_plus_eloignee) {
+            entresection.distance = std::max(entresection.distance, esect.distance);
+        }
+        else {
+            entresection.distance = std::min(entresection.distance, esect.distance);
+        }
+    }
+};
+
+void projette_geometrie_sur_terrain(ParametresProjectionTerrain const &params,
+                                    AdaptriceTerrain &terrain,
+                                    Maillage const &geometrie)
+{
+    auto hbe = cree_hierarchie_boite_englobante(geometrie);
+
+    if (!hbe) {
+        return;
+    }
+
+    auto grille = grille_depuis_terrain(terrain);
+    auto desc = grille.desc();
+
+    DelegueTraverse delegue{geometrie};
+    delegue.utilise_touche_la_plus_eloignee = params.utilise_touche_la_plus_eloignee;
+
+    auto index = 0l;
+    for (auto y = 0; y < desc.resolution.y; ++y) {
+        for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
+            auto const pos_monde = grille.index_vers_monde(dls::math::vec2i(x, y));
+            auto const point_monde = dls::math::converti_type_point<double>(pos_monde);
+
+            auto const z = static_cast<double>(grille.valeur(index));
+
+            dls::phys::rayond rayon;
+            rayon.origine = dls::math::point3d(point_monde.x, point_monde.y, z);
+            rayon.direction = dls::math::vec3d(0.0, 0.0, 1.0);
+
+            delegue.entresection = {};
+
+            traverse(hbe, delegue, rayon);
+
+            if (!delegue.entresection.touche) {
+                continue;
+            }
+
+            auto distance = delegue.entresection.distance;
+
+            if (distance > params.distance_max) {
+                distance = params.distance_max;
+            }
+
+            auto valeur = std::max(distance, z);
+
+            grille.valeur(index, static_cast<float>(valeur));
+        }
+    }
+
+    copie_donnees_calque(grille, terrain);
+}
 
 }  // namespace geo
