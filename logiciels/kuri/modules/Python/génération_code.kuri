@@ -83,13 +83,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
                 enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, it.type.nom, type.nom, it.nom, it.type.nom)
             }
 
-            chn_erreur := imprime_chaine("Ne peut assigner un objet de type % avec un objet de type", it.type.nom)
-            diffère déloge(chn_erreur)
-
-            enchaineuse.ajoute_au_tampon("    chn_type := PyType_ChaineNom(valeur)\n")
-            enchaineuse.ajoute_au_tampon("    chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
-            enchaineuse.ajoute_au_tampon("    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
-            enchaineuse.ajoute_au_tampon("    retourne -1\n")
+            enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom , "\")\n")
             enchaineuse.ajoute_au_tampon("}\n")
         }
     }
@@ -316,13 +310,7 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
     enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom, type.nom, type.nom)
     enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_énum, type.nom, type.nom, type.nom, type.nom, type.nom)
 
-    chn_erreur := imprime_chaine("Ne peut comparer un objet de type % avec un objet de type", type.nom)
-    diffère déloge(chn_erreur)
-
-    enchaineuse.ajoute_au_tampon("    chn_type := PyType_ChaineNom(other)\n")
-    enchaineuse.ajoute_au_tampon("    chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
-    enchaineuse.ajoute_au_tampon("    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
-    enchaineuse.ajoute_au_tampon("    retourne nul\n")
+    enchaineuse.ajoute_au_tampon("    retourne PyErr_ComparaisonImpossible(other, \"", type.nom, "\")\n")
     enchaineuse.ajoute_au_tampon("}\n")
 
     retourne nom_fonction_richcompare
@@ -682,11 +670,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
         diffère déloge(chn_erreur)
 
         enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n")
-        enchaineuse.ajoute_au_tampon("        chn_type := PyType_ChaineNom(pyobject_", it.nom, ")\n")
-        enchaineuse.ajoute_au_tampon("        chn_erreur := enchaine(\"", chn_erreur, "\", chn_type, \" !\")\n")
-        enchaineuse.ajoute_au_tampon("        PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))\n")
-        enchaineuse.ajoute_au_tampon("        déloge(chn_type); déloge(chn_erreur)\n")
-        enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
+        enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\")\n")  
         enchaineuse.ajoute_au_tampon("    }\n")
     }
 }

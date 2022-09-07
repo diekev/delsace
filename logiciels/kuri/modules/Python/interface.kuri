@@ -1,5 +1,6 @@
 // Interface pour la bibliothèque du langage Python permettant de définir des modules.
 
+importe Fondation
 importe GlibC
 importe Math
 
@@ -1000,3 +1001,38 @@ externe PyExc_ZeroDivisionError: *PyObject
 
 
 PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
+
+/* Fonctions d'erreur pour le code généré. */
+
+/* Erreur si le type d'un argument d'un appel de fonction n'est pas le bon. */
+PyErr_MauvaisTypeArgument :: fonc (argument: *PyObject, nom_argument_attendu: chaine, type_argument_attendu: chaine) -> *PyObject
+{
+    chn_type := PyType_ChaineNom(argument)
+    chn_erreur := enchaine("Mauvais type pour l'argument « ", nom_argument_attendu, " » ! Attendu : ", type_argument_attendu, ", obtenu : ", chn_type, " !")
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne nul
+}
+
+/* Erreur si nous ne pouvons comparer deux valeurs de deux types différents. */
+PyErr_ComparaisonImpossible :: fonc (opérande: *PyObject, type_autre_opérande: chaine) -> *PyObject
+{
+    chn_type := PyType_ChaineNom(opérande)
+    chn_erreur := enchaine("Ne peut comparer un objet de type ", type_autre_opérande, " avec un objet de type", chn_type, " !")
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne nul
+}
+
+/* Erreur si une valeur assignée n'a pas un type compatible avec celui de la variable. */
+PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) -> z32
+{
+    chn_type := PyType_ChaineNom(valeur)
+    chn_erreur := enchaine("Ne peut assigner un objet de type % à un objet de type ", type_variable)
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne -1
+}
