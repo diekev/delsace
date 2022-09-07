@@ -1079,3 +1079,41 @@ Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chain
 
     retourne Py_NewRef(Py_NotImplemented)
 }
+
+/* Auxilliaire pour ajouter les types au module lors de l'initialisation. */
+
+DonnéesAjoutType :: struct {
+    type: *PyTypeObject
+    nom: ChaineC
+}
+
+Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -> *PyObject
+{
+    /* Initialisation des types. */
+    pour types {
+        saufsi it.type {
+            continue
+        }
+
+        si PyType_Ready(it.type) == -1 {
+            Py_DECREF(module)
+            retourne python_retourne_rien()
+        }
+    }
+
+    /* Après que tous les types furent initialisés, ajoutons-les au module.
+     * Nous faisons cela séparement afin que le Py_DECREF utilisé en cas d'erreur
+     * d'initialisation détruise correctement le module (jusqu'ici son compte
+     * de référence est de 1, il sera incrémenté pour chaque type).
+     */
+    pour types {
+        saufsi it.type {
+            continue
+        }
+
+        Py_INCREF(it.type)
+        PyModule_AddObject(module, it.nom, it.type)
+    }
+
+    retourne module
+}
