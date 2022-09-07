@@ -852,6 +852,16 @@ index_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
     retourne (adresse - tableau.pointeur)
 }
 
+tableau_détruit :: fonc (tableau: &[]$T)
+{
+    déloge(tableau)
+}
+
+mémoire_utilisée_tableau :: fonc (tableau: []$T) -> z64
+{
+    retourne tableau.taille * (taille_de(T) comme z64)
+}
+
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> z64 #externe libc

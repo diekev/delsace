@@ -1,5 +1,6 @@
 // Interface pour la bibliothèque du langage Python permettant de définir des modules.
 
+importe Fondation
 importe GlibC
 importe Math
 
@@ -1000,3 +1001,136 @@ externe PyExc_ZeroDivisionError: *PyObject
 
 
 PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
+
+/* Fonctions d'erreur pour le code généré. */
+
+/* Erreur si le type d'un argument d'un appel de fonction n'est pas le bon. */
+PyErr_MauvaisTypeArgument :: fonc (argument: *PyObject, nom_argument_attendu: chaine, type_argument_attendu: chaine) -> *PyObject
+{
+    chn_type := PyType_ChaineNom(argument)
+    chn_erreur := enchaine("Mauvais type pour l'argument « ", nom_argument_attendu, " » ! Attendu : ", type_argument_attendu, ", obtenu : ", chn_type, " !")
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne nul
+}
+
+/* Erreur si nous ne pouvons comparer deux valeurs de deux types différents. */
+PyErr_ComparaisonImpossible :: fonc (opérande: *PyObject, type_autre_opérande: chaine) -> *PyObject
+{
+    chn_type := PyType_ChaineNom(opérande)
+    chn_erreur := enchaine("Ne peut comparer un objet de type ", type_autre_opérande, " avec un objet de type", chn_type, " !")
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne nul
+}
+
+/* Erreur si une valeur assignée n'a pas un type compatible avec celui de la variable. */
+PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) -> z32
+{
+    chn_type := PyType_ChaineNom(valeur)
+    chn_erreur := enchaine("Ne peut assigner un objet de type % à un objet de type ", type_variable)
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne -1
+}
+
+/* Fonctions de comparaison d'énum pour le code généré. */
+
+Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
+{
+    si op == Py_EQ {
+        si valeur1 == valeur2 {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    si op == Py_NE {
+        si valeur1 != valeur2 {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    retourne Py_NewRef(Py_NotImplemented)
+}
+
+Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chaine) -> *PyObject
+{
+    infos := info_de(T)
+    valeur_énum_comme_chaine := infos.noms[valeur_énum]
+
+    si op == Py_EQ {
+        si valeur_chaine == valeur_énum_comme_chaine {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    si op == Py_NE {
+        si valeur_chaine != valeur_énum_comme_chaine {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    retourne Py_NewRef(Py_NotImplemented)
+}
+
+/* Auxilliaire pour assigner une chaine à un énum. */
+
+Py_AssigneChaineÉnum :: fonc (valeur_énum: &$T, valeur_chaine: chaine) -> z32
+{
+    infos := info_de(T)
+
+    pour infos.noms {
+        si it == valeur_chaine {
+            valeur_énum = infos.valeurs[index_it] comme T
+            retourne 0
+        }
+    }
+
+    PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))
+    retourne -1
+}
+
+/* Auxilliaire pour ajouter les types au module lors de l'initialisation. */
+
+DonnéesAjoutType :: struct {
+    type: *PyTypeObject
+    nom: ChaineC
+}
+
+Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -> *PyObject
+{
+    /* Initialisation des types. */
+    pour types {
+        saufsi it.type {
+            continue
+        }
+
+        si PyType_Ready(it.type) == -1 {
+            Py_DECREF(module)
+            retourne python_retourne_rien()
+        }
+    }
+
+    /* Après que tous les types furent initialisés, ajoutons-les au module.
+     * Nous faisons cela séparement afin que le Py_DECREF utilisé en cas d'erreur
+     * d'initialisation détruise correctement le module (jusqu'ici son compte
+     * de référence est de 1, il sera incrémenté pour chaque type).
+     */
+    pour types {
+        saufsi it.type {
+            continue
+        }
+
+        Py_INCREF(it.type)
+        PyModule_AddObject(module, it.nom, it.type)
+    }
+
+    retourne module
+}
