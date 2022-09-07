@@ -64,23 +64,13 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
             enchaineuse.ajoute_au_tampon("    }\n")
 
             si it.type.drapeaux.TYPE_EST_ÉNUM {
-                assigne_énum_depuis_chaine := «
-                    si PyUnicode_Check(valeur) {
-                        valeur_chaine := PyUnicode_AsChaine(valeur)
-                        infos := info_de(%)
-
-                        pour infos.noms {
-                            si it == valeur_chaine {
-                                (instance comme *%PourPython).notre_instance.% = infos.valeurs[index_it] comme %
-                                retourne 0
-                            }
-                        }
-
-                        PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))
-                        retourne -1
-                    }
-                »
-                enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, it.type.nom, type.nom, it.nom, it.type.nom)
+assigne_énum_depuis_chaine := «
+    si PyUnicode_Check(valeur) {
+        valeur_chaine := PyUnicode_AsChaine(valeur)
+        retourne Py_AssigneChaineÉnum((instance comme *%PourPython).notre_instance.%, valeur_chaine)
+    }
+»
+                enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, type.nom, it.nom)
             }
 
             enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom , "\")\n")

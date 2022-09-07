@@ -1080,6 +1080,23 @@ Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chain
     retourne Py_NewRef(Py_NotImplemented)
 }
 
+/* Auxilliaire pour assigner une chaine à un énum. */
+
+Py_AssigneChaineÉnum :: fonc (valeur_énum: &$T, valeur_chaine: chaine) -> z32
+{
+    infos := info_de(T)
+
+    pour infos.noms {
+        si it == valeur_chaine {
+            valeur_énum = infos.valeurs[index_it] comme T
+            retourne 0
+        }
+    }
+
+    PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))
+    retourne -1
+}
+
 /* Auxilliaire pour ajouter les types au module lors de l'initialisation. */
 
 DonnéesAjoutType :: struct {
