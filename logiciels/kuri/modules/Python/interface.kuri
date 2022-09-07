@@ -1036,3 +1036,46 @@ PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) 
     déloge(chn_erreur)
     retourne -1
 }
+
+/* Fonctions de comparaison d'énum pour le code généré. */
+
+Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
+{
+    si op == Py_EQ {
+        si valeur1 == valeur2 {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    si op == Py_NE {
+        si valeur1 != valeur2 {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    retourne Py_NewRef(Py_NotImplemented)
+}
+
+Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chaine) -> *PyObject
+{
+    infos := info_de(T)
+    valeur_énum_comme_chaine := infos.noms[valeur_énum]
+
+    si op == Py_EQ {
+        si valeur_chaine == valeur_énum_comme_chaine {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    si op == Py_NE {
+        si valeur_chaine != valeur_énum_comme_chaine {
+            retourne Py_NewRef(Py_True)
+        }
+        retourne Py_NewRef(Py_False)
+    }
+
+    retourne Py_NewRef(Py_NotImplemented)
+}

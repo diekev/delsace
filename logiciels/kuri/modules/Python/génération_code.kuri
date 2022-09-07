@@ -255,59 +255,26 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
 
     nom_fonction_richcompare := enchaine("richcompare_", type.nom)
 
-    compare_énum_avec_chaine := «
+compare_énum_avec_chaine := «
     si PyUnicode_Check(other) {
         valeur_chaine := PyUnicode_AsChaine(other)
         valeur_énum := Py%_As%(self).notre_instance
-
-        infos := info_de(%)
-        valeur_énum_comme_chaine := infos.noms[valeur_énum]
-
-        si op == Py_EQ {
-            si valeur_chaine == valeur_énum_comme_chaine {
-                retourne Py_NewRef(Py_True)
-            }
-            retourne Py_NewRef(Py_False)
-        }
-
-        si op == Py_NE {
-            si valeur_chaine != valeur_énum_comme_chaine {
-                retourne Py_NewRef(Py_True)
-            }
-            retourne Py_NewRef(Py_False)
-        }
-
-        retourne Py_NewRef(Py_NotImplemented)
+        retourne Py_compare_énum_chaine(valeur_énum, op, valeur_chaine)
     }
-    »
+»
 
-    compare_énum_avec_énum := «
+compare_énum_avec_énum := «
     si Py%_Check(other) {
         valeur1 := Py%_As%(self).notre_instance
         valeur2 := Py%_As%(other).notre_instance
-
-        si op == Py_EQ {
-            si valeur1 == valeur2 {
-                retourne Py_NewRef(Py_True)
-            }
-            retourne Py_NewRef(Py_False)
-        }
-
-        si op == Py_NE {
-            si valeur1 != valeur2 {
-                retourne Py_NewRef(Py_True)
-            }
-            retourne Py_NewRef(Py_False)
-        }
-
-        retourne Py_NewRef(Py_NotImplemented)
+        retourne Py_compare_énum_énum(valeur1, op, valeur2)
     }
-    »
+»
 
     enchaineuse.ajoute_au_tampon(nom_fonction_richcompare, ":: fonc (self: *PyObject, other: *PyObject, op: z32) -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
 
-    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom, type.nom, type.nom)
+    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom, type.nom)
     enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_énum, type.nom, type.nom, type.nom, type.nom, type.nom)
 
     enchaineuse.ajoute_au_tampon("    retourne PyErr_ComparaisonImpossible(other, \"", type.nom, "\")\n")
