@@ -97,9 +97,11 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
 {
     premier := allocatrice.liste_de_mémoire.premier
 
-    si premier != nul {
-        imprime_log("[AllocatriceGardée]", "blocs de mémoire non-libérés !\n")
+    saufsi premier {
+        retourne
     }
+
+    imprime_log("[AllocatriceGardée]", "blocs de mémoire non-libérés !\n")
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
