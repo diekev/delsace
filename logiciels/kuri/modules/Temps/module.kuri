@@ -451,8 +451,8 @@ importe Compilatrice
 #test {
     date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
 
-    compilatrice_vérifie_égalité(date.jour, 21)
-    compilatrice_vérifie_égalité(date.mois, 10)
+    compilatrice_vérifie_égalité(date.jour, 22)
+    compilatrice_vérifie_égalité(date.mois, 11)
     compilatrice_vérifie_égalité(date.année, 2020)
     compilatrice_vérifie_égalité(date.heure, 6)
     compilatrice_vérifie_égalité(date.minute, 37)
