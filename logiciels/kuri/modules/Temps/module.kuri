@@ -243,19 +243,54 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     minutes := (secondes / 60) % 60
     heures  := (secondes / 3600) % 24
 
-    jours := d - 1
-    mois := (m - 1) comme z32
     années := y
 
     date : Date = ---
-    date.jour = jours comme z32
-    date.mois = mois
+    date.jour = d comme z32
+    date.mois = m comme z32
     date.année = années comme z32
     date.heure = heures comme z32
     date.minute = minutes comme z32
     date.seconde = seconde comme z32
     date.jour_semaine = weekday_from_days(z - 719468) comme z32
     retourne date
+}
+
+// Returns number of days since civil 1970-01-01.  Negative values indicate
+//    days prior to 1970-01-01.
+// Preconditions:  y-m-d represents a date in the civil (Gregorian) calendar
+//                 m is in [1, 12]
+//                 d is in [1, last_day_of_month(y, m)]
+//                 y is "approximately" in
+//                   [numeric_limits<Int>::min()/366, numeric_limits<Int>::max()/366]
+//                 Exact range of validity is:
+//                 [civil_from_days(numeric_limits<Int>::min()),
+//                  civil_from_days(numeric_limits<Int>::max()-719468)]
+days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
+{
+    // static_assert(std::numeric_limits<unsigned>::digits >= 18,
+    //          "This algorithm has not been ported to a 16 bit unsigned integer");
+    // static_assert(std::numeric_limits<Int>::digits >= 20,
+    //          "This algorithm has not been ported to a 16 bit signed integer");
+    y -= (m <= 2) comme z32;
+    era := si (y >= 0) { y } sinon { y - 399 } / 400;
+    yoe := (y - era * 400) comme n32      // [0, 399]
+    doy := (153* si (m > 2) { m-3 } sinon { m+9 } + 2)/5 + d-1;  // [0, 365]
+    doe := yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096]
+    retourne era * 146097 + (doe comme z32) - 719468;
+}
+
+days_from_civil :: fonc (date: Date) -> z32
+{
+    retourne days_from_civil(date.année, date.mois comme n32, date.jour comme n32)
+}
+
+nombre_de_jours_entre :: fonc (date1: Date, date2: Date) -> z32
+{
+    jours_date1 := days_from_civil(date1)
+    jours_date2 := days_from_civil(date2)
+
+    retourne jours_date2 - jours_date1
 }
 
 /*
@@ -370,9 +405,6 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
         }
     }
 
-    résultat.jour -= 1
-    résultat.mois -= 1
-
     retourne résultat
 }
 
@@ -386,9 +418,6 @@ parse_date_pour_info_type :: fonc (chn: chaine) -> bool, Date
 parse_date_depuis_mysql :: fonc (chn: chaine) -> bool, Date
 {
     date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss")
-    // À FAIRE: conversion propre
-    date.mois += 1
-    date.jour += 1
     retourne vrai, date
 } @ParsageMySQL
 
