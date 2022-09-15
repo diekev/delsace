@@ -81,6 +81,8 @@ Boucle :: struct {
     nombre_de_prises_lancées := 0
 
     données_ssl: *DonnéesSSLBoucle
+
+    stop: bool
 }
 
 crée_boucle :: fonc () -> *Boucle
@@ -123,7 +125,7 @@ lance :: fonc (boucle_prises: *Boucle)
     // us_loop_integrate(loop);
 
     // tantque boucle_prises.num_fds
-    tantque boucle_prises.nombre_de_prises_lancées != 0 {
+    tantque boucle_prises.nombre_de_prises_lancées != 0 && !boucle_prises.stop {
         /* Emit pre callback */
         //us_internal_loop_pre(loop);
 
