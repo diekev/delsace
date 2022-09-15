@@ -175,13 +175,13 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Résult
 
     discr duplique_processus() {
         Enfant {
-            /* Le processus enfant sera lu. */
-            canal.prépare_pour_lecture()
+            /* Le processus enfant écrira. */
+            canal.prépare_pour_écriture()
             remplace_processus_par_programme(programme, ...arguments)
         }
         Parent {
-            /* Le processus père écrira. */
-            canal.prépare_pour_écriture()
+            /* Le processus père lira. */
+            canal.prépare_pour_lecture()
         }
         sinon {
             retourne
