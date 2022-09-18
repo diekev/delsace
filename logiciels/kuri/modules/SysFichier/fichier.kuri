@@ -655,3 +655,35 @@ référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier
         __ := ferme(*ancien_fichier)
     }
 }
+
+// ---------------------------------------------------------
+// Verrouillage de fichier.
+
+TypeVerrou :: énum {
+    Partagé
+    Exclusif
+}
+
+verrouille :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> bool
+{
+    param_flock := si verrou == TypeVerrou.Partagé {
+        LOCK_SH
+    }
+    sinon {
+        LOCK_EX
+    }
+
+    résultat := flock(fichier.desc, param_flock)
+
+    si résultat < 0 {
+        // À FAIRE : errno
+        retourne faux
+    }
+    
+    retourne vrai
+}
+
+déverrouille :: fonc (fichier: *Fichier)
+{
+    _ := flock(fichier.desc, LOCK_UN)
+}
