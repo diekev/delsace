@@ -132,7 +132,7 @@ lis :: fonc (canal: &BaseCanal) -> chaine
     retourne résultat
 }
 
-ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Résultat(TypeCanal)
+ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
 {
     fds: [2]z32
 
@@ -156,12 +156,12 @@ CanalLecture :: struct {
     empl base : BaseCanal
 }
 
-crée_canal_lecture :: fonc () -> Résultat(CanalLecture)
+crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
 {
     retourne ouvre_canal(CanalLecture)
 }
 
-ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Résultat(CanalLecture)
+ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalLecture)
 {
     canal : CanalLecture
     discr crée_canal_lecture() {
@@ -199,7 +199,7 @@ CanalÉcriture :: struct {
     empl base : BaseCanal
 }
 
-crée_canal_écriture :: fonc () -> Résultat(CanalÉcriture)
+crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
 {
     retourne ouvre_canal(CanalÉcriture)
 }
@@ -213,7 +213,7 @@ CanalCommunication :: struct {
     écriture: CanalÉcriture
 }
 
-ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Résultat(CanalCommunication)
+ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
 {
     canal_lecture : CanalLecture
     discr crée_canal_lecture() {

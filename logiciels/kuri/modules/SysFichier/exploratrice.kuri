@@ -39,7 +39,7 @@ crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichie
 /* Retourne le prochain chemin dans le dossier courant de l'exploration.
  * Le chemin est alloué dynamiquement, et c'est la responsabilité de l'appelant
  * de libérer la mémoire. */
-chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Résultat(CheminFichier)
+chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminFichier)
 {
     tantque !exploration_finie(exploratrice) {
         dossier_courant := exploratrice.pile_dossiers.tête()

@@ -870,7 +870,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
             déloge(chn_type)
         }
 
-        ajoute_au_tampon(enchaineuse, ") -> Résultat(MessageServeuseHTTP)\n")
+        ajoute_au_tampon(enchaineuse, ") -> Optionnel(MessageServeuseHTTP)\n")
         ajoute_au_tampon(enchaineuse, "{\n")
 
         /* Construction de l'uri. */

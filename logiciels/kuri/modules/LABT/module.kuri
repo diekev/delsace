@@ -61,7 +61,7 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
     tableau_ajoute(*noeud.attributs, résultat)
 }
 
-trouve_attribut :: fonc (noeud: *Noeud, nom: chaine) -> Résultat(Attribut)
+trouve_attribut :: fonc (noeud: *Noeud, nom: chaine) -> Optionnel(Attribut)
 {
     pour noeud.attributs {
         si it.nom == nom {
@@ -589,7 +589,7 @@ imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
  *
  * Si échec, ne retourne rien.
  */
-parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Résultat(Courriel.Courriel)
+parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
 {
     document := parse_document(texte)
 
