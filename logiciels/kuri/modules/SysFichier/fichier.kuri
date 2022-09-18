@@ -460,6 +460,21 @@ lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
     retourne tampon
 }
 
+lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
+{
+    valeur : T
+
+    octets_lus := tente lis(fichier, valeur) piège err {
+        retourne
+    }
+
+    si octets_lus != taille_de(T) {
+        retourne
+    }
+
+    retourne valeur
+}
+
 lis_chaine :: fonc (fichier: *Fichier, taille: z64) -> chaine
 {
     résultat := loge_chaine(taille)
