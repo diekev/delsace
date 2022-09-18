@@ -766,3 +766,17 @@ dup2 :: fonc (oldfd: z32, newfd: z32) -> z32 #externe libc
 execvp :: fonc (file: ChaineC, argv: *ChaineC) -> z32 #externe libc
 wait :: fonc (status: *z32) -> z32 #externe libc
 getpid :: fonc () -> z32 #externe libc
+
+// <sys/file.h>
+
+/* Operations for the `flock' call.  */
+LOCK_SH :: 1  /* Shared lock.  */
+LOCK_EX :: 2  /* Exclusive lock.  */
+LOCK_UN :: 8  /* Unlock.  */
+
+/* Can be OR'd in to one of the above.  */
+LOCK_NB :: 4  /* Don't block when locking.  */
+
+/* Apply or remove an advisory lock, according to OPERATION,
+ * on the file FD refers to.  */
+flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc
