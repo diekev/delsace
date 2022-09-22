@@ -41,6 +41,7 @@ set(BIBLIOTHEQUES
 set(SOURCES
 	allocatrice.cc
 	assembleuse.cc
+        copieuse.cc
 	expression.cc
 	infos_types.cc
 	noeud_code.cc
@@ -49,6 +50,7 @@ set(SOURCES
 
 	allocatrice.hh
 	assembleuse.hh
+        copieuse.hh
 	expression.hh
 	infos_types.hh
 	noeud_code.hh
