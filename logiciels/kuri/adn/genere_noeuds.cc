@@ -62,8 +62,6 @@ static const char *copie_extra_declaration_variable = R"(
 			})";
 
 static const char *copie_extra_entete_fonction = R"(
-			copie->bloc_constantes->possede_contexte = orig->bloc_constantes->possede_contexte;
-			copie->bloc_parametres->possede_contexte = orig->bloc_parametres->possede_contexte;
 			if (!copie->est_declaration_type) {
 				if (orig->params_sorties.taille() > 1) {
 					copie->param_sortie = copie_noeud(assem, orig->param_sortie, bloc_parent)->comme_declaration_variable();
@@ -1262,13 +1260,6 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
 	bloc->bloc_parent = bloc_courant();
-	if (bloc->bloc_parent) {
-		bloc->possede_contexte = bloc->bloc_parent->possede_contexte;
-	}
-	else {
-		/* vrai si le bloc ne possède pas de parent (bloc de module) */
-		bloc->possede_contexte = true;
-	}
 	m_blocs.empile(bloc);
 	return bloc;
 }
