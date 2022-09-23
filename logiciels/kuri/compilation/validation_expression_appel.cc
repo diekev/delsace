@@ -1726,9 +1726,6 @@ static NoeudStruct *monomorphise_au_besoin(
         copie->type = espace.compilatrice().typeuse.reserve_type_structure(copie);
     }
 
-    // À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
-    copie->bloc->membres->efface();
-
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
         // À FAIRE(poly) : lexème pour la  constante
