@@ -9,7 +9,9 @@ principale :: fonc () -> z32
     début : n32 = 10
 
     pour > début {
-        imprime("%\n", it)
+        si 0 <= it <= 10 {
+            imprime("%\n", it)
+        }
     }
 
     retourne 0
