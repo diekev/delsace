@@ -1,5 +1,5 @@
 importe Fondation
-importe GlibC
+importe SysFichier
 
 // https://fr.wikipedia.org/wiki/ELIZA
 
@@ -11,28 +11,6 @@ imprime_prompt_élise :: fonc (message: chaine) -> rien
 imprime_prompt_vous :: fonc () -> rien
 {
     imprime("Vous  : ")
-}
-
-lis_entrée :: fonc () -> chaine
-{
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
-
-    chn : chaine
-
-    pousse_contexte nouveau_contexte {
-        c : z8
-
-        tantque read(0, *c, 1) != 0 {
-            si c == '\n' {
-                arrête
-            }
-
-           chaine_ajoute(*chn, c)
-        }
-    }
-
-    retourne chn
 }
 
 mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
@@ -152,7 +130,7 @@ principale :: fonc () -> z32
         imprime_prompt_élise(message_éliza)
         imprime_prompt_vous()
 
-        message := lis_entrée()
+        message := tente entrée_standarde().lis_tout() piège nonatteignable
 
         si message.taille == 0 {
             arrête
