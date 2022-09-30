@@ -83,6 +83,13 @@ divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
     }
 }
 
+divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
+{
+    résultat : Pile(chaine)
+    divise_et_empile_chemin(résultat, chemin)
+    retourne résultat
+}
+
 chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
 {
     pile_secondaire : Pile(chaine)
@@ -125,9 +132,8 @@ chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
-    pile: Pile(chaine)
-    diffère détruit(pile)
-    divise_et_empile_chemin(pile, chemin)
+    pile := divise_et_empile_chemin(chemin)
+    diffère détruit(pile)    
     retourne chemin_normalisé(pile)
 }
 
@@ -216,9 +222,8 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
 
 nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
 {
-    pile : Pile(chaine)
+    pile := divise_et_empile_chemin(chm)
     diffère détruit(pile)
-    divise_et_empile_chemin(pile, chm)
 
     /* Dépile le nom du fichier ou du fichier parent. */
     _ := pile.dépile()
@@ -238,10 +243,8 @@ premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chai
 {
     chm.chn = avance(chm.chn, base.chn.taille)
 
-    pile: Pile(chaine)
+    pile := divise_et_empile_chemin(chm)
     diffère détruit(pile)
-
-    divise_et_empile_chemin(pile, chm)
 
     tantque pile.taille() != 1 {
         _ := pile.dépile()
