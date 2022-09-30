@@ -374,6 +374,11 @@ sortie_erreur :: fonc () -> *Fichier
     retourne système_sortie_erreur()
 }
 
+fichier_invalide :: fonc () -> Fichier
+{
+    retourne Fichier(système_poignée_fichier_invalide())
+}
+
 // -----------------------------------------------------------------------
 
 /* Fais pointer ancien_fichier vers nouveau_fichier. Après cette opération lire
