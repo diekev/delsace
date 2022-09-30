@@ -2678,7 +2678,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
-        assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
+        assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
+                      [&]() { erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
         decl->drapeaux |= EST_UTILISEE;
         if (decl->est_declaration_variable()) {
