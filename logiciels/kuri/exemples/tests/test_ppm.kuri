@@ -185,8 +185,8 @@ principale :: fonc () -> z32
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
-    écris_ppm(image, CheminFichier("/home/kevin/test_p1.ppm"));
-    écris_pnm(image, CheminFichier("/home/kevin/test_p2.pgm"));
+    écris_ppm(image, CheminFichier("/tmp/test_p1.ppm"));
+    écris_pnm(image, CheminFichier("/tmp/test_p2.pgm"));
 
     détruit_image(*image);
 
