@@ -1,4 +1,4 @@
-importe GlibC
+importe Chaine
 
 libssl :: #bibliothèque "ssl"
 libcrypto :: #bibliothèque "crypto"

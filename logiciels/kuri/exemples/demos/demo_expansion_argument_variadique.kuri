@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 
 passe_args :: fonc (args: ...chaine) -> rien
 {

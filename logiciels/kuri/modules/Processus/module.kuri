@@ -1,7 +1,8 @@
 /* Module implémentant des fonctions pour travailler sur ou avec des processus. */
 
 importe Fondation
-importe GlibC
+importe Chaine
+importe GlibC // pour fork et al.
 importe SysFichier
 
 IDProcessus :: #opaque z32

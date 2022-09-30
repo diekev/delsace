@@ -1,7 +1,6 @@
 /* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
 
 importe Fondation
-importe GlibC
 importe SysFichier
 importe Triage
 

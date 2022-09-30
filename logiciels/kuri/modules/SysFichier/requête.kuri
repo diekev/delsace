@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 
 TypeFichier :: énum {
     Dossier

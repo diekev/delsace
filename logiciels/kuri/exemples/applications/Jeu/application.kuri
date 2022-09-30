@@ -1,6 +1,5 @@
 importe Couleur
 importe Fondation
-importe GlibC
 importe OpenGL
 importe Structures
 
@@ -13,15 +12,6 @@ charge "glfw"
 //###############################################################################
 
 VG_file_évènements : File(T = Évènement)
-
-rappel_erreur :: fonc(erreur_ : z32, desc : ChaineC) -> rien
-{
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        chn := convertis_chaine_c(desc)
-        imprime("Erreur % : %\n", erreur_, chn);
-    }
-}
 
 rappel_clavier :: fonc(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien
 {

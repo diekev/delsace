@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe Structures
 
 ouvre_dossier :: fonc(chemin : &CheminFichier) -> Optionnel(TypePoignéeDossier)

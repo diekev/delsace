@@ -1,7 +1,6 @@
 importe Compilatrice
 importe Ensemble
 importe Fondation
-importe GlibC
 importe SysFichier
 
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour

@@ -1,7 +1,7 @@
 // Interface pour la bibliothèque du langage Python permettant de définir des modules.
 
 importe Fondation
-importe GlibC
+importe Chaine
 importe Math
 
 libpython :: #bibliothèque "python3.10"

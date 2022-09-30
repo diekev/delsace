@@ -1,6 +1,6 @@
 // définitions des interfaces de la bibliothèques C pour GNU/Linux
 
-charge "chaine"
+importe Chaine // pour ChaineC
 
 //###############################################################################
 

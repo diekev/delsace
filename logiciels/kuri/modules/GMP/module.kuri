@@ -1,5 +1,5 @@
+importe Chaine
 importe Fondation
-importe GlibC
 
 charge "interface_gmp"
 

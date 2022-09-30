@@ -8,7 +8,6 @@ importe Aléa
 importe Alphabet
 importe CodecDonnées
 importe Fondation
-importe GlibC
 importe Internet
 importe JSON
 importe SysFichier

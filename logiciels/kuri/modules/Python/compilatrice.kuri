@@ -654,7 +654,7 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse)
 {
-    ajoute_au_tampon(enchaineuse, "importe GlibC\n") // Pour ChaineC
+    ajoute_au_tampon(enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(enchaineuse, "importe Python\n")
 

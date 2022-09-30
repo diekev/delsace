@@ -1,4 +1,4 @@
-importe GlibC
+importe Chaine
 
 libgmp :: #bibliothèque "gmp"
 

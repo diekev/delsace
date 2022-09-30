@@ -1,6 +1,6 @@
 importe Couleur
 importe Fondation
-importe GlibC
+importe Chaine
 importe Math
 
 Image :: struct {

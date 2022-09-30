@@ -2,7 +2,6 @@
 // https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 
 importe Fondation
-importe GlibC
 importe SysFichier
 
 DonnéesSymbole :: struct {

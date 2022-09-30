@@ -7,7 +7,7 @@
 // "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
 // sortie standard.
 
-importe GlibC
+importe Fondation
 
 // Définition de la structure ChaînePascal.
 ChaînePascal :: struct {
@@ -42,23 +42,21 @@ longueur :: fonc(chaîne : *z8) -> z64
 // 
 // Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
 // la sortie standard, et la fonc retournera sans rien copier.
-assigne_chaîne_pascal :: fonc(cp : *ChaînePascal,  chaîne : *z8) -> rien
+assigne_chaîne_pascal :: fonc(cp : *ChaînePascal,  chaîne : chaine) -> rien
 {
 	si cp == nul {
-		printf("La chaîne pascal est nul !\n");
+		imprime("La chaîne pascal est nul !\n");
 		retourne;
 	}
 
-	l := longueur(chaîne);
-
-	si l > 255 {
-		printf("Impossible d'assigner une chaîne de %d caractère à une ChaînePascal !\n", l);
+	si chaîne.taille > 255 {
+		imprime("Impossible d'assigner une chaîne de %d caractère à une ChaînePascal !\n", chaîne.taille);
 		retourne;
 	}
 
-	cp.données[0] = l comme z8;
+	cp.données[0] = chaîne.taille comme z8;
 
-	pour i dans 0 ... l comme z32 {
+	pour i dans 0 ... chaîne.taille comme z32 {
 		cp.données[1 + i] = chaîne[i];
 	}
 }
@@ -70,19 +68,19 @@ assigne_chaîne_pascal :: fonc(cp : *ChaînePascal,  chaîne : *z8) -> rien
 imprime_chaîne_pascal :: fonc(cp : *ChaînePascal) -> rien
 {
 	si cp == nul {
-		printf("La chaîne pascal est nul !\n");
+		imprime("La chaîne pascal est nul !\n");
 		retourne;
 	}
 
 	taille := cp.données[0];
 
 	pour i dans 0 ... taille comme z32 {
-		printf("%c", cp.données[i + 1]);
+		imprime("%c", cp.données[i + 1]);
 	}
 }
 
 // Point d'entrée des programmes Kuri.
-principale :: fonc(compte : z32, arguments : **z8) -> z32
+principale :: fonc() -> z32
 {
 	chaîne : ChaînePascal;
 
