@@ -88,7 +88,7 @@ principale :: fonc () -> z32
         addr : sockaddr_in // Adresse du connecté
 	    len := taille_de(sockaddr_in)
 
-        client := accept(serveur.desc, *addr comme *sockaddr, *len)
+        client := accept(serveur.desc comme z32, *addr comme *sockaddr, *len)
         imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
 
         ssl := SSL_new(ctx)

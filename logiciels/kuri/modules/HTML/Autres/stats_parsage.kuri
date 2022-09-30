@@ -111,7 +111,7 @@ principale :: fonc () -> z32
         chm := CheminFichier(args[1])
         statistiques : StatistiquesParsage
 
-        si est_dossier(chm) {
+        si est_un_dossier(chm) {
             si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
                 imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
                 retourne 1

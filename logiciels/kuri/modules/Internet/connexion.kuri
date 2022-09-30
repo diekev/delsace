@@ -83,7 +83,7 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) ->
         }
     }
 
-    retourne Fichier(desc = prise)
+    retourne Fichier(desc = TypePoignéeFichier(prise))
 }
 
 ouvre_connexion_serveur :: fonc (uri: &URI, bloquante := faux) -> FichierOuErreur
@@ -120,7 +120,7 @@ ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> 
         retourne ErreurConnexion.ÉcoutePriseImpossible
     }
 
-    retourne Fichier(desc = prise)
+    retourne Fichier(desc = TypePoignéeFichier(prise))
 }
 
 ErreurPrise :: erreur {
@@ -188,7 +188,7 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port
 		retourne ErreurPrise.ÉcouteSurPortImpossible
 	}
 
-    retourne Fichier(prise)
+    retourne Fichier(TypePoignéeFichier(prise))
 }
 
 accepte :: fonc (prise: z32) -> z32
@@ -204,7 +204,7 @@ accepte :: fonc (prise: z32) -> z32
 
     // À FAIRE : converti l'adresse
     //cliente.adresse = adresse
-    //fichier.desc = fd_prise
+    //fichier.desc = TypePoignéeFichier(fd_prise)
 
     retourne fd_prise
 }

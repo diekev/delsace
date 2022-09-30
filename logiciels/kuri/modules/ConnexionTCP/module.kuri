@@ -36,7 +36,7 @@ ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL
     ev.events = évènements | EPOLL_EVENTS.EPOLLET
     ev.data.ptr = prise
 
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc, *ev) == -1) {
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1) {
         // imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
         retourne faux
     }
@@ -53,7 +53,7 @@ change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: 
     ev.events = évènement | EPOLL_EVENTS.EPOLLET
     ev.data.ptr = prise
 
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc, *ev) == -1) {
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1) {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
         retourne
     }
@@ -65,7 +65,7 @@ enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 
     // imprime("enlève_prise.\n")
     ev: epoll_event
-    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc, *ev) == -1) {
+    si (epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1) {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
         retourne
     }
@@ -196,7 +196,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                     change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
 
                     /* Nous n'utilisons jamais de délai pour envoyer les paquets. */
-                    _ := prise_tcp_supprime_délai(prise.fichier.desc)
+                    _ := prise_tcp_supprime_délai(prise.fichier.desc comme z32)
 
                     /* Nous sommes désormais une prise à proprement parlé. */
                     prise.type = TypePrise.PRISE
@@ -208,7 +208,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 }
             }
             sinon {
-                fichier_client := accepte(prise.fichier.desc)
+                fichier_client := accepte(prise.fichier.desc comme z32)
 
                 si fichier_client == -1 {
                     // À FAIRE: commence chronomètre
@@ -216,7 +216,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 sinon {
                     // À FAIRE: termine chronomètre si aucun
                     répète {
-                        prise_acceptée := crée_prise_interne(prise.contexte_, Fichier(fichier_client), prise.info_utilisateur)
+                        prise_acceptée := crée_prise_interne(prise.contexte_, Fichier(TypePoignéeFichier(fichier_client)), prise.info_utilisateur)
 
                         saufsi ajoute_prise(prise.contexte_.boucle_prises, prise_acceptée, EPOLL_EVENTS.EPOLLIN) {
                             déloge(prise_acceptée)
@@ -225,7 +225,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                             prise_acceptée.type = TypePrise.PRISE
 
                             /* Nous n'utilisons jamais de délai pour envoyer les paquets. */
-                            _ := prise_tcp_supprime_délai(prise_acceptée.fichier.desc)
+                            _ := prise_tcp_supprime_délai(prise_acceptée.fichier.desc comme z32)
 
                             // us_internal_socket_context_link(listen_socket->s.context, s);
 
@@ -236,7 +236,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                             arrête
                         }
 
-                        fichier_client = accepte(prise.fichier.desc)
+                        fichier_client = accepte(prise.fichier.desc comme z32)
                     } tantque fichier_client != -1
                 }
             }

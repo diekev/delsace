@@ -45,10 +45,10 @@ principale :: fonc () -> z32
 
     chm_sortie := construit_chemin("/home/kevin/SORITE_test_parcer.cc")
 
-    fd := ouvre_fichier_ecriture(chm_sortie)
-    diffère { ferme_fichier(fd) }
+    fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie.chn, pour_écriture) piège nonatteignable
+    diffère { _ := ferme(*fd) }
 
-    écris_fichier(fd, contenu)
+    _ := écris(*fd, contenu)
 
     imprime(contenu, '\n');
 

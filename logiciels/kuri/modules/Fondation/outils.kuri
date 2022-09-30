@@ -55,6 +55,18 @@ possède_valeur :: fonc (résultat: Optionnel($T)) -> bool #enligne
 	}
 }
 
+a_valeur :: fonc (optionnel: Optionnel($T), valeur: T) -> bool
+{
+	discr optionnel {
+		Quelque(v) {
+			retourne v == valeur
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
+
 fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
 {
     pour liste {

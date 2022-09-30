@@ -143,8 +143,8 @@ ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
     }
 
     résultat : TypeCanal = ---
-    résultat.lecteur = Fichier(fds[0])
-    résultat.auteur = Fichier(fds[1])
+    résultat.lecteur = Fichier(TypePoignéeFichier(fds[0]))
+    résultat.auteur = Fichier(TypePoignéeFichier(fds[1]))
     retourne résultat
 }
 

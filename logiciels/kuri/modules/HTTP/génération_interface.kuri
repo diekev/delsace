@@ -769,7 +769,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     diffère détruit_chemin(chm_dossier_pilote)
     diffère détruit_chemin(chm_fichier_pilote)
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, pour_lecture_écriture_tronquée) piège err {
         compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
         retourne
     }
