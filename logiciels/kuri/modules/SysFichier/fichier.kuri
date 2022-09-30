@@ -1,4 +1,5 @@
 importe Fondation
+importe Structures
 
 Fichier :: struct {
     desc: TypePoignéeFichier
@@ -62,15 +63,49 @@ ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
     retourne ouvre_fichier(chemin, pour_lecture, 0o644)
 }
 
-ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier) -> RésultatFichier
+/* Garantie l'existence de tous les dossiers menant vers la feuille du chemin. */
+crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
 {
-    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin.chn, '/')
+    pile := divise_et_empile_chemin(chemin)
+    diffère détruit(pile)
 
-    si pos_dossier_parent > 0 {
-        chemin_dossier := chemin.chn.sous_chaine(0, pos_dossier_parent)
+    si pile.est_vide() {
+        retourne 0 comme ErreurFichier
+    }
+
+    /* Supprime le dernier élément du chemin. */
+    _ := pile.dépile()
+
+    si pile.est_vide() {
+        /* Nous sommes à la racine sans doute. */
+        retourne 0 comme ErreurFichier
+    }
+
+    pile.renverse()
+
+    chemin_dossier : chaine
+    diffère déloge(chemin_dossier)
+
+    tantque !pile.est_vide() {
+        chaine_ajoute(*chemin_dossier, séparateur_chemin())
+        chaine_ajoute(*chemin_dossier, pile.dépile())
+        
+        si est_un_dossier(CheminFichier(chemin_dossier)) {
+            continue
+        }
+
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
             retourne err
         }
+    }
+
+    retourne 0 comme ErreurFichier
+}
+
+ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier) -> RésultatFichier
+{
+    tente crée_dossiers_pour_chemin(chemin) piège err {
+        retourne err
     }
 
     /* Garantie la présence de ce drapeau. */
