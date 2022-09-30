@@ -1615,6 +1615,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         .ajoute_message("Le type du l'union est ")
                         .ajoute_message(chaine_type(type_union))
                         .ajoute_message("\n");
+                    return CodeRetourValidation::Erreur;
                 }
             }
             else {
@@ -1639,6 +1640,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (decl != nullptr) {
                     rapporte_erreur_redefinition_symbole(var_piege, decl);
+                    return CodeRetourValidation::Erreur;
                 }
 
                 var_piege->type = type_de_l_erreur;
