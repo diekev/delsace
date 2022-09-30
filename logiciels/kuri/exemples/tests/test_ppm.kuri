@@ -68,7 +68,7 @@ génére_image_noire :: fonc() -> Image
     retourne image;
 }
 
-écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
+écris_ppm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
     fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
@@ -117,7 +117,7 @@ génére_image_noire :: fonc() -> Image
     imprime("Temps d'écriture = %s\n", delta);
 }
 
-écris_pnm :: fonc(image : Image, chemin : chaine) -> rien
+écris_pnm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
     fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
@@ -185,8 +185,8 @@ principale :: fonc () -> z32
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
-    écris_ppm(image, "/home/kevin/test_p1.ppm");
-    écris_pnm(image, "/home/kevin/test_p2.pgm");
+    écris_ppm(image, CheminFichier("/home/kevin/test_p1.ppm"));
+    écris_pnm(image, CheminFichier("/home/kevin/test_p2.pgm"));
 
     détruit_image(*image);
 

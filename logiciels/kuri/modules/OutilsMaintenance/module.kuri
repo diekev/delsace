@@ -59,7 +59,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
         ajoute_au_tampon(*enchaineuse, it, "\n")
     }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin.chn, pour_lecture_écriture_tronquée) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture_tronquée) piège err {
         retourne
     }
 

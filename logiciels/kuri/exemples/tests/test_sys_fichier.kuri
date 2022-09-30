@@ -45,7 +45,7 @@ principale :: fonc () -> z32
 
     chm_sortie := construit_chemin("/home/kevin/SORITE_test_parcer.cc")
 
-    fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie.chn, pour_écriture) piège nonatteignable
+    fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie, pour_écriture) piège nonatteignable
     diffère { _ := ferme(*fd) }
 
     _ := écris(*fd, contenu)

@@ -140,7 +140,7 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(*enchaineuse, "]\n")
 
-    fichier_sortie := tente ouvre_fichier_crée_si_non_existant("entités.kuri", pour_écriture) piège nonatteignable
+    fichier_sortie := tente ouvre_fichier_crée_si_non_existant(CheminFichier("entités.kuri"), pour_écriture) piège nonatteignable
     x := copie_enchaineuse_fichier(*enchaineuse, *fichier_sortie)
 
     _ := tente ferme(*fichier_sortie) piège nonatteignable

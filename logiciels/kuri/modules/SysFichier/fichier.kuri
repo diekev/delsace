@@ -52,22 +52,22 @@ ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, pe
 
 // ouvre_fichier_existant
 // ouvre_fichier_existant_crée_sinon
-ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
+ouvre_fichier :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(CheminFichier(chemin), pour_lecture_écriture, 0o644)
+    retourne ouvre_fichier(chemin, pour_lecture_écriture, 0o644)
 }
 
-ouvre_fichier_pour_lecture :: fonc (chemin: chaine) -> RésultatFichier
+ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(CheminFichier(chemin), pour_lecture, 0o644)
+    retourne ouvre_fichier(chemin, pour_lecture, 0o644)
 }
 
-ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, raison: RaisonOuvertureFichier) -> RésultatFichier
+ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier) -> RésultatFichier
 {
-    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin, '/')
+    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin.chn, '/')
 
     si pos_dossier_parent > 0 {
-        chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
+        chemin_dossier := chemin.chn.sous_chaine(0, pos_dossier_parent)
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
             retourne err
         }
@@ -76,7 +76,7 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, raison: RaisonOuver
     /* Garantie la présence de ce drapeau. */
     raison.Création = vrai
 
-    retourne ouvre_fichier(CheminFichier(chemin), raison, 0o644)
+    retourne ouvre_fichier(chemin, raison, 0o644)
 }
 
 ferme :: fonc (fichier: *Fichier) -> ErreurFichier
@@ -112,7 +112,7 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
 {
     contenu_source := contenu_fichier_texte(source)
 
-    fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination.chn, pour_lecture_écriture_tronquée) piège err {
+    fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège err {
         retourne faux
     }
 
