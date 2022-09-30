@@ -1,7 +1,4 @@
 importe Fondation
-importe Chaine
-importe GlibC
-importe POSIX
 importe Structures
 
 /*
@@ -50,20 +47,7 @@ ferme_fichier
 
 espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-
-    s : struct_statvfs
-    résultat := statvfs(ptr_chemin, *s)
-
-    // À FAIRE : erreur
-    // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
-    si résultat == -1 {
-        retourne 0
-    }
-
-    // À FAIRE : on peut avoir un compte différent pour les utilisateurs privilégiés.
-    retourne s.f_bavail * s.f_bsize
+    retourne système_espace_disque_disponible(chemin)
 }
 
 contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
@@ -106,77 +90,38 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
     retourne contenu_fichier_texte(chm)
 }
 
-//###############################################################################
+// -----------------------------------------------------------------------
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    tampon : [1024]z8
-    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
-
-    si (pointeur comme *z8) == nul {
-        // @erreur
-        retourne construit_chemin("")
-    }
-
-    ret := copie_chaine_c(pointeur)
-    retourne construit_chemin(ret)
+    retourne système_chemin_courant()
 }
 
 chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    chdir(ptr_chemin)
+	système_chemin_courant(chemin)
 }
 
 chemin_répertoire_personnel :: fonc () -> CheminFichier
 {
-    via_environnement := chaine_environnement("HOME")
-
-    si via_environnement {
-        retourne CheminFichier(via_environnement)
-    }
-
-    retourne CheminFichier()
+    retourne système_chemin_répertoire_personnel()
 }
 
 chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
 {
-    tampon : [TAILLE_MAX_CHEMIN]z8
-    ptr_tampon := *tampon[0]
-
-    chn_c_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chn_c_chemin)
-
-    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon))
-
-    si résultat comme *z8 == nul {
-        // À FAIRE : errno
-        retourne CheminFichier()
-    }
-
-    retourne CheminFichier(convertis_chaine_c(résultat))
+    retourne système_chemin_véritable(chemin)
 }
 
-// À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
-
-//###############################################################################
+// À FAIRE : mettre à la corbeille, trouver le chemin vers HOME/TMP
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
-	ptr_chemin_orig := crée_chaine_c(orig.chn)
-    diffère détruit_chaine_c(ptr_chemin_orig)
-	ptr_chemin_dest := crée_chaine_c(dest.chn)
-    diffère détruit_chaine_c(ptr_chemin_dest)
-
-	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
+	retourne système_renomme(orig, dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> z32
 {
-	ptr_chemin := crée_chaine_c(chm.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    retourne remove(ptr_chemin)
+    retourne système_supprime(chm)
 }
 
 /*
