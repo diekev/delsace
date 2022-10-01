@@ -128,7 +128,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
-} @IgnoreNASA
+} @FonctionLongue
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
@@ -178,8 +178,8 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
 
 rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> chaine
 {
-    //temps_présent := compte_ticks_microsecondes()
-    //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
+    //temps := maintenant_précis()
+    //diffère { imprime_log("", "Durée rendu gabarit : %µs", temps.temps_écoulé_microsecondes()) }
 
     recherche_page := trouve_dans_cache(rendeuse_gabarit, nom_court)
 

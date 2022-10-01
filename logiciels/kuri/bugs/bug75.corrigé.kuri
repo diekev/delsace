@@ -3,10 +3,10 @@
 
 principale :: fonc () -> z32
 {
-    pour x dans 10 {
+    pour 10 {
         boucle {
-            pour 2 {
-                si it % 2 == 3 {
+            pour x dans 2 {
+                si x % 2 == 3 {
                     arrête
                 }
             }

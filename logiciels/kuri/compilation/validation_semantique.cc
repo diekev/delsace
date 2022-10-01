@@ -1615,6 +1615,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         .ajoute_message("Le type du l'union est ")
                         .ajoute_message(chaine_type(type_union))
                         .ajoute_message("\n");
+                    return CodeRetourValidation::Erreur;
                 }
             }
             else {
@@ -1639,6 +1640,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (decl != nullptr) {
                     rapporte_erreur_redefinition_symbole(var_piege, decl);
+                    return CodeRetourValidation::Erreur;
                 }
 
                 var_piege->type = type_de_l_erreur;
@@ -2678,15 +2680,9 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
-        assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
+        assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
+                      [&]() { erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
-        decl->drapeaux |= EST_UTILISEE;
-        if (decl->est_declaration_variable()) {
-            auto decl_var = decl->comme_declaration_variable();
-            if (decl_var->declaration_vient_d_un_emploi) {
-                decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
-            }
-        }
         expr->type = decl->type;
 
         /* si nous avons une valeur polymorphique, crée un type de données
@@ -2704,6 +2700,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
              * avoir à s'en soucier plus tard. */
             if (valeur.est_fonction()) {
+                decl->drapeaux |= EST_UTILISEE;
                 decl = valeur.fonction();
                 expr->declaration_referee = decl;
             }
@@ -2714,6 +2711,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
         expr->genre_valeur = GenreValeur::DROITE;
+    }
+
+    decl->drapeaux |= EST_UTILISEE;
+    if (decl->est_declaration_variable()) {
+        auto decl_var = decl->comme_declaration_variable();
+        if (decl_var->declaration_vient_d_un_emploi) {
+            decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
+        }
     }
 
     return CodeRetourValidation::OK;
@@ -2911,18 +2916,28 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
                          }
 
+                         auto site = noeud;
+                         if (noeud->est_declaration_variable()) {
+                             site = noeud->comme_declaration_variable()->valeur;
+                         }
+
                          auto message = enchaine(
                              "Dans la fonction ",
                              entete.ident->nom,
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
-                         espace.rapporte_avertissement(noeud, message);
+                         espace.rapporte_avertissement(site, message);
                      }
 
                      /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
                       * fonction fut utilisée. */
                      if (noeud->est_entete_fonction()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
+                     /* Ne traversons pas les structures et énumérations non plus. */
+                     if (noeud->est_declaration_type()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
@@ -3929,12 +3944,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
                 bloc_final = it.decl->bloc_parent->bloc_parent;
             }
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
-            if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-                if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
-                    rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
-                    return CodeRetourValidation::Erreur;
+            if (it.decl->ident && it.decl->ident->nom != "_") {
+                auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
+
+                if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+                    if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
+                        rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+                        return CodeRetourValidation::Erreur;
+                    }
                 }
             }
 

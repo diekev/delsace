@@ -185,7 +185,7 @@ génère_page :: fonc(
     }
 
     retourne erreur_de_génération(données, "Type de noeud inconnus !")
-} @IgnoreNASA
+} @FonctionLongue
 
 évalue_condition :: fonc (valeur: eini) -> bool
 {

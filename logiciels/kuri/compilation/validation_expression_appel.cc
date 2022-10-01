@@ -30,6 +30,7 @@
 #include "biblinternes/outils/assert.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
@@ -1725,9 +1726,6 @@ static NoeudStruct *monomorphise_au_besoin(
         copie->type = espace.compilatrice().typeuse.reserve_type_structure(copie);
     }
 
-    // À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
-    copie->bloc->membres->efface();
-
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
         // À FAIRE(poly) : lexème pour la  constante
@@ -2002,6 +2000,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -2028,6 +2027,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = decl_fonction_appelee->type;
         expr->expression = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
@@ -2043,6 +2043,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
+                copie->drapeaux |= EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
         }
@@ -2097,6 +2098,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                     "» comme identifiant pour la capturer et l'ignorer :\n")
                 .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
             return CodeRetourValidation::Erreur;
+        }
+
+        if (expr->expression->est_reference_declaration()) {
+            auto ref = expr->expression->comme_reference_declaration();
+            ref->declaration_referee->drapeaux |= EST_UTILISEE;
         }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {

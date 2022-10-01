@@ -366,8 +366,6 @@ principale :: fonc () -> z32
     contenu := contenu_fichier_texte(chm.chn)
     diffère déloge(contenu)
 
-    taille_contenu := contenu.taille
-
     début := maintenant_précis()
     parsat := parse_document(contenu)
     diffère détruit(parsat)

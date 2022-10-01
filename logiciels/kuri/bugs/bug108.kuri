@@ -1,0 +1,20 @@
+/* Crash si « nul » est retourner pour une union qui possède un membre de type pointeur.
+ * Voir mention « retourner nul fait crasher la compilation » dans Jorjala. */
+
+importe Fondation
+
+optionnel :: fonc () -> Optionnel(*z32)
+{
+    retourne nul
+}
+
+principale :: fonc () -> z32
+{
+    opt := optionnel()
+
+    saufsi opt.possède_valeur() {
+        retourne 1
+    }
+
+    retourne 0
+}

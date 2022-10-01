@@ -1,7 +1,6 @@
 importe Compilatrice
 importe Ensemble
 importe Fondation
-importe GlibC
 importe SysFichier
 
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
@@ -676,7 +675,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
         imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool\n", données_fonction.méthode, nom_fonction_rappel)
         imprime_dans_enchaineuse(enchaineuse, "{\n")
         imprime_dans_enchaineuse(enchaineuse, "\tretourne chemin == \"%\"\n", chemin_route)
-        imprime_dans_enchaineuse(enchaineuse, "}\n")
+        imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
         retourne
     }
 
@@ -698,7 +697,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
     }
 
     imprime_dans_enchaineuse(enchaineuse, "\tretourne vrai, paramètres\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
 génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: []DonnéesCréationPointDEntréePage)
@@ -707,8 +706,29 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_fonction_appariement_route(enchaineuse, it)
     }
 
+    nombre_routes_get := 0
+    nombre_routes_post := 0
+
+    pour données_fonctions {
+        si it.méthode == "get" {
+            nombre_routes_get += 1
+            continue
+        }
+        si it.méthode == "post" {
+            nombre_routes_post += 1
+            continue
+        }
+    }
+
+    inutilisée := si nombre_routes_get == 0 {
+        " @inutilisée"
+    }
+    sinon {
+        ""
+    }
+
     // À FAIRE : précédence des routes : les routes ayant des paramètres doivent être considérer après celles sans.
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     pour données_fonctions {
         si it.méthode != "get" {
@@ -717,9 +737,16 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_corps_fonction_appariement(enchaineuse, it)
     }
     enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    inutilisée = si nombre_routes_post == 0 {
+        " @inutilisée"
+    }
+    sinon {
+        ""
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     pour données_fonctions {
         si it.méthode != "post" {
@@ -728,7 +755,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_corps_fonction_appariement(enchaineuse, it)
     }
     enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
 génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données_fonction: DonnéesCréationPointDEntréePage)
@@ -769,7 +796,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     diffère détruit_chemin(chm_dossier_pilote)
     diffère détruit_chemin(chm_fichier_pilote)
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote, pour_lecture_écriture_tronquée) piège err {
         compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
         retourne
     }
@@ -781,7 +808,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     génère_code_pilote_client(paramètres, espace, *enchaineuse)
 
     _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    __ := ferme(*fichier)
+    _ := ferme(*fichier)
 }
 
 génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[]*InfoTypeStructure)
@@ -809,7 +836,7 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
     ajoute_au_tampon(enchaineuse, "}\n\n")
 }
 
-génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, enchaineuse: *Enchaineuse)
+génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail @inutilisée, enchaineuse: *Enchaineuse)
 {
     nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
     diffère déloge(nom_type_pilote)
@@ -870,7 +897,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
             déloge(chn_type)
         }
 
-        ajoute_au_tampon(enchaineuse, ") -> Résultat(MessageServeuseHTTP)\n")
+        ajoute_au_tampon(enchaineuse, ") -> Optionnel(MessageServeuseHTTP)\n")
         ajoute_au_tampon(enchaineuse, "{\n")
 
         /* Construction de l'uri. */

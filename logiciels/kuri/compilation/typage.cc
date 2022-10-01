@@ -1260,8 +1260,14 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         }
         case GenreType::POINTEUR:
         {
-            enchaineuse.ajoute("*");
-            chaine_type(enchaineuse, static_cast<TypePointeur const *>(type)->type_pointe);
+            auto const type_pointe = type->comme_pointeur()->type_pointe;
+            if (type_pointe == nullptr) {
+                enchaineuse.ajoute("type_de(nul)");
+            }
+            else {
+                enchaineuse.ajoute("*");
+                chaine_type(enchaineuse, type_pointe);
+            }
             return;
         }
         case GenreType::UNION:

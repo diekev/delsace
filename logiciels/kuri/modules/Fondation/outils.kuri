@@ -13,12 +13,12 @@ permute :: fonc (a: &$T, b: &T) #enligne
 }
 
 // Type pour représenter un résultat optionnel
-Résultat :: union ($T: type_de_données) {
+Optionnel :: union ($T: type_de_données) {
     Quelque: T
     Aucun
 }
 
-valeur_ou :: fonc (résultat: Résultat($T), valeur: T) -> T #enligne
+valeur_ou :: fonc (résultat: Optionnel($T), valeur: T) -> T #enligne
 {
 	discr résultat {
 		Quelque(v) {
@@ -30,7 +30,7 @@ valeur_ou :: fonc (résultat: Résultat($T), valeur: T) -> T #enligne
 	}
 }
 
-valeur_ou_défaut :: fonc (résultat: Résultat($T)) -> T #enligne
+valeur_ou_défaut :: fonc (résultat: Optionnel($T)) -> T #enligne
 {
     discr résultat {
 		Quelque(v) {
@@ -43,11 +43,23 @@ valeur_ou_défaut :: fonc (résultat: Résultat($T)) -> T #enligne
     }
 }
 
-possède_valeur :: fonc (résultat: Résultat($T)) -> bool #enligne
+possède_valeur :: fonc (résultat: Optionnel($T)) -> bool #enligne
 {
 	discr résultat {
 		Quelque {
 			retourne vrai
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
+
+a_valeur :: fonc (optionnel: Optionnel($T), valeur: T) -> bool
+{
+	discr optionnel {
+		Quelque(v) {
+			retourne v == valeur
 		}
 		sinon {
 			retourne faux
@@ -64,4 +76,10 @@ fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
     }
 
     retourne faux
+}
+
+/* Type pour représenter la valeur d'une opération réussie, ou une erreur potentielle. */
+Résultat :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
+    Ok: TypeOk
+    Erreur: TypeErreur
 }

@@ -10,7 +10,7 @@ Structure :: struct {
 
 tableau := []Structure = [
     Structure(valeur = 0)
-]")
+]
 
 principale :: fonc () -> z32
 {

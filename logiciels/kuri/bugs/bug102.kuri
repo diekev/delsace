@@ -1,0 +1,34 @@
+/* Erreur de typage sur des arguments variadiques polymorphiques
+ * alors que les types sont les mêmes.
+ * voir exemples/tests/test_polymorphisme.kuri */
+
+imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
+{
+    imprime("%\n", message)
+    imprime("a = %\n", a)
+    pour args {
+        imprime("arg %: %\n", index_it, it)
+    }
+}
+
+arguments_variadiques :: fonc (a: $T, args: ...T)
+{
+    imprime_arguments_variadiques("arguments_variadiques", a, ...args)
+}
+
+arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
+{
+    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args)
+}
+
+principale :: fonc () -> z32
+{
+    arguments_variadiques(0, 1, 2, 3, 4)
+    v := 0
+    w := 1
+    x := 2
+    y := 3
+    z := 4
+    arguments_variadiques_pointeur(v, *w, *x, *y, *z)   
+    retourne 0
+}

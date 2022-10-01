@@ -1687,7 +1687,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
     }
 }
 
-NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_contexte)
+NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
     /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
@@ -1701,10 +1701,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
     }
 
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme);
-
-    if (pour_pousse_contexte) {
-        bloc->possede_contexte = true;
-    }
 
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
@@ -1962,7 +1958,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
     consomme();
 
     noeud->expression = analyse_expression({}, GenreLexeme::POUSSE_CONTEXTE, GenreLexeme::INCONNU);
-    noeud->bloc = analyse_bloc(true, true);
+    noeud->bloc = analyse_bloc(true);
 
     return noeud;
 }

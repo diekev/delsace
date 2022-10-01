@@ -6,6 +6,6 @@ ma_chaine := "les programmeurs ne sont pas inspirés quand il s'agit de trouver 
 
 principale :: fonc () -> z32
 {
-    mc := ma_chaine
+    _ := ma_chaine
     retourne 0
 }

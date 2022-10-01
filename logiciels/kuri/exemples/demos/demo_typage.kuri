@@ -33,5 +33,9 @@ principale :: fonc () -> type_de(N)
 
     b := a comme type_de(w)
 
+    si b != faux {
+        retourne 1
+    }
+
     retourne 0
 }

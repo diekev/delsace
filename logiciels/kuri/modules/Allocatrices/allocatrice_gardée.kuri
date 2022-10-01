@@ -125,7 +125,7 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
     déloge(rapport)
 }
 
-loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
+loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *InfoType, pos: PositionCodeSource @inutilisée) -> *rien
 {
     taille_à_allouer := taille_à_allouer_avec_entête(taille)
 
@@ -144,14 +144,14 @@ loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *Inf
     retourne pointeur_depuis_entête(entête)
 }
 
-reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, nouvelle_taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
+reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64 @inutilisée, nouvelle_taille: z64, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
     saufsi ancien_pointeur {
         retourne loge_mémoire(allocatrice, nouvelle_taille, info, pos)
     }
 
 	/* calcule la taille alignée correspondante à l'allocation */
-	taille_allouée := taille_alignée(ancienne_taille)
+	// taille_allouée := taille_alignée(ancienne_taille)
     // À FAIRE: vérifie taille
 
 	entête := entête_depuis_pointeur(ancien_pointeur)
@@ -170,7 +170,7 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
     retourne pointeur_depuis_entête(entête)
 }
 
-déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, info: *InfoType) -> *rien
+déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, info: *InfoType @inutilisée) -> *rien
 {
     saufsi ancien_pointeur {
 		retourne nul

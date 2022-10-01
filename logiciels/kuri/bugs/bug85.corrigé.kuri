@@ -17,7 +17,7 @@ principale :: fonc () -> z32
 {
     b : StructureEmployeuse
 
-    s : Union = *b
+    _ : Union = *b
 
     retourne 0
 }

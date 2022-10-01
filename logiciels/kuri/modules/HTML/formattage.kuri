@@ -2,7 +2,6 @@
 
 importe Chaine
 importe Fondation
-importe GlibC
 importe SysFichier
 importe Triage
 

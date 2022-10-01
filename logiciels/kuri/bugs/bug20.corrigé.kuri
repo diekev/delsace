@@ -2,11 +2,12 @@
 
 // crash lors de l'accès à une variable globale n'étant pas encore typée
 
-importe Support
+importe Fondation
 
 foo :: fonc () -> rien
 {
     a := 1024 / TAILLE_PAGE
+    imprime("a (doit être 128) : %\n", a)
 }
 
 TAILLE_PAGE :: 8

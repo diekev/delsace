@@ -55,18 +55,16 @@ static const char *copie_extra_declaration_variable = R"(
 			   POUR (nvirgule->expressions) {
 				   auto it_orig = virgule->expressions[index]->comme_reference_declaration();
                    if (it_orig->declaration_referee) {
-				       it->comme_reference_declaration()->declaration_referee = copie_noeud(assem, it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
+                       it->comme_reference_declaration()->declaration_referee = copie_noeud(it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
                    }
                    index += 1;
 			   }
 			})";
 
 static const char *copie_extra_entete_fonction = R"(
-			copie->bloc_constantes->possede_contexte = orig->bloc_constantes->possede_contexte;
-			copie->bloc_parametres->possede_contexte = orig->bloc_parametres->possede_contexte;
 			if (!copie->est_declaration_type) {
 				if (orig->params_sorties.taille() > 1) {
-					copie->param_sortie = copie_noeud(assem, orig->param_sortie, bloc_parent)->comme_declaration_variable();
+                    copie->param_sortie = copie_noeud(orig->param_sortie, bloc_parent)->comme_declaration_variable();
 				}
 				else {
 					copie->param_sortie = copie->params_sorties[0]->comme_declaration_variable();
@@ -80,7 +78,7 @@ static const char *copie_extra_entete_fonction = R"(
 				nexpr_corps->drapeaux = (expr_corps->drapeaux & ~DECLARATION_FUT_VALIDEE);
 				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
 				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille());
-				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));
+                nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(expr_corps->bloc, bloc_parent));
 			})";
 
 static const char *copie_extra_bloc = R"(
@@ -94,14 +92,14 @@ static const char *copie_extra_bloc = R"(
 static const char *copie_extra_structure = R"(
             nracine->type = nullptr;
             if (orig->bloc_constantes) {
-                copie->bloc_constantes = copie_noeud(assem, orig->bloc_constantes, bloc_parent)->comme_bloc();
+                copie->bloc_constantes = copie_noeud(orig->bloc_constantes, bloc_parent)->comme_bloc();
                 bloc_parent = copie->bloc_constantes;
                 copie->est_polymorphe = orig->est_polymorphe;
 
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                    auto copie_membre = copie_noeud(assem, it, bloc_parent);
+                    auto copie_membre = copie_noeud(it, bloc_parent);
                     copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
                 }
 
@@ -186,10 +184,6 @@ struct GeneratriceCodeCPP {
         os << "void imprime_arbre(NoeudExpression const *racine, std::ostream &os, int "
               "profondeur, bool substitution = false);\n\n";
 
-        // Copie de l'arbre
-        os << "NoeudExpression *copie_noeud(AssembleuseArbre *assem, NoeudExpression const "
-              "*racine, NoeudBloc *bloc_parent);\n\n";
-
         // Calcul de l'étendue
         os << "struct Etendue {\n";
         os << "\tlong pos_min = 0;\n";
@@ -221,6 +215,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/outils_lexemes.hh\"\n";
         os << "#include \"assembleuse.hh\"\n";
+        os << "#include \"copieuse.hh\"\n";
         os << "#include <iostream>\n";
 
         POUR (proteines) {
@@ -437,13 +432,16 @@ struct GeneratriceCodeCPP {
 
     void genere_copie_noeud(FluxSortieCPP &os)
     {
-        os << "NoeudExpression *copie_noeud(AssembleuseArbre *assem, const NoeudExpression "
+        os << "NoeudExpression *Copieuse::copie_noeud(const NoeudExpression "
               "*racine, NoeudBloc *bloc_parent)\n";
         os << "{\n";
         os << "\tif(!racine) {\n";
         os << "\t\treturn nullptr;\n";
         os << "\t}\n";
-        os << "\tNoeudExpression *nracine = nullptr;\n";
+        os << "\tNoeudExpression *nracine = trouve_copie(racine);\n";
+        os << "\tif(nracine) {\n";
+        os << "\t\treturn nracine;\n";
+        os << "\t}\n";
         os << "\tswitch(racine->genre) {\n";
 
         POUR (proteines_struct) {
@@ -529,7 +527,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(assem, it, bloc_parent)";
+                    os << "copie_noeud(it, bloc_parent)";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -546,7 +544,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(assem, orig->" << nom_enfant << ", bloc_parent)";
+                    os << "copie_noeud(orig->" << nom_enfant << ", bloc_parent)";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -606,6 +604,7 @@ struct GeneratriceCodeCPP {
         }
 
         os << "\t}\n";
+        os << "\tinsere_copie(racine, nracine);\n";
         os << "\treturn nracine;\n";
         os << "}\n";
     }
@@ -1262,13 +1261,6 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
 	bloc->bloc_parent = bloc_courant();
-	if (bloc->bloc_parent) {
-		bloc->possede_contexte = bloc->bloc_parent->possede_contexte;
-	}
-	else {
-		/* vrai si le bloc ne possède pas de parent (bloc de module) */
-		bloc->possede_contexte = true;
-	}
 	m_blocs.empile(bloc);
 	return bloc;
 }

@@ -67,14 +67,90 @@ sérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: cha
     }
 }
 
-sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: z32)
+sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: $T)
 {
-    slot := (octets.pointeur + décalage) comme *z32
+    slot := (octets.pointeur + décalage) comme *T
     mémoire(slot) = entier
 }
 
-sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: z64)
+// -----------------------------------------------------------------
+// Sérialiseuse : structure auxilliaire pour la sérialisation
+
+Sérialiseuse :: struct {
+    tampon: []octet
+    curseur: z64
+}
+
+sérialise_entier :: fonc (sérialiseuse: &Sérialiseuse, entier: $T)
 {
-    slot := (octets.pointeur + décalage) comme *z64
-    mémoire(slot) = entier
+    sérialise_entier(sérialiseuse.tampon, sérialiseuse.curseur, entier)
+    sérialiseuse.curseur += (taille_de(T) comme z64)
+}
+
+sérialise_chaine_sans_taille :: fonc (sérialiseuse: &Sérialiseuse, chn: chaine)
+{
+    sérialise_chaine_sans_taille(sérialiseuse.tampon, sérialiseuse.curseur, chn)
+    sérialiseuse.curseur += chn.taille
+}
+
+// -----------------------------------------------------------------
+// InfosSérialisation : structure auxilliaire pour calculer la taille
+// de données à sérialiser afin d'allouer un tampon suffisamment large
+
+InfosSérialisation :: struct {
+    taille_courante: z64
+}
+
+ajoute_taille :: fonc (infos: &InfosSérialisation, taille: z64)
+{
+    infos.taille_courante += taille
+}
+
+crée_sérialiseuse :: fonc (infos: &InfosSérialisation) -> Sérialiseuse
+{
+    résultat: Sérialiseuse
+    tampon := loge_tableau(octet, infos.taille_courante)
+    tampon.taille = infos.taille_courante
+    résultat.tampon = tampon
+    retourne résultat
+}
+
+// -----------------------------------------------------------------
+// Désérialiseuse : structure auxilliaire pour la désérialisation
+
+Désérialiseuse :: struct {
+    tampon: []octet
+    curseur: z64
+}
+
+crée_désérialiseuse :: fonc (tampon: []octet) -> Désérialiseuse
+{
+    retourne Désérialiseuse(tampon)
+}
+
+désérialise_chaine :: fonc (désérialiseuse: &Désérialiseuse) -> chaine
+{
+    résultat := désérialise_chaine(désérialiseuse.tampon, désérialiseuse.curseur)
+    désérialiseuse.curseur += 4 + résultat.taille
+    retourne résultat
+}
+
+désérialise_chaine :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)
+{
+    désérialise_chaine(désérialiseuse.tampon, désérialiseuse.curseur, chn)
+    désérialiseuse.curseur += (taille_de(z64) comme z64) + chn.taille
+}
+
+désérialise_chaine_sans_taille :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)
+{
+    désérialise_chaine_sans_taille(désérialiseuse.tampon, désérialiseuse.curseur, chn)
+    désérialiseuse.curseur += chn.taille
+}
+
+désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_données) -> T
+{
+    résultat : T
+    désérialise_entier(désérialiseuse.tampon, désérialiseuse.curseur, *résultat)
+    désérialiseuse.curseur += (taille_de(T) comme z64)
+    retourne résultat
 }

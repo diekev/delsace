@@ -20,35 +20,13 @@
 // Bugs
 
 - collision de symbole pour les retours des fonctions dans les fonctions
-- collision de symbole dans la coulisse C si deux structures de mêmes noms sont définies dans des fonctions différentes
-- compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
-- impossible de convertir implicitement un opaque de pointeur vers un *octet
-- impossible de comparer un opaque de pointeur avec nul
-- impossible d'utiliser les types opaques dans les conditions, si le type opacifié est convertible en bool
 - crash dans les exécutables quand nous prenons l'adresse d'une référence
-- crash quand nous paniquons sur un membre non-actif d'une union
-- compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
-- erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
-- aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
-- compilation infinie si nous utilisons #exécute pour une globale
-- les fonctions surchargées ayant des valeurs polymorphiques collisionnent
-- les plages implicites des boucles pour de type entier naturel prennent la valeur maximale quand du type si le nombre de boucle = 0
-    pour m {} // si m == 0, alors la plage est de 0 ... m - 1 = 0 ... type.max
-- Couleur.Couleur(1.0, 1.0, 1.0, 1.0) sans importer Couleur crash
-- compilation infinie si nous avons une expression de déclaration de structure invalide :
-    struct MaStructure :: struct {
-
-    }
+- compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
-- crash pour les expressions du type `x. - 1`, le point est superflux, nous devrions émettre une erreur
-
-        // À FAIRE(langage) : crash lors de l'indexage via une énumération dans la machine virtuelle
-        compilatrice.bits_fonctions_pour_canaux[it.type_chaine_recherchée comme z32] |= (1 << it.index_prise_recherche_chaine) comme n64
-Crash pour les expressions du style
-    - #pré_exécutable déloge(__globale)
 
 Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
     - nous ne devrions utiliser que la fonction du module courant
+
 // -----------------------------------
 // Architecture/Qualité de code
 

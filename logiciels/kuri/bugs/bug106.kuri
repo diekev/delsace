@@ -1,0 +1,26 @@
+/* Les blocs « diffère » se retrouvent dans les fonctions nichées si
+ * celles-ci utilise une fonction polymorphique.
+ * Voir mention « erreur de compilation si dans la fonction » dans Santé. */
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    poly :: fonc (ligne: chaine, valeur: *$T) -> bool
+    {
+        retourne faux
+    }
+
+    rappel_pour_chaque_ligne :: fonc (ligne: chaine, a: z32)
+    {
+        si poly(ligne, *a) {
+            retourne
+        }
+    }
+
+    contenu : chaine
+    diffère déloge(contenu)
+
+    pour_chaque_ligne(contenu, 4, rappel_pour_chaque_ligne)
+    retourne 0
+}

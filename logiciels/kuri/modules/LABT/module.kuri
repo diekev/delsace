@@ -61,7 +61,7 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
     tableau_ajoute(*noeud.attributs, résultat)
 }
 
-trouve_attribut :: fonc (noeud: *Noeud, nom: chaine) -> Résultat(Attribut)
+trouve_attribut :: fonc (noeud: *Noeud, nom: chaine) -> Optionnel(Attribut)
 {
     pour noeud.attributs {
         si it.nom == nom {
@@ -249,7 +249,7 @@ parse_chapitre :: fonc (parseuse: *ParseuseDocument, document: *Document, parent
     }
 }
 
-parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *Noeud)
+parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document @inutilisée, parent: *Noeud)
 {
     position := parseuse.curseur
 
@@ -312,7 +312,6 @@ parse_attributs :: fonc (parseuse: *ParseuseDocument, noeud: *Noeud)
             rapporte_erreur(parseuse, "attendu un guillemet après le signe « = »")
         }
 
-        position := parseuse.curseur
         fin_chaine := parseuse.trouve_prochain('"')
 
         si fin_chaine < 0 {
@@ -589,7 +588,7 @@ imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
  *
  * Si échec, ne retourne rien.
  */
-parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Résultat(Courriel.Courriel)
+parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
 {
     document := parse_document(texte)
 

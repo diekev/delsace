@@ -1,0 +1,12 @@
+/* Les plages implicites des boucles pour de type entier naturel prennent la
+ * valeur maximale du type si le nombre de boucle = 0.
+ * Similaire à bug89. */
+
+principale :: fonc () -> z32
+{
+    m : n32 = 0
+    pour m {
+        panique("Nous ne devrions pas avoir d'itérations !")
+    }
+    retourne 0
+}

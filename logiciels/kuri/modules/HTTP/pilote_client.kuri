@@ -116,7 +116,7 @@ ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulai
 }
 
 /* Envoie la requête de manière bloquante. */
-envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Résultat(MessageServeuseHTTP)
+envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
     message := chaine_pour_message_cliente(requête)
     diffère déloge(message)
@@ -175,7 +175,7 @@ traite_réponse :: fonc (pilote: &PiloteClienteHTTP, réponse: &MessageServeuseH
     }
 }
 
-envoie_requête_et_traite_réponse :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Résultat(MessageServeuseHTTP)
+envoie_requête_et_traite_réponse :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
     discr pilote.envoie_requête(requête) {
         Quelque(réponse) {

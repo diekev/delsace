@@ -116,7 +116,7 @@ principale :: fonc () -> z32
             imprime("%", chn)
         }
 
-        pour i dans 0 ... taille_restante - 1 {
+        pour taille_restante {
             imprime(" ")
         }
 
@@ -132,7 +132,7 @@ principale :: fonc () -> z32
 
         taille_restante := document.taille_ligne - ligne.taille
 
-        pour i dans 0 ... taille_restante - 1 {
+        pour taille_restante {
             imprime(" ")
         }
 
@@ -155,7 +155,7 @@ principale :: fonc () -> z32
 
         est_impair := taille_restante % 2 != 0
 
-        pour i dans 0 ... taille_restante / 2 {
+        pour taille_restante / 2 {
             imprime(" ")
         }
 
@@ -164,7 +164,7 @@ principale :: fonc () -> z32
             imprime("%", chn)
         }
 
-        pour i dans 0 ... taille_restante / 2 + est_impair comme z32 {
+        pour taille_restante / 2 + est_impair comme z32 {
             imprime(" ")
         }
 

@@ -607,8 +607,7 @@ struct NoeudBloc : NoeudExpression {
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées
-	bool est_nonsur
-	bool possede_contexte [copie]
+        bool est_nonsur
 	int nombre_recherches
 }
 

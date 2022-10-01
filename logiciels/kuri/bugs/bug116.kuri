@@ -1,0 +1,12 @@
+/* Erreur de syntaxage si nous utilisons #exécute pour une constante globale
+ * (ou locale, mais le bug fut découvert avec les globales). */
+
+a :: #exécute 4 * 5
+
+principale :: fonc () -> z32
+{
+    saufsi a == 20 {
+        retourne 1
+    }
+    retourne 0
+}

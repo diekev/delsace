@@ -1,7 +1,9 @@
 /* Module implémentant des fonctions pour travailler sur ou avec des processus. */
 
 importe Fondation
-importe GlibC
+importe Chaine
+importe GlibC // pour fork et al.
+importe POSIX // pour system
 importe SysFichier
 
 IDProcessus :: #opaque z32
@@ -132,7 +134,7 @@ lis :: fonc (canal: &BaseCanal) -> chaine
     retourne résultat
 }
 
-ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Résultat(TypeCanal)
+ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
 {
     fds: [2]z32
 
@@ -143,8 +145,8 @@ ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Résultat(TypeCanal)
     }
 
     résultat : TypeCanal = ---
-    résultat.lecteur = Fichier(fds[0])
-    résultat.auteur = Fichier(fds[1])
+    résultat.lecteur = Fichier(TypePoignéeFichier(fds[0]))
+    résultat.auteur = Fichier(TypePoignéeFichier(fds[1]))
     retourne résultat
 }
 
@@ -156,12 +158,12 @@ CanalLecture :: struct {
     empl base : BaseCanal
 }
 
-crée_canal_lecture :: fonc () -> Résultat(CanalLecture)
+crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
 {
     retourne ouvre_canal(CanalLecture)
 }
 
-ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Résultat(CanalLecture)
+ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalLecture)
 {
     canal : CanalLecture
     discr crée_canal_lecture() {
@@ -175,13 +177,13 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Résult
 
     discr duplique_processus() {
         Enfant {
-            /* Le processus enfant sera lu. */
-            canal.prépare_pour_lecture()
+            /* Le processus enfant écrira. */
+            canal.prépare_pour_écriture()
             remplace_processus_par_programme(programme, ...arguments)
         }
         Parent {
-            /* Le processus père écrira. */
-            canal.prépare_pour_écriture()
+            /* Le processus père lira. */
+            canal.prépare_pour_lecture()
         }
         sinon {
             retourne
@@ -199,7 +201,7 @@ CanalÉcriture :: struct {
     empl base : BaseCanal
 }
 
-crée_canal_écriture :: fonc () -> Résultat(CanalÉcriture)
+crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
 {
     retourne ouvre_canal(CanalÉcriture)
 }
@@ -213,7 +215,7 @@ CanalCommunication :: struct {
     écriture: CanalÉcriture
 }
 
-ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Résultat(CanalCommunication)
+ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
 {
     canal_lecture : CanalLecture
     discr crée_canal_lecture() {
@@ -272,4 +274,26 @@ lis :: fonc (canal: &CanalCommunication) -> chaine
 ferme_écriture :: fonc (canal: &CanalCommunication)
 {
     _ := ferme(*canal.écriture.auteur)
+}
+
+exécute_commande_externe :: fonc (args: ...chaine) -> bool
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour args {
+        ajoute_au_tampon(*enchaineuse, it)
+        ajoute_au_tampon(*enchaineuse, " ")
+    }
+
+    ajoute_au_tampon(*enchaineuse, '\0')
+
+    commande := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère { déloge(commande) }
+
+    si system(ChaineC(commande.pointeur)) != 0 {
+        retourne faux
+    }
+
+    retourne vrai
 }

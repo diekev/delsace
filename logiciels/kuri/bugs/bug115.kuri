@@ -1,0 +1,10 @@
+/* Aucune erreur de compilation si nous tentons d'utiliser une fonction de la
+ * compilatrice dans le code final. */
+
+importe Compilatrice
+
+principale :: fonc () -> z32
+{
+    _ := compilatrice_espace_courant()
+    retourne 0
+}

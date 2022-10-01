@@ -1,7 +1,6 @@
 /* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
 
 importe Fondation
-importe GlibC
 importe SysFichier
 importe Triage
 
@@ -59,12 +58,12 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
         ajoute_au_tampon(*enchaineuse, it, "\n")
     }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin.chn, LECTURE_ÉCRITURE | TRONCAGE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture_tronquée) piège err {
         retourne
     }
 
     _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    __ := ferme(*fichier)
+    _ := ferme(*fichier)
 }
 
 // -------------------------------------
@@ -97,7 +96,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
         candidat := exploratrice.chemin_suivant()
         discr candidat {
             Quelque(chemin) {
-                si chemin.est_dossier() {
+                si chemin.est_un_dossier() {
                     exploratrice.empile_dossier(chemin)
                     continue
                 }
@@ -186,7 +185,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
-    si chemin.est_dossier() {
+    si chemin.est_un_dossier() {
         exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
     }
     sinon {

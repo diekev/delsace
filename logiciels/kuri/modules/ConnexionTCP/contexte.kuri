@@ -173,7 +173,7 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
         retourne nul
     }
 
-    fichier := Fichier(fd)
+    fichier := Fichier(TypePoignéeFichier(fd))
     prise := crée_prise_interne(ctx, fichier, info_de(fonc(*Contexte)(rien)))
     prise.type = TypePrise.RAPPEL
     ptr_fonc := prise.données_utilisateur(fonc(*Contexte)(rien))

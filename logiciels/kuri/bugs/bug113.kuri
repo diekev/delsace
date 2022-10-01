@@ -1,0 +1,13 @@
+/* Impossible d'utiliser les types opaques dans les conditions si le type
+ * opacifié est convertible en bool. */
+
+importe Chaine
+
+principale :: fonc () -> z32
+{
+    c := ChaineC(nul)
+    saufsi c {
+        retourne 1
+    }
+    retourne 0
+}
