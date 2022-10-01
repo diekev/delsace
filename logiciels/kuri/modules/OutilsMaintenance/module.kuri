@@ -63,7 +63,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
     }
 
     _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    __ := ferme(*fichier)
+    _ := ferme(*fichier)
 }
 
 // -------------------------------------

@@ -35,7 +35,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
             réponse := prépare_réponse()
 
-            __ := SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
+            _ := SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
         }
         sinon {
             imprime("SSL_read a échoué !\n")

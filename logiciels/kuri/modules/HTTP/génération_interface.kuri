@@ -780,7 +780,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     génère_code_pilote_client(paramètres, espace, *enchaineuse)
 
     _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    __ := ferme(*fichier)
+    _ := ferme(*fichier)
 }
 
 génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés : *[]*InfoTypeStructure)

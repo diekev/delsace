@@ -3944,12 +3944,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
                 bloc_final = it.decl->bloc_parent->bloc_parent;
             }
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
-            if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-                if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
-                    rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
-                    return CodeRetourValidation::Erreur;
+            if (it.decl->ident && it.decl->ident->nom != "_") {
+                auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
+
+                if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+                    if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
+                        rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+                        return CodeRetourValidation::Erreur;
+                    }
                 }
             }
 

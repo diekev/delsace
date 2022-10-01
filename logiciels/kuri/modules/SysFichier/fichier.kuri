@@ -152,7 +152,7 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
     }
 
     _ := écris(*fichier_destination, contenu_source)
-    __ := ferme(*fichier_destination)
+    _ := ferme(*fichier_destination)
     retourne vrai
 }
 
@@ -389,7 +389,7 @@ référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier
     système_référence_fichier(ancien_fichier.desc, nouveau_fichier.desc)
 
     si ancien_fichier.desc != nouveau_fichier.desc {
-        __ := ferme(*ancien_fichier)
+        _ := ferme(*ancien_fichier)
     }
 }
 

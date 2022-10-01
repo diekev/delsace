@@ -105,7 +105,7 @@ génére_image_noire :: fonc() -> Image
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
 
     debut := maintenant_précis();
-    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
@@ -152,7 +152,7 @@ génére_image_noire :: fonc() -> Image
     }
 
     debut := maintenant_précis();
-    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
