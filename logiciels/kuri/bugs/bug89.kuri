@@ -2,15 +2,17 @@
  * Voir note « les nombres naturels font des boucles infinies avec "> début" » dans le module Math.
  */
 
-importe Fondation
-
 principale :: fonc () -> z32
 {
     début : n32 = 10
 
+    nombre_itérations := 0
+
     pour > début {
-        si 0 <= it <= 10 {
-            imprime("%\n", it)
+        nombre_itérations += 1
+
+        si nombre_itérations > 10 {
+            panique("Trop d'itérations !")
         }
     }
 
