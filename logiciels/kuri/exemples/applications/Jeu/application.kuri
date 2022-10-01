@@ -14,7 +14,7 @@ charge "glfw"
 
 VG_file_évènements : File(T = Évènement)
 
-rappel_clavier :: fonc(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien
+rappel_clavier :: fonc(fenetre : *GLFWwindow @inutilisée, cle : type_cle, scancode : z32 @inutilisée, action : z32, mods : type_mod) -> rien
 {
     contexte := __contexte_fil_principal
     pousse_contexte contexte {
@@ -37,7 +37,7 @@ rappel_clavier :: fonc(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, ac
     }
 }
 
-rappel_bouton_souris :: fonc(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
+rappel_bouton_souris :: fonc(fenetre : *GLFWwindow @inutilisée, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
 {
     contexte := __contexte_fil_principal
     pousse_contexte contexte {
@@ -57,7 +57,7 @@ rappel_bouton_souris :: fonc(fenetre : *GLFWwindow, bouton : bouton_souris, acti
     }
 }
 
-rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien
+rappel_position_souris :: fonc(fenetre : *GLFWwindow @inutilisée, pos_x : r64, pos_y : r64) -> rien
 {
     contexte := __contexte_fil_principal
     pousse_contexte contexte {
@@ -70,7 +70,7 @@ rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) 
     }
 }
 
-rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien
+rappel_roulette :: fonc(fenetre : *GLFWwindow @inutilisée, delta_x : r64, delta_y : r64) -> rien
 {
     contexte := __contexte_fil_principal
     pousse_contexte contexte {
@@ -83,7 +83,7 @@ rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> 
     }
 }
 
-rappel_dimension :: fonc(fenetre : *GLFWwindow, x : z32, y : z32) -> rien
+rappel_dimension :: fonc(fenetre : *GLFWwindow @inutilisée, x : z32, y : z32) -> rien
 {
     glViewport(0, 0, x, y)
 
@@ -143,9 +143,6 @@ dessine_fenetre :: fonc(app : &Application) -> rien
     glClear(0x00004000)
 
 	glClearColor(0.5, 0.5, 1.0, 1.0)
-
-	l := app.largeur comme r32
-	h := app.hauteur comme r32
 
     // dessine l'arrière plan
 
