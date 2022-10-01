@@ -706,8 +706,29 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_fonction_appariement_route(enchaineuse, it)
     }
 
+    nombre_routes_get := 0
+    nombre_routes_post := 0
+
+    pour données_fonctions {
+        si it.méthode == "get" {
+            nombre_routes_get += 1
+            continue
+        }
+        si it.méthode == "post" {
+            nombre_routes_post += 1
+            continue
+        }
+    }
+
+    inutilisée := si nombre_routes_get == 0 {
+        " @inutilisée"
+    }
+    sinon {
+        ""
+    }
+
     // À FAIRE : précédence des routes : les routes ayant des paramètres doivent être considérer après celles sans.
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     pour données_fonctions {
         si it.méthode != "get" {
@@ -718,7 +739,14 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
     enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
     imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
+    inutilisée = si nombre_routes_post == 0 {
+        " @inutilisée"
+    }
+    sinon {
+        ""
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     pour données_fonctions {
         si it.méthode != "post" {
