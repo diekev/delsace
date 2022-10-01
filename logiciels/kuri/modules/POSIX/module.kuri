@@ -1,6 +1,7 @@
 // Interface pour les fonctions standardes définies par POSIX
 
 importe Chaine // pour ChaineC
+importe GlibC // pour timespec
 importe Fondation
 
 charge "confname"
@@ -9,6 +10,7 @@ getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
 usleep :: fonc (µsec: n32) -> z32 #externe libc
+nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
 symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
 mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
 
@@ -56,19 +58,6 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     }
 
     retourne vrai
-}
-
-dors_millisecondes :: fonc (millisecondes: z32)
-{
-    si millisecondes < 0 {
-        retourne
-    }
-
-    si millisecondes == 0 {
-        retourne
-    }
-
-    _ := usleep((millisecondes * 1000) comme n32)
 }
 
 fsblkcnt_t :: n64

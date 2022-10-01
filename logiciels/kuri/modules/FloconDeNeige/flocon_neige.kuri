@@ -83,7 +83,7 @@ principale :: fonc () -> z32
             Délai {
                 délai := flocon comme Délai
                 imprime("% Nous avons un Délai : % !\n", it, délai)
-                dors_millisecondes((délai comme z64) comme z32)
+                dors(depuis_millisecondes(délai comme z64, Instantané))
                 reprends
             }
             Flocon {

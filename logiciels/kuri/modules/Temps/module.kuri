@@ -140,6 +140,16 @@ opérateur >= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
 
 // ----------------------------------------------------------------------------
 
+depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
+{
+    temps: T = ---
+    temps.seconde = millisecondes / 1_000
+    temps.nanoseconde = (millisecondes % 1_000) * 1_000_000
+    retourne temps
+}
+
+// ----------------------------------------------------------------------------
+
 secondes_par_an :: fonc () -> z32
 {
     retourne 31_556_952
@@ -502,4 +512,11 @@ vers_heures :: fonc (année: AnnéeJulienne) -> Heure
 vers_heures :: fonc (année: AnnéeSidérale) -> Heure
 {
     retourne vers_heures(Seconde(31_558_149 * année comme z32))
+}
+
+// ---------------------------------------------------
+
+dors :: fonc (instant: Instantané) -> bool
+{
+    retourne système_dors(instant)
 }
