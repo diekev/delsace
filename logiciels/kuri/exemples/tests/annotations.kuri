@@ -16,11 +16,18 @@ Vec3 :: struct {
 
 Énumération :: énum {
     XYZ
+    UVW
 } @quelquechose
 
 principale :: fonc () -> z32
 {
     v: Vec3
     e: Énumération
+    si e != Énumération.XYZ {
+        retourne 1
+    }
+    si v.x != 0.0 {
+        retourne 1
+    }
     retourne 0
 }

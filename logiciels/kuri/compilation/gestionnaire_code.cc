@@ -28,6 +28,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"

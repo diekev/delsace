@@ -4,7 +4,7 @@
 // tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
 // blocs de mémoires à manipuler.
 
-importe GlibC
+importe GlibC // pour memcpy
 
 comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
 {

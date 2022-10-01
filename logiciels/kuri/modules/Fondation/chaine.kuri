@@ -596,6 +596,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 	}
 
 	coûts := loge_tableau(z64, n + 1)
+    coûts.taille = n + 1
 
 	pour c, idx dans coûts {
 		c = idx

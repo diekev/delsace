@@ -2291,6 +2291,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
 
     auto la_discriminee = discr->expression_discriminee;
+    simplifie(la_discriminee);
 
     /* Création d'un bloc afin de pouvoir déclarer une variable temporaire qui contiendra la valeur
      * discriminée. */

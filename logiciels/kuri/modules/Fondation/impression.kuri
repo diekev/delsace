@@ -1,6 +1,5 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
-importe GlibC
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique

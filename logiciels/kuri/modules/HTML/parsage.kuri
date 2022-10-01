@@ -2028,9 +2028,9 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         //}
 
-        common_ancestor := élément_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
+        // common_ancestor := élément_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
 
-        bookmark := index_élément_formattage(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
+        // bookmark := index_élément_formattage(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
 
         noeud = furthest_block
         dernier_noeud := furthest_block

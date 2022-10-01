@@ -430,7 +430,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
     }
 
     retourne RésultatParsage.TERMINÉ
-}
+} @FonctionLongue
 
 message_est_erroné :: fonc (parseuse: *ParseuseHTTP) -> bool
 {

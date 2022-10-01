@@ -9,8 +9,6 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         retourne copie_chaine("")
     }
 
-    nombre_de_membres := type.membres.taille
-
     /* Déclare les fonctions get/set. */
     pour type.membres {
         type_membre := it.type

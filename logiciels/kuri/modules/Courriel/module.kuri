@@ -8,7 +8,6 @@ importe Aléa
 importe Alphabet
 importe CodecDonnées
 importe Fondation
-importe GlibC
 importe Internet
 importe JSON
 importe SysFichier
@@ -184,7 +183,7 @@ port :: fonc (configuration: &ConfigurationCourriel) -> n16
     retourne configuration.port_non_chiffré
 }
 
-charge_configuration_courriel_depuis_fichier_json :: fonc (chemin: CheminFichier) -> Résultat(ConfigurationCourriel)
+charge_configuration_courriel_depuis_fichier_json :: fonc (chemin: CheminFichier) -> Optionnel(ConfigurationCourriel)
 {
     succès, config := parse_struct_depuis_fichier_json(chemin.chn, ConfigurationCourriel)
 

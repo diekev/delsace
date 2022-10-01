@@ -1,6 +1,4 @@
 importe Fondation
-importe GlibC
-importe POSIX
 importe Structures
 
 /*
@@ -47,221 +45,28 @@ ferme_fichier
 
  */
 
-CheminFichier :: struct {
-    chn : chaine
-}
-
-new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
-{
-    chm.chn = copie_chaine(chn)
-    retourne vrai
-} @Python "new"
-
-new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
-{
-    retourne copie_chaine(chm.chn)
-} @Python "str"
-
-construit_chemin :: fonc(chn : chaine) -> CheminFichier
-{
-    chemin := CheminFichier( chn = chn )
-    retourne chemin
-}
-
-détruit_chemin :: fonc (chemin: &CheminFichier)
-{
-    déloge(chemin.chn)
-}
-
-imprime_chemin_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
-{
-    si chemin {
-        ajoute_au_tampon(enchaineuse, chemin.chn)
-    }
-} @FormattageImpression
-
-obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
-{
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-
-	st : struct_stat
-	ok := stat(ptr_chemin, *st)
-
-	si ok == -1 {
-		retourne 0xffffffff
-	}
-
-	retourne st.st_mode
-}
-
-fichier_existe :: fonc(chemin : &CheminFichier) -> bool
-{
-    retourne obtiens_stmode(chemin) != 0xffffffff
-}
-
-est_dossier :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFDIR
-}
-
-est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFREG
-}
-
-est_prise :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFSOCK
-}
-
-est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFLNK
-}
-
-est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFBLK
-}
-
-est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFCHR
-}
-
-est_pipe :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFIFO
-}
-
-ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
-{
-	si !fichier_existe(chemin) {
-		retourne -1
-	}
-
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    // @erreur
-	retourne open(ptr_chemin, LECTURE_SEULE)
-}
-
-ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
-{
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    // @erreur
-	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
-}
-
 espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-
-    s : struct_statvfs
-    résultat := statvfs(ptr_chemin, *s)
-
-    // À FAIRE : erreur
-    // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
-    si résultat == -1 {
-        retourne 0
-    }
-
-    // À FAIRE : on peut avoir un compte différent pour les utilisateurs privilégiés.
-    retourne s.f_bavail * s.f_bsize
-}
-
-ferme_fichier :: fonc(desc : z32) -> rien
-{
-	si desc == -1 {
-        retourne
-	}
-
-    // @erreur
-    si close(desc) == -1 {
-        retourne
-    }
+    retourne système_espace_disque_disponible(chemin)
 }
 
 contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 {
     contenu : []octet
 
-	fd := ouvre_fichier(chemin)
-	diffère { ferme_fichier(fd) }
+	fichier := tente ouvre_fichier(chemin) piège err {
+        retourne contenu
+    }
 
-	si fd == -1 {
-		retourne contenu
-	}
+	diffère { _ := ferme(*fichier) }
 
-	tampon : [1024]z8
-
-    boucle {
-		lu := read(fd, *tampon[0], 1024)
-
-		si lu == 0 {
-			arrête
-		}
-
-		si lu == -1 {
-			// À FAIRE : erreur
-			déloge(contenu)
-			arrête
-		}
-
-		taille_courante := contenu.taille
-
-		tableau_redimensionne(contenu, taille_courante + lu)
-
-		src := *tampon[0]
-		dst := *contenu[taille_courante]
-
-		copie_mem_nonsur(src=src, dst=dst, taille=lu)
-	}
+    discr lis_tout(*fichier) {
+        c(c_) {
+            contenu = c_
+        }
+        sinon {
+        }
+    }
 
     retourne contenu
 }
@@ -285,477 +90,39 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
     retourne contenu_fichier_texte(chm)
 }
 
-écris_fichier :: fonc(fd : z32, contenu : chaine) -> rien
-{
-    // @erreur
-    octets_écris := write(fd, contenu.pointeur, contenu.taille)
-}
-
-ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
-{
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    retourne opendir(ptr_chemin)
-}
-
-chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
-{
-    chn_c := ChaineC(*dir.d_name[0])
-    taille := taille_chaine_c(chn_c)
-    chn := construit_chaine(*dir.d_name[0], taille)
-
-    retourne construit_chemin(chn)
-}
-
-chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
-{
-    si !est_dossier(chemin) {
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    boucle {
-        dir := readdir(d)
-
-        si dir == nul {
-            arrête
-        }
-
-        retiens chemin_pour_dirname(dir)
-    }
-
-    _ := closedir(d)
-}
-
-pour_chaque_chemin :: fonc (chemin : CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
-{
-    si !est_dossier(chemin) {
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    boucle {
-        dir := readdir(d)
-
-        si dir == nul {
-            arrête
-        }
-
-        rappel(chemin_pour_dirname(dir), données)
-    }
-
-    _ := closedir(d)
-}
-
-extension :: fonc (chemin: &CheminFichier) -> chaine
-{
-    // À FAIRE : ceci considère les fichiers cachés sous Linux comme étant des extensions
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, '.')
-
-    si pos < 0 {
-        retourne ""
-    }
-
-    retourne sous_chaine(chemin.chn, pos, chemin.chn.taille)
-}
-
-nom_fichier :: fonc (chemin: &CheminFichier) -> chaine
-{
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, '/')
-
-    nom_fichier := ""
-
-    si pos >= 0 {
-        si pos > 0 {
-            pos += 1
-        }
-        nom_fichier = sous_chaine(chemin.chn, pos, chemin.chn.taille)
-    }
-
-    pos = trouve_caractère_depuis_la_fin(nom_fichier, '.')
-
-    si pos <= 0 {
-        retourne nom_fichier
-    }
-
-    retourne sous_chaine(nom_fichier, 0, pos)
-}
-
-//###############################################################################
-
-enfile_dossier :: fonc(file : &File(T = *DIR), dir : *dirent, chemin : &CheminFichier) -> rien
-{
-    chm := chemin_pour_dirname(dir)
-
-    si chm.chn == "." {
-        retourne
-    }
-
-    si chm.chn == ".." {
-        retourne
-    }
-
-    // Trouve le chemin absolu.
-    chn : chaine
-    diffère { déloge(chn); }
-
-    si chemin.chn[chemin.chn.taille - 1] != '/' {
-        chn = enchaine(chemin.chn, "/", chm.chn)
-    }
-    sinon {
-        chn = enchaine(chemin.chn, chm.chn)
-    }
-
-    chm.chn = chn
-
-    nd := ouvre_dossier(chm)
-
-    si nd == nul {
-        retourne
-    }
-
-    enfile(file, nd)
-}
-
-chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
-{
-    si !est_dossier(chemin) {
-        imprime("Le chemin n'est pas un dossier")
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    file : File(T = *DIR)
-
-    enfile(file, d)
-
-    tantque !est_vide(file) {
-        d = défile(file)
-
-        boucle {
-            dir := readdir(d)
-
-            si dir == nul {
-                arrête
-            }
-
-            si dir.d_type == (DT_DIR comme n8) {
-                enfile_dossier(file, dir, chemin)
-            }
-
-            retiens chemin_pour_dirname(dir)
-        }
-
-        _ := closedir(d)
-    }
-
-    decrée_file(file)
-}
-
-//###############################################################################
+// -----------------------------------------------------------------------
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    tampon : [1024]z8
-    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
-
-    si (pointeur comme *z8) == nul {
-        // @erreur
-        retourne construit_chemin("")
-    }
-
-    ret := copie_chaine_c(pointeur)
-    retourne construit_chemin(ret)
+    retourne système_chemin_courant()
 }
 
 chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    chdir(ptr_chemin)
+	système_chemin_courant(chemin)
 }
 
 chemin_répertoire_personnel :: fonc () -> CheminFichier
 {
-    via_environnement := chaine_environnement("HOME")
-
-    si via_environnement {
-        retourne CheminFichier(via_environnement)
-    }
-
-    retourne CheminFichier()
+    retourne système_chemin_répertoire_personnel()
 }
 
 chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
 {
-    tampon : [TAILLE_MAX_CHEMIN]z8
-    ptr_tampon := *tampon[0]
-
-    chn_c_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chn_c_chemin)
-
-    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon))
-
-    si résultat comme *z8 == nul {
-        // À FAIRE : errno
-        retourne CheminFichier()
-    }
-
-    retourne CheminFichier(convertis_chaine_c(résultat))
+    retourne système_chemin_véritable(chemin)
 }
 
-// À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
-
-//###############################################################################
+// À FAIRE : mettre à la corbeille, trouver le chemin vers HOME/TMP
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
-	ptr_chemin_orig := crée_chaine_c(orig.chn)
-    diffère détruit_chaine_c(ptr_chemin_orig)
-	ptr_chemin_dest := crée_chaine_c(dest.chn)
-    diffère détruit_chaine_c(ptr_chemin_dest)
-
-	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
+	retourne système_renomme(orig, dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> z32
 {
-	ptr_chemin := crée_chaine_c(chm.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    retourne remove(ptr_chemin)
+    retourne système_supprime(chm)
 }
-
-// Outils pour travailler sur des chemins
-
-système_séparateur_chemin_préféré :: fonc () -> z8
-{
-    retourne '/'
-}
-
-divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
-{
-    morceaux := divise(chemin.chn, système_séparateur_chemin_préféré())
-    diffère déloge(morceaux)
-
-    pour morceaux {
-        pile.empile(it)
-    }
-}
-
-chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
-{
-    pile_secondaire : Pile(chaine)
-    diffère détruit(pile_secondaire)
-
-    tantque !pile.est_vide() {
-        morceau_courant := pile.dépile()
-
-        si morceau_courant == "." {
-            continue
-        }
-
-        si morceau_courant == ".." {
-            // À FAIRE : si la pile est vide, retourne un chemin invalide
-            saufsi pile.est_vide() {
-                _ := pile.dépile()
-            }
-            continue
-        }
-
-        pile_secondaire.empile(morceau_courant)
-    }
-
-    résultat : chaine
-
-    // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
-    // chemin on tous été supprimés, soit que le chemin fut celui de la racine
-    si pile_secondaire.est_vide() {
-        chaine_ajoute(*résultat, système_séparateur_chemin_préféré())
-    }
-
-    tantque !pile_secondaire.est_vide() {
-        morceau_courant := pile_secondaire.dépile()
-        chaine_ajoute(*résultat, système_séparateur_chemin_préféré())
-        chaine_ajoute(*résultat, morceau_courant)
-    }
-
-    retourne CheminFichier(résultat)
-}
-
-chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
-{
-    pile: Pile(chaine)
-    diffère détruit(pile)
-    divise_et_empile_chemin(pile, chemin)
-    retourne chemin_normalisé(pile)
-}
-
-opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
-{
-    retourne chemin1.chn == chemin2.chn
-}
-
-opérateur == :: fonc (chemin: CheminFichier, chn: chaine) -> bool
-{
-    retourne chemin.chn == chn
-}
-
-opérateur != :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
-{
-    retourne chemin1.chn != chemin2.chn
-}
-
-opérateur != :: fonc (chemin: CheminFichier, chn: chaine) -> bool
-{
-    retourne chemin.chn != chn
-}
-
-opérateur / :: fonc (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
-{
-    retourne crée_chemin_absolu(chemin_base, feuille)
-}
-
-opérateur / :: fonc (chemin_base: CheminFichier, feuille: chaine) -> CheminFichier
-{
-    retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille))
-}
-
-opérateur < :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
-{
-    retourne chm1.chn < chm2.chn
-}
-
-opérateur <= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
-{
-    retourne chm1.chn <= chm2.chn
-}
-
-opérateur > :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
-{
-    retourne chm1.chn > chm2.chn
-}
-
-opérateur >= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
-{
-    retourne chm1.chn >= chm2.chn
-}
-
-chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
-{
-    chemin1_normalisé := chemin_normalisé(chemin1)
-    chemin2_normalisé := chemin_normalisé(chemin2)
-    diffère déloge(chemin1_normalisé.chn)
-    diffère déloge(chemin2_normalisé.chn)
-    retourne chemin1_normalisé == chemin2_normalisé
-}
-
-crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
-{
-    // divise selon le séparateur du système
-    pile : Pile(chaine)
-    diffère détruit(pile)
-    divise_et_empile_chemin(pile, base)
-    divise_et_empile_chemin(pile, feuille)
-    retourne chemin_normalisé(pile)
-}
-
-est_absolu :: fonc (chm: CheminFichier) -> bool
-{
-    saufsi chm.chn {
-        retourne faux
-    }
-
-    premier_caractère := chm.chn[0]
-    si premier_caractère != '/' && premier_caractère != '~' {
-        retourne faux
-    }
-
-    retourne vrai
-}
-
-nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
-{
-    pile : Pile(chaine)
-    diffère détruit(pile)
-    divise_et_empile_chemin(pile, chm)
-
-    /* Dépile le nom du fichier ou du fichier parent. */
-    _ := pile.dépile()
-
-    si pile.est_vide() {
-        retourne ""
-    }
-
-    retourne pile.dépile()
-}
-
-/* Retourne le nom du premier dossier après le dossier de base.
- * Par exemple pour un chemin "/dossier1/dossier2", et une base "/dossier1",
- * retourne "dossier2"
- * À FAIRE : crée un test. */
-premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chaine
-{
-    chm.chn = avance(chm.chn, base.chn.taille)
-
-    pile: Pile(chaine)
-    diffère détruit(pile)
-
-    divise_et_empile_chemin(pile, chm)
-
-    tantque pile.taille() != 1 {
-        _ := pile.dépile()
-    }
-
-    retourne pile.dépile()
-}
-
-/*
-    À FAIRE : tests
-
-    /. -> /
-
-    /home/../dev -> /dev
-    /home/./kevin -> /home/kevin
-
-    chm := crée_chemin_absolu(CheminFichier("/"), CheminFichier("."))
-
-    si chm != "/" {
-        imprime("Erreur !\n")
-    }
-
-    imprime("%\n", chm.chn)
-    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("./kevin"))
-
-    si chm != "/home/kevin" {
-        imprime("Erreur !\n")
-    }
-    imprime("%\n", chm.chn)
-    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("../dev"))
-    si chm != "/dev" {
-        imprime("Erreur !\n")
-    }
-    imprime("%\n", chm.chn)
-
-    si chemins_sont_équivalents(CheminFichier("/home/kevin"), CheminFichier("/home/kevin/../kevin")) {
-        imprime("Les chemins sont équivalents !\n")
-    }
-
- */
 
 /*
 

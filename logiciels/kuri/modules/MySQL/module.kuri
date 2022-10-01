@@ -1,5 +1,5 @@
 importe Fondation
-importe GlibC
+importe Chaine
 importe Internet
 importe Introspection
 importe JSON
@@ -286,7 +286,7 @@ TableMySQL :: struct {
 	pilote : *PiloteMySQL
 }
 
-trouve_info_membres_pour_colonnes :: fonc (agent: chaine, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
+trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
 {
 	infos_membres : []*InfoTypeMembreStructure
 
@@ -521,7 +521,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
 fonctions_parsages_mysql : []FonctionParsage
 
-parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Résultat(T)
+parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel(T)
 {
     #assert info_de(T).id == id_info.STRUCTURE
 
@@ -545,7 +545,7 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
     retourne valeur
 }
 
-parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Résultat([]T)
+parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel([]T)
 {
 	#assert info_de(T).id == id_info.STRUCTURE
 
@@ -608,7 +608,7 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
 
 // -------------------------------------------------------
 
-sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
+sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([]TypeRésultat)
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -653,7 +653,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     }
 }
 
-exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat([]TypeRésultat)
+exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([]TypeRésultat)
 {
     résultat := tente exécute(connexion, requête) piège err {
         retourne
@@ -679,7 +679,7 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
     }
 }
 
-exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Résultat(TypeRésultat)
+exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel(TypeRésultat)
 {
     résultat := tente exécute(connexion, requête) piège err {
         retourne

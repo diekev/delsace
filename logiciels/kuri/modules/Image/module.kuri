@@ -1,6 +1,6 @@
 importe Couleur
 importe Fondation
-importe GlibC
+importe Chaine
 importe Math
 
 Image :: struct {
@@ -52,40 +52,40 @@ charge "interface_image"
 
 liboiio :: #bibliothèque "OpenImageIO"
 liboiio_util :: #bibliothèque "OpenImageIO_Util"
-libjpeg :: #bibliothèque "jpeg"
-libpugixml :: #bibliothèque "pugixml"
-libwebp :: #bibliothèque "webp"
-libwebpdecoder :: #bibliothèque "webpdecoder"
-libwebpdemux :: #bibliothèque "webpdemux"
-libwebpmux :: #bibliothèque "webpmux"
-libpthread :: #bibliothèque "pthread"
-libtiff :: #bibliothèque "tiff"
-libtiffxx :: #bibliothèque "tiffxx"
-libz :: #bibliothèque "z"
-libboost_thread :: #bibliothèque "boost_thread"
-libboost_system :: #bibliothèque "boost_system"
-libboost_filesystem :: #bibliothèque "boost_filesystem"
-libopenjp2 :: #bibliothèque "openjp2"
-libdl :: #bibliothèque "dl"
-libpng :: #bibliothèque "png"
+// libjpeg :: #bibliothèque "jpeg"
+// libpugixml :: #bibliothèque "pugixml"
+// libwebp :: #bibliothèque "webp"
+// libwebpdecoder :: #bibliothèque "webpdecoder"
+// libwebpdemux :: #bibliothèque "webpdemux"
+// libwebpmux :: #bibliothèque "webpmux"
+// libpthread :: #bibliothèque "pthread"
+// libtiff :: #bibliothèque "tiff"
+// libtiffxx :: #bibliothèque "tiffxx"
+// libz :: #bibliothèque "z"
+// libboost_thread :: #bibliothèque "boost_thread"
+// libboost_system :: #bibliothèque "boost_system"
+// libboost_filesystem :: #bibliothèque "boost_filesystem"
+// libopenjp2 :: #bibliothèque "openjp2"
+// libdl :: #bibliothèque "dl"
+// libpng :: #bibliothèque "png"
 
-#dépendance_bibliothèque liboiio_util libdl
-#dépendance_bibliothèque libtiff libz
-#dépendance_bibliothèque libtiff libtiffxx
-#dépendance_bibliothèque libwebp libwebpdecoder
-#dépendance_bibliothèque libwebp libwebpdemux
-#dépendance_bibliothèque libwebp libwebpmux
-#dépendance_bibliothèque liboiio libpng
-#dépendance_bibliothèque liboiio libwebp
-#dépendance_bibliothèque liboiio libtiff
-#dépendance_bibliothèque liboiio libpthread
-#dépendance_bibliothèque liboiio libpugixml
-#dépendance_bibliothèque liboiio libjpeg
-#dépendance_bibliothèque liboiio libopenjp2
+// #dépendance_bibliothèque liboiio_util libdl
+// #dépendance_bibliothèque libtiff libz
+// #dépendance_bibliothèque libtiff libtiffxx
+// #dépendance_bibliothèque libwebp libwebpdecoder
+// #dépendance_bibliothèque libwebp libwebpdemux
+// #dépendance_bibliothèque libwebp libwebpmux
+// #dépendance_bibliothèque liboiio libpng
+// #dépendance_bibliothèque liboiio libwebp
+// #dépendance_bibliothèque liboiio libtiff
+// #dépendance_bibliothèque liboiio libpthread
+// #dépendance_bibliothèque liboiio libpugixml
+// #dépendance_bibliothèque liboiio libjpeg
+// #dépendance_bibliothèque liboiio libopenjp2
 #dépendance_bibliothèque liboiio liboiio_util
-#dépendance_bibliothèque libmodule_c_image libboost_thread
-#dépendance_bibliothèque libmodule_c_image libboost_system
-#dépendance_bibliothèque libmodule_c_image libboost_filesystem
+// #dépendance_bibliothèque libmodule_c_image libboost_thread
+// #dépendance_bibliothèque libmodule_c_image libboost_system
+// #dépendance_bibliothèque libmodule_c_image libboost_filesystem
 #dépendance_bibliothèque libmodule_c_image liboiio
 
 nombre_éléments_données :: fonc (image: ImageIO) -> z64

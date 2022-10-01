@@ -25,6 +25,7 @@
 #include "coulisse_c.hh"
 
 #include <fstream>
+#include <set>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
@@ -1964,6 +1965,8 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " /tmp/r16_tables_x64.o ";
     }
 
+    auto chemins_utilises = std::set<std::filesystem::path>();
+
     POUR (m_bibliotheques) {
         if (it->nom == "r16") {
             continue;
@@ -1974,11 +1977,16 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
+        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
+            continue;
+        }
+
         if (it->chemin_dynamique(espace.options)) {
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
         enchaineuse << " -L" << chemin_parent.c_str();
+        chemins_utilises.insert(chemin_parent);
     }
 
     /* À FAIRE(bibliothèques) : permet la liaison statique.

@@ -72,6 +72,18 @@ duplique_tête :: fonc (pile: &Pile(T = $T))
     pile.empile(b)
 }
 
+/* Inverse l'ordre des éléments de la pile. */
+renverse :: fonc (pile: &Pile(T = $T))
+{
+    index_fin := pile.taille() - 1
+
+    pour pile.taille() / 2 {
+        tmp := pile.données[it]
+        pile.données[it] = pile.données[index_fin - it]
+        pile.données[index_fin - it] = tmp
+    }
+}
+
 /*
 principale :: fonc () -> z32
 {

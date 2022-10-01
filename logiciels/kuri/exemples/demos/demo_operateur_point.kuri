@@ -24,7 +24,7 @@ principale :: fonc () -> z32
 	y0 := t2.tests[1].mat4x4[0][1]
 
 	w : [3]z32
-	w[y.taille] = 0
+	w[y.taille] = y0 + mémoire(x)
 
 	retourne 0
 }

@@ -119,7 +119,7 @@ rappel_recherche :: fonc (requête: chaine, clé: CléConsole) -> rien
 
     courant := dernière_pos_recherche
 
-    pour ligne, idx dans E.lignes_rendu {
+    pour E.lignes_rendu {
         courant += direction_recherche
 
         si (courant == -1) {
@@ -294,7 +294,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
         PageHaut {
             E.cy = E.décalage_ligne
 
-            pour i dans 0 ... E.colonnes - 1 {
+            pour E.colonnes {
                 console_déplace_curseur(CléConsole.FlècheHaut)
             }
         }
@@ -305,7 +305,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
                 E.cy = E.lignes_texte.taille comme z32
             }
 
-            pour i dans 0 ... E.colonnes - 1 {
+            pour E.colonnes {
                 console_déplace_curseur(CléConsole.FlècheBas)
             }
         }
@@ -413,7 +413,7 @@ console_dessine_lignes :: fonc (enchaineuse : *Enchaineuse) -> rien
                     rembourrage -= 1
                 }
 
-                pour r dans 0 ... rembourrage - 1 {
+                pour rembourrage {
                     ajoute_au_tampon(enchaineuse, " ")
                 }
 
@@ -465,7 +465,7 @@ console_dessine_barre_status :: fonc (enchaineuse: *Enchaineuse) -> rien
     imprime_dans_enchaineuse(enchaineuse, format, E.lignes_texte.taille)
     taille_imprimée += (format.taille + magnitude_décimale(E.lignes_texte.taille)) comme z32
 
-    pour i dans taille_imprimée ... E.colonnes - 1 {
+    pour (E.colonnes - taille_imprimée) + 1 {
         ajoute_au_tampon(enchaineuse, ' ')
     }
 

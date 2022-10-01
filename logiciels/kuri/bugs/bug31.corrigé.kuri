@@ -6,6 +6,6 @@ Struct :: struct {
 
 principale :: fonc () -> z32
 {
-    x : ...Struct
+    _ : ...Struct
     retourne 0
 }
