@@ -1,0 +1,24 @@
+/* Mauvaise génération de code pour les raccourcis booléens des énums drapeaux.
+ * Voir mention « mauvaise génération de code C pour retourne it.drapeaux.EstXXX == qqch » dans Jorjala. */
+
+ÉnumDrapeau :: énum_drapeau {
+    X
+    Y
+    Z
+}
+
+est_X :: fonc (drapeaux: ÉnumDrapeau) -> bool
+{
+    retourne drapeaux.X == vrai
+}
+
+principale :: fonc () -> z32
+{
+    e : ÉnumDrapeau
+
+    si est_X(e) {
+        retourne 1
+    }
+
+    retourne 0
+}
