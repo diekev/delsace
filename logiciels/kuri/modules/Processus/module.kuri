@@ -3,6 +3,7 @@
 importe Fondation
 importe Chaine
 importe GlibC // pour fork et al.
+importe POSIX // pour system
 importe SysFichier
 
 IDProcessus :: #opaque z32
@@ -273,4 +274,26 @@ lis :: fonc (canal: &CanalCommunication) -> chaine
 ferme_écriture :: fonc (canal: &CanalCommunication)
 {
     _ := ferme(*canal.écriture.auteur)
+}
+
+exécute_commande_externe :: fonc (args: ...chaine) -> bool
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour args {
+        ajoute_au_tampon(*enchaineuse, it)
+        ajoute_au_tampon(*enchaineuse, " ")
+    }
+
+    ajoute_au_tampon(*enchaineuse, '\0')
+
+    commande := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère { déloge(commande) }
+
+    si system(ChaineC(commande.pointeur)) != 0 {
+        retourne faux
+    }
+
+    retourne vrai
 }

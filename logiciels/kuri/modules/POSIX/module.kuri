@@ -38,28 +38,6 @@ est_utilisateur_racine :: fonc() -> bool
     retourne getuid() == 0
 }
 
-exécute_commande_externe :: fonc (args: ...chaine) -> bool
-{
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    pour args {
-        ajoute_au_tampon(*enchaineuse, it)
-        ajoute_au_tampon(*enchaineuse, " ")
-    }
-
-    ajoute_au_tampon(*enchaineuse, '\0')
-
-    commande := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge(commande) }
-
-    si system(ChaineC(commande.pointeur)) != 0 {
-        retourne faux
-    }
-
-    retourne vrai
-}
-
 fsblkcnt_t :: n64
 
 struct_statvfs :: struct #externe {
