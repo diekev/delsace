@@ -160,7 +160,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
         }
 
         si paginatrice.utilise_stockage_disque {
-            flush_paginatrice(paginatrice, i, TAILLE_PAGE)
+            flush_paginatrice(paginatrice, i)
         }
 
         déloge(paginatrice.pages[i])
@@ -175,7 +175,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
 
         si paginatrice.pages[index_page].pointeur != nul {
             si paginatrice.utilise_stockage_disque {
-                flush_paginatrice(paginatrice, index_page, TAILLE_PAGE)
+                flush_paginatrice(paginatrice, index_page)
             }
 
             déloge(paginatrice.pages[index_page])

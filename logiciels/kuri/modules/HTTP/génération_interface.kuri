@@ -808,7 +808,7 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
     ajoute_au_tampon(enchaineuse, "}\n\n")
 }
 
-génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, enchaineuse: *Enchaineuse)
+génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail @inutilisée, enchaineuse: *Enchaineuse)
 {
     nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
     diffère déloge(nom_type_pilote)

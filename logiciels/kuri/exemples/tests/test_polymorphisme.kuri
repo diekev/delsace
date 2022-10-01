@@ -33,10 +33,20 @@ appel_fonction :: fonc (a: $T, b: $U, fonction: fonc(T, U)($V)) -> V
 
 arguments_variadiques :: fonc (a: $T, args: ...T)
 {
+    imprime("arguments_variadiques\n")
+    imprime("a = %\n", a)
+    pour args {
+        imprime("arg %: %\n", index_it, it)
+    }
 }
 
 arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
 {
+    imprime("arguments_variadiques_pointeur\n")
+    imprime("a = %\n", a)
+    pour args {
+        imprime("arg %: %\n", index_it, it)
+    }
 }
 
 argument_tableau_fixe :: fonc (a: [8]$T)

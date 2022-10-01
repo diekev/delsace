@@ -73,7 +73,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
 
 // les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
 // nous pourrions également éviter d'écrire des pages qui n'ont pas changées
-flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32, taille: z32) -> rien
+flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32) -> rien
 {
     si paginatrice.pages[index_page].pointeur == nul {
         panique("Tentativer de flusher une page nulle !")

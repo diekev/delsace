@@ -286,7 +286,7 @@ TableMySQL :: struct {
 	pilote : *PiloteMySQL
 }
 
-trouve_info_membres_pour_colonnes :: fonc (agent: chaine, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
+trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
 {
 	infos_membres : []*InfoTypeMembreStructure
 

@@ -79,7 +79,7 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
     retourne nombre_de_fichiers
 }
 
-mon_logueur :: fonc (c: chaine, message: chaine, mode: ModeLogage, données: *rien)
+mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
 {
     imprime("%\n", c)
 }

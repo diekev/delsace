@@ -22,7 +22,7 @@ principale :: fonc () -> z32
     aiguille := "Kévin"
     botte_de_foin := "Kévin Dietrich"
 
-    i := cherche_aiguille_(botte_de_foin, aiguille, ChercheAiguillePar.ForceBrute)
+    _ := cherche_aiguille_(botte_de_foin, aiguille, ChercheAiguillePar.ForceBrute)
 
     retourne 0
 }

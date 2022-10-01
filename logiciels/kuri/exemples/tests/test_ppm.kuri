@@ -93,20 +93,12 @@ génére_image_noire :: fonc() -> Image
     tampon := loge_chaine(nombre_caracteres);
     diffère { déloge(tampon); }
 
-    idx := 0;
-    idx_image := 0;
-
-    pour i dans 0...taille_x - 1 {
-        pour j dans 0...taille_y - 1 {
-            si image.tampon[idx_image] == 0 {
-                tampon[idx] = '1'
-            }
-            sinon {
-                tampon[idx] = '0'
-            }
-
-            idx_image += 1;
-            idx += 1;
+    pour image.tampon {
+        tampon[index_it] = si it == 0 {
+            '1'
+        }
+        sinon {
+            '0'
         }
     }
 
@@ -146,21 +138,16 @@ génére_image_noire :: fonc() -> Image
 
     imprime_dans_enchaineuse(*enchaineuse, "% % % % ", entete, taille_x, taille_y, 255)
 
-    nombre_caracteres := taille_x * taille_y * image.channels * 2;
-
-    idx := 0;
-    idx_image := 0;
-
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
+            idx_image := (i * taille_y + j) * image.channels;
+
             pour k dans 0 ... image.channels - 1 {
                 ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = tampon_image[idx_image + k], base = 10))
             }
 
             ajoute_au_tampon(*enchaineuse, " ")
 
-            idx += image.channels + 1;
-            idx_image += image.channels;
         }
     }
 

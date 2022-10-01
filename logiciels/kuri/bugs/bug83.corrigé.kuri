@@ -7,6 +7,6 @@ Union :: union {
 
 principale :: fonc () -> z32
 {
-    u: Union
+    _: Union
     retourne 0
 }

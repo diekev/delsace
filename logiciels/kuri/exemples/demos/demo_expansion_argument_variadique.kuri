@@ -1,17 +1,22 @@
 importe Fondation
 
-passe_args :: fonc (args: ...chaine) -> rien
-{
-
-}
-
-imprime_films :: fonc (fmt: chaine, args: ...chaine) -> rien
+imprime_args :: fonc (fmt: chaine, args: ...chaine)
 {
     imprime("%\n", fmt)
 
     pour arg dans args {
         imprime("-- %\n", arg)
     }
+}
+
+passe_args :: fonc (args: ...chaine) -> rien
+{
+    imprime_args("passe_args", ...args)
+}
+
+imprime_films :: fonc (fmt: chaine, args: ...chaine) -> rien
+{
+    imprime_args(fmt, ...args)
 }
 
 principale :: fonc () -> z32

@@ -41,7 +41,7 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 		ajoute_au_tampon(*enchaineuse, chaines[i])
 	}
 
-	pour i dans 0 ... nombre_de_ligne - 1 {
+	pour nombre_de_ligne {
 		ajoute_au_tampon(*enchaineuse, chaines[6])
 	}
 
