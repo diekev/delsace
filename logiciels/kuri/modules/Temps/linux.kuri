@@ -1,5 +1,13 @@
 importe GlibC
 
+depuis_timespec :: fonc (t: timespec, $T: type_de_données) -> T #enligne
+{
+    temps: T = ---
+    temps.seconde = t.tv_sec
+    temps.nanoseconde = t.tv_nsec
+    retourne temps
+}
+
 /* Retourne le temps monotonic du système. */
 système_instantané :: fonc () -> Instantané
 {
@@ -7,11 +15,7 @@ système_instantané :: fonc () -> Instantané
     // @erreur
     _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t)
 
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne depuis_timespec(t, Instantané)
 }
 
 /* Retourne le temps monotonic précis du système, cette fonction est plus lente
@@ -22,11 +26,7 @@ système_instantané_précis :: fonc () -> Instantané
     // @erreur
     _ := clock_gettime(CLOCK_MONOTONIC, *t)
 
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne depuis_timespec(t, Instantané)
 }
 
 /* Retourne le temps réel du système. */
@@ -36,11 +36,7 @@ système_temps_réel :: fonc () -> TempsSystème
     // @erreur
     _ := clock_gettime(CLOCK_REALTIME_COARSE, *t)
 
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne depuis_timespec(t, TempsSystème)
 }
 
 /* Retourne le temps réel précis du système, cette fonction est plus lente
@@ -51,9 +47,5 @@ système_temps_réel_précis :: fonc () -> TempsSystème
     // @erreur
     _ := clock_gettime(CLOCK_REALTIME, *t)
 
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne depuis_timespec(t, TempsSystème)
 }
