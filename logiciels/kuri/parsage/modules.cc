@@ -210,6 +210,11 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
     enchaineuse << numero_ligne << " | " << texte_ligne;
 
+    /* Le manque de nouvelle ligne peut arriver en fin de fichier. */
+    if (texte_ligne.taille() != 0 && texte_ligne[texte_ligne.taille() - 1] != '\n') {
+        enchaineuse << '\n';
+    }
+
     if (index_colonne != -1) {
         enchaineuse << "      | ";
 
