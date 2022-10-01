@@ -103,7 +103,7 @@ vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: 
     entête := corps.entête
 
     pour entête.annotations {
-        si it.nom == "IgnoreNASA" {
+        si it.nom == "FonctionLongue" {
             retourne
         }
     }
