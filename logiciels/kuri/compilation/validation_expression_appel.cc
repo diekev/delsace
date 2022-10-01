@@ -2099,6 +2099,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
             return CodeRetourValidation::Erreur;
         }
+
+        if (expr->expression->est_reference_declaration()) {
+            auto ref = expr->expression->comme_reference_declaration();
+            ref->declaration_referee->drapeaux |= EST_UTILISEE;
+        }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
