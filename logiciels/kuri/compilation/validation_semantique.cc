@@ -2683,13 +2683,6 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
                       [&]() { erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
-        decl->drapeaux |= EST_UTILISEE;
-        if (decl->est_declaration_variable()) {
-            auto decl_var = decl->comme_declaration_variable();
-            if (decl_var->declaration_vient_d_un_emploi) {
-                decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
-            }
-        }
         expr->type = decl->type;
 
         /* si nous avons une valeur polymorphique, crée un type de données
@@ -2717,6 +2710,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
         expr->genre_valeur = GenreValeur::DROITE;
+    }
+
+    decl->drapeaux |= EST_UTILISEE;
+    if (decl->est_declaration_variable()) {
+        auto decl_var = decl->comme_declaration_variable();
+        if (decl_var->declaration_vient_d_un_emploi) {
+            decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
+        }
     }
 
     return CodeRetourValidation::OK;
