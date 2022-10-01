@@ -1,0 +1,14 @@
+
+
+principale :: fonc () -> z32
+{
+    x: r32
+
+    Struct :: struct {
+        x: r32
+    }
+
+    s: Struct
+
+    retourne 0
+}

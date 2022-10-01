@@ -1,0 +1,6 @@
+/* Compilation infinie si nous avons une expression de déclaration de structure
+ * invalide. */
+
+struct MaStructure :: struct {
+
+}
