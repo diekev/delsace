@@ -2,6 +2,7 @@ importe Fondation
 importe Chaine
 importe Math
 importe SysFichier
+importe Temps
 
 Image :: struct {
     tampon : []octet
@@ -111,10 +112,9 @@ génére_image_noire :: fonc() -> Image
 
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
 
-    debut := maintenant_sec();
+    debut := maintenant_précis();
     __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    delta := delta_sec(debut);
-    imprime("Temps d'écriture = %s\n", delta);
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
 écris_pnm :: fonc(image : Image, chemin : CheminFichier) -> rien
@@ -164,10 +164,9 @@ génére_image_noire :: fonc() -> Image
         }
     }
 
-    debut := maintenant_sec();
+    debut := maintenant_précis();
     __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    delta := delta_sec(debut);
-    imprime("Temps d'écriture = %s\n", delta);
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
 //####################

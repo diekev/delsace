@@ -2,6 +2,7 @@ importe Couleur
 importe Fondation
 importe OpenGL
 importe Structures
+importe Temps
 
 charge "dessin_opengl"
 charge "evenements"
@@ -117,7 +118,7 @@ Application :: struct {
     souris_x := 0.0
     souris_y := 0.0
     dernier_évènement : type_évènement = type_évènement.NUL
-    temps_double_clic : z64
+    temps_double_clic : Instantané
 
     personnage : Entite
 }
@@ -245,11 +246,11 @@ traite_évènements :: fonc(app : &Application) -> rien
 			// traite l'évènement
 		}
 		sinon si évènement.type == type_évènement.SOURIS_PRESSEE {
-			si (compte_ticks_ms() - app.temps_double_clic) <= TEMPS_DOUBLE_CLIC_MS {
+			si (app.temps_double_clic.temps_écoulé_millisecondes()) <= TEMPS_DOUBLE_CLIC_MS {
 				évènement.type = type_évènement.DOUBLE_CLIC
 			}
 
-			app.temps_double_clic = compte_ticks_ms()
+			app.temps_double_clic = maintenant_précis()
 		}
 
 		traite_évènement(app, évènement)
