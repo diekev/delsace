@@ -2916,13 +2916,18 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
                          }
 
+                         auto site = noeud;
+                         if (noeud->est_declaration_variable()) {
+                             site = noeud->comme_declaration_variable()->valeur;
+                         }
+
                          auto message = enchaine(
                              "Dans la fonction ",
                              entete.ident->nom,
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
-                         espace.rapporte_avertissement(noeud, message);
+                         espace.rapporte_avertissement(site, message);
                      }
 
                      /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
