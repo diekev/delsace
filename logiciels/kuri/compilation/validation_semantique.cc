@@ -2930,6 +2930,11 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
+                     /* Ne traversons pas les structures et énumérations non plus. */
+                     if (noeud->est_declaration_type()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
                      return DecisionVisiteNoeud::CONTINUE;
                  });
 }
