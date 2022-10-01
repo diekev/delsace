@@ -1,37 +1,21 @@
 importe Fondation
-importe GlibC
 
 Instantané :: struct {
     seconde: z64
     nanoseconde: z64
 }
 
-// Retourne le temps monotonic du système
+/* Retourne le temps monotonic du système. */
 maintenant :: fonc () -> Instantané
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t)
-
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne système_instantané()
 }
 
-// Retourne le temps monotonic du système
+/* Retourne le temps monotonic précis du système, cette fonction est plus lente
+ * que `maintenant`. */
 maintenant_précis :: fonc () -> Instantané
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC, *t)
-
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne système_instantané_précis()
 }
 
 secondes :: fonc (inst: Instantané) -> z64
@@ -111,28 +95,12 @@ TempsSystème :: struct {
 
 maintenant_système :: fonc () -> TempsSystème
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_REALTIME_COARSE, *t)
-
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne système_temps_réel()
 }
 
 maintenant_système_précis :: fonc () -> TempsSystème
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_REALTIME, *t)
-
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne système_temps_réel_précis()
 }
 
 millisecondes :: fonc (temps: TempsSystème) -> z64
