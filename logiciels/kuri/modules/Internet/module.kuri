@@ -180,7 +180,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     }
 
     retourne ipv6
-}
+} @FonctionLongue
 
 chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 {

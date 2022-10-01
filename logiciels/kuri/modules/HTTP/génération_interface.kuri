@@ -675,7 +675,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
         imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool\n", données_fonction.méthode, nom_fonction_rappel)
         imprime_dans_enchaineuse(enchaineuse, "{\n")
         imprime_dans_enchaineuse(enchaineuse, "\tretourne chemin == \"%\"\n", chemin_route)
-        imprime_dans_enchaineuse(enchaineuse, "}\n")
+        imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
         retourne
     }
 
@@ -697,7 +697,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
     }
 
     imprime_dans_enchaineuse(enchaineuse, "\tretourne vrai, paramètres\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
 génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: []DonnéesCréationPointDEntréePage)
@@ -716,7 +716,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_corps_fonction_appariement(enchaineuse, it)
     }
     enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 
     imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP\n")
     imprime_dans_enchaineuse(enchaineuse, "{\n")
@@ -727,7 +727,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         génère_corps_fonction_appariement(enchaineuse, it)
     }
     enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée()\n")
-    imprime_dans_enchaineuse(enchaineuse, "}\n")
+    imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
 génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données_fonction: DonnéesCréationPointDEntréePage)
