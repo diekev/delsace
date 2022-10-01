@@ -2000,6 +2000,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -2026,6 +2027,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = decl_fonction_appelee->type;
         expr->expression = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
@@ -2041,6 +2043,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
+                copie->drapeaux |= EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
         }
