@@ -901,3 +901,218 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
 }
+
+// ----------------------------------------------------------------------------
+// Fonction pour parser les arguments de la ligne de commandes depuis une
+// structure.
+//
+// Les arguments doivent avoir la forme "--nom valeur" où nom est le nom d'un
+// membre de la structure.
+//
+// Par exemple pour une structure :
+// 
+// Arguments :: struct {
+//  option: chaine
+//  nombre: z32
+// }
+//
+// la ligne de commande devra avoir la forme :
+//
+// ./programme --option une_chaine --nombre 2
+//
+// Optionnellement, un et un seul membre de la structure peut être « anonyme » :
+// il n'y a pas besoin d'avoir le nom du membre comme argument.
+// L'anonymat se fait via une annotation "@anonyme" sur le membre.
+//
+// Par exemple pour une structure :
+// 
+// Arguments :: struct {
+//  option: chaine @anonyme
+//  nombre: z32
+// }
+//
+// la ligne de commande pourra avoir la forme :
+//
+// ./programme une_chaine --nombre 2
+//
+// Ici, Arguments.option aura la valeur "une_chaine"
+// 
+// La valeur de l'argument anonyme n'a pas besoin d'être le premier de la liste.
+
+
+ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
+    // #assert info_de(T).id == id_info.STRUCTURE
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    infos := info_de(T)
+    pour infos.membres {
+        si it.drapeaux.EST_CONSTANT {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+consomme :: fonc (tableau: *[]$T) -> T
+{
+    résultat := tableau.pointeur[0]
+    tableau.pointeur += 1
+    tableau.taille -= 1
+    retourne résultat
+}
+
+parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
+{
+    discr valeur_membre.info.id {
+        ENTIER {
+            si valeur_membre.est_n8() {
+                retourne parse_n8(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_n16() {
+                retourne parse_n16(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_n32() {
+                retourne parse_n32(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_n64() {
+                retourne parse_n64(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_z8() {
+                retourne parse_z8(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_z16() {
+                retourne parse_z16(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_z32() {
+                retourne parse_z32(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_z64() {
+                retourne parse_z64(valeur, valeur_membre.tampon_pour_eini())
+            }
+        }
+        RÉEL {
+            si valeur_membre.est_r16() {
+                retourne parse_r16(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_r32() {
+                retourne parse_r32(valeur, valeur_membre.tampon_pour_eini())
+            }
+            si valeur_membre.est_r64() {
+                retourne parse_r64(valeur, valeur_membre.tampon_pour_eini())
+            }
+        }
+        BOOLÉEN {
+            retourne parse_bool(valeur, valeur_membre.tampon_pour_eini())
+        }
+        CHAINE {
+            valeur_membre.assigne_chaine(valeur)
+            retourne vrai
+        }
+        OPAQUE,
+        RIEN,
+        STRUCTURE,
+        FONCTION,
+        UNION,
+        OCTET,
+        POINTEUR,
+        TYPE_DE_DONNÉES,
+        TABLEAU,
+        ÉNUM,
+        EINI {
+            retourne faux
+        }
+    }
+
+    retourne faux
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine) -> Résultat(T, chaine)
+{
+    infos := info_de(T)
+    résultat: T
+    valeur_est_renseignée: ValeurEstRenseignée(T)
+    infos_renseignements := info_de(ValeurEstRenseignée(T))
+
+    tantque args.taille != 0 {
+        arg := consomme(*args)
+
+        saufsi arg.commence_par("--") {
+            membre_anonyme : *InfoTypeMembreStructure
+            pour infos.membres {
+                saufsi it.possède_annotation("anonyme") {
+                    continue
+                }
+
+                si membre_anonyme {
+                    retourne imprime_chaine("Plusieurs membres anonymes détectés pour la valeur '%' !", arg)
+                }
+
+                membre_anonyme = it
+            }
+
+            saufsi membre_anonyme {
+                retourne imprime_chaine("Aucun membre anonyme pour recevoir la valeur '%'\n", arg)
+            }
+
+            valeur_membre := eini_depuis_info_membre(résultat, membre_anonyme)
+
+            valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, membre_anonyme.nom))
+
+            si valeur_renseignée.comme_bool() {
+                retourne imprime_chaine("Argument dupliqué pour le membre anonyme '%'", membre_anonyme.nom)
+            }
+
+            saufsi parse_valeur(arg, valeur_membre) {
+                retourne imprime_chaine("Impossible de parser la valeur pour le membre anonyme '%'", membre_anonyme.nom)
+            }
+
+            valeur_renseignée.assigne_bool(vrai)
+            continue
+        }
+
+        arg = avance(arg, 2)
+
+        membre := trouve_info_membre(infos, arg)
+        saufsi membre {
+            retourne imprime_chaine("Argument '--%' inconnu", arg)
+        }
+
+        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, arg))
+
+        si valeur_renseignée.comme_bool() {
+            retourne imprime_chaine("Argument dupliqué pour '--%'", arg)
+        }
+
+        saufsi args {
+            retourne imprime_chaine("Argument manquant après '--%'", arg)
+        }
+
+        valeur_arg := consomme(*args)
+        valeur_membre := eini_depuis_info_membre(résultat, membre)
+
+        saufsi parse_valeur(valeur_arg, valeur_membre) {
+            retourne imprime_chaine("Impossible de parser la valeur de '--%'", arg)
+        }
+
+        valeur_renseignée.assigne_bool(vrai)
+    }
+
+    retourne résultat
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    args := arguments_ligne_commande()
+
+    /* Saute le nom du programme. */
+    _ := consomme(*args)
+
+    retourne parse_arguments_ligne_commande(T, args)
+}
