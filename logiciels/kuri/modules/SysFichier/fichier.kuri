@@ -86,9 +86,15 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
     chemin_dossier : chaine
     diffère déloge(chemin_dossier)
 
+    saute_premier_slash := chemin.est_relatif()
+
     tantque !pile.est_vide() {
-        chaine_ajoute(*chemin_dossier, séparateur_chemin())
+        saufsi saute_premier_slash {
+            chaine_ajoute(*chemin_dossier, séparateur_chemin())
+        }
         chaine_ajoute(*chemin_dossier, pile.dépile())
+
+        saute_premier_slash = faux
         
         si est_un_dossier(CheminFichier(chemin_dossier)) {
             continue
