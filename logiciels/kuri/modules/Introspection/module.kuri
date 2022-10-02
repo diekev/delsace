@@ -324,13 +324,7 @@ possède_membre :: fonc (valeur: eini, nom: chaine) -> bool
 
 possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-    pour membre dans info.membres {
-        si membre.nom == nom {
-			retourne vrai
-        }
-    }
-
-	retourne faux
+	retourne trouve_info_membre(info, nom) != nul
 }
 
 membres :: corout (valeur : eini) -> chaine
@@ -363,14 +357,8 @@ tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
     retourne tampon
 }
 
-trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
+trouve_info_membre :: fonc (info: *InfoTypeStructure, nom_membre: chaine) -> *InfoTypeMembreStructure
 {
-    saufsi valeur.est_structure() {
-        retourne nul
-    }
-
-    info := valeur.info comme *InfoTypeStructure
-
     pour info.membres {
         si it.nom == nom_membre {
             retourne it
@@ -378,6 +366,15 @@ trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembre
     }
 
     retourne nul
+}
+
+trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
+{
+    saufsi valeur.est_structure() {
+        retourne nul
+    }
+
+    retourne trouve_info_membre(info, nom_membre)
 }
 
 /* Trouve la valeur eini d'un membre d'une structure ou d'une chaine.
@@ -395,18 +392,9 @@ trouve_valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
         }
     }
 
-    saufsi valeur.est_structure() {
-        retourne résultat
-    }
-
-    info := valeur.info comme *InfoTypeStructure
-
-    pour info.membres {
-        si it.nom == nom_membre {
-            résultat.pointeur = valeur.pointeur + it.décalage
-            résultat.info = it.id
-            retourne résultat
-        }
+    membre := trouve_info_membre(valeur, nom_membre)
+    si membre {
+        retourne eini_depuis_info_membre(valeur, it)
     }
 
     retourne résultat
