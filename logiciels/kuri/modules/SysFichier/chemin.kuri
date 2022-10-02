@@ -220,6 +220,11 @@ est_absolu :: fonc (chm: CheminFichier) -> bool
     retourne vrai
 }
 
+est_relatif :: fonc (chm: CheminFichier) -> bool
+{
+    retourne !est_absolu(chm)
+}
+
 nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
 {
     pile := divise_et_empile_chemin(chm)

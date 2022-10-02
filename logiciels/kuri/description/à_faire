@@ -27,6 +27,13 @@
 Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
     - nous ne devrions utiliser que la fonction du module courant
 
+Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent pas en compte le décalage
+    exemple 9971 au lieu de 9991:
+    Erreur : .chaine_ajoutées:9991:34 : 
+    9971 |     _ := noeud_branche_arbre(ctx, val0)
+         |                                   ^~~~
+
+
 // -----------------------------------
 // Architecture/Qualité de code
 
@@ -60,6 +67,22 @@ Confusion quand plusieurs modules définissent une fonction pré_exécutable du 
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
+
+Test pour les retours de pointeurs
+
+    StructureGlobale :: struct {
+        adresse: *z32
+    }
+
+    globale : StructureGlobale
+
+    retourne_adresse_stockée_dans_globale :: fonc () -> *z32
+    {
+        retourne globale.adresse
+    }
+
+À voir si ceci fonctionne :
+    Module.StructurePoly(T = z32)(x = 5)
 
 // -----------------------------------
 // Avertissements
