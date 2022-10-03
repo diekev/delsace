@@ -672,6 +672,10 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
                                                    lexeme_final);
     }
 
+    if (!expression) {
+        rapporte_erreur("Attendu une expression primaire");
+    }
+
     return expression;
 }
 
@@ -2284,6 +2288,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             while (!fini()) {
                 auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
+
+                if (!decl_sortie) {
+                    /* Nous avons une erreur, nous pouvons retourner. */
+                    return noeud;
+                }
 
                 if (!decl_sortie->est_declaration_variable()) {
                     auto ident =
