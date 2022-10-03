@@ -922,11 +922,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             auto type_accede = accede->type;
 
             if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                /* Devraient être simplifié là où ils sont utilisés. */
-                if (!ref_membre->possede_drapeau(DROITE_CONDITION)) {
-                    return;
-                }
-
                 // a.DRAPEAU => (a & DRAPEAU) != 0
                 auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
