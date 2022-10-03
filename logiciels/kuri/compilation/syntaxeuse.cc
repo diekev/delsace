@@ -2397,9 +2397,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         requiers_typage(noeud);
 
         if (noeud->est_externe) {
-            consomme(GenreLexeme::POINT_VIRGULE,
-                     "Attendu un point-virgule ';' après la déclaration de la fonction externe");
-
             if (noeud->params_sorties.taille() > 1) {
                 rapporte_erreur(
                     "Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -2408,6 +2405,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
             noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
             m_tacheronne.assembleuse->depile_bloc();
+
+            /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
+             * donc ne générons pas d'erreur s'il n'y en a pas. */
+            ignore_point_virgule_implicite();
         }
         else {
             ignore_point_virgule_implicite();
