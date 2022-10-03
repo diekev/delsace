@@ -787,6 +787,33 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     return CodeRetourValidation::Erreur;
 }
 
+static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
+    EspaceDeTravail &espace,
+    NoeudExpression *slot,
+    Type *type_du_parametre,
+    Type *type_de_l_expression)
+{
+    if (type_du_parametre->est_variadique()) {
+        /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
+         * sinon nous apparierons, par exemple, un « z32 » avec « ...z32 ».
+         */
+        type_du_parametre = type_dereference_pour(type_du_parametre);
+
+        if (type_du_parametre == nullptr) {
+            /* Pour les fonctions variadiques externes, nous acceptons tous les types. */
+            return PoidsTransformation{TransformationType(), 1.0};
+        }
+
+        if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+            /* Pour les expansions variadiques, nous devons également utiliser le type pointé. */
+            type_de_l_expression = type_dereference_pour(type_de_l_expression);
+        }
+    }
+
+    return verifie_compatibilite(
+        espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
+}
+
 static ResultatAppariement apparie_appel_pointeur(
     NoeudExpressionAppel const *b,
     NoeudExpression *decl_pointeur_fonction,
@@ -969,17 +996,6 @@ static ResultatAppariement apparie_appel_fonction(
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    // utilisé pour déterminer le type des données des arguments variadiques
-    // pour la création des tableaux ; nécessaire au cas où nous avons une
-    // fonction polymorphique, au quel cas le type serait un type polymorphique
-    auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
-
-    if (dernier_type_parametre->genre == GenreType::VARIADIQUE) {
-        dernier_type_parametre = type_dereference_pour(dernier_type_parametre);
-    }
-
-    auto type_donnees_argument_variadique = dernier_type_parametre;
-
     auto monomorpheuse = Monomorpheuse(espace);
 
     if (decl->est_polymorphe) {
@@ -1027,96 +1043,49 @@ static ResultatAppariement apparie_appel_fonction(
                                                                 type_du_parametre);
         }
 
-        if (param->possede_drapeau(EST_VARIADIQUE)) {
-            if (type_dereference_pour(type_du_parametre) != nullptr) {
-                auto transformation = TransformationType();
-                auto type_deref = type_dereference_pour(type_du_parametre);
-                type_donnees_argument_variadique = type_deref;
-                auto poids_pour_enfant = 0.0;
+        auto resultat = apparie_type_parametre_appel_fonction(
+            espace, slot, type_du_parametre, type_de_l_expression);
 
-                if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                    auto type_deref_enf = type_dereference_pour(type_de_l_expression);
+        if (std::holds_alternative<Attente>(resultat)) {
+            return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
+        }
 
-                    auto resultat = verifie_compatibilite(
-                        espace.compilatrice(), type_deref, type_deref_enf, slot);
+        auto poids_xform = std::get<PoidsTransformation>(resultat);
+        auto poids_pour_enfant = poids_xform.poids;
 
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(
-                            arg, std::get<Attente>(resultat));
-                    }
-
-                    auto poids_xform = std::get<PoidsTransformation>(resultat);
-                    poids_pour_enfant = poids_xform.poids;
-                    transformation = poids_xform.transformation;
-
-                    // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
-                    // faudra convertir en un tableau dynamique
-                    if (poids_pour_enfant != 1.0) {
-                        poids_pour_enfant = 0.0;
-                    }
-                }
-                else {
-                    auto resultat = verifie_compatibilite(
-                        espace.compilatrice(), type_deref, type_de_l_expression, slot);
-
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(
-                            arg, std::get<Attente>(resultat));
-                    }
-
-                    auto poids_xform = std::get<PoidsTransformation>(resultat);
-                    poids_pour_enfant = poids_xform.poids;
-                    transformation = poids_xform.transformation;
-                }
-
-                // allège les polymorphes pour que les versions déjà monomorphées soient préférées
-                // pour la selection de la meilleure candidate
-                if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    poids_pour_enfant *= 0.95;
-                }
-
-                poids_args *= poids_pour_enfant;
-
-                if (poids_args == 0.0) {
-                    return ErreurAppariement::metypage_argument(
-                        slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
-                }
-
-                transformations[i] = transformation;
-            }
-            else {
-                transformations[i] = TransformationType();
+        if (slot->est_expansion_variadique()) {
+            // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
+            // faudra convertir en un tableau dynamique
+            if (poids_pour_enfant != 1.0) {
+                poids_pour_enfant = 0.0;
             }
         }
-        else {
-            auto resultat = verifie_compatibilite(
-                espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return ErreurAppariement::dependance_non_satisfaite(arg,
-                                                                    std::get<Attente>(resultat));
-            }
-
-            auto poids_xform = std::get<PoidsTransformation>(resultat);
-
-            // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
-            // la selection de la meilleure candidate
-            if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                poids_xform.poids *= 0.95;
-            }
-
-            poids_args *= poids_xform.poids;
-
-            if (poids_args == 0.0) {
-                return ErreurAppariement::metypage_argument(
-                    slot, type_du_parametre, type_de_l_expression);
-            }
-
-            transformations[i] = poids_xform.transformation;
+        // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
+        // la selection de la meilleure candidate
+        if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            poids_pour_enfant *= 0.95;
         }
+
+        poids_args *= poids_pour_enfant;
+
+        if (poids_args == 0.0) {
+            return ErreurAppariement::metypage_argument(
+                slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
+        }
+
+        transformations[i] = poids_xform.transformation;
     }
 
     if (fonction_variadique_interne) {
+        auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
+        auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
+
+        if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            type_donnees_argument_variadique = monomorpheuse.resoud_type_final(
+                espace.compilatrice().typeuse, type_donnees_argument_variadique);
+        }
+
         /* Il y a des collisions entre les fonctions variadiques et les fonctions non-variadiques
          * quand le nombre d'arguments correspond pour tous les cas.
          *
