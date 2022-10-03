@@ -987,7 +987,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                         {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
                 }
 
-                if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
+                if (profondeur_bloc < 1 &&
+                    (directive != ID::test || m_compilatrice.active_tests)) {
                     requiers_typage(noeud);
                 }
 
@@ -1693,6 +1694,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
+    profondeur_bloc += 1;
     /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
     ignore_point_virgule_implicite();
@@ -1735,6 +1737,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 
     depile_etat();
 
+    profondeur_bloc -= 1;
     return bloc;
 }
 
@@ -2408,8 +2411,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             auto noeud_corps = noeud->corps;
 
-            auto ancien_est_dans_fonction = est_dans_fonction;
-            est_dans_fonction = true;
             if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
                 empile_etat("dans l'analyse du bloc", lexeme_courant());
                 noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
@@ -2422,7 +2423,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud_corps->bloc = analyse_bloc();
                 noeud_corps->bloc->ident = noeud->ident;
             }
-            est_dans_fonction = ancien_est_dans_fonction;
 
             analyse_annotations(noeud->annotations);
         }
@@ -2559,10 +2559,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     requiers_typage(noeud);
 
     auto noeud_corps = noeud->corps;
-    auto ancien_est_dans_fonction = est_dans_fonction;
-    est_dans_fonction = true;
     noeud_corps->bloc = analyse_bloc();
-    est_dans_fonction = ancien_est_dans_fonction;
 
     analyse_annotations(noeud->annotations);
 
@@ -2801,6 +2798,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
+        profondeur_bloc += 1;
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
             if (ignore_point_virgule_implicite()) {
                 continue;
@@ -2850,6 +2848,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 rapporte_erreur("attendu une expression ou une instruction");
             }
         }
+        profondeur_bloc -= 1;
 
         copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
@@ -2863,8 +2862,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     analyse_annotations(noeud_decl->annotations);
 
     /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types, donc
-     * !est_dans_fonction. */
-    if (cree_tache || !est_dans_fonction) {
+     * profondeur_bloc < 1. */
+    if (cree_tache || profondeur_bloc < 1) {
         requiers_typage(noeud_decl);
     }
 
