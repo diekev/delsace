@@ -1,5 +1,4 @@
 /* Erreur de compilation si un pointeur de fonction reçoit une expansion variadique.
- * Voir « les pointeurs de fonctions ne semblent pas correctement... » dans Arachné.
  */
 
 importe Fondation
