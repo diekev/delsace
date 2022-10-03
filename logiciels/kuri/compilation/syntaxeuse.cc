@@ -2471,6 +2471,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
             else {
                 noeud_corps->bloc = analyse_bloc();
+                noeud_corps->bloc->ident = noeud->ident;
             }
             est_dans_fonction = ancien_est_dans_fonction;
 
