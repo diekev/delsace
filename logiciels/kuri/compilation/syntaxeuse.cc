@@ -604,25 +604,27 @@ void Syntaxeuse::analyse_une_chose()
     else if (apparie_expression()) {
         auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
-        // noeud peut-être nul si nous avons une directive
-        if (noeud != nullptr) {
-            if (noeud->est_declaration()) {
-                noeud->drapeaux |= EST_GLOBALE;
-
-                if (noeud->est_declaration_variable()) {
-                    noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
-                    requiers_typage(noeud);
-                }
-            }
-
-            if (noeud->est_execute()) {
-                if (noeud->ident != ID::test || m_compilatrice.active_tests) {
-                    requiers_typage(noeud);
-                }
-            }
-
-            noeud->bloc_parent->expressions->ajoute(noeud);
+        if (!noeud) {
+            /* Ceci peut arriver si nous avons une erreur. */
+            return;
         }
+
+        if (noeud->est_declaration()) {
+            noeud->drapeaux |= EST_GLOBALE;
+
+            if (noeud->est_declaration_variable()) {
+                noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
+                requiers_typage(noeud);
+            }
+        }
+
+        if (noeud->est_execute()) {
+            if (noeud->ident != ID::test || m_compilatrice.active_tests) {
+                requiers_typage(noeud);
+            }
+        }
+
+        noeud->bloc_parent->expressions->ajoute(noeud);
     }
     else {
         rapporte_erreur("attendu une expression ou une instruction");
