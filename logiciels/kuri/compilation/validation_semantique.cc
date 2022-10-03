@@ -1518,7 +1518,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto expr = noeud->comme_expansion_variadique();
 
             if (expr->expression == nullptr) {
-                // nous avons un type variadique
+                /* Nous avons un type variadique externe. */
                 auto type_var = m_compilatrice.typeuse.type_variadique(nullptr);
                 expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_var);
                 return CodeRetourValidation::OK;
