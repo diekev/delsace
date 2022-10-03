@@ -300,16 +300,16 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
                     ajoute_au_tampon(*enchaineuse, date.année)
                 }
                 'M' {
-                    si (date.mois + 1) < 10 {
+                    si (date.mois) < 10 {
                         ajoute_au_tampon(*enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.mois + 1)
+                    ajoute_au_tampon(*enchaineuse, date.mois)
                 }
                 'J' {
-                    si (date.jour + 1) < 10 {
+                    si (date.jour) < 10 {
                         ajoute_au_tampon(*enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.jour + 1)
+                    ajoute_au_tampon(*enchaineuse, date.jour)
                 }
                 'h' {
                     si (date.heure) < 10 {
