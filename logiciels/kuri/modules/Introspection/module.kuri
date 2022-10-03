@@ -374,7 +374,7 @@ trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembre
         retourne nul
     }
 
-    retourne trouve_info_membre(info, nom_membre)
+    retourne trouve_info_membre(valeur.info, nom_membre)
 }
 
 /* Trouve la valeur eini d'un membre d'une structure ou d'une chaine.
@@ -394,7 +394,7 @@ trouve_valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
 
     membre := trouve_info_membre(valeur, nom_membre)
     si membre {
-        retourne eini_depuis_info_membre(valeur, it)
+        retourne eini_depuis_info_membre(valeur, membre)
     }
 
     retourne résultat
