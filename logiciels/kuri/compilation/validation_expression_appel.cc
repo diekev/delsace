@@ -814,6 +814,74 @@ static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
         espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
 }
 
+static void cree_tableau_args_variadiques(ContexteValidationCode &contexte,
+                                          kuri::tablet<NoeudExpression *, 10> &slots,
+                                          int nombre_args,
+                                          Type *type_donnees_argument_variadique)
+{
+    auto index_premier_var_arg = nombre_args - 1;
+    if (slots.taille() == nombre_args &&
+        slots[index_premier_var_arg]->est_expansion_variadique()) {
+        return;
+    }
+
+    /* Pour les fonctions variadiques interne, nous créons un tableau
+     * correspondant au types des arguments. */
+    static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
+    auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(&lexeme_tableau);
+
+    noeud_tableau->type = type_donnees_argument_variadique;
+    // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
+    // sélectionné
+    noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
+
+    for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
+        noeud_tableau->expressions.ajoute(slots[i]);
+    }
+
+    if (index_premier_var_arg >= slots.taille()) {
+        slots.ajoute(noeud_tableau);
+    }
+    else {
+        slots[index_premier_var_arg] = noeud_tableau;
+    }
+
+    slots.redimensionne(nombre_args);
+}
+
+static void applique_transformations(ContexteValidationCode &contexte,
+                                     CandidateAppariement *candidate,
+                                     NoeudExpressionAppel *expr)
+{
+    auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
+    auto nombre_args_variadics = nombre_args_simples;
+
+    if (!candidate->exprs.est_vide() &&
+        candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
+        /* ne compte pas le tableau */
+        nombre_args_simples -= 1;
+        nombre_args_variadics = candidate->transformations.taille();
+    }
+
+    auto i = 0;
+    /* les drapeaux pour les arguments simples */
+    for (; i < nombre_args_simples; ++i) {
+        contexte.transtype_si_necessaire(expr->parametres_resolus[i],
+                                         candidate->transformations[i]);
+    }
+
+    /* les drapeaux pour les arguments variadics */
+    if (!candidate->exprs.est_vide() &&
+        candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
+        auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
+
+        for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
+            contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
+                                             candidate->transformations[i]);
+        }
+    }
+}
+
 static ResultatAppariement apparie_appel_pointeur(
     NoeudExpressionAppel const *b,
     NoeudExpression *decl_pointeur_fonction,
@@ -1105,35 +1173,8 @@ static ResultatAppariement apparie_appel_fonction(
          */
         poids_args *= 0.95;
 
-        auto index_premier_var_arg = nombre_args - 1;
-
-        if (slots.taille() != nombre_args ||
-            slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
-            /* Pour les fonctions variadiques interne, nous créons un tableau
-             * correspondant au types des arguments. */
-            static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-            auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(
-                &lexeme_tableau);
-
-            noeud_tableau->type = type_donnees_argument_variadique;
-            // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
-            // sélectionné
-            noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) -
-                                               index_premier_var_arg);
-
-            for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
-                noeud_tableau->expressions.ajoute(slots[i]);
-            }
-
-            if (index_premier_var_arg >= slots.taille()) {
-                slots.ajoute(noeud_tableau);
-            }
-            else {
-                slots[index_premier_var_arg] = noeud_tableau;
-            }
-
-            slots.redimensionne(nombre_args);
-        }
+        cree_tableau_args_variadiques(
+            contexte, slots, nombre_args, type_donnees_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
@@ -1938,36 +1979,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             return CodeRetourValidation::Erreur;
         }
 
-        /* met en place les drapeaux sur les enfants */
-
-        auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
-        auto nombre_args_variadics = nombre_args_simples;
-
-        if (!candidate->exprs.est_vide() &&
-            candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-            /* ne compte pas le tableau */
-            nombre_args_simples -= 1;
-            nombre_args_variadics = candidate->transformations.taille();
-        }
-
-        auto i = 0;
-        /* les drapeaux pour les arguments simples */
-        for (; i < nombre_args_simples; ++i) {
-            contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                             candidate->transformations[i]);
-        }
-
-        /* les drapeaux pour les arguments variadics */
-        if (!candidate->exprs.est_vide() &&
-            candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-            auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(
-                candidate->exprs.back());
-
-            for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-                contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
-                                                 candidate->transformations[i]);
-            }
-        }
+        applique_transformations(contexte, candidate, expr);
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
         decl_fonction_appelee->drapeaux |= EST_UTILISEE;
