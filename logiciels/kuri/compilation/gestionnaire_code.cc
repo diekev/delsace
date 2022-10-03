@@ -89,14 +89,32 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
     return noeud->possede_drapeau(EST_GLOBALE);
 }
 
-static void ajoute_dependances_au_programme(DonneesDependance const &dependances,
+static bool ajoute_dependances_au_programme(DonneesDependance const &dependances,
+                                            EspaceDeTravail *espace,
                                             Programme &programme)
 {
+    auto possede_erreur = false;
+
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        if (fonction->possede_drapeau(COMPILATRICE) && !programme.pour_metaprogramme()) {
+            possede_erreur = true;
+
+            /* À FAIRE : site pour la dépendance. */
+            espace->rapporte_erreur(fonction,
+                                    "Utilisation d'une fonction d'interface de la compilatrice "
+                                    "dans un programme final. Cette fonction ne peut qu'être "
+                                    "utilisée dans un métaprogramme.");
+            return kuri::DecisionIteration::Arrete;
+        }
+
         programme.ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction));
         return kuri::DecisionIteration::Continue;
     });
+
+    if (possede_erreur) {
+        return false;
+    }
 
     /* Ajoute les globales. */
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
@@ -109,6 +127,8 @@ static void ajoute_dependances_au_programme(DonneesDependance const &dependances
         programme.ajoute_type(type);
         return kuri::DecisionIteration::Continue;
     });
+
+    return true;
 }
 
 struct RassembleuseDependances {
@@ -623,7 +643,9 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                 epends_dependances_types(graphe, dependances);
                 dependances_ependues = true;
             }
-            ajoute_dependances_au_programme(dependances.dependances, *it);
+            if (!ajoute_dependances_au_programme(dependances.dependances, espace, *it)) {
+                break;
+            }
             dependances_ajoutees = true;
         }
     }
