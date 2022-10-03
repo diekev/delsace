@@ -453,12 +453,15 @@ struct ApparieuseParams {
     bool m_arguments_nommes = false;
     bool m_dernier_argument_est_variadique = false;
     bool m_est_variadique = false;
+    bool m_expansion_rencontree = false;
+    bool m_fonction_externe = false;
     int m_index = 0;
+    int m_nombre_arg_variadiques_rencontres = 0;
 
   public:
     ErreurAppariement erreur{};
 
-    ApparieuseParams()
+    ApparieuseParams(bool fonction_externe) : m_fonction_externe(fonction_externe)
     {
     }
 
@@ -479,6 +482,25 @@ struct ApparieuseParams {
                            NoeudExpression *expr,
                            NoeudExpression *expr_ident)
     {
+        if (expr->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+            if (m_fonction_externe) {
+                erreur = ErreurAppariement::expansion_variadique_externe(expr);
+                return false;
+            }
+
+            if (m_expansion_rencontree) {
+                if (m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::expansion_variadique_post_argument(expr);
+                }
+                else {
+                    erreur = ErreurAppariement::multiple_expansions_variadiques(expr);
+                }
+                return false;
+            }
+
+            m_expansion_rencontree = true;
+        }
+
         if (ident) {
             m_arguments_nommes = true;
 
@@ -509,6 +531,11 @@ struct ApparieuseParams {
             args_rencontres.insere(ident);
 
             if (m_dernier_argument_est_variadique || index_param >= m_slots.taille()) {
+                if (m_expansion_rencontree && m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
+                    return false;
+                }
+                m_nombre_arg_variadiques_rencontres += 1;
                 m_slots.ajoute(expr);
             }
             else {
@@ -522,6 +549,11 @@ struct ApparieuseParams {
             }
 
             if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
+                if (m_expansion_rencontree && m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
+                    return false;
+                }
+                m_nombre_arg_variadiques_rencontres += 1;
                 args_rencontres.insere(m_noms[m_noms.taille() - 1]);
                 m_slots.ajoute(expr);
                 m_index++;
@@ -912,7 +944,8 @@ static ResultatAppariement apparie_appel_fonction(
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
 
-    auto apparieuse_params = ApparieuseParams();
+    auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
+    auto apparieuse_params = ApparieuseParams(decl->est_externe);
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -932,13 +965,9 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     auto poids_args = 1.0;
-    auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
-    auto expansion_rencontree = false;
 
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
-
-    auto nombre_arg_variadiques_rencontres = 0;
 
     // utilisé pour déterminer le type des données des arguments variadiques
     // pour la création des tableaux ; nécessaire au cas où nous avons une
@@ -1006,14 +1035,6 @@ static ResultatAppariement apparie_appel_fonction(
                 auto poids_pour_enfant = 0.0;
 
                 if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                    if (!fonction_variadique_interne) {
-                        return ErreurAppariement::expansion_variadique_externe(slot);
-                    }
-
-                    if (expansion_rencontree) {
-                        return ErreurAppariement::multiple_expansions_variadiques(slot);
-                    }
-
                     auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
                     auto resultat = verifie_compatibilite(
@@ -1033,8 +1054,6 @@ static ResultatAppariement apparie_appel_fonction(
                     if (poids_pour_enfant != 1.0) {
                         poids_pour_enfant = 0.0;
                     }
-
-                    expansion_rencontree = true;
                 }
                 else {
                     auto resultat = verifie_compatibilite(
@@ -1063,29 +1082,11 @@ static ResultatAppariement apparie_appel_fonction(
                         slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
                 }
 
-                if (fonction_variadique_interne) {
-                    if (expansion_rencontree && nombre_arg_variadiques_rencontres != 0) {
-                        if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                            return ErreurAppariement::expansion_variadique_post_argument(slot);
-                        }
-
-                        return ErreurAppariement::argument_post_expansion_variadique(slot);
-                    }
-                }
-
                 transformations[i] = transformation;
             }
             else {
-                if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                    if (!fonction_variadique_interne) {
-                        return ErreurAppariement::expansion_variadique_externe(slot);
-                    }
-                }
-
                 transformations[i] = TransformationType();
             }
-
-            nombre_arg_variadiques_rencontres += 1;
         }
         else {
             auto resultat = verifie_compatibilite(
@@ -1221,7 +1222,7 @@ static ResultatAppariement apparie_appel_structure(
                 expr, decl_struct->params_polymorphiques.taille(), expr->parametres.taille());
         }
 
-        auto apparieuse_params = ApparieuseParams();
+        auto apparieuse_params = ApparieuseParams(false);
 
         POUR (decl_struct->params_polymorphiques) {
             apparieuse_params.ajoute_param(it->ident, nullptr, false);
@@ -1352,7 +1353,7 @@ static ResultatAppariement apparie_appel_structure(
     }
 
     // À FAIRE : détecte quand nous avons des constantes
-    auto apparieuse_params = ApparieuseParams();
+    auto apparieuse_params = ApparieuseParams(false);
 
     POUR (type_compose->membres) {
         if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
