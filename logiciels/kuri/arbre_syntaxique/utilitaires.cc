@@ -1558,9 +1558,30 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->expressions->ajoute(init_it);
 
-            auto op_comp = iterations->type->operateur_egt;
-            condition->condition = assem->cree_expression_binaire(
-                inst->lexeme, op_comp, ref_iterations, zero);
+            if (iterations->type->est_entier_naturel()) {
+                /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
+                 * expr_fin < (expr_debut + 1). */
+                auto op_comp = iterations->type->operateur_egt;
+                auto condition1 = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, zero);
+
+                op_comp = iterations->type->operateur_seg;
+                auto condition2 = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, expr_fin);
+
+                static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
+                auto conjonction = assem->cree_expression_binaire(&lexeme_ou);
+                conjonction->operande_gauche = condition1;
+                conjonction->operande_droite = condition2;
+
+                condition->condition = conjonction;
+            }
+            else {
+                /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
+                auto op_comp = iterations->type->operateur_ieg;
+                condition->condition = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, zero);
+            }
             boucle->bloc->expressions->ajoute(condition);
 
             /* corps */
