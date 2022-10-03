@@ -2323,6 +2323,15 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             expression->lexeme, expression, typeuse[TypeBase::Z32], 1);
     }
 
+    simplifie(discr->bloc_sinon);
+
+    /* Nous avons une discrimination avec seulement un bloc_sinon, il est donc inutile de généré un
+     * arbre. */
+    if (discr->paires_discr.taille() == 0) {
+        bloc->expressions->ajoute(discr->bloc_sinon);
+        return;
+    }
+
     /* Génération de l'arbre de « si ». */
     auto si_courant = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
     bloc->expressions->ajoute(si_courant);
@@ -2389,7 +2398,6 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         }
     }
 
-    simplifie(discr->bloc_sinon);
     si_courant->bloc_si_faux = discr->bloc_sinon;
 }
 
