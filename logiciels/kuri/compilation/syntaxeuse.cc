@@ -1282,6 +1282,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         break;
                     }
 
+                    if (directive == ID::execute) {
+                        recule();
+                        break;
+                    }
+
                     m_position = position - 1;
                     consomme();
                     break;
