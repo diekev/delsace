@@ -2761,68 +2761,79 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition,
         genere_ri_pour_condition(expr_unaire->expression, label_si_vrai, label_si_faux);
     }
     else {
-        auto type_condition = condition->type;
-        auto valeur = static_cast<Atome *>(nullptr);
-
-        switch (type_condition->genre) {
-            case GenreType::ENTIER_NATUREL:
-            case GenreType::ENTIER_RELATIF:
-            case GenreType::ENTIER_CONSTANT:
-            {
-                genere_ri_pour_expression_droite(condition, nullptr);
-                auto valeur1 = depile_valeur();
-                auto valeur2 = cree_constante_entiere(type_condition, 0);
-                valeur = cree_op_comparaison(
-                    condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
-                break;
-            }
-            case GenreType::BOOL:
-            {
-                genere_ri_pour_expression_droite(condition, nullptr);
-                valeur = depile_valeur();
-                break;
-            }
-            case GenreType::FONCTION:
-            case GenreType::POINTEUR:
-            {
-                genere_ri_pour_expression_droite(condition, nullptr);
-                auto valeur1 = depile_valeur();
-                auto valeur2 = cree_constante_nulle(type_condition);
-                valeur = cree_op_comparaison(
-                    condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
-                break;
-            }
-            case GenreType::EINI:
-            {
-                genere_ri_pour_noeud(condition);
-                auto pointeur = depile_valeur();
-                auto pointeur_pointeur = cree_reference_membre(condition, pointeur, 0);
-                auto valeur1 = cree_charge_mem(condition, pointeur_pointeur);
-                auto valeur2 = cree_constante_nulle(valeur1->type);
-                valeur = cree_op_comparaison(
-                    condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
-                break;
-            }
-            case GenreType::CHAINE:
-            case GenreType::TABLEAU_DYNAMIQUE:
-            {
-                genere_ri_pour_noeud(condition);
-                auto pointeur = depile_valeur();
-                auto pointeur_taille = cree_reference_membre(condition, pointeur, 1);
-                auto valeur1 = cree_charge_mem(condition, pointeur_taille);
-                auto valeur2 = cree_z64(0);
-                valeur = cree_op_comparaison(
-                    condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-
-        cree_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
+        genere_ri_pour_condition_implicite(condition, label_si_vrai, label_si_faux);
     }
+}
+
+void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condition,
+                                                         InstructionLabel *label_si_vrai,
+                                                         InstructionLabel *label_si_faux)
+{
+    auto type_condition = condition->type;
+    auto valeur = static_cast<Atome *>(nullptr);
+
+    switch (type_condition->genre) {
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::ENTIER_CONSTANT:
+        {
+            genere_ri_pour_expression_droite(condition, nullptr);
+            auto valeur1 = depile_valeur();
+            auto valeur2 = cree_constante_entiere(type_condition, 0);
+            valeur = cree_op_comparaison(
+                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+            break;
+        }
+        case GenreType::BOOL:
+        {
+            genere_ri_pour_expression_droite(condition, nullptr);
+            valeur = depile_valeur();
+            break;
+        }
+        case GenreType::FONCTION:
+        case GenreType::POINTEUR:
+        {
+            genere_ri_pour_expression_droite(condition, nullptr);
+            auto valeur1 = depile_valeur();
+            auto valeur2 = cree_constante_nulle(type_condition);
+            valeur = cree_op_comparaison(
+                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+            break;
+        }
+        case GenreType::EINI:
+        {
+            genere_ri_pour_noeud(condition);
+            auto pointeur = depile_valeur();
+            auto pointeur_pointeur = cree_reference_membre(condition, pointeur, 0);
+            auto valeur1 = cree_charge_mem(condition, pointeur_pointeur);
+            auto valeur2 = cree_constante_nulle(valeur1->type);
+            valeur = cree_op_comparaison(
+                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+            break;
+        }
+        case GenreType::CHAINE:
+        case GenreType::TABLEAU_DYNAMIQUE:
+        {
+            genere_ri_pour_noeud(condition);
+            auto pointeur = depile_valeur();
+            auto pointeur_taille = cree_reference_membre(condition, pointeur, 1);
+            auto valeur1 = cree_charge_mem(condition, pointeur_taille);
+            auto valeur2 = cree_z64(0);
+            valeur = cree_op_comparaison(
+                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+            break;
+        }
+        default:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Type non géré pour la génération d'une condition d'une branche : "
+                          << chaine_type(type_condition) << '\n';
+            });
+            break;
+        }
+    }
+
+    cree_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
 }
 
 void ConstructriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place)

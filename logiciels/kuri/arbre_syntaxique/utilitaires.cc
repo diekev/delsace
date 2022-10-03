@@ -1407,29 +1407,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
     return;
 }
 
-static OperateurBinaire const *operateur_pour_lexeme(GenreLexeme lexeme_op, Type *type, bool plage)
-{
-    /* NOTE : les opérateurs sont l'inverse de ce qu'indique les lexèmes car la condition est
-     * inversée. */
-    if (lexeme_op == GenreLexeme::INFERIEUR) {
-        if (plage) {
-            return type->operateur_sup;
-        }
-
-        return type->operateur_seg;
-    }
-
-    if (lexeme_op == GenreLexeme::SUPERIEUR) {
-        if (plage) {
-            return type->operateur_inf;
-        }
-
-        return type->operateur_ieg;
-    }
-
-    return nullptr;
-}
-
 void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 {
     simplifie(inst->expression);
@@ -1508,9 +1485,10 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
               it := 0
               index_it := 0
+              itérations := (10 - 0) + 1
 
               boucle {
-                si it > 10 {
+                si itérations == 0 {
                     arrête
                 }
 
@@ -1520,6 +1498,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 incrémente:
                     it = it + 1
                     index_it = index_it + 1
+                    itérations -= 1
               }
 
              */
@@ -1546,6 +1525,30 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 expr_fin = expr_plage->fin;
             }
 
+            /* Calcul le nombre d'itérations pour se prémunir des débordements pour les types
+             * d'entiers naturels.
+             * Nombre d'itérations = (fin - début) + 1
+             */
+            NoeudExpression *nombre_iterations = assem->cree_expression_binaire(
+                expression_iteree->lexeme,
+                expression_iteree->type->operateur_sst,
+                expr_fin,
+                expr_debut);
+
+            auto valeur_un = assem->cree_litterale_entier(
+                expression_iteree->lexeme, expression_iteree->type, 1);
+            nombre_iterations = assem->cree_expression_binaire(
+                expression_iteree->lexeme,
+                expression_iteree->type->operateur_ajt,
+                nombre_iterations,
+                valeur_un);
+
+            auto iterations = assem->cree_declaration_variable(
+                var->lexeme, type_index_it, nullptr, nombre_iterations);
+            auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
+            bloc_pre->expressions->ajoute(iterations);
+            bloc_pre->membres->ajoute(iterations);
+
             /* condition */
 
             if (inverse_boucle) {
@@ -1555,9 +1558,30 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->expressions->ajoute(init_it);
 
-            auto op_comp = operateur_pour_lexeme(inst->lexeme_op, ref_it->type, true);
-            condition->condition = assem->cree_expression_binaire(
-                inst->lexeme, op_comp, ref_it, expr_fin);
+            if (iterations->type->est_entier_naturel()) {
+                /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
+                 * expr_fin < (expr_debut + 1). */
+                auto op_comp = iterations->type->operateur_egt;
+                auto condition1 = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, zero);
+
+                op_comp = iterations->type->operateur_seg;
+                auto condition2 = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, expr_fin);
+
+                static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
+                auto conjonction = assem->cree_expression_binaire(&lexeme_ou);
+                conjonction->operande_gauche = condition1;
+                conjonction->operande_droite = condition2;
+
+                condition->condition = conjonction;
+            }
+            else {
+                /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
+                auto op_comp = iterations->type->operateur_ieg;
+                condition->condition = assem->cree_expression_binaire(
+                    inst->lexeme, op_comp, ref_iterations, zero);
+            }
             boucle->bloc->expressions->ajoute(condition);
 
             /* corps */
@@ -1575,6 +1599,9 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             auto inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
             bloc_inc->expressions->ajoute(inc_it);
+
+            auto dec_iterations = assem->cree_decrementation(ref_it->lexeme, ref_iterations);
+            bloc_inc->expressions->ajoute(dec_iterations);
 
             break;
         }
@@ -2296,6 +2323,15 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             expression->lexeme, expression, typeuse[TypeBase::Z32], 1);
     }
 
+    simplifie(discr->bloc_sinon);
+
+    /* Nous avons une discrimination avec seulement un bloc_sinon, il est donc inutile de généré un
+     * arbre. */
+    if (discr->paires_discr.taille() == 0) {
+        bloc->expressions->ajoute(discr->bloc_sinon);
+        return;
+    }
+
     /* Génération de l'arbre de « si ». */
     auto si_courant = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
     bloc->expressions->ajoute(si_courant);
@@ -2362,7 +2398,6 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         }
     }
 
-    simplifie(discr->bloc_sinon);
     si_courant->bloc_si_faux = discr->bloc_sinon;
 }
 

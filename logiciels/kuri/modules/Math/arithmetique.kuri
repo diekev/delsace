@@ -341,8 +341,7 @@ exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
     début := index_premier_bit_actif_gauche(exp)
     résultat : n64 = 1
 
-    // À FAIRE(langage) : les nombres naturels font des boucles infinies avec "> début"
-    pour 0 ... début {
+    pour début {
         si bit_est_actif(exp, début - it) {
             résultat *= résultat
             résultat *= b
