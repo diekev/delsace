@@ -616,9 +616,14 @@ void Syntaxeuse::analyse_une_chose()
                 noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
                 requiers_typage(noeud);
             }
+            else if (noeud->est_entete_fonction()) {
+                requiers_typage(noeud);
+            }
+            else if (noeud->est_type_opaque()) {
+                requiers_typage(noeud);
+            }
         }
-
-        if (noeud->est_execute()) {
+        else if (noeud->est_execute()) {
             if (noeud->ident != ID::test || m_compilatrice.active_tests) {
                 requiers_typage(noeud);
             }
@@ -1275,7 +1280,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             donnees_precedence, racine_expression, lexeme_final);
                         m_est_declaration_type_opaque = false;
                         noeud->bloc_parent->membres->ajoute(noeud);
-                        requiers_typage(noeud);
                         return noeud;
                     }
 
@@ -2396,8 +2400,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        requiers_typage(noeud);
-
         if (noeud->est_externe) {
             if (noeud->params_sorties.taille() > 1) {
                 rapporte_erreur(
@@ -2561,8 +2563,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     }
 
     ignore_point_virgule_implicite();
-
-    requiers_typage(noeud);
 
     auto noeud_corps = noeud->corps;
     noeud_corps->bloc = analyse_bloc();
