@@ -615,6 +615,12 @@ void Syntaxeuse::analyse_une_chose()
                 }
             }
 
+            if (noeud->est_execute()) {
+                if (noeud->ident != ID::test || m_compilatrice.active_tests) {
+                    requiers_typage(noeud);
+                }
+            }
+
             noeud->bloc_parent->expressions->ajoute(noeud);
         }
     }
@@ -987,11 +993,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                         {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
                 }
 
-                if (profondeur_bloc < 1 &&
-                    (directive != ID::test || m_compilatrice.active_tests)) {
-                    requiers_typage(noeud);
-                }
-
                 return noeud;
             }
             else if (directive == ID::si) {
@@ -1029,7 +1030,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
@@ -1037,7 +1037,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
@@ -1045,7 +1044,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else {
