@@ -189,7 +189,8 @@ struct Monomorpheuse {
             return true;
         }
 
-        if (type_poly->est_variadique()) {
+        /* type_cible peut-être variadique si nous avons une expansion variadique. */
+        if (type_poly->est_variadique() && !type_cible->est_variadique()) {
             type_poly = type_poly->comme_variadique()->type_pointe;
         }
 
