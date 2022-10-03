@@ -100,6 +100,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
     NoeudDeclarationEnteteFonction *analyse_declaration_fonction(Lexeme const *lexeme);
     NoeudExpression *analyse_declaration_operateur();
+    void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud, bool pour_operateur);
     NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
 
     NoeudExpression *analyse_instruction();

@@ -672,6 +672,10 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
                                                    lexeme_final);
     }
 
+    if (!expression) {
+        rapporte_erreur("Attendu une expression primaire");
+    }
+
     return expression;
 }
 
@@ -2275,62 +2279,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         // nous avons la déclaration d'une fonction
         if (apparie(GenreLexeme::RETOUR_TYPE)) {
             consomme();
-
-            auto eu_parenthese = false;
-            if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
-                consomme();
-                eu_parenthese = true;
-            }
-
-            while (!fini()) {
-                auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-
-                if (!decl_sortie->est_declaration_variable()) {
-                    auto ident =
-                        m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
-                            enchaine("__ret", noeud->params_sorties.taille()));
-
-                    auto ref = m_tacheronne.assembleuse->cree_reference_declaration(
-                        decl_sortie->lexeme);
-                    ref->ident = ident;
-
-                    auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
-                    decl->expression_type = decl_sortie;
-                    decl->bloc_parent = decl_sortie->bloc_parent;
-
-                    decl_sortie = decl;
-                }
-
-                decl_sortie->drapeaux |= EST_PARAMETRE;
-
-                noeud->params_sorties.ajoute(decl_sortie->comme_declaration_variable());
-
-                if (!apparie(GenreLexeme::VIRGULE)) {
-                    break;
-                }
-
-                consomme();
-            }
-
-            if (noeud->params_sorties.taille() > 1) {
-                auto ref = m_tacheronne.assembleuse->cree_reference_declaration(
-                    noeud->params_sorties[0]->lexeme);
-                /* il nous faut un identifiant valide */
-                ref->ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
-                    "valeur_de_retour");
-                noeud->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(ref);
-            }
-            else {
-                noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
-            }
-
-            noeud->param_sortie->drapeaux |= EST_PARAMETRE;
-
-            if (eu_parenthese) {
-                consomme(
-                    GenreLexeme::PARENTHESE_FERMANTE,
-                    "attendu une parenthèse fermante après la liste des retours de la fonction");
-            }
+            analyse_expression_retour_type(noeud, false);
         }
         else {
             Lexeme *lexeme_rien = m_tacheronne.lexemes_extra.ajoute_element();
@@ -2471,6 +2420,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
             else {
                 noeud_corps->bloc = analyse_bloc();
+                noeud_corps->bloc->ident = noeud->ident;
             }
             est_dans_fonction = ancien_est_dans_fonction;
 
@@ -2580,38 +2530,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     /* analyse les types de retour de la fonction */
     consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
-    while (!fini()) {
-        auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-
-        if (!decl_sortie->est_declaration_variable()) {
-            auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
-                enchaine("__ret", noeud->params_sorties.taille()));
-
-            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(decl_sortie->lexeme);
-            ref->ident = ident;
-
-            auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
-            decl->expression_type = decl_sortie;
-
-            decl_sortie = decl;
-        }
-
-        decl_sortie->drapeaux |= EST_PARAMETRE;
-
-        noeud->params_sorties.ajoute(decl_sortie->comme_declaration_variable());
-
-        if (!apparie(GenreLexeme::VIRGULE)) {
-            break;
-        }
-
-        consomme();
-    }
-
-    if (noeud->params_sorties.taille() > 1) {
-        rapporte_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
-    }
-
-    noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+    analyse_expression_retour_type(noeud, true);
 
     while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
         consomme();
@@ -2656,6 +2575,79 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     depile_etat();
 
     return noeud;
+}
+
+void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
+                                                bool pour_operateur)
+{
+    auto eu_parenthese = false;
+    if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+        consomme();
+        eu_parenthese = true;
+    }
+
+    while (!fini()) {
+        auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
+
+        if (!decl_sortie) {
+            /* Nous avons une erreur, nous pouvons retourner. */
+            return;
+        }
+
+        if (!decl_sortie->est_declaration_variable()) {
+            auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
+                enchaine("__ret", noeud->params_sorties.taille()));
+
+            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(decl_sortie->lexeme);
+            ref->ident = ident;
+
+            auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
+            decl->expression_type = decl_sortie;
+            decl->bloc_parent = decl_sortie->bloc_parent;
+
+            decl_sortie = decl;
+        }
+
+        decl_sortie->drapeaux |= EST_PARAMETRE;
+
+        noeud->params_sorties.ajoute(decl_sortie->comme_declaration_variable());
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
+    }
+
+    auto const nombre_de_valeurs_retournees = noeud->params_sorties.taille();
+    if (nombre_de_valeurs_retournees == 0) {
+        rapporte_erreur("Attendu au moins une déclaration de valeur retournée");
+        return;
+    }
+
+    if (nombre_de_valeurs_retournees > 1) {
+        if (pour_operateur) {
+            rapporte_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
+            return;
+        }
+
+        auto ref = m_tacheronne.assembleuse->cree_reference_declaration(
+            noeud->params_sorties[0]->lexeme);
+        /* il nous faut un identifiant valide */
+        ref->ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
+            "valeur_de_retour");
+        noeud->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(ref);
+    }
+    else {
+        noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
+    }
+
+    noeud->param_sortie->drapeaux |= EST_PARAMETRE;
+
+    if (eu_parenthese) {
+        consomme(GenreLexeme::PARENTHESE_FERMANTE,
+                 "attendu une parenthèse fermante après la liste des retours de la fonction");
+    }
 }
 
 template <typename T>
