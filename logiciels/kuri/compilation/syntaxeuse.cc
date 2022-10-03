@@ -615,6 +615,12 @@ void Syntaxeuse::analyse_une_chose()
                 }
             }
 
+            if (noeud->est_execute()) {
+                if (noeud->ident != ID::test || m_compilatrice.active_tests) {
+                    requiers_typage(noeud);
+                }
+            }
+
             noeud->bloc_parent->expressions->ajoute(noeud);
         }
     }
@@ -987,10 +993,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                         {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
                 }
 
-                if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
-                    requiers_typage(noeud);
-                }
-
                 return noeud;
             }
             else if (directive == ID::si) {
@@ -1028,7 +1030,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
@@ -1036,7 +1037,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
@@ -1044,7 +1044,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-                requiers_typage(noeud);
                 return noeud;
             }
             else {
@@ -1279,6 +1278,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
 
                     if (directive == ID::cuisine) {
+                        recule();
+                        break;
+                    }
+
+                    if (directive == ID::execute) {
                         recule();
                         break;
                     }
@@ -1693,6 +1697,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
+    profondeur_bloc += 1;
     /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
     ignore_point_virgule_implicite();
@@ -1735,6 +1740,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 
     depile_etat();
 
+    profondeur_bloc -= 1;
     return bloc;
 }
 
@@ -2391,9 +2397,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         requiers_typage(noeud);
 
         if (noeud->est_externe) {
-            consomme(GenreLexeme::POINT_VIRGULE,
-                     "Attendu un point-virgule ';' après la déclaration de la fonction externe");
-
             if (noeud->params_sorties.taille() > 1) {
                 rapporte_erreur(
                     "Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -2402,14 +2405,16 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
             noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
             m_tacheronne.assembleuse->depile_bloc();
+
+            /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
+             * donc ne générons pas d'erreur s'il n'y en a pas. */
+            ignore_point_virgule_implicite();
         }
         else {
             ignore_point_virgule_implicite();
 
             auto noeud_corps = noeud->corps;
 
-            auto ancien_est_dans_fonction = est_dans_fonction;
-            est_dans_fonction = true;
             if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
                 empile_etat("dans l'analyse du bloc", lexeme_courant());
                 noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
@@ -2422,7 +2427,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud_corps->bloc = analyse_bloc();
                 noeud_corps->bloc->ident = noeud->ident;
             }
-            est_dans_fonction = ancien_est_dans_fonction;
 
             analyse_annotations(noeud->annotations);
         }
@@ -2559,10 +2563,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     requiers_typage(noeud);
 
     auto noeud_corps = noeud->corps;
-    auto ancien_est_dans_fonction = est_dans_fonction;
-    est_dans_fonction = true;
     noeud_corps->bloc = analyse_bloc();
-    est_dans_fonction = ancien_est_dans_fonction;
 
     analyse_annotations(noeud->annotations);
 
@@ -2801,6 +2802,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
+        profondeur_bloc += 1;
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
             if (ignore_point_virgule_implicite()) {
                 continue;
@@ -2850,6 +2852,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 rapporte_erreur("attendu une expression ou une instruction");
             }
         }
+        profondeur_bloc -= 1;
 
         copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
@@ -2863,8 +2866,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     analyse_annotations(noeud_decl->annotations);
 
     /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types, donc
-     * !est_dans_fonction. */
-    if (cree_tache || !est_dans_fonction) {
+     * profondeur_bloc < 1. */
+    if (cree_tache || profondeur_bloc < 1) {
         requiers_typage(noeud_decl);
     }
 

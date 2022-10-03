@@ -691,8 +691,10 @@ void Tacheronne::execute_metaprogrammes()
 
                 // Les directives pour des expressions dans des fonctions n'ont pas d'unités
                 if (!it->directive->unite) {
-                    it->directive->substitution = noeud_syntaxique_depuis_resultat(
+                    auto resultat = noeud_syntaxique_depuis_resultat(
                         espace, it->directive, it->directive->lexeme, type, pointeur);
+                    resultat->drapeaux |= NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
+                    it->directive->substitution = resultat;
                 }
             }
             else if (it->corps_texte) {

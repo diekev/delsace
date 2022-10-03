@@ -1,5 +1,4 @@
-/* Mauvaise génération de code pour les raccourcis booléens des énums drapeaux.
- * Voir mention « mauvaise génération de code C pour retourne it.drapeaux.EstXXX == qqch » dans Jorjala. */
+/* Mauvaise génération de code pour les raccourcis booléens des énums drapeaux. */
 
 ÉnumDrapeau :: énum_drapeau {
     X

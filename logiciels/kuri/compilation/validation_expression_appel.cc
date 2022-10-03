@@ -930,7 +930,8 @@ static ResultatAppariement apparie_appel_pointeur(
     }
 
     auto &slots = apparieuse.slots();
-    auto transformations = kuri::tableau<TransformationType, int>(slots.taille());
+    auto transformations = kuri::tableau<TransformationType, int>(
+        static_cast<int>(slots.taille()));
     auto poids_args = 1.0;
 
     /* Validation des types passés en paramètre. */
@@ -938,7 +939,7 @@ static ResultatAppariement apparie_appel_pointeur(
         auto index_param = std::min(i,
                                     static_cast<long>(type_fonction->types_entrees.taille() - 1));
         auto slot = slots[i];
-        auto type_prm = type_fonction->types_entrees[index_param];
+        auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
         auto type_enf = slot->type;
 
         auto resultat = apparie_type_parametre_appel_fonction(espace, slot, type_prm, type_enf);
@@ -964,7 +965,7 @@ static ResultatAppariement apparie_appel_pointeur(
             return ErreurAppariement::metypage_argument(slot, type_enf, type_prm);
         }
 
-        transformations[i] = poids_xform.transformation;
+        transformations[static_cast<int>(i)] = poids_xform.transformation;
     }
 
     if (fonction_variadique) {
