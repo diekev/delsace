@@ -320,24 +320,48 @@ ResultatExpression evalue_expression(Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
             auto res = ResultatExpression();
-            res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
             res.est_errone = false;
+
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                res.valeur = static_cast<long>(b->comme_litterale_entier()->valeur);
+            }
+            else {
+                res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
+            }
 
             return res;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
             auto res = ResultatExpression();
-            res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
             res.est_errone = false;
+
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                res.valeur = static_cast<long>(b->comme_litterale_entier()->valeur);
+            }
+            else {
+                res.valeur = static_cast<long>(b->lexeme->valeur_entiere);
+            }
 
             return res;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
             auto res = ResultatExpression();
-            res.valeur = b->lexeme->valeur_reelle;
             res.est_errone = false;
+
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                res.valeur = b->comme_litterale_reel()->valeur;
+            }
+            else {
+                res.valeur = b->lexeme->valeur_reelle;
+            }
 
             return res;
         }

@@ -1,12 +1,11 @@
 /* Les blocs « diffère » se retrouvent dans les fonctions nichées si
- * celles-ci utilise une fonction polymorphique.
- * Voir mention « erreur de compilation si dans la fonction » dans Santé. */
+ * celles-ci utilise une fonction polymorphique. */
 
 importe Fondation
 
 principale :: fonc () -> z32
 {
-    poly :: fonc (ligne: chaine, valeur: *$T) -> bool
+    poly :: fonc (ligne: chaine @inutilisée, valeur: *$T @inutilisée) -> bool
     {
         retourne faux
     }

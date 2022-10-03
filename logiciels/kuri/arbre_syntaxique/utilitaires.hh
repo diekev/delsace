@@ -69,6 +69,7 @@ enum DrapeauxNoeud : unsigned int {
     DEBOGUE = (1 << 26),
     METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
     GAUCHE_EXPRESSION_APPEL = (1 << 28),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 29),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

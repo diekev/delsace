@@ -1340,7 +1340,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 valeur_ret = depile_valeur();
             }
 
-            genere_ri_insts_differees(noeud->bloc_parent, nullptr);
+            auto bloc_final = NoeudBloc::nul();
+            if (fonction_courante->decl) {
+                bloc_final = fonction_courante->decl->bloc_constantes;
+            }
+
+            genere_ri_insts_differees(noeud->bloc_parent, bloc_final);
             cree_retour(noeud, valeur_ret);
             break;
         }
@@ -2871,7 +2876,8 @@ void ConstructriceRI::genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc
 	}
 #endif
 
-    while (bloc != bloc_final) {
+    /* À FAIRE : la hiérarchie de blocs des #corps_texte n'a pas le bloc de la fonction... */
+    while (bloc && bloc != bloc_final) {
         for (auto i = bloc->instructions_differees.taille() - 1; i >= 0; --i) {
             auto instruction_differee = bloc->instructions_differees[i];
             genere_ri_pour_noeud(instruction_differee->expression);
