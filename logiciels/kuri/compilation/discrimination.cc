@@ -343,6 +343,12 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
+            if (membre->type->est_rien()) {
+                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                                        "Impossible de capturer une variable depuis un membre "
+                                        "d'union de type « rien »");
+                return CodeRetourValidation::Erreur;
+            }
             cree_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                expression,
@@ -436,6 +442,12 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
+            if (ref_type->type->est_rien()) {
+                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                                        "Impossible de capturer une variable depuis un membre "
+                                        "d'union de type « rien »");
+                return CodeRetourValidation::Erreur;
+            }
             cree_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                inst->expression_discriminee,
