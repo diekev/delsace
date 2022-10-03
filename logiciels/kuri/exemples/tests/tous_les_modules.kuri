@@ -1,19 +1,19 @@
 importe Aléa
-// importe Alembic // en réusinage
+importe Alembic
 importe Algorithmes
 importe Allocatrices
 importe Alphabet
 importe AnalyseStatique
-// importe ArbreB // erreur dans un cas polymorphique
+importe ArbreB
 importe Authentification
 importe Chaine
 importe CodecDonnées
+importe Combinatoire
 importe Compilatrice
 importe Compression
 importe ConnexionTCP
 importe Couleur
 importe Courriel
-// importe Documentation // définis une fonction principale...
 importe Ensemble
 importe EnsembleDeBits
 importe Exétron
@@ -23,7 +23,9 @@ importe Finance
 importe FloconDeNeige
 importe Flux
 importe Fondation
+importe Géométrie3D
 importe GHTML
+importe GMP
 importe GlibC
 importe HTML
 importe HTTP
@@ -38,16 +40,17 @@ importe MySQL
 importe Numérique
 importe OpenGL
 importe OpenSSL
+importe OpenVDB
 importe Ordinatrice
 importe Outils
 importe OutilsMaintenance
 importe POSIX
 importe PThread
 importe Physique
+importe Processus
 importe Python
 importe Sérialisation
 importe SDL2
-// importe ServeuseCGI Routage est requis
 importe ServeuseTCP
 importe Structures
 importe SysFichier
@@ -57,8 +60,63 @@ importe Temps
 importe Terminal
 importe Tori
 importe Transpilation
+importe Triage
+
+génère_script :: fonc ()
+{
+    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[]chaine)
+    {
+        interdits := [
+            ".vscode",
+            "adn",
+            /* Routage, qui n'existe plus, est requis. */
+            "ServeuseCGI",
+            /* Définit sa propre fonction principale... */
+            "Documentation",
+            /* Superflux. */
+            "Kuri"
+        ]
+
+        nom_fichier := chemin.nom_fichier()
+
+        pour interdits {
+            si it == nom_fichier {
+                retourne
+            }
+        }
+
+        ensemble_ajoute(ensemble, copie_chaine(nom_fichier))
+    }
+
+    ensemble: []chaine
+
+    chemins_modules := CheminFichier("../../modules/")
+    pour_chaque_chemin(chemins_modules, *ensemble, ajoute_module)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour ensemble {
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+    }
+
+    // ajoute_au_tampon(*enchaineuse, "\n")
+    // ajoute_au_tampon(*enchaineuse, "principale :: fonc () -> z32 { retourne 0 }")
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn)
+
+    imprime("%\n", chn)
+
+    // ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn)
+}
+
+// À FAIRE : dans la machine virtuelle les noms des dossiers sont corrompus
+// #exécute génère_script()
 
 principale :: fonc () -> z32
 {
+    génère_script()
     retourne 0
 }
