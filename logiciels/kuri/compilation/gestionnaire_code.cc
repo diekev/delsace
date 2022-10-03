@@ -1101,9 +1101,6 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
         *m_compilatrice->sys_module.verrou_lecture());
 
-    // std::cerr << "peut_envoyer_changement_de_phase: " << peut_envoyer_changement_de_phase <<
-    // '\n';
-
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
     espace->tache_typage_terminee(m_compilatrice->messagere, peut_envoyer_changement_de_phase);
