@@ -1370,10 +1370,18 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(plage->fin);
             return;
         }
+        case GenreNoeud::EXPANSION_VARIADIQUE:
+        {
+            auto expr = noeud->comme_expansion_variadique();
+            if (expr->type->est_type_de_donnees()) {
+                /* Nous avons un type variadique. */
+                expr->substitution = assem->cree_reference_type(expr->lexeme, expr->type);
+            }
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::DECLARATION_OPAQUE:
-        case GenreNoeud::EXPANSION_VARIADIQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
