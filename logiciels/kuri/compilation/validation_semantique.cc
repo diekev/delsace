@@ -4156,9 +4156,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 graphe->cree_noeud_globale(decl_var);
             }
             else {
-                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
-                auto bloc_parent = decl_var->bloc_parent;
-                bloc_parent->membres->ajoute(decl_var);
+                /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
+                 * syntaxeuse. */
+                if (!decl_var->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                    auto bloc_parent = decl_var->bloc_parent;
+                    bloc_parent->membres->ajoute(decl_var);
+                }
             }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
