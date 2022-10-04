@@ -130,6 +130,11 @@ struct UniteCompilation {
         return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;
     }
 
+    inline bool attend_sur_declaration(NoeudDeclaration *decl)
+    {
+        return m_attente.est<AttenteSurDeclaration>() && m_attente.declaration() == decl;
+    }
+
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \
