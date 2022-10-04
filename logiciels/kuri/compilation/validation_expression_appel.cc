@@ -1250,6 +1250,27 @@ static ResultatAppariement apparie_appel_fonction(
 
 /* ************************************************************************** */
 
+static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        auto ref_decl = expr->comme_reference_declaration();
+
+        if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    if (expr->type->est_type_de_donnees()) {
+        auto type_connu = expr->type->comme_type_de_donnees()->type_connu;
+
+        if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static ResultatAppariement apparie_appel_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
@@ -1286,6 +1307,8 @@ static ResultatAppariement apparie_appel_structure(
         kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         auto index_param = 0;
+        // détecte les arguments polymorphiques dans les fonctions polymorphiques
+        auto est_type_argument_polymorphique = false;
         POUR (apparieuse_params.slots()) {
             auto param = decl_struct->params_polymorphiques[index_param];
             index_param += 1;
@@ -1295,6 +1318,11 @@ static ResultatAppariement apparie_appel_structure(
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
                 });
+                continue;
+            }
+
+            if (est_expression_type_ou_valeur_polymorphique(it)) {
+                est_type_argument_polymorphique = true;
                 continue;
             }
 
@@ -1319,29 +1347,6 @@ static ResultatAppariement apparie_appel_structure(
                 }
 
                 items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
-            }
-        }
-
-        // détecte les arguments polymorphiques dans les fonctions polymorphiques
-        auto est_type_argument_polymorphique = false;
-        POUR (arguments) {
-            // vérifie si l'argument est une valeur polymorphique de la fonction
-            if (it.expr->est_reference_declaration()) {
-                auto ref_decl = it.expr->comme_reference_declaration();
-
-                if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
-                }
-            }
-
-            if (it.expr->type->est_type_de_donnees()) {
-                auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
-
-                if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
-                }
             }
         }
 
