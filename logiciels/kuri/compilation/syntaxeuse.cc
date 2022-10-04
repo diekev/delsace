@@ -1702,7 +1702,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
-    profondeur_bloc += 1;
     /* Pour les instructions de controles de flux, il est plus simple et plus robuste de détecter
      * un point-vigule implicite ici que de le faire pour chaque instruction. */
     ignore_point_virgule_implicite();
@@ -1745,7 +1744,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 
     depile_etat();
 
-    profondeur_bloc -= 1;
     return bloc;
 }
 
@@ -2811,7 +2809,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
-        profondeur_bloc += 1;
         while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
             if (ignore_point_virgule_implicite()) {
                 continue;
@@ -2861,7 +2858,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                 rapporte_erreur("attendu une expression ou une instruction");
             }
         }
-        profondeur_bloc -= 1;
 
         copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 

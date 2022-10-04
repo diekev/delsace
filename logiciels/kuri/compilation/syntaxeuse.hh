@@ -62,7 +62,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
     bool m_est_declaration_type_opaque = false;
-    int profondeur_bloc = 0;
 
     /* Bloc courant recevant les constantes polymorphiques. */
     kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
