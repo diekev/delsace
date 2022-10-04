@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
+#include "structures/pile.hh"
 
 struct Annotation;
 struct Compilatrice;
@@ -61,9 +62,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
     bool m_est_declaration_type_opaque = false;
-    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
-    NoeudStruct *structure_courante = nullptr;
-    int profondeur_bloc = 0;
+
+    /* Bloc courant recevant les constantes polymorphiques. */
+    kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
 
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);

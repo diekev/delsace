@@ -31,22 +31,23 @@ appel_fonction :: fonc (a: $T, b: $U, fonction: fonc(T, U)($V)) -> V
     retourne fonction(a, b)
 }
 
-arguments_variadiques :: fonc (a: $T, args: ...T)
+imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
 {
-    imprime("arguments_variadiques\n")
+    imprime("%\n", message)
     imprime("a = %\n", a)
     pour args {
         imprime("arg %: %\n", index_it, it)
     }
 }
 
+arguments_variadiques :: fonc (a: $T, args: ...T)
+{
+    imprime_arguments_variadiques("arguments_variadiques", a, ...args)
+}
+
 arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
 {
-    imprime("arguments_variadiques_pointeur\n")
-    imprime("a = %\n", a)
-    pour args {
-        imprime("arg %: %\n", index_it, it)
-    }
+    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args)
 }
 
 argument_tableau_fixe :: fonc (a: [8]$T)

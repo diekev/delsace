@@ -1,6 +1,7 @@
 /* Erreur de typage sur des arguments variadiques polymorphiques
- * alors que les types sont les mêmes.
- * voir exemples/tests/test_polymorphisme.kuri */
+ * alors que les types sont les mêmes. */
+
+importe Fondation
 
 imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
 {

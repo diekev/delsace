@@ -517,11 +517,14 @@ void aplatis_arbre(NoeudExpression *declaration)
 
     if (declaration->est_structure()) {
         auto structure = declaration->comme_structure();
-        if (structure->arbre_aplatis.taille() == 0) {
+
+        if (structure->arbre_aplatis_params.taille() == 0) {
             POUR (structure->params_polymorphiques) {
                 aplatis_arbre(it, structure->arbre_aplatis_params, {});
             }
+        }
 
+        if (structure->arbre_aplatis.taille() == 0) {
             aplatis_arbre(structure->bloc, structure->arbre_aplatis, {});
         }
         return;
@@ -1386,10 +1389,18 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(plage->fin);
             return;
         }
+        case GenreNoeud::EXPANSION_VARIADIQUE:
+        {
+            auto expr = noeud->comme_expansion_variadique();
+            if (expr->type->est_type_de_donnees()) {
+                /* Nous avons un type variadique. */
+                expr->substitution = assem->cree_reference_type(expr->lexeme, expr->type);
+            }
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::DECLARATION_OPAQUE:
-        case GenreNoeud::EXPANSION_VARIADIQUE:
         case GenreNoeud::EXPRESSION_INFO_DE:
         case GenreNoeud::EXPRESSION_INIT_DE:
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
@@ -1555,7 +1566,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 valeur_un);
 
             auto iterations = assem->cree_declaration_variable(
-                var->lexeme, type_index_it, nullptr, nombre_iterations);
+                var->lexeme, expression_iteree->type, nullptr, nombre_iterations);
             auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
             bloc_pre->expressions->ajoute(iterations);
             bloc_pre->membres->ajoute(iterations);
@@ -1572,6 +1583,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (iterations->type->est_entier_naturel()) {
                 /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
                  * expr_fin < (expr_debut + 1). */
+                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_egt;
                 auto condition1 = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
@@ -1589,6 +1601,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             }
             else {
                 /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
+                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_ieg;
                 condition->condition = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);

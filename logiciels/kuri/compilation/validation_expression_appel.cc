@@ -189,7 +189,8 @@ struct Monomorpheuse {
             return true;
         }
 
-        if (type_poly->est_variadique()) {
+        /* type_cible peut-être variadique si nous avons une expansion variadique. */
+        if (type_poly->est_variadique() && !type_cible->est_variadique()) {
             type_poly = type_poly->comme_variadique()->type_pointe;
         }
 
@@ -236,7 +237,9 @@ struct Monomorpheuse {
                             }
                         }
 
-                        paires_types.ajoute({type1, type2});
+                        if (type2) {
+                            paires_types.ajoute({type1, type2});
+                        }
                     }
 
                     table_structures.ajoute({type_polymorphique, type_cible});
@@ -437,12 +440,6 @@ static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
                 monomorpheuse.ajoute_item(it->ident);
             }
         });
-
-    POUR (decl->params) {
-        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-            monomorpheuse.ajoute_item(it->ident);
-        }
-    }
 }
 
 struct ApparieuseParams {
@@ -1249,6 +1246,27 @@ static ResultatAppariement apparie_appel_fonction(
 
 /* ************************************************************************** */
 
+static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        auto ref_decl = expr->comme_reference_declaration();
+
+        if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    if (expr->type->est_type_de_donnees()) {
+        auto type_connu = expr->type->comme_type_de_donnees()->type_connu;
+
+        if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static ResultatAppariement apparie_appel_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
@@ -1285,64 +1303,46 @@ static ResultatAppariement apparie_appel_structure(
         kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         auto index_param = 0;
+        // détecte les arguments polymorphiques dans les fonctions polymorphiques
+        auto est_type_argument_polymorphique = false;
         POUR (apparieuse_params.slots()) {
             auto param = decl_struct->params_polymorphiques[index_param];
             index_param += 1;
 
-            // vérifie la contrainte
-            if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
-                if (param->type->est_type_de_donnees()) {
-                    if (!it->type->est_type_de_donnees()) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, it->type, ValeurExpression(), true});
-                }
-                else {
-                    if (!(it->type == param->type ||
-                          (it->type->est_entier_constant() && est_type_entier(param->type)))) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
-
-                    if (valeur.est_errone) {
-                        espace.rapporte_erreur(it, "La valeur n'est pas constante");
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, param->type, valeur.valeur, false});
-                }
-            }
-            else {
+            if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
                 assert_rappel(false, []() {
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
                 });
-            }
-        }
-
-        // détecte les arguments polymorphiques dans les fonctions polymorphiques
-        auto est_type_argument_polymorphique = false;
-        POUR (arguments) {
-            // vérifie si l'argument est une valeur polymorphique de la fonction
-            if (it.expr->est_reference_declaration()) {
-                auto ref_decl = it.expr->comme_reference_declaration();
-
-                if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
-                }
+                continue;
             }
 
-            if (it.expr->type->est_type_de_donnees()) {
-                auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
+            if (est_expression_type_ou_valeur_polymorphique(it)) {
+                est_type_argument_polymorphique = true;
+                continue;
+            }
 
-                if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
+            // vérifie la contrainte
+            if (param->type->est_type_de_donnees()) {
+                if (!it->type->est_type_de_donnees()) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
                 }
+
+                items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
+            }
+            else {
+                if (!(it->type == param->type ||
+                      (it->type->est_entier_constant() && est_type_entier(param->type)))) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
+                }
+
+                auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+
+                if (valeur.est_errone) {
+                    espace.rapporte_erreur(it, "La valeur n'est pas constante");
+                }
+
+                items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
             }
         }
 
@@ -1353,15 +1353,6 @@ static ResultatAppariement apparie_appel_structure(
             type_poly->structure = decl_struct;
 
             POUR (arguments) {
-                if (it.expr->est_reference_declaration()) {
-                    auto ref_decl = it.expr->comme_reference_declaration();
-
-                    if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                        type_poly->types_constants_structure.ajoute(it.expr->type);
-                        break;
-                    }
-                }
-
                 if (it.expr->type->est_type_de_donnees()) {
                     auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
@@ -1709,6 +1700,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = it.ident;
 
         if (it.est_type) {
@@ -1773,10 +1765,10 @@ static NoeudStruct *monomorphise_au_besoin(
 
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
-        // À FAIRE(poly) : lexème pour la  constante
-        auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
-            decl_struct->lexeme);
+        auto decl_constante =
+            trouve_dans_bloc(copie->bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = it.ident;
         decl_constante->type = it.type;
 
@@ -1784,7 +1776,8 @@ static NoeudStruct *monomorphise_au_besoin(
             decl_constante->valeur_expression = it.valeur;
         }
 
-        copie->bloc_constantes->membres->ajoute(decl_constante);
+        /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
+         * En effet, la monomorphisation se base sur les membres du type. */
         copie->bloc->membres->ajoute(decl_constante);
     }
 
