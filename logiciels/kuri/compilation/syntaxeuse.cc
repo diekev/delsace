@@ -1075,13 +1075,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             auto noeud_decl_param = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
             noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
 
-            if (fonction_courante) {
-                fonction_courante->bloc_constantes->membres->ajoute(noeud_decl_param);
-                fonction_courante->est_polymorphe = true;
-            }
-            else if (structure_courante) {
-                structure_courante->bloc_constantes->membres->ajoute(noeud_decl_param);
-                structure_courante->est_polymorphe = true;
+            if (!bloc_constantes_polymorphiques.est_vide()) {
+                auto bloc_constantes = bloc_constantes_polymorphiques.haut();
+                bloc_constantes->membres->ajoute(noeud_decl_param);
             }
             else if (!m_est_declaration_type_opaque) {
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
@@ -2175,13 +2171,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     auto noeud = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
 
-    auto ancienne_fonction = fonction_courante;
-    fonction_courante = noeud;
-
-    DIFFERE {
-        fonction_courante = ancienne_fonction;
-    };
-
     // @concurrence critique, si nous avons plusieurs définitions
     if (noeud->ident == ID::principale) {
         if (m_unite->espace->fonction_principale) {
@@ -2201,6 +2190,27 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
     noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+
+    bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+    DIFFERE {
+        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        if (bloc_constantes->membres->taille() != 0) {
+            noeud->est_polymorphe = true;
+        }
+
+        /* Ajoute les constantes polymorphiques de ce type dans ceux du bloc de constantes
+         * polymorphiques du bloc parent.
+         * Ceci nous permet par exemple d'avoir des déclarations du style :
+         * ma_fonction :: (rappel: fonc(z32)($T)) -> T
+         * où ma_fonction doit être marquée comme polymorphique.
+         */
+        if (noeud->est_declaration_type && !bloc_constantes_polymorphiques.est_vide()) {
+            auto bloc_constantes_pere = bloc_constantes_polymorphiques.haut();
+            POUR (*noeud->bloc_constantes->membres.verrou_lecture()) {
+                bloc_constantes_pere->membres->ajoute(it);
+            }
+        }
+    };
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2274,13 +2284,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
 
             consomme();
-        }
-
-        // pousse les constantes polymorphiques de cette fonction dans ceux de la fonction-mère
-        if (ancienne_fonction) {
-            POUR (*noeud->bloc_constantes->membres.verrou_lecture()) {
-                ancienne_fonction->bloc_constantes->membres->ajoute(it);
-            }
         }
 
         consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
@@ -2706,6 +2709,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
         noeud_decl->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
+        bloc_constantes_polymorphiques.empile(noeud_decl->bloc_constantes);
+        DIFFERE {
+            auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+            POUR (noeud_decl->params_polymorphiques) {
+                noeud_decl->bloc_constantes->membres->ajoute(it);
+            }
+            if (bloc_constantes->membres->taille() != 0) {
+                noeud_decl->est_polymorphe = true;
+            }
+        };
+
         consomme();
 
         while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
@@ -2740,7 +2754,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         /* permet la déclaration de structures sans paramètres, pourtant ayant des parenthèse */
         if (noeud_decl->params_polymorphiques.taille() != 0) {
-            noeud_decl->est_polymorphe = true;
             cree_tache = true;
         }
 
