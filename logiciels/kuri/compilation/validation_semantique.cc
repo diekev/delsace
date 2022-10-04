@@ -3189,6 +3189,29 @@ static unsigned long valeur_max(Type *type)
     return std::numeric_limits<long>::max();
 }
 
+static int nombre_de_bits_pour_type(Type *type)
+{
+    while (type->est_opaque()) {
+        type = type->comme_opaque()->type_opacifie;
+    }
+
+    /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
+
+    if (type->taille_octet == 1) {
+        return std::numeric_limits<unsigned char>::digits;
+    }
+
+    if (type->taille_octet == 2) {
+        return std::numeric_limits<unsigned short>::digits;
+    }
+
+    if (type->taille_octet == 4 || type->est_entier_constant()) {
+        return std::numeric_limits<unsigned int>::digits;
+    }
+
+    return std::numeric_limits<unsigned long>::digits;
+}
+
 template <int N>
 ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
 {
@@ -4880,6 +4903,15 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
     }
 }
 
+static bool est_decalage_bits(GenreLexeme genre)
+{
+    return dls::outils::est_element(genre,
+                                    GenreLexeme::DECALAGE_DROITE,
+                                    GenreLexeme::DECALAGE_GAUCHE,
+                                    GenreLexeme::DEC_DROITE_EGAL,
+                                    GenreLexeme::DEC_GAUCHE_EGAL);
+}
+
 ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     NoeudExpressionBinaire *expr)
 {
@@ -4949,6 +4981,26 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
             return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (est_decalage_bits(expr->lexeme->genre)) {
+        auto resultat = evalue_expression(
+            m_compilatrice, expr->bloc_parent, expr->operande_droite);
+        /* Un résultat erroné veut dire que l'expression n'est pas constante.
+         * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
+         * réelles. */
+        if (!resultat.est_errone) {
+            auto const bits_max = nombre_de_bits_pour_type(type1);
+            auto const decalage = resultat.valeur.entiere();
+            if (resultat.valeur.entiere() >= bits_max) {
+                espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
+                    .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
+                    .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
+                                    bits_max - 1,
+                                    " pour le type ",
+                                    chaine_type(type1));
+            }
         }
     }
 
