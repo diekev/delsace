@@ -517,11 +517,14 @@ void aplatis_arbre(NoeudExpression *declaration)
 
     if (declaration->est_structure()) {
         auto structure = declaration->comme_structure();
-        if (structure->arbre_aplatis.taille() == 0) {
+
+        if (structure->arbre_aplatis_params.taille() == 0) {
             POUR (structure->params_polymorphiques) {
                 aplatis_arbre(it, structure->arbre_aplatis_params, {});
             }
+        }
 
+        if (structure->arbre_aplatis.taille() == 0) {
             aplatis_arbre(structure->bloc, structure->arbre_aplatis, {});
         }
         return;
