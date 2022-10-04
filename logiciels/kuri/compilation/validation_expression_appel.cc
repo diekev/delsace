@@ -1290,37 +1290,35 @@ static ResultatAppariement apparie_appel_structure(
             auto param = decl_struct->params_polymorphiques[index_param];
             index_param += 1;
 
-            // vérifie la contrainte
-            if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
-                if (param->type->est_type_de_donnees()) {
-                    if (!it->type->est_type_de_donnees()) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, it->type, ValeurExpression(), true});
-                }
-                else {
-                    if (!(it->type == param->type ||
-                          (it->type->est_entier_constant() && est_type_entier(param->type)))) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
-
-                    if (valeur.est_errone) {
-                        espace.rapporte_erreur(it, "La valeur n'est pas constante");
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, param->type, valeur.valeur, false});
-                }
-            }
-            else {
+            if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
                 assert_rappel(false, []() {
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
                 });
+                continue;
+            }
+
+            // vérifie la contrainte
+            if (param->type->est_type_de_donnees()) {
+                if (!it->type->est_type_de_donnees()) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
+                }
+
+                items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
+            }
+            else {
+                if (!(it->type == param->type ||
+                      (it->type->est_entier_constant() && est_type_entier(param->type)))) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
+                }
+
+                auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+
+                if (valeur.est_errone) {
+                    espace.rapporte_erreur(it, "La valeur n'est pas constante");
+                }
+
+                items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
             }
         }
 
