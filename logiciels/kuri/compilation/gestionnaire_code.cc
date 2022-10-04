@@ -419,12 +419,17 @@ static void rassemble_dependances(NoeudExpression *racine,
 
 /* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur vers
  * celui-ci. Retourne nul si le noeud n'est pas supposé avoir un noeud de dépendance. */
-static NoeudDependance *garantie_noeud_dependance(NoeudExpression *noeud, GrapheDependance &graphe)
+static NoeudDependance *garantie_noeud_dependance(EspaceDeTravail *espace,
+                                                  NoeudExpression *noeud,
+                                                  GrapheDependance &graphe)
 {
     /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et les
      * constantes. */
     if (noeud->est_declaration_variable()) {
-        assert(noeud->possede_drapeau(EST_GLOBALE));
+        assert_rappel(noeud->possede_drapeau(EST_GLOBALE), [&]() {
+            erreur::imprime_site(*espace, noeud);
+            std::cerr << *noeud;
+        });
         return graphe.cree_noeud_globale(noeud->comme_declaration_variable());
     }
 
@@ -614,7 +619,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
-        NoeudDependance *noeud_dependance = garantie_noeud_dependance(noeud, graphe);
+        NoeudDependance *noeud_dependance = garantie_noeud_dependance(espace, noeud, graphe);
         graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
     }
 
