@@ -236,6 +236,16 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         pour_chaque_membre_recursif([&os](Membre const &it) {
             if (it.type->est_tableau()) {
+                os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur."
+                   << it.nom.nom_cpp();
+                const auto type_tableau = it.type->comme_tableau();
+                if (type_tableau->est_synchrone) {
+                    os << "->";
+                }
+                else {
+                    os << ".";
+                }
+                os << "taille() << \" éléments \\n\";" << '\n';
                 return;
             }
 

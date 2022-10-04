@@ -1518,7 +1518,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto expr = noeud->comme_expansion_variadique();
 
             if (expr->expression == nullptr) {
-                // nous avons un type variadique
+                /* Nous avons un type variadique externe. */
                 auto type_var = m_compilatrice.typeuse.type_variadique(nullptr);
                 expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_var);
                 return CodeRetourValidation::OK;
@@ -1927,14 +1927,15 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     /* Valide les constantes polymorphiques. */
     if (decl->est_polymorphe) {
-        decl->bloc_constantes->membres.avec_verrou_ecriture(
-            [this](kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
-                    it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
-                    it->drapeaux |= DECLARATION_FUT_VALIDEE;
-                }
-            });
+
+        POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
+            /* Les valeurs polymorphiques sont dans les paramètres. */
+            if (it->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+                auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
+                it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
+                it->drapeaux |= DECLARATION_FUT_VALIDEE;
+            }
+        }
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -4156,9 +4157,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 graphe->cree_noeud_globale(decl_var);
             }
             else {
-                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
-                auto bloc_parent = decl_var->bloc_parent;
-                bloc_parent->membres->ajoute(decl_var);
+                /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
+                 * syntaxeuse. */
+                if (!decl_var->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                    auto bloc_parent = decl_var->bloc_parent;
+                    bloc_parent->membres->ajoute(decl_var);
+                }
             }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
