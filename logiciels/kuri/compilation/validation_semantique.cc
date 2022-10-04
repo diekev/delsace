@@ -1927,14 +1927,15 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     /* Valide les constantes polymorphiques. */
     if (decl->est_polymorphe) {
-        decl->bloc_constantes->membres.avec_verrou_ecriture(
-            [this](kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
-                    it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
-                    it->drapeaux |= DECLARATION_FUT_VALIDEE;
-                }
-            });
+
+        POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
+            /* Les valeurs polymorphiques sont dans les paramètres. */
+            if (it->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+                auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
+                it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
+                it->drapeaux |= DECLARATION_FUT_VALIDEE;
+            }
+        }
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =

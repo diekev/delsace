@@ -237,7 +237,9 @@ struct Monomorpheuse {
                             }
                         }
 
-                        paires_types.ajoute({type1, type2});
+                        if (type2) {
+                            paires_types.ajoute({type1, type2});
+                        }
                     }
 
                     table_structures.ajoute({type_polymorphique, type_cible});
@@ -438,12 +440,6 @@ static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
                 monomorpheuse.ajoute_item(it->ident);
             }
         });
-
-    POUR (decl->params) {
-        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-            monomorpheuse.ajoute_item(it->ident);
-        }
-    }
 }
 
 struct ApparieuseParams {
@@ -1357,15 +1353,6 @@ static ResultatAppariement apparie_appel_structure(
             type_poly->structure = decl_struct;
 
             POUR (arguments) {
-                if (it.expr->est_reference_declaration()) {
-                    auto ref_decl = it.expr->comme_reference_declaration();
-
-                    if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                        type_poly->types_constants_structure.ajoute(it.expr->type);
-                        break;
-                    }
-                }
-
                 if (it.expr->type->est_type_de_donnees()) {
                     auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
@@ -1713,6 +1700,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = it.ident;
 
         if (it.est_type) {
@@ -1777,10 +1765,10 @@ static NoeudStruct *monomorphise_au_besoin(
 
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
-        // À FAIRE(poly) : lexème pour la  constante
-        auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
-            decl_struct->lexeme);
+        auto decl_constante =
+            trouve_dans_bloc(copie->bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = it.ident;
         decl_constante->type = it.type;
 
@@ -1788,7 +1776,8 @@ static NoeudStruct *monomorphise_au_besoin(
             decl_constante->valeur_expression = it.valeur;
         }
 
-        copie->bloc_constantes->membres->ajoute(decl_constante);
+        /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
+         * En effet, la monomorphisation se base sur les membres du type. */
         copie->bloc->membres->ajoute(decl_constante);
     }
 

@@ -1073,10 +1073,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme(GenreLexeme::CHAINE_CARACTERE, "attendu une chaine de caractère après '$'");
 
             auto noeud = m_tacheronne.assembleuse->cree_reference_declaration(lexeme);
-            noeud->drapeaux |= DECLARATION_TYPE_POLYMORPHIQUE;
 
             auto noeud_decl_param = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
-            noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
+            noeud_decl_param->valeur = noeud;
+            noeud->declaration_referee = noeud_decl_param;
 
             if (!bloc_constantes_polymorphiques.est_vide()) {
                 auto bloc_constantes = bloc_constantes_polymorphiques.haut();
@@ -1087,6 +1087,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                                 "structure, ou de la déclaration d'un type opaque");
             }
 
+            if (apparie(GenreLexeme::DOUBLE_POINTS)) {
+                consomme();
+                noeud_decl_param->expression_type = analyse_expression(
+                    {}, racine_expression, lexeme_final);
+                /* Nous avons une déclaration de valeur polymorphique, retournons-la. */
+                noeud_decl_param->drapeaux |= (EST_VALEUR_POLYMORPHIQUE | EST_CONSTANTE);
+                return noeud_decl_param;
+            }
+
+            noeud->drapeaux |= DECLARATION_TYPE_POLYMORPHIQUE;
+            noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
             return noeud;
         }
         case GenreLexeme::FONC:
@@ -2219,26 +2230,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     auto eu_declarations = false;
 
     while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
-        auto valeur_poly = false;
-
-        if (apparie(GenreLexeme::DOLLAR)) {
-            consomme();
-            valeur_poly = true;
-        }
-
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (param->est_declaration_variable()) {
             auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
-            if (valeur_poly) {
-                decl_var->drapeaux |= EST_VALEUR_POLYMORPHIQUE;
-                params.ajoute(decl_var);
-                noeud->est_polymorphe = true;
-            }
-            else {
-                decl_var->drapeaux |= EST_PARAMETRE;
-                params.ajoute(decl_var);
-            }
+            decl_var->drapeaux |= EST_PARAMETRE;
+            params.ajoute(decl_var);
 
             eu_declarations = true;
 
@@ -2710,10 +2707,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         bloc_constantes_polymorphiques.empile(noeud_decl->bloc_constantes);
         DIFFERE {
             auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-            POUR (noeud_decl->params_polymorphiques) {
-                noeud_decl->bloc_constantes->membres->ajoute(it);
-            }
             if (bloc_constantes->membres->taille() != 0) {
+                POUR (*bloc_constantes->membres.verrou_lecture()) {
+                    noeud_decl->params_polymorphiques.ajoute(it->comme_declaration_variable());
+                }
+
                 noeud_decl->est_polymorphe = true;
             }
         };
@@ -2721,14 +2719,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         consomme();
 
         while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
-            auto drapeaux = DrapeauxNoeud::AUCUN;
-
-            if (apparie(GenreLexeme::DOLLAR)) {
-                consomme();
-
-                drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
-            }
-
             auto expression = analyse_expression(
                 {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
 
@@ -2737,11 +2727,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
                                                  "Attendu une déclaration de variable dans les "
                                                  "paramètres polymorphiques de la structure");
             }
-
-            auto decl_var = expression->comme_declaration_variable();
-            decl_var->drapeaux |= drapeaux;
-
-            noeud_decl->params_polymorphiques.ajoute(decl_var);
 
             if (!apparie(GenreLexeme::VIRGULE)) {
                 break;
