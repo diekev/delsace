@@ -622,6 +622,9 @@ void Syntaxeuse::analyse_une_chose()
             else if (noeud->est_type_opaque()) {
                 requiers_typage(noeud);
             }
+            else if (noeud->est_structure()) {
+                requiers_typage(noeud);
+            }
         }
         else if (noeud->est_execute()) {
             if (noeud->ident != ID::test || m_compilatrice.active_tests) {
@@ -2676,8 +2679,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
     noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
 
-    auto cree_tache = false;
-
     if (gauche->ident == ID::InfoType) {
         noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
         auto type_info_type = m_compilatrice.typeuse.type_info_type_->comme_structure();
@@ -2689,7 +2690,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         noeud_decl->type = type_contexte;
         type_contexte->decl = noeud_decl;
         type_contexte->nom = noeud_decl->ident;
-        cree_tache = true;
     }
     else {
         if (noeud_decl->est_union) {
@@ -2752,11 +2752,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
             consomme();
         }
 
-        /* permet la déclaration de structures sans paramètres, pourtant ayant des parenthèse */
-        if (noeud_decl->params_polymorphiques.taille() != 0) {
-            cree_tache = true;
-        }
-
         consomme();
     }
 
@@ -2767,7 +2762,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
-            cree_tache = true;
         }
         else if (ident_directive == ID::externe) {
             noeud_decl->est_externe = true;
@@ -2879,12 +2873,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
 
     analyse_annotations(noeud_decl->annotations);
-
-    /* À FAIRE : pour les NoeudCode nous devons réellement avoir tous les types, donc
-     * profondeur_bloc < 1. */
-    if (cree_tache || profondeur_bloc < 1) {
-        requiers_typage(noeud_decl);
-    }
 
     if (noeud_decl->bloc_constantes) {
         m_tacheronne.assembleuse->depile_bloc();
