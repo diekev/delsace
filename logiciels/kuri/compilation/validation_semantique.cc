@@ -4482,13 +4482,13 @@ CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *
     return CodeRetourValidation::OK;
 }
 
-void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud)
+void ContexteValidationCode::rapporte_erreur(const char *message, const NoeudExpression *noeud)
 {
     erreur::lance_erreur(message, *espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur(const char *message,
-                                             NoeudExpression *noeud,
+                                             const NoeudExpression *noeud,
                                              erreur::Genre genre)
 {
     erreur::lance_erreur(message, *espace, noeud, genre);
