@@ -372,7 +372,7 @@ struct Monomorpheuse {
 
             POUR (items) {
                 if (it.ident == type->ident) {
-                    resultat = it.type;
+                    resultat = const_cast<Type *>(it.type);
                     break;
                 }
             }
@@ -1701,13 +1701,14 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->ident = it.ident;
+        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
 
         if (it.est_type) {
-            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
+            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(
+                const_cast<Type *>(it.type));
         }
         else {
-            decl_constante->type = it.type;
+            decl_constante->type = const_cast<Type *>(it.type);
             decl_constante->valeur_expression = it.valeur;
         }
 
@@ -1769,8 +1770,8 @@ static NoeudStruct *monomorphise_au_besoin(
             trouve_dans_bloc(copie->bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->ident = it.ident;
-        decl_constante->type = it.type;
+        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
 
         if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;

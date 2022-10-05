@@ -108,7 +108,7 @@ struct ErreurAppariement {
     NoeudExpression const *site_erreur = nullptr;
     NoeudDeclaration *noeud_decl = nullptr;
 
-    IdentifiantCode *ident_poly_manquant = nullptr;
+    const IdentifiantCode *ident_poly_manquant = nullptr;
 
     struct NombreArguments {
         long int nombre_obtenu = 0;
@@ -141,7 +141,7 @@ struct ErreurAppariement {
     }
 
     static ErreurAppariement definition_type_polymorphique_impossible(NoeudExpression const *site,
-                                                                      IdentifiantCode *ident)
+                                                                      const IdentifiantCode *ident)
     {
         auto erreur = cree_erreur(IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE, site);
         erreur.ident_poly_manquant = ident;

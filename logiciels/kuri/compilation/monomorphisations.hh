@@ -35,8 +35,8 @@ struct IdentifiantCode;
 struct Type;
 
 struct ItemMonomorphisation {
-    IdentifiantCode *ident = nullptr;
-    Type *type = nullptr;
+    const IdentifiantCode *ident = nullptr;
+    const Type *type = nullptr;
     ValeurExpression valeur{};
     bool est_type = false;
 
