@@ -493,10 +493,18 @@ void aplatis_arbre(NoeudExpression *declaration)
     if (declaration->est_entete_fonction()) {
         auto entete = declaration->comme_entete_fonction();
         if (entete->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(entete->bloc_constantes, entete->arbre_aplatis, {});
-            aplatis_arbre(entete->bloc_parametres, entete->arbre_aplatis, {});
+            /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
+            POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
+                if (!it->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                    continue;
+                }
+                aplatis_arbre(it, entete->arbre_aplatis, {});
+            }
 
             POUR (entete->params) {
+                if (it->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                    continue;
+                }
                 aplatis_arbre(it, entete->arbre_aplatis, {});
             }
 
