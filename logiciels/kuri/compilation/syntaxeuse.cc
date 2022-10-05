@@ -2708,10 +2708,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         DIFFERE {
             auto bloc_constantes = bloc_constantes_polymorphiques.depile();
             if (bloc_constantes->membres->taille() != 0) {
-                POUR (*bloc_constantes->membres.verrou_lecture()) {
-                    noeud_decl->params_polymorphiques.ajoute(it->comme_declaration_variable());
-                }
-
                 noeud_decl->est_polymorphe = true;
             }
         };

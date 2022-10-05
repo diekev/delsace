@@ -102,12 +102,6 @@ static const char *copie_extra_structure = R"(
                     auto copie_membre = copie_noeud(it, bloc_parent);
                     copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
                 }
-
-                /* Nous devons placer les membres dans les paramètres polymorphiques afin que la validation des
-                 * expressions d'appel fonctionne. */
-                POUR (*copie->bloc_constantes->membres.verrou_ecriture()) {
-                    copie->params_polymorphiques.ajoute(it->comme_declaration_variable());
-                }
             }
 )";
 

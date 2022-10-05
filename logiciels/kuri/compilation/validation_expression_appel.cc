@@ -1276,14 +1276,15 @@ static ResultatAppariement apparie_appel_structure(
     auto type_compose = decl_struct->type->comme_compose();
 
     if (decl_struct->est_polymorphe) {
-        if (expr->parametres.taille() != decl_struct->params_polymorphiques.taille()) {
+        auto params_polymorphiques = decl_struct->bloc_constantes;
+        if (expr->parametres.taille() != params_polymorphiques->membres->taille()) {
             return ErreurAppariement::mecomptage_arguments(
-                expr, decl_struct->params_polymorphiques.taille(), expr->parametres.taille());
+                expr, params_polymorphiques->membres->taille(), expr->parametres.taille());
         }
 
         auto apparieuse_params = ApparieuseParams(false);
 
-        POUR (decl_struct->params_polymorphiques) {
+        POUR (*params_polymorphiques->membres.verrou_lecture()) {
             apparieuse_params.ajoute_param(it->ident, nullptr, false);
         }
 
@@ -1306,7 +1307,7 @@ static ResultatAppariement apparie_appel_structure(
         // détecte les arguments polymorphiques dans les fonctions polymorphiques
         auto est_type_argument_polymorphique = false;
         POUR (apparieuse_params.slots()) {
-            auto param = decl_struct->params_polymorphiques[index_param];
+            auto param = params_polymorphiques->membres->a(index_param);
             index_param += 1;
 
             if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {

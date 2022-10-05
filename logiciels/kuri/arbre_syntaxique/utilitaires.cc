@@ -526,8 +526,8 @@ void aplatis_arbre(NoeudExpression *declaration)
     if (declaration->est_structure()) {
         auto structure = declaration->comme_structure();
 
-        if (structure->arbre_aplatis_params.taille() == 0) {
-            POUR (structure->params_polymorphiques) {
+        if (structure->bloc_constantes && structure->arbre_aplatis_params.taille() == 0) {
+            POUR (*structure->bloc_constantes->membres.verrou_lecture()) {
                 aplatis_arbre(it, structure->arbre_aplatis_params, {});
             }
         }
