@@ -4985,15 +4985,15 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     }
 
     if (est_decalage_bits(expr->lexeme->genre)) {
-        auto resultat = evalue_expression(
+        auto resultat_decalage = evalue_expression(
             m_compilatrice, expr->bloc_parent, expr->operande_droite);
         /* Un résultat erroné veut dire que l'expression n'est pas constante.
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
-        if (!resultat.est_errone) {
+        if (!resultat_decalage.est_errone) {
             auto const bits_max = nombre_de_bits_pour_type(type1);
-            auto const decalage = resultat.valeur.entiere();
-            if (resultat.valeur.entiere() >= bits_max) {
+            auto const decalage = resultat_decalage.valeur.entiere();
+            if (resultat_decalage.valeur.entiere() >= bits_max) {
                 espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
                     .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
