@@ -375,6 +375,12 @@ normalise :: fonc (v: Vec3) -> Vec3
     retourne v / l
 }
 
+normalise_retourne_longueur :: fonc (v: Vec3) -> Vec3, r32
+{
+    l := longueur(v)
+    retourne v / l, l
+}
+
 vec_depuis_nor :: fonc (n: Norm3) -> Vec3
 {
     retourne mémoire(*n comme *Vec3)
