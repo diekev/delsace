@@ -418,6 +418,12 @@ interp_linéaire :: fonc (v0: Vec3, t: r32, v1: Vec3) -> Vec3
     retourne (1.0 - t) * v0 + t * v1
 }
 
+/* Calcule la déclinaison du vecteur en degrés. */
+déclinaison :: fonc (v: Vec3) -> Degrés
+{
+    retourne vers_degrés(Radians(atan2(racine_carrée(v.x * v.x + v.y * v.y), v.z)))
+}
+
 // ------------------------------------
 // vecteurs de nombres entiers relatifs
 
