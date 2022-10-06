@@ -100,7 +100,7 @@ angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
     }
 
     b2 := -b
-    retourne M_PI - 2.0 * arcsinus_borné(longueur(a, b2) * 0.5)
+    retourne Constantes(r32).PI - 2.0 * arcsinus_borné(longueur(a, b2) * 0.5)
 }
 
 normalise :: fonc (v: Vec2) -> Vec2 #enligne
