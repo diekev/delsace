@@ -405,6 +405,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
         erreur::imprime_site(*m_espace, site_);
     });
 
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     auto type_pointeur = ou->type->comme_pointeur();
     assert_rappel(
         type_pointeur->type_pointe == valeur->type ||
@@ -421,6 +422,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
 
             erreur::imprime_site(*m_espace, site_);
         });
+#endif
 
     auto type = valeur->type;
     // assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" <<
