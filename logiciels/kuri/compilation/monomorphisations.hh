@@ -69,6 +69,8 @@ struct ItemMonomorphisation {
     }
 };
 
+std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item);
+
 template <typename TypeNoeud>
 struct Monomorphisations {
   private:
@@ -141,5 +143,23 @@ struct Monomorphisations {
         }
 
         return n;
+    }
+
+    void imprime(std::ostream &os)
+    {
+        auto monomorphisations_ = monomorphisations.verrou_lecture();
+        if (monomorphisations_->taille() == 0) {
+            os << "Il n'y a aucune monomorphisation connue !\n";
+            return;
+        }
+
+        os << "Les monomophisations sont :\n";
+        POUR (*monomorphisations_) {
+            os << "-- :\n";
+
+            for (auto i = 0; i < it.premier.taille(); ++i) {
+                os << "  -- " << it.premier[i] << '\n';
+            }
+        }
     }
 };

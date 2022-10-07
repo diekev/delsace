@@ -23,3 +23,16 @@
  */
 
 #include "monomorphisations.hh"
+
+#include "parsage/identifiant.hh"
+
+#include "typage.hh"
+
+std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
+{
+    os << item.ident->nom << " " << chaine_type(item.type);
+    if (!item.est_type) {
+        os << " " << item.valeur;
+    }
+    return os;
+}
