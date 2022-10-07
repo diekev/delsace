@@ -1011,45 +1011,52 @@ static ResultatAppariement apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static ResultatAppariement apparie_appel_fonction(
+static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
     NoeudExpressionAppel *expr,
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (expr->drapeaux & POUR_CUISSON) {
-        if (!decl->est_polymorphe) {
-            return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
-        }
-
-        auto monomorpheuse = Monomorpheuse(espace);
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
-
-        // À FAIRE : vérifie que toutes les constantes ont été renseignées.
-        // À FAIRE : gère proprement la validation du type de la constante
-
-        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
-        POUR (args) {
-            if (noms_rencontres.possede(it.ident)) {
-                return ErreurAppariement::renommage_argument(it.expr, it.ident);
-            }
-            noms_rencontres.insere(it.ident);
-
-            auto item = monomorpheuse.item_pour_ident(it.ident);
-            if (item == nullptr) {
-                return ErreurAppariement::menommage_arguments(it.expr, it.ident);
-            }
-
-            auto type = it.expr->type->comme_type_de_donnees();
-            items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
-        }
-
-        return CandidateAppariement::cuisson_fonction(
-            1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+    if (!decl->est_polymorphe) {
+        return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
+    auto monomorpheuse = Monomorpheuse(espace);
+    init_monomorpheuse_depuis_decl(monomorpheuse, decl);
+
+    // À FAIRE : vérifie que toutes les constantes ont été renseignées.
+    // À FAIRE : gère proprement la validation du type de la constante
+
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+    auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
+    POUR (args) {
+        if (noms_rencontres.possede(it.ident)) {
+            return ErreurAppariement::renommage_argument(it.expr, it.ident);
+        }
+        noms_rencontres.insere(it.ident);
+
+        auto item = monomorpheuse.item_pour_ident(it.ident);
+        if (item == nullptr) {
+            return ErreurAppariement::menommage_arguments(it.expr, it.ident);
+        }
+
+        auto type = it.expr->type->comme_type_de_donnees();
+        items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
+    }
+
+    return CandidateAppariement::cuisson_fonction(
+        1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args,
+    Monomorpheuse *monomorpheuse)
+{
     auto const nombre_args = decl->params.taille();
 
     if (!decl->est_variadique && (args.taille() > nombre_args)) {
@@ -1092,10 +1099,8 @@ static ResultatAppariement apparie_appel_fonction(
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    auto monomorpheuse = Monomorpheuse(espace);
-
     if (decl->est_polymorphe) {
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
+        init_monomorpheuse_depuis_decl(*monomorpheuse, decl);
 
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
@@ -1104,20 +1109,20 @@ static ResultatAppariement apparie_appel_fonction(
             auto slot = slots[i];
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
+                if (!monomorpheuse->ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
 
             if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
+                if (!monomorpheuse->ajoute_paire_types(arg->type, slot->type)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
         }
 
-        if (!monomorpheuse.resoud_polymorphes(espace.compilatrice().typeuse)) {
-            return monomorpheuse.erreur;
+        if (!monomorpheuse->resoud_polymorphes(espace.compilatrice().typeuse)) {
+            return monomorpheuse->erreur;
         }
     }
 
@@ -1135,8 +1140,8 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_du_parametre = monomorpheuse.resoud_type_final(espace.compilatrice().typeuse,
-                                                                type_du_parametre);
+            type_du_parametre = monomorpheuse->resoud_type_final(espace.compilatrice().typeuse,
+                                                                 type_du_parametre);
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
@@ -1178,7 +1183,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
 
         if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_donnees_argument_variadique = monomorpheuse.resoud_type_final(
+            type_donnees_argument_variadique = monomorpheuse->resoud_type_final(
                 espace.compilatrice().typeuse, type_donnees_argument_variadique);
         }
 
@@ -1233,7 +1238,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     if (decl->est_polymorphe) {
-        copie_tablet_tableau(monomorpheuse.items, items_monomorphisation);
+        copie_tablet_tableau(monomorpheuse->items, items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
@@ -1242,6 +1247,25 @@ static ResultatAppariement apparie_appel_fonction(
                                                 std::move(exprs),
                                                 std::move(transformations_),
                                                 std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args)
+{
+    if (expr->drapeaux & POUR_CUISSON) {
+        return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
+    }
+
+    if (decl->est_polymorphe) {
+        Monomorpheuse monomorpheuse(espace);
+        return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
+    }
+
+    return apparie_appel_fonction(espace, contexte, expr, decl, args, nullptr);
 }
 
 /* ************************************************************************** */
