@@ -2105,6 +2105,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = candidate->type;
+        expr->noeud_fonction_appelee =
+            (expr->type->comme_type_de_donnees()->type_connu->comme_polymorphique()->structure);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
@@ -2149,6 +2151,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, candidate->exprs[0]->type);
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
@@ -2158,6 +2161,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
@@ -2170,6 +2174,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, type_opacifie->type_connu);
         }
 
+        expr->noeud_fonction_appelee = type_opaque->decl;
         expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(type_opaque);
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }
