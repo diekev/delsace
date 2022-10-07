@@ -475,7 +475,6 @@ struct NoeudStruct : NoeudDéclarationType {
 	uint32_t alignement_desire
 
 	NoeudBloc *bloc_constantes
-	NoeudDéclarationVariable * [] params_polymorphiques
 	NoeudExpression * [] arbre_aplatis_params
 
 	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */

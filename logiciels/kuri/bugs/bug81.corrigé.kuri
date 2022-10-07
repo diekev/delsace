@@ -4,6 +4,6 @@
 principale :: fonc () -> z32
 {
     /* Pour z32, 31 est le maximum. */
-    a := 1 << 32
+    _ := 1 << 32
     retourne 0
 }

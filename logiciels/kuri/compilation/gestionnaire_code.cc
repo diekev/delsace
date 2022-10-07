@@ -143,7 +143,7 @@ struct RassembleuseDependances {
          * (puisque la monomorphisation est la copie de la version polymorphique), par exemple
          * `File($T)`. Même si le type de la variable est correctement résolu comme étant celui
          * d'un monomorphe, l'expression du type est toujours celle d'un type polymorphique. Ces
-         * types-là ne devraient pas dans aucun programme final, donc nous devons les éviter. */
+         * types-là ne devraient être dans aucun programme final, donc nous devons les éviter. */
         if (est_type_polymorphique(type)) {
             return;
         }

@@ -74,6 +74,81 @@ static bool est_type_de_base(Type *type_de, Type *type_vers)
     return false;
 }
 
+template <typename T, int tag>
+struct ValeurOpaqueTaguee {
+    T valeur;
+};
+
+enum {
+    INDEX_MEMBRE = 0,
+    AUCUN_TROUVE = 1,
+    PLUSIEURS_TROUVES = 2,
+};
+
+using IndexMembre = ValeurOpaqueTaguee<int, INDEX_MEMBRE>;
+using PlusieursMembres = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
+using AucunMembre = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+
+using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, AucunMembre>;
+
+static bool est_type_pointeur_nul(Type *type)
+{
+    return type->est_pointeur() && type->comme_pointeur()->type_pointe == nullptr;
+}
+
+static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose *type,
+                                                                          Type *type_a_tester)
+{
+    auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
+    int index_membre = -1;
+    int index_courant = 0;
+    POUR (type->membres) {
+        if (it.type == type_a_tester) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+        else if (type_a_tester->est_pointeur() && it.type->est_pointeur()) {
+            if (pointeur_nul) {
+                if (index_membre != -1) {
+                    return PlusieursMembres{-1};
+                }
+
+                index_membre = index_courant;
+            }
+            else {
+                auto type_pointe_de = type_a_tester->comme_pointeur()->type_pointe;
+                auto type_pointe_vers = it.type->comme_pointeur()->type_pointe;
+
+                if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
+                    if (index_membre != -1) {
+                        return PlusieursMembres{-1};
+                    }
+
+                    index_membre = index_courant;
+                }
+            }
+        }
+        else if (est_type_entier(it.type) && type_a_tester->est_entier_constant()) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+
+        index_courant += 1;
+    }
+
+    if (index_membre == -1) {
+        return AucunMembre{-1};
+    }
+
+    return IndexMembre{index_membre};
+}
+
 /* Trouve la transformation nécessaire pour aller d'un type à un autre de
  * manière conditionnelle.
  *
@@ -295,30 +370,13 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
             return Attente::sur_type(type_vers);
         }
 
-        auto index_membre = 0l;
+        auto resultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
 
-        POUR (type_union->membres) {
-            if (it.type == type_de) {
-                return TransformationType{
-                    TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
-            }
-
-            if (type_de->est_pointeur() && it.type->est_pointeur()) {
-                auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
-                auto type_pointe_vers = it.type->comme_pointeur()->type_pointe;
-
-                if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
-                    return TransformationType{
-                        TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
-                }
-            }
-
-            if (est_type_entier(it.type) && type_de->genre == GenreType::ENTIER_CONSTANT) {
-                return TransformationType{
-                    TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
-            }
-
-            index_membre += 1;
+        /* Nous pouvons construire une union depuis nul si un seul membre est un pointeur. */
+        if (std::holds_alternative<IndexMembre>(resultat)) {
+            return TransformationType{TypeTransformation::CONSTRUIT_UNION,
+                                      type_vers,
+                                      std::get<IndexMembre>(resultat).valeur};
         }
 
         return TypeTransformation::IMPOSSIBLE;

@@ -203,7 +203,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     if (decl_struct->est_polymorphe) {
                         e.ajoute_message("\tLes paramètres de la structure sont : \n");
 
-                        POUR (decl_struct->params_polymorphiques) {
+                        POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
                             e.ajoute_message("\t\t", it->ident->nom, '\n');
                         }
                     }

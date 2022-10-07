@@ -1,5 +1,4 @@
-/* Crash si « nul » est retourné pour une union qui possède un membre de type pointeur.
- * Voir mention « retourner nul fait crasher la compilation » dans Jorjala. */
+/* Crash si « nul » est retourné pour une union qui possède un membre de type pointeur. */
 
 importe Fondation
 

@@ -179,8 +179,8 @@ struct ContexteValidationCode {
 
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
-    void rapporte_erreur(const char *message, NoeudExpression *noeud);
-    void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
+    void rapporte_erreur(const char *message, const NoeudExpression *noeud);
+    void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
     void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
     void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl,
                                                NoeudDeclaration *decl_prec);
