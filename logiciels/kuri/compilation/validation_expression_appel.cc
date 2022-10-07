@@ -95,7 +95,7 @@ struct Monomorpheuse {
                 return false;
             }
 
-            item->type = type;
+            item->type = type_donne;
             item->est_type = true;
             return true;
         }
@@ -238,7 +238,7 @@ struct Monomorpheuse {
 
                         POUR (type_compose->membres) {
                             if (it.nom == type1->ident) {
-                                type2 = it.type->comme_type_de_donnees()->type_connu;
+                                type2 = it.type->comme_type_de_donnees();
                                 break;
                             }
                         }
@@ -248,7 +248,9 @@ struct Monomorpheuse {
                         }
                     }
 
-                    table_structures.ajoute({type_polymorphique, type_cible});
+                    table_structures.ajoute(
+                        {type_polymorphique,
+                         m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
                     return true;
                 }
 
@@ -264,7 +266,8 @@ struct Monomorpheuse {
             type_courant_poly = type_dereference_pour(type_courant_poly);
         }
 
-        paires_types.ajoute({type_polymorphique, type_cible});
+        paires_types.ajoute({type_polymorphique,
+                             m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
         return true;
     }
 
@@ -274,6 +277,9 @@ struct Monomorpheuse {
             IdentifiantCode *ident = nullptr;
             auto type_polymorphique = it.premier;
             auto type_cible = it.second;
+            if (type_cible->est_type_de_donnees()) {
+                type_cible = type_cible->comme_type_de_donnees()->type_connu;
+            }
             auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
 
             if (!type) {
@@ -292,7 +298,7 @@ struct Monomorpheuse {
                 return false;
             }
             if (item->type == nullptr) {
-                item->type = type;
+                item->type = m_espace.compilatrice().typeuse.type_type_de_donnees(type);
             }
         }
 
@@ -343,7 +349,7 @@ struct Monomorpheuse {
 
         POUR (table_structures) {
             if (it.premier == type_polymorphique) {
-                return it.second;
+                return it.second->comme_type_de_donnees()->type_connu;
             }
         }
 
@@ -379,6 +385,9 @@ struct Monomorpheuse {
             POUR (items) {
                 if (it.ident == type->ident) {
                     resultat = const_cast<Type *>(it.type);
+                    if (resultat->est_type_de_donnees()) {
+                        resultat = resultat->comme_type_de_donnees()->type_connu;
+                    }
                     break;
                 }
             }
@@ -1036,7 +1045,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
         }
 
         auto type = it.expr->type->comme_type_de_donnees();
-        items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
+        items_monomorphisation.ajoute({it.ident, type, ValeurExpression(), true});
     }
 
     return CandidateAppariement::cuisson_fonction(
@@ -1164,7 +1173,7 @@ static ResultatAppariement apparie_appel_fonction(
 
         if (poids_args == 0.0) {
             return ErreurAppariement::metypage_argument(
-                slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
+                slot, type_du_parametre, type_de_l_expression);
         }
 
         transformations[i] = poids_xform.transformation;
@@ -1719,13 +1728,9 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
 
-        if (it.est_type) {
-            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(
-                const_cast<Type *>(it.type));
-        }
-        else {
-            decl_constante->type = const_cast<Type *>(it.type);
+        if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
         }
 
