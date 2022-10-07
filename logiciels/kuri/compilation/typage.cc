@@ -1286,32 +1286,30 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
 
-            if (type_structure->nom) {
-                enchaineuse << type_structure->nom->nom;
-                if (type_structure->decl) {
-                    auto decl = type_structure->decl;
-                    const char *virgule = "(";
-                    if (decl->est_monomorphisation) {
-                        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-                            enchaineuse << virgule;
-                            enchaineuse << chaine_type(it->type);
-                            virgule = ", ";
-                        }
-                        enchaineuse << ')';
-                    }
-                    else if (decl->est_polymorphe) {
-                        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-                            enchaineuse << virgule;
-                            enchaineuse << '$' << it->ident->nom;
-                            virgule = ", ";
-                        }
-                        enchaineuse << ')';
-                    }
-                }
+            if (!type_structure->nom || !type_structure->decl) {
+                enchaineuse.ajoute("struct.anonyme");
                 return;
             }
 
-            enchaineuse.ajoute("struct.anonyme");
+            enchaineuse << type_structure->nom->nom;
+            auto decl = type_structure->decl;
+            const char *virgule = "(";
+            if (decl->est_monomorphisation) {
+                POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+                    enchaineuse << virgule;
+                    enchaineuse << chaine_type(it->type);
+                    virgule = ", ";
+                }
+                enchaineuse << ')';
+            }
+            else if (decl->est_polymorphe) {
+                POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+                    enchaineuse << virgule;
+                    enchaineuse << '$' << it->ident->nom;
+                    virgule = ", ";
+                }
+                enchaineuse << ')';
+            }
             return;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
