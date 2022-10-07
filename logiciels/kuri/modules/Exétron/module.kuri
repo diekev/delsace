@@ -13,8 +13,7 @@ __fonction_principale_exétron :: fonc (données_création_fil: *DonnéesCréati
     données_création_fil.rappel(données_création_fil.données)
 }
 
-// À FAIRE(langage) : crash si le type polymorphique est déclaré dans le rappel
-crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExecution
+crée_fil_exécution :: fonc (rappel: fonc(*$T)(rien), données: *T) -> *FilExecution
 {
     données_création_fil : DonnéesCréationFil(T) = ---
     données_création_fil.données = données

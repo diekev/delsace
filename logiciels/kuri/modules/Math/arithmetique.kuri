@@ -84,10 +84,10 @@ sinus :: fonc (a: r64) -> r64
 arcsinus_borné :: fonc (a: r32) -> r32 #enligne
 {
     si a <= -1.0 {
-        retourne -M_PI_2
+        retourne -Constantes(r32).PI_2
     }
     si a >= 1.0 {
-        retourne M_PI_2
+        retourne Constantes(r32).PI_2
     }
     retourne asinf(a)
 }
