@@ -53,8 +53,14 @@ struct Monomorpheuse {
 
     EspaceDeTravail &m_espace;
 
-    Monomorpheuse(EspaceDeTravail &espace) : m_espace(espace)
+    Monomorpheuse(EspaceDeTravail &espace, NoeudBloc *bloc_constantes) : m_espace(espace)
     {
+        bloc_constantes->membres.avec_verrou_lecture(
+            [&](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+                POUR (membres) {
+                    ajoute_item(it->ident);
+                }
+            });
     }
 
     void ajoute_item(IdentifiantCode *ident)
@@ -430,17 +436,6 @@ struct Monomorpheuse {
         return resultat;
     }
 };
-
-static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
-                                           NoeudDeclarationEnteteFonction *decl)
-{
-    decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-            POUR (membres) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        });
-}
 
 struct ApparieuseParams {
   private:
@@ -1022,8 +1017,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
         return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
-    auto monomorpheuse = Monomorpheuse(espace);
-    init_monomorpheuse_depuis_decl(monomorpheuse, decl);
+    auto monomorpheuse = Monomorpheuse(espace, decl->bloc_constantes);
 
     // À FAIRE : vérifie que toutes les constantes ont été renseignées.
     // À FAIRE : gère proprement la validation du type de la constante
@@ -1100,8 +1094,6 @@ static ResultatAppariement apparie_appel_fonction(
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
     if (decl->est_polymorphe) {
-        init_monomorpheuse_depuis_decl(*monomorpheuse, decl);
-
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
             auto param = parametres_entree[index_arg];
@@ -1261,7 +1253,7 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     if (decl->est_polymorphe) {
-        Monomorpheuse monomorpheuse(espace);
+        Monomorpheuse monomorpheuse(espace, decl->bloc_constantes);
         return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
     }
 
