@@ -1144,6 +1144,37 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 
 /* ************************************************************************** */
 
+static void chaine_type_structure(Enchaineuse &enchaineuse, const TypeStructure *type_structure)
+{
+    enchaineuse << type_structure->nom->nom;
+    auto decl = type_structure->decl;
+    const char *virgule = "(";
+    if (decl->est_monomorphisation) {
+        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+            enchaineuse << virgule;
+            enchaineuse << it->ident->nom << ": ";
+
+            if (it->type->est_type_de_donnees()) {
+                enchaineuse << chaine_type(it->type->comme_type_de_donnees()->type_connu);
+            }
+            else {
+                enchaineuse << it->comme_declaration_variable()->valeur_expression;
+            }
+
+            virgule = ", ";
+        }
+        enchaineuse << ')';
+    }
+    else if (decl->est_polymorphe) {
+        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+            enchaineuse << virgule;
+            enchaineuse << '$' << it->ident->nom;
+            virgule = ", ";
+        }
+        enchaineuse << ')';
+    }
+}
+
 static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
 {
     if (type == nullptr) {
@@ -1274,12 +1305,12 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
 
-            if (type_structure->nom) {
-                enchaineuse << type_structure->nom->nom;
+            if (!type_structure->nom || !type_structure->decl) {
+                enchaineuse.ajoute("union.anonyme");
                 return;
             }
 
-            enchaineuse.ajoute("union.anonyme");
+            chaine_type_structure(enchaineuse, type_structure);
             return;
         }
         case GenreType::STRUCTURE:
@@ -1291,25 +1322,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
                 return;
             }
 
-            enchaineuse << type_structure->nom->nom;
-            auto decl = type_structure->decl;
-            const char *virgule = "(";
-            if (decl->est_monomorphisation) {
-                POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-                    enchaineuse << virgule;
-                    enchaineuse << chaine_type(it->type);
-                    virgule = ", ";
-                }
-                enchaineuse << ')';
-            }
-            else if (decl->est_polymorphe) {
-                POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-                    enchaineuse << virgule;
-                    enchaineuse << '$' << it->ident->nom;
-                    virgule = ", ";
-                }
-                enchaineuse << ')';
-            }
+            chaine_type_structure(enchaineuse, type_structure);
             return;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
