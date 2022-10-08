@@ -1816,8 +1816,8 @@ static NoeudStruct *monomorphise_au_besoin(
     /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
      * En effet, la monomorphisation se base sur les membres du type. */
     POUR (items_monomorphisation) {
-        auto decl_constante =
-            trouve_dans_bloc(structure->bloc_constantes, it.ident)->comme_declaration_variable();
+        auto decl_constante = trouve_dans_bloc_seul(structure->bloc_constantes, it.ident)
+                                  ->comme_declaration_variable();
         structure->bloc->membres->ajoute(decl_constante);
     }
 
