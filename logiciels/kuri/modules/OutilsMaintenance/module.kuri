@@ -58,12 +58,23 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
         ajoute_au_tampon(*enchaineuse, it, "\n")
     }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture_tronquée) piège err {
+    raison : RaisonOuvertureFichier
+    raison.Écriture = vrai
+    raison.Troncage = vrai
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
+        imprime("Impossible d'ouvrir le fichier % : %\n", chemin, err)
         retourne
     }
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    _ := ferme(*fichier)
+    _ := tente copie_enchaineuse_fichier(*enchaineuse, *fichier) piège err {
+        imprime("Impossible d'écrire le fichier: %\n", err)
+        retourne
+    }
+
+    tente ferme(*fichier) piège err {
+        imprime("Impossible de fermer le fichier %\n", err)
+        retourne
+    }
 }
 
 // -------------------------------------
