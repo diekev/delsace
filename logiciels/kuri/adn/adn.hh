@@ -222,6 +222,7 @@ struct TypeTableau final : public Type {
 };
 
 struct TypeNominal final : public Type {
+    kuri::chaine identifiant{};
     IdentifiantADN nom_cpp{};
     IdentifiantADN nom_kuri{};
 
@@ -285,8 +286,10 @@ struct Typeuse {
   public:
     Typeuse()
     {
-        cree_type_nominal("chaine", "chaine");
-        cree_type_nominal("chaine_statique", "chaine");
+        auto type_chaine_statique = cree_type_nominal("kuri::chaine_statique", "chaine");
+        type_chaine_statique->identifiant = "chaine_statique";
+        auto type_chaine = cree_type_nominal("kuri::chaine", "chaine");
+        type_chaine->identifiant = "chaine";
         cree_type_nominal("unsigned char", "n8");
         cree_type_nominal("uint8_t", "n8");
         cree_type_nominal("unsigned short", "n16");
@@ -356,9 +359,7 @@ struct Typeuse {
     TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
     {
         POUR_TABLEAU_PAGE (types_nominaux) {
-            // Les fichiers ADN doivent utiliser le nom C++, mais seul le nom_kuri préserve
-            // l'accent
-            if (it.nom_cpp.nom_kuri() == nom_cpp) {
+            if (it.identifiant == nom_cpp) {
                 return &it;
             }
         }
@@ -366,6 +367,7 @@ struct Typeuse {
         auto resultat = types_nominaux.ajoute_element();
         resultat->nom_cpp = nom_cpp;
         resultat->nom_kuri = nom_kuri;
+        resultat->identifiant = nom_cpp;
         return resultat;
     }
 };

@@ -111,6 +111,30 @@ static const char *copie_extra_structure = R"(
             }
 )";
 
+static const IdentifiantADN &type_nominal_membre_pour_noeud_code(Type *type)
+{
+    if (type->est_tableau()) {
+        return type_nominal_membre_pour_noeud_code(type->comme_tableau()->type_pointe);
+    }
+
+    if (type->est_pointeur()) {
+        return type_nominal_membre_pour_noeud_code(type->comme_pointeur()->type_pointe);
+    }
+
+    auto type_nominal = type->comme_nominal();
+
+    if (!type_nominal->est_proteine) {
+        return type_nominal->nom_cpp;
+    }
+
+    auto proteine = type_nominal->est_proteine->comme_struct();
+    if (!proteine) {
+        return type_nominal->nom_cpp;
+    }
+
+    return proteine->accede_nom_code();
+}
+
 struct GeneratriceCodeCPP {
     kuri::tableau<Proteine *> proteines{};
     kuri::tableau<ProteineStruct *> proteines_struct{};
@@ -704,32 +728,9 @@ struct GeneratriceCodeCPP {
                     os << "kuri::tableau<";
                 }
 
-                const auto type_membre = supprime_accents(membre.type->accede_nom().nom_cpp());
-
-                if (type_membre == "NoeudExpression" || type_membre == "NoeudDeclaration") {
-                    os << "NoeudCode";
-                }
-                else if (type_membre == "NoeudBloc") {
-                    os << "NoeudCodeBloc";
-                }
-                else if (type_membre == "NoeudPaireDiscr") {
-                    os << "NoeudCodePaireDiscr";
-                }
-                else if (type_membre == "NoeudDeclarationVariable") {
-                    os << "NoeudCodeDeclarationVariable";
-                }
-                else if (type_membre == "NoeudDeclarationCorpsFonction") {
-                    os << "NoeudCodeCorpsFonction";
-                }
-                else if (type_membre == "NoeudDeclarationEnteteFonction") {
-                    os << "NoeudCodeEnteteFonction";
-                }
-                else if (type_membre == "chaine_statique") {
-                    os << "kuri::chaine_statique";
-                }
-                else {
-                    os << type_membre;
-                }
+                const auto ident_type = type_nominal_membre_pour_noeud_code(membre.type);
+                const auto type_membre = supprime_accents(ident_type.nom_cpp());
+                os << type_membre;
 
                 if (membre.type->est_pointeur() ||
                     (membre.type->est_tableau() &&

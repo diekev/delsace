@@ -133,6 +133,13 @@ class GestionnaireCode {
 
     void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
 
+    UniteCompilation *cree_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
+    void cree_unite_pour_fichier(EspaceDeTravail *espace, Fichier *fichier, RaisonDEtre raison);
+    UniteCompilation *cree_unite_pour_noeud(EspaceDeTravail *espace,
+                                            NoeudExpression *noeud,
+                                            RaisonDEtre raison,
+                                            bool met_en_attente);
+
     /* Attente sur quelque chose. */
     void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
 
