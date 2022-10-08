@@ -1,7 +1,7 @@
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
-importe Fondation
 importe Chaine
+importe Fondation
 importe GlibC
 importe Ordinatrice
 importe PThread
