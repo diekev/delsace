@@ -724,9 +724,6 @@ struct GeneratriceCodeCPP {
                 else if (type_membre == "NoeudDeclarationEnteteFonction") {
                     os << "NoeudCodeEnteteFonction";
                 }
-                else if (type_membre == "chaine_statique") {
-                    os << "kuri::chaine_statique";
-                }
                 else {
                     os << type_membre;
                 }
