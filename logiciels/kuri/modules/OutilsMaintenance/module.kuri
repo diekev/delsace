@@ -188,6 +188,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
         }
 
         lignes.taille = nouvelles_lignes.taille
+        données_fichier.lignes = lignes
         retourne vrai
     }
 
