@@ -1730,7 +1730,6 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
             trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
         decl_constante->type = const_cast<Type *>(it.type);
 
         if (!it.est_type) {
