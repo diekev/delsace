@@ -53,8 +53,14 @@ struct Monomorpheuse {
 
     EspaceDeTravail &m_espace;
 
-    Monomorpheuse(EspaceDeTravail &espace) : m_espace(espace)
+    Monomorpheuse(EspaceDeTravail &espace, NoeudBloc *bloc_constantes) : m_espace(espace)
     {
+        bloc_constantes->membres.avec_verrou_lecture(
+            [&](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+                POUR (membres) {
+                    ajoute_item(it->ident);
+                }
+            });
     }
 
     void ajoute_item(IdentifiantCode *ident)
@@ -89,7 +95,7 @@ struct Monomorpheuse {
                 return false;
             }
 
-            item->type = type;
+            item->type = type_donne;
             item->est_type = true;
             return true;
         }
@@ -232,7 +238,7 @@ struct Monomorpheuse {
 
                         POUR (type_compose->membres) {
                             if (it.nom == type1->ident) {
-                                type2 = it.type->comme_type_de_donnees()->type_connu;
+                                type2 = it.type->comme_type_de_donnees();
                                 break;
                             }
                         }
@@ -242,7 +248,9 @@ struct Monomorpheuse {
                         }
                     }
 
-                    table_structures.ajoute({type_polymorphique, type_cible});
+                    table_structures.ajoute(
+                        {type_polymorphique,
+                         m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
                     return true;
                 }
 
@@ -258,7 +266,8 @@ struct Monomorpheuse {
             type_courant_poly = type_dereference_pour(type_courant_poly);
         }
 
-        paires_types.ajoute({type_polymorphique, type_cible});
+        paires_types.ajoute({type_polymorphique,
+                             m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
         return true;
     }
 
@@ -268,6 +277,9 @@ struct Monomorpheuse {
             IdentifiantCode *ident = nullptr;
             auto type_polymorphique = it.premier;
             auto type_cible = it.second;
+            if (type_cible->est_type_de_donnees()) {
+                type_cible = type_cible->comme_type_de_donnees()->type_connu;
+            }
             auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
 
             if (!type) {
@@ -286,7 +298,7 @@ struct Monomorpheuse {
                 return false;
             }
             if (item->type == nullptr) {
-                item->type = type;
+                item->type = m_espace.compilatrice().typeuse.type_type_de_donnees(type);
             }
         }
 
@@ -337,7 +349,7 @@ struct Monomorpheuse {
 
         POUR (table_structures) {
             if (it.premier == type_polymorphique) {
-                return it.second;
+                return it.second->comme_type_de_donnees()->type_connu;
             }
         }
 
@@ -373,6 +385,9 @@ struct Monomorpheuse {
             POUR (items) {
                 if (it.ident == type->ident) {
                     resultat = const_cast<Type *>(it.type);
+                    if (resultat->est_type_de_donnees()) {
+                        resultat = resultat->comme_type_de_donnees()->type_connu;
+                    }
                     break;
                 }
             }
@@ -430,17 +445,6 @@ struct Monomorpheuse {
         return resultat;
     }
 };
-
-static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
-                                           NoeudDeclarationEnteteFonction *decl)
-{
-    decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-            POUR (membres) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        });
-}
 
 struct ApparieuseParams {
   private:
@@ -1011,45 +1015,51 @@ static ResultatAppariement apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static ResultatAppariement apparie_appel_fonction(
+static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
     NoeudExpressionAppel *expr,
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (expr->drapeaux & POUR_CUISSON) {
-        if (!decl->est_polymorphe) {
-            return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
-        }
-
-        auto monomorpheuse = Monomorpheuse(espace);
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
-
-        // À FAIRE : vérifie que toutes les constantes ont été renseignées.
-        // À FAIRE : gère proprement la validation du type de la constante
-
-        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
-        POUR (args) {
-            if (noms_rencontres.possede(it.ident)) {
-                return ErreurAppariement::renommage_argument(it.expr, it.ident);
-            }
-            noms_rencontres.insere(it.ident);
-
-            auto item = monomorpheuse.item_pour_ident(it.ident);
-            if (item == nullptr) {
-                return ErreurAppariement::menommage_arguments(it.expr, it.ident);
-            }
-
-            auto type = it.expr->type->comme_type_de_donnees();
-            items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
-        }
-
-        return CandidateAppariement::cuisson_fonction(
-            1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+    if (!decl->est_polymorphe) {
+        return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
+    auto monomorpheuse = Monomorpheuse(espace, decl->bloc_constantes);
+
+    // À FAIRE : vérifie que toutes les constantes ont été renseignées.
+    // À FAIRE : gère proprement la validation du type de la constante
+
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+    auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
+    POUR (args) {
+        if (noms_rencontres.possede(it.ident)) {
+            return ErreurAppariement::renommage_argument(it.expr, it.ident);
+        }
+        noms_rencontres.insere(it.ident);
+
+        auto item = monomorpheuse.item_pour_ident(it.ident);
+        if (item == nullptr) {
+            return ErreurAppariement::menommage_arguments(it.expr, it.ident);
+        }
+
+        auto type = it.expr->type->comme_type_de_donnees();
+        items_monomorphisation.ajoute({it.ident, type, ValeurExpression(), true});
+    }
+
+    return CandidateAppariement::cuisson_fonction(
+        1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args,
+    Monomorpheuse *monomorpheuse)
+{
     auto const nombre_args = decl->params.taille();
 
     if (!decl->est_variadique && (args.taille() > nombre_args)) {
@@ -1092,11 +1102,7 @@ static ResultatAppariement apparie_appel_fonction(
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    auto monomorpheuse = Monomorpheuse(espace);
-
     if (decl->est_polymorphe) {
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
-
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
             auto param = parametres_entree[index_arg];
@@ -1104,20 +1110,20 @@ static ResultatAppariement apparie_appel_fonction(
             auto slot = slots[i];
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
+                if (!monomorpheuse->ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
 
             if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
+                if (!monomorpheuse->ajoute_paire_types(arg->type, slot->type)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
         }
 
-        if (!monomorpheuse.resoud_polymorphes(espace.compilatrice().typeuse)) {
-            return monomorpheuse.erreur;
+        if (!monomorpheuse->resoud_polymorphes(espace.compilatrice().typeuse)) {
+            return monomorpheuse->erreur;
         }
     }
 
@@ -1135,8 +1141,8 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_du_parametre = monomorpheuse.resoud_type_final(espace.compilatrice().typeuse,
-                                                                type_du_parametre);
+            type_du_parametre = monomorpheuse->resoud_type_final(espace.compilatrice().typeuse,
+                                                                 type_du_parametre);
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
@@ -1167,7 +1173,7 @@ static ResultatAppariement apparie_appel_fonction(
 
         if (poids_args == 0.0) {
             return ErreurAppariement::metypage_argument(
-                slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
+                slot, type_du_parametre, type_de_l_expression);
         }
 
         transformations[i] = poids_xform.transformation;
@@ -1178,7 +1184,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
 
         if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_donnees_argument_variadique = monomorpheuse.resoud_type_final(
+            type_donnees_argument_variadique = monomorpheuse->resoud_type_final(
                 espace.compilatrice().typeuse, type_donnees_argument_variadique);
         }
 
@@ -1233,7 +1239,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     if (decl->est_polymorphe) {
-        copie_tablet_tableau(monomorpheuse.items, items_monomorphisation);
+        copie_tablet_tableau(monomorpheuse->items, items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
@@ -1242,6 +1248,25 @@ static ResultatAppariement apparie_appel_fonction(
                                                 std::move(exprs),
                                                 std::move(transformations_),
                                                 std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args)
+{
+    if (expr->drapeaux & POUR_CUISSON) {
+        return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
+    }
+
+    if (decl->est_polymorphe) {
+        Monomorpheuse monomorpheuse(espace, decl->bloc_constantes);
+        return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
+    }
+
+    return apparie_appel_fonction(espace, contexte, expr, decl, args, nullptr);
 }
 
 /* ************************************************************************** */
@@ -1703,13 +1728,9 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
 
-        if (it.est_type) {
-            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(
-                const_cast<Type *>(it.type));
-        }
-        else {
-            decl_constante->type = const_cast<Type *>(it.type);
+        if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
         }
 
@@ -2081,6 +2102,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = candidate->type;
+        expr->noeud_fonction_appelee =
+            (expr->type->comme_type_de_donnees()->type_connu->comme_polymorphique()->structure);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
@@ -2125,6 +2148,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, candidate->exprs[0]->type);
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
@@ -2134,6 +2158,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
@@ -2146,6 +2171,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, type_opacifie->type_connu);
         }
 
+        expr->noeud_fonction_appelee = type_opaque->decl;
         expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(type_opaque);
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }

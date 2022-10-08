@@ -643,16 +643,17 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     auto dependances_ajoutees = false;
     auto dependances_ependues = false;
     POUR (programmes_en_cours) {
-        if (doit_ajouter_les_dependances_au_programme(noeud, it)) {
-            if (!dependances_ependues) {
-                epends_dependances_types(graphe, dependances);
-                dependances_ependues = true;
-            }
-            if (!ajoute_dependances_au_programme(dependances.dependances, espace, *it)) {
-                break;
-            }
-            dependances_ajoutees = true;
+        if (!doit_ajouter_les_dependances_au_programme(noeud, it)) {
+            continue;
         }
+        if (!dependances_ependues) {
+            epends_dependances_types(graphe, dependances);
+            dependances_ependues = true;
+        }
+        if (!ajoute_dependances_au_programme(dependances.dependances, espace, *it)) {
+            break;
+        }
+        dependances_ajoutees = true;
     }
 
     /* Crée les unités de typage si nécessaire. */
