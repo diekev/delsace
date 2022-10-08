@@ -662,65 +662,67 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     }
 }
 
+UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
+                                               RaisonDEtre raison,
+                                               bool met_en_attente)
+{
+    auto unite = unites.ajoute_element(espace);
+    unite->mute_raison_d_etre(raison);
+    if (met_en_attente) {
+        unites_en_attente.ajoute(unite);
+    }
+    return unite;
+}
+
+void GestionnaireCode::cree_unite_pour_fichier(EspaceDeTravail *espace,
+                                               Fichier *fichier,
+                                               RaisonDEtre raison)
+{
+    auto unite = cree_unite(espace, raison, true);
+    unite->fichier = fichier;
+}
+
+UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espace,
+                                                          NoeudExpression *noeud,
+                                                          RaisonDEtre raison,
+                                                          bool met_en_attente)
+{
+    auto unite = cree_unite(espace, raison, met_en_attente);
+    unite->noeud = noeud;
+    noeud->unite = unite;
+    return unite;
+}
+
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
     espace->tache_chargement_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::CHARGEMENT_FICHIER);
-    unite->fichier = fichier;
-
-    unites_en_attente.ajoute(unite);
+    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
 }
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_charge);
     espace->tache_lexage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
-    unite->fichier = fichier;
-
-    unites_en_attente.ajoute(unite);
+    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
 }
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_lexe);
     espace->tache_parsage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
-    unite->fichier = fichier;
-
-    unites_en_attente.ajoute(unite);
+    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
 }
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     espace->tache_typage_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::TYPAGE);
-    unite->noeud = noeud;
-
-    noeud->unite = unite;
-
-    unites_en_attente.ajoute(unite);
+    cree_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
 }
 
 void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     espace->tache_ri_ajoutee(m_compilatrice->messagere);
-
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
-    unite->noeud = noeud;
-
-    noeud->unite = unite;
-
-    unites_en_attente.ajoute(unite);
+    cree_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
 }
 
 void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
@@ -728,16 +730,12 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
 {
     espace->tache_ri_ajoutee(m_compilatrice->messagere);
 
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI_PRINCIPALE_MP);
-    unite->noeud = metaprogramme->fonction;
+    auto unite = cree_unite_pour_noeud(espace,
+                                       metaprogramme->fonction,
+                                       RaisonDEtre::GENERATION_RI_PRINCIPALE_MP,
+                                       peut_planifier_compilation);
 
-    metaprogramme->fonction->unite = unite;
-
-    if (peut_planifier_compilation) {
-        unites_en_attente.ajoute(unite);
-    }
-    else {
+    if (!peut_planifier_compilation) {
         assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
         metaprogrammes_en_attente_de_cree_contexte.ajoute(unite);
     }
@@ -746,12 +744,8 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
 UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *espace,
                                                             Message *message)
 {
-    auto unite = unites.ajoute_element(espace);
-
-    unite->mute_raison_d_etre(RaisonDEtre::ENVOIE_MESSAGE);
+    auto unite = cree_unite(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
     unite->message = message;
-
-    unites_en_attente.ajoute(unite);
     return unite;
 }
 
@@ -761,10 +755,8 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
         return;
     }
 
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::CREATION_FONCTION_INIT_TYPE);
+    auto unite = cree_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
-    unites_en_attente.ajoute(unite);
 
     if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
         unite->mute_attente(Attente::sur_type(type));
@@ -775,12 +767,8 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 
 void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-    auto unite = unites.ajoute_element(espace);
-
-    unite->mute_raison_d_etre(RaisonDEtre::CONVERSION_NOEUD_CODE);
+    auto unite = cree_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
-
-    unites_en_attente.ajoute(unite);
 }
 
 bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
@@ -875,31 +863,23 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 
 void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::EXECUTION);
+    auto unite = cree_unite(espace, RaisonDEtre::EXECUTION, true);
     unite->metaprogramme = metaprogramme;
-
     metaprogramme->unite = unite;
-
-    unites_en_attente.ajoute(unite);
 }
 
 UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
                                                                      Programme *programme)
 {
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_CODE_MACHINE);
+    auto unite = cree_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
     unite->programme = programme;
-    unites_en_attente.ajoute(unite);
     return unite;
 }
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
 {
-    auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(RaisonDEtre::LIAISON_PROGRAMME);
+    auto unite = cree_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
     unite->programme = programme;
-    unites_en_attente.ajoute(unite);
 }
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)

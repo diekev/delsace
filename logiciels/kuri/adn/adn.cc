@@ -96,16 +96,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
     }
     else if (type.est_nominal()) {
         const auto type_nominal = type.comme_nominal();
-
-        if (type_nominal->nom_cpp.nom_cpp() == "chaine") {
-            os << "kuri::chaine";
-        }
-        else if (type_nominal->nom_cpp.nom_cpp() == "chaine_statique") {
-            os << "kuri::chaine_statique";
-        }
-        else {
-            os << type_nominal->nom_cpp;
-        }
+        os << type_nominal->nom_cpp;
     }
 
     return os;
@@ -153,7 +144,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                     os << *it.type << "::";
                 }
 
-                if (it.type->est_nominal("chaine", "chaine_statique")) {
+                if (it.type->est_nominal("kuri::chaine", "kuri::chaine_statique")) {
                     os << '"' << it.valeur_defaut << '"';
                 }
                 else if (it.valeur_defaut == "vrai") {
@@ -404,7 +395,7 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
                 os << *it.type << ".";
             }
 
-            if (it.type->est_nominal("chaine", "chaine_statique")) {
+            if (it.type->est_nominal("kuri::chaine", "kuri::chaine_statique")) {
                 os << '"' << it.valeur_defaut << '"';
             }
             else {
