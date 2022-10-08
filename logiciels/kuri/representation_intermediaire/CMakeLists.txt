@@ -41,18 +41,22 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
 	analyse.cc
+  bloc_basique.cc
 	code_binaire.cc
     constructrice_ri.cc
 	impression.cc
 	instructions.cc
+  log.cc
 	machine_virtuelle.cc
 	optimisations.cc
 
-	analyse.hh
+  analyse.hh
+  bloc_basique.hh
 	code_binaire.hh
     constructrice_ri.hh
 	impression.hh
 	instructions.hh
+  log.hh
 	machine_virtuelle.hh
 	optimisations.hh
 )

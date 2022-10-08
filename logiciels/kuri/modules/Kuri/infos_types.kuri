@@ -1,5 +1,7 @@
 // Structures de bases pour contenir les informations d'un type.
 
+importe Compilatrice // Pour AnnotationCode
+
 id_info :: énum z32 {
     ENTIER          :: 0
 	RÉEL            :: 1
@@ -21,6 +23,7 @@ id_info :: énum z32 {
 InfoType :: struct #interface {
 	id : id_info
 	taille_en_octet : n32
+	index_dans_table_des_types : n32
 }
 
 InfoTypeEntier :: struct #interface {
@@ -54,6 +57,29 @@ InfoTypeMembreStructure :: struct #interface {
 	id : *InfoType
 	décalage : z64 // décalage en octets dans la structure
 	drapeaux : Drapeaux
+  annotations: []*AnnotationCode
+}
+
+possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne vrai
+		}
+	}
+
+	retourne faux
+}
+
+trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne it
+		}
+	}
+
+	retourne nul
 }
 
 InfoTypeStructure :: struct #interface {
@@ -61,6 +87,7 @@ InfoTypeStructure :: struct #interface {
 
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
+	structs_employées : []*InfoTypeStructure
 }
 
 InfoTypeUnion :: struct #interface {
@@ -88,6 +115,7 @@ InfoTypeÉnum :: struct #interface {
 	valeurs : []z32
 	noms : []chaine
 	est_drapeau : bool
+	type_sous_jacent: *InfoTypeEntier
 }
 
 InfoTypeOpaque :: struct #interface {
@@ -95,4 +123,95 @@ InfoTypeOpaque :: struct #interface {
 
 	nom : chaine
 	type_opacifié : *InfoType
+}
+
+est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
+{
+    si info.id != id_info.POINTEUR {
+        retourne faux
+    }
+
+    référence := info comme *InfoTypePointeur
+    saufsi référence.est_référence {
+        retourne faux
+    }
+
+    retourne référence.type_pointé == type_pointé
+}
+
+est_pointeur_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
+{
+    si info.id != id_info.POINTEUR {
+        retourne faux
+    }
+
+    pointeur := info comme *InfoTypePointeur
+    si pointeur.est_référence {
+        retourne faux
+    }
+
+    retourne pointeur.type_pointé == type_pointé
+}
+
+est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeStructure) -> bool
+{
+    si info == base {
+        retourne vrai
+    }
+
+    pour info.structs_employées {
+        si est_struct_ou_employeuse_de(it, base) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
+{
+    si info == nul {
+        retourne nul
+    }
+
+    si info.id != id_info.POINTEUR {
+        retourne nul
+    }
+
+    info_pointeur := info comme *InfoTypePointeur
+    si info_pointeur.est_référence {
+        retourne nul
+    }
+
+    retourne info_pointeur.type_pointé
+}
+
+est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
+{
+	type_pointé := est_pointeur_de(info)
+
+	si !type_pointé {
+		retourne nul
+	}
+
+    si type_pointé.id != id_info.STRUCTURE {
+        retourne nul
+    }
+
+    retourne type_pointé comme *InfoTypeStructure
+}
+
+est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
+{
+	type_pointé := est_pointeur_de(info)
+
+	si !type_pointé {
+		retourne nul
+	}
+
+    si type_pointé.id != id_info.STRUCTURE && type_pointé.id != id_info.UNION {
+        retourne nul
+    }
+
+    retourne type_pointé
 }

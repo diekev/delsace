@@ -28,18 +28,17 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/pile.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/bibliotheque.hh"
 #include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
 #include "compilation/operateurs.hh"
 
 #include "parsage/outils_lexemes.hh"
-
-#include "machine_virtuelle.hh"
 
 const char *chaine_code_operation(octet_t code_operation)
 {
@@ -107,9 +106,28 @@ int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *
     return decalage;
 }
 
-void Chunk::emets_assignation(NoeudExpression *site, Type *type)
+void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
+                              NoeudExpression *site,
+                              Type *type)
 {
-    assert(type->taille_octet);
+#ifndef CMAKE_BUILD_TYPE_PROFILE
+    assert_rappel(type->taille_octet, [&]() {
+        std::cerr << "Le type est " << chaine_type(type) << '\n';
+
+        auto fonction = contexte.fonction;
+        if (fonction) {
+            std::cerr << *fonction << '\n';
+
+            if (fonction->est_initialisation_type) {
+                auto type_param = fonction->params[0]->type->comme_pointeur()->type_pointe;
+                std::cerr << "La fonction est pour l'initialisation du type "
+                          << chaine_type(type_param) << '\n';
+            }
+        }
+
+        erreur::imprime_site(*contexte.espace, site);
+    });
+#endif
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);
@@ -240,7 +258,30 @@ void Chunk::emets_label(NoeudExpression *site, int index)
     emets(index);
 }
 
-/* ************************************************************************** */
+void Chunk::emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type)
+{
+    if (op == OperateurUnaire::Genre::Complement) {
+        if (type->genre == GenreType::REEL) {
+            emets(OP_COMPLEMENT_REEL);
+            emets(site);
+        }
+        else {
+            emets(OP_COMPLEMENT_ENTIER);
+            emets(site);
+        }
+    }
+    else if (op == OperateurUnaire::Genre::Non_Binaire) {
+        emets(OP_NON_BINAIRE);
+        emets(site);
+    }
+
+    if (type->genre == GenreType::ENTIER_CONSTANT) {
+        emets(4);
+    }
+    else {
+        emets(type->taille_octet);
+    }
+}
 
 static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 {
@@ -387,6 +428,28 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
+void Chunk::emets_operation_binaire(NoeudExpression *site,
+                                    OperateurBinaire::Genre op,
+                                    Type *type_gauche,
+                                    Type *type_droite)
+{
+    auto op_comp = converti_op_binaire(op);
+    emets(op_comp);
+    emets(site);
+
+    auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
+    if (taille_octet == 0) {
+        assert(type_gauche->genre == GenreType::ENTIER_CONSTANT &&
+               type_droite->genre == GenreType::ENTIER_CONSTANT);
+        emets(4);
+    }
+    else {
+        emets(taille_octet);
+    }
+}
+
+/* ************************************************************************** */
+
 static long instruction_simple(const char *nom, long decalage, std::ostream &os)
 {
     os << nom << '\n';
@@ -455,21 +518,25 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 case CONSTANTE_ENTIER_RELATIF | BITS_8:
                 {
                     LIS_CONSTANTE(char);
+                    os << " z8";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_16:
                 {
                     LIS_CONSTANTE(short);
+                    os << " z16";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_32:
                 {
                     LIS_CONSTANTE(int);
+                    os << " z32";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_64:
                 {
                     LIS_CONSTANTE(long);
+                    os << " z64";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_8:
@@ -477,31 +544,37 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                     // erreur de compilation pour transtype inutile avec drapeaux stricts
                     os << static_cast<long>(chunk.code[decalage]);
                     decalage += 1;
+                    os << " n8";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_16:
                 {
                     LIS_CONSTANTE(unsigned short);
+                    os << " n16";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_32:
                 {
                     LIS_CONSTANTE(unsigned int);
+                    os << " n32";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_64:
                 {
                     LIS_CONSTANTE(unsigned long);
+                    os << " n64";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_32:
                 {
                     LIS_CONSTANTE(float);
+                    os << " r32";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_64:
                 {
                     LIS_CONSTANTE(double);
+                    os << " r64";
                     break;
                 }
             }
@@ -604,7 +677,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
     }
 }
 
-void desassemble(const Chunk &chunk, const char *nom, std::ostream &os)
+void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
     for (auto decalage = 0l; decalage < chunk.compte;) {
@@ -750,7 +823,7 @@ ffi_type *converti_type_ffi(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            return converti_type_ffi(type->comme_enum()->type_donnees);
+            return converti_type_ffi(static_cast<TypeEnum *>(type)->type_donnees);
         }
         case GenreType::TYPE_DE_DONNEES:
         {
@@ -769,45 +842,64 @@ ffi_type *converti_type_ffi(Type *type)
 
 /* ************************************************************************** */
 
-struct ConvertisseuseRI {
-    MachineVirtuelle *mv = nullptr;
-    kuri::tableau<PatchLabel> patchs_labels{};
-    dls::pile<int> pile_taille{};
-    int dernier_decalage_pile = 0;
-
-    ConvertisseuseRI(MachineVirtuelle *mv_);
-
-    COPIE_CONSTRUCT(ConvertisseuseRI);
-
-    void genere_code_binaire_pour_instruction(Instruction *instruction,
-                                              Chunk &chunk,
-                                              bool pour_operande);
-
-    void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
-
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                         int decalage,
-                                                         int ou_patcher);
-
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
-};
-
-void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle *mv)
+ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_)
+    : espace(espace_), donnees_executions(&espace_->compilatrice().donnees_constantes_executions),
+      metaprogramme(metaprogramme_)
 {
-    /* les fonctions implicites (p.e. initialisation de types) n'ont pas de déclaration */
+}
+
+bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctions)
+{
+    POUR (fonctions) {
+        /* Évite de recréer le code binaire. */
+        if (it->chunk.code || it->donnees_externe.ptr_fonction != nullptr) {
+            continue;
+        }
+
+        fonction_courante = it->decl;
+
+        if (!genere_code_pour_fonction(it)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
+{
+    /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
     if (fonction->decl && fonction->decl->est_externe) {
         auto &donnees_externe = fonction->donnees_externe;
+        auto decl = fonction->decl;
 
-        if (fonction->decl->possede_drapeau(COMPILATRICE)) {
-            donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(fonction->decl->ident);
+        if (decl->possede_drapeau(COMPILATRICE)) {
+            donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
-            donnees_externe.ptr_fonction = mv->trouve_symbole(fonction->decl->ident);
+            /* Nous ne pouvons appeler une fonction prenant un pointeur de fonction car le pointeur
+             * pourrait être une fonction interne dont l'adresse ne sera pas celle d'une fonction
+             * exécutable (pour le système d'exploitation) mais l'adresse de l'AtomeFonction
+             * correspondant qui est utilisée dans la machine virtuelle. */
+            POUR (decl->params) {
+                if (it->type->est_fonction()) {
+                    espace->rapporte_erreur(fonction->decl,
+                                            "Impossible d'appeler dans un métaprogramme une "
+                                            "fonction externe utilisant un pointeur de fonction");
+                    return false;
+                }
+            }
+
+            if (!decl->symbole->charge(espace, decl)) {
+                return false;
+            }
+
+            donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
         }
 
-        if (fonction->decl->est_variadique) {
-            // les fonctions variadiques doivent être préparées pour chaque appel
-            return;
+        if (decl->est_variadique) {
+            /* Les fonctions variadiques doivent être préparées pour chaque appel. */
+            return true;
         }
 
         auto type_fonction = fonction->type->comme_fonction();
@@ -828,14 +920,13 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
                                    ptr_types_entrees);
 
         if (status != FFI_OK) {
-            std::cerr << "Impossible de préparer pour FFI !\n";
-            return;
+            espace->rapporte_erreur(
+                decl, "Impossible de préparer l'interface d'appel forrain pour la fonction");
+            return false;
         }
 
-        return;
+        return true;
     }
-
-    auto convertisseuse = ConvertisseuseRI{mv};
 
     auto &chunk = fonction->chunk;
 
@@ -859,15 +950,6 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
     }
-
-    // À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
-    // durée de vie de celles-ci ne fonctionne pas
-    //           il existe des superposition partiells entre certaines variables
-    //           lors de la dernière investigation, il semberait que les instructions de retours au
-    //           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
-    //           optimisation et alloue de l'espace pour toutes les variables au début de chaque
-    //           fonction.
-#undef OPTIMISE_ALLOCS
 
 #ifndef OPTIMISE_ALLOCS
     POUR (fonction->instructions) {
@@ -897,19 +979,19 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
             continue;
         }
 
-        convertisseuse.genere_code_binaire_pour_instruction(it, chunk, false);
+        genere_code_binaire_pour_instruction(it, chunk, false);
     }
 
-    POUR (convertisseuse.patchs_labels) {
+    POUR (patchs_labels) {
         auto decalage = chunk.decalages_labels[it.index_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = decalage;
     }
 
-    // desassemble(chunk, fonction->nom.c_str(), std::cerr);
-}
+    /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
+    patchs_labels.efface();
 
-ConvertisseuseRI::ConvertisseuseRI(MachineVirtuelle *mv_) : mv(mv_)
-{
+    // desassemble(chunk, fonction->nom.c_str(), std::cerr);
+    return true;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
@@ -983,16 +1065,16 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             genere_code_binaire_pour_atome(stocke->ou, chunk, true);
-            chunk.emets_assignation(stocke->site, stocke->valeur->type);
+            chunk.emets_assignation(contexte(), stocke->site, stocke->valeur->type);
             break;
         }
         case Instruction::Genre::APPEL:
         {
             auto appel = instruction->comme_appel();
 
-            // évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
-            // instructions, une fois pour l'opérande les fonctions retournant « rien » ne peuvent
-            // être opérandes
+            /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
+             * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
+             * être opérandes. */
             if (appel->type->genre != GenreType::RIEN && !pour_operande) {
                 return;
             }
@@ -1162,31 +1244,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
         {
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
-
             genere_code_binaire_pour_atome(op_unaire->valeur, chunk, true);
-
-            if (op_unaire->op == OperateurUnaire::Genre::Complement) {
-                if (type->genre == GenreType::REEL) {
-                    chunk.emets(OP_COMPLEMENT_REEL);
-                    chunk.emets(op_unaire->site);
-                }
-                else {
-                    chunk.emets(OP_COMPLEMENT_ENTIER);
-                    chunk.emets(op_unaire->site);
-                }
-            }
-            else if (op_unaire->op == OperateurUnaire::Genre::Non_Binaire) {
-                chunk.emets(OP_NON_BINAIRE);
-                chunk.emets(op_unaire->site);
-            }
-
-            if (type->genre == GenreType::ENTIER_CONSTANT) {
-                chunk.emets(4);
-            }
-            else {
-                chunk.emets(type->taille_octet);
-            }
-
+            chunk.emets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1196,22 +1255,39 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
             genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk, true);
 
-            auto op_comp = converti_op_binaire(op_binaire->op);
-            chunk.emets(op_comp);
-            chunk.emets(op_binaire->site);
-
             auto type_gauche = op_binaire->valeur_gauche->type;
-
-            if (type_gauche->genre == GenreType::ENTIER_CONSTANT) {
-                chunk.emets(4);
-            }
-            else {
-                chunk.emets(type_gauche->taille_octet);
-            }
+            auto type_droite = op_binaire->valeur_droite->type;
+            chunk.emets_operation_binaire(
+                op_binaire->site, op_binaire->op, type_gauche, type_droite);
 
             break;
         }
     }
+}
+
+static Type *type_entier_sous_jacent(Typeuse &typeuse, Type *type)
+{
+    if (type->est_entier_constant()) {
+        return typeuse[TypeBase::Z32];
+    }
+
+    if (type->est_enum()) {
+        return type->comme_enum()->type_donnees;
+    }
+
+    if (type->est_erreur()) {
+        return type->comme_erreur()->type_donnees;
+    }
+
+    if (type->est_type_de_donnees()) {
+        return typeuse[TypeBase::Z64];
+    }
+
+    if (type->est_octet()) {
+        return typeuse[TypeBase::N8];
+    }
+
+    return type;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
@@ -1235,13 +1311,18 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                     chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
                     break;
                 }
+                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                {
+                    chunk.emets_constante(valeur_constante->valeur.type->taille_octet);
+                    break;
+                }
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                 {
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-                    auto type = constante->type;
+                    auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                        constante->type);
 
-                    if (type->genre == GenreType::ENTIER_NATUREL ||
-                        type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+                    if (type->genre == GenreType::ENTIER_NATUREL) {
                         if (type->taille_octet == 1) {
                             chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
                         }
@@ -1269,14 +1350,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                             chunk.emets_constante(static_cast<long>(valeur_entiere));
                         }
                     }
-                    else if (type->genre == GenreType::ENTIER_CONSTANT) {
-                        chunk.emets_constante(static_cast<int>(valeur_entiere));
-                    }
-                    else if (type->est_octet()) {
-                        chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
-                    }
-                    else if (type->est_type_de_donnees()) {
-                        chunk.emets_constante(static_cast<long>(valeur_entiere));
+                    else if (type->est_reel()) {
+                        if (type->taille_octet == 4) {
+                            chunk.emets_constante(static_cast<float>(valeur_entiere));
+                        }
+                        else {
+                            chunk.emets_constante(static_cast<double>(valeur_entiere));
+                        }
                     }
 
                     break;
@@ -1297,6 +1377,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
+                    const long taille = valeur_constante->valeur.valeur_tableau.taille;
+
+                    for (auto i = 0; i < taille; i++) {
+                        genere_code_binaire_pour_constante(pointeur[i], chunk);
+                    }
+
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
@@ -1391,9 +1478,31 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             genere_code_binaire_pour_constante(transtype->valeur, chunk);
             break;
         }
-        default:
+        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
-            // À FAIRE
+            auto op_unaire = static_cast<OpUnaireConstant *>(constante);
+            genere_code_binaire_pour_constante(op_unaire->operande, chunk);
+            chunk.emets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
+            break;
+        }
+        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+        {
+            auto op_binaire = static_cast<OpBinaireConstant *>(constante);
+            genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
+            genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
+            chunk.emets_operation_binaire(nullptr,
+                                          op_binaire->op,
+                                          op_binaire->operande_gauche->type,
+                                          op_binaire->operande_droite->type);
+            break;
+        }
+        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+        {
+            auto index_constant = static_cast<AccedeIndexConstant *>(constante);
+            auto type_pointeur = index_constant->type->comme_pointeur();
+            genere_code_binaire_pour_constante(index_constant->index, chunk);
+            genere_code_binaire_pour_constante(index_constant->accede, chunk);
+            chunk.emets_acces_index(nullptr, type_pointeur->type_pointe);
             break;
         }
     }
@@ -1410,10 +1519,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             unsigned char *donnees = nullptr;
 
             if (ou_patcher == DONNEES_GLOBALES) {
-                donnees = mv->donnees_globales.donnees() + decalage;
+                donnees = donnees_executions->donnees_globales.donnees() + decalage;
             }
             else {
-                donnees = mv->donnees_constantes.donnees() + decalage;
+                donnees = donnees_executions->donnees_constantes.donnees() + decalage;
             }
 
             switch (valeur_constante->valeur.genre) {
@@ -1429,6 +1538,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     // métaprogrammes
                     *reinterpret_cast<long *>(donnees) = reinterpret_cast<long>(
                         valeur_constante->valeur.type);
+                    break;
+                }
+                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                {
+                    *reinterpret_cast<unsigned int *>(
+                        donnees) = valeur_constante->valeur.type->taille_octet;
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
@@ -1491,6 +1606,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    assert_rappel(false, [&]() {
+                        std::cerr << "Les valeurs de globales de type tableau fixe ne sont pas "
+                                     "générées dans le code binaire pour le moment.\n";
+                        std::cerr << "Le type est " << chaine_type(constante->type) << '\n';
+                    });
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
@@ -1549,8 +1669,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                             auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
-                                            static_cast<int>(decalage_membre);
+                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                                            decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<long *>(donnees_ + 8) = taille_chaine;
                         }
@@ -1570,11 +1690,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto type_tableau = tableau->type->comme_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
-                            auto decalage_valeur = mv->donnees_constantes.taille();
+                            auto decalage_valeur = donnees_executions->donnees_constantes.taille();
                             auto adresse_tableau = decalage_valeur;
 
-                            mv->donnees_constantes.redimensionne(
-                                mv->donnees_constantes.taille() +
+                            donnees_executions->donnees_constantes.redimensionne(
+                                donnees_executions->donnees_constantes.taille() +
                                 static_cast<int>(type_pointe->taille_octet) *
                                     type_tableau->taille);
 
@@ -1591,10 +1711,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             patch.decalage_ou = decalage + static_cast<int>(decalage_membre);
                             patch.decalage_quoi = adresse_tableau;
 
-                            mv->patchs_donnees_constantes.ajoute(patch);
+                            donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
-                            auto donnees_ = mv->donnees_globales.donnees() + decalage +
-                                            static_cast<int>(decalage_membre);
+                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                                            decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<long *>(donnees_ + 8) = taille;
                         }
                         else {
@@ -1616,20 +1736,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(constante);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            auto globale = mv->globales[atome_globale->index];
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            auto globale = donnees_executions->globales[index_globale];
 
             auto patch = PatchDonneesConstantes{};
             patch.ou = ou_patcher;
@@ -1637,7 +1745,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             patch.decalage_ou = decalage;
             patch.decalage_quoi = globale.adresse;
 
-            mv->patchs_donnees_constantes.ajoute(patch);
+            donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
             break;
         }
@@ -1680,20 +1788,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = static_cast<AtomeGlobale *>(atome);
-
-            if (atome_globale->index == -1) {
-                auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
-                atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
-
-                if (atome_globale->est_constante) {
-                    auto globale = mv->globales[atome_globale->index];
-                    auto initialisateur = atome_globale->initialisateur;
-                    genere_code_binaire_pour_initialisation_globale(
-                        initialisateur, globale.adresse, DONNEES_GLOBALES);
-                }
-            }
-
-            chunk.emets_reference_globale(nullptr, atome_globale->index);
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            chunk.emets_reference_globale(nullptr, index_globale);
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1716,4 +1812,40 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
             break;
         }
     }
+}
+
+int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
+{
+    assert(globale->index == -1);
+    auto type_globale = globale->type->comme_pointeur()->type_pointe;
+    auto index = donnees_executions->ajoute_globale(
+        type_globale, globale->ident, globale->adresse_pour_execution);
+    globale->index = index;
+    return index;
+}
+
+int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
+{
+    auto index = atome_globale->index;
+
+    if (index != -1) {
+        /* Un index de -1 indique que le code ne fut pas encore généré. */
+        return index;
+    }
+
+    index = ajoute_globale(atome_globale);
+
+    if (atome_globale->est_constante && !atome_globale->adresse_pour_execution) {
+        auto globale = donnees_executions->globales[index];
+        auto initialisateur = atome_globale->initialisateur;
+        genere_code_binaire_pour_initialisation_globale(
+            initialisateur, globale.adresse, DONNEES_GLOBALES);
+    }
+
+    return index;
+}
+
+ContexteGenerationCodeBinaire ConvertisseuseRI::contexte() const
+{
+    return {espace, fonction_courante};
 }

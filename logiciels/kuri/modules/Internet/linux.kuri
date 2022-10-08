@@ -1,0 +1,107 @@
+importe GlibC
+importe Fondation
+
+adresse_depuis_s_adrr :: fonc (addr: in_addr) -> AdresseIPv4 #enligne
+{
+    retourne adresse_ipv4_depuis_entier_simple(addr.s_addr)
+}
+
+adresse_depuis_s_adrr :: fonc (addr: in6_addr) -> AdresseIPv6 #enligne
+{
+    données : [8]n16
+
+    pour 8 {
+        données[it] = (addr.s6_addr[it * 2] comme n16 << 8) | addr.s6_addr[it * 2 + 1]
+    }
+
+    retourne AdresseIPv6(données)
+}
+
+trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
+{
+    marqueur := obtiens_marque_stockage_temporaire()
+    diffère set_marque_stockage_temporaire(marqueur)
+
+    ptr_tampon := crée_chaine_c_temp(hôte)
+
+    he := gethostbyname(ptr_tampon)
+    si he == nul {
+        // À FAIRE : errno
+        retourne
+    }
+
+    résultat : []AdresseIP
+
+    index := 0
+    boucle {
+        ptr := he.h_addr_list[index]
+
+        si ptr comme *z8 == nul {
+            arrête
+        }
+
+        si he.h_addrtype == AF_INET {
+            /* IPv4 */
+            addr := mémoire(ptr comme *z8 comme *in_addr)
+            adresse := adresse_depuis_s_adrr(addr)
+            tableau_ajoute(*résultat, adresse)
+        }
+        sinon si he.h_addrtype == AF_INET6 {
+            /* IPv6 */
+            addr := mémoire(ptr comme *z8 comme *in6_addr)
+            adresse := adresse_depuis_s_adrr(addr)
+            tableau_ajoute(*résultat, adresse)
+        }
+
+        index += 1
+    }
+
+    retourne résultat
+}
+
+trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([]AdresseIP)
+{
+    marqueur := obtiens_marque_stockage_temporaire()
+    diffère set_marque_stockage_temporaire(marqueur)
+
+    addr: *addrinfo
+    diffère { freeaddrinfo(addr) }
+
+    hints : addrinfo
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    // À FAIRE
+    // hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+
+    ptr_noeud := crée_chaine_c_temp(noeud)
+    ptr_service := crée_chaine_c_temp(service)
+
+    code_erreur := getaddrinfo(ptr_noeud, ptr_service, *hints, *addr)
+    si code_erreur != 0 {
+        // À FAIRE : errno
+        retourne
+    }
+
+    résultat : []AdresseIP
+
+    addr_courante := addr
+    tantque addr_courante != nul {
+        si addr_courante.ai_family == AF_INET {
+            /* IPv4 */
+            p := addr_courante.ai_addr comme *sockaddr_in
+            adresse := adresse_depuis_s_adrr(p.sin_addr)
+            tableau_ajoute(*résultat, adresse)
+        }
+        sinon si addr_courante.ai_family == AF_INET6 {
+            /* IPv6 */
+            p := addr_courante.ai_addr comme *sockaddr_in6
+            adresse := adresse_depuis_s_adrr(p.sin6_addr)
+            tableau_ajoute(*résultat, adresse)
+        }
+
+        addr_courante = addr_courante.ai_next
+    }
+
+    retourne résultat
+}

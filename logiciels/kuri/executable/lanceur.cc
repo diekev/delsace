@@ -42,8 +42,6 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "date.hh"
-
 #include "biblinternes/chrono/chronometrage.hh"
 
 #define AVEC_THREADS
@@ -86,6 +84,13 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 }
 #endif
 
+static void imprime_fichiers_utilises(std::ostream &os, Compilatrice &compilatrice)
+{
+    POUR_TABLEAU_PAGE (compilatrice.sys_module->fichiers) {
+        os << it.chemin() << "\n";
+    }
+}
+
 int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
@@ -119,11 +124,44 @@ int main(int argc, char *argv[])
     precompile_objet_r16(chemin_racine_kuri);
 
     auto stats = Statistiques();
-    auto compilatrice = Compilatrice{};
+    auto compilatrice = Compilatrice(chemin_racine_kuri);
 
-    if (argc == 3) {
-        if (strcmp(argv[2], "--tests") == 0) {
-            compilatrice.active_tests = true;
+    const char *nom_fichier_utilises = nullptr;
+
+    if (argc > 2) {
+        for (int i = 2; i < argc; ++i) {
+            if (strcmp(argv[i], "--tests") == 0) {
+                compilatrice.active_tests = true;
+            }
+            else if (strcmp(argv[i], "--emets_fichiers_utilises") == 0) {
+                ++i;
+                nom_fichier_utilises = argv[i];
+            }
+            else if (strcmp(argv[i], "--profile_exécution") == 0) {
+                compilatrice.profile_metaprogrammes = true;
+            }
+            else if (strcmp(argv[i], "--format_profile") == 0) {
+                ++i;
+
+                if (i >= argc) {
+                    std::cerr << "Argument manquant après --format_profile\n";
+                    return 1;
+                }
+
+                if (strcmp(argv[i], "défaut") == 0 || strcmp(argv[i], "gregg") == 0) {
+                    compilatrice.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+                }
+                else if (strcmp(argv[i], "échantillons_totaux") == 0) {
+                    compilatrice.format_rapport_profilage =
+                        FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
+                }
+                else {
+                    std::cerr << "Type de format de profile \"" << argv[i] << "\" inconnu\n";
+                    return 1;
+                }
+            }
+            else {
+            }
         }
     }
 
@@ -139,11 +177,8 @@ int main(int argc, char *argv[])
 
         auto nom_fichier = chemin.stem();
 
-        compilatrice.racine_kuri = chemin_racine_kuri;
-
         /* Charge d'abord le module basique. */
-        auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
-        compilatrice.espace_de_travail_defaut = espace_defaut;
+        auto espace_defaut = compilatrice.espace_de_travail_defaut;
 
         auto dossier = chemin.parent_path();
         std::filesystem::current_path(dossier);
@@ -151,8 +186,8 @@ int main(int argc, char *argv[])
         os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
            << std::endl;
 
-        auto module = espace_defaut->trouve_ou_cree_module(
-            compilatrice.sys_module, ID::chaine_vide, dossier.c_str());
+        auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier.c_str());
+        compilatrice.module_racine_compilation = module;
         compilatrice.ajoute_fichier_a_la_compilation(
             espace_defaut, nom_fichier.c_str(), module, {});
 
@@ -174,7 +209,8 @@ int main(int argc, char *argv[])
             tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
         }
 
-        auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER;
+        auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER |
+                        DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE;
 
         for (auto i = 0u; i < nombre_tacheronnes; ++i) {
             tacheronnes[i]->drapeaux |= drapeaux;
@@ -202,22 +238,18 @@ int main(int argc, char *argv[])
         lance_tacheronne(&tacheronne_mp);
 #endif
 
-        if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
+        if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
             auto fichier_chaines = std::ofstream(".chaines_ajoutées");
-
-            auto d = hui_systeme();
-
-            fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
-                            << " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
-
-            POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
-                fichier_chaines << it;
-                fichier_chaines << '\n';
-            }
+            compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
         }
 
         /* restore le dossier d'origine */
         std::filesystem::current_path(dossier_origine);
+
+        if (!compilatrice.possede_erreur() && nom_fichier_utilises) {
+            std::ofstream fichier_fichiers_utilises(nom_fichier_utilises);
+            imprime_fichiers_utilises(fichier_fichiers_utilises, compilatrice);
+        }
 
         if (!compilatrice.possede_erreur() &&
             compilatrice.espace_de_travail_defaut->options.emets_metriques) {

@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/ensemble.hh"
-
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"
+#include "structures/ensemble.hh"
 
 #include "validation_expression_appel.hh"
 
@@ -35,6 +34,7 @@ struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
 struct NoeudExpression;
+struct SiteSource;
 struct Type;
 struct TypeCompose;
 
@@ -79,6 +79,9 @@ std::ostream &operator<<(std::ostream &os, Genre genre);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 
+dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
+                                           const NoeudExpression *expr);
+
 void lance_erreur(const kuri::chaine &quoi,
                   EspaceDeTravail const &espace,
                   const NoeudExpression *site,
@@ -110,7 +113,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *n,
-                                    dls::tablet<DonneesCandidate, 10> const &candidates);
+                                    kuri::tablet<ErreurAppariement, 10> const &erreurs);
 
 void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *appl_fonc,
@@ -120,24 +123,17 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression *b,
                                      long taille_tableau,
-                                     Type *type_tableau,
+                                     Type const *type_tableau,
                                      long index_acces);
 
 void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre,
-                    TypeCompose *type);
-
-void membre_inactif(EspaceDeTravail const &espace,
-                    ContexteValidationCode &contexte,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre);
+                    NoeudExpression const *acces,
+                    NoeudExpression const *membre,
+                    TypeCompose const *type);
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
-                            NoeudExpression *expression,
-                            const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
+                            NoeudExpression const *expression,
+                            const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 
 void fonction_principale_manquante(EspaceDeTravail const &espace);
 }  // namespace erreur
@@ -179,6 +175,13 @@ struct Erreur {
 
     Erreur &ajoute_conseil(kuri::chaine const &c);
 
+    template <typename Fonction>
+    Erreur &ajoute_donnees(Fonction rappel)
+    {
+        rappel(*this);
+        return *this;
+    }
+
     void genre_erreur(erreur::Genre genre_)
     {
         genre = genre_;
@@ -195,26 +198,11 @@ struct Erreur {
 };
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       NoeudExpression const *site,
-                       kuri::chaine const &message,
+                       SiteSource site,
+                       const kuri::chaine &message,
                        erreur::Genre genre = erreur::Genre::NORMAL);
 
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
-                                 const kuri::chaine &message,
-                                 erreur::Genre genre = erreur::Genre::NORMAL);
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       const kuri::chaine &fichier,
-                       int ligne,
-                       const kuri::chaine &message);
-
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  NoeudExpression const *site,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message);
-
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  const Fichier *fichier,
-                                  int ligne,
+                                  SiteSource site,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message);

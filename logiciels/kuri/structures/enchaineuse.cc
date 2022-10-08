@@ -114,6 +114,11 @@ void Enchaineuse::imprime_dans_flux(std::ostream &flux)
 
 void Enchaineuse::ajoute_tampon()
 {
+    if (tampon_courant->suivant) {
+        tampon_courant = tampon_courant->suivant;
+        return;
+    }
+
     auto tampon = memoire::loge<Tampon>("Tampon");
     tampon_courant->suivant = tampon;
     tampon_courant = tampon;
@@ -185,6 +190,17 @@ void Enchaineuse::permute(Enchaineuse &autre)
 
     std::swap(m_tampon_base.occupe, autre.m_tampon_base.occupe);
     std::swap(m_tampon_base.suivant, autre.m_tampon_base.suivant);
+}
+
+void Enchaineuse::reinitialise()
+{
+    auto t = &m_tampon_base;
+    while (t) {
+        t->occupe = 0;
+        t = t->suivant;
+    }
+
+    tampon_courant = &m_tampon_base;
 }
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine_statique &chn)

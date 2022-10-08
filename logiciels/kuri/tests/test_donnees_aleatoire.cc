@@ -53,12 +53,12 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
             texte.ajoute(donnees_char[i]);
         }
 
-        auto compilatrice = Compilatrice{};
-        auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
-        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
-        donnees_fichier->charge_tampon(lng::tampon_source(std::move(texte)));
+        auto compilatrice = Compilatrice("");
+        auto espace = compilatrice.espace_defaut_compilation();
+        auto fichier = Fichier();
+        fichier.charge_tampon(lng::tampon_source(std::move(texte)));
 
-        Lexeuse lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
+        Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
         lexeuse.performe_lexage();
 
         auto tacheronne = Tacheronne(compilatrice);
@@ -459,19 +459,16 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
     }
 
     try {
-        auto compilatrice = Compilatrice{};
+        auto compilatrice = Compilatrice("");
         auto tacheronne = Tacheronne(compilatrice);
-        auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+        auto espace = compilatrice.espace_defaut_compilation();
 
-        auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
-        auto resultat = espace->trouve_ou_cree_fichier(
-            compilatrice.sys_module, module, "", "", true);
+        auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, "");
+        auto resultat = compilatrice.trouve_ou_cree_fichier(module, "", "", true);
         auto fichier = resultat.resultat<FichierNeuf>().fichier;
-
-        auto donnees_fichier = fichier->donnees_constantes;
-        donnees_fichier->charge_tampon(lng::tampon_source("texte_test"));
-        donnees_fichier->lexemes = lexemes;
-        donnees_fichier->fut_lexe = true;
+        fichier->charge_tampon(lng::tampon_source("texte_test"));
+        fichier->lexemes = lexemes;
+        fichier->fut_lexe = true;
 
         auto unite = UniteCompilation(espace);
         auto analyseuse = Syntaxeuse(tacheronne, &unite);

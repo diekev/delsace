@@ -5,6 +5,7 @@
  * - structure vide
  */
 
+/*
 
 BaseChaine :: struct ($T: type_de_données) {
     données: []T
@@ -18,7 +19,6 @@ Chaine16 :: BaseChaine(T = n16)
 
 /* Une chaine UTF-32 */
 Chaine32 :: BaseChaine(T = n32)
-
 
 // avec un codec
 
@@ -57,7 +57,6 @@ Codec :: struct ($T: type_de_données) {
 
 // min := Chaine.codec.en_minuscule(l)
 
-
 // stocke les empreintes, et accumule les valeurs quand la chaine est modifiée
 
 /*
@@ -68,3 +67,71 @@ ajoute :: fonc (chn: &Chaine, v: valeur)
 */
 
 // d'autres chaines : voir Houdini pour les chaines référencées
+
+// Pour travailloer sur les chaines
+
+-- représenter une chaine
+-- connaitre le codec d'une chaine
+-- ajouter ou supprimer des éléments d'une chaine
+-- parser une chaine
+-- formatter une structure de données pour la représenter sous forme de chaine
+-- itérer sur une chaine
+
+// ----------
+
+Chaine :: struct {
+
+}
+
+implémente Chaine {
+    taille :: fonc () -> z64
+
+    codec :: fonc () -> *CodecChaine
+}
+
+// ChaineASCII :: #opaque Chaine(CodecASCII)
+// ChaineSystème :: #opaque Chaine(CodecDéfaut)
+// ChaineUTF8 :: #opaque Chaine(CodecUTF8)
+// ChaineUTF16 :: #opaque Chaine(CodecUTF16)
+// ChaineUTF32 :: #opaque Chaine(CodecUTF32)
+
+// ----------
+
+CodecChaine :: struct {
+
+}
+
+implémente CodecChaine {
+    TypeCaractère :: $T
+    TypePointDeCode :: TypeCaractère
+
+    en_minuscule
+
+    en_majuscule
+
+    est_alphabétique
+
+    est_numérique
+
+    est_ponctuation
+
+    est_point_de_controle
+}
+
+// ----------
+
+ParseuseChaine :: struct {
+
+}
+
+// ----------
+
+Enchaineuse :: struct {
+
+}
+
+// ----------
+
+// ----------
+
+*/

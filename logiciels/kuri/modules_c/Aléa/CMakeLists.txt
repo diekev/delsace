@@ -28,17 +28,12 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 )
 
-add_library(${NOM_PROJET} STATIC
+set(SOURCES
     alea.cc
 
     alea.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Aléa/)
+compile_module_c(${NOM_PROJET} aléa alea.h Aléa "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")

@@ -21,6 +21,7 @@ test_compilation :: fonc ()
 
     boucle {
         message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
 
         si message.espace != espace {
             continue

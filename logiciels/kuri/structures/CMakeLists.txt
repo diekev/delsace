@@ -33,15 +33,30 @@ set(BIBLIOTHEQUES
 set(SOURCES
     chaine.cc
 	chaine_statique.cc
+  date.cc
 	enchaineuse.cc
+    ensemble.cc
+    ensemblon.cc
+    file.cc
+    intervalle.cc
+    pile.cc
 	table_hachage.cc
+  tablet.cc
 	tableau.cc
 	tableau_compresse.cc
 
     chaine.hh
 	chaine_statique.hh
+  date.hh
 	enchaineuse.hh
+    ensemble.hh
+    ensemblon.hh
+    file.hh
+    file_fixe.hh
+    intervalle.hh
+    pile.hh
 	table_hachage.hh
+  tablet.hh
 	tableau.hh
 	tableau_compresse.hh
 )

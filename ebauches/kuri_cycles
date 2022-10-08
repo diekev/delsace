@@ -1,0 +1,146 @@
+Cycles - Kuri
+
+// Le code Kuri ne doit que se soucier de créer des structures avec des fonctions de rappels.
+// La logique de création de noeuds dans la Scène Cycles doit être le plus encapsulé possible.
+
+struct ExportriceSceneCycles {
+    ccl::Scene *scene = nullptr;
+};
+
+CréatriceNoeudMeshCycles :: struct {
+    size_t (*retourne_nombre_de_points)(void *objet);
+    void (*lis_point_index)(void *object, size_t index, float *x, float *y, float *z);
+
+    /* Nuanceur */
+
+
+    /* Polygones: index des points, smooth, shader */
+    size_t (*nombre_de_polygones)(void *objet);
+
+    size_t (*nombre_de_points_polygone)(void *objet, size_t index_polygone);
+
+    size_t (*index_vertex_pour_point_polygone)(void *objet, size_t index_polygone, size_t index_point);
+
+    bool (*polygone_est_lisse)(void *objet, size_t index_polygone);
+    size_t (*nuanceur_pour_polygone)(void *objet, size_t index_polygone);
+}
+
+// code C++
+
+/* Table de correspondances entre les pointeurs du programme et les noeuds de la scène Cycles */
+class TableNoeud {
+    std::map<void const *, ccl::Node *> table;
+    std::set<void const *> utilises;
+
+public:
+    template <typename T>
+    ccl::Node &cree_ou_trouve_noeud_correspondant(void const *pointeur, ccl::Scene *scene)
+    {
+        auto iter = table.find(pointeur);
+
+        if (iter != table.end()) {
+            return *iter->second;
+        }
+
+        auto noeud = scene->creeate_node<T>();
+        table.insere({ pointeur, noeud });
+        return *noeud;
+    }
+};
+
+static size_t calcule_nombre_de_triangles(CreatriceNoeudMesh *creatrice, size_t nombre_de_polygones)
+{
+    assert(nombre_de_polygones == creatrice->nombre_de_polygones(creatrice->objet));
+
+    auto resultat = size_t(0);
+    for (size_t i = 0; i < nombre_de_polygones; ++i) {
+        auto coins = creatrice->nombre_de_points_polygone(creatrice->objet, i);
+        resultat += coins - 2;
+    }
+    return resultat;
+}
+
+static void copie_donnees_maillage(CreatriceNoeudMesh *creatrice, ccl::Mesh *mesh)
+{
+    auto const nombre_de_polygones = creatrice->nombre_de_polygones(creatrice->objet);
+
+    if (nombre_de_polygones == 0) {
+        /* Crée un maillage vide. */
+        return;
+    }
+
+    /* Requiers les informations sur la topologie, afin de réserver une quantité de mémoire adéquate. */
+    auto const nombre_de_triangles = calcule_nombre_de_triangles(creatrice, nombre_de_polygones);
+    auto const nombre_de_points = creatrice->retourne_nombre_de_points(creatrice->objet);
+
+    mesh->reserve_mesh(nombre_de_points, nombre_de_triangles);
+
+    /* Crée les points. */
+    for (size_t i = 0; i < nombre_de_points; i++) {
+        float x, y, z;
+        creatrice->lis_point_index(creatrice->objet, &x, &y, &z);
+        mesh->add_vertex(make_float3(x, y, z));
+    }
+
+    /* Crée les triangles */
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        auto coins = creatrice->nombre_de_points_polygone(creatrice->objet, i);
+
+        /* Nous créons des triangles en utilisant le premier vertex comme point d'ancrage.
+         * À FAIRE : préfère divsiser les polylygones selon leurs plus courtes diagonales
+         *           afin d'éviter les problèmes d'intersection rayon-triangle avec les
+         *           triangles trop fins. */
+        auto v0 = creatrice->index_vertex_pour_point_polygone(creatrice->objet, i, 0);
+        auto v1 = creatrice->index_vertex_pour_point_polygone(creatrice->objet, i, 1);
+
+        auto est_lisse = creatrice->polygone_est_lisse(creatrice->objet, i);
+        auto nuanceur_utilise = creatrice->nuanceur_pour_polygone(creatrice->objet, i);
+
+        for (size_t c = 2; c < coins; c++) {
+            auto v2 = creatrice->index_vertex_pour_point_polygone(creatrice->objet, i, c);
+
+            mesh->add_triangle(v0, v1, v2, nuanceur_utilise, est_lisse);
+
+            v1 = v2;
+        }
+    }
+
+    /* À FAIRE: passe les normaux, tangeantes, UVs, undeformed coordinates */
+}
+
+void cree_noeud_mesh_cycles(ExportriceSceneCycles *exportrice, CreatriceNoeudMesh *creatrice)
+{
+    auto scene = exportrice->scene;
+    auto mesh = scene->create_node<Mesh>();
+
+    auto tmp_mesh = Mesh();
+    copie_donnees_maillage(creatrice, &tmp_mesh);
+
+    /* Copie les données dans l'ancien maillage. */
+
+    mesh->tag_update(scene, rebuild);
+}
+
+void exporte_scene(ExportriceSceneCycles *exportrice)
+{
+    const auto nombre_d_objets = exportrice->nombre_d_objets(exportrice->contexte);
+
+    for (size_t i = 0; i < nombre_d_objets; i++) {
+        auto objet = exportrice->accede_objet(exportrice->contexte, i);
+
+        auto type_objet = exportrice->determine_type_objet(exportrice->contexte, objet);
+
+        if (type_objet == MAILLAGE) {
+            auto creatrice_maillage = CreatriceNoeudMesh;
+            exportrice->initialise_exportrice_maillage(objet, &creatrice_maillage);
+        }
+        else if (type_objet == INSTANCE) {
+            auto objet_instance = exportrice->accede_objet_instance(objet);
+
+            // cree_un_noeud_cycles_pour_ceci
+        }
+        else if (type_objet == VOLUME) {
+
+        }
+    }
+}

@@ -1,59 +1,232 @@
+importe Fondation
+
+rune8 :: z8
+rune16 :: n16
+rune32 :: n32
+
 // https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
 // https://infra.spec.whatwg.org/#string-is
 ChaineUTF16 :: struct {
     unités : []n16
 }
 
-ajoute :: fonc (chn: *ChaineUTF16, unité: n16)
+détruit_chaine :: fonc (chn: &ChaineUTF16)
+{
+    déloge(chn.unités)
+}
+
+est_vide :: fonc (chn: &ChaineUTF16) -> bool #enligne
+{
+    retourne chn.unités.taille == 0
+}
+
+réinitialise :: fonc (chn: &ChaineUTF16) #enligne
+{
+    chn.unités.taille = 0
+}
+
+copie_chaine :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+{
+    résultat : ChaineUTF16
+    résultat.unités = tableau_copie(chn.unités)
+    retourne résultat
+}
+
+ajoute :: fonc (chn: *ChaineUTF16, unité: n16) #enligne
 {
     tableau_ajoute(*chn.unités, unité)
 }
 
-taille :: fonc (chn: ChaineUTF16) -> z64
+chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune8)
+{
+    chn.ajoute(point_de_code comme n16)
+}
+
+chaine_ajoute :: fonc (chn: *ChaineUTF16, chaine_native: chaine)
+{
+    // À FAIRE : convertis proprement vers utf16
+    pour chaine_native {
+        chn.ajoute(it comme n16)
+    }
+}
+
+en_minuscule :: fonc (unité: rune16) -> rune16
+{
+    si ('A' comme n16) <= unité <= ('Z' comme n16) {
+        retourne unité - ('A' comme n16)
+    }
+    retourne unité
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: chaine) -> bool
+{
+    // À FAIRE : convertis proprement vers utf16
+    si chn.taille() != chaine_native.taille {
+        retourne faux
+    }
+
+    pour chn.taille() {
+        c1 := chaine_native[it] comme n16
+        c2 := chn.unités[it]
+
+        c1_minuscule := en_minuscule(c1)
+        c2_minuscule := en_minuscule(c2)
+
+        si c1_minuscule != c2_minuscule {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+opérateur == :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
+{
+    // À FAIRE : convertis proprement vers utf16
+    si chn.taille() != chaine_native.taille {
+        retourne faux
+    }
+
+    pour chn.taille() {
+        c1 := chaine_native[it] comme n16
+        c2 := chn.unités[it]
+
+        si c1 != c2 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+opérateur != :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
+{
+    retourne !(chn == chaine_native)
+}
+
+chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
+{
+    unités: [2]n16
+    taille := utf16_depuis_point_de_code(point_de_code, *unités[0])
+
+    chn.ajoute(unités[0])
+    si taille == 2 {
+        chn.ajoute(unités[1])
+    }
+}
+
+taille :: fonc (chn: ChaineUTF16) -> z64 #enligne
 {
     retourne chn.unités.taille
 }
 
-taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64
+taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64 #enligne
 {
-    // À FAIRE
-    retourne 0
+    résultat : z64 = 0
+    curseur := 0
+    tantque curseur < chn.taille() {
+        unité := chn.unités[curseur]
+
+        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
+            curseur += 1
+            résultat += 1
+            continue
+        }
+
+        si est_leading_surrogate(unité) && curseur == chn.taille() - 1 {
+            curseur += 1
+            résultat += 1
+            continue
+        }
+
+        unité_suivante := chn.unités[curseur + 1]
+        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
+            curseur += 2
+            résultat += 1
+            continue
+        }
+
+        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
+         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
+        curseur += 1
+        résultat += 1
+    }
+
+    retourne résultat
 }
 
-est_valeur_scalaire :: fonc (unité: n16) -> bool
+// Fonction de comparaison pour tri_rapide.
+compare_chaine_utf16 :: fonc (a1: ChaineUTF16, a2: ChaineUTF16) -> z32
+{
+    si a1 < a2 {
+        retourne -1
+    }
+
+    si a1 == a2 {
+        retourne 0
+    }
+
+    retourne 1
+}
+
+divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> []ChaineUTF16
+{
+    position := 0
+    résultat : []ChaineUTF16
+
+    répète {
+        token : ChaineUTF16
+        token.unités.pointeur = chn.unités.pointeur + position
+        token.unités.taille = 0
+
+        tantque position < chn.taille() && chn.unités.pointeur[position] != délimiteur {
+            token.unités.taille += 1
+            position += 1
+        }
+
+        // assert(chn.unités.pointeur[position] == délimiteur)
+        tableau_ajoute(*résultat, token)
+        position += 1
+    } tantque position < chn.taille()
+
+    retourne résultat
+}
+
+est_valeur_scalaire :: fonc (unité: n16) -> bool #enligne
 {
     retourne unité < 0xD800 || unité > 0xDFFF
 }
 
-est_leading_surrogate :: fonc (unité: n16) -> bool
+est_leading_surrogate :: fonc (unité: n16) -> bool #enligne
 {
     retourne 0xD800 <= unité <= 0xDBFF
 }
 
-est_trailling_surrogate :: fonc (unité: n16) -> bool
+est_trailling_surrogate :: fonc (unité: n16) -> bool #enligne
 {
     retourne 0xDC00 <= unité <= 0xDFFF
 }
 
-utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *[2]n16) -> z32
+// À FAIRE(langage) : doit être résultat: *[2]n16
+utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *n16) -> z32 #enligne
 {
     //assert(point_de_code <= 0x10FFFF)
 
     si point_de_code <= 0xFFFF {
-        mémoire(résultat)[0] = point_de_code comme n16
+        résultat[0] = point_de_code comme n16
         retourne 1
     }
 
     uc1 := ((point_de_code - 0x10000) / 0x400) + 0xD800
     uc2 := ((point_de_code - 0x10000) % 0x400) + 0xDC00
 
-    mémoire(résultat)[0] = uc1 comme n16
-    mémoire(résultat)[1] = uc2 comme n16
+    résultat[0] = uc1 comme n16
+    résultat[1] = uc2 comme n16
 
     retourne 2
 }
 
-utf16_décode_paire_surrogate :: fonc (lead: n16, trail: n16) -> n32
+utf16_décode_paire_surrogate :: fonc (lead: n16, trail: n16) -> n32 #enligne
 {
     l := lead comme n32
     t := trail comme n32
@@ -72,7 +245,7 @@ est_valeur_scalaire :: fonc (chn: ChaineUTF16) -> bool
     retourne vrai
 }
 
-// À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires
+// À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires (ChaineValeurScalaireUnicode)
 converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat : ChaineUTF16
@@ -94,21 +267,13 @@ est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
     i := 0
 
     boucle {
-        a : n16 = 0
-        si i < chn1.taille() {
-            a = chn1.unités[i]
+        si i >= chn1.taille() {
+            retourne vrai
         }
 
-        b : n16 = 0
-        si i < chn2.taille() {
-            b = chn2.unités[i]
-        }
+        a := chn1.unités[i]
 
-        si b == 0 {
-            retourne faux
-        }
-
-        si a != b {
+        si i >= chn2.taille() || a != chn2.unités[i] {
             retourne faux
         }
 
@@ -120,8 +285,17 @@ est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 
 opérateur == :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
-    // À FAIRE
-    retourne faux
+    si a.taille() != b.taille() {
+        retourne faux
+    }
+
+    pour a.taille() {
+        si a.unités[it] != b.unités[it] {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 opérateur != :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
@@ -151,4 +325,294 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     }
 
     retourne a.unités[n] < b.unités[n]
+}
+
+EnchaineuseUTF16 :: struct {
+    Tampon :: struct {
+        suivant: *Tampon
+        données: [1024]rune16
+        occupés: z32
+    }
+
+    tampon: Tampon
+    tampon_courant : *Tampon
+    liste_libre : *Tampon
+}
+
+initialise_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16)
+{
+    enchaineuse.tampon_courant = *enchaineuse.tampon
+}
+
+initialise_enchaineuse_depuis_chaine :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
+{
+    initialise_enchaineuse(enchaineuse)
+    enchaineuse.ajoute(chn)
+}
+
+réinitialise :: fonc (enchaineuse: &EnchaineuseUTF16)
+{
+    tampon := *enchaineuse.tampon
+    tampon.occupés = 0
+    tampon = tampon.suivant
+    tantque tampon != nul {
+        tampon.occupés = 0
+        si enchaineuse.liste_libre {
+            enchaineuse.liste_libre.suivant = enchaineuse.liste_libre
+        }
+        enchaineuse.liste_libre = tampon
+        tampon = tampon.suivant
+    }
+}
+
+détruit_liste_tampons :: fonc (tampon: *EnchaineuseUTF16.Tampon)
+{
+    tantque tampon != nul {
+        tmp := tampon.suivant
+        déloge(tampon)
+        tampon = tmp
+    }
+}
+
+détruit_tampons :: fonc (enchaineuse: &EnchaineuseUTF16)
+{
+    détruit_liste_tampons(enchaineuse.tampon.suivant)
+    enchaineuse.tampon.suivant = nul
+
+    détruit_liste_tampons(enchaineuse.liste_libre)
+    enchaineuse.liste_libre = nul
+
+    enchaineuse.réinitialise()
+}
+
+taille_chaine :: fonc (enchaineuse: &EnchaineuseUTF16) -> z64
+{
+    résultat : z64 = 0
+    tampon := *enchaineuse.tampon
+    tantque tampon != nul {
+        résultat += tampon.occupés
+        tampon = tampon.suivant
+    }
+    retourne résultat
+}
+
+ajoute_tampon :: fonc (enchaineuse: &EnchaineuseUTF16) -> *EnchaineuseUTF16.Tampon
+{
+    tampon : *EnchaineuseUTF16.Tampon
+
+    si enchaineuse.liste_libre {
+        tampon = enchaineuse.liste_libre
+        enchaineuse.liste_libre = tampon.suivant
+        tampon.suivant = nul
+    }
+    sinon {
+        tampon = loge(EnchaineuseUTF16.Tampon)
+    }
+
+    enchaineuse.tampon_courant.suivant = tampon
+    enchaineuse.tampon_courant = tampon
+
+    retourne tampon
+}
+
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune8)
+{
+    enchaineuse.ajoute(rune comme rune16)
+}
+
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune16)
+{
+    tampon := enchaineuse.tampon_courant
+
+    si tampon.occupés + 1 >= 1024 {
+        tampon = enchaineuse.ajoute_tampon()
+    }
+
+    si tampon.occupés + 1 < 1024 {
+        tampon.données[tampon.occupés] = rune
+        tampon.occupés += 1
+    }
+}
+
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
+{
+    pour chn.unités {
+        enchaineuse.ajoute(it)
+    }
+}
+
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune32)
+{
+    unités: [2]n16
+    taille := utf16_depuis_point_de_code(rune, *unités[0])
+
+    enchaineuse.ajoute(unités[0])
+    si taille == 2 {
+        enchaineuse.ajoute(unités[1])
+    }
+}
+
+chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF16
+{
+    taille := enchaineuse.taille_chaine()
+
+    résultat : ChaineUTF16
+
+    si taille == 0 {
+        retourne résultat
+    }
+
+    tableau_redimensionne(résultat.unités, taille)
+
+    curseur := 0
+
+    tampon := *enchaineuse.tampon
+
+    tantque tampon != nul {
+        src := *tampon.données[0]
+        dst := résultat.unités.pointeur + curseur
+        taille_mémoire := tampon.occupés * 2 // 2 octets par unités
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_mémoire)
+
+        curseur += tampon.occupés
+        tampon = tampon.suivant
+    }
+
+    résultat.unités.taille = curseur
+
+    retourne résultat
+}
+
+crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    ptr_source := chn.pointeur
+    curseur := 0
+    tantque curseur < chn.taille {
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+
+        si no == 0 {
+            curseur += 1
+            continue
+        }
+
+        enchaineuse.ajoute(converti_utf8_utf32(*ptr_source[curseur]) comme n32)
+        curseur += no comme z32
+    }
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    si nombre == 0 {
+        enchaineuse.ajoute('0')
+    }
+    sinon {
+        inverse := 0
+
+        tantque nombre != 0 {
+            inverse *= 10
+            inverse += nombre % 10
+            nombre /= 10
+        }
+
+        tantque inverse != 0 {
+            chiffre := '0' + (inverse % 10) comme z8
+            enchaineuse.ajoute(chiffre)
+            inverse /= 10
+        }
+    }
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+// Idée pour l'impression de chaines UTF-16
+FluxSortie :: struct {
+    ajoute : fonc (&FluxSortie, n32)(rien)
+
+    données: *rien
+}
+
+crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
+{
+    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32)
+    {
+        enchaineuse_ := flux_sortie.données comme *Enchaineuse
+
+        séquence : [4]n8
+        taille := point_de_code_vers_utf8(point_de_code, *séquence[0])
+
+        chn : chaine
+        chn.pointeur = *séquence[0] comme *z8
+        chn.taille = taille
+
+        ajoute_au_tampon(enchaineuse_, chn)
+    }
+
+    flux_sortie : FluxSortie = ---
+    flux_sortie.données = enchaineuse
+    flux_sortie.ajoute = ajoute
+    retourne flux_sortie
+}
+
+formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: &FluxSortie)
+{
+    taille_chaine := chn.unités.taille
+
+    curseur := 0
+    tantque curseur < taille_chaine {
+        unité := chn.unités[curseur]
+
+        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
+            flux_sortie.ajoute(flux_sortie, unité comme n32)
+            curseur += 1
+            continue
+        }
+
+        si est_leading_surrogate(unité) && curseur == taille_chaine - 1 {
+            flux_sortie.ajoute(flux_sortie, unité comme n32)
+            curseur += 1
+            continue
+        }
+
+        unité_suivante := chn.unités[curseur + 1]
+        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
+            curseur += 2
+            point_de_code := utf16_décode_paire_surrogate(unité, unité_suivante)
+            flux_sortie.ajoute(flux_sortie, point_de_code)
+            continue
+        }
+
+        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
+         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
+        curseur += 1
+        flux_sortie.ajoute(flux_sortie, unité comme n32)
+    }
+}
+
+imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
+{
+    saufsi chn {
+        retourne
+    }
+    flux_sortie := crée_flux_sortie(enchaineuse)
+    formatte_chaine_utf16(chn, flux_sortie)
+} @FormattageImpression
+
+chaine_depuis_chaine_utf16 :: fonc (chn_utf16: ChaineUTF16) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+    imprime_chaine_utf16(*enchaineuse, *chn_utf16)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

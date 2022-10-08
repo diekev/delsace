@@ -35,6 +35,12 @@
 	O3
 }
 
+énum CompilationPour {
+    PRODUCTION
+    DÉBOGAGE
+    PROFILAGE
+}
+
 struct OptionsDeCompilation {
     @code OptionsDeCompilation
 
@@ -44,8 +50,10 @@ struct OptionsDeCompilation {
 	RésultatCompilation résultat = .EXÉCUTABLE
 	ArchitectureCible architecture = .X64
 	NiveauOptimisation niveau_optimisation = .AUCUN
+    CompilationPour compilation_pour = .PRODUCTION
 
     bool émets_métriques = vrai
     bool continue_si_erreur = faux
     bool erreur_si_avertissement = faux
+    bool utilise_asan = faux
 }

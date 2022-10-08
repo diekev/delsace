@@ -30,8 +30,9 @@
 #include "structures/chaine.hh"
 
 #include "lexemes.hh"
+#include "site_source.hh"
 
-struct DonneesConstantesFichier;
+struct Fichier;
 struct GeranteChaine;
 struct TableIdentifiant;
 
@@ -40,17 +41,19 @@ enum {
     INCLUS_COMMENTAIRES = (1 << 1),
 };
 
+using TypeRappelErreur = std::function<void(SiteSource, kuri::chaine)>;
+
 struct ContexteLexage {
     dls::outils::Synchrone<GeranteChaine> &gerante_chaine;
     dls::outils::Synchrone<TableIdentifiant> &table_identifiants;
-    std::function<void(kuri::chaine)> rappel_erreur;
+    TypeRappelErreur rappel_erreur;
 };
 
 struct Lexeuse {
   private:
     dls::outils::Synchrone<GeranteChaine> &m_gerante_chaine;
     dls::outils::Synchrone<TableIdentifiant> &m_table_identifiants;
-    DonneesConstantesFichier *m_donnees;
+    Fichier *m_donnees;
 
     const char *m_debut_mot = nullptr;
     const char *m_debut = nullptr;
@@ -63,11 +66,11 @@ struct Lexeuse {
 
     int m_drapeaux = 0;
     GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
-    std::function<void(kuri::chaine)> m_rappel_erreur{};
+    TypeRappelErreur m_rappel_erreur{};
     bool m_possede_erreur = false;
 
   public:
-    Lexeuse(ContexteLexage contexte, DonneesConstantesFichier *donnees, int drapeaux = 0);
+    Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux = 0);
 
     Lexeuse(Lexeuse const &) = delete;
     Lexeuse &operator=(Lexeuse const &) = delete;
@@ -82,7 +85,7 @@ struct Lexeuse {
   private:
     ENLIGNE_TOUJOURS bool fini() const
     {
-        return !m_possede_erreur && m_debut >= m_fin;
+        return m_possede_erreur || m_debut >= m_fin;
     }
 
     template <int N>
@@ -106,7 +109,7 @@ struct Lexeuse {
 
     dls::vue_chaine_compacte mot_courant() const;
 
-    void rapporte_erreur(const kuri::chaine &quoi);
+    void rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max);
 
     ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
     {

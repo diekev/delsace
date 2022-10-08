@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe Structures
 
 /*
@@ -46,178 +45,28 @@ ferme_fichier
 
  */
 
-
-CheminFichier :: struct {
-    chn : chaine
-}
-
-construit_chemin :: fonc(chn : chaine) -> CheminFichier
+espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
 {
-    chemin := CheminFichier( chn = chn )
-    retourne chemin
-}
-
-obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
-{
-	ptr_chemin := crée_chaine_c_temp(chemin.chn)
-
-	st : struct_stat
-	ok := stat(ptr_chemin, *st)
-
-	si ok == -1 {
-		retourne 0xffffffff
-	}
-
-	retourne st.st_mode
-}
-
-fichier_existe :: fonc(chemin : &CheminFichier) -> bool
-{
-    retourne obtiens_stmode(chemin) != 0xffffffff
-}
-
-est_dossier :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFDIR
-}
-
-est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFREG
-}
-
-est_prise :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFSOCK
-}
-
-est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFLNK
-}
-
-est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFBLK
-}
-
-est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFCHR
-}
-
-est_pipe :: fonc(chemin : &CheminFichier) -> bool
-{
-    mode := obtiens_stmode(chemin)
-
-	si mode == 0xffffffff {
-		retourne faux
-	}
-
-    retourne (mode & __S_IFMT) == __S_IFIFO
-}
-
-ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
-{
-	si !fichier_existe(chemin) {
-		retourne -1
-	}
-
-	ptr_chemin := crée_chaine_c_temp(chemin.chn)
-    // @erreur
-	retourne open(ptr_chemin, LECTURE_SEULE)
-}
-
-ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
-{
-	ptr_chemin := crée_chaine_c_temp(chemin.chn)
-    // @erreur
-	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
-}
-
-ferme_fichier :: fonc(desc : z32) -> rien
-{
-	si desc == -1 {
-        retourne
-	}
-
-    // @erreur
-    si close(desc) == -1 {
-        retourne
-    }
+    retourne système_espace_disque_disponible(chemin)
 }
 
 contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 {
     contenu : []octet
 
-	fd := ouvre_fichier(chemin)
-	diffère { ferme_fichier(fd) }
+	fichier := tente ouvre_fichier(chemin) piège err {
+        retourne contenu
+    }
 
-	si fd == -1 {
-		retourne contenu
-	}
+	diffère { _ := ferme(*fichier) }
 
-	tampon : [1024]z8
-
-    boucle {
-		lu := read(fd, *tampon[0], 1024)
-
-		si lu == 0 {
-			arrête
-		}
-
-		si lu == -1 {
-			// À FAIRE : erreur
-			déloge(contenu)
-			arrête
-		}
-
-		taille_courante := contenu.taille
-
-		tableau_redimensionne(contenu, taille_courante + lu)
-
-		src := *tampon[0]
-		dst := *contenu[taille_courante]
-
-		copie_mem_nonsur(src=src, dst=dst, taille=lu)
-	}
+    discr lis_tout(*fichier) {
+        c(c_) {
+            contenu = c_
+        }
+        sinon {
+        }
+    }
 
     retourne contenu
 }
@@ -241,220 +90,64 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
     retourne contenu_fichier_texte(chm)
 }
 
-écris_fichier :: fonc(fd : z32, contenu : chaine) -> rien
-{
-    // @erreur
-    octets_écris := write(fd, contenu.pointeur, contenu.taille)
-}
-
-ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
-{
-	ptr_chemin := crée_chaine_c_temp(chemin.chn)
-    retourne opendir(ptr_chemin)
-}
-
-chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
-{
-    chn_c := ChaineC(*dir.d_name[0])
-    taille := taille_chaine_c(chn_c)
-    chn := construit_chaine(*dir.d_name[0], taille)
-
-    retourne construit_chemin(chn)
-}
-
-chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
-{
-    si !est_dossier(chemin) {
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    boucle {
-        dir := readdir(d)
-
-        si dir == nul {
-            arrête
-        }
-
-        retiens chemin_pour_dirname(dir)
-    }
-
-    _ := closedir(d)
-}
-
-pour_chaque_chemin :: fonc (chemin : CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
-{
-    si !est_dossier(chemin) {
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    boucle {
-        dir := readdir(d)
-
-        si dir == nul {
-            arrête
-        }
-
-        rappel(chemin_pour_dirname(dir), données)
-    }
-
-    _ := closedir(d)
-}
-
-extension :: fonc (chemin: &CheminFichier) -> chaine
-{
-    // À FAIRE : ceci considère les fichiers cachés sous Linux comme étant des extensions
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, '.')
-
-    si pos < 0 {
-        retourne ""
-    }
-
-    retourne sous_chaine(chemin.chn, pos, chemin.chn.taille)
-}
-
-nom_fichier :: fonc (chemin: &CheminFichier) -> chaine
-{
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, '/')
-
-    nom_fichier := ""
-
-    si pos >= 0 {
-        nom_fichier = sous_chaine(chemin.chn, pos, chemin.chn.taille)
-    }
-
-    pos = trouve_caractère_depuis_la_fin(nom_fichier, '.')
-
-    si pos <= 0 {
-        retourne nom_fichier
-    }
-
-    retourne sous_chaine(nom_fichier, 0, pos)
-}
-
-//###############################################################################
-
-enfile_dossier :: fonc(file : &File(T = *DIR), dir : *dirent, chemin : &CheminFichier) -> rien
-{
-    chm := chemin_pour_dirname(dir)
-
-    si chm.chn == "." {
-        retourne
-    }
-
-    si chm.chn == ".." {
-        retourne
-    }
-
-    // Trouve le chemin absolu.
-    chn : chaine
-    diffère { déloge(chn); }
-
-    si chemin.chn[chemin.chn.taille - 1] != '/' {
-        chn = enchaine(chemin.chn, "/", chm.chn)
-    }
-    sinon {
-        chn = enchaine(chemin.chn, chm.chn)
-    }
-
-    chm.chn = chn
-
-    nd := ouvre_dossier(chm)
-
-    si nd == nul {
-        retourne
-    }
-
-    enfile(file, nd)
-}
-
-chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
-{
-    si !est_dossier(chemin) {
-        imprime("Le chemin n'est pas un dossier")
-        retourne
-    }
-
-    d := ouvre_dossier(chemin)
-
-    si d == nul {
-        retourne
-    }
-
-    file : File(T = *DIR)
-
-    enfile(file, d)
-
-    tantque !est_vide(file) {
-        d = défile(file)
-
-        boucle {
-            dir := readdir(d)
-
-            si dir == nul {
-                arrête
-            }
-
-            si dir.d_type == (DT_DIR comme n8) {
-                enfile_dossier(file, dir, chemin)
-            }
-
-            retiens chemin_pour_dirname(dir)
-        }
-
-        _ := closedir(d)
-    }
-
-    decrée_file(file)
-}
-
-//###############################################################################
+// -----------------------------------------------------------------------
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    tampon : [1024]z8
-    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
-
-    si (pointeur comme *z8) == nul {
-        // @erreur
-        retourne construit_chemin("")
-    }
-
-    ret := copie_chaine_c(pointeur)
-    retourne construit_chemin(ret)
+    retourne système_chemin_courant()
 }
 
 chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
-	ptr_chemin := crée_chaine_c_temp(chemin.chn)
-    chdir(ptr_chemin)
+	système_chemin_courant(chemin)
 }
 
-// À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
+chemin_répertoire_personnel :: fonc () -> CheminFichier
+{
+    retourne système_chemin_répertoire_personnel()
+}
 
-//###############################################################################
+chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
+{
+    retourne système_chemin_véritable(chemin)
+}
+
+// À FAIRE : mettre à la corbeille, trouver le chemin vers HOME/TMP
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
-	ptr_chemin_orig := crée_chaine_c_temp(orig.chn)
-	ptr_chemin_dest := crée_chaine_c_temp(dest.chn)
-
-	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
+	retourne système_renomme(orig, dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> z32
 {
-	ptr_chemin := crée_chaine_c_temp(chm.chn)
-    retourne remove(ptr_chemin)
+    retourne système_supprime(chm)
 }
+
+/*
+
+    Opération sur les chemins de fichiers :
+    - trouve le nom du dossier
+    - trouve le nom du fichier
+    - trouve l'extension
+    - remplace l'extension
+    - chemin relatif (crée_chemin_relatif, est_chemin_relatif, est_relatif_à)
+    - chemin absolu (crée_chemin_absolu, est_chemin_absolu)
+    - chemins sont équivalents
+    - normalisation de chemin
+    - crée un nom sûr (pour éviter les problèmes sur Windows dûs à des noms réservés)
+    - ajout d'un suffixe avant l'extension (manipulations générales)
+
+    - détermine une séquence de fichier (a001.ext, a0002.ext, etc.)
+        -- séquence d'images
+        -- séquence de caches
+        -- séquence UDIM
+        -- avoir un système de token pour définir où se trouve la quantité à trouver
+            -- mon_image.<UDIM>.ext
+            -- mon_image.<u0_v0>.ext
+            -- mon_image.<u1_v1>.ext
+            -- etc.
+    - crée une séquence de fichier
+        -- pour les séquences, l'application cliente peut se charger de créer le bon chemin
+
+ */

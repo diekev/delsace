@@ -1,0 +1,34 @@
+/* Petite application pour imprimer le chemin complet depuis le nom d'un fichier.
+ * Si le nom de fichier est absolu, il sera retouné.
+ * S'il est relatif, un chemin absolu sera généré avec comme base le dossier
+ * d'où est appelé le programme.
+ */
+
+importe Fondation
+importe SysFichier
+
+principale :: fonc () -> z32
+{
+    arguments := arguments_ligne_commande()
+
+    si arguments.taille != 2 {
+        imprime("Utilisation : % FICHIER\n", arguments[0])
+        retourne 1
+    }
+
+    chm := CheminFichier(arguments[1])
+
+    si est_absolu(chm) {
+        imprime("%\n", chm.chn)
+        retourne 0
+    }
+
+    chemin_courant := chemin_courant()
+    diffère déloge(chemin_courant.chn)
+
+    chm_abs := crée_chemin_absolu(chemin_courant, chm)
+    diffère déloge(chm_abs.chn)
+
+    imprime("%\n", chm_abs.chn)
+    retourne 0
+}

@@ -1,0 +1,338 @@
+Mode interactif
+
+- pouvoir détecter les changements dans les fichiers
+- pourvoir recompiler partiellement le code
+    -- ne recompiler que les fichiers qui ont été modifiés
+    -- ne recompiler que les fonctions avec erreurs
+        -- demander à l'utilisateur la correction du code
+        -- il faut savoir le lieu exacte dans le fichier où modifier ceci et ne recompiler que cette fonction
+    -- il faut pouvoir supprimer toute la mémoire d'un fichier
+        -- quid des pointeurs vers les structures libérées ?
+            -- déclaration dans les types
+            -- références vers les types
+        -- il faut alors pouvoir stoper la compilation des unités dépendantes du fichier
+        -- il ne faut afficher qu'une seule erreur par fichier, avoir une liste d'erreurs à afficher
+
+
+
+Système d'acteur
+-- envoie un message à l'utilisateur
+-- envoie un message au métaprogrammes
+
+-- création de message
+-- post un message dans une boite au lettre
+
+
+- Compilatrice a une boite pour les erreurs
+- Messagère a une boite pour tous les messages
+- Les métaprogrammes ont des boites pour les messages de compilation
+
+
+messagere->envoie_message_a(this, metaprogramme, message);
+
+metaprogramme->recoie_message(message);
+
+
+class Acteur {
+
+};
+
+La messagere recoie un message pour un typage de code :
+
+- passe le message au métaprogramme
+- attend la réponse du métaprogramme
+- envoie le message à l'ordonnanceuse de retyper le code ou de continuer sa course dans la compilation
+
+
+ordonnanceuse::message_recu()
+{
+    if (message est pour retypage) {
+        envoie vers la conversion de code
+        envoie vers le typage, marque comme ayant déjà été traité par le métaprogramme
+    }
+
+    if (message est pour continuation) {
+        envoie vers la génération de RI, ou autre...
+    }
+}
+
+metaprogramme::message_recu()
+{
+
+}
+
+compilatrice_attend_message ::
+
+metaprogramme->attend_message
+
+if (!metaprogramme->message_recu) {
+}
+
+
+pour le typage :
+
+quand j'attend sur la validation d'un type
+
+    envoie message au gestionnaire de code
+    le gestionnaire de code prend note de la dépendance
+    dis à l'unité d'envoyer un message quand la compilation est terminé
+
+    gestionnaire->recoie_message_attente_sur_type()
+    gestionnaire->recoie_message_type_valide()
+
+    gestionnaire->recoie_message_attente_sur_symbole()
+    gestionnaire->recoie_message_symbole_resolu()
+
+    gestionnaire->recoie_message_attente_sur_operateur()
+    gestionnaire->recoie_message_operateur_resolu()
+
+    gestionnaire->recoie_message_attente_sur_metaprogramme()
+    gestionnaire->recoie_message_metaprogramme_fini()
+
+    gestionnaire->recoie_message_attente_sur_interface_kuri()
+    gestionnaire->recoie_message_interface_kuri_resolu()
+
+    gestionnaire->recoie_message_chargement_termine()
+    gestionnaire->recoie_message_lexage_termine()
+    gestionnaire->recoie_message_presyntaxage_termine()
+    gestionnaire->recoie_message_syntaxage_termine()
+    gestionnaire->recoie_message_typage_termine()
+    gestionnaire->recoie_message_ri_termine()
+    gestionnaire->recoie_message_optimisation_termine()
+    gestionnaire->recoie_message_code_machine_termine()
+
+
+Peut-être revoir les unités :
+
+
+UniteCompilation {
+    // l'unite de la quelle elle dérive
+    UniteCompilation *parent;
+
+    // les unités dérivées de celle-ci
+    UniteCompilation **enfants;
+
+    // l'espace resposable de sa création
+    EspaceDeTravail *espace;
+
+    // données pour une unité de chargement
+    kuri::chaine chemin
+
+    // données pour une unité de lexage
+    DonneesConstantesFichier
+
+    // données pour une unité de syntaxage
+    DonneesConstantesFichier ?
+
+    // données pour une unité de typage
+    NoeudSyntaxique *noeud;
+
+    // données pour une unité de métaprogramme
+
+    // données pour une unité de message
+
+    // données pour une unité de RI
+
+    // données pour une unité d'optimisation
+
+    // données pour une unité de code machine
+}
+
+#define ATTEND_SUR_DECL(decl) \
+    if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) { \
+        auto message = Message::attend_sur_decl(unite, decl); \
+        messagere->envoie_message(ID::gestionnaire_code, message); \
+    }
+
+#define ATTEND_SUR_TYPE(type) \
+    if (!type->possede_drapeau(DECLARATION_FUT_VALIDEE)) { \
+        auto message = Message::attend_sur_decl(unite, decl); \
+        messagere->envoie_message(ID::gestionnaire_code, message); \
+    }
+
+#define ATTEND_SUR_SYMBOLE(symbole) \
+    if (true) { \
+        auto message = Message::attend_sur_symbole(unite, symbole); \
+        messagere->envoie_message(ID::gestionnaire_code, message); \
+    }
+
+
+/// pour le typage, ou une erreur survient :
+
+    auto message = Message::attend_sur_decl(unite, decl);
+    messagere->envoie_message(ID::gestionnaire_code, message);
+
+    auto message = Message::attend_sur_type(unite, type);
+    messagere->envoie_message(ID::gestionnaire_code, message);
+
+    auto message = Message::erreur(unite, site, "");
+    messagere->envoie_message(ID::compilatrice, message);
+
+    auto message = Message::avertissement(unite, site, "");
+    messagere->envoie_message(ID::compilatrice, message);
+
+
+    messagere->envoie_message(ID::ordonnanceuse, message);
+
+BoiteAuLettre {
+    liste<Messages> messages;
+
+    bool est_vide() const
+    {
+        return messages.est_vide();
+    }
+
+    void depose_message(badge<Messagere>, Message)
+    {
+        lock();
+        messages.ajoute(message);
+    }
+};
+
+Messagere {
+    void enregistre_boite_au_lettre(adresse, BoiteAuLettre *)
+    {
+        boite_au_lettre
+    }
+
+    void envoie_message(ou, quoi);
+
+    void message_recu()
+    {
+        // ajoute le message dans la liste libre
+    }
+};
+
+struct Message {
+    genre
+    donnees
+}
+
+MessageLog {
+    severite::normal
+    severtie::erreur
+
+    texte
+}
+
+Logueuse {
+    void gere_tache()
+    {
+        si !boite_au_lettre.est_vide() {
+            prend_message()
+        }
+    }
+}
+
+Typeuse->ajoute_message(type_pointeur_pour)
+
+void prepare_unite_pour_etape_suivante()
+{
+    if (etape_suivante == GenerationRI) {
+        // trouve tous les types alloués, et envoie des messages à la Typeuse pour préparer les types
+    }
+}
+
+// qui reçoie des messages
+
+- les métaprogrammes
+- la machine virtuelle
+- l'ordonnanceuse de tâches
+- la logueuse
+- la compilatrice
+- le système de débogage
+- le programmeur
+- la typeuse
+- les espaces de travail
+- le gestionnaire de code
+
+// chaque tacheronne aurait une typeuse locale
+// cette typeuse créer des types lieutenants
+// les types lieutenants seront à remplacer par les vrais types
+// utilisation d'une liste libre pour rassembler les lieutenants une fois remplacés
+TypeuseLocale {
+    Typeuse *
+    AllocatriceType
+    type_pointeur(Unite, Type, Recevant)
+}
+
+Messages :
+    création_type
+        - quel genre (pointeur, référence, tableau)
+        - quel type pointé
+        - pour quelle unité
+
+    log
+    débogage
+    erreur
+    typage_terminé
+    métaprogramme_disponible
+    phase_de_compilation
+    typage_code_requis
+    interface_kuri_requise
+
+    Message::creation_type(GenreType, pour_type, unité)
+    Message::log(ou, chaine)
+    Message::erreur(espace, chaine)
+
+
+GestionnaireCode :
+
+- découvre les dépendances des fonctions et variables globales
+    -- à la fin du typage
+    -- note la raison de la dépendances
+
+    struct Dependance {
+        quoi // type, fonction, globale
+        pour // RI, etc.
+    };
+
+    - les données de dépendance devront contenir également les types pour les allocations
+    - idée : crée une tâche pour un travail, avec un identifiant unique, quand la tâche est terminée, libère toutes les noeuds dépendants sur celle-ci
+
+    attend_sur_types
+    attend_sur_symboles
+    attend_sur_fonction
+
+- décide quand envoyer vers l'étape suivante un noeud
+
+- quel est la condition pour arrêter la compilation ?
+    - pour un symbole est indéfini ?
+    - pour une dépendance cyclique ?
+
+
+exemple :
+
+    void lis_message()
+    {
+        si message est typage_terminé {
+            rassemble_dépendances()
+
+            // requiers les types pointeurs pour les allocations dans la RI
+            struct Message {
+                size_t id;
+                dls::tableau<Type *> requiers_types_pointeurs;
+            };
+
+            messagere->envoie(message_pour::typeuse, message, ...);
+        }
+
+        si message est résultat {
+            si message->id == noeud->id {
+                va vers l'étape suivante
+            }
+        }
+    }
+
+class Messagere {
+public:
+
+    void envoie_message(pour, quoi, de_qui)
+    {
+        si pour == gestionnaire_code {
+            gestionnaire_code->recoie_message(quoi, de_qui);
+        }
+    }
+
+private:
+};

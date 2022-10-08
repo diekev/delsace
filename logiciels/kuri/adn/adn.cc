@@ -133,9 +133,9 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         os << " {\n";
 
-        // À FAIRE : spécialise le nom du genre
         if (!accede_nom_genre().est_nul()) {
-            os << "\t" << m_nom << "() { genre = GenreNoeud::" << accede_nom_genre() << "; }\n";
+            os << "\t" << m_nom << "() { genre = " << enum_discriminante()->nom()
+               << "::" << accede_nom_genre() << "; }\n";
             os << "\tCOPIE_CONSTRUCT(" << m_nom << ");\n";
             os << "\n";
         }
@@ -236,11 +236,16 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         pour_chaque_membre_recursif([&os](Membre const &it) {
             if (it.type->est_tableau()) {
-                return;
-            }
-
-            // À FAIRE : ostream << spécialisé pour ValeurExpression, TransformationType
-            if (it.type->est_nominal("ValeurExpression", "TransformationType")) {
+                os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur."
+                   << it.nom.nom_cpp();
+                const auto type_tableau = it.type->comme_tableau();
+                if (type_tableau->est_synchrone) {
+                    os << "->";
+                }
+                else {
+                    os << ".";
+                }
+                os << "taille() << \" éléments \\n\";" << '\n';
                 return;
             }
 
@@ -263,9 +268,9 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         os << "\n";
         os << "{\n";
 
-        // À FAIRE : nom_genre_énum
         if (!accede_nom_genre().est_nul()) {
-            os << "\tif (valeur.genre != GenreNoeud::" << accede_nom_genre() << ") {\n";
+            os << "\tif (valeur.genre != " << enum_discriminante()->nom()
+               << "::" << accede_nom_genre() << ") {\n";
             os << "\t\treturn false;\n";
             os << "\t}\n";
         }
@@ -357,7 +362,11 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
 
 void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 {
-    os << m_nom_code << " :: struct {";
+    os << m_nom_code << " :: struct ";
+    if (m_nom_code.nom_kuri() == "AnnotationCode") {
+        os << "#interface ";
+    }
+    os << "{";
     if (m_mere) {
         os << "\n\templ base: " << m_mere->nom() << "\n";
     }

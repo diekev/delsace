@@ -1,6 +1,7 @@
 importe Fondation
 importe Moteur
 importe SysFichier
+importe Allocatrices
 
 // tutoriel : http://notes.eatonphil.com/database-basics.html
 
@@ -11,24 +12,13 @@ imprime_prompt :: fonc () -> rien
 
 // ------------------------------------------------------------
 
-// crée utilisateurs (nom texte, id entier);
-// insère dans utilisateurs valeurs ("Thor", 1237);
-// insère dans utilisateurs valeurs ("Carter", 789);
-// sélectionne nom, id depuis utilisateurs;
-// sélectionne id, nom depuis utilisateurs;
-
-// crée utilisateurs (nom texte, id entier);insère dans utilisateurs valeurs ("Thor", 1237);insère dans utilisateurs valeurs ("Carter", 789);sélectionne id, nom depuis utilisateurs;
-
-// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
-// @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
-principale :: fonc () -> z32
+lance_boucle_exécution :: fonc ()
 {
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
-
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     cm : CoulisseMémoire
+    diffère détruit_coulisse(*cm)
 
     boucle {
         imprime_prompt()
@@ -38,90 +28,60 @@ principale :: fonc () -> z32
             entrée = entrée_standarde().lis_ligne()
         }
 
-        si entrée == ".tables\n" {
-            résultat := sélectionne_tables(*cm)
+        asa := parse(entrée)
+        diffère détruit_asa(*asa)
 
-            imprime_table(résultat)
-            ferme_base_de_données(résultat)
-        }
-        sinon si entrée == ".sors\n" {
-            arrête
-        }
-        sinon {
-            asa := parse(entrée)
+        exécutrice : Exécutrice
 
-            pour inst dans asa.instructions {
-                discr inst.genre {
-                    CRÉE {
-                        crée_table(*cm, inst comme *InstructionCréationTable)
-                    }
-                    SÉLECTIONNE {
-                        inst_sélection := inst comme *InstructionSélection
+        pour inst dans asa.instructions {
+            résultat := exécutrice.exécute_instruction(*cm, inst)
 
-                        résultat := tente sélectionne(*cm, inst_sélection) piège err {
-                            discr err {
-                                ColonneInexistante {
-                                    // À FAIRE : une bonne d'extraire les erreurs (ajouter des messages d'erreurs aux instructions ?)
-                                    //imprime("Erreur : la colonne %.% n'existe pas !\n", inst_sélection.depuis.valeur, lit.valeur)
-                                    imprime("Erreur : la colonne n'existe pas !\n")
-                                }
-                                TableInexistante {
-                                    imprime("Erreur : la table % n'existe pas !\n", inst_sélection.depuis.valeur)
-                                }
-                                ExpressionNonLittérale {
-                                    imprime("Erreur : expression non-littérale rencontrée !\n")
-                                }
-                                sinon {
-                                    imprime("Erreur inconnue %\n", err)
-                                }
-                            }
-
-                            imprime("Exécution invalide.\n")
-                            arrête
-                        }
-
-                        imprime_table(résultat)
-                        ferme_base_de_données(résultat)
-                    }
-                    INSÈRE {
-                        inst_insertion := inst comme *InstructionInsère
-
-                        tente insère(*cm, inst_insertion) piège err {
-                            discr err {
-                                CapacitéExcédée {
-                                    imprime("Erreur: table pleine.\n")
-                                }
-                                TableInexistante {
-                                    imprime("La table % n'existe pas !\n", inst_insertion.table.valeur)
-                                }
-                                NombreNégatif {
-                                    imprime("L'ID doit être positif.\n")
-                                }
-                                TexteTropLarge {
-                                    imprime("La chaine est trop longue.\n")
-                                }
-                                TypageColonneInvalide {
-                                    imprime("Le typage de la colonne est invalide.\n")
-                                }
-                                sinon {
-                                    imprime("Erreur inconnue %\n", err)
-                                }
-                            }
-
-                            imprime("Exécution invalide.\n")
-                            arrête
-                        }
-                    }
+            discr résultat {
+                Erreur(message) {
+                    imprime("%\n", message)
+                    exécutrice.réinitialise() 
                 }
-
-                imprime("Exécution réussie.\n")
+                Table(table) {
+                    imprime_table(table)
+                    ferme_base_de_données(table)
+                    imprime("Exécution réussie.\n")
+                }
+                ArrêteExécution {
+                    retourne
+                }
+                Rien {
+                    imprime("Exécution réussie.\n")
+                }
+                sinon {
+                    imprime("Erreur interne : résultat d'exécution inconnu.\n")
+                }
             }
-
-            détruit_asa(*asa)
         }
     }
+}
 
-    détruit_coulisse(*cm)
+// @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
+principale :: fonc () -> z32
+{
+    allocatrice_gardée : AllocatriceGardée
+    diffère imprime_liste_mémoire(*allocatrice_gardée)
+
+    mémoire_courante := mémoire_utilisée()
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante) }
+
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = allocation_gardée
+    nouveau_contexte.données_allocatrice = *allocatrice_gardée
+    nouveau_contexte.logueur = mon_log
+
+    pousse_contexte nouveau_contexte {
+        lance_boucle_exécution()
+    }    
 
     retourne 0
+}
+
+mon_log :: fonc (message: chaine, ident: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
+{
+    imprime("%\n", message)
 }

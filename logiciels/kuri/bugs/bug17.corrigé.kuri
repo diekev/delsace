@@ -11,6 +11,8 @@ principale :: fonc () -> z32
         b : z64 = 5
         a += b
     ")
-    imprime_succès(erreur_survenue)
+    saufsi (erreur_survenue) {
+        retourne 1
+    }
     retourne 0
 }

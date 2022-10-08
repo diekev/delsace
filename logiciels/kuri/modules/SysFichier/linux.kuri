@@ -1,0 +1,660 @@
+importe Fondation
+importe Chaine
+importe GlibC
+importe POSIX
+
+TypePoignéeFichier :: #opaque z32
+
+système_poignée_fichier_invalide :: fonc () -> TypePoignéeFichier
+{
+    retourne TypePoignéeFichier(-1)
+}
+
+opérateur != :: fonc (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
+{
+    retourne (p0 comme z32) != (p1 comme z32)
+}
+
+// ----------------------------------------------------------
+// Toutes les erreurs possibles ; symétries de celles d'errno
+
+ErreurFichier :: erreur {
+    Inconnue
+
+    ÉcriturePeutBloquer
+    EntréeSortie
+    EntréeSortieSpéciale
+    EspaceDisqueInexistant
+    EspaceDisqueInsuffisant
+    FichierEstLectureSeul
+    FichierEstPipe
+    FichierExisteDéjà
+    FichierInexistant
+    FichierInvalide
+    FichierTemporaireNonSupporté
+    FichierTropGrand
+    FichierTropPetit
+    ImageEnLecture
+    InterrompuParSignal
+    LecturePeutBloquer
+    LectureSurDossier
+    LimiteOuvertureFichierAtteinte
+    MauvaisEspaceAdressage
+    MatérielInconnu
+    MémoireInsuffisante
+    NomTropGrand
+    OuverturePeutBloquer
+    OuvertureDossier
+    PaireNonRenseigné
+    PasDansUnDossier
+    PermissionNonAccordé
+    PipeFerméPourÉcriture
+    SynchronisationImpossiblePourFichier
+    TropDeLiensSymboliques
+    ValeurInvalide
+}
+
+RésultatOpérationFichier :: union {
+    e: ErreurFichier
+    r: z32
+}
+
+système_convertis_raison :: fonc (raison: RaisonOuvertureFichier) -> z32
+{
+    drapeaux := 0
+    si raison.Lecture && raison.Écriture {
+        drapeaux |= LECTURE_ÉCRITURE
+    }
+    sinon si raison.Lecture {
+        drapeaux |= LECTURE_SEULE
+    }
+    sinon si raison.Écriture {
+        drapeaux |= ÉCRITURE_SEULE
+    }
+    si raison.Création {
+        drapeaux |= CREATION
+    }
+    si raison.Troncage {
+        drapeaux |= TRONCAGE
+    }
+    si raison.Ajout {
+        drapeaux |= APPEND
+    }
+    retourne drapeaux
+}
+
+système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatOpérationFichier
+{
+  	ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    drapeaux := système_convertis_raison(raison)
+
+    résultat := open(ptr_chemin, drapeaux, permissions)
+
+    // À FAIRE : certaine valeur dépendent des drapeaux (création, écriture, ...)
+    // il faudra atomiser l'interface, la préciser pour savoir quoi faire
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; } // O_CREAT
+            EEXIST       { retourne ErreurFichier.FichierExisteDéjà; } // O_CREAT & O_EXCL
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide; } // dépend du drapeau
+            EISDIR       { retourne ErreurFichier.OuvertureDossier; } // Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques; } // dépend du drapeau
+            EMFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand; }
+            ENFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
+            ENODEV       { retourne ErreurFichier.MatérielInconnu; }
+            ENOENT       { retourne ErreurFichier.FichierInexistant; } // dépend du drapeau
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante; } // dépend du type de fichier
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier; }
+            ENXIO        { retourne ErreurFichier.EntréeSortieSpéciale; } // dépend du type de fichier
+            EOPNOTSUPP   { retourne ErreurFichier.FichierTemporaireNonSupporté; }
+            EOVERFLOW    { retourne ErreurFichier.FichierTropGrand; }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé; } // dépend du drapeau
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul; } // dépend du drapeau
+            ETXTBSY      { retourne ErreurFichier.ImageEnLecture; } // dépend du drapeau
+            EWOULDBLOCK  { retourne ErreurFichier.OuverturePeutBloquer; } // dépend du drapeau
+            sinon        { retourne ErreurFichier.Inconnue }
+        }
+    }
+
+    retourne résultat
+}
+
+système_ferme :: fonc (fd: TypePoignéeFichier) -> ErreurFichier
+{
+    résultat := close(fd comme z32)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne 0 comme ErreurFichier
+}
+
+système_synchronise :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    résultat := fsync(fd comme z32)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_synchronise_données :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    résultat := fdatasync(fd comme z32)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_écris :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> RésultatOpérationFichier
+{
+    résultat := write(fd comme z32, ptr, taille)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EAGAIN       { retourne ErreurFichier.ÉcriturePeutBloquer; }
+            EWOULDBLOCK  { retourne ErreurFichier.ÉcriturePeutBloquer; }
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDESTADDRREQ { retourne ErreurFichier.PaireNonRenseigné; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé; }
+            EPIPE        { retourne ErreurFichier.PipeFerméPourÉcriture; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+RésultatLecture :: union {
+    e: ErreurFichier
+    r: z64
+}
+
+système_lis :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> RésultatLecture
+{
+    résultat := read(fd comme z32, ptr, taille comme n64)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EAGAIN      { retourne ErreurFichier.LecturePeutBloquer; }
+            EWOULDBLOCK { retourne ErreurFichier.LecturePeutBloquer; }
+            EBADF       { retourne ErreurFichier.FichierInvalide; }
+            EFAULT      { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EINTR       { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL      { retourne ErreurFichier.ValeurInvalide; }
+            EIO         { retourne ErreurFichier.EntréeSortie; }
+            EISDIR      { retourne ErreurFichier.LectureSurDossier; }
+            sinon       { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_positionne_fichier :: fonc (fd: TypePoignéeFichier, position: PositionFichier) -> RésultatOpérationFichier
+{
+    décalage: z32
+    où: z32
+
+    discr position {
+        Début(pos) {
+            décalage = (pos comme z64) comme z32
+            où = SEEK_SET
+        }
+        Fin(pos) {
+            décalage = (pos comme z64) comme z32
+            où = SEEK_END
+        }
+        Décalage(pos) {
+            décalage = (pos comme z64) comme z32
+            où = SEEK_CUR
+        }
+        sinon {
+            retourne ErreurFichier.ValeurInvalide
+        }
+    }
+
+    résultat := lseek(fd comme z32, décalage, où)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF       { retourne ErreurFichier.FichierInvalide; }
+            EINVAL      { retourne ErreurFichier.ValeurInvalide; } // où est invalide
+            ENXIO       { retourne ErreurFichier.FichierTropPetit; } // où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
+            EOVERFLOW   { retourne ErreurFichier.FichierTropPetit; }
+            ESPIPE      { retourne ErreurFichier.FichierEstPipe; }
+            sinon       { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat comme z32
+}
+
+système_position_courante_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, PositionRelative(0))
+}
+
+système_position_début_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, PositionDébut(0))
+}
+
+système_position_fin_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    retourne système_positionne_fichier(fd, PositionFin(0))
+}
+
+système_fin_de_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
+{
+    position_courante := tente système_position_courante_fichier(fd) piège err {
+        retourne err
+    }
+
+    fin_de_fichier := tente système_position_fin_fichier(fd) piège err {
+        retourne err
+    }
+
+    // repositionne là où nous étions
+    _ := tente système_positionne_fichier(fd, PositionDébut(position_courante)) piège err {
+        retourne err
+    }
+
+    si position_courante >= fin_de_fichier {
+        retourne 1
+    }
+
+    retourne 0
+}
+
+crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFichier
+{
+    chn_c_cible := crée_chaine_c(cible)
+    diffère { détruit_chaine_c(chn_c_cible) }
+
+    chn_c_chemin_lien := crée_chaine_c(chemin_lien)
+    diffère { détruit_chaine_c(chn_c_chemin_lien) }
+
+    résultat := symlink(chn_c_cible, chn_c_chemin_lien)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
+            EEXIST       { retourne ErreurFichier.FichierExisteDéjà }
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
+            ENOENT       { retourne ErreurFichier.FichierInexistant }
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
+            sinon        { retourne ErreurFichier.Inconnue }
+        }
+    }
+
+    retourne 0 comme ErreurFichier
+}
+
+// À FAIRE : tests
+système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> ErreurFichier
+{
+    ptr_chemin := crée_chaine_c(chemin_dossier)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    résultat := mkdir(ptr_chemin, mode)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
+            /* ignore si le dossier existe déjà, vérifier si le dossier existe
+             * avant d'appeler cette fonction peut laisser la porte ouverte à des
+             * pirates pour créer leur propre dossier */
+            EEXIST       { retourne 0 comme ErreurFichier }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide}
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
+            EMLINK       { retourne ErreurFichier.TropDeLiensSymboliques }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
+            ENOENT       { retourne ErreurFichier.FichierInexistant }
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
+            sinon        { retourne ErreurFichier.Inconnue }
+        }
+    }
+
+    retourne 0 comme ErreurFichier
+}
+
+
+système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Optionnel(TypeFichier)
+{
+    ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+
+	st : struct_stat
+	ok := stat(ptr_chemin, *st)
+
+    /*
+        EACCES Search permission is denied for one of the directories in the path prefix of pathname.  (See also path_resolution(7).)
+
+       EBADF  fd is not a valid open file descriptor.
+
+       EFAULT Bad address.
+
+       ELOOP  Too many symbolic links encountered while traversing the path.
+
+       ENAMETOOLONG
+              pathname is too long.
+
+       ENOENT A component of pathname does not exist or is a dangling symbolic link.
+
+       ENOENT pathname is an empty string and AT_EMPTY_PATH was not specified in flags.
+
+       ENOMEM Out of memory (i.e., kernel memory).
+
+       ENOTDIR
+              A component of the path prefix of pathname is not a directory.
+
+       EOVERFLOW
+              pathname  or  fd  refers to a file whose size, inode number, or number of blocks cannot be represented in, respectively, the types off_t, ino_t, or blkcnt_t.  This error can occur when, for example, an application com‐
+              piled on a 32-bit platform without -D_FILE_OFFSET_BITS=64 calls stat() on a file whose size exceeds (1<<31)-1 bytes.
+
+       The following additional errors can occur for fstatat():
+
+       EBADF  dirfd is not a valid file descriptor.
+
+       EINVAL Invalid flag specified in flags.
+
+       ENOTDIR
+              pathname is relative and dirfd is a file descriptor referring to a file other than a directory.
+     */
+
+	si ok == -1 {
+		retourne
+	}
+
+	discr (st.st_mode & __S_IFMT) {
+        __S_IFDIR {
+            retourne TypeFichier.Dossier
+        }
+        __S_IFREG {
+            retourne TypeFichier.Régulier
+        }
+        __S_IFSOCK {
+            retourne TypeFichier.Prise
+        }
+        __S_IFLNK {
+            retourne TypeFichier.LienSymbolique
+        }
+        __S_IFBLK {
+            retourne TypeFichier.Périphérique
+        }
+        __S_IFCHR {
+            retourne TypeFichier.Caractère
+        }
+        __S_IFIFO {
+            retourne TypeFichier.Canal
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+système_séparateur_chemin_préféré :: fonc () -> z8 #enligne
+{
+    retourne '/'
+}
+
+// -----------------------------------------------------------------------
+// Fichiers communs
+
+fichier_entrée_standarde := Fichier( desc = TypePoignéeFichier(STDIN_FILENO) )
+fichier_sortie_standarde := Fichier( desc = TypePoignéeFichier(STDOUT_FILENO) )
+fichier_sortie_erreur    := Fichier( desc = TypePoignéeFichier(STDERR_FILENO) )
+
+système_entrée_standarde :: fonc () -> *Fichier
+{
+    retourne *fichier_entrée_standarde
+}
+
+système_sortie_standarde :: fonc () -> *Fichier
+{
+    retourne *fichier_sortie_standarde
+}
+
+système_sortie_erreur :: fonc () -> *Fichier
+{
+    retourne *fichier_sortie_erreur
+}
+
+// -----------------------------------------------------------------------
+// Pour la lecture des entrées des dossiers
+
+TypePoignéeDossier :: #opaque *DIR
+TypePoignéeEntréeDossier :: #opaque *dirent
+
+système_ouvre_dossier :: fonc (chemin : CheminFichier) -> Optionnel(TypePoignéeDossier)
+{
+    ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    dir := opendir(ptr_chemin)
+    saufsi dir {
+        retourne
+    }
+
+    retourne TypePoignéeDossier(dir)
+}
+
+système_chemin_pour_dossier :: fonc (poignée: TypePoignéeEntréeDossier) -> CheminFichier
+{
+    entrée := poignée comme *dirent
+    chn_c := ChaineC(*entrée.d_name[0])
+    taille := taille_chaine_c(chn_c)
+    chn := construit_chaine(chn_c comme *z8, taille)
+    retourne construit_chemin(chn)
+}
+
+système_lis_une_entrée_du_dossier :: fonc (poignée: TypePoignéeDossier) -> Optionnel(TypePoignéeEntréeDossier)
+{
+    entrée := readdir(poignée comme *DIR)
+    si entrée == nul {
+        retourne
+    }
+    retourne TypePoignéeEntréeDossier(entrée)
+}
+
+système_ferme_dossier :: fonc (poignée: TypePoignéeDossier)
+{
+    _ := closedir(poignée comme *DIR)
+}
+
+// ---------------------------------------------------------
+// Verrouillage de fichier.
+
+système_verrouille_fichier :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> bool
+{
+    param_flock := si verrou == TypeVerrou.Partagé {
+        LOCK_SH
+    }
+    sinon {
+        LOCK_EX
+    }
+
+    résultat := flock(fichier.desc comme z32, param_flock)
+
+    si résultat < 0 {
+        // À FAIRE : errno
+        retourne faux
+    }
+    
+    retourne vrai
+}
+
+système_déverrouille_fichier :: fonc (fichier: *Fichier)
+{
+    _ := flock(fichier.desc comme z32, LOCK_UN) 
+}
+
+// -----------------------------------------------------------------------
+
+système_référence_fichier :: fonc (ancien_fd: TypePoignéeFichier, nouveau_fd: TypePoignéeFichier)
+{
+    _ := dup2(ancien_fd comme z32, nouveau_fd comme z32) 
+}
+
+système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> n64
+{
+	ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    s : struct_statvfs
+    résultat := statvfs(ptr_chemin, *s)
+
+    // À FAIRE : erreur
+    // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
+    si résultat == -1 {
+        retourne 0
+    }
+
+    // À FAIRE : on peut avoir un compte différent pour les utilisateurs privilégiés.
+    retourne s.f_bavail * s.f_bsize
+}
+
+système_chemin_courant :: fonc() -> CheminFichier
+{
+    tampon : [1024]z8
+    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
+
+    si (pointeur comme *z8) == nul {
+        // @erreur
+        retourne construit_chemin("")
+    }
+
+    ret := copie_chaine_c(pointeur)
+    retourne construit_chemin(ret)
+}
+
+système_chemin_courant :: fonc(chemin : CheminFichier) -> rien
+{
+	ptr_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+    chdir(ptr_chemin)
+}
+
+système_chemin_répertoire_personnel :: fonc () -> CheminFichier
+{
+    via_environnement := chaine_environnement("HOME")
+
+    si via_environnement {
+        retourne CheminFichier(via_environnement)
+    }
+
+    retourne CheminFichier()
+}
+
+système_chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
+{
+    tampon : [TAILLE_MAX_CHEMIN]z8
+    ptr_tampon := *tampon[0]
+
+    chn_c_chemin := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c_chemin)
+
+    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon))
+
+    si résultat comme *z8 == nul {
+        // À FAIRE : errno
+        retourne CheminFichier()
+    }
+
+    retourne CheminFichier(convertis_chaine_c(résultat))
+}
+
+système_renomme :: fonc(orig : CheminFichier, dest : CheminFichier) -> z32
+{
+	ptr_chemin_orig := crée_chaine_c(orig.chn)
+    diffère détruit_chaine_c(ptr_chemin_orig)
+	ptr_chemin_dest := crée_chaine_c(dest.chn)
+    diffère détruit_chaine_c(ptr_chemin_dest)
+
+	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
+}
+
+système_supprime :: fonc(chm : CheminFichier) -> z32
+{
+	ptr_chemin := crée_chaine_c(chm.chn)
+    diffère détruit_chaine_c(ptr_chemin)
+    retourne remove(ptr_chemin)
+}

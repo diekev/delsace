@@ -24,121 +24,139 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
-
 #include <iostream>
 
-#include "arbre_syntaxique/noeud_expression.hh"
+#include "structures/chaine.hh"
+
+#include "attente.hh"
 
 struct EspaceDeTravail;
 struct Fichier;
-struct Lexeme;
 struct MetaProgramme;
-struct NoeudDeclaration;
-struct NoeudExpressionReference;
 struct NoeudExpression;
-struct Type;
+struct Programme;
 
-#define ENUMERE_ETATS_UNITE                                                                       \
-    ENUMERE_ETAT_UNITE_EX(PRETE)                                                                  \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE)                                                        \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION)                                                 \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI)                                              \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE)                                                     \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR)                                                   \
-    ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
+#define ENUMERE_RAISON_D_ETRE(O)                                                                  \
+    O(AUCUNE, aucune_raison, "aucune raison")                                                     \
+    O(CHARGEMENT_FICHIER, chargement_fichier, "chargement fichier")                               \
+    O(LEXAGE_FICHIER, lexage_fichier, "lexage fichier")                                           \
+    O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
+    O(CREATION_FONCTION_INIT_TYPE, creation_fonction_init_type, "création fonction init type")    \
+    O(TYPAGE, typage, "typage")                                                                   \
+    O(CONVERSION_NOEUD_CODE, conversion_noeud_code, "conversion noeud code")                      \
+    O(ENVOIE_MESSAGE, envoie_message, "envoie message")                                           \
+    O(GENERATION_RI, generation_ri, "génération RI")                                              \
+    O(GENERATION_RI_PRINCIPALE_MP, generation_ri_principale_mp, "génération RI principale mp")    \
+    O(EXECUTION, execution, "exécution")                                                          \
+    O(LIAISON_PROGRAMME, liaison_programme, "liaison programme")                                  \
+    O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")
+
+enum class RaisonDEtre : unsigned char {
+#define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,
+    ENUMERE_RAISON_D_ETRE(ENUMERE_RAISON_D_ETRE_EX)
+#undef ENUMERE_RAISON_D_ETRE_EX
+};
+
+const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre);
+std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
 struct UniteCompilation {
-    enum class Etat {
-#define ENUMERE_ETAT_UNITE_EX(etat) etat,
-        ENUMERE_ETATS_UNITE
-#undef ENUMERE_ETAT_UNITE_EX
-    };
+    int index_courant = 0;
+    int index_precedent = 0;
+    int cycle = 0;
+    bool tag = false;
+    bool annule = false;
+
+  private:
+    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
+    bool m_prete = true;
+    Attente m_attente = {};
+
+  public:
+    EspaceDeTravail *espace = nullptr;
+    Fichier *fichier = nullptr;
+    NoeudExpression *noeud = nullptr;
+    MetaProgramme *metaprogramme = nullptr;
+    Programme *programme = nullptr;
+    Message *message = nullptr;
+    Type *type = nullptr;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
     }
 
-    UniteCompilation *depend_sur = nullptr;
-
-    Etat etat_{};
-    Etat etat_original{};
-    EspaceDeTravail *espace = nullptr;
-    Fichier *fichier = nullptr;
-    NoeudExpression *noeud = nullptr;
-    NoeudExpression *operateur_attendu = nullptr;
-    MetaProgramme *metaprogramme = nullptr;
-    MetaProgramme *metaprogramme_attendu = nullptr;
-    int index_courant = 0;
-    int index_precedent = 0;
-    bool message_recu = false;
-
-    int cycle = 0;
-
-    // pour les dépendances
-    Type *type_attendu = nullptr;
-    NoeudDeclaration *declaration_attendue = nullptr;
-    NoeudExpressionReference const *symbole_attendu = nullptr;
-    const char *fonction_interface_attendue = nullptr;
-
-    Etat etat() const
+    void mute_attente(Attente attente)
     {
-        return etat_;
+        m_attente = attente;
+        m_prete = false;
+        cycle = 0;
+        assert(attente.est_valide());
     }
 
-    inline void restaure_etat_original()
+    void marque_prete()
     {
-        this->etat_ = this->etat_original;
+        m_prete = true;
+        m_attente = {};
+        cycle = 0;
     }
 
-    inline void attend_sur_type(Type *type)
+    bool est_prete() const
     {
-        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
-        this->type_attendu = type;
-        assert(type != noeud->type);
+        return m_prete;
     }
 
-    inline void attend_sur_interface_kuri(const char *nom_fonction)
+    void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
     {
-        this->fonction_interface_attendue = nom_fonction;
-        this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
+        m_raison_d_etre = nouvelle_raison;
     }
 
-    inline void attend_sur_declaration(NoeudDeclaration *decl)
+    RaisonDEtre raison_d_etre() const
     {
-        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
-        this->declaration_attendue = decl;
-        assert(decl != noeud);
+        return m_raison_d_etre;
     }
 
-    inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
+    inline bool attend_sur_message(Message const *message_)
     {
-        this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
-        this->symbole_attendu = symbole;
+        return m_attente.est<AttenteSurMessage>() && m_attente.message() == message_;
     }
 
-    inline void attend_sur_operateur(NoeudExpression *expr)
+    inline bool attend_sur_un_message() const
     {
-        this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
-        this->operateur_attendu = expr;
+        return m_attente.est<AttenteSurMessage>();
     }
 
-    inline void attend_sur_metaprogramme(MetaProgramme *metaprogramme_attendu_)
+    inline bool attend_sur_noeud_code(NoeudCode **code)
     {
-        this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
-        this->metaprogramme_attendu = metaprogramme_attendu_;
+        return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;
     }
+
+    inline bool attend_sur_declaration(NoeudDeclaration *decl)
+    {
+        return m_attente.est<AttenteSurDeclaration>() && m_attente.declaration() == decl;
+    }
+
+#define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
+    inline bool est_pour_##nom() const                                                            \
+    {                                                                                             \
+        return m_raison_d_etre == RaisonDEtre::Genre;                                             \
+    }
+
+    ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)
+
+#undef DEFINIS_DISCRIMINATION
 
     bool est_bloquee() const;
 
     kuri::chaine commentaire() const;
 
     UniteCompilation *unite_attendue() const;
+
+    void rapporte_erreur() const;
+
+    void marque_prete_si_attente_resolue();
+
+  private:
+    bool attente_est_bloquee() const;
 };
 
-const char *chaine_etat_unite(UniteCompilation::Etat etat);
-
-std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat);
-
-kuri::chaine chaine_attentes_recursives(UniteCompilation *unite);
+kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite);

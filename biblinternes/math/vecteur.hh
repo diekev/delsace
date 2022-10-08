@@ -195,6 +195,11 @@ struct vecteur final : public detail::selecteur_base_vecteur<O, T, Ns...>::type_
 		return *this;
 	}
 
+    inline operator type_scalaire *()
+    {
+        return &this->data[0];
+    }
+
 private:
 	auto construit_index(size_t &i, type_scalaire scalaire)
 	{

@@ -30,7 +30,7 @@ set(BIBLIOTHEQUES
 	freetype
 )
 
-add_library(${NOM_PROJET} STATIC
+set(SOURCES
     distance-field.c
     edtaa3func.c
     mat4.c
@@ -44,6 +44,7 @@ add_library(${NOM_PROJET} STATIC
 	utf8-utils.h
 
     freetype-gl.h
+    ftgl.h
     markup.h
     mat4.h
     opengl.h
@@ -53,13 +54,7 @@ add_library(${NOM_PROJET} STATIC
     vector.h
 )
 
-desactive_drapeaux_compilation_c(${NOM_PROJET})
+compile_module_c(${NOM_PROJET} ftgl ftgl.h FTGL "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/FTGL/)
+desactive_drapeaux_compilation_c(${NOM_PROJET}_statique)
+desactive_drapeaux_compilation_c(${NOM_PROJET}_dynamique)

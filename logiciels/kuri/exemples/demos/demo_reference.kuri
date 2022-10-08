@@ -89,7 +89,6 @@ principale :: fonc () -> z32
     retourne 0
 }
 
-
 // références :
 // si assignation :
 //    si dest est référence et src est référence -> assigne

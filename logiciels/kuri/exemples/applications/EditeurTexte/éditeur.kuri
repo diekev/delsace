@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe SysFichier
 importe Temps
 
@@ -160,7 +159,7 @@ importe Temps
     texte := éditeur_chaine_depuis_ligne(éditeur)
     diffère { déloge(texte) }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(éditeur.chemin_fichier, ÉCRITURE_SEULE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(éditeur.chemin_fichier), pour_écriture) piège err {
         éditeur_ajourne_message_status(éditeur, "impossible d'ouvrir le fichier pour la sauvegarde")
         retourne
     }
@@ -360,7 +359,6 @@ TAILLE_TABULATION :: 4
     sinon si éditeur.cy >= éditeur.décalage_ligne + éditeur.lignes {
         éditeur.décalage_ligne = éditeur.cy - éditeur.lignes + 1
     }
-
 
     si éditeur.rx < éditeur.décalage_colonne {
         éditeur.décalage_colonne = éditeur.rx

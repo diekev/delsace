@@ -1,0 +1,10 @@
+/* Aucune erreur de compilation quand un type variadique est utilisé dans une structure. */
+
+Maçon :: struct {
+    param: ...
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

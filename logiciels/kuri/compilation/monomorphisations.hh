@@ -35,8 +35,8 @@ struct IdentifiantCode;
 struct Type;
 
 struct ItemMonomorphisation {
-    IdentifiantCode *ident = nullptr;
-    Type *type = nullptr;
+    const IdentifiantCode *ident = nullptr;
+    const Type *type = nullptr;
     ValeurExpression valeur{};
     bool est_type = false;
 
@@ -55,11 +55,7 @@ struct ItemMonomorphisation {
         }
 
         if (!est_type) {
-            if (valeur.type != autre.valeur.type) {
-                return false;
-            }
-
-            if (valeur.entier != autre.valeur.entier) {
+            if (valeur != autre.valeur) {
                 return false;
             }
         }
@@ -73,77 +69,34 @@ struct ItemMonomorphisation {
     }
 };
 
-template <typename TypeNoeud>
-struct Monomorphisations {
-  private:
+std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item);
+
+struct BaseMonorphisations {
+  protected:
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
     using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
-    tableau_synchrone<dls::paire<tableau_items, TypeNoeud *>> monomorphisations{};
+    tableau_synchrone<dls::paire<tableau_items, NoeudExpression *>> monomorphisations{};
+
+    NoeudExpression *trouve_monomorphisation_impl(tableau_items const &items) const;
 
   public:
+    void ajoute(tableau_items const &items, NoeudExpression *noeud);
+
+    long memoire_utilisee() const;
+
+    int taille() const;
+
+    int nombre_items_max() const;
+
+    void imprime(std::ostream &os);
+};
+
+template <typename TypeNoeud>
+struct Monomorphisations : public BaseMonorphisations {
     TypeNoeud *trouve_monomorphisation(tableau_items const &items) const
     {
-        auto monomorphisations_ = monomorphisations.verrou_lecture();
-
-        POUR (*monomorphisations_) {
-            if (it.premier.taille() != items.taille()) {
-                continue;
-            }
-
-            auto trouve = true;
-
-            for (auto i = 0; i < items.taille(); ++i) {
-                if (it.premier[i] != items[i]) {
-                    trouve = false;
-                    break;
-                }
-            }
-
-            if (!trouve) {
-                continue;
-            }
-
-            return it.second;
-        }
-
-        return nullptr;
-    }
-
-    void ajoute(tableau_items const &items, TypeNoeud *noeud)
-    {
-        monomorphisations->ajoute({items, noeud});
-    }
-
-    long memoire_utilisee() const
-    {
-        long memoire = 0;
-        memoire += monomorphisations->taille() *
-                   (taille_de(TypeNoeud *) + taille_de(tableau_items));
-
-        POUR (*monomorphisations.verrou_lecture()) {
-            memoire += it.premier.taille() * (taille_de(ItemMonomorphisation));
-        }
-
-        return memoire;
-    }
-
-    int taille() const
-    {
-        return monomorphisations->taille();
-    }
-
-    int nombre_items_max() const
-    {
-        int n = 0;
-
-        POUR (*monomorphisations.verrou_lecture()) {
-            if (it.premier.taille() > 0) {
-                n = it.premier.taille();
-            }
-        }
-
-        return n;
+        return static_cast<TypeNoeud *>(trouve_monomorphisation_impl(items));
     }
 };

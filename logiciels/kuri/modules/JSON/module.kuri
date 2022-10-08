@@ -6,6 +6,20 @@ importe SysFichier
 charge "impression"
 charge "scanner"
 
+imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
+{
+    pour e dans scanner.erreurs {
+        imprime("Erreur :\n")
+        imprime("%\n", script)
+
+        pour e.position {
+            imprime(" ")
+        }
+        imprime("^\n")
+        imprime("%\n", e.chn)
+    }
+}
+
 /* Retourne une chaine JSON pour la structure passée. */
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
@@ -34,6 +48,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
     résultat : T = ---
 
     scanner : ScannerJSON
+    diffère détruit_scanner(*scanner)
     initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
 
     empile(*scanner, résultat)
@@ -42,16 +57,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
 
     dépile(*scanner)
 
-    pour scanner.erreurs {
-        imprime("Erreur :\n")
-        imprime("%\n", script)
-
-        pour i dans 0 ... it.position - 1 {
-            imprime(" ")
-        }
-        imprime("^\n")
-        imprime("%\n", it.chn)
-    }
+    imprime_erreurs(scanner, script)
 
     détruit_scanner(*scanner)
 
@@ -78,6 +84,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
     }
 
     scanner : ScannerJSON
+    diffère détruit_scanner(*scanner)
     initialise_scanner(*scanner, script, résultat, copie_chaine)
 
     empile(*scanner, résultat)
@@ -86,7 +93,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
 
     dépile(*scanner)
 
-    détruit_scanner(*scanner)
+    imprime_erreurs(scanner, script)
 
     retourne succès, résultat
 }

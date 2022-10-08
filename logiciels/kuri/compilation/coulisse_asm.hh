@@ -29,7 +29,10 @@
 struct CoulisseASM final : public Coulisse {
     bool cree_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
+                            Programme *programme,
                             ConstructriceRI &constructrice_ri) override;
 
-    bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) override;
+    bool cree_executable(Compilatrice &compilatrice,
+                         EspaceDeTravail &espace,
+                         Programme *programme) override;
 };

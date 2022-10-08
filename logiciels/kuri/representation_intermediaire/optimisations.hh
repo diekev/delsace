@@ -25,6 +25,9 @@
 #pragma once
 
 struct ConstructriceRI;
+struct EspaceDeTravail;
 struct AtomeFonction;
 
-void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc);
+void optimise_code(EspaceDeTravail &espace,
+                   ConstructriceRI &constructrice,
+                   AtomeFonction *atome_fonc);

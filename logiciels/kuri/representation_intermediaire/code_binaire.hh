@@ -30,29 +30,44 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
-#include "biblinternes/structures/tablet.hh"
 
+#include "compilation/operateurs.hh"
+
+#include "structures/chaine_statique.hh"
+#include "structures/pile.hh"
+#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
+struct Atome;
+struct AtomeConstante;
 struct AtomeFonction;
+struct AtomeGlobale;
 struct Compilatrice;
+struct DonneesConstantesExecutions;
 struct DonneesExecution;
+struct EspaceDeTravail;
 struct IdentifiantCode;
+struct Instruction;
 struct InstructionAppel;
-struct MachineVirtuelle;
+struct MetaProgramme;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
+struct NoeudInstructionTente;
 struct NoeudPour;
 struct NoeudStruct;
-struct NoeudInstructionTente;
 struct Type;
 struct TypeFonction;
+
+struct ContexteGenerationCodeBinaire {
+    EspaceDeTravail *espace = nullptr;
+    const NoeudDeclarationEnteteFonction *fonction = nullptr;
+};
 
 using octet_t = unsigned char;
 
@@ -249,7 +264,9 @@ struct Chunk {
     void agrandis_si_necessaire(long taille);
 
     int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
-    void emets_assignation(NoeudExpression *site, Type *type);
+    void emets_assignation(ContexteGenerationCodeBinaire contexte,
+                           NoeudExpression *site,
+                           Type *type);
     void emets_charge(NoeudExpression *site, Type *type);
     void emets_charge_variable(NoeudExpression *site, int pointeur, Type *type);
     void emets_reference_globale(NoeudExpression *site, int pointeur);
@@ -275,17 +292,79 @@ struct Chunk {
                                  int index_label_si_faux);
 
     void emets_label(NoeudExpression *site, int index);
+
+    void emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type);
+    void emets_operation_binaire(NoeudExpression *site,
+                                 OperateurBinaire::Genre op,
+                                 Type *type_gauche,
+                                 Type *type_droite);
 };
 
-void desassemble(Chunk const &chunk, const char *nom, std::ostream &os);
+void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
 long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
     Type *type = nullptr;
     int adresse = 0;
+    void *adresse_pour_execution = nullptr;
 };
 
-void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle *mv);
+// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
+// durée de vie de celles-ci ne fonctionne pas
+//           il existe des superposition partiells entre certaines variables
+//           lors de la dernière investigation, il semberait que les instructions de retours au
+//           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
+//           optimisation et alloue de l'espace pour toutes les variables au début de chaque
+//           fonction.
+#undef OPTIMISE_ALLOCS
+
+class ConvertisseuseRI {
+    EspaceDeTravail *espace = nullptr;
+    DonneesConstantesExecutions *donnees_executions = nullptr;
+
+    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+
+    /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
+     * adresses des globales qu'il utilise. */
+    MetaProgramme *metaprogramme = nullptr;
+
+    /* Patchs pour les labels, puisque nous d'abord générer le code des branches avant de connaître
+     * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
+     * endroit à la fin de la génération de code. */
+    kuri::tableau<PatchLabel> patchs_labels{};
+
+#ifdef OPTIMISE_ALLOCS
+    kuri::pile<int> pile_taille{};
+    int dernier_decalage_pile = 0;
+#endif
+
+  public:
+    ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
+
+    COPIE_CONSTRUCT(ConvertisseuseRI);
+
+    bool genere_code(const kuri::tableau<AtomeFonction *> &fonctions);
+
+    bool genere_code_pour_fonction(AtomeFonction *fonction);
+
+  private:
+    void genere_code_binaire_pour_instruction(Instruction *instruction,
+                                              Chunk &chunk,
+                                              bool pour_operande);
+
+    void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
+
+    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
+                                                         int decalage,
+                                                         int ou_patcher);
+
+    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
+
+    int ajoute_globale(AtomeGlobale *globale);
+    int genere_code_pour_globale(AtomeGlobale *atome_globale);
+
+    ContexteGenerationCodeBinaire contexte() const;
+};
 
 ffi_type *converti_type_ffi(Type *type);

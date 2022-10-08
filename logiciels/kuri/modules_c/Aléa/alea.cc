@@ -26,15 +26,17 @@
 
 #include <random>
 
+#include "../InterfaceCKuri/contexte_kuri.hh"
+
 extern "C" {
 
 struct GNA {
     std::mt19937 mt;
 };
 
-GNA *ALEA_cree_gna(unsigned graine)
+GNA *ALEA_cree_gna(ContexteKuri *ctx_kuri, unsigned graine)
 {
-    auto gna = static_cast<GNA *>(malloc(sizeof(GNA)));
+    auto gna = static_cast<GNA *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof(GNA)));
     gna->mt = std::mt19937(graine);
     return gna;
 }
@@ -44,9 +46,9 @@ void ALEA_reseme_gna(GNA *gna, unsigned graine)
     gna->mt.seed(graine);
 }
 
-void ALEA_detruit_gna(GNA *gna)
+void ALEA_detruit_gna(ContexteKuri *ctx_kuri, GNA *gna)
 {
-    free(gna);
+    ctx_kuri->deloge_memoire(ctx_kuri, gna, sizeof(GNA));
 }
 
 float ALEA_uniforme_r32(GNA *gna, float min, float max)

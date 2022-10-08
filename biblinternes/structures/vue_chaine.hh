@@ -25,46 +25,35 @@
 #pragma once
 
 #include <cstring>
-#include <functional>  /* pour la déclaration de std::hash */
+#include <functional> /* pour la déclaration de std::hash */
+#include <iostream>
 
 namespace dls {
 
 struct vue_chaine {
 private:
-	char const *m_ptr = nullptr;
-	long m_taille = 0;
+  char const *m_ptr = nullptr;
+  long m_taille = 0;
 
 public:
-	template <unsigned long N>
-	vue_chaine(char const (&c)[N])
-		: m_ptr(&c[0])
-		, m_taille(N)
-	{}
+  template <unsigned long N>
+  vue_chaine(char const (&c)[N]) : m_ptr(&c[0]), m_taille(N) {}
 
-	vue_chaine() = default;
+  vue_chaine() = default;
 
-	vue_chaine(char const *ptr);
+  vue_chaine(char const *ptr);
 
-	vue_chaine(char const *ptr, long taille)
-		: m_ptr(ptr)
-		, m_taille(taille)
-	{}
+  vue_chaine(char const *ptr, long taille) : m_ptr(ptr), m_taille(taille) {}
 
-	char const &operator[](long idx) const
-	{
-		return m_ptr[idx];
-	}
+  char const &operator[](long idx) const { return m_ptr[idx]; }
 
-	long taille() const
-	{
-		return m_taille;
-	}
+  long taille() const { return m_taille; }
 
-	bool est_vide() const;
+  bool est_vide() const;
 
-	const char *begin() const;
+  const char *begin() const;
 
-	const char *end() const;
+  const char *end() const;
 };
 
 bool operator<(vue_chaine const &c1, vue_chaine const &c2);
@@ -85,17 +74,15 @@ bool operator!=(char const *vc1, vue_chaine const &vc2);
 
 std::ostream &operator<<(std::ostream &os, vue_chaine const &vc);
 
-}  /* namespace dls */
+} /* namespace dls */
 
 namespace std {
 
-template <>
-struct hash<dls::vue_chaine> {
-	std::size_t operator()(dls::vue_chaine const &chn) const
-	{
-		auto h = std::hash<std::string_view>{};
-		return h(std::string_view(&chn[0], static_cast<size_t>(chn.taille())));
-	}
+template <> struct hash<dls::vue_chaine> {
+  std::size_t operator()(dls::vue_chaine const &chn) const {
+    auto h = std::hash<std::string_view>{};
+    return h(std::string_view(&chn[0], static_cast<size_t>(chn.taille())));
+  }
 };
 
-}  /* namespace std */
+} /* namespace std */

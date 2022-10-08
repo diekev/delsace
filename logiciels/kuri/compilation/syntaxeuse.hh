@@ -24,8 +24,11 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau_page.hh"
 #include "parsage/base_syntaxeuse.hh"
+#include "structures/pile.hh"
 
+struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
@@ -58,10 +61,10 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
-    bool est_dans_fonction = false;
     bool m_est_declaration_type_opaque = false;
-    NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
-    NoeudStruct *structure_courante = nullptr;
+
+    /* Bloc courant recevant les constantes polymorphiques. */
+    kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
 
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
@@ -91,13 +94,15 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                                    GenreLexeme racine_expression,
                                                    GenreLexeme lexeme_final);
 
-    NoeudBloc *analyse_bloc(bool accolade_requise = true, bool pour_pousse_contexte = false);
+    NoeudBloc *analyse_bloc(bool accolade_requise = true);
 
     NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
     NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
     NoeudDeclarationEnteteFonction *analyse_declaration_fonction(Lexeme const *lexeme);
     NoeudExpression *analyse_declaration_operateur();
+    void analyse_expression_retour_type(NoeudDeclarationEnteteFonction *noeud,
+                                        bool pour_operateur);
     NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
 
     NoeudExpression *analyse_instruction();
@@ -111,5 +116,11 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
     NoeudExpression *analyse_instruction_tantque();
 
+    void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
+
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
+
+    void requiers_typage(NoeudExpression *noeud);
+
+    bool ignore_point_virgule_implicite();
 };

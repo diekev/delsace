@@ -27,16 +27,17 @@
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
-#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
 #include <mutex>
 
 #include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
+#include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 #include "lexemes.hh"
 
@@ -49,21 +50,31 @@ struct Module;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDirectivePreExecutable;
+struct SiteSource;
 struct Statistiques;
 
-struct DonneesConstantesFichier {
+enum class SourceFichier {
+    /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
+    DISQUE,
+    /* Le fichier vient d'une instruction "ajoute_chaine_*". */
+    CHAINE_AJOUTEE,
+};
+
+struct Fichier {
+    double temps_analyse = 0.0;
     double temps_chargement = 0.0;
     double temps_decoupage = 0.0;
     double temps_tampon = 0.0;
 
-    lng::tampon_source tampon{""};
+    lng::tampon_source tampon_{""};
 
     kuri::tableau<Lexeme, int> lexemes{};
 
-    kuri::chaine nom{""};
-    kuri::chaine chemin{""};
+    kuri::chaine nom_{""};
+    kuri::chaine chemin_{""};
 
-    long id = 0;
+    long id_ = 0;
 
     std::mutex mutex{};
     bool fut_lexe = false;
@@ -71,28 +82,18 @@ struct DonneesConstantesFichier {
     bool en_chargement = false;
     bool en_lexage = false;
 
-    void charge_tampon(lng::tampon_source &&t)
-    {
-        tampon = std::move(t);
-        fut_charge = true;
-    }
-};
+    kuri::ensemblon<Module *, 16> modules_importes{};
 
-struct Fichier {
-    double temps_analyse = 0.0;
-
-    DonneesConstantesFichier *donnees_constantes = nullptr;
-
-    dls::ensemblon<Module *, 16> modules_importes{};
+    bool fut_parse = false;
 
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
-    Fichier() = default;
+    SourceFichier source = SourceFichier::DISQUE;
+    /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
+    long decalage_fichier = 0;
 
-    Fichier(DonneesConstantesFichier *dc) : donnees_constantes(dc)
-    {
-    }
+    Fichier() = default;
 
     COPIE_CONSTRUCT(Fichier);
 
@@ -103,22 +104,28 @@ struct Fichier {
 
     kuri::chaine const &chemin() const
     {
-        return donnees_constantes->chemin;
+        return chemin_;
     }
 
     kuri::chaine const &nom() const
     {
-        return donnees_constantes->nom;
+        return nom_;
     }
 
     long id() const
     {
-        return donnees_constantes->id;
+        return id_;
     }
 
     lng::tampon_source const &tampon() const
     {
-        return donnees_constantes->tampon;
+        return tampon_;
+    }
+
+    void charge_tampon(lng::tampon_source &&t)
+    {
+        tampon_ = std::move(t);
+        fut_charge = true;
     }
 };
 
@@ -152,69 +159,81 @@ struct tag_pour_donnees<TagPourResultatFichier, FichierNeuf> {
 
 using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFichier>;
 
-struct DonneesConstantesModule {
-    /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
-    IdentifiantCode *nom = nullptr;
-    kuri::chaine chemin{""};
-};
-
 struct Module {
-    DonneesConstantesModule *donnees_constantes = nullptr;
+    /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
+    IdentifiantCode *nom_ = nullptr;
+    kuri::chaine chemin_{""};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
-    dls::tablet<Fichier *, 16> fichiers{};
+    kuri::tablet<Fichier *, 16> fichiers{};
     bool importe = false;
 
-    Module(DonneesConstantesModule *dc) : donnees_constantes(dc)
+    kuri::chaine chemin_bibliotheque_32bits{};
+    kuri::chaine chemin_bibliotheque_64bits{};
+
+    NoeudDirectivePreExecutable *directive_pre_executable = nullptr;
+    bool execution_directive_requise = false;
+
+    Module(kuri::chaine chm) : chemin_(chm)
     {
+        chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
+        chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
     COPIE_CONSTRUCT(Module);
 
     kuri::chaine const &chemin() const
     {
-        return donnees_constantes->chemin;
+        return chemin_;
     }
 
     IdentifiantCode *const &nom() const
     {
-        return donnees_constantes->nom;
+        return nom_;
     }
 };
 
 struct SystemeModule {
-    tableau_page<DonneesConstantesModule> donnees_modules{};
-    tableau_page<DonneesConstantesFichier> donnees_fichiers{};
+    tableau_page<Module> modules{};
+    tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, DonneesConstantesFichier *> table_fichiers{};
+    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
+        "Fichiers système modules"};
 
-    DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom,
-                                                   kuri::chaine_statique chemin);
+    Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    DonneesConstantesModule *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
+    Module *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    DonneesConstantesFichier *trouve_ou_cree_fichier(kuri::chaine_statique nom,
-                                                     kuri::chaine_statique chemin);
+    Module *module(const IdentifiantCode *nom) const;
 
-    DonneesConstantesFichier *cree_fichier(kuri::chaine_statique nom,
+    ResultatFichier trouve_ou_cree_fichier(Module *module,
+                                           kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
+
+    FichierNeuf cree_fichier(Module *module,
+                             kuri::chaine_statique nom,
+                             kuri::chaine_statique chemin);
 
     void rassemble_stats(Statistiques &stats) const;
 
     long memoire_utilisee() const;
+
+    Fichier *fichier(long index)
+    {
+        return &fichiers.a_l_index(index);
+    }
+
+    const Fichier *fichier(long index) const
+    {
+        return &fichiers.a_l_index(index);
+    }
+
+    Fichier *fichier(kuri::chaine_statique chemin) const;
 };
 
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                Lexeme const *lexeme,
-                                kuri::chaine_statique message);
-
-void imprime_ligne_avec_message(Enchaineuse &flux,
-                                const Fichier *fichier,
-                                int ligne,
-                                kuri::chaine_statique message);
+void imprime_ligne_avec_message(Enchaineuse &flux, SiteSource site, kuri::chaine_statique message);
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */

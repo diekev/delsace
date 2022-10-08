@@ -26,353 +26,43 @@
 
 #include <fstream>
 
-#include "biblinternes/outils/sauvegardeuse_etat.hh"
+#include "parsage/identifiant.hh"
+#include "parsage/lexeuse.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+#include "compilatrice.hh"
 #include "coulisse.hh"
-#include "coulisse_asm.hh"
-#include "coulisse_c.hh"
-#include "coulisse_llvm.hh"
-#include "parsage/identifiant.hh"
+#include "programme.hh"
 #include "statistiques/statistiques.hh"
 
-EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts)
-    : options(opts), typeuse(graphe_dependance, this->operateurs), m_compilatrice(compilatrice)
-{
-    auto ops = operateurs.verrou_ecriture();
-    enregistre_operateurs_basiques(*this, *ops);
+/* ************************************************************************** */
 
-    if (options.coulisse == TypeCoulisse::C) {
-        coulisse = memoire::loge<CoulisseC>("CoulisseC");
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
-    }
-    else {
-        assert(false);
-    }
+EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
+                                 OptionsDeCompilation opts,
+                                 kuri::chaine nom_)
+    : nom(nom_), options(opts), m_compilatrice(compilatrice)
+{
+    programme = Programme::cree_pour_espace(this);
 }
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    if (options.coulisse == TypeCoulisse::C) {
-        auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::LLVM) {
-        auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
-        coulisse = nullptr;
-    }
-    else if (options.coulisse == TypeCoulisse::ASM) {
-        auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
-        coulisse = nullptr;
-    }
-}
-
-Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
-                                               IdentifiantCode *nom_module,
-                                               kuri::chaine_statique chemin)
-{
-    auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
-
-    auto modules_ = modules.verrou_ecriture();
-
-    POUR_TABLEAU_PAGE ((*modules_)) {
-        if (it.donnees_constantes == donnees_module) {
-            return &it;
-        }
-    }
-
-    return modules_->ajoute_element(donnees_module);
-}
-
-Module *EspaceDeTravail::module(const IdentifiantCode *nom_module) const
-{
-    auto modules_ = modules.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*modules_)) {
-        if (it.nom() == nom_module) {
-            return const_cast<Module *>(&it);
-        }
-    }
-
-    return nullptr;
-}
-
-ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(
-    dls::outils::Synchrone<SystemeModule> &sys_module,
-    Module *module,
-    kuri::chaine_statique nom_fichier,
-    kuri::chaine_statique chemin,
-    bool importe_kuri)
-{
-    auto donnees_fichier = sys_module->trouve_ou_cree_fichier(nom_fichier, chemin);
-
-    auto fichiers_ = fichiers.verrou_ecriture();
-
-    /* fait de la place la table */
-    table_fichiers.redimensionne(donnees_fichier->id + 1, nullptr);
-
-    if (table_fichiers[donnees_fichier->id] != nullptr) {
-        return FichierExistant(*table_fichiers[donnees_fichier->id]);
-    }
-
-    auto fichier = fichiers_->ajoute_element(donnees_fichier);
-
-    if (importe_kuri && module->nom() != ID::Kuri) {
-        assert(module_kuri);
-        fichier->modules_importes.insere(module_kuri);
-    }
-
-    fichier->module = module;
-    module->fichiers.ajoute(fichier);
-
-    table_fichiers[donnees_fichier->id] = fichier;
-
-    return FichierNeuf(*fichier);
-}
-
-Fichier *EspaceDeTravail::fichier(long index) const
-{
-    auto fichiers_ = fichiers.verrou_lecture();
-    return table_fichiers[index];
-}
-
-Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
-{
-    auto fichiers_ = fichiers.verrou_lecture();
-
-    POUR_TABLEAU_PAGE ((*fichiers_)) {
-        if (dls::vue_chaine_compacte(it.chemin()) == chemin) {
-            return const_cast<Fichier *>(&it);
-        }
-    }
-
-    return nullptr;
-}
-
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme,
-                                              const kuri::chaine &nom_fichier)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
-    return atome_fonc;
-}
-
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme,
-                                              const kuri::chaine &nom_fonction,
-                                              kuri::tableau<Atome *, int> &&params)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
-    return atome_fonc;
-}
-
-/* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
- * générer le code linéairement. Cette fonction nous sers soit à trouver le
- * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
- * créer en préparation de la génération de la RI de son corps.
- */
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice,
-                                                          NoeudDeclarationEnteteFonction *decl)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-
-    if (decl->atome) {
-        return static_cast<AtomeFonction *>(decl->atome);
-    }
-
-    SAUVEGARDE_ETAT(constructrice.fonction_courante);
-
-    auto params = kuri::tableau<Atome *, int>();
-    params.reserve(decl->params.taille());
-
-    if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
-        auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
-        params.ajoute(atome);
-    }
-
-    for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
-        auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
-        param->atome = atome;
-        params.ajoute(atome);
-    }
-
-    /* Pour les sorties multiples, les valeurs de sorties sont des accès de
-     * membres du tuple, ainsi nous n'avons pas à compliquer la génération de
-     * code ou sa simplification.
-     */
-
-    auto param_sortie = decl->param_sortie;
-    auto atome_param_sortie = constructrice.cree_allocation(
-        decl, param_sortie->type, param_sortie->ident);
-    param_sortie->atome = atome_param_sortie;
-
-    if (decl->params_sorties.taille() > 1) {
-        auto index_membre = 0;
-        POUR (decl->params_sorties) {
-            it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(
-                it, atome_param_sortie, index_membre++, true);
-        }
-    }
-
-    auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
-    atome_fonc->type = normalise_type(typeuse, decl->type);
-    atome_fonc->est_externe = decl->est_externe;
-    atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
-    atome_fonc->decl = decl;
-    atome_fonc->param_sortie = atome_param_sortie;
-    atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
-
-    decl->atome = atome_fonc;
-
-    return atome_fonc;
-}
-
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice,
-                                                               Type *type)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-
-    if (type->fonction_init) {
-        return type->fonction_init;
-    }
-
-    auto nom_fonction = enchaine("initialise_", type);
-
-    SAUVEGARDE_ETAT(constructrice.fonction_courante);
-
-    auto types_entrees = dls::tablet<Type *, 6>(1);
-    types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
-
-    auto type_sortie = typeuse[TypeBase::RIEN];
-
-    auto params = kuri::tableau<Atome *, int>(1);
-    params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
-
-    auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
-
-    auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-    atome_fonc->type = typeuse.type_fonction(types_entrees, type_sortie, false);
-    atome_fonc->param_sortie = param_sortie;
-    atome_fonc->enligne = true;
-    atome_fonc->sanstrace = true;
-
-    type->fonction_init = atome_fonc;
-
-    return atome_fonc;
-}
-
-AtomeGlobale *EspaceDeTravail::cree_globale(Type *type,
-                                            AtomeConstante *initialisateur,
-                                            bool est_externe,
-                                            bool est_constante)
-{
-    return globales.ajoute_element(
-        typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
-}
-
-void EspaceDeTravail::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
-{
-    auto table = table_globales.verrou_ecriture();
-    table->insere({decl, atome});
-}
-
-AtomeGlobale *EspaceDeTravail::trouve_globale(NoeudDeclaration *decl)
-{
-    auto table = table_globales.verrou_lecture();
-    auto iter = table->trouve(decl);
-
-    if (iter != table->fin()) {
-        return iter->second;
-    }
-
-    return nullptr;
-}
-
-AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
-{
-    auto table = table_globales.verrou_ecriture();
-    auto iter = table->trouve(decl);
-
-    if (iter != table->fin()) {
-        return iter->second;
-    }
-
-    auto atome = cree_globale(decl->type, nullptr, false, false);
-    table->insere({decl, atome});
-
-    return atome;
+    memoire::deloge("Programme", programme);
 }
 
 long EspaceDeTravail::memoire_utilisee() const
 {
     auto memoire = 0l;
-
-    memoire += modules->memoire_utilisee();
-    memoire += fichiers->memoire_utilisee();
-
-    auto modules_ = modules.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*modules_)) {
-        memoire += it.fichiers.taille() * taille_de(Fichier *);
-    }
-
-    auto fichiers_ = fichiers.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*fichiers_)) {
-        // les autres membres sont gérés dans rassemble_statistiques()
-        if (!it.modules_importes.est_stocke_dans_classe()) {
-            memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
-        }
-    }
-
+    memoire += programme->memoire_utilisee();
     return memoire;
 }
 
 void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
-    operateurs->rassemble_statistiques(stats);
-    graphe_dependance->rassemble_statistiques(stats);
-    typeuse.rassemble_statistiques(stats);
-
-    auto &stats_fichiers = stats.stats_fichiers;
-    auto fichiers_ = fichiers.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*fichiers_)) {
-        auto entree = EntreeFichier();
-        entree.nom = it.nom();
-        entree.temps_parsage = it.temps_analyse;
-
-        stats_fichiers.fusionne_entree(entree);
-    }
-
-    auto &stats_ri = stats.stats_ri;
-
-    auto memoire_fonctions = fonctions.memoire_utilisee();
-    memoire_fonctions += fonctions.memoire_utilisee();
-    pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
-        memoire_fonctions += it.params_entrees.taille_memoire();
-        memoire_fonctions += it.chunk.capacite;
-        memoire_fonctions += it.chunk.locales.taille_memoire();
-        memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
-    });
-
-    stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
-    stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});
-}
-
-MetaProgramme *EspaceDeTravail::cree_metaprogramme()
-{
-    return metaprogrammes->ajoute_element();
+    programme->rassemble_statistiques(stats);
 }
 
 void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
@@ -430,6 +120,7 @@ void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere
     tache_lexage_ajoutee(messagere);
 
     nombre_taches_chargement -= 1;
+    assert(nombre_taches_chargement >= 0);
 }
 
 void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
@@ -437,29 +128,41 @@ void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &m
     /* Une fois que nous lexer quelque chose, il faut le parser. */
     tache_parsage_ajoutee(messagere);
     nombre_taches_lexage -= 1;
+    assert(nombre_taches_lexage >= 0);
 }
 
 void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_parsage -= 1;
+    assert(nombre_taches_parsage >= 0);
 
     if (parsage_termine()) {
         change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
     }
 }
 
-void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
+                                            bool peut_envoyer_changement_de_phase)
 {
     nombre_taches_typage -= 1;
+    assert(nombre_taches_typage >= 0);
 
-    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
+    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE &&
+        peut_envoyer_changement_de_phase) {
         change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
+
+        /* Il est possible que les dernières tâches de typages soient pour des choses qui n'ont pas
+         * de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
+        if (nombre_taches_ri == 0) {
+            change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+        }
     }
 }
 
 void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_ri -= 1;
+    assert(nombre_taches_ri >= 0);
 
     if (optimisations) {
         tache_optimisation_ajoutee(messagere);
@@ -474,6 +177,7 @@ void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messa
 void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
     nombre_taches_optimisation -= 1;
+    assert(nombre_taches_optimisation >= 0);
 
     if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
         phase == PhaseCompilation::TYPAGE_TERMINE) {
@@ -484,6 +188,7 @@ void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Message
 void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> & /*messagere*/)
 {
     nombre_taches_execution -= 1;
+    assert(nombre_taches_execution >= 0);
 }
 
 void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
@@ -520,30 +225,49 @@ bool EspaceDeTravail::parsage_termine() const
            nombre_taches_parsage == 0;
 }
 
-void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
-                                      PhaseCompilation nouvelle_phase)
+void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
+{
+    os << "nombre_taches_chargement : " << nombre_taches_chargement << '\n';
+    os << "nombre_taches_lexage : " << nombre_taches_lexage << '\n';
+    os << "nombre_taches_parsage : " << nombre_taches_parsage << '\n';
+    os << "nombre_taches_typage : " << nombre_taches_typage << '\n';
+    os << "nombre_taches_ri : " << nombre_taches_ri << '\n';
+    os << "nombre_taches_execution : " << nombre_taches_execution << '\n';
+    os << "nombre_taches_optimisation : " << nombre_taches_optimisation << '\n';
+}
+
+Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+                                          PhaseCompilation nouvelle_phase)
 {
     phase = nouvelle_phase;
-    messagere->ajoute_message_phase_compilation(this);
+    return messagere->ajoute_message_phase_compilation(this);
 }
 
-PhaseCompilation EspaceDeTravail::phase_courante() const
+SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
 {
-    return phase;
+    if (!noeud) {
+        return {};
+    }
+
+    auto const lexeme = noeud->lexeme;
+    auto const fichier = compilatrice().fichier(lexeme->fichier);
+    return SiteSource::cree(fichier, lexeme);
 }
 
-void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site,
+void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
                                              kuri::chaine_statique message) const
 {
-    std::cerr << genere_entete_erreur(this, site, erreur::Genre::AVERTISSEMENT, message);
+    std::cerr << genere_entete_erreur(
+        this, site_source_pour(site), erreur::Genre::AVERTISSEMENT, message);
 }
 
 void EspaceDeTravail::rapporte_avertissement(kuri::chaine const &chemin_fichier,
                                              int ligne,
                                              kuri::chaine const &message) const
 {
-    const Fichier *f = this->fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
-    std::cerr << genere_entete_erreur(this, f, ligne, erreur::Genre::AVERTISSEMENT, message);
+    const Fichier *f = m_compilatrice.fichier(chemin_fichier);
+    std::cerr << genere_entete_erreur(
+        this, SiteSource(f, ligne - 1), erreur::Genre::AVERTISSEMENT, message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
@@ -556,30 +280,30 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
         return rapporte_erreur_sans_site(message, genre);
     }
 
-    return ::rapporte_erreur(this, site, message, genre);
+    return ::rapporte_erreur(this, site_source_pour(site), message, genre);
 }
 
-Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &fichier,
+Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &chemin_fichier,
                                         int ligne,
-                                        kuri::chaine const &message) const
+                                        kuri::chaine const &message,
+                                        erreur::Genre genre) const
 {
     possede_erreur = true;
-    return ::rapporte_erreur(this, fichier, ligne, message);
+    auto fichier = compilatrice().fichier(chemin_fichier);
+    return ::rapporte_erreur(this, SiteSource(fichier, ligne), message, genre);
+}
+
+Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
+                                        kuri::chaine const &message,
+                                        erreur::Genre genre) const
+{
+    possede_erreur = true;
+    return ::rapporte_erreur(this, site, message, genre);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
                                                   erreur::Genre genre) const
 {
     possede_erreur = true;
-    return ::rapporte_erreur_sans_site(this, message, genre);
-}
-
-void EspaceDeTravail::imprime_programme() const
-{
-    std::ofstream os;
-    os.open("/tmp/ri_programme.kr");
-
-    POUR_TABLEAU_PAGE (fonctions) {
-        imprime_fonction(&it, os);
-    }
+    return ::rapporte_erreur(this, {}, message, genre);
 }

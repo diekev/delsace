@@ -126,23 +126,21 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     auto chemin_courant = std::filesystem::current_path();
     std::filesystem::current_path("/opt/bin/kuri/fichiers_tests/fichiers/");
 
-    auto compilatrice = Compilatrice{};
-    compilatrice.racine_kuri = getenv("RACINE_KURI");
+    auto compilatrice = Compilatrice(getenv("RACINE_KURI"));
 
-    auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+    auto espace = compilatrice.espace_defaut_compilation();
 
     /* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme.
      */
     compilatrice.importe_module(espace, "Kuri", {});
 
     /* Ne nomme pas le module, car c'est le module racine. */
-    auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
-    auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", false);
+    auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, "");
+    auto resultat = compilatrice.trouve_ou_cree_fichier(module, "", "", false);
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
-    auto donnees_fichier = fichier->donnees_constantes;
-    donnees_fichier->charge_tampon(std::move(tampon));
+    fichier->charge_tampon(std::move(tampon));
 
-    compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+    compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
     auto tacheronne = Tacheronne(compilatrice);
     tacheronne.gere_tache();
@@ -222,7 +220,7 @@ int main()
         auto chemin = std::filesystem::path("fichiers_tests/") / it.source;
 
         if (std::filesystem::exists(chemin)) {
-            auto compilatrice = Compilatrice{};
+            auto compilatrice = Compilatrice("");
             auto contenu_fichier = charge_contenu_fichier(chemin.c_str());
             auto tampon = lng::tampon_source(std::move(contenu_fichier));
 

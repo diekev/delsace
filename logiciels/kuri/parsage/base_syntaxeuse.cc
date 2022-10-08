@@ -26,10 +26,10 @@
 
 #include "structures/enchaineuse.hh"
 
+#include "lexeuse.hh"
 #include "modules.hh"
 
-BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier)
-    : m_lexemes(fichier->donnees_constantes->lexemes), m_fichier(fichier)
+BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexemes(fichier->lexemes), m_fichier(fichier)
 {
     if (m_lexemes.taille() > 0) {
         m_lexeme_courant = &m_lexemes[0];
@@ -71,21 +71,26 @@ void BaseSyntaxeuse::depile_etat()
 kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 {
     auto enchaineuse = Enchaineuse();
-    auto lexeme = lexeme_courant();
-
-    enchaineuse << "\n";
-    enchaineuse << m_fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
+    enchaineuse << '\n';
 
     POUR (m_donnees_etat_syntaxage) {
-        imprime_ligne_avec_message(enchaineuse, m_fichier, it.lexeme, it.message);
+        auto site = SiteSource::cree(m_fichier, it.lexeme);
+        imprime_ligne_avec_message(enchaineuse, site, it.message);
+        enchaineuse << '\n';
     }
 
-    imprime_ligne_avec_message(enchaineuse, m_fichier, lexeme, message);
+    auto lexeme = lexeme_courant();
+    auto site = SiteSource::cree(m_fichier, lexeme);
+    imprime_ligne_avec_message(enchaineuse, site, message);
     return enchaineuse.chaine();
 }
 
 void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
 {
+    if (m_possede_erreur) {
+        return;
+    }
+
     m_possede_erreur = true;
     gere_erreur_rapportee(cree_message_erreur(message));
 }

@@ -1,6 +1,6 @@
 importe Fondation
-importe Temps
 importe POSIX
+importe Temps
 
 // fonction pour générer des IDS, peut-être utilisée en parallèle ou sur différent serveurs si les paramètres sont uniques
 // adapté de SnowFlake de Twitter
@@ -83,7 +83,7 @@ principale :: fonc () -> z32
             Délai {
                 délai := flocon comme Délai
                 imprime("% Nous avons un Délai : % !\n", it, délai)
-                dors_millisecondes((délai comme z64) comme z32)
+                dors(depuis_millisecondes(délai comme z64, Instantané))
                 reprends
             }
             Flocon {

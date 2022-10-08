@@ -1,0 +1,155 @@
+/*
+    Bibliothèque de manipulation d'intervalles.
+ */
+
+Intervalle :: struct {
+    min: r32
+    max: r32
+}
+
+// --------------------------------------------
+// Union et intersection d'intervalles
+// Références :
+// https://fr.wikipedia.org/wiki/Intervalle_(math%C3%A9matiques)
+//
+// Note : ceci ne vérifie pas les bornes, et nous pouvons rétourner des listes d'Intervalles
+
+intervalle_uni :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    min_val := min(intervalle0.min, intervalle1.min)
+    max_val := max(intervalle0.max, intervalle1.max)
+
+    retourne Intervalle(min_val, max_val)
+}
+
+intervalle_intersecté :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    min_val := max(intervalle0.min, intervalle1.min)
+    max_val := min(intervalle0.max, intervalle1.max)
+
+    retourne Intervalle(min_val, max_val)
+}
+
+est_dans_l_intervalle :: fonc (intervalle: Intervalle, valeur: r32) -> bool
+{
+    retourne intervalle.min <= valeur <= intervalle.max
+}
+
+// --------------------------------------------
+// Opérations arithmétiques sur des intervalles
+// Références :
+// https://fr.wikipedia.org/wiki/Arithm%C3%A9tique_d%27intervalles
+
+opérateur + :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    retourne Intervalle(intervalle0.min + intervalle1.min, intervalle0.max + intervalle1.max)
+}
+
+opérateur - :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    retourne Intervalle(intervalle0.min - intervalle1.max, intervalle0.max - intervalle1.min)
+}
+
+opérateur * :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    x1y1 := intervalle0.min * intervalle1.min
+    x1y2 := intervalle0.min * intervalle1.max
+    x2y1 := intervalle0.max * intervalle1.min
+    x2y2 := intervalle0.max * intervalle1.max
+
+    min_val := min(x1y1, x1y2, x2y1, x2y2)
+    max_val := max(x1y1, x1y2, x2y1, x2y2)
+
+    retourne Intervalle(min_val, max_val)
+}
+
+opérateur * :: fonc (intervalle0: Intervalle, échelle: r32) -> Intervalle
+{
+    retourne Intervalle(intervalle0.min * échelle, intervalle0.max * échelle)
+}
+
+opérateur / :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+{
+    inverse_intervalle1 := Intervalle(1.0 / intervalle1.max, 1.0 / intervalle1.min)
+    retourne intervalle0 * inverse_intervalle1
+}
+
+opérateur / :: fonc (intervalle0: Intervalle, échelle: r32) -> Intervalle
+{
+    retourne Intervalle(intervalle0.min / échelle, intervalle0.max / échelle)
+}
+
+/*
+importe Fondation
+
+test_intervalles :: fonc ()
+{
+    {
+        intervalle_poids := Intervalle(79.5, 80.5)
+        intervalle_taille := Intervalle(1.785, 1.795)
+
+        intervalle_bmi := intervalle_poids / (intervalle_taille * intervalle_taille)
+
+        imprime("Intervalle BMI : %\n", intervalle_bmi)
+    }
+
+    {
+        intervalle0 := Intervalle(-2.0, 3.0)
+        intervalle1 := Intervalle(-5.0, 1.0)
+
+        uni := intervalle_uni(intervalle0, intervalle1)
+
+        imprime("Intervalle uni : %\n", uni)
+
+        intersecté := intervalle_intersecté(intervalle0, intervalle1)
+
+        imprime("Intervalle intersecté : %\n", intersecté)
+    }
+
+    {
+        imprime_intervalles_opérations :: fonc (intervalle: Intervalle, nom: chaine)
+        {
+            intervalle_addition := intervalle + intervalle
+            intervalle_soustraction := intervalle - intervalle
+            intervalle_multiplication := intervalle * intervalle
+            intervalle_division := intervalle / intervalle
+
+            imprime("\nIntervalles des opérations pour % :\n", nom)
+            imprime("Addition       : %\n", intervalle_addition)
+            imprime("Soustraction   : %\n", intervalle_soustraction)
+            imprime("Multiplication : %\n", intervalle_multiplication)
+            imprime("Division       : %\n", intervalle_division)
+        }
+
+        intervalle_z8 := Intervalle(-128.0, 127.0)
+        intervalle_z16 := Intervalle(-32768.0, 32767.0)
+
+        intervalle_n8 := Intervalle(0.0, 255.0)
+        intervalle_n16 := Intervalle(0.0, 65535.0)
+
+        imprime_intervalles_opérations(intervalle_z8, "z8")
+        imprime_intervalles_opérations(intervalle_z16, "z16")
+
+        imprime_intervalles_opérations(intervalle_n8, "n8")
+        imprime_intervalles_opérations(intervalle_n16, "n16")
+
+        imprime("\n")
+    }
+
+    {
+        // Je veux accéder à un index via une expression :
+        //     x := chn[it * 2]
+        //
+        // calcul de l'intervalle de l'expression
+        //     intervalle_it   := intervalle_type_de_it()
+        //     intervalle_2    := intervalle_de_2()
+        //     intervalle_expr := intervalle_it * intervalle_2
+
+        intervalle_it := Intervalle(-128.0, 127.0)
+        intervalle_2  := Intervalle(2.0, 2.0)
+        intervalle_expr := intervalle_it * intervalle_2
+
+        imprime("intervalle de l'expression : %\n", intervalle_expr)
+    }
+}
+*/

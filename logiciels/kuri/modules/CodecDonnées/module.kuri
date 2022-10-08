@@ -2,8 +2,8 @@
 
 importe Fondation
 
-// table     := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-// table_url := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+table_défaut :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+table_url :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
 est_base64_url :: fonc(c : z8) -> bool
 {
@@ -57,8 +57,6 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 	initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
-    longueur := chn.taille
-
     pour c dans chn {
 		char_array_3[i] = c comme n8
 
@@ -103,14 +101,12 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 
 encode_base64 :: fonc(chn: chaine) -> chaine
 {
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	retourne encode_base64_impl(chn, table)
+	retourne encode_base64_impl(chn, table_défaut)
 }
 
 encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 {
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	retourne encode_base64_impl(chn, table)
+	retourne encode_base64_impl(chn, table_url)
 }
 
 //#######################################
@@ -199,163 +195,6 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 }
 
 // -------------------------------------------------------------------
-
-est_caractère_réservé_url :: fonc (c: z8) -> bool
-{
-    chn := "&$+,/:;=?@"
-
-    pour chn {
-        si it == c {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
-est_caractère_nonsûr_url :: fonc (c: z8) -> bool
-{
-    chn := " \"<>#%{}|\\^~[]`"
-
-    pour chn {
-        si it == c {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
-encode_format_url :: fonc (texte: chaine) -> chaine
-{
-    résultat : chaine
-
-    caractères_hex___ := "0123456789abcdef"
-
-    pour texte {
-        si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
-            chaine_ajoute(*résultat, '%')
-            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) / 16)])
-            chaine_ajoute(*résultat, caractères_hex___[((it comme z32) % 16)])
-        }
-        sinon {
-            chaine_ajoute(*résultat, it)
-        }
-    }
-
-    retourne résultat
-}
-
-résoud_échappement_url :: fonc (chn: chaine) -> chaine
-{
-    nchn : chaine
-
-    i := 0
-
-    tantque i < chn.taille {
-        si chn[i] == '%' {
-            i += 1
-
-            si i + 2 >= chn.taille {
-                arrête
-            }
-
-            c := chn[i]
-
-            v : z8
-
-            si 'a' <= c <= 'f' {
-                v = (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v = (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v = (c - '0')
-            }
-
-            i += 1
-            c = chn[i]
-
-            v *= 16
-
-            si 'a' <= c <= 'f' {
-                v += (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v += (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v += (c - '0')
-            }
-
-            chaine_ajoute(*nchn, v)
-            i += 1
-        }
-        sinon {
-            chaine_ajoute(*nchn, chn[i])
-            i += 1
-        }
-    }
-
-    retourne nchn
-}
-
-résoud_échappement_url_localement :: fonc (chn: chaine)
-{
-    index_d_insertion := 0
-    index_courant := 0
-
-    tantque index_courant < chn.taille {
-        si chn[index_courant] == '%' {
-            index_courant += 1
-
-            si index_courant + 2 >= chn.taille {
-                arrête
-            }
-
-            c := chn[index_courant]
-
-            v : z8
-
-            si 'a' <= c <= 'f' {
-                v = (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v = (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v = (c - '0')
-            }
-
-            index_courant += 1
-            c = chn[index_courant]
-
-            v *= 16
-
-            si 'a' <= c <= 'f' {
-                v += (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v += (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v += (c - '0')
-            }
-
-            chn[index_d_insertion] = v
-            index_courant += 1
-            index_d_insertion += 1
-        }
-        sinon {
-            chn[index_d_insertion] = chn[index_courant]
-            index_courant += 1
-            index_d_insertion += 1
-        }
-    }
-}
-
-// -------------------------------------------------------------------
 // Encodage de données séquentielles par différence (delta).
 // https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
 
@@ -379,4 +218,135 @@ décode_différence :: fonc (données: []$T)
         it += précédent
         précédent = it
     }
+}
+
+// -------------------------------------------------------------------
+
+encode_hexadécimal :: fonc (entrée: []octet) -> chaine
+{
+    résultat : chaine
+
+    pour entrée {
+        a := (it >> 4) & 0xf
+        b := it & 0xf
+
+        chaine_ajoute(*résultat, caractères_hex_minuscules[a])
+        chaine_ajoute(*résultat, caractères_hex_minuscules[b])
+    }
+
+    retourne résultat
+}
+
+nombre_depuis_hex :: fonc (hex: z8) -> z8
+{
+    si 'a' <= hex <= 'f' {
+        retourne 10 + hex - 'a'
+    }
+
+    si 'A' <= hex <= 'F' {
+        retourne 10 + hex - 'A'
+    }
+
+    si '0' <= hex <= '9' {
+        retourne hex - '0'
+    }
+
+    retourne 255
+}
+
+décode_hexadécimal :: fonc (entrée: []octet) -> chaine
+{
+    résultat : chaine
+
+    index := 0
+
+    tantque index < entrée.taille {
+        a := entrée[index]
+        b := entrée[index + 1]
+
+        na := nombre_depuis_hex(a comme z8) comme n8
+        nb := nombre_depuis_hex(b comme z8) comme n8
+
+        c := na << 4 | nb
+
+        chaine_ajoute(*résultat, c comme z8)
+
+        index += 2
+    }
+
+    retourne résultat
+}
+
+// -------------------------------------------------------------------
+
+encode_base96 :: fonc (message: []octet) -> chaine
+{
+    base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»
+
+    résultat : chaine
+    index : n64 = 0
+
+    pour message {
+        index %= 6
+
+        n := it comme n8
+
+        a := (n >> 4) & 0xf
+        b := n & 0xf
+
+        ca := base[16 * index + a]
+        chaine_ajoute(*résultat, ca)
+        index += 1
+
+        cb := base[16 * index + b]
+        chaine_ajoute(*résultat, cb)
+        index += 1
+    }
+
+    retourne résultat
+}
+
+// -------------------------------------------------------------------
+
+FluxEncodage :: struct {
+    /* Écris une chaine native, encodée en UTF-8, dans le flux. */
+    écris_chaine : fonc (&FluxEncodage, chaine, bool)(rien)
+
+    /* Écris un point de code UTF-32 dans le flux. */
+    écris_utf32 : fonc (&FluxEncodage, n32, bool)(rien)
+
+    /* Écris un point de code UTF-8 dans le flux. */
+    écris_utf8 : fonc (&FluxEncodage, z8, bool)(rien)
+
+    enchaineuse: *Enchaineuse
+}
+
+écris :: fonc (flux: &FluxEncodage, chn: chaine)
+{
+    flux.écris_chaine(flux, chn, vrai)
+}
+
+écris :: fonc (flux: &FluxEncodage, point_de_code: n32)
+{
+    flux.écris_utf32(flux, point_de_code, vrai)
+}
+
+écris :: fonc (flux: &FluxEncodage, point_de_code: z8)
+{
+    flux.écris_utf8(flux, chn, vrai)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, chn: chaine)
+{
+    flux.écris_chaine(flux, chn, faux)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: n32)
+{
+    flux.écris_utf32(flux, point_de_code, faux)
+}
+
+écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: z8)
+{
+    flux.écris_utf8(flux, chn, faux)
 }

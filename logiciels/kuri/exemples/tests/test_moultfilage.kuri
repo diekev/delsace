@@ -1,18 +1,20 @@
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
 importe Fondation
+importe Chaine
 importe GlibC
+importe Ordinatrice
 importe PThread
 
 //#####################################################################################
 
 pthread_t :: n64
 
-rand :: fonc () -> r64 #externe
+rand :: fonc () -> r64 #externe libc
 
-sleep :: fonc (temps : z32) -> rien #externe
+sleep :: fonc (temps : z32) -> rien #externe libc
 
-strerror :: fonc (args : z32) -> ChaineC #externe
+strerror :: fonc (args : z32) -> ChaineC #externe libc
 
 //#####################################################################################
 
@@ -29,7 +31,7 @@ store_t :: struct {
 }
 
 // Fonction pour tirer un nombre au sort entre 0 et max.
-get_random :: fonc(max : z32) -> z32 #nulctx
+get_random :: fonc(max : z32) -> z32
 {
 	val : r64
 	val = max comme r64 * rand()
@@ -39,7 +41,7 @@ get_random :: fonc(max : z32) -> z32 #nulctx
 }
 
 // Fonction pour le thread du magasin.
-fn_store :: fonc(p_data : *rien) -> *rien #nulctx
+fn_store :: fonc(p_data : *rien) -> *rien
 {
     store := p_data comme *store_t
 
@@ -63,7 +65,7 @@ donnée_client_t :: struct {
 }
 
 // Fonction pour les threads des clients.
-fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
+fn_clients :: fonc(p_data : *rien) -> *rien
 {
     donnée_client := p_data comme *donnée_client_t
     store := donnée_client.store
@@ -91,32 +93,21 @@ fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
 	retourne nul
 }
 
-ValeurSysConf :: énum z32 {
-    _SC_NPROCESSORS_ONLN :: 84
-}
-
-sysconf :: fonc (nom: ValeurSysConf) -> z64 #externe
-
-nombre_threads_système :: fonc () -> z64
-{
-    retourne sysconf(ValeurSysConf._SC_NPROCESSORS_ONLN)
-}
-
 Tâche :: struct {
     id_tâche : pthread_t
 
-    rappel : #nulctx fonc(*rien)(*rien)
+    rappel : fonc(*rien)(*rien)
     données_rappel : *rien
 
     id : z32
 }
 
-lance_tâche :: fonc (tâche_: *rien) -> *rien #nulctx
+lance_tâche :: fonc (tâche_: *rien) -> *rien
 {
     tâche := tâche_ comme *Tâche
 
     contexte := __contexte_fil_principal
-    // contexte.id_tâche = tâche.id
+    // contexte().id_tâche = tâche.id
 
     pousse_contexte contexte {
         tâche.rappel(tâche.données_rappel)
@@ -148,7 +139,7 @@ SystèmeTâche :: struct {
 
 principale :: fonc () -> z32
 {
-    imprime("Il y a sur le système % threads\n", nombre_threads_système());
+    imprime("Il y a sur le système % threads\n", nombre_threads_disponible());
 
     //retourne 0
 

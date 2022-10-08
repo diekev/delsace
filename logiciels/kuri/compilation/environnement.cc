@@ -40,7 +40,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
             const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
             Enchaineuse enchaineuse;
-            enchaineuse << "/usr/bin/g++-9 -c ";
+            enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -c  -fPIC ";
             enchaineuse << chemin_fichier.c_str();
             enchaineuse << " -o ";
             enchaineuse << chemin_objet;
@@ -64,13 +64,16 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 
     // objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
     {
-        const auto chemin_objet = "/tmp/r16_tables_x64.so";
+        const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+        const auto chemin_objet = "/tmp/lib/x86_64-linux-gnu/libr16.so";
 
         if (!std::filesystem::exists(chemin_objet)) {
-            const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+            /* assure l'existence des dossiers parents */
+            const auto std_path = std::filesystem::path(chemin_objet);
+            std::filesystem::create_directories(std_path.parent_path());
 
             Enchaineuse enchaineuse;
-            enchaineuse << "/usr/bin/g++-9 -shared -fPIC ";
+            enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -shared -fPIC ";
             enchaineuse << chemin_fichier.c_str();
             enchaineuse << " -o ";
             enchaineuse << chemin_objet;
@@ -107,7 +110,7 @@ void compile_objet_r16(const std::filesystem::path &chemin_racine_kuri,
         const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
         Enchaineuse enchaineuse;
-        enchaineuse << "/usr/bin/g++-9 -c -m32 ";
+        enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -c -m32 ";
         enchaineuse << chemin_fichier.c_str();
         enchaineuse << " -o ";
         enchaineuse << chemin_objet;

@@ -24,12 +24,13 @@
 
 #pragma once
 
-#include "biblinternes/structures/file.hh"
-
 #include "arbre_syntaxique/noeud_code.hh"
+
+#include "structures/file.hh"
 
 #include "message.hh"
 
+struct Compilatrice;
 struct EspaceDeTravail;
 struct Module;
 struct NoeudDeclaration;
@@ -46,26 +47,25 @@ struct Messagere {
 
     bool interception_commencee = false;
 
-    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+    Compilatrice *m_compilatrice = nullptr;
 
-    UniteCompilation *derniere_unite = nullptr;
-
-    struct DonneesMessage {
-        UniteCompilation *unite = nullptr;
-        Message const *message = nullptr;
-    };
-
-    dls::file<DonneesMessage> file_message{};
+    kuri::file<Message const *> file_message{};
 
   public:
+    Messagere() = default;
+    Messagere(const Messagere &) = default;
+    Messagere &operator=(const Messagere &) = default;
+
+    Messagere(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
+    {
+    }
+
     void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
     void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
-    bool ajoute_message_typage_code(EspaceDeTravail *espace,
-                                    NoeudDeclaration *noeud_decl,
-                                    UniteCompilation *unite);
-    void ajoute_message_phase_compilation(EspaceDeTravail *espace);
+    Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
+    Message *ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
     long memoire_utilisee() const;
 
@@ -79,4 +79,7 @@ struct Messagere {
     void commence_interception(EspaceDeTravail *espace);
 
     void termine_interception(EspaceDeTravail *espace);
+
+    void purge_messages();
+    void envoie_message(Message *message);
 };

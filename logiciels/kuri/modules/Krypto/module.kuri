@@ -1,7 +1,5 @@
 // Interface Kuri pour Krypto
 
-#bibliothèque_statique "libkrypto.a"
-
 importe Fondation
 
 // À FAIRE : implémente avec notre langage toutes ces fonctions (il semble qu'il y a un problème de boutisme ou de signe dans le langage)
@@ -9,12 +7,6 @@ importe Fondation
 // À FAIRE : type Condensat (voir Alembic)
 // À FAIRE : bibliothèque de fonctions non cryptographiques
 // À FAIRE : ne passe pas des chaines mais des tableaux d'octets
-
-BCrypt_taille_tampon :: fonc () -> z64 #externe
-
-BCrypt_genere_empreinte :: fonc (mot_de_passe: *z8, charge_travail: z32, sortie: *z8) -> rien #externe
-
-BCrypt_compare_empreinte :: fonc (mot_de_passe: *z8, empreinte: *z8) -> z32 #externe
 
 BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> chaine
 {
@@ -37,26 +29,6 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
     retourne ok
 //    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
 }
-
-HACHEUSE :: struct #externe
-
-KRYPTO_HACHEUSE_cree_sha1 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_sha256 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_md5 :: fonc () -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_crc32 :: fonc () -> *HACHEUSE #externe
-
-KRYPTO_HACHEUSE_cree_hmac_md5 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_hmac_sha1 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-KRYPTO_HACHEUSE_cree_hmac_sha256 :: fonc (clé: *rien, taille_clé: n64, données: *rien, taille_données: n64) -> *HACHEUSE #externe
-
-KRYPTO_HACHEUSE_detruit :: fonc (hacheuse: *HACHEUSE) #externe
-KRYPTO_HACHEUSE_ajourne :: fonc (hacheuse: *HACHEUSE, données: *rien, taille_données: n64) #externe
-KRYPTO_HACHEUSE_condensat :: fonc (hacheuse: *HACHEUSE, sortie: *z8) #externe
-KRYPTO_HACHEUSE_condensat_hex :: fonc (hacheuse: *HACHEUSE, sortie: *z8) #externe
-KRYPTO_HACHEUSE_taille_condensat :: fonc (hacheuse: *HACHEUSE) -> z32 #externe
-KRYPTO_HACHEUSE_taille_bloc :: fonc (hacheuse: *HACHEUSE) -> z32  #externe
-
-KRYPTO_HACHEUSE_compare_condensat :: fonc (a: *n8, taille_a: n64, b: *n8, taille_b: n64) -> z32 #externe
 
 crée_crc32 :: fonc () -> *HACHEUSE
 {
@@ -121,10 +93,18 @@ ajourne :: fonc (hacheuse: *HACHEUSE, message: chaine)
     KRYPTO_HACHEUSE_ajourne(hacheuse, message.pointeur, message.taille comme n64)
 }
 
+ajourne :: fonc (hacheuse: *HACHEUSE, message: $T)
+{
+    c : chaine = ---
+    c.pointeur = *message comme *z8
+    c.taille = taille_de(T) comme z64
+    KRYPTO_HACHEUSE_ajourne(hacheuse, c.pointeur, c.taille comme n64)
+}
+
 condensat :: fonc (hacheuse: *HACHEUSE) -> chaine
 {
     résultat := loge_chaine(taille_condensat(hacheuse))
-    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.pointeur)
+    KRYPTO_HACHEUSE_condensat(hacheuse, résultat.pointeur comme *n8)
     retourne résultat
 }
 
@@ -148,4 +128,224 @@ taille_condensat :: fonc (hacheuse: *HACHEUSE) -> z32
 compare_condensat :: fonc (a: chaine, b: chaine) -> bool
 {
     retourne KRYPTO_HACHEUSE_compare_condensat(a.pointeur comme *n8, a.taille comme n64, b.pointeur comme *n8, b.taille comme n64) == 0
+}
+
+// ------------------------------------------------------
+// fonctions pour étudier les techniques de cryptographie
+// ne pas utiliser
+
+démo_chiffre_message :: fonc (message: chaine, clé: chaine) -> chaine
+{
+    flux_de_chiffrement := crée_sha256()
+    diffère détruit(flux_de_chiffrement)
+
+    flux_de_chiffrement.ajourne(clé)
+
+    condensat_clé := flux_de_chiffrement.condensat()
+
+    résultat := copie_chaine(message)
+    xor_chaines(résultat, chaine_depuis_table_octet(condensat_clé))
+    retourne résultat
+}
+
+xor_chaines :: fonc (chn1: chaine, chn2: chaine)
+{
+    compte := 0
+    index := 0
+
+    pour & chn1 {
+        it = it ^ (chn2[index] + compte comme z8)
+
+        index += 1
+
+        si index >= chn2.taille {
+            index = 0
+            compte += chn2.taille comme z32
+        }
+    }
+}
+
+// DÉDUPLIQUE
+rotation_gauche :: fonc (a: n32, n: n32) -> n32 #enligne
+{
+    retourne (a << n) | (a >> (32 - n))
+}
+
+chacha :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
+{
+    a_travail := a
+    b_travail := b
+    c_travail := c
+    d_travail := d
+
+    a_travail += b_travail
+    d_travail ^= a_travail
+    d_travail = rotation_gauche(d_travail, 16)
+    c_travail += d_travail
+    b_travail ^= c_travail
+    b_travail = rotation_gauche(b_travail, 12)
+
+    a_travail += b_travail
+    d_travail ^= a_travail
+    d_travail = rotation_gauche(d_travail, 8)
+    c_travail += d_travail
+    b_travail ^= c_travail
+    b_travail = rotation_gauche(b_travail, 7)
+
+    a = a_travail
+    b = b_travail
+    c = c_travail
+    d = d_travail
+}
+
+chacha_vertical :: fonc (bloc: &[4][4]n32)
+{
+    pour i dans 0 ... 3 {
+        a := bloc[i][0]
+        b := bloc[i][1]
+        c := bloc[i][2]
+        d := bloc[i][3]
+        chacha(a, b, c, d)
+        bloc[i][0] = a
+        bloc[i][1] = b
+        bloc[i][2] = c
+        bloc[i][3] = d
+    }
+}
+
+chacha_diagonal :: fonc (bloc: &[4][4]n32)
+{
+    pour i dans 0 ... 3 {
+        a := bloc[i][0]
+        b := bloc[(i + 1) % 4][1]
+        c := bloc[(i + 2) % 4][2]
+        d := bloc[(i + 3) % 4][3]
+        chacha(a, b, c, d)
+        bloc[i][0] = a
+        bloc[(i + 1) % 4][1] = b
+        bloc[(i + 2) % 4][2] = c
+        bloc[(i + 3) % 4][3] = d
+    }
+}
+
+convertis_clé :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
+{
+    constante := "expand byte-32 k"
+
+    a = mémoire(constante.pointeur comme *n32)
+    b = mémoire((constante.pointeur + 4) comme *n32)
+    c = mémoire((constante.pointeur + 8) comme *n32)
+    d = mémoire((constante.pointeur + 16) comme *n32)
+}
+
+test_chache :: fonc ()
+{
+    bloc : [4][4]n32
+
+    pour i dans 0 ... 3 {
+        pour j dans 0 ... 3 {
+            bloc[i][i] = 0
+        }
+    }
+
+    convertis_clé(bloc[0][0], bloc[0][1], bloc[0][2], bloc[0][3])
+
+    pour i dans 0 ... 9 {
+        chacha_vertical(bloc)
+        chacha_diagonal(bloc)
+    }
+}
+
+prépare_chaine :: fonc (entrée: chaine) -> chaine
+{
+    résultat : chaine
+
+    pour entrée {
+        si 'A' <= it <= 'Z' {
+            chaine_ajoute(*résultat, it - 'A')
+        }
+        sinon si 'a' <= it <= 'z' {
+            chaine_ajoute(*résultat, it - 'a')
+        }
+    }
+
+    retourne résultat
+}
+
+index_pour_lettre :: fonc (lettre: z8) -> z8
+{
+    si 'a' <= lettre <= 'z' {
+        retourne lettre - 'a'
+    }
+
+    retourne lettre - 'A'
+}
+
+prépare_résultat :: fonc (entrée: chaine) -> chaine
+{
+    résultat : chaine
+
+    pour entrée {
+        chaine_ajoute(*résultat, it + 'A')
+    }
+
+    retourne résultat
+}
+
+césar :: fonc (message: chaine, clé: z8) -> chaine
+{
+    message = prépare_chaine(message)
+    clé = index_pour_lettre(clé)
+
+    résultat : chaine
+
+    pour message {
+        codé := (it + clé) % 26
+        chaine_ajoute(*résultat, codé)
+    }
+
+    retourne prépare_résultat(résultat)
+}
+
+vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
+{
+    message = prépare_chaine(message)
+
+    résultat : chaine
+
+    pour lettre, index_lettre dans message {
+        index_lettre_message := lettre
+
+        pour clé dans clés {
+            index_lettre_message += index_pour_lettre(clé[index_lettre % clé.taille])
+        }
+
+        index_lettre_message %= 26
+
+        chaine_ajoute(*résultat, index_lettre_message)
+    }
+
+    retourne prépare_résultat(résultat)
+}
+
+scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
+{
+    message = prépare_chaine(message)
+    résultat : chaine
+
+    pour 0 ... taille_clé - 1 {
+        index := it
+
+        tantque index < message.taille {
+            chaine_ajoute(*résultat, message[index])
+            index += taille_clé
+        }
+    }
+
+    retourne prépare_résultat(résultat)
+}
+
+bits_d_entropie :: fonc (nombre_de_caractères: z64, taille: z64) -> z32
+{
+    retourne taille comme z32 * log(nombre_de_caractères comme r32) comme z32
 }

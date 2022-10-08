@@ -7,6 +7,8 @@ importe Compilatrice
 
     Lignes directrices de la NASA :
 
+    https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf
+
     1. pas de goto, setjmp, longjmp, récursion directe ou indirecte
 
     2. toutes les boucles doivent avoir une limite
@@ -59,7 +61,7 @@ vérifie_code :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
     }
 }
 
-vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
+vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa @inutilisée, code: *NoeudCode @inutilisée)
 {
     // À FAIRE: crash dans la MachineVirtuelle
     // type := code.type
@@ -101,7 +103,7 @@ vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: 
     entête := corps.entête
 
     pour entête.annotations {
-        si it == "IgnoreNASA" {
+        si it.nom == "FonctionLongue" {
             retourne
         }
     }
@@ -120,11 +122,13 @@ vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: 
 vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
 {
     // À FAIRE: crash dans la MV si nous avons une discrimination avec juste un sinon
+    saufsi code {
+        retourne
+    }
+
     discr code.genre {
         DÉCLARATION_VARIABLE {
             code_déclaration := code comme *NoeudCodeDéclarationVariable
-
-            ident := code_déclaration.valeur comme *NoeudCodeRéférenceDéclaration
 
             si code_déclaration.expression {
                 vérifie_bloc_fonction(vérificatrice, code_déclaration.expression)
@@ -181,20 +185,19 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
         }
         EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-            ident := code comme *NoeudCodeRéférenceDéclaration
         }
         EXPRESSION_PARENTHÈSE {
             paren := code comme *NoeudCodeExpressionUnaire
             vérifie_bloc_fonction(vérificatrice, paren.opérande)
         }
         EXPRESSION_APPEL {
-            appel := code comme *NoeudCodeAppel
+            // appel := code comme *NoeudCodeAppel
 
-            ident := appel.expression comme *NoeudCodeRéférenceDéclaration
+            // ident := appel.expression comme *NoeudCodeRéférenceDéclaration
 
-            si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+            // si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
 
-            }
+            // }
 
             // vérifie_bloc_fonction(vérificatrice, appel.expression)
 
@@ -210,7 +213,6 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             }
         }
         EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-            lit := code comme *NoeudCodeLittéraleRéel
         }
         EXPRESSION_COMME {
             expr_comme := code comme *NoeudCodeComme

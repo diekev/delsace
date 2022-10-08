@@ -24,18 +24,22 @@
 
 #include "machine_virtuelle.hh"
 
+#include <fstream>
+
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
-#include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "structures/ensemble.hh"
+#include "structures/table_hachage.hh"
 
 #include "instructions.hh"
 
@@ -45,7 +49,14 @@
 #undef DEBOGUE_LOCALES
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
-    ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(fonction)
+    ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
+        reinterpret_cast<Symbole::type_fonction>(fonction)
+
+inline bool adresse_est_nulle(const void *adresse)
+{
+    /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
+    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
+}
 
 namespace oper {
 
@@ -282,10 +293,8 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
             auto valeur_pointeur = pointeur;
             auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
 
-            kuri::chaine chaine;
-            chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
-            chaine.taille = valeur_chaine;
-
+            auto chaine = kuri::chaine_statique(*reinterpret_cast<char **>(valeur_pointeur),
+                                                valeur_chaine);
             os << '"' << chaine << '"';
 
             break;
@@ -308,7 +317,7 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR (type_fonction->types_entrees) {
         imprime_tab(std::cerr, profondeur_appel);
-        std::cerr << "-- paramètre " << index_sortie << " : ";
+        std::cerr << "-- paramètre " << index_sortie << " (" << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, std::cerr);
         std::cerr << '\n';
 
@@ -371,84 +380,10 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
-/* Redéfini certaines fonction afin de pouvoir controler leurs comportements.
- * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
- * la mémoire de notre coté, ou encore vérifier qu'il n'y ait pas de fuite de
- * mémoire dans les métaprogrammes.
- */
-static void *notre_malloc(size_t n)
-{
-    return malloc(n);
-}
-
-static void *notre_realloc(void *ptr, size_t taille)
-{
-    return realloc(ptr, taille);
-}
-
-static void notre_free(void *ptr)
-{
-    free(ptr);
-}
-
-/* ************************************************************************** */
-
-void GestionnaireBibliotheques::ajoute_bibliotheque(kuri::chaine const &chemin)
-{
-    auto objet = dls::systeme_fichier::shared_library(dls::chaine(chemin).c_str());
-    bibliotheques.ajoute({std::move(objet), chemin});
-}
-
-void GestionnaireBibliotheques::ajoute_fonction_pour_symbole(
-    IdentifiantCode *symbole, GestionnaireBibliotheques::type_fonction fonction)
-{
-    symboles_et_fonctions.insere({symbole, fonction});
-}
-
-GestionnaireBibliotheques::type_fonction GestionnaireBibliotheques::fonction_pour_symbole(
-    IdentifiantCode *symbole)
-{
-    auto iter = symboles_et_fonctions.trouve(symbole);
-
-    if (iter != symboles_et_fonctions.fin()) {
-        return iter->second;
-    }
-
-    POUR (bibliotheques) {
-        try {
-            auto ptr_symbole = it.bib(dls::chaine(symbole->nom.pointeur(), symbole->nom.taille()));
-            auto fonction = reinterpret_cast<MachineVirtuelle::fonction_symbole>(
-                ptr_symbole.ptr());
-            ajoute_fonction_pour_symbole(symbole, fonction);
-            return fonction;
-        }
-        catch (...) {
-            continue;
-        }
-    }
-
-    // std::cerr << "Impossible de trouver le symbole : " << symbole << '\n';
-    return nullptr;
-}
-
-long GestionnaireBibliotheques::memoire_utilisee() const
-{
-    return bibliotheques.taille_memoire();
-}
-
 static constexpr auto TAILLE_PILE = 1024 * 1024;
 
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
 {
-    gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
-    gestionnaire_bibliotheques.ajoute_bibliotheque("/tmp/r16_tables_x64.so");
-
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
-    gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(
-        ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
 }
 
 MachineVirtuelle::~MachineVirtuelle()
@@ -463,7 +398,7 @@ MachineVirtuelle::~MachineVirtuelle()
 }
 
 template <typename T>
-void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
+inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 {
     *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
 #ifndef NDEBUG
@@ -480,7 +415,7 @@ void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 }
 
 template <typename T>
-T MachineVirtuelle::depile(NoeudExpression *site)
+inline T MachineVirtuelle::depile(NoeudExpression *site)
 {
     this->pointeur_pile -= static_cast<long>(sizeof(T));
     // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
@@ -514,12 +449,6 @@ void MachineVirtuelle::depile(NoeudExpression *site, long n)
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
 {
-    /* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute
-     * des dépendances manquantes) */
-    if (fonction->chunk.code == nullptr) {
-        genere_code_binaire_pour_fonction(fonction, this);
-    }
-
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;
     frame->site = site;
@@ -550,6 +479,11 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     return true;
 }
 
+#define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
+    if (!pointeur) {                                                                              \
+        rapporte_erreur_execution(site, message);                                                 \
+    }
+
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
@@ -577,6 +511,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         auto &messagere = compilatrice.messagere;
         messagere->commence_interception(espace_recu);
@@ -588,27 +523,30 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         if (espace_recu->metaprogramme != m_metaprogramme) {
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
-            rapporte_erreur(
-                m_metaprogramme->unite->espace,
+            m_metaprogramme->unite->espace->rapporte_erreur(
                 site,
                 "Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
         }
 
         espace_recu->metaprogramme = nullptr;
 
-        auto &messagere = compilatrice.messagere;
-        messagere->termine_interception(espace_recu);
-        compilatrice.ordonnanceuse->purge_messages();
+        /* Ne passons pas par la messagère car il est possible que le GestionnaireCode soit
+         * vérrouiller par quelqu'un, et par le passé la Messagère prévenait le GestionnaireCode,
+         * causant un verrou mort. */
+        auto &gestionnaire = compilatrice.gestionnaire_code;
+        gestionnaire->interception_message_terminee(espace_recu);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
         auto chemin_recu = depile<kuri::chaine_statique>(site);
-        auto lexemes = compilatrice.lexe_fichier(chemin_recu, site);
+        auto espace = m_metaprogramme->unite->espace;
+        auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
         empile(site, lexemes);
         return;
     }
@@ -621,6 +559,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
         auto options = depile<OptionsDeCompilation *>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options de compilation nulles");
         compilatrice.ajourne_options_compilation(options);
         return;
     }
@@ -628,6 +567,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_compilation(espace, chaine);
         return;
     }
@@ -635,6 +575,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_fichier_compilation(espace, chaine);
         return;
     }
@@ -643,6 +584,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto chaine = depile<kuri::chaine_statique>(site);
         auto module = depile<Module *>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_au_module(espace, module, chaine);
         return;
     }
@@ -650,6 +593,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
         auto options = depile<OptionsDeCompilation *>(site);
         auto nom = depile<kuri::chaine_statique>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
         auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
         empile(site, espace);
         return;
@@ -666,6 +610,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         return;
     }
@@ -675,20 +620,58 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(site, compilatrice.possede_erreur(espace));
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
-        auto espace = depile<EspaceDeTravail *>(site);
-        auto fichier = espace->fichier(site->lexeme->fichier);
+        auto fichier = compilatrice.fichier(site->lexeme->fichier);
         auto module = fichier->module;
+        empile(site, module);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
+        auto message = depile<Message *>(site);
+        RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
+        compilatrice.gestionnaire_code->message_recu(message);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsees)) {
+        auto espace = m_metaprogramme->unite->espace;
+        auto fonctions = compilatrice.fonctions_parsees(espace);
+        empile(site, fonctions);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
+        auto code = depile<NoeudCode *>(site);
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
+        auto nom_module = kuri::chaine_statique("");
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        const auto module = fichier->module;
+        nom_module = module->nom()->nom;
+        empile(site, nom_module);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
+        auto code = depile<NoeudCode *>(site);
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        auto module = fichier->module;
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun module correspond au module du noeud code");
         empile(site, module);
         return;
     }
@@ -703,7 +686,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
 #endif
 
-    auto pointeurs_arguments = dls::tablet<void *, 12>();
+    auto pointeurs_arguments = kuri::tablet<void *, 12>();
     auto decalage_argument = 0u;
 
     if (ptr_fonction->decl->est_variadique) {
@@ -755,7 +738,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     ffi_call(&donnees_externe.cif,
-             ptr_fonction->donnees_externe.ptr_fonction,
+             donnees_externe.ptr_fonction,
              pointeur_pile,
              pointeurs_arguments.donnees());
 
@@ -777,7 +760,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     pointeur_pile = pointeur_arguments + taille_type_retour;
 }
 
-void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
+inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
 {
     auto drapeaux = LIS_OCTET();
 
@@ -842,8 +825,16 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     pile = de->pile;
     pointeur_pile = de->pointeur_pile;
     frames = de->frames;
-    ptr_donnees_constantes = de->donnees_constantes.donnees();
-    ptr_donnees_globales = de->donnees_globales.donnees();
+    ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
+    ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
+    donnees_constantes = &compilatrice.donnees_constantes_executions;
+
+    intervalle_adresses_globales.min = ptr_donnees_globales;
+    intervalle_adresses_globales.max = ptr_donnees_globales +
+                                       metaprogramme->donnees_globales.taille();
+
+    intervalle_adresses_pile_execution.min = pile;
+    intervalle_adresses_pile_execution.max = pile + TAILLE_PILE;
 
     assert(pile);
     assert(pointeur_pile);
@@ -851,13 +842,14 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     m_metaprogramme = metaprogramme;
 }
 
-void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
+void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme,
+                                                 int compte_executees)
 {
     auto de = metaprogramme->donnees_execution;
     de->profondeur_appel = profondeur_appel;
     de->pointeur_pile = pointeur_pile;
 
-    assert(de->pointeur_pile >= de->pile && de->pointeur_pile < (de->pile + TAILLE_PILE));
+    assert(intervalle_adresses_pile_execution.possede_inclusif(de->pointeur_pile));
 
     profondeur_appel = 0;
     pile = nullptr;
@@ -865,15 +857,26 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
     frames = nullptr;
     ptr_donnees_constantes = nullptr;
     ptr_donnees_globales = nullptr;
+    donnees_constantes = nullptr;
+    intervalle_adresses_globales = {};
+    intervalle_adresses_pile_execution = {};
 
     m_metaprogramme = nullptr;
+
+    de->instructions_executees += compte_executees;
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.ajoute_echantillon(metaprogramme, compte_executees);
+    }
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions()
+#define INSTRUCTIONS_PAR_BATCH 1000
+
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
+    int &compte_executees)
 {
     auto frame = &frames[profondeur_appel - 1];
 
-    for (auto i = 0; i < 1000; ++i) {
+    for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
 #ifdef DEBOGUE_INTERPRETEUSE
         auto &sortie = std::cerr;
         imprime_tab(sortie, profondeur_appel);
@@ -904,8 +907,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_BRANCHE:
             {
-                auto decalage = LIS_4_OCTETS();
-                frame->pointeur = frame->fonction->chunk.code + decalage;
+                /* frame->pointeur contient le décalage relatif à l'adresse du début de la
+                 * fonction, leur addition nous donne donc le nouveau pointeur. */
+                frame->pointeur = frame->fonction->chunk.code +
+                                  *reinterpret_cast<int *>(frame->pointeur);
                 break;
             }
             case OP_BRANCHE_CONDITION:
@@ -1247,6 +1252,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                         pointeur_pile = pointeur_debut_retour;
                     }
 
+                    compte_executees = i + 1;
                     return ResultatInterpretation::TERMINE;
                 }
 
@@ -1270,15 +1276,22 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto taille_argument = LIS_4_OCTETS();
                 // saute l'instruction d'appel
                 frame->pointeur += 8;
 
 #ifdef DEBOGUE_INTERPRETEUSE
-                std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
+                std::cerr << "-- appel : " << ptr_fonction->nom << " ("
+                          << chaine_type(ptr_fonction->type) << ')' << '\n';
 #endif
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                    compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
@@ -1287,6 +1300,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL_EXTERNE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
 
@@ -1307,6 +1325,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto valeur_inst = LIS_8_OCTETS();
                 auto adresse = depile<void *>(site);
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
+                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
+                }
+
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
                 if (ptr_fonction->est_externe) {
@@ -1316,11 +1339,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                     if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
+                        compte_executees = i + 1;
                         return resultat;
                     }
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                        compte_executees = i + 1;
                         return ResultatInterpretation::ERREUR;
                     }
                 }
@@ -1332,22 +1357,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille = LIS_4_OCTETS();
                 auto adresse_ou = depile<void *>(site);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "adresse_ou : " << adresse_ou << '\n';
-                //				std::cerr << "adresse_de : " << adresse_de << '\n';
-                //				std::cerr << "taille     : " << taille << '\n';
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Erreur interne : superposition de la copie dans la machine "
-                                    "virtuelle lors d'une assignation !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, true)) {
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
@@ -1359,18 +1372,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto type = LIS_POINTEUR(Type);
                 // saute l'identifiant
                 frame->pointeur += 8;
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "alloue : " << type->taille_octet << '\n';
                 this->pointeur_pile += type->taille_octet;
-                // std::cerr << "Empile " << type->taille_octet << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
 
                 if (type->taille_octet == 0) {
-                    rapporte_erreur(
-                        m_metaprogramme->unite->espace,
-                        site,
-                        "Erreur interne : allocation d'un type de taille 0 dans la MV !")
+                    m_metaprogramme->unite->espace
+                        ->rapporte_erreur(
+                            site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
                         .ajoute_message("La type est : ", chaine_type(type), ".\n");
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 break;
@@ -1381,23 +1391,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = depile<void *>(site);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Erreur interne : superposition de la copie dans la machine "
-                                    "virtuelle lors d'un chargement !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, false)) {
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
-                // std::cerr << "Empile " << taille << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
                 break;
             }
             case OP_REFERENCE_VARIABLE:
@@ -1410,8 +1410,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_REFERENCE_GLOBALE:
             {
                 auto index = LIS_4_OCTETS();
-                auto const &globale = this->globales[index];
-                empile(site, &ptr_donnees_globales[globale.adresse]);
+                auto const &globale = donnees_constantes->globales[index];
+                if (globale.adresse_pour_execution) {
+                    empile(site, globale.adresse_pour_execution);
+                }
+                else {
+                    empile(site, &ptr_donnees_globales[globale.adresse]);
+                }
                 break;
             }
             case OP_REFERENCE_MEMBRE:
@@ -1430,15 +1435,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto nouvelle_adresse = adresse + index * taille_donnees;
                 empile(site, nouvelle_adresse);
                 //				std::cerr << "nouvelle_adresse : " << static_cast<void
-                //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : " << index <<
-                //'\n'; 				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
+                //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : "
+                //<< index
+                //<<
+                //'\n'; 				std::cerr << "taille_donnees   : " << taille_donnees <<
+                //'\n';
                 break;
             }
             default:
             {
-                rapporte_erreur(m_metaprogramme->unite->espace,
-                                dernier_site,
-                                "Erreur interne : Opération inconnue dans la MV !");
+                m_metaprogramme->unite->espace->rapporte_erreur(
+                    dernier_site, "Erreur interne : Opération inconnue dans la MV !");
+                compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
         }
@@ -1446,6 +1454,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         dernier_site = site;
     }
 
+    compte_executees = INSTRUCTIONS_PAR_BATCH;
     return ResultatInterpretation::OK;
 }
 
@@ -1457,74 +1466,115 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     }
 }
 
-MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(IdentifiantCode *symbole)
+void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
+                                                 kuri::chaine_statique message)
 {
-    return gestionnaire_bibliotheques.fonction_pour_symbole(symbole);
+    auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
+
+    e.ajoute_message("Trace d'appel :\n\n");
+    ajoute_trace_appel(e);
 }
 
-int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
+void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
 {
-    auto globale = Globale{};
-    globale.type = type;
-    globale.ident = ident;
-    globale.adresse = donnees_globales.taille();
+    /* La première frame d'appel possède le même lexème que la directive d'exécution du
+     * métaprogramme, donc ignorons-là également. */
+    for (int i = profondeur_appel - 1; i >= 1; --i) {
+        e.ajoute_site(frames[i].site);
+    }
+}
 
-    donnees_globales.redimensionne(donnees_globales.taille() +
-                                   static_cast<int>(type->taille_octet));
+bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
+                                              const void *adresse_ou,
+                                              const void *adresse_de,
+                                              const long taille,
+                                              bool assignation)
+{
+    auto const taille_disponible = std::abs(static_cast<const char *>(adresse_de) -
+                                            static_cast<const char *>(adresse_ou));
+    if (taille_disponible < taille) {
+        auto message = assignation ? "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'une assignation !" :
+                                     "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'un chargement !";
+        m_metaprogramme->unite->espace->rapporte_erreur(site, message)
+            .ajoute_message("La taille à copier est de    : ", taille, ".\n")
+            .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+            .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+            .ajoute_message("Le type du site est          : ", chaine_type(site->type), "\n")
+            .ajoute_message("Le taille du type est        : ", site->type->taille_octet, "\n")
+            .ajoute_message("Le taille disponible est     : ", taille_disponible, "\n");
+        return false;
+    }
 
-    auto ptr = globales.taille();
+    if (adresse_est_nulle(adresse_de)) {
+        auto message = assignation ? "Assignation depuis une adresse nulle !" :
+                                     "Chargement depuis une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
 
-    globales.ajoute(globale);
+    if (adresse_est_nulle(adresse_ou)) {
+        auto message = assignation ? "Assignation vers une adresse nulle !" :
+                                     "Chargement vers une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
 
-    return ptr;
+    if (!assignation) {
+        if (!adresse_est_assignable(adresse_ou)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
+                .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+            return false;
+        }
+
+#if 0
+        // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
+        if (!adresse_est_assignable(adresse_de)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie depuis une adresse non-chargeable !")
+                .ajoute_message("L'adresse est : ", adresse_de, "\n");
+            return false;
+        }
+#endif
+    }
+
+    return true;
+}
+
+bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
+{
+    return intervalle_adresses_globales.possede_inclusif(adresse) ||
+           intervalle_adresses_pile_execution.possede_inclusif(adresse);
+}
+
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
+    AtomeFonction *ptr_fonction, NoeudExpression *site)
+{
+    if (!m_metaprogramme->cibles_appels.possede(ptr_fonction)) {
+        auto espace = m_metaprogramme->unite->espace;
+        espace
+            ->rapporte_erreur(site,
+                              "Alors que j'exécute un métaprogramme, je rencontre une instruction "
+                              "d'appel vers une fonction ne faisant pas partie du métaprogramme.")
+            .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
+                            static_cast<void *>(ptr_fonction),
+                            "\n")
+            .ajoute_donnees([&](Erreur &e) { ajoute_trace_appel(e); });
+        return ResultatInterpretation::ERREUR;
+    }
+
+    return ResultatInterpretation::OK;
 }
 
 void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 {
+    /* Appel le métaprogramme pour initialiser sa frame d'appels, l'installation et la
+     * désinstallation ajournement les données d'exécution. */
     installe_metaprogramme(metaprogramme);
-
-    /* appel le métaprogramme avant d'ajourner les données au cas où sa fonction
-     * n'aurait pas été générée */
     appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
-
-    /* nous devons utiliser nos propres données pour les globales */
-    ptr_donnees_globales = donnees_globales.donnees();
-    ptr_donnees_constantes = donnees_constantes.donnees();
-
-    // initialise les globales pour le métaprogramme
-    POUR (patchs_donnees_constantes) {
-        void *adresse_ou = nullptr;
-        void *adresse_quoi = nullptr;
-
-        if (it.quoi == ADRESSE_CONSTANTE) {
-            adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
-        }
-        else {
-            adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
-        }
-
-        if (it.ou == DONNEES_CONSTANTES) {
-            adresse_ou = ptr_donnees_constantes + it.decalage_ou;
-        }
-        else {
-            adresse_ou = ptr_donnees_globales + it.decalage_ou;
-        }
-
-        *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
-        // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
-    }
-
-    /* copie les tableaux de données pour le métaprogramme, ceci est nécessaire
-     * car le code binaire des fonctions n'est généré qu'une seule fois, mais
-     * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
-     * les globales et les constantes ; pointeurs qui seraient invalidés quand
-     * lors de l'ajout d'autres globales ou constantes */
-    metaprogramme->donnees_execution->donnees_globales = donnees_globales;
-    metaprogramme->donnees_execution->donnees_constantes = donnees_constantes;
-
-    /* l'appel a modifié les frames du métaprogramme, sauvegarde */
-    desinstalle_metaprogramme(metaprogramme);
-
+    desinstalle_metaprogramme(metaprogramme, 0);
     m_metaprogrammes.ajoute(metaprogramme);
 }
 
@@ -1555,7 +1605,8 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
         installe_metaprogramme(it);
 
-        auto res = execute_instructions();
+        int compte_executees = 0;
+        auto res = execute_instructions(compte_executees);
 
         if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
             // RÀF
@@ -1575,7 +1626,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             i -= 1;
         }
 
-        desinstalle_metaprogramme(it);
+        desinstalle_metaprogramme(it, compte_executees);
 
         if (stop || compilatrice.possede_erreur()) {
             break;
@@ -1603,6 +1654,8 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
         return;
     }
 
+    instructions_executees += donnees->instructions_executees;
+
     // À FAIRE : récupère la mémoire
     memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
     donnees = nullptr;
@@ -1610,23 +1663,14 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 {
-    auto memoire_mv = 0l;
-
-    POUR_TABLEAU_PAGE (donnees_execution) {
-        memoire_mv += it.donnees_globales.taille();
-        memoire_mv += it.donnees_constantes.taille();
-    }
-
-    memoire_mv += donnees_execution.memoire_utilisee();
-    memoire_mv += globales.taille_memoire();
-    memoire_mv += donnees_constantes.taille_memoire();
-    memoire_mv += donnees_globales.taille_memoire();
-    memoire_mv += patchs_donnees_constantes.taille_memoire();
-    memoire_mv += gestionnaire_bibliotheques.memoire_utilisee();
-
-    stats.memoire_mv += memoire_mv;
+    stats.memoire_mv += donnees_execution.memoire_utilisee();
     stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
+    stats.instructions_executees += instructions_executees;
+
+    if (compilatrice.profile_metaprogrammes) {
+        profileuse.cree_rapports(compilatrice.format_rapport_profilage);
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
@@ -1653,4 +1697,142 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
     os << "-- adresse où   : " << patch.decalage_ou << '\n';
 
     return os;
+}
+
+InformationProfilage &Profileuse::informations_pour(MetaProgramme *metaprogramme)
+{
+    POUR (informations_pour_metaprogrammes) {
+        if (it.metaprogramme == metaprogramme) {
+            return it;
+        }
+    }
+
+    auto informations = InformationProfilage();
+    informations.metaprogramme = metaprogramme;
+    informations_pour_metaprogrammes.ajoute(informations);
+    return informations_pour_metaprogrammes.derniere();
+}
+
+void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
+{
+    if (poids == 0) {
+        return;
+    }
+
+    auto &informations = informations_pour(metaprogramme);
+
+    auto echantillon = EchantillonProfilage();
+    echantillon.profondeur_frame_appel = metaprogramme->donnees_execution->profondeur_appel;
+    echantillon.poids = poids;
+
+    for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
+        echantillon.frames[i] = metaprogramme->donnees_execution->frames[i];
+    }
+
+    informations.echantillons.ajoute(echantillon);
+}
+
+void Profileuse::cree_rapports(FormatRapportProfilage format)
+{
+    POUR (informations_pour_metaprogrammes) {
+        cree_rapport(it, format);
+    }
+}
+
+static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
+{
+    if (fonction->decl) {
+        auto decl = fonction->decl;
+        if (decl->est_initialisation_type) {
+            auto type_param = decl->params[0]->type->comme_pointeur()->type_pointe;
+            os << "init_de(" << chaine_type(type_param) << ')';
+        }
+        else if (decl->ident) {
+            os << decl->ident->nom;
+        }
+        else {
+            os << fonction->nom;
+        }
+    }
+    else {
+        os << fonction->nom;
+    }
+}
+
+static void cree_rapport_format_echantillons_total_plus_fonction(
+    const InformationProfilage &informations, std::ostream &os)
+{
+    auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
+    auto fonctions = kuri::ensemble<AtomeFonction *>();
+
+    POUR (informations.echantillons) {
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            auto valeur = table.valeur_ou(frame.fonction, 0);
+            table.insere(frame.fonction, valeur + 1);
+
+            fonctions.insere(frame.fonction);
+        }
+    }
+
+    auto fonctions_et_echantillons = kuri::tableau<PaireEnchantillonFonction>();
+
+    fonctions.pour_chaque_element([&](AtomeFonction *fonction) {
+        auto nombre_echantillons = table.valeur_ou(fonction, 0);
+        auto paire = PaireEnchantillonFonction{fonction, nombre_echantillons};
+        fonctions_et_echantillons.ajoute(paire);
+    });
+
+    std::sort(fonctions_et_echantillons.begin(),
+              fonctions_et_echantillons.end(),
+              [](auto &a, auto &b) { return a.nombre_echantillons > b.nombre_echantillons; });
+
+    POUR (fonctions_et_echantillons) {
+        os << it.nombre_echantillons << " : ";
+        imprime_nom_fonction(it.fonction, os);
+        os << '\n';
+    }
+}
+
+static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations,
+                                              std::ostream &os)
+{
+    POUR (informations.echantillons) {
+        if (it.profondeur_frame_appel == 0) {
+            continue;
+        }
+
+        for (int i = 0; i < it.profondeur_frame_appel; i++) {
+            auto &frame = it.frames[i];
+            imprime_nom_fonction(frame.fonction, os);
+
+            if (i < it.profondeur_frame_appel - 1) {
+                os << ";";
+            }
+        }
+
+        os << " " << it.poids << '\n';
+    }
+}
+
+void Profileuse::cree_rapport(const InformationProfilage &informations,
+                              FormatRapportProfilage format)
+{
+    auto nom_fichier = "/tmp/métaprogramme" +
+                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
+
+    std::ofstream os(nom_fichier);
+
+    switch (format) {
+        case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
+        {
+            cree_rapport_format_echantillons_total_plus_fonction(informations, os);
+            break;
+        }
+        case FormatRapportProfilage::BRENDAN_GREGG:
+        {
+            cree_rapport_format_brendan_gregg(informations, os);
+            break;
+        }
+    }
 }

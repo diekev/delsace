@@ -29,7 +29,6 @@ principale :: fonc () -> z32
 
     imprime("R32_MIN est %, R32_MAX est %\n", R32_MIN, R32_MAX)
 
-
     // nous pouvons écrire les nombres réels sous forme scientifique
     x := 1e-6
     imprime("x : %\n", x)

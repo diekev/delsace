@@ -1,6 +1,7 @@
 importe Fondation
-importe GlibC
 importe Sérialisation
+importe SysFichier
+importe Tabulation
 
 // --------------------------------------------------------
 
@@ -76,7 +77,7 @@ détruit_table :: fonc (table: *Table) -> rien
 imprime_table :: fonc (table: *Table) -> rien
 {
     curseur := curseur_début_de_table(table)
-    diffère { déloge(curseur); }
+    diffère { déloge(curseur); }
 
     ligne_titre : LigneTabuleuse
 
@@ -159,7 +160,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
         }
 
         si paginatrice.utilise_stockage_disque {
-            flush_paginatrice(paginatrice, i, TAILLE_PAGE)
+            flush_paginatrice(paginatrice, i)
         }
 
         déloge(paginatrice.pages[i])
@@ -174,7 +175,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
 
         si paginatrice.pages[index_page].pointeur != nul {
             si paginatrice.utilise_stockage_disque {
-                flush_paginatrice(paginatrice, index_page, TAILLE_PAGE)
+                flush_paginatrice(paginatrice, index_page)
             }
 
             déloge(paginatrice.pages[index_page])
@@ -182,11 +183,9 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     }
 
     si paginatrice.utilise_stockage_disque {
-        résultat_fermeture := close(paginatrice.descripteur_fichier)
-
-        si résultat_fermeture == -1 {
-            imprime("Échec lors de la fermeture du fichier\n")
-            exit(1)
+        tente ferme(*paginatrice.fichier) piège err {
+            panique("Échec lors de la fermeture du fichier")
+            retourne
         }
     }
 

@@ -1,0 +1,378 @@
+/* Routines de formattage, d'impression, de documents HTML. */
+
+importe Chaine
+importe Fondation
+importe SysFichier
+importe Triage
+
+/* À FAIRE : options
+ * - taille tabulation
+ * - préférences guillemet/apostrophe
+
+    minification
+    [X] comments
+    [ ] default attributes
+    [X] script charset attributes
+    [ ] the document charset attributes
+    [X] type from script tags
+    [X] script mime types
+    [X] type from style sheet link
+    [X] empty attributes
+    [ ] http prefix from attributes
+    [X] value from empty input
+    [X] whitespace around tags
+    [X] sort CSS class names
+    [X] sort HTML attributes
+    [X] sum up white space
+    [X] changing anchor names to id
+
+$htmlMin->doOptimizeViaHtmlDomParser();               // optimize html via "HtmlDomParser()"
+$htmlMin->doRemoveComments();                         // remove default HTML comments (depends on "doOptimizeViaHtmlDomParser(true)")
+$htmlMin->doSumUpWhitespace();                        // sum-up extra whitespace from the Dom (depends on "doOptimizeViaHtmlDomParser(true)")
+$htmlMin->doRemoveWhitespaceAroundTags();             // remove whitespace around tags (depends on "doOptimizeViaHtmlDomParser(true)")
+$htmlMin->doOptimizeAttributes();                     // optimize html attributes (depends on "doOptimizeViaHtmlDomParser(true)")
+$htmlMin->doRemoveHttpPrefixFromAttributes();         // remove optional "http:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveHttpsPrefixFromAttributes();        // remove optional "https:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
+$htmlMin->doKeepHttpAndHttpsPrefixOnExternalAttributes(); // keep "http:"- and "https:"-prefix for all external links
+$htmlMin->doMakeSameDomainsLinksRelative(['example.com']); // make some links relative, by removing the domain from attributes
+$htmlMin->doRemoveDefaultAttributes();                // remove defaults (depends on "doOptimizeAttributes(true)" | disabled by default)
+$htmlMin->doRemoveDeprecatedAnchorName();             // remove deprecated anchor-jump (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveDeprecatedScriptCharsetAttribute(); // remove deprecated charset-attribute - the browser will use the charset from the HTTP-Header, anyway (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveDeprecatedTypeFromScriptTag();      // remove deprecated script-mime-types (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveDeprecatedTypeFromStylesheetLink(); // remove "type=text/css" for css links (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveDeprecatedTypeFromStyleAndLinkTag(); // remove "type=text/css" from all links and styles
+$htmlMin->doRemoveDefaultMediaTypeFromStyleAndLinkTag(); // remove "media="all" from all links and styles
+$htmlMin->doRemoveDefaultTypeFromButton();            // remove type="submit" from button tags
+$htmlMin->doRemoveEmptyAttributes();                  // remove some empty attributes (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveValueFromEmptyInput();              // remove 'value=""' from empty <input> (depends on "doOptimizeAttributes(true)")
+$htmlMin->doSortCssClassNames();                      // sort css-class-names, for better gzip results (depends on "doOptimizeAttributes(true)")
+$htmlMin->doSortHtmlAttributes();                     // sort html-attributes, for better gzip results (depends on "doOptimizeAttributes(true)")
+$htmlMin->doRemoveSpacesBetweenTags();                // remove more (aggressive) spaces in the dom (disabled by default)
+$htmlMin->doRemoveOmittedQuotes();                    // remove quotes e.g. class="lall" => class=lall
+$htmlMin->doRemoveOmittedHtmlTags();                  // remove ommitted html tags e.g. <p>lall</p> => <p>lall
+
+ */
+
+est_élément_optionnel :: fonc (tag: *ChaineInternée) -> bool
+{
+    retourne fait_partie_de(tag, TAG_html, TAG_head, TAG_body)
+}
+
+ContexteFormattage :: struct {
+    profondeur: z32
+    supprime_espaces_blancs_texte: bool = vrai
+    insère_nouvelle_lignes_après_tags: bool = vrai
+    indente_tags: bool = vrai
+    /* Supprime les guillemets des attributs si possible. */
+    supprime_guillemets_attributs: bool
+    supprime_slash_tags_auto_fermant: bool
+    supprime_commentaire: bool
+    /* Ignore les tags de fins pour les éléments optionnels: html, head, body. */
+    ignore_tag_fin_éléments_optionnels: bool
+}
+
+initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
+{
+    ctx: ContexteFormattage
+    ctx.insère_nouvelle_lignes_après_tags = faux
+    ctx.supprime_espaces_blancs_texte = vrai
+    ctx.indente_tags = faux
+    ctx.supprime_espaces_blancs_texte = vrai
+    ctx.supprime_guillemets_attributs = vrai
+    ctx.supprime_slash_tags_auto_fermant = vrai
+    ctx.supprime_commentaire = vrai
+    ctx.ignore_tag_fin_éléments_optionnels = vrai
+    retourne ctx
+}
+
+avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
+{
+    résultat := chn
+    résultat.unités.pointeur += pas
+    résultat.unités.taille -= pas
+    retourne résultat
+}
+
+recule :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
+{
+    résultat := chn
+    résultat.unités.taille -= pas
+    retourne résultat
+}
+
+est_espace_blanc :: fonc (unité: n16) -> bool #enligne
+{
+    retourne unité == ('\n' comme n16) || unité == (' ' comme n16) || unité == ('\t' comme n16)
+}
+
+// À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
+formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineUTF16) -> ChaineUTF16
+{
+    saufsi contexte_formattage.supprime_espaces_blancs_texte {
+        retourne texte
+    }
+
+    tantque texte.taille() > 0 {
+        saufsi est_espace_blanc(texte.unités[0]) {
+            arrête
+        }
+        texte = avance(texte, 1)
+    }
+
+    tantque texte.taille() > 0 {
+        index := texte.taille() - 1
+        saufsi est_espace_blanc(texte.unités[index]) {
+            arrête
+        }
+        texte = recule(texte, 1)
+    }
+
+    retourne texte
+}
+
+tabulation_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
+{
+    saufsi contexte_formattage.indente_tags {
+        retourne
+    }
+
+    pour contexte_formattage.profondeur {
+        enchaineuse.ajoute_au_tampon("    ")
+    }
+}
+
+nouvelle_ligne_après_tag_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
+{
+    si contexte_formattage.insère_nouvelle_lignes_après_tags {
+        enchaineuse.ajoute_au_tampon("\n")
+    }
+}
+
+peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, valeur: ChaineUTF16) -> bool
+{
+    saufsi contexte_formattage.supprime_guillemets_attributs {
+        retourne faux
+    }
+
+    pour c dans valeur.unités {
+        si c == (' ' comme n16) || c == ('/' comme n16) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutilisée, tag: *ChaineInternée, attribut: Attribut) -> bool
+{
+    si tag == TAG_script {
+        // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés
+        retourne attribut.nom == "type" || attribut.nom == "charset" || attribut.nom == "language"
+    }
+
+    si tag == TAG_style {
+        // "type" n'est pas requis en HTML5
+        retourne attribut.nom == "type"
+    }
+
+    si tag == TAG_input {
+        retourne attribut.nom == "value" && attribut.valeur == ""
+    }
+
+    retourne faux
+}
+
+compare_attribut :: fonc (a1: Attribut, a2: Attribut) -> z32
+{
+    si a1.nom < a2.nom {
+        retourne -1
+    }
+
+    si a1.nom == a2.nom {
+        retourne 0
+    }
+
+    retourne 1
+}
+
+tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
+{
+    classes := divise_chaine(chn_classe, ' ' comme n32)
+    diffère déloge(classes)
+
+    tri_rapide(classes, compare_chaine_utf16)
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    pour classes {
+        si index_it > 0 {
+            enchaineuse.ajoute(' ')
+        }
+        pour c dans it.unités {
+            enchaineuse.ajoute(c)
+        }
+    }
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attributs: []Attribut) -> []Attribut
+{
+    résultat : []Attribut
+
+    pour & attributs {
+        si peut_ignorer_attribut(contexte_formattage, tag, it) {
+            continue
+        }
+
+        si tag == TAG_a {
+            // "name" est déprécié, remplace par "id"
+            si it.nom == "name" {
+                détruit_chaine(it.valeur)
+                it.valeur = crée_chaine_utf16("id")
+            }
+        }
+
+        si it.nom == "class" {
+            nouvelle_valeur := tri_classes_css(it.valeur)
+            détruit_chaine(it.valeur)
+            it.valeur = nouvelle_valeur
+        }
+
+        tableau_ajoute(*résultat, it)
+    }
+
+    tri_rapide(résultat, compare_attribut)
+
+    retourne résultat
+}
+
+formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud, enchaineuse: *Enchaineuse)
+{
+    flux_sortie := crée_flux_sortie(enchaineuse)
+
+    discr noeud.genre {
+        Invalide {
+            retourne
+        }
+        Commentaire {
+            si contexte_formattage.supprime_commentaire {
+                retourne
+            }
+
+            commentaire := noeud comme *NoeudCommentaire
+            texte := formatte_texte(contexte_formattage, commentaire.données)
+
+            tabulation_au_besoin(contexte_formattage, enchaineuse)
+            enchaineuse.ajoute_au_tampon("<!--", texte, "-->")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+        }
+        Document {
+            pour noeud.enfants {
+                formatte_noeud(contexte_formattage, it, enchaineuse)
+            }
+        }
+        Doctype {
+            enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+        }
+        Texte {
+            texte := noeud comme *NoeudTexte
+            données := formatte_texte(contexte_formattage, texte.données)
+            formatte_chaine_utf16(*données, flux_sortie)
+            //enchaineuse.ajoute_au_tampon(données)
+        }
+        Élément {
+            tabulation_au_besoin(contexte_formattage, enchaineuse)
+
+            élément := noeud comme *Élément
+
+            chn_tag := chaine_native(élément.texte)
+            diffère déloge(chn_tag)
+
+            /* Ouverture du tag. */
+            enchaineuse.imprime_dans_enchaineuse("<%", chn_tag)
+
+            /* Attributs. */
+            attributs := cueille_et_tri_attributs(contexte_formattage, élément.texte, élément.attributs)
+            diffère déloge(attributs)
+
+            pour attributs {
+                enchaineuse.ajoute_au_tampon(" ")
+                formatte_chaine_utf16(*it.nom, flux_sortie)
+                enchaineuse.ajoute_au_tampon("=")
+
+                si peut_ignorer_les_guillemets(contexte_formattage, it.valeur) {
+                    //enchaineuse.imprime_dans_enchaineuse(" %=%", it.nom, it.valeur)
+                    formatte_chaine_utf16(*it.valeur, flux_sortie)
+                }
+                sinon {
+                    //enchaineuse.imprime_dans_enchaineuse(" %='%'", it.nom, it.valeur)
+                    enchaineuse.ajoute_au_tampon("'")
+                    formatte_chaine_utf16(*it.valeur, flux_sortie)
+                    enchaineuse.ajoute_au_tampon("'")
+                }
+            }
+
+            si est_tag_auto_fermant(élément.texte) {
+                si contexte_formattage.supprime_slash_tags_auto_fermant {
+                    enchaineuse.ajoute_au_tampon(">")
+                }
+                sinon {
+                    enchaineuse.ajoute_au_tampon("/>")
+                }
+
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                retourne
+            }
+
+            enchaineuse.ajoute_au_tampon(">")
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+
+            /* Enfants. */
+            contexte_formattage.profondeur += 1
+            pour élément.enfants {
+                formatte_noeud(contexte_formattage, it, enchaineuse)
+            }
+            contexte_formattage.profondeur -= 1
+
+            /* Fermeture du tag. */
+            saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.texte) {
+                tabulation_au_besoin(contexte_formattage, enchaineuse)
+                enchaineuse.imprime_dans_enchaineuse("</%>", chn_tag)
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            }
+        }
+    }
+}
+
+/* Formatte le document et imprime-le dans le fichier sortie. */
+formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
+{
+    contexte_formattage: ContexteFormattage
+    retourne formatte_document(contexte_formattage, document, fichier_sortie)
+}
+
+formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *Document, fichier_sortie: *Fichier) -> z64
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    formatte_noeud(contexte_formattage, document, *enchaineuse)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, fichier_sortie)
+
+    retourne taille_chaine(*enchaineuse)
+}
+
+crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, document: *Document) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+    formatte_noeud(contexte_formattage, document, *enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}

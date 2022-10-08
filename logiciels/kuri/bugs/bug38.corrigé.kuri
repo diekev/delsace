@@ -10,6 +10,5 @@ Struct :: struct {
 
 principale :: fonc () -> z32
 {
-    imprime_succès(vrai)
     retourne 0
 }

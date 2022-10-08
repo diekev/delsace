@@ -1,6 +1,6 @@
-importe Fondation
-importe GlibC
 importe Couleur
+importe Fondation
+importe Chaine
 importe Math
 
 Image :: struct {
@@ -13,6 +13,7 @@ crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
     image.tampon = loge_tableau(Couleur.Couleur, largeur * hauteur)
+    image.tampon.taille = largeur * hauteur
     image.largeur = largeur
     image.hauteur = hauteur
 
@@ -31,7 +32,7 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     }
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur.Couleur
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> Couleur.Couleur
 {
     x := pos.x * image.largeur comme r32
     y := pos.y * image.hauteur comme r32
@@ -47,30 +48,106 @@ remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
     retourne image.tampon[index]
 }
 
-#bibliothèque_statique "libmodule_c_image.a"
+charge "interface_image"
 
-#chemin "/opt/lib/oiio/lib/"
+liboiio :: #bibliothèque "OpenImageIO"
+liboiio_util :: #bibliothèque "OpenImageIO_Util"
+// libjpeg :: #bibliothèque "jpeg"
+// libpugixml :: #bibliothèque "pugixml"
+// libwebp :: #bibliothèque "webp"
+// libwebpdecoder :: #bibliothèque "webpdecoder"
+// libwebpdemux :: #bibliothèque "webpdemux"
+// libwebpmux :: #bibliothèque "webpmux"
+// libpthread :: #bibliothèque "pthread"
+// libtiff :: #bibliothèque "tiff"
+// libtiffxx :: #bibliothèque "tiffxx"
+// libz :: #bibliothèque "z"
+// libboost_thread :: #bibliothèque "boost_thread"
+// libboost_system :: #bibliothèque "boost_system"
+// libboost_filesystem :: #bibliothèque "boost_filesystem"
+// libopenjp2 :: #bibliothèque "openjp2"
+// libdl :: #bibliothèque "dl"
+// libpng :: #bibliothèque "png"
 
-#bibliothèque_dynamique "OpenImageIO"
+// #dépendance_bibliothèque liboiio_util libdl
+// #dépendance_bibliothèque libtiff libz
+// #dépendance_bibliothèque libtiff libtiffxx
+// #dépendance_bibliothèque libwebp libwebpdecoder
+// #dépendance_bibliothèque libwebp libwebpdemux
+// #dépendance_bibliothèque libwebp libwebpmux
+// #dépendance_bibliothèque liboiio libpng
+// #dépendance_bibliothèque liboiio libwebp
+// #dépendance_bibliothèque liboiio libtiff
+// #dépendance_bibliothèque liboiio libpthread
+// #dépendance_bibliothèque liboiio libpugixml
+// #dépendance_bibliothèque liboiio libjpeg
+// #dépendance_bibliothèque liboiio libopenjp2
+#dépendance_bibliothèque liboiio liboiio_util
+// #dépendance_bibliothèque libmodule_c_image libboost_thread
+// #dépendance_bibliothèque libmodule_c_image libboost_system
+// #dépendance_bibliothèque libmodule_c_image libboost_filesystem
+#dépendance_bibliothèque libmodule_c_image liboiio
 
-ImageIO :: struct {
-    données : *r32
-    taille_données : z64
-
-    largeur : z32
-    hauteur : z32
-    composants : z32
+nombre_éléments_données :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur * image.nombre_composants
 }
 
-IMG_ouvre_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
+alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
+{
+    image : ImageIO
+    image.hauteur = hauteur
+    image.largeur = largeur
+    image.nombre_composants = composants
 
-IMG_ecris_image :: fonc (chemin: ChaineC, image: *ImageIO) -> z32 #externe
+    données := loge_tableau(r32, image.nombre_éléments_données())
+    image.donnees = données.pointeur
 
-IMG_detruit_image :: fonc (image: *ImageIO) #externe
+    retourne image
+}
 
-IMG_calcul_empreinte_floue :: fonc (chemin: ChaineC, composants_x: z32, composants_y: z32, résultat: *z8, taille_résultat: *z64) #externe
+détruit_image :: fonc (image: &ImageIO)
+{
+    tableau : []r32 = ---
+    tableau.pointeur = image.données
+    tableau.taille = image.nombre_éléments_données()
+    déloge(tableau)
 
-IMG_check_proxy :: fonc () #externe
+    image.données = nul
+    image.hauteur = 0
+    image.largeur = 0
+    image.composants = 0
+}
+
+nombre_de_pixels :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur
+}
+
+pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> []T
+{
+    tableau : []T = ---
+    tableau.pointeur = image.donnees comme *T
+    tableau.taille = image.hauteur * image.largeur
+    retourne tableau
+}
+
+pixel_à_la_position :: fonc (image: ImageIO, x: z32, y: z32, $T: type_de_données) -> *T
+{
+    index := y * image.nombre_composants * image.largeur + x * image.nombre_composants
+    retourne *image.donnees[index] comme *T
+}
+
+premier_pixel_ligne :: fonc (image: ImageIO, y: z32, $T: type_de_données) -> *T
+{
+    décalage := y * image.nombre_composants * image.largeur
+    retourne *image.donnees[décalage] comme *T
+}
+
+écris_image :: fonc (chemin: chaine, image: ImageIO)
+{
+    _ := IMG_ecris_image(crée_chaine_c_temp(chemin) comme *z8, *image)
+}
 
 calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
 {
@@ -158,7 +235,7 @@ blurHashForPixels :: fonc (
             actualMaximumValue = max(abs(ac[i]), actualMaximumValue)
         }
 
-		quantisedMaximumValue := max(0, min(82, sol(actualMaximumValue * 166.0 - 0.5) comme z32))
+		quantisedMaximumValue := max(0, min(82, plancher(actualMaximumValue * 166.0 - 0.5) comme z32))
 		maximumValue = (quantisedMaximumValue + 1) comme r32 / 166.0
 		ptr = encode_int(quantisedMaximumValue, 1, ptr)
 	}
@@ -278,7 +355,7 @@ signPow :: fonc (value: r32, exp: r32) -> r32
 
 encode_int :: fonc (value: z32, length: z32, destination: *z8) -> *z8
 {
-    characters := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
+    characters :: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
 
 	divisor := 1
 

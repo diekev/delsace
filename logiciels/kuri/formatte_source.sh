@@ -8,5 +8,5 @@ for fichier in ${FICHIERS[@]}; do
     fi
 
     echo "Formattage de :" $fichier
-    clang-format -i $fichier
+    clang-format-12 -i $fichier
 done

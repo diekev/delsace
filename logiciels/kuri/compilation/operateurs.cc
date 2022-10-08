@@ -29,6 +29,8 @@
 
 #include "espace_de_travail.hh"
 #include "statistiques/statistiques.hh"
+#include "unite_compilation.hh"
+#include "validation_semantique.hh"
 
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme,
                                                             IndiceTypeOp type_operandes)
@@ -610,14 +612,11 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR, type, type_bool, indice);
     ajoute_basique(GenreLexeme::INFERIEUR_EGAL, type, type_bool, indice);
     ajoute_basique(GenreLexeme::SUPERIEUR, type, type_bool, indice);
@@ -656,11 +655,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
     auto const &type_bool = typeuse[TypeBase::BOOL];
-
-    ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
-    ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
@@ -689,46 +684,16 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
 }
 
-static std::pair<bool, double> verifie_compatibilite(EspaceDeTravail &espace,
-                                                     ContexteValidationCode &contexte,
-                                                     Type *type_arg,
-                                                     Type *type_enf,
-                                                     TransformationType &transformation)
-{
-    if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
-        return {true, 0.0};
-    }
-
-    if (transformation.type == TypeTransformation::INUTILE) {
-        /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
-        if (type_arg->est_pointeur() && type_arg->comme_pointeur()->type_pointe == nullptr &&
-            type_arg != type_enf) {
-            return {false, 0.0};
-        }
-
-        return {false, 1.0};
-    }
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return {false, 0.0};
-    }
-
-    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
-     * donne un mi-poids à l'argument */
-    return {false, 0.5};
-}
-
-bool cherche_candidats_operateurs(EspaceDeTravail &espace,
-                                  ContexteValidationCode &contexte,
-                                  Type *type1,
-                                  Type *type2,
-                                  GenreLexeme type_op,
-                                  dls::tablet<OperateurCandidat, 10> &candidats)
+std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
+                                                    Type *type1,
+                                                    Type *type2,
+                                                    GenreLexeme type_op,
+                                                    kuri::tablet<OperateurCandidat, 10> &candidats)
 {
     assert(type1);
     assert(type2);
 
-    auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
+    auto op_candidats = kuri::tablet<OperateurBinaire const *, 10>();
 
     POUR (type1->operateurs.operateurs(type_op).plage()) {
         op_candidats.ajoute(it);
@@ -741,66 +706,67 @@ bool cherche_candidats_operateurs(EspaceDeTravail &espace,
     }
 
     for (auto const op : op_candidats) {
-        auto seq1 = TransformationType{};
-        auto seq2 = TransformationType{};
+        auto poids1_ou_attente = verifie_compatibilite(espace.compilatrice(), op->type1, type1);
 
-        auto [erreur_dep1,
-              poids1] = verifie_compatibilite(espace, contexte, op->type1, type1, seq1);
-
-        if (erreur_dep1) {
-            return true;
+        if (std::holds_alternative<Attente>(poids1_ou_attente)) {
+            return std::get<Attente>(poids1_ou_attente);
         }
 
-        auto [erreur_dep2,
-              poids2] = verifie_compatibilite(espace, contexte, op->type2, type2, seq2);
+        auto poids1 = std::get<PoidsTransformation>(poids1_ou_attente);
 
-        if (erreur_dep2) {
-            return true;
+        auto poids2_ou_attente = verifie_compatibilite(espace.compilatrice(), op->type2, type2);
+
+        if (std::holds_alternative<Attente>(poids2_ou_attente)) {
+            return std::get<Attente>(poids2_ou_attente);
         }
 
-        auto poids = poids1 * poids2;
+        auto poids2 = std::get<PoidsTransformation>(poids2_ou_attente);
 
-        if (poids != 0.0) {
-            auto candidat = OperateurCandidat{};
+        auto poids = poids1.poids * poids2.poids;
+
+        /* Nous ajoutons également les opérateurs ayant un poids de 0 afin de pouvoir donner des
+         * détails dans les messages d'erreurs. */
+        auto candidat = OperateurCandidat{};
+        candidat.op = op;
+        candidat.poids = poids;
+        candidat.transformation_type1 = poids1.transformation;
+        candidat.transformation_type2 = poids2.transformation;
+
+        candidats.ajoute(candidat);
+
+        if (op->est_commutatif && poids != 1.0) {
+            auto poids3_ou_attente = verifie_compatibilite(
+                espace.compilatrice(), op->type1, type2);
+
+            if (std::holds_alternative<Attente>(poids3_ou_attente)) {
+                return std::get<Attente>(poids3_ou_attente);
+            }
+
+            auto poids3 = std::get<PoidsTransformation>(poids3_ou_attente);
+
+            auto poids4_ou_attente = verifie_compatibilite(
+                espace.compilatrice(), op->type2, type1);
+
+            if (std::holds_alternative<Attente>(poids4_ou_attente)) {
+                return std::get<Attente>(poids4_ou_attente);
+            }
+
+            auto poids4 = std::get<PoidsTransformation>(poids4_ou_attente);
+
+            poids = poids3.poids * poids4.poids;
+
             candidat.op = op;
             candidat.poids = poids;
-            candidat.transformation_type1 = seq1;
-            candidat.transformation_type2 = seq2;
+            // N'oublions pas de permuter les transformations.
+            candidat.transformation_type1 = poids4.transformation;
+            candidat.transformation_type2 = poids3.transformation;
+            candidat.permute_operandes = true;
 
             candidats.ajoute(candidat);
         }
-
-        if (op->est_commutatif && poids != 1.0) {
-            auto [erreur_dep3,
-                  poids3] = verifie_compatibilite(espace, contexte, op->type1, type2, seq2);
-
-            if (erreur_dep3) {
-                return true;
-            }
-
-            auto [erreur_dep4,
-                  poids4] = verifie_compatibilite(espace, contexte, op->type2, type1, seq1);
-
-            if (erreur_dep4) {
-                return true;
-            }
-
-            poids = poids3 * poids4;
-
-            if (poids != 0.0) {
-                auto candidat = OperateurCandidat{};
-                candidat.op = op;
-                candidat.poids = poids;
-                candidat.transformation_type1 = seq1;
-                candidat.transformation_type2 = seq2;
-                candidat.permute_operandes = true;
-
-                candidats.ajoute(candidat);
-            }
-        }
     }
 
-    return false;
+    return {};
 }
 
 const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
@@ -820,30 +786,30 @@ const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
     return nullptr;
 }
 
-void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs)
+void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs)
 {
     Type *types_entiers_naturels[] = {
-        espace.typeuse[TypeBase::N8],
-        espace.typeuse[TypeBase::N16],
-        espace.typeuse[TypeBase::N32],
-        espace.typeuse[TypeBase::N64],
+        typeuse[TypeBase::N8],
+        typeuse[TypeBase::N16],
+        typeuse[TypeBase::N32],
+        typeuse[TypeBase::N64],
     };
 
     Type *types_entiers_relatifs[] = {
-        espace.typeuse[TypeBase::Z8],
-        espace.typeuse[TypeBase::Z16],
-        espace.typeuse[TypeBase::Z32],
-        espace.typeuse[TypeBase::Z64],
+        typeuse[TypeBase::Z8],
+        typeuse[TypeBase::Z16],
+        typeuse[TypeBase::Z32],
+        typeuse[TypeBase::Z64],
     };
 
-    auto type_r32 = espace.typeuse[TypeBase::R32];
-    auto type_r64 = espace.typeuse[TypeBase::R64];
+    auto type_r32 = typeuse[TypeBase::R32];
+    auto type_r64 = typeuse[TypeBase::R64];
 
     Type *types_reels[] = {type_r32, type_r64};
 
-    auto type_entier_constant = espace.typeuse[TypeBase::ENTIER_CONSTANT];
-    auto type_octet = espace.typeuse[TypeBase::OCTET];
-    auto type_bool = espace.typeuse[TypeBase::BOOL];
+    auto type_entier_constant = typeuse[TypeBase::ENTIER_CONSTANT];
+    auto type_octet = typeuse[TypeBase::OCTET];
+    auto type_bool = typeuse[TypeBase::BOOL];
 
     for (auto op : operateurs_entiers_reels) {
         for (auto type : types_entiers_relatifs) {
@@ -1029,7 +995,7 @@ void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operate
         operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
     }
 
-    auto type_type_de_donnees = espace.typeuse.type_type_de_donnees_;
+    auto type_type_de_donnees = typeuse.type_type_de_donnees_;
 
     operateurs.op_comp_egal_types = operateurs.ajoute_basique(
         GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);

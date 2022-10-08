@@ -1,0 +1,117 @@
+/* Module de création de géométrie 3D. */
+
+importe Fondation
+importe SysFichier
+
+libgmp :: #bibliothèque "gmp"
+libmpfr :: #bibliothèque "mpfr"
+libtbb :: #bibliothèque "tbb"
+
+#dépendance_bibliothèque libmodule_c_geometrie_3d libtbb
+#dépendance_bibliothèque libmodule_c_geometrie_3d libgmp
+#dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr
+
+/* Structure contenant des fonctions de rappels devant être renseignées par
+ * les applications clientes afin de créer la géométrie. */
+CréatriceGéométrie :: struct {
+    /* Ajout un point à la géométrie de sortie.
+     * Paramètres :
+     * - données utilisateurs
+     * - coordonnée x du point
+     * - coordonnée y du point
+     * - coordonnée z du point
+     */
+    ajoute_point : fonc (*rien, r32, r32, r32)(rien)
+
+    /* Ajoute un polygone à la géométrie de sortie.
+     * Paramètres :
+     * - données utilisateurs
+     * - pointeur vers une liste d'index de points formant le polygone
+     * - nombre d'index de points formant le polygone
+     */
+    ajoute_polygone : fonc (*rien, *z32, z32)(rien)
+
+    /* Données utilisateur de l'application cliente. */
+    données: *rien
+}
+
+/* Chargement de données depuis des fichiers .obj */
+
+parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> rien
+{
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    marque := obtiens_marque_stockage_temporaire()
+    diffère { set_marque_stockage_temporaire(marque); }
+
+    // supprime le caractère de nouvelle ligne
+    ligne = recule(ligne, 1)
+
+    si ligne.taille > 0 && ligne[ligne.taille - 1] == '\r' {
+        ligne = recule(ligne, 1)
+    }
+
+    si ligne.commence_par("f ") {
+        tmp := avance(ligne, 2)
+
+        est_quad := faux
+
+        polygone : [4]z32
+        taille_polygone : z32
+
+        pousse_contexte nouveau_contexte {
+            mots := divise(tmp, ' ')
+
+            est_quad = mots.taille == 4
+
+            // À FAIRE: uvs, normaux
+            indices0 := divise(mots[0], '/')
+            idx0 := extrait_nombre_entier(indices0[0]) comme z32
+
+            indices1 := divise(mots[1], '/')
+            idx1 := extrait_nombre_entier(indices1[0]) comme z32
+
+            indices2 := divise(mots[2], '/')
+            idx2 := extrait_nombre_entier(indices2[0]) comme z32
+
+            polygone[0] = idx0 - 1
+            polygone[1] = idx1 - 1
+            polygone[2] = idx2 - 1
+
+            taille_polygone = 3
+            si est_quad {
+                taille_polygone = 4
+                indices3 := divise(mots[3], '/')
+                idx3 := extrait_nombre_entier(indices3[0]) comme z32
+                polygone[3] = idx3 - 1
+            }
+        }
+
+        créatrice.ajoute_polygone(créatrice.données, *polygone[0], taille_polygone)
+    }
+    sinon si ligne.commence_par("v ") {
+        tmp := avance(ligne, 2)
+
+        x : r32
+        y : r32
+        z : r32
+        pousse_contexte nouveau_contexte {
+            mots := divise(tmp, ' ')
+
+            x = extrait_nombre_réel(mots[0]) comme r32
+            y = extrait_nombre_réel(mots[1]) comme r32
+            z = extrait_nombre_réel(mots[2]) comme r32
+        }
+
+        créatrice.ajoute_point(créatrice.données, x, y, z)
+    }
+}
+
+crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie, chemin: CheminFichier)
+{
+    contenu := contenu_fichier_texte(chemin)
+    diffère { déloge(contenu); }
+
+    pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
+}

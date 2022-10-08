@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 GenreNoeud :: énum {
@@ -57,32 +58,29 @@ ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
+ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: chaine @inutilisée)
 {
-    attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
-    tableau_ajoute(*noeud.attributs, attribut)
+    // attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
+    // tableau_ajoute(*noeud.attributs, attribut)
 }
 
-possède_attribut :: fonc (noeud: *Noeud, nom: chaine) -> bool
+ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
 {
-    pour noeud.attributs {
-        si it.nom == nom {
-            retourne vrai
-        }
-    }
+    ajoute_attribut(*noeud.attributs, nom, valeur)
+}
 
-    retourne faux
+ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: *ChaineInternée @inutilisée)
+{
+    // attribut := Attribut(nom = copie_chaine(nom), valeur = valeur.chaine_native())
+    // tableau_ajoute(*noeud.attributs, attribut)
+}
+
+possède_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16) -> bool
+{
+    retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
 cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
 {
-    pour noeud.attributs {
-        si it.nom != nom {
-            continue
-        }
-
-        retourne *noeud.attributs[index_it]
-    }
-
-    retourne nul
+    retourne cherche_attribut(noeud.attributs, nom)
 }

@@ -54,7 +54,7 @@ void Controleuse::verifie(
 		pousse_erreur(ss.str());
 	}
 
-	m_flux << ".";
+    // m_flux << ".";
 	++m_total;
 }
 
@@ -100,6 +100,7 @@ void Controleuse::performe_controles()
 {
 	for (const auto &fonction : m_fonctions) {
 		fonction(*this);
+        m_flux << '.';
 	}
 }
 

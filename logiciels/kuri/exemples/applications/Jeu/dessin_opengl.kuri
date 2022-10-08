@@ -1,7 +1,7 @@
-importe Fondation
 importe Couleur
-importe OpenGL
+importe Fondation
 importe Math
+importe OpenGL
 
 VertexArrayID : n32 = 0
 ProgramID : n32 = 0

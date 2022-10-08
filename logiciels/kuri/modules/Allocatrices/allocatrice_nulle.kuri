@@ -1,3 +1,4 @@
+/*
 allocatrice_nulle :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
@@ -9,6 +10,7 @@ allocatrice_nulle :: fonc(
 {
     retourne nul
 }
+*/
 
 /*
 
@@ -33,7 +35,6 @@ D'autres allocatrices à explorer :
 -- superposer sur un quelconque bloc de mémoire
 -- 1 bit/bloc comme unique coût
 -- fragile quant au moultfilage (nécessite un plein-entreblocage > 1 bloc)
-
 
 template <class AllocatorType, size_t MIN, size_t MAX>
 class FreeList {

@@ -26,14 +26,14 @@
 
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AtomeFonction;
+struct EspaceDeTravail;
 struct GrapheDependance;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
@@ -142,10 +142,24 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-    dls::ensemblon<NoeudDeclarationEnteteFonction const *, 16> fonctions_utilisees{};
-    dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
-    dls::ensemblon<Type *, 16> types_utilises{};
+    kuri::ensemblon<NoeudDeclarationEnteteFonction *, 16> fonctions_utilisees{};
+    kuri::ensemblon<NoeudDeclarationVariable *, 16> globales_utilisees{};
+    kuri::ensemblon<Type *, 16> types_utilises{};
+
+    void fusionne(DonneesDependance const &autre);
+
+    void efface()
+    {
+        fonctions_utilisees.efface();
+        globales_utilisees.efface();
+        types_utilises.efface();
+    }
 };
+
+void imprime_dependances(const DonneesDependance &dependances,
+                         EspaceDeTravail *espace,
+                         const char *message,
+                         std::ostream &flux);
 
 struct GrapheDependance {
     tableau_page<NoeudDependance> noeuds{};
@@ -170,9 +184,7 @@ struct GrapheDependance {
                             Type *type2,
                             TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-    void ajoute_dependances(NoeudDependance &noeud,
-                            DonneesDependance &donnees,
-                            bool efface_donnees = true);
+    void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
 
     void connecte_noeuds(NoeudDependance &noeud1,
                          NoeudDependance &noeud2,
@@ -184,7 +196,7 @@ struct GrapheDependance {
 
     void rassemble_fonctions_utilisees(NoeudDependance *racine,
                                        kuri::tableau<AtomeFonction *> &fonctions,
-                                       dls::ensemble<AtomeFonction *> &utilises);
+                                       kuri::ensemble<AtomeFonction *> &utilises);
 
     template <typename Rappel>
     void traverse(NoeudDependance *racine, Rappel rappel)

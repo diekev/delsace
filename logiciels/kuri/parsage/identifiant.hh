@@ -32,11 +32,12 @@
 
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
+    kuri::chaine nom_broye{};
 };
 
 struct TableIdentifiant {
   private:
-    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
+    kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{"IdentifiantCode"};
     tableau_page<IdentifiantCode, 1024> identifiants{};
 
     Enchaineuse enchaineuse{};
@@ -95,16 +96,13 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(principale, "principale")                                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(enligne, "enligne")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(horsligne, "horsligne")                                     \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nulctx, "nulctx")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface")                                     \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_dynamique, "bibliothèque_dynamique")           \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_statique, "bibliothèque_statique")             \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(def, "def")                                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque, "bibliothèque")                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute")                                         \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin, "chemin")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(creation_contexte, "création_contexte")                     \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cree_contexte, "crée_contexte")                             \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice, "compilatrice")                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fonction_test_variadique_externe,                           \
                                       "fonction_test_variadique_externe")                         \
@@ -135,7 +133,20 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_legales, "valeurs_légales")                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_illegales, "valeurs_illégales")                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compacte, "compacte")                                       \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")                                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(dependance_bibliotheque, "dépendance_bibliothèque")         \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__table_des_types, "__table_des_types")                     \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_init, "ajoute_init")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fini, "ajoute_fini")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_execution_kuri, "__init_exécution_kuri")               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fini_execution_kuri, "__fini_exécution_kuri")               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_globales_kuri, "__init_globales_kuri")                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pre_executable, "pré_exécutable")                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(AnnotationCode, "AnnotationCode")                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(zero, "zéro")                                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(resultat, "résultat")                                       \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__contexte_fil_principal, "__contexte_fil_principal")       \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(debogue, "débogue")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;

@@ -49,11 +49,13 @@ enum class GenreInfoType : int {
     OCTET,
     TYPE_DE_DONNEES,
     UNION,
+    OPAQUE,
 };
 
 struct InfoType {
     GenreInfoType genre{};
     uint taille_en_octet = 0;
+    uint index_dans_table_des_types = 0;
 };
 
 struct InfoTypeEntier : public InfoType {
@@ -71,6 +73,12 @@ struct InfoTypeTableau : public InfoType {
     int taille_fixe = 0;
 };
 
+// À FAIRE : déduplique avec AnnotationCode
+struct AnnotationMembre {
+    kuri::chaine_statique nom;
+    kuri::chaine_statique valeur;
+};
+
 struct InfoTypeMembreStructure {
     // Les Drapeaux sont définis dans TypeCompose::Membre
 
@@ -78,11 +86,13 @@ struct InfoTypeMembreStructure {
     InfoType *info = nullptr;
     long decalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
+    kuri::tableau<AnnotationMembre *> annotations{};
 };
 
 struct InfoTypeStructure : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tableau<InfoTypeMembreStructure *> membres{};
+    kuri::tableau<InfoTypeStructure *> structs_employees{};
 };
 
 struct InfoTypeUnion : public InfoType {
@@ -104,6 +114,7 @@ struct InfoTypeEnum : public InfoType {
     kuri::tableau<int> valeurs{};  // À FAIRE typage selon énum
     kuri::tableau<kuri::chaine_statique> noms{};
     bool est_drapeau = false;
+    InfoTypeEntier *type_sous_jacent = nullptr;
 };
 
 struct InfoTypeOpaque : public InfoType {

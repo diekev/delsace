@@ -29,7 +29,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "compilation/espace_de_travail.hh"
+#include "compilation/compilatrice.hh"
 #include "compilation/portee.hh"
 
 #include "noeud_expression.hh"
@@ -40,52 +40,46 @@
 /* ************************************************************************** */
 
 template <typename T>
-static auto applique_operateur_unaire(GenreLexeme id, T &a)
+static auto applique_operateur_unaire(GenreLexeme id, T a)
 {
     switch (id) {
         case GenreLexeme::EXCLAMATION:
         {
-            a = !a;
-            break;
+            return T(!a);
         }
         case GenreLexeme::TILDE:
         {
-            a = ~a;
-            break;
+            return ~a;
         }
         case GenreLexeme::PLUS_UNAIRE:
         {
-            break;
+            return a;
         }
         case GenreLexeme::MOINS_UNAIRE:
         {
-            a = -a;
-            break;
+            return -a;
         }
         default:
         {
-            a = 0;
-            break;
+            return T(0);
         }
     }
 }
 
-static auto applique_operateur_unaire(GenreLexeme id, double &a)
+static auto applique_operateur_unaire(GenreLexeme id, double a)
 {
     switch (id) {
         case GenreLexeme::PLUS_UNAIRE:
         {
-            break;
+            return a;
         }
         case GenreLexeme::MOINS_UNAIRE:
         {
-            a = -a;
-            break;
+            return -a;
         }
         default:
         {
-            a = 0;
-            break;
+            return 0.0;
         }
     }
 }
@@ -218,149 +212,139 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
     }
 }
 
+static ResultatExpression erreur_evaluation(const NoeudExpression *b, const char *message)
+{
+    auto res = ResultatExpression();
+    res.est_errone = true;
+    res.noeud_erreur = b;
+    res.message_erreur = message;
+    return res;
+}
+
 /**
  * Évalue l'expression dont « b » est la racine. L'expression doit être
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
  * lors de la compilation.
  */
-ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, NoeudExpression *b)
+ResultatExpression evalue_expression(const Compilatrice &compilatrice,
+                                     NoeudBloc *bloc,
+                                     const NoeudExpression *b)
 {
     switch (b->genre) {
         default:
         {
-            auto res = ResultatExpression();
-            res.est_errone = true;
-            res.noeud_erreur = b;
-            res.message_erreur = "L'expression n'est pas constante et ne peut être calculée !";
-
-            return res;
+            return erreur_evaluation(
+                b, "L'expression n'est pas constante et ne peut être calculée !");
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
-            auto res = ResultatExpression();
-
-            auto fichier = espace->fichier(b->lexeme->fichier);
+            auto fichier = compilatrice.fichier(b->lexeme->fichier);
             auto decl = trouve_dans_bloc_ou_module(bloc, b->ident, fichier);
 
             if (decl == nullptr) {
-                res.est_errone = true;
-                res.noeud_erreur = b;
-                res.message_erreur = "La variable n'existe pas !";
+                return erreur_evaluation(b, "La variable n'existe pas !");
+            }
 
-                return res;
+            if (decl->est_entete_fonction()) {
+                return ValeurExpression(decl->comme_entete_fonction());
             }
 
             if (decl->genre != GenreNoeud::DECLARATION_VARIABLE) {
-                res.est_errone = true;
-                res.noeud_erreur = b;
-                res.message_erreur = "La référence n'est pas celle d'une variable !";
+                return erreur_evaluation(b, "La référence n'est pas celle d'une variable !");
+            }
 
-                return res;
+            if (!decl->possede_drapeau(EST_CONSTANTE)) {
+                return erreur_evaluation(
+                    b, "La référence n'est pas celle d'une variable constante !");
             }
 
             auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
-            if (decl_var->valeur_expression.type != TypeExpression::INVALIDE) {
-                res.est_errone = false;
-                res.valeur = decl_var->valeur_expression;
-                return res;
+            if (decl_var->valeur_expression.est_valide()) {
+                return decl_var->valeur_expression;
             }
 
             if (decl_var->expression == nullptr) {
                 if (decl_var->type->est_enum()) {
-                    auto type_enum = decl_var->type->comme_enum();
+                    auto type_enum = static_cast<TypeEnum *>(decl_var->type);
 
                     POUR (type_enum->membres) {
                         if (it.nom == decl_var->ident) {
-                            res.valeur.entier = it.valeur;
-                            res.valeur.type = TypeExpression::ENTIER;
-                            res.est_errone = false;
-                            return res;
+                            return ValeurExpression(it.valeur);
                         }
                     }
                 }
 
-                res.est_errone = true;
-                res.noeud_erreur = b;
-                res.message_erreur = "La déclaration de la variable n'a pas d'expression !";
-
-                return res;
+                return erreur_evaluation(b,
+                                         "La déclaration de la variable n'a pas d'expression !");
             }
 
-            return evalue_expression(espace, decl->bloc_parent, decl_var->expression);
+            return evalue_expression(compilatrice, decl->bloc_parent, decl_var->expression);
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
             auto expr_taille_de = b->comme_taille_de();
             auto type = expr_taille_de->expression->type;
-
-            auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = type->taille_octet;
-            res.est_errone = false;
-
-            return res;
+            return ValeurExpression(type->taille_octet);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
         {
-            auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = b->lexeme->chaine == "vrai";
-            res.est_errone = false;
-
-            return res;
+            return ValeurExpression(b->lexeme->chaine == "vrai");
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
-            auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
-            res.est_errone = false;
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                return ValeurExpression(static_cast<long>(b->comme_litterale_entier()->valeur));
+            }
 
-            return res;
+            return ValeurExpression(static_cast<long>(b->lexeme->valeur_entiere));
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
-            auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::ENTIER;
-            res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
-            res.est_errone = false;
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                return ValeurExpression(static_cast<long>(b->comme_litterale_entier()->valeur));
+            }
 
-            return res;
+            return ValeurExpression(static_cast<long>(b->lexeme->valeur_entiere));
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
-            auto res = ResultatExpression();
-            res.valeur.type = TypeExpression::REEL;
-            res.valeur.reel = b->lexeme->valeur_reelle;
-            res.est_errone = false;
+            /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
+             * valeur car ce n'est pas un lexème de code source. */
+            if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+                return ValeurExpression(b->comme_litterale_reel()->valeur);
+            }
 
-            return res;
+            return ValeurExpression(b->lexeme->valeur_reelle);
+        }
+        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        {
+            return ValeurExpression(b->comme_litterale_chaine());
         }
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto inst = static_cast<NoeudSi *>(b);
-
-            auto res = evalue_expression(espace, bloc, inst->condition);
+            auto inst = static_cast<const NoeudSi *>(b);
+            auto res = evalue_expression(compilatrice, bloc, inst->condition);
 
             if (res.est_errone) {
                 return res;
             }
 
-            if (res.valeur.type != TypeExpression::ENTIER) {
-                res.est_errone = true;
-                res.noeud_erreur = b;
-                res.message_erreur = "L'expression n'est pas de type booléen !";
-                return res;
+            if (!res.valeur.est_booleenne()) {
+                return erreur_evaluation(b, "L'expression n'est pas de type booléen !");
             }
 
-            if (res.valeur.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
-                res = evalue_expression(espace, bloc, inst->bloc_si_vrai);
+            if (res.valeur.booleenne() == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
+                res = evalue_expression(compilatrice, bloc, inst->bloc_si_vrai);
             }
             else {
                 if (inst->bloc_si_faux) {
-                    res = evalue_expression(espace, bloc, inst->bloc_si_faux);
+                    res = evalue_expression(compilatrice, bloc, inst->bloc_si_faux);
                 }
             }
 
@@ -369,17 +353,17 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto inst = b->comme_expression_unaire();
-            auto res = evalue_expression(espace, bloc, inst->operande);
+            auto res = evalue_expression(compilatrice, bloc, inst->operande);
 
             if (res.est_errone) {
                 return res;
             }
 
-            if (res.valeur.type == TypeExpression::REEL) {
-                applique_operateur_unaire(inst->lexeme->genre, res.valeur.reel);
+            if (res.valeur.est_reelle()) {
+                res.valeur = applique_operateur_unaire(inst->lexeme->genre, res.valeur.reelle());
             }
-            else {
-                applique_operateur_unaire(inst->lexeme->genre, res.valeur.entier);
+            else if (res.valeur.est_entiere()) {
+                res.valeur = applique_operateur_unaire(inst->lexeme->genre, res.valeur.entiere());
             }
 
             return res;
@@ -387,40 +371,42 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
             auto inst = b->comme_expression_binaire();
-            auto res1 = evalue_expression(espace, bloc, inst->operande_gauche);
+            auto res1 = evalue_expression(compilatrice, bloc, inst->operande_gauche);
 
             if (res1.est_errone) {
                 return res1;
             }
 
-            auto res2 = evalue_expression(espace, bloc, inst->operande_droite);
+            auto res2 = evalue_expression(compilatrice, bloc, inst->operande_droite);
 
             if (res2.est_errone) {
                 return res2;
             }
 
-            auto res = ResultatExpression();
-            res.valeur.type = res1.valeur.type;
-            res.est_errone = false;
+            ValeurExpression res = ValeurExpression();
 
             if (est_operateur_bool(inst->lexeme->genre)) {
-                if (res.valeur.type == TypeExpression::REEL) {
-                    res.valeur.condition = applique_operateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
+                if (res1.valeur.est_reelle()) {
+                    res = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
+                }
+                else if (res1.valeur.est_booleenne()) {
+                    res = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.booleenne(), res2.valeur.booleenne());
                 }
                 else {
-                    res.valeur.condition = applique_operateur_binaire_comp(
-                        inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
+                    res = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
                 }
             }
             else {
-                if (res.valeur.type == TypeExpression::REEL) {
-                    res.valeur.reel = applique_operateur_binaire(
-                        inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
+                if (res1.valeur.est_reelle()) {
+                    res = applique_operateur_binaire(
+                        inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
                 else {
-                    res.valeur.entier = applique_operateur_binaire(
-                        inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
+                    res = applique_operateur_binaire(
+                        inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
                 }
             }
 
@@ -429,13 +415,13 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
         case GenreNoeud::EXPRESSION_PARENTHESE:
         {
             auto inst = b->comme_parenthese();
-            return evalue_expression(espace, bloc, inst->expression);
+            return evalue_expression(compilatrice, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_COMME:
         {
             /* À FAIRE : transtypage de l'expression constante */
             auto inst = b->comme_comme();
-            return evalue_expression(espace, bloc, inst->expression);
+            return evalue_expression(compilatrice, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         {
@@ -443,43 +429,67 @@ ResultatExpression evalue_expression(EspaceDeTravail *espace, NoeudBloc *bloc, N
             auto type_accede = ref_membre->accedee->type;
 
             if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
-                auto type_enum = type_accede->comme_enum();
+                auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-                auto res = ResultatExpression();
-                res.est_errone = false;
-                res.valeur.entier = valeur_enum;
-                res.valeur.type = TypeExpression::ENTIER;
-                return res;
+                return ValeurExpression(valeur_enum);
             }
 
             if (type_accede->est_tableau_fixe()) {
                 if (!ref_membre->membre->est_reference_declaration()) {
-                    auto res = ResultatExpression();
-                    res.est_errone = true;
-                    res.noeud_erreur = b;
-                    res.message_erreur =
-                        "L'expression n'est pas constante et ne peut être calculée !";
-
-                    return res;
+                    return erreur_evaluation(
+                        b, "L'expression n'est pas constante et ne peut être calculée !");
                 }
 
                 auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
 
                 if (ref_decl_membre->ident->nom == "taille") {
-                    auto res = ResultatExpression();
-                    res.est_errone = false;
-                    res.valeur.entier = type_accede->comme_tableau_fixe()->taille;
-                    res.valeur.type = TypeExpression::ENTIER;
-                    return res;
+                    return ValeurExpression(type_accede->comme_tableau_fixe()->taille);
                 }
             }
 
-            auto res = ResultatExpression();
-            res.est_errone = true;
-            res.noeud_erreur = b;
-            res.message_erreur = "L'expression n'est pas constante et ne peut être calculée !";
+            return erreur_evaluation(
+                b, "L'expression n'est pas constante et ne peut être calculée !");
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        {
+            return ValeurExpression(b->comme_construction_tableau());
+        }
+        case GenreNoeud::DIRECTIVE_CUISINE:
+        {
+            auto cuisine = b->comme_cuisine();
+            auto expr = cuisine->expression;
+            auto appel = expr->comme_appel();
+            auto fonction = appel->expression->comme_entete_fonction();
 
-            return res;
+            return ValeurExpression(fonction);
         }
     }
+}
+
+std::ostream &operator<<(std::ostream &os, ValeurExpression valeur)
+{
+    if (valeur.est_booleenne()) {
+        os << valeur.booleenne();
+    }
+    else if (valeur.est_entiere()) {
+        os << valeur.entiere();
+    }
+    else if (valeur.est_reelle()) {
+        os << valeur.reelle();
+    }
+    else if (valeur.est_chaine()) {
+        auto chaine = valeur.chaine();
+        os << chaine->lexeme->chaine;
+    }
+    else if (valeur.est_tableau_fixe()) {
+        os << "[...]";
+    }
+    else if (valeur.est_fonction()) {
+        auto const fonction = valeur.fonction();
+        os << (fonction->ident ? fonction->ident->nom : "");
+    }
+    else {
+        os << "invalide";
+    }
+    return os;
 }

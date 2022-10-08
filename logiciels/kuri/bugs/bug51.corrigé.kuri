@@ -6,14 +6,13 @@ STRUCT :: struct {
     x := 0
 }
 
-test_construit_poly :: fonc (t : $T) -> T
+test_construit_poly :: fonc (t : $T @inutilisée) -> T
 {
     retourne T()
 }
 
 principale :: fonc () -> z32
 {
-    s := test_construit_poly(STRUCT())
-    imprime_succès(vrai)
+    _ := test_construit_poly(STRUCT())
     retourne 0
 }

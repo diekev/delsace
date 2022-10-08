@@ -25,14 +25,13 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "transformation_type.hh"
 
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
+#include "structures/tablet.hh"
 
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
@@ -209,7 +208,7 @@ OperateurUnaire const *cherche_operateur_unaire(Operateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs);
+void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs);
 
 struct OperateurCandidat {
     OperateurBinaire const *op = nullptr;
@@ -224,9 +223,9 @@ struct OperateurCandidat {
     POINTEUR_NUL(OperateurCandidat)
 };
 
-bool cherche_candidats_operateurs(EspaceDeTravail &espace,
-                                  ContexteValidationCode &contexte,
-                                  Type *type1,
-                                  Type *type2,
-                                  GenreLexeme type_op,
-                                  dls::tablet<OperateurCandidat, 10> &candidats);
+std::optional<Attente> cherche_candidats_operateurs(
+    EspaceDeTravail &espace,
+    Type *type1,
+    Type *type2,
+    GenreLexeme type_op,
+    kuri::tablet<OperateurCandidat, 10> &candidats);

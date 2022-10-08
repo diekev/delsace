@@ -22,21 +22,16 @@
 set(NOM_PROJET exetron)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
+set(SOURCES
+    exétron.cc
+    exétron.h
 )
 
 set(BIBLIOTHEQUES
+    tbb
 )
 
-add_library(${NOM_PROJET} STATIC
-    exétron.cc
-)
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Exétron/)
+compile_module_c(${NOM_PROJET} exétron exétron.h Exétron "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")

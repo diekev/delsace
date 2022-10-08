@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 
 Corde :: struct {
     parente : *Corde = nul

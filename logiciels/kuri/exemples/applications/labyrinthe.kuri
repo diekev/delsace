@@ -23,7 +23,7 @@ Labyrinthe :: struct {
     taille_groupe : []z32
 }
 
-rand :: fonc () -> z32 #externe
+rand :: fonc () -> z32 #externe libc
 
 nombre_aléatoire :: fonc () -> z32
 {
@@ -51,7 +51,7 @@ imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
     pour c dans labyrinthe.ligne {
         imprime(" ")
 
-        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+        si c.position_mur.DROITE {
             imprime("x")
         }
         sinon {
@@ -62,14 +62,14 @@ imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
 
     imprime("x")
     pour c dans labyrinthe.ligne {
-        si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+        si c.position_mur.BAS {
             imprime("x")
         }
         sinon {
             imprime(" ")
         }
 
-        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+        si c.position_mur.DROITE {
             imprime("x")
         }
         sinon {
@@ -85,13 +85,13 @@ principale :: fonc () -> z32
     diffère { détruit_labyrinthe(*labyrinthe) }
 
     // 1. première ligne
-    pour & c, idx dans labyrinthe.ligne {
+    pour & c dans labyrinthe.ligne {
         c.position_mur |= PositionMur.HAUT
         c.groupe = 0
     }
 
     imprime("x")
-    pour c dans labyrinthe.ligne {
+    pour labyrinthe.ligne {
         imprime("xx")
     }
     imprime("x\n")
@@ -131,7 +131,7 @@ principale :: fonc () -> z32
             imprime_ligne(*labyrinthe)
 
             pour & c dans labyrinthe.ligne {
-                si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+                si c.position_mur.BAS {
                     c.groupe = 0
                 }
 
@@ -159,7 +159,7 @@ principale :: fonc () -> z32
     }
 
     imprime("x")
-    pour c dans labyrinthe.ligne {
+    pour labyrinthe.ligne {
         imprime("xx")
     }
     imprime("x\n")

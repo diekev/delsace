@@ -24,7 +24,13 @@
 
 #pragma once
 
+#include "structures/tableau.hh"
+
 struct AtomeFonction;
+struct ConstructriceRI;
 struct EspaceDeTravail;
+struct Instruction;
+
+void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions);
 
 void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome);

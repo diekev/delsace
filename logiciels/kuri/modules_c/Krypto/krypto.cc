@@ -22,7 +22,7 @@
  *
  */
 
-#include "krypto.hh"
+#include "krypto.h"
 
 #include <stdio.h>
 #include <stdlib.h>

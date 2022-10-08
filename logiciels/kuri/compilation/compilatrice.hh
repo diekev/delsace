@@ -30,14 +30,45 @@
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
 
+#include "bibliotheque.hh"
+#include "gestionnaire_code.hh"
+#include "graphe_dependance.hh"
+#include "interface_module_kuri.hh"
 #include "messagere.hh"
+#include "metaprogramme.hh"
+#include "operateurs.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
+#include "typage.hh"
 
 struct ContexteLexage;
 struct EspaceDeTravail;
+struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
 struct Statistiques;
+
+enum class FormatRapportProfilage : int {
+    BRENDAN_GREGG,
+    ECHANTILLONS_TOTAL_POUR_FONCTION,
+};
+
+struct GestionnaireChainesAjoutees {
+  private:
+    kuri::tableau<kuri::chaine, int> m_chaines{};
+
+    /* Ceci est utilisé pour trouver la position de la chaine dans le fichier final.
+     * Nous commençons à 2, car le fichier est préfixé par la date et l'heure, et
+     * d'une ligne vide.
+     */
+    long nombre_total_de_lignes = 2;
+
+  public:
+    long ajoute(kuri::chaine chaine);
+
+    int nombre_de_chaines() const;
+
+    void imprime_dans(std::ostream &os);
+};
 
 struct Compilatrice {
     dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
@@ -48,26 +79,23 @@ struct Compilatrice {
 
     dls::outils::Synchrone<Messagere> messagere{};
 
+    dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
+
+    dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
+
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
     bool importe_kuri = true;
     bool m_possede_erreur = false;
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
+    bool profile_metaprogrammes = false;
+    FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-    tableau_synchrone<kuri::chaine> bibliotheques_dynamiques{};
-
-    tableau_synchrone<kuri::chaine> bibliotheques_statiques{};
-
-    tableau_synchrone<dls::vue_chaine_compacte> chemins{};
-
-    /* définitions passées au compilateur C pour modifier les fichiers d'entête */
-    tableau_synchrone<dls::vue_chaine_compacte> definitions{};
-
-    tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
+    dls::outils::Synchrone<GestionnaireChainesAjoutees> chaines_ajoutees_a_la_compilation{};
 
     tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
@@ -76,9 +104,56 @@ struct Compilatrice {
 
     dls::outils::Synchrone<SystemeModule> sys_module{};
 
+    template <typename T>
+    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+
+    tableau_page_synchrone<MetaProgramme> metaprogrammes{};
+
+    dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
+
+    dls::outils::Synchrone<Operateurs> operateurs{};
+
+    Typeuse typeuse;
+
+    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
+    NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+
+    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
+    NoeudDeclarationVariable *globale_contexte_programme = nullptr;
+    std::mutex mutex_globale_contexte_programme{};
+
+    /* Pour les executions des métaprogrammes. */
+    std::mutex mutex_donnees_constantes_executions{};
+    DonneesConstantesExecutions donnees_constantes_executions{};
+
+    tableau_page<AtomeFonction> fonctions{};
+    tableau_page<AtomeGlobale> globales{};
+
+    struct DonneesConstructeurGlobale {
+        AtomeGlobale *atome = nullptr;
+        NoeudExpression *expression = nullptr;
+        TransformationType transformation{};
+    };
+
+    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
+    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
+    dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
+
+    std::mutex mutex_atomes_fonctions{};
+    std::mutex mutex_atomes_globales{};
+
+    Module *module_kuri = nullptr;
+    Module *module_racine_compilation = nullptr;
+
+    /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
+     * disponible. */
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+
     /* ********************************************************************** */
 
-    Compilatrice();
+    Compilatrice(kuri::chaine chemin_racine_kuri);
 
     /* ********************************************************************** */
 
@@ -114,6 +189,59 @@ struct Compilatrice {
                            kuri::chaine const &nom,
                            NoeudExpression const *site);
 
+    /**
+     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
+     * Si un tel module n'existe pas, un nouveau module est créé.
+     */
+    Module *trouve_ou_cree_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
+
+    /**
+     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+     * module n'a ce nom, retourne nullptr.
+     */
+    Module *module(const IdentifiantCode *nom_module) const;
+
+    /**
+     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
+     * fichier ainsi créé ou un pointeur vers un fichier existant.
+     */
+    ResultatFichier trouve_ou_cree_fichier(Module *module,
+                                           kuri::chaine_statique nom_fichier,
+                                           kuri::chaine_statique chemin,
+                                           bool importe_kuri);
+
+    Fichier *cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
+
+    /**
+     * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
+     * en dehors de portée, le programme crashera.
+     */
+    Fichier *fichier(long index);
+    const Fichier *fichier(long index) const;
+
+    /**
+     * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
+     * fichier n'a ce nom, retourne nullptr.
+     */
+    Fichier *fichier(kuri::chaine_statique chemin) const;
+
+    AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
+    AtomeFonction *cree_fonction(Lexeme const *lexeme,
+                                 kuri::chaine const &nom_fonction,
+                                 kuri::tableau<Atome *, int> &&params);
+    AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
+                                             NoeudDeclarationEnteteFonction *decl);
+    AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
+
+    AtomeGlobale *cree_globale(Type *type,
+                               AtomeConstante *valeur,
+                               bool initialisateur,
+                               bool est_constante);
+    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+    AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
+
+    MetaProgramme *cree_metaprogramme(EspaceDeTravail *espace);
+
     /* ********************************************************************** */
 
     void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
@@ -128,7 +256,11 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    ContexteLexage contexte_lexage();
+    bool globale_contexte_programme_est_disponible();
+
+    /* ********************************************************************** */
+
+    ContexteLexage contexte_lexage(EspaceDeTravail *espace);
 
     long memoire_utilisee() const;
 
@@ -158,8 +290,12 @@ struct Compilatrice {
     void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
     const Message *attend_message();
     EspaceDeTravail *espace_defaut_compilation();
-    kuri::tableau<kuri::Lexeme> lexe_fichier(kuri::chaine_statique chemin_donne,
-                                             const NoeudExpression *site);
+    kuri::tableau_statique<kuri::Lexeme> lexe_fichier(EspaceDeTravail *espace,
+                                                      kuri::chaine_statique chemin_donne,
+                                                      const NoeudExpression *site);
+
+    kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);
+    MetaProgramme *metaprogramme_pour_fonction(const NoeudDeclarationEnteteFonction *entete);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

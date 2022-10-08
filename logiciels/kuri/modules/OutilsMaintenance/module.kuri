@@ -1,0 +1,202 @@
+/* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
+
+importe Fondation
+importe SysFichier
+importe Triage
+
+DonnéesFichier :: struct {
+    /* Le chemin racine d'où est lancée l'exécution,
+     * par exemple le chemin passé dans la ligne de commande
+     * pour les programmes en ligne de commande. */
+    racine_exécution: CheminFichier
+    chemin: CheminFichier
+    lignes: []chaine
+
+    données_utilisateurs: eini
+}
+
+données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
+{
+    si données_fichier.données_utilisateurs.info != info_de(TypeDonnéesPersonnelles) {
+        retourne nul
+    }
+
+    retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
+}
+
+tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
+{
+    résultat : []T
+
+    si début > fin {
+        retourne résultat
+    }
+
+    si début >= tableau.taille {
+        retourne résultat
+    }
+
+    si fin >= tableau.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = *tableau.pointeur[début]
+    résultat.taille = fin - début + 1
+    résultat.capacité = résultat.taille
+    retourne résultat
+}
+
+// -------------------------------------
+
+écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: []chaine)
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour lignes {
+        ajoute_au_tampon(*enchaineuse, it, "\n")
+    }
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture_tronquée) piège err {
+        retourne
+    }
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    _ := ferme(*fichier)
+}
+
+// -------------------------------------
+
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+{
+    contenu := contenu_fichier_texte(chemin.chn)
+    diffère déloge(contenu)
+
+    lignes := divise(contenu, '\n')
+    diffère déloge(lignes)
+
+    données: DonnéesFichier
+    données.racine_exécution = racine
+    données.lignes = lignes
+    données.chemin = chemin
+    données.données_utilisateurs = données_utilisateurs
+
+    si rappel(données) {
+        écris_lignes_dans_fichier(chemin, données.lignes)
+    }
+}
+
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+{
+    exploratrice := crée_exploratrice_fichier(racine)
+
+    tantque !exploration_finie(exploratrice) {
+        // À FAIRE(langage) : panique dans certains cas
+        candidat := exploratrice.chemin_suivant()
+        discr candidat {
+            Quelque(chemin) {
+                si chemin.est_un_dossier() {
+                    exploratrice.empile_dossier(chemin)
+                    continue
+                }
+
+                si fait_partie_de(chemin.extension(), ...extensions) {
+                    exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
+                }
+            }
+            sinon {
+                arrête
+            }
+        }
+    }
+}
+
+// -------------------------------------
+
+tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
+{
+    première_ligne := -1
+    dernière_ligne := -1
+
+    lignes_furent_modifiés := faux
+
+    lignes := données_fichier.lignes
+    pour lignes {
+        si it.commence_par("importe ") {
+            si première_ligne == -1 {
+                première_ligne = index_it comme z32
+            }
+        }
+        sinon si dernière_ligne == -1 && première_ligne != -1 {
+            dernière_ligne = index_it comme z32 - 1
+
+            bloc := tranche(lignes, première_ligne, dernière_ligne)
+
+            si bloc.taille > 1 {
+                tri_rapide(bloc, compare_chaine)
+                lignes_furent_modifiés = vrai
+            }
+
+            dernière_ligne = -1
+            première_ligne = -1
+        }
+    }
+
+    retourne lignes_furent_modifiés
+}
+
+// -------------------------------------
+
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
+{
+    dernière_ligne_fut_vide := faux
+
+    nouvelles_lignes : []chaine
+    diffère déloge(nouvelles_lignes)
+
+    lignes := données_fichier.lignes
+    pour lignes {
+        si it == "" {
+            si dernière_ligne_fut_vide {
+                continue
+            }
+
+            dernière_ligne_fut_vide = vrai
+        }
+        sinon {
+            dernière_ligne_fut_vide = faux
+        }
+
+        tableau_ajoute(*nouvelles_lignes, it)
+    }
+
+    si lignes.taille != nouvelles_lignes.taille {
+        pour nouvelles_lignes {
+            lignes.pointeur[index_it] = it
+        }
+
+        lignes.taille = nouvelles_lignes.taille
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+{
+    si chemin.est_un_dossier() {
+        exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
+    }
+    sinon {
+        si fait_partie_de(chemin.extension(), ...extensions) {
+            exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
+        }
+    }
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool))
+{
+    données_utilisateurs: eini
+    exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
+}

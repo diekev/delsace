@@ -140,12 +140,12 @@ Lexeuse lexeuse(str, str + len);
         {")", {0ull}, GenreLexeme::PARENTHESE_FERMANTE},
         {";", {0ull}, GenreLexeme::POINT_VIRGULE}};
 
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte);
+    auto donnees_fichier = Fichier();
+    donnees_fichier.charge_tampon(lng::tampon_source(texte));
 
-    auto compilatrice = Compilatrice();
+    auto compilatrice = Compilatrice("");
 
-    Lexeuse lexeuse(compilatrice.contexte_lexage(), &donnees_fichier);
+    Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
     lexeuse.performe_lexage();
 
     return verifie_lexemes(donnees_fichier.lexemes.begin(),

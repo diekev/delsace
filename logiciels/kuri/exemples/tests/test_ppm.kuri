@@ -1,7 +1,8 @@
 importe Fondation
-importe GlibC
+importe Chaine
 importe Math
 importe SysFichier
+importe Temps
 
 Image :: struct {
     tampon : []octet
@@ -68,9 +69,9 @@ génére_image_noire :: fonc() -> Image
     retourne image;
 }
 
-écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
+écris_ppm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, ÉCRITURE_SEULE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
         retourne
     }
@@ -92,34 +93,25 @@ génére_image_noire :: fonc() -> Image
     tampon := loge_chaine(nombre_caracteres);
     diffère { déloge(tampon); }
 
-    idx := 0;
-    idx_image := 0;
-
-    pour i dans 0...taille_x - 1 {
-        pour j dans 0...taille_y - 1 {
-            si image.tampon[idx_image] == 0 {
-                tampon[idx] = '1'
-            }
-            sinon {
-                tampon[idx] = '0'
-            }
-
-            idx_image += 1;
-            idx += 1;
+    pour image.tampon {
+        tampon[index_it] = si it == 0 {
+            '1'
+        }
+        sinon {
+            '0'
         }
     }
 
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
 
-    debut := maintenant_sec();
-    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    delta := delta_sec(debut);
-    imprime("Temps d'écriture = %s\n", delta);
+    debut := maintenant_précis();
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
-écris_pnm :: fonc(image : Image, chemin : chaine) -> rien
+écris_pnm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, ÉCRITURE_SEULE) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
         retourne
     }
@@ -146,28 +138,22 @@ génére_image_noire :: fonc() -> Image
 
     imprime_dans_enchaineuse(*enchaineuse, "% % % % ", entete, taille_x, taille_y, 255)
 
-    nombre_caracteres := taille_x * taille_y * image.channels * 2;
-
-    idx := 0;
-    idx_image := 0;
-
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
+            idx_image := (i * taille_y + j) * image.channels;
+
             pour k dans 0 ... image.channels - 1 {
                 ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = tampon_image[idx_image + k], base = 10))
             }
 
             ajoute_au_tampon(*enchaineuse, " ")
 
-            idx += image.channels + 1;
-            idx_image += image.channels;
         }
     }
 
-    debut := maintenant_sec();
-    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    delta := delta_sec(debut);
-    imprime("Temps d'écriture = %s\n", delta);
+    debut := maintenant_précis();
+    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
 //####################
@@ -185,8 +171,8 @@ principale :: fonc () -> z32
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
-    écris_ppm(image, "/home/kevin/test_p1.ppm");
-    écris_pnm(image, "/home/kevin/test_p2.pgm");
+    écris_ppm(image, CheminFichier("/tmp/test_p1.ppm"));
+    écris_pnm(image, CheminFichier("/tmp/test_p2.pgm"));
 
     détruit_image(*image);
 

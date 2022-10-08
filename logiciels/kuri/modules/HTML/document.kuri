@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 Document :: struct {
@@ -31,7 +32,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 NoeudTexte :: struct {
     empl base: Noeud
 
-    données: chaine
+    données: ChaineUTF16
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
@@ -46,10 +47,10 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 NoeudCommentaire :: struct {
     empl base: Noeud
 
-    données: chaine
+    données: ChaineUTF16
 }
 
-crée_noeud_commentaire :: fonc (document: *Document, données: chaine) -> *NoeudCommentaire
+crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
     commentaire := loge(NoeudCommentaire)
     commentaire.genre = GenreNoeud.Commentaire

@@ -32,7 +32,7 @@
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
-#include "outils.hh"
+#include "outils_independants_des_lexemes.hh"
 
 struct FluxSortieKuri {
   private:
@@ -42,7 +42,7 @@ struct FluxSortieKuri {
     friend FluxSortieKuri &operator<<(FluxSortieKuri &flux, const T &valeur);
 
   public:
-    FluxSortieKuri(std::ostream &os) : m_os(os)
+    explicit FluxSortieKuri(std::ostream &os) : m_os(os)
     {
     }
 
@@ -67,7 +67,7 @@ struct FluxSortieCPP {
     friend FluxSortieCPP &operator<<(FluxSortieCPP &flux, const T &valeur);
 
   public:
-    FluxSortieCPP(std::ostream &os) : m_os(os)
+    explicit FluxSortieCPP(std::ostream &os) : m_os(os)
     {
     }
 
@@ -194,7 +194,7 @@ struct TypePointeur final : public Type {
         return "->";
     }
 
-    virtual kuri::chaine_statique valeur_defaut() const
+    virtual kuri::chaine_statique valeur_defaut() const override
     {
         return "nullptr";
     }
@@ -243,7 +243,7 @@ struct TypeNominal final : public Type {
         return ".";
     }
 
-    virtual kuri::chaine_statique valeur_defaut() const
+    virtual kuri::chaine_statique valeur_defaut() const override
     {
         if (nom_cpp.nom_cpp() == "bool") {
             return "false";
@@ -394,7 +394,7 @@ class Proteine {
     IdentifiantADN m_nom{};
 
   public:
-    Proteine(IdentifiantADN nom);
+    explicit Proteine(IdentifiantADN nom);
 
     virtual ~Proteine() = default;
     virtual void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) = 0;
@@ -441,7 +441,7 @@ class ProteineStruct final : public Proteine {
     ProteineEnum *m_enum_discriminante = nullptr;
 
   public:
-    ProteineStruct(IdentifiantADN nom);
+    explicit ProteineStruct(IdentifiantADN nom);
 
     ProteineStruct(ProteineStruct const &) = default;
     ProteineStruct &operator=(ProteineStruct const &) = default;
@@ -601,7 +601,7 @@ class ProteineEnum final : public Proteine {
     bool m_est_horslignee = false;
 
   public:
-    ProteineEnum(IdentifiantADN nom);
+    explicit ProteineEnum(IdentifiantADN nom);
 
     COPIE_CONSTRUCT(ProteineEnum);
 
@@ -652,7 +652,7 @@ class ProteineFonction final : public Proteine {
     Type *m_type_sortie = nullptr;
 
   public:
-    ProteineFonction(IdentifiantADN nom);
+    explicit ProteineFonction(IdentifiantADN nom);
 
     COPIE_CONSTRUCT(ProteineFonction);
 
@@ -679,7 +679,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
 
     Typeuse m_typeuse{};
 
-    SyntaxeuseADN(Fichier *fichier);
+    explicit SyntaxeuseADN(Fichier *fichier);
 
     ~SyntaxeuseADN() override;
 

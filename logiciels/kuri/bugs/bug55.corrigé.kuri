@@ -1,0 +1,22 @@
+// erreur de compilation quand nous accédons à une soustructure via une expression d'appel
+
+importe Support
+
+Parent :: struct {
+    Enfant :: struct {
+        z : r32
+    }
+
+    y : r32
+}
+
+principale :: fonc () -> z32
+{
+    e := Parent.Enfant(z = 1.0)
+
+    si e.z != 1.0 {
+        retourne 1
+    }
+
+    retourne 0
+}

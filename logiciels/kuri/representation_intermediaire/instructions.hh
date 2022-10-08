@@ -27,7 +27,7 @@
 #include <utility>
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
+#include "structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -66,6 +66,7 @@ struct Atome {
     Genre genre_atome{};
     // vrai si l'atome est celui d'une instruction chargeable
     bool est_chargeable = false;
+    bool ri_generee = false;
 
     int nombre_utilisations = 0;
 
@@ -154,6 +155,7 @@ struct AtomeValeurConstante : public AtomeConstante {
             TABLEAU_FIXE,
             TABLEAU_DONNEES_CONSTANTES,
             TYPE,
+            TAILLE_DE,
         };
 
         Genre genre{};
@@ -256,6 +258,12 @@ struct AtomeGlobale : public AtomeConstante {
 
     // index de la globale pour le code binaire
     int index = -1;
+
+    /* Adresse spéciale pour les exécutions de métaprogrammes. Ceci est principalement pour les
+     * infos-types où nous voulons une même adresse pour les NoeudCodes et le code binaire. Dans ce
+     * cas l'adresse sera celle d'un InfoType créé par la compilatrice (créée notamment lors de la
+     * conversion vers NoeudCode). */
+    void *adresse_pour_execution = nullptr;
 
     COPIE_CONSTRUCT(AtomeGlobale);
 
@@ -376,7 +384,7 @@ struct AtomeFonction : public Atome {
     long decalage_appel_init_globale = 0;
 
     struct DonneesFonctionExterne {
-        dls::tablet<ffi_type *, 6> types_entrees{};
+        kuri::tablet<ffi_type *, 6> types_entrees{};
         ffi_cif cif{};
         void (*ptr_fonction)() = nullptr;
     };
@@ -532,28 +540,20 @@ struct InstructionAppel : public Instruction {
 
     Atome *appele = nullptr;
     kuri::tableau<Atome *, int> args{};
-    /* pour les traces d'appels */
-    Lexeme const *lexeme = nullptr;
-
     InstructionAllocation *adresse_retour = nullptr;
 
     COPIE_CONSTRUCT(InstructionAppel);
 
-    InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_)
-        : InstructionAppel(site_)
+    InstructionAppel(NoeudExpression *site_, Atome *appele_) : InstructionAppel(site_)
     {
         auto type_fonction = appele_->type->comme_fonction();
         this->type = type_fonction->type_sortie;
 
         this->appele = appele_;
-        this->lexeme = lexeme_;
     }
 
-    InstructionAppel(NoeudExpression *site_,
-                     Lexeme const *lexeme_,
-                     Atome *appele_,
-                     kuri::tableau<Atome *, int> &&args_)
-        : InstructionAppel(site_, lexeme_, appele_)
+    InstructionAppel(NoeudExpression *site_, Atome *appele_, kuri::tableau<Atome *, int> &&args_)
+        : InstructionAppel(site_, appele_)
     {
         this->args = std::move(args_);
     }
@@ -860,3 +860,19 @@ COMME_INST(InstructionStockeMem, stocke_mem)
 COMME_INST(InstructionTranstype, transtype)
 
 #undef COMME_INST
+
+struct VisiteuseAtome {
+    /* Les atomes peuvent avoir des dépendances cycliques, donc tenons trace de ceux qui ont été
+     * visités. */
+    kuri::ensemble<Atome *> visites{};
+
+    void reinitialise();
+
+    void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
+};
+
+/* Visite récursivement l'atome. */
+void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
+
+/* Visite uniquement les opérandes de l'instruction, s'il y en a. */
+void visite_operandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel);

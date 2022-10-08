@@ -1,6 +1,7 @@
 importe Fondation
+importe Chaine
 importe GlibC
-importe Réseau
+importe Internet
 
 //###############################################################################
 
@@ -56,7 +57,7 @@ détruit_serveuse :: fonc(serveuse: &Serveuse)
     _ := close(serveuse.prise)
 }
 
-charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chaine
+charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in @inutilisée) -> chaine
 {
     //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
@@ -110,6 +111,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
         si fork() == 0 {
             requete := charge_donnees_requete(prise, mon_addresse);
+            imprime("requête :\n%\n", requete)
 
             //reponse = repond_requete(requete)
 

@@ -1,0 +1,203 @@
+importe Fondation
+
+ChaineUTF32 :: struct {
+    points_de_code : []n32
+}
+
+copie_chaine :: fonc (chn: &ChaineUTF32) -> ChaineUTF32
+{
+    résultat : ChaineUTF32 = ---
+    résultat.points_de_code = tableau_copie(chn.points_de_code)
+    retourne résultat
+}
+
+détruit_chaine :: fonc (chn: &ChaineUTF32) #enligne
+{
+    déloge(chn.points_de_code)
+}
+
+taille :: fonc (chn: ChaineUTF32) -> z64 #enligne
+{
+    retourne chn.points_de_code.taille
+}
+
+est_vide :: fonc (chn: ChaineUTF32) -> bool #enligne
+{
+    retourne chn.taille() == 0
+}
+
+chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32) #enligne
+{
+    tableau_ajoute(*chn.points_de_code, point_de_code)
+}
+
+réinitialise :: fonc (chn: &ChaineUTF32) #enligne
+{
+    chn.points_de_code.taille = 0
+}
+
+converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
+{
+    résultat : chaine
+    pour chn.points_de_code {
+        chaine_ajoute(*résultat, it)
+    }
+    retourne résultat
+}
+
+crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
+{
+    résultat : ChaineUTF32
+    tableau_réserve(*résultat.points_de_code, chn.taille)
+
+    ptr_source := chn.pointeur
+    curseur := 0
+
+    ptr_résultat := résultat.points_de_code.pointeur
+    taille : z64 = 0
+
+    tantque curseur < chn.taille {
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+
+        si no == 0 {
+            curseur += 1
+            continue
+        }
+
+        ptr_résultat[taille] = converti_utf8_utf32(*ptr_source[curseur]) comme n32
+
+        taille += 1
+        curseur += no comme z32
+    }
+
+    résultat.points_de_code.taille = taille
+    retourne résultat
+}
+
+opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
+{
+    si a.taille() != b.taille() {
+        retourne faux
+    }
+
+    pour a.points_de_code {
+        si it != b.points_de_code[index_it] {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+opérateur != :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
+{
+    retourne !(a == b)
+}
+
+opérateur == :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
+{
+    si chn_utf32.taille() > chn_native.taille {
+        retourne faux
+    }
+
+    curseur_chn_native := 0
+    curseur_chn_utf32 := 0
+
+    ptr_natif := chn_native.pointeur
+
+    tantque curseur_chn_native < chn_native.taille {
+        si curseur_chn_utf32 >= chn_utf32.taille() {
+            retourne faux
+        }
+
+        no := nombre_octets_utf8_rapide(*ptr_natif[curseur_chn_native])
+
+        si no == 0 {
+            retourne faux
+        }
+
+        point_de_code := converti_utf8_utf32(*ptr_natif[curseur_chn_native]) comme n32
+
+        si point_de_code != chn_utf32.points_de_code[curseur_chn_utf32] {
+            retourne faux
+        }
+
+        curseur_chn_native += no comme z32
+        curseur_chn_utf32 += 1
+    }
+
+    retourne vrai
+}
+
+opérateur != :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
+{
+    retourne !(chn_utf32 == chn_native)
+}
+
+est_valide :: fonc (chn_utf32: ChaineUTF32) -> bool
+{
+    pour chn_utf32.points_de_code {
+        saufsi est_point_de_code_valide(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
+{
+    saufsi chn {
+        retourne
+    }
+
+    séquence : [4]n8
+    pour chn.points_de_code {
+        taille := point_de_code_vers_utf8(it, *séquence[0])
+
+        tmp : chaine = ---
+        tmp.pointeur = *séquence[0] comme *z8
+        tmp.taille = taille
+
+        ajoute_au_tampon(enchaineuse, tmp)
+    }
+} @FormattageImpression
+
+/*
+principale :: fonc () -> z32
+{
+    diffère imprime("Mémoire utilisée : %\n", mémoire_utilisée())
+    diffère détruit_chaines_internées()
+
+    utf32 := crée_chaine_utf32("kévin")
+    diffère détruit_chaine(utf32)
+
+    pour utf32.points_de_code {
+        imprime("%\n", it)
+    }
+
+    si utf32 != "kévin" {
+        imprime("erreur : les chaines devraient être égales !\n")
+    }
+
+    si utf32 == "" {
+        imprime("erreur : les chaines ne devraient pas être égales !\n")
+    }
+
+    si utf32 != utf32 {
+        imprime("erreur : les chaines devraient être égales !\n")
+    }
+
+    chn_internée_native := crée_chaine_internée("kévin")
+    chn_internée_utf32 := crée_chaine_internée(utf32)
+
+    imprime("chn_internée_native : %\n", chn_internée_native)
+    imprime("chn_internée_utf32  : %\n", chn_internée_utf32)
+
+    si chn_internée_native != chn_internée_utf32 {
+        imprime("erreur : les chaines devraient être égales !\n")
+    }
+
+    retourne 0
+}
+*/

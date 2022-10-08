@@ -1,0 +1,41 @@
+importe Fondation
+importe Krypto
+
+empreinte_contexte :: fonc () -> chaine
+{
+    ctx := contexte()
+
+    sha256 := crée_sha256()
+    diffère sha256.détruit()
+
+    sha256.ajourne(ctx)
+    retourne sha256.condensat_hex()
+}
+
+principale :: fonc () -> z32
+{
+    empreinte1 := empreinte_contexte()
+    diffère déloge(empreinte1)
+
+    nouveau_contexte := contexte()
+    nouveau_contexte.stockage_temporaire = nul
+
+    pousse_contexte nouveau_contexte {
+        empreinte3 := empreinte_contexte()
+        diffère déloge(empreinte3)
+
+        si empreinte1 == empreinte3 {
+            retourne 1
+        }
+    }
+
+    empreinte2 := empreinte_contexte()
+    diffère déloge(empreinte2)
+
+    /* Nous devons avoir le même contexte qu'au début. */
+    si empreinte1 != empreinte2 {
+        retourne 1
+    }
+
+    retourne 0
+}

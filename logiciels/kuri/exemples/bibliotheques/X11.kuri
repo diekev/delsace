@@ -1,20 +1,20 @@
 
-#bibliothèque_dynamique "X11"
+libx11 :: #bibliothèque "X11"
 
-Display :: struct #externe;
+Display :: struct #externe
 _XEvent :: union externe nonsûr {
     type : z32
 }
 
-_XGC :: struct #externe;
+_XGC :: struct #externe
 
 // Window :: n64
 // Drawable :: n64
 
-DefaultGC :: fonc (ptr: *Display, s: z32) -> *_XGC #externe
-XOpenDisplay :: fonc (ptr: *rien) -> *Display #externe
-XCloseDisplay :: fonc (ptr: *Display) -> rien #externe
-DefaultScreen :: fonc (ptr: *Display) -> z32 #externe
+DefaultGC :: fonc (ptr: *Display, s: z32) -> *_XGC #externe libx11
+XOpenDisplay :: fonc (ptr: *rien) -> *Display #externe libx11
+XCloseDisplay :: fonc (ptr: *Display) -> rien #externe libx11
+DefaultScreen :: fonc (ptr: *Display) -> z32 #externe libx11
 
 XCreateSimpleWindow :: fonc externe(
     display: *Display,
@@ -27,12 +27,12 @@ XCreateSimpleWindow :: fonc externe(
     bordure: n64,
     arrière_plan: n64) -> n64
 
-RootWindow :: fonc (display: *Display, parent: n64) -> n64 #externe
-BlackPixel :: fonc (ptr: *Display, s: z32) -> n64 #externe
-WhitePixel :: fonc (ptr: *Display, s: z32) -> n64 #externe
-XSelectInput :: fonc (ptr: *Display, w: n64, a: z64) -> z32 #externe
-XMapWindow :: fonc (ptr: *Display, w: n64) -> z32 #externe
-XNextEvent :: fonc (display: *Display, event: *_XEvent) -> z32 #externe
+RootWindow :: fonc (display: *Display, parent: n64) -> n64 #externe libx11
+BlackPixel :: fonc (ptr: *Display, s: z32) -> n64 #externe libx11
+WhitePixel :: fonc (ptr: *Display, s: z32) -> n64 #externe libx11
+XSelectInput :: fonc (ptr: *Display, w: n64, a: z64) -> z32 #externe libx11
+XMapWindow :: fonc (ptr: *Display, w: n64) -> z32 #externe libx11
+XNextEvent :: fonc (display: *Display, event: *_XEvent) -> z32 #externe libx11
 
 XDrawString :: fonc (
     display: *Display,
@@ -41,7 +41,7 @@ XDrawString :: fonc (
     x: z32,
     y: z32,
     string: *z8,
-    longueur: z32) -> z32 #externe
+    longueur: z32) -> z32 #externe libx11
 
 XFillRectangle :: fonc (
     display: *Display,
@@ -50,7 +50,7 @@ XFillRectangle :: fonc (
     x: z32,
     y: z32,
     largeur: z32,
-    hauteur: z32) -> z32 #externe
+    hauteur: z32) -> z32 #externe libx11
 
 // ----------------------------------------------------------------------------
 

@@ -1,0 +1,422 @@
+/*
+
+    Module de service HTTP.
+
+    Définie une serveuse pouvant recevoir des requête HTTP.
+    La serveuse dérive de ServeuseTCP.
+    Si vous voulez utiliser un service se basant sur Apache, utilisez plutôt ServeuseCGI.
+
+    Pour répondre à des requêtes, la serveuse doit connaître les routes possibles, et pour ce faire utilise une Routeuse.
+
+ */
+
+/*
+
+    À FAIRE :
+    - paramétrise les logs
+    - gestion des fichiers statiques
+
+ */
+importe CodecDonnées
+importe ConnexionTCP
+importe Fondation
+importe Internet
+importe Numérique
+importe ServeuseTCP
+importe SysFichier
+importe Temps
+
+charge "routage"
+
+ServeuseHTTP :: struct {
+    empl base: ServeuseTCP.ServeuseTCP
+
+    nom: chaine = "test"
+    routeuse: NouvelleRouteuse
+
+    intergiciel : TypeRappelRoute
+
+    rappel_méthode_non_autorisée : TypeRappelRoute
+    rappel_page_non_trouvée : TypeRappelRoute
+
+    quand_connexion_http : fonc(*Prise)(rien)
+}
+
+crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
+{
+    // À FAIRE: déduplique avec ServeuseTCP, requiers d'avoir une manière de déterminer le bon type (ServeuseTCP vs. ServeuseHTTP)
+    serveuse := loge(ServeuseHTTP)
+
+    boucle_évènements := crée_boucle()
+    ctx := crée_contexte_vide(boucle_évènements, nul, T)
+
+    ctx.mute_serveuse(serveuse)
+
+    prise := crée_prise_pour_écoute(ctx, adresse_ip, port, connexions_max, TypeDonnéesPrise)
+
+    // À FAIRE erreur
+    si !prise {
+        détruit_serveuse(serveuse)
+        retourne nul
+    }
+
+    serveuse.boucle_évènements = boucle_évènements
+    serveuse.ctx = ctx
+    serveuse.adresse_ip = adresse_ip
+    serveuse.port = port
+
+    serveuse.rappel_quand_ouverture(quand_ouverture)
+    serveuse.rappel_quand_données_reçues(quand_données_reçues)
+    serveuse.rappel_quand_fermeture(quand_fermeture)
+
+    retourne serveuse
+}
+
+// À FAIRE : dossier
+ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
+{
+    si extension != ".css" && extension != ".js" && extension != ".jsx" && extension != ".png" {
+        retourne
+    }
+
+    serveuse.routeuse.apparie_fichiers(extension)
+}
+
+lance :: fonc (serveuse: *ServeuseHTTP)
+{
+    serveuse.boucle_évènements.lance()
+}
+
+détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
+{
+    détruit_routeuse(serveuse.routeuse)
+    détruit_boucle(serveuse.boucle_évènements)
+    détruit_contexte(serveuse.ctx)
+    déloge(serveuse)
+}
+
+quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
+{
+    parseuse := loge(ParseuseMessageClienteHTTP)
+    prise.mute_données_serveuse(parseuse)
+
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+
+    si serveuse.quand_connexion_http {
+        serveuse.quand_connexion_http(prise)
+    }
+}
+
+quand_données_reçues :: fonc (prise: *Prise, données: []octet)
+{
+    contenu := chaine_depuis_tableau_octets(données)
+
+    si !contenu {
+        // délai en cas de non-écriture
+        prise.mute_délai(10)
+        retourne
+    }
+
+    imprime("reçu :\n%\n", contenu)
+
+    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
+    parseuse.ajourne_données(contenu)
+
+    si !parseuse.message_prêt_pour_finalisation() {
+        // délai en cas de données partielles
+        prise.mute_délai(10)
+        retourne
+    }
+
+    message : MessageClienteHTTP
+    réponse : MessageServeuseHTTP = ---
+    diffère détruit_message(*réponse)
+
+    si parseuse.message_est_erroné() {
+        réponse = mauvaise_requête()
+    }
+    sinon {
+        message = parseuse.finalise_message()
+        réponse = gère_message(prise, message)
+    }
+
+    ferme_la_connexion := doit_fermer_la_connexion(message, réponse)
+
+    si ferme_la_connexion {
+        fusionne_entête(*réponse, "Connection", "close")
+    }
+
+    écris_réponse(prise, réponse)
+
+    si ferme_la_connexion {
+        prise.ferme()
+    }
+    sinon {
+        // délai en cas de non-lecture
+        prise.mute_délai(10)
+        parseuse.réinitialise()
+    }
+}
+
+gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+{
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+    retourne apparie_route(serveuse.routeuse, prise, message)
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (c1: z8, c2: z8) -> bool #enligne
+{
+    si c1 == c2 {
+        retourne vrai
+    }
+
+    retourne en_minuscule(c1) == en_minuscule(c2)
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> bool
+{
+    si chn1.taille != chn2.taille {
+        retourne faux
+    }
+
+    pour chn1.taille {
+        c1 := chn1[index_it]
+        c2 := chn2[index_it]
+
+        saufsi compare_ascii_insensible_à_la_casse(c1, c2) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> bool
+{
+    /* détermine si nous devons fermer la connexion */
+    connection_message := message.entête("Connection")
+    connection_réponse := réponse.entête("Connection")
+
+    cliente_veut_fermer_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "close")
+    serveuse_veut_fermer_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "close")
+
+    cliente_veut_garder_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "keep-alive")
+    serveuse_veut_garder_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "keep-alive")
+
+    doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
+
+    si doit_fermer_la_connexion && !serveuse_veut_fermer_la_connexion {
+        retourne vrai
+    }
+
+    si !cliente_veut_garder_la_connexion && !serveuse_veut_garder_la_connexion {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+quand_fermeture :: fonc (prise: *Prise)
+{
+    imprime("fermeture de la prise...\n")
+    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
+    parseuse.réinitialise()
+    déloge(parseuse)
+}
+
+// Entête: Cache-Control
+// pour supprimer un cache, ajouter max-age=0
+// https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control
+PolitiqueDeCache :: énum {
+    Revalide // no-cache
+    ClientsSeulement // private
+    NeJamaisCacher // no-store
+}
+
+écris_réponse :: fonc (prise: *Prise, message: &MessageServeuseHTTP)
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+
+    ajoute_au_tampon(*enchaineuse, message.version, " ", chaine_code_état_http(message.code_état), "\r\n")
+    ajoute_au_tampon(*enchaineuse, "Server: ", serveuse.nom, "\r\n")
+
+    date := hui_système()
+    date_http := date_http_depuis_date(date)
+
+    ajoute_au_tampon(*enchaineuse, "Date: ")
+    imprime_date_http(*enchaineuse, date_http)
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+
+    pour message.entêtes {
+        ajoute_au_tampon(*enchaineuse, it.nom, ": ", it.valeur, "\r\n")
+    }
+
+    pour message.cookies {
+        chn_cookie := chaine_cookie_pour_entête_http(it)
+        ajoute_au_tampon(*enchaineuse, "Set-Cookie: ", chn_cookie, "\r\n")
+        déloge(chn_cookie)
+    }
+
+    // Évite le traçage FLoC de Google
+    si !possède_entête(message, "Permissions-Policy") {
+        ajoute_au_tampon(*enchaineuse, "Permissions-Policy: interest-cohort=()\r\n")
+    }
+
+    // Évite le clickjacking
+    // À FAIRE: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Security-Policy
+    // https://www.netsparker.com/blog/web-security/clickjacking-attack-on-facebook-how-tiny-attribute-save-corporation/
+    si !possède_entête(message, "X-Frame-Options") {
+        ajoute_au_tampon(*enchaineuse, "X-Frame-Options: deny\r\n")
+    }
+
+    si message.contenu {
+        ajoute_au_tampon(*enchaineuse, "Content-Length: ", message.contenu.taille, "\r\n")
+    }
+    sinon {
+        /* Nous devons toujours avoir un Content-Length, ou un Transfer-Encoding. */
+        ajoute_au_tampon(*enchaineuse, "Content-Length: 0\r\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+
+    si message.contenu {
+        ajoute_au_tampon(*enchaineuse, message.contenu)
+    }
+
+    _ := prise.écris(*enchaineuse)
+}
+
+chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
+{
+    date := hui_système()
+
+    ajoute_au_tampon(enchaineuse, chaine_jour_pour_tm(date.jour_semaine), ", ")
+
+    si date.jour < 10 {
+        ajoute_au_tampon(enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(enchaineuse, date.jour, " ", chaine_mois_pour_tm(date.mois), " ", date.année)
+
+    ajoute_au_tampon(enchaineuse, " ")
+
+    heure := date.heure
+
+    si heure < 10 {
+        ajoute_au_tampon(enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(enchaineuse, heure, ":")
+
+    si date.minute < 10 {
+        ajoute_au_tampon(enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(enchaineuse, date.minute, ":")
+
+    si date.seconde < 10 {
+        ajoute_au_tampon(enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(enchaineuse, date.seconde)
+
+    ajoute_au_tampon(enchaineuse, " GMT")
+}
+
+/* Réponses basiques */
+
+ok :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.OK
+    message.version = "HTTP/1.1"
+    retourne message
+}
+
+ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.NOT_FOUND
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
+}
+
+méthode_non_autorisée :: fonc () -> MessageServeuseHTTP
+{
+    message : MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.METHOD_NOT_ALLOWED
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+    retourne message
+}
+
+mauvaise_requête :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.code_état = CodeÉtatHTTP.BAD_REQUEST
+    message.version = "HTTP/1.1"
+    ajoute_entête(*message, "Connection", "close")
+
+    si contenu {
+        message.contenu = contenu
+        ajoute_entête(*message, "Content-Type", "text/html;charset=utf-8")
+    }
+
+    retourne message
+}
+
+redirige :: fonc (chemin: chaine) -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.code_état = CodeÉtatHTTP.SEE_OTHER
+    ajoute_entête(*message, "Location", chemin)
+    retourne message
+}
+
+erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.code_état = CodeÉtatHTTP.INTERNAL_SERVER_ERROR
+
+    si contenu {
+        message.contenu = contenu
+        ajoute_entête(*message, "Content-Type", "text/html;charset=utf-8")
+    }
+
+    retourne message
+}
+
+sers_fichier :: fonc (prise: *Prise @inutilisée, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
+{
+    chm := chemin_pour_fichier(message.requête)
+    contenu := contenu_fichier_texte(chm)
+
+    saufsi contenu {
+        retourne ressource_non_trouvée()
+    }
+
+    réponse : MessageServeuseHTTP
+    réponse.version = "HTTP/1.1"
+    réponse.code_état = CodeÉtatHTTP.OK
+    réponse.contenu = contenu
+    ajoute_entête(*réponse, "Content-Type", type_mime)
+    retourne réponse
+}
+
+/* Rendu de page via GHTML */
+
+importe GHTML
+
+rends_page_ex :: fonc (rendeuse_page: *RendeusePage, page: chaine, données_page: eini) -> MessageServeuseHTTP
+{
+    //  À FAIRE : restaure la connaissance d'une erreur
+    chn := rends_page(rendeuse_page, page, données_page)
+    retourne crée_message_avec_contenu(CodeÉtatHTTP.OK, contenu_html(chn))
+}

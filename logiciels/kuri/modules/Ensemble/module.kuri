@@ -7,9 +7,14 @@ importe Algorithmes
 
 ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
 {
+    _ := ensemble_ajoute_retourne_adresse(ensemble, donnée)
+}
+
+ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[]$T, donnée: T) -> *T
+{
     si ensemble.taille == 0 {
         tableau_ajoute(ensemble, donnée)
-        retourne
+        retourne *ensemble.pointeur[0]
     }
 
     début := ensemble.pointeur
@@ -19,7 +24,7 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
 
     si limite < fin {
         si mémoire(limite) == donnée {
-            retourne
+            retourne limite
         }
     }
 
@@ -41,6 +46,8 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
     tmp[index_d_insertion] = donnée
 
     mémoire(ensemble) = tmp
+
+    retourne *ensemble.pointeur[index_d_insertion]
 }
 
 ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
@@ -61,6 +68,26 @@ ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
     }
 
     retourne faux
+}
+
+ensemble_possède_retourne_index :: fonc (ensemble: *[]$T, donnée: T) -> z64
+{
+    si ensemble.taille == 0 {
+        retourne -1
+    }
+
+    début := ensemble.pointeur
+    fin   := début + ensemble.taille
+
+    limite := limite_basse(début, fin, donnée)
+
+    si limite < fin {
+        si mémoire(limite) == donnée {
+            retourne distance(début, limite)
+        }
+    }
+
+    retourne -1
 }
 
 RésultatRecherche :: struct {

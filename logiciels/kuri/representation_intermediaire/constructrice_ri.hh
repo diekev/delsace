@@ -27,8 +27,10 @@
 #include "instructions.hh"
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tablet.hh"
+
+#include "arbre_syntaxique/noeud_code.hh"
+
+#include "structures/tablet.hh"
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -65,6 +67,9 @@ struct ConstructriceRI {
     tableau_page<OpUnaireConstant> op_unaires_constants{};
     tableau_page<AccedeIndexConstant> accede_index_constants{};
 
+    /* Pour la création des infos types. */
+    ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+
     Compilatrice &m_compilatrice;
 
     int nombre_labels = 0;
@@ -76,7 +81,6 @@ struct ConstructriceRI {
     int taille_allouee = 0;
 
     NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
-    Atome *contexte = nullptr;
 
     bool expression_gauche = true;
 
@@ -85,14 +89,14 @@ struct ConstructriceRI {
     /* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
      * appelons les genere_ri_*, il faut dépiler la valeur que nous désirons, si
      * nous en désirons une */
-    dls::tablet<Atome *, 8> m_pile{};
+    kuri::tablet<Atome *, 8> m_pile{};
 
   public:
     AtomeFonction *fonction_courante = nullptr;
 
     double temps_generation = 0.0;
 
-    ConstructriceRI(Compilatrice &compilatrice);
+    explicit ConstructriceRI(Compilatrice &compilatrice);
 
     COPIE_CONSTRUCT(ConstructriceRI);
 
@@ -101,7 +105,6 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
                                                NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale(EspaceDeTravail *espace);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         const kuri::tableau<AtomeGlobale *> &globales,
@@ -128,6 +131,7 @@ struct ConstructriceRI {
     AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
     AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
     AtomeConstante *cree_constante_type(Type *pointeur_type);
+    AtomeConstante *cree_constante_taille_de(Type *pointeur_type);
     AtomeConstante *cree_z32(unsigned long long valeur);
     AtomeConstante *cree_z64(unsigned long long valeur);
     AtomeConstante *cree_constante_nulle(Type *type);
@@ -147,6 +151,8 @@ struct ConstructriceRI {
                                bool est_constante);
     AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
+    AtomeConstante *cree_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
+                                                       TypeTableauFixe *type_tableau_fixe);
 
     InstructionBranche *cree_branche(NoeudExpression *site_,
                                      InstructionLabel *label,
@@ -158,6 +164,7 @@ struct ConstructriceRI {
     InstructionLabel *cree_label(NoeudExpression *site_);
     InstructionLabel *reserve_label(NoeudExpression *site_);
     void insere_label(InstructionLabel *label);
+    void insere_label_si_utilise(InstructionLabel *label);
     InstructionRetour *cree_retour(NoeudExpression *site_, Atome *valeur);
     InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_,
                                           Atome *ou,
@@ -166,9 +173,8 @@ struct ConstructriceRI {
     InstructionChargeMem *cree_charge_mem(NoeudExpression *site_,
                                           Atome *ou,
                                           bool cree_seulement = false);
-    InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
+    InstructionAppel *cree_appel(NoeudExpression *site_, Atome *appele);
     InstructionAppel *cree_appel(NoeudExpression *site_,
-                                 Lexeme const *lexeme,
                                  Atome *appele,
                                  kuri::tableau<Atome *, int> &&args);
 
@@ -211,6 +217,16 @@ struct ConstructriceRI {
                                                     AtomeConstante *valeur_droite);
     AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
+    AtomeConstante *cree_info_type(Type *type, NoeudExpression *site);
+    AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
+
+    void genere_ri_pour_initialisation_globales(EspaceDeTravail *espace,
+                                                AtomeFonction *fonction_init,
+                                                const kuri::tableau<AtomeGlobale *> &globales);
+
+    void genere_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
+                                                const kuri::tableau<AtomeGlobale *> &globales);
+
   private:
     AtomeFonction *genere_fonction_init_globales_et_appel(
         const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
@@ -218,21 +234,22 @@ struct ConstructriceRI {
     void genere_ri_pour_noeud(NoeudExpression *noeud);
     void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
     void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
-    AtomeFonction *genere_ri_pour_fonction_principale();
     void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
     void genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
     void genere_ri_pour_tente(NoeudInstructionTente *noeud);
-    void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
     void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
     void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
     AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
     void genere_ri_pour_condition(NoeudExpression *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
+    void genere_ri_pour_condition_implicite(NoeudExpression *condition,
+                                            InstructionLabel *label_si_vrai,
+                                            InstructionLabel *label_si_faux);
     void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
-    void genere_ri_insts_differees(NoeudBloc *bloc, NoeudBloc *bloc_final);
+    void genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final);
     void genere_ri_pour_position_code_source(NoeudExpression *noeud);
     void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 
@@ -241,9 +258,14 @@ struct ConstructriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *cree_info_type(Type *type);
-    AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
-    AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
+    void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
+                                            unsigned int index,
+                                            Type *pour_type);
+    AtomeConstante *cree_info_type_defaut(unsigned index, Type *pour_type);
+    AtomeConstante *cree_info_type_entier(Type *pour_type, bool est_relatif);
+    AtomeConstante *cree_info_type_avec_transtype(Type *type, NoeudExpression *site);
+    AtomeConstante *cree_globale_info_type(Type *type_info_type,
+                                           kuri::tableau<AtomeConstante *> &&valeurs);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
                                      Atome *pointeur_tableau_fixe,
@@ -257,6 +279,9 @@ struct ConstructriceRI {
 
     void empile_valeur(Atome *valeur);
     Atome *depile_valeur();
+
+    AtomeConstante *cree_tableau_annotations_pour_info_membre(
+        const kuri::tableau<Annotation, int> &annotations);
 
     /* pour pouvoir accéder aux tableaux d'instructions */
     friend struct CopieuseInstruction;

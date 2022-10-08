@@ -25,10 +25,10 @@
 #pragma once
 
 #include "biblinternes/chrono/outils.hh"
-#include "biblinternes/structures/tablet.hh"
 
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
 #include "lexemes.hh"
 
@@ -51,7 +51,7 @@ struct BaseSyntaxeuse {
 
     dls::chrono::metre_seconde m_chrono_analyse{};
 
-    dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
+    kuri::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
   public:
     BaseSyntaxeuse(Fichier *fichier);
@@ -146,7 +146,7 @@ struct BaseSyntaxeuse {
         return chaine_statique_lexeme == chaine;
     }
 
-    inline bool apparie(IdentifiantCode *ident) const
+    inline bool apparie(const IdentifiantCode *ident) const
     {
         return m_lexeme_courant->ident == ident;
     }

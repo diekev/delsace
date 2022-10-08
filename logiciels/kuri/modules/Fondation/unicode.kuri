@@ -109,27 +109,27 @@ décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
 converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 {
-	s0 := caractère[0] comme n8
+	s0 := caractère[0] comme n32
 
 	si (n == 1) {
 		retourne s0 comme z32 & 0b01111111
 	}
 
-	s1 := caractère[1] comme n8
+	s1 := caractère[1] comme n32
 
 	si (n == 2) {
         v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
 		retourne v comme z32
 	}
 
-	s2 := caractère[2] comme n8
+	s2 := caractère[2] comme n32
 
 	si (n == 3) {
 		v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
 		retourne v comme z32
 	}
 
-	s3 := caractère[3] comme n8
+	s3 := caractère[3] comme n32
 
 	si (n == 4) {
 		v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
@@ -155,7 +155,6 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 
 	si (c0 & 0xC0) == 0xC0 {
         c1 := caractère[1] comme z32
-        c2 := caractère[2] comme z32
 		résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
 	}
 
@@ -221,6 +220,34 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
 
 	/* Le point de code est trop large. */
 	retourne 0
+}
+
+est_point_de_code_valide :: fonc (point_de_code: n32) -> bool
+{
+	/* caractère ASCII */
+	si point_de_code <= 0x7F {
+		retourne vrai;
+	}
+
+	/* Plan universel. */
+	si point_de_code <= 0x7FF {
+		retourne vrai
+	}
+
+	/* Substituts, nous pourrions avoir une assertion ici. */
+	si 0xd800 <= point_de_code <= 0xdfff {
+		retourne faux
+	}
+
+	si point_de_code <= 0xFFFF {
+		retourne vrai
+	}
+
+	si point_de_code <= 0x10FFFF {
+		retourne vrai
+	}
+
+	retourne faux
 }
 
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.

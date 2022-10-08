@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/dico.hh"
 
 #include "structures/table_hachage.hh"
 
@@ -34,31 +33,13 @@
 #include "parsage/modules.hh"
 
 #include "erreur.h"
-#include "graphe_dependance.hh"
 #include "messagere.hh"
-#include "metaprogramme.hh"
-#include "operateurs.hh"
 #include "options.hh"
-#include "typage.hh"
 
 struct Coulisse;
 struct ConstructriceRI;
-
-// Interface avec le module « Kuri », pour certaines fonctions intéressantes
-struct InterfaceKuri {
-    NoeudDeclarationEnteteFonction *decl_panique = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_tableau = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_chaine = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_membre_union = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_memoire = nullptr;
-    NoeudDeclarationEnteteFonction *decl_panique_erreur = nullptr;
-    NoeudDeclarationEnteteFonction *decl_rappel_panique_defaut = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_vers_r32 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_vers_r64 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_depuis_r32 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_dls_depuis_r64 = nullptr;
-    NoeudDeclarationEnteteFonction *decl_creation_contexte = nullptr;
-};
+struct Programme;
+struct SiteSource;
 
 /* IPA :
  * - crée_un_espace_de_travail
@@ -88,42 +69,8 @@ struct EspaceDeTravail {
     kuri::chaine nom{};
     OptionsDeCompilation options{};
 
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
-    tableau_page_synchrone<Module> modules{};
-    tableau_page_synchrone<Fichier> fichiers{};
-    tableau_page_synchrone<MetaProgramme> metaprogrammes{};
-
-    kuri::tableau<Fichier *> table_fichiers{};
-
-    dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
-
-    dls::outils::Synchrone<Operateurs> operateurs{};
-
-    Typeuse typeuse;
-
-    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
-
-    tableau_page<AtomeFonction> fonctions{};
-
-    using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
-    dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
-    tableau_page<AtomeGlobale> globales{};
-
-    struct DonneesConstructeurGlobale {
-        AtomeGlobale *atome = nullptr;
-        NoeudExpression *expression = nullptr;
-        TransformationType transformation{};
-    };
-
-    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
-    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
-
-    using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
-    dls::outils::Synchrone<TableChaine> table_chaines{};
-
-    std::mutex mutex_atomes_fonctions{};
+    Programme *programme = nullptr;
+    UniteCompilation *unite_pour_code_machine = nullptr;
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
@@ -133,17 +80,13 @@ struct EspaceDeTravail {
     /* Le métaprogramme controlant la compilation dans cette espace. */
     MetaProgramme *metaprogramme = nullptr;
 
-    Coulisse *coulisse = nullptr;
-
-    Module *module_kuri = nullptr;
-
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
     mutable std::atomic<bool> possede_erreur{false};
 
     Compilatrice &m_compilatrice;
 
-    explicit EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts);
+    EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 
     COPIE_CONSTRUCT(EspaceDeTravail);
 
@@ -151,64 +94,9 @@ struct EspaceDeTravail {
 
     POINTEUR_NUL(EspaceDeTravail)
 
-    /**
-     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
-     * Si un tel module n'existe pas, un nouveau module est créé.
-     */
-    Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module,
-                                  IdentifiantCode *nom_module,
-                                  kuri::chaine_statique chemin);
-
-    /**
-     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-     * module n'a ce nom, retourne nullptr.
-     */
-    Module *module(const IdentifiantCode *nom_module) const;
-
-    /**
-     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-     * fichier ainsi créé ou un pointeur vers un fichier existant.
-     */
-    ResultatFichier trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module,
-                                           Module *module,
-                                           kuri::chaine_statique nom_fichier,
-                                           kuri::chaine_statique chemin,
-                                           bool importe_kuri);
-
-    /**
-     * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
-     * en dehors de portée, le programme crashera.
-     */
-    Fichier *fichier(long index) const;
-
-    /**
-     * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
-     * fichier n'a ce nom, retourne nullptr.
-     */
-    Fichier *fichier(const dls::vue_chaine_compacte &chemin) const;
-
-    AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
-    AtomeFonction *cree_fonction(Lexeme const *lexeme,
-                                 kuri::chaine const &nom_fonction,
-                                 kuri::tableau<Atome *, int> &&params);
-    AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
-                                             NoeudDeclarationEnteteFonction *decl);
-    AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
-    AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
-
-    AtomeGlobale *cree_globale(Type *type,
-                               AtomeConstante *valeur,
-                               bool initialisateur,
-                               bool est_constante);
-    void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
-    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
-    AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
-
     long memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
-
-    MetaProgramme *cree_metaprogramme();
 
     void tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
@@ -221,7 +109,8 @@ struct EspaceDeTravail {
     void tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier);
     void tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere);
+    void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
+                               bool peut_envoyer_changement_de_phase);
     void tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere);
     void tache_execution_terminee(dls::outils::Synchrone<Messagere> &messagere);
@@ -231,11 +120,17 @@ struct EspaceDeTravail {
     bool peut_generer_code_final() const;
     bool parsage_termine() const;
 
-    void change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
-                         PhaseCompilation nouvelle_phase);
-    PhaseCompilation phase_courante() const;
+    Message *change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+                             PhaseCompilation nouvelle_phase);
 
-    void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message) const;
+    PhaseCompilation phase_courante() const
+    {
+        return phase;
+    }
+
+    SiteSource site_source_pour(NoeudExpression const *noeud) const;
+
+    void rapporte_avertissement(const NoeudExpression *site, kuri::chaine_statique message) const;
     void rapporte_avertissement(kuri::chaine const &fichier,
                                 int ligne,
                                 kuri::chaine const &message) const;
@@ -243,17 +138,25 @@ struct EspaceDeTravail {
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
-    Erreur rapporte_erreur(kuri::chaine const &fichier,
+    Erreur rapporte_erreur(kuri::chaine const &chemin_fichier,
                            int ligne,
-                           kuri::chaine const &message) const;
+                           kuri::chaine const &message,
+                           erreur::Genre genre = erreur::Genre::NORMAL) const;
+    Erreur rapporte_erreur(SiteSource site,
+                           kuri::chaine const &message,
+                           erreur::Genre genre = erreur::Genre::NORMAL) const;
     Erreur rapporte_erreur_sans_site(const kuri::chaine &message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
-
-    /* Imprime la RI de toutes les fonctions de l'espace de travail. */
-    void imprime_programme() const;
 
     Compilatrice &compilatrice()
     {
         return m_compilatrice;
     }
+
+    Compilatrice &compilatrice() const
+    {
+        return m_compilatrice;
+    }
+
+    void imprime_compte_taches(std::ostream &os) const;
 };

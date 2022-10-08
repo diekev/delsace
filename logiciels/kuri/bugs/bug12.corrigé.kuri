@@ -2,11 +2,11 @@
 
 // On ne peut avoir plusieurs blocs pousse_contexte dans un même bloc (coulisse C)
 
-importe Support
+importe Fondation
 
 principale :: fonc () -> z32
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     mots : []chaine
@@ -19,6 +19,5 @@ principale :: fonc () -> z32
         mots = divise("Je suis une autre chaine !", ' ')
     }
 
-    imprime_succès(vrai)
     retourne 0
 }

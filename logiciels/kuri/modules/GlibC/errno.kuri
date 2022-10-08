@@ -1,6 +1,6 @@
 // Interface pour errno
 
-__errno_location :: fonc () -> *z32 #externe
+__errno_location :: fonc () -> *z32 #externe libc
 
 lis_errno :: fonc () -> z32
 {

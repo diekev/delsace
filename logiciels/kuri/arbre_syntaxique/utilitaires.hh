@@ -28,10 +28,13 @@
 
 #include "compilation/transformation_type.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AssembleuseArbre;
+struct EspaceDeTravail;
 struct NoeudBloc;
+struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Typeuse;
 
@@ -41,7 +44,7 @@ enum DrapeauxNoeud : unsigned int {
     EST_EXTERNE = (1 << 1),                      // decl var, decl fonction
     FORCE_ENLIGNE = (1 << 2),                    // decl fonction
     FORCE_HORSLIGNE = (1 << 3),                  // decl fonction
-    FORCE_NULCTX = (1 << 4),                     // decl fonction
+    EST_MEMBRE_STRUCTURE = (1 << 4),             // decl structure, decl union
     FORCE_SANSTRACE = (1 << 5),                  // decl fonction
     EST_ASSIGNATION_COMPOSEE = (1 << 6),         // operateur binaire
     EST_VARIADIQUE = (1 << 7),                   // decl var
@@ -60,9 +63,13 @@ enum DrapeauxNoeud : unsigned int {
     EST_PARAMETRE = (1 << 20),                   // decl var
     EST_VALEUR_POLYMORPHIQUE = (1 << 21),        // decl var
     POUR_CUISSON = (1 << 22),                    // appel
-    EST_DECLARATION_TYPE_OPAQUE = (1 << 23),     // decl var
-    ACCES_EST_ENUM_DRAPEAU = (1 << 24),          // accès membre
-    DROITE_CONDITION = (1 << 25),
+    ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
+    DROITE_CONDITION = (1 << 24),
+    EST_UTILISEE = (1 << 25),  // decl var
+    DEBOGUE = (1 << 26),
+    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
+    GAUCHE_EXPRESSION_APPEL = (1 << 28),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 29),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
@@ -71,6 +78,8 @@ enum {
     /* instruction 'pour' */
     GENERE_BOUCLE_PLAGE,
     GENERE_BOUCLE_PLAGE_INDEX,
+    GENERE_BOUCLE_PLAGE_IMPLICITE,
+    GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX,
     GENERE_BOUCLE_TABLEAU,
     GENERE_BOUCLE_TABLEAU_INDEX,
     GENERE_BOUCLE_COROUTINE,
@@ -85,8 +94,11 @@ enum {
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
+    RETOURNE_UNE_UNION_VIA_RIEN,
+    REQUIERS_RETOUR_UNION_VIA_RIEN,
 
-    EST_NOEUD_ACCES,
+    /* expression construction structure */
+    CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
@@ -160,3 +172,15 @@ void simplifie_arbre(EspaceDeTravail *espace,
                      NoeudExpression *arbre);
 
 void aplatis_arbre(NoeudExpression *declaration);
+
+void imprime_details_fonction(EspaceDeTravail *espace,
+                              NoeudDeclarationEnteteFonction const *entete,
+                              std::ostream &os);
+
+void cree_noeud_initialisation_type(EspaceDeTravail *espace,
+                                    Type *type,
+                                    AssembleuseArbre *assembleuse);
+
+NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr);
+
+bool possede_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);

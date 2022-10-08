@@ -1,34 +1,36 @@
+importe Chaine
+importe Fondation
 
 PileÉlémentsOuverts :: struct {
     éléments: []*Élément
 }
 
-noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne
 {
     retourne pile.éléments[pile.éléments.taille - 1]
 }
 
-noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément #enligne
 {
     retourne pile.éléments[pile.éléments.taille - 2]
 }
 
-empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
+empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) #enligne
 {
     tableau_ajoute(*pile.éléments, élément)
 }
 
-dépile :: fonc (pile: *PileÉlémentsOuverts)
+dépile :: fonc (pile: *PileÉlémentsOuverts) #enligne
 {
     pile.éléments.taille -= 1
 }
 
-taille :: fonc (pile: *PileÉlémentsOuverts) -> z64
+taille :: fonc (pile: *PileÉlémentsOuverts) -> z64 #enligne
 {
     retourne pile.éléments.taille
 }
 
-possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine, liste: ...chaine) -> bool
+possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée, liste: ...*ChaineInternée) -> bool
 {
     index := pile.éléments.taille - 1
 
@@ -50,29 +52,33 @@ possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine,
 }
 
 // À FAIRE : gestion des espaces de nom
-possède_dans_portée_button :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+possède_dans_portée_button :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag, "button", "applet", "caption", "html", "table", "td", "th", "marquee", "object", "template", "mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignObject", "desc", "title")
+    retourne possède_dans_portée_ex(pile, nom_tag, TAG_button, TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th, TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-possède_dans_portée_list_item :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+possède_dans_portée_list_item :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag, "ol", "ul", "applet", "caption", "html", "table", "td", "th", "marquee", "object", "template", "mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignObject", "desc", "title")
+    retourne possède_dans_portée_ex(pile, nom_tag, TAG_ol, TAG_ul, TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th, TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn, TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-possède_dans_portée_table :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+possède_dans_portée_table :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag, "html", "table", "template")
+    retourne possède_dans_portée_ex(pile, nom_tag, TAG_html, TAG_table, TAG_template)
 }
 
-possède_dans_portée_select :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+possède_dans_portée_select :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag, "optgroup", "option")
+    retourne possède_dans_portée_ex(pile, nom_tag, TAG_optgroup, TAG_option)
 }
 
-possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: *ChaineInternée) -> bool
 {
-    retourne possède_dans_portée_ex(pile, nom_tag, "applet", "caption", "html", "table", "td", "th", "marquee", "object", "template", "mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignObject", "desc", "title")
+    retourne possède_dans_portée_ex(pile, nom_tag,
+                                    TAG_applet, TAG_caption, TAG_html, TAG_table, TAG_td, TAG_th,
+                                    TAG_marquee, TAG_object, TAG_template, TAG_mi, TAG_mo, TAG_mn,
+                                    TAG_ms, TAG_mtext, TAG_annotation_xml, TAG_foreignObject,
+                                    TAG_desc, TAG_title)
 }
 
 possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool

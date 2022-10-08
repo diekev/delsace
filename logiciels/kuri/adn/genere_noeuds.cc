@@ -28,7 +28,6 @@
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/conditions.h"
-#include "biblinternes/structures/ensemble.hh"
 
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"
@@ -37,10 +36,11 @@
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "structures/ensemble.hh"
 #include "structures/table_hachage.hh"
 
 #include "adn.hh"
-#include "outils.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static const char *copie_extra_declaration_variable = R"(
 			/* n'oublions pas de mettre en place les déclarations */
@@ -52,18 +52,19 @@ static const char *copie_extra_declaration_variable = R"(
 			   auto nvirgule = copie->valeur->comme_virgule();
 
 			   auto index = 0;
-			   POUR (virgule->expressions) {
-				   auto it_orig = nvirgule->expressions[index]->comme_reference_declaration();
-				   it->comme_reference_declaration()->declaration_referee = copie_noeud(assem, it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
+			   POUR (nvirgule->expressions) {
+				   auto it_orig = virgule->expressions[index]->comme_reference_declaration();
+                   if (it_orig->declaration_referee) {
+                       it->comme_reference_declaration()->declaration_referee = copie_noeud(it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
+                   }
+                   index += 1;
 			   }
 			})";
 
 static const char *copie_extra_entete_fonction = R"(
-			copie->bloc_constantes->possede_contexte = orig->bloc_constantes->possede_contexte;
-			copie->bloc_parametres->possede_contexte = orig->bloc_parametres->possede_contexte;
 			if (!copie->est_declaration_type) {
 				if (orig->params_sorties.taille() > 1) {
-					copie->param_sortie = copie_noeud(assem, orig->param_sortie, bloc_parent)->comme_declaration_variable();
+                    copie->param_sortie = copie_noeud(orig->param_sortie, bloc_parent)->comme_declaration_variable();
 				}
 				else {
 					copie->param_sortie = copie->params_sorties[0]->comme_declaration_variable();
@@ -77,21 +78,37 @@ static const char *copie_extra_entete_fonction = R"(
 				nexpr_corps->drapeaux = (expr_corps->drapeaux & ~DECLARATION_FUT_VALIDEE);
 				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
 				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille());
-				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));
+                nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(expr_corps->bloc, bloc_parent));
 			})";
 
 static const char *copie_extra_bloc = R"(
-			copie->membres->reserve(orig->membres->taille());
-			POUR (*copie->expressions.verrou_lecture()) {
-				if (it->est_declaration()) {
-					copie->membres->ajoute(it->comme_declaration());
-				}
-			})";
+            copie->membres->reserve(orig->membres->taille());
+            POUR (*copie->expressions.verrou_lecture()) {
+                if (it->est_declaration_type() || it->est_entete_fonction()) {
+                    copie->membres->ajoute(it->comme_declaration());
+                }
+            })";
+
+static const char *copie_extra_structure = R"(
+            nracine->type = nullptr;
+            if (orig->bloc_constantes) {
+                copie->bloc_constantes = copie_noeud(orig->bloc_constantes, bloc_parent)->comme_bloc();
+                bloc_parent = copie->bloc_constantes;
+                copie->est_polymorphe = orig->est_polymorphe;
+
+                /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
+                 * sont placés par la Syntaxeuse directement dans les membres. */
+                POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
+                    auto copie_membre = copie_noeud(it, bloc_parent);
+                    copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+                }
+            }
+)";
 
 struct GeneratriceCodeCPP {
     kuri::tableau<Proteine *> proteines{};
     kuri::tableau<ProteineStruct *> proteines_struct{};
-    kuri::table_hachage<kuri::chaine_statique, ProteineStruct *> table_desc{};
+    kuri::table_hachage<kuri::chaine_statique, ProteineStruct *> table_desc{"Protéines"};
 
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
@@ -111,7 +128,7 @@ struct GeneratriceCodeCPP {
               "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
 
         // Prodéclarations des structures
-        dls::ensemble<kuri::chaine> noms_struct;
+        kuri::ensemble<kuri::chaine> noms_struct;
 
         POUR (proteines) {
             if (it->comme_struct()) {
@@ -142,9 +159,8 @@ struct GeneratriceCodeCPP {
             }
         }
 
-        POUR (noms_struct) {
-            os << "struct " << it << ";\n";
-        }
+        noms_struct.pour_chaque_element(
+            [&](kuri::chaine_statique it) { os << "struct " << it << ";\n"; });
         os << "\n";
 
         // Les structures C++
@@ -162,10 +178,6 @@ struct GeneratriceCodeCPP {
         os << "void imprime_arbre(NoeudExpression const *racine, std::ostream &os, int "
               "profondeur, bool substitution = false);\n\n";
 
-        // Copie de l'arbre
-        os << "NoeudExpression *copie_noeud(AssembleuseArbre *assem, NoeudExpression const "
-              "*racine, NoeudBloc *bloc_parent);\n\n";
-
         // Calcul de l'étendue
         os << "struct Etendue {\n";
         os << "\tlong pos_min = 0;\n";
@@ -178,14 +190,26 @@ struct GeneratriceCodeCPP {
         os << "\t}\n";
         os << "};\n\n";
         os << "Etendue calcule_etendue_noeud(NoeudExpression const *racine);\n\n";
+        os << "enum class DecisionVisiteNoeud : unsigned char {\n";
+        os << "    CONTINUE,\n";
+        os << "    IGNORE_ENFANTS,\n";
+        os << "};\n\n";
+        os << "enum class PreferenceVisiteNoeud : unsigned char {\n";
+        os << "    ORIGINAL,\n";
+        os << "    SUBSTITUTION,\n";
+        os << "};\n\n";
+        os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
+              "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel);\n\n";
     }
 
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#include \"noeud_expression.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
+        os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/outils_lexemes.hh\"\n";
         os << "#include \"assembleuse.hh\"\n";
+        os << "#include \"copieuse.hh\"\n";
         os << "#include <iostream>\n";
 
         POUR (proteines) {
@@ -194,6 +218,7 @@ struct GeneratriceCodeCPP {
 
         genere_impression_arbre_syntaxique(os);
         genere_calcul_etendue_noeud(os);
+        genere_visite_noeud(os);
         genere_copie_noeud(os);
     }
 
@@ -232,12 +257,14 @@ struct GeneratriceCodeCPP {
             os << "\t\t\timprime_tab(os, profondeur);\n";
             os << "\t\t\tos << \"<" << it->accede_nom_comme();
 
+            os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
+
             // À FAIRE : ceci ne prend pas en compte les ancêtres
             if (it->possede_enfants()) {
-                os << ">\";\n";
+                os << ">\\n\";\n";
             }
             else {
-                os << "/>\";\n";
+                os << "/>\\n\";\n";
             }
 
             genere_code_pour_enfant(os, it, false, [&os](ProteineStruct &, Membre const &membre) {
@@ -261,7 +288,7 @@ struct GeneratriceCodeCPP {
 
             if (it->possede_enfants()) {
                 os << "\t\t\timprime_tab(os, profondeur);\n";
-                os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\";\n";
+                os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\\n\";\n";
             }
 
             os << "\t\t\tbreak;\n";
@@ -328,15 +355,87 @@ struct GeneratriceCodeCPP {
         os << "}\n";
     }
 
+    void genere_visite_noeud(FluxSortieCPP &os)
+    {
+        os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
+              "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel)\n";
+        os << "{\n";
+        os << "\tif (!racine) {\n";
+        os << "\t\treturn;\n";
+        os << "\t}\n";
+        os << "\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION && racine->substitution) "
+              "{\n";
+        os << "\t\tracine = racine->substitution;\n";
+        os << "\t}\n";
+        os << "\tauto decision = rappel(racine);\n";
+        os << "\tif (decision == DecisionVisiteNoeud::IGNORE_ENFANTS) {\n";
+        os << "\t\treturn;\n";
+        os << "\t}\n";
+        os << "\tswitch (racine->genre) {\n";
+
+        POUR (proteines_struct) {
+            if (it->accede_nom_genre().est_nul()) {
+                continue;
+            }
+
+            os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
+            os << "\t\t{\n";
+
+            genere_code_pour_enfant(
+                os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
+                    if (membre.type->est_tableau()) {
+                        auto nom_membre = membre.nom.nom_cpp();
+                        if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_APPEL" &&
+                            nom_membre == "parametres") {
+                            nom_membre = "parametres_resolus";
+                        }
+
+                        const auto type_tableau = membre.type->comme_tableau();
+                        if (type_tableau->est_synchrone) {
+                            os << "\t\t\tPOUR ((*racine_typee->" << nom_membre
+                               << ".verrou_lecture())) {\n";
+                        }
+                        else {
+                            os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
+                        }
+                        os << "\t\t\t\tvisite_noeud(it, preference, rappel);\n";
+                        os << "\t\t\t}\n";
+                    }
+                    else {
+                        os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom
+                           << ", preference, rappel);\n";
+                    }
+                });
+
+            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_BOUCLE") {
+                os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pre, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarret, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sinon, preference, rappel);\n";
+                os << "\t\t\t}\n";
+            }
+
+            os << "\t\t\tbreak;\n";
+            os << "\t\t}\n";
+        }
+
+        os << "\t}\n";
+        os << "}\n";
+    }
+
     void genere_copie_noeud(FluxSortieCPP &os)
     {
-        os << "NoeudExpression *copie_noeud(AssembleuseArbre *assem, const NoeudExpression "
+        os << "NoeudExpression *Copieuse::copie_noeud(const NoeudExpression "
               "*racine, NoeudBloc *bloc_parent)\n";
         os << "{\n";
         os << "\tif(!racine) {\n";
         os << "\t\treturn nullptr;\n";
         os << "\t}\n";
-        os << "\tNoeudExpression *nracine = nullptr;\n";
+        os << "\tNoeudExpression *nracine = trouve_copie(racine);\n";
+        os << "\tif(nracine) {\n";
+        os << "\t\treturn nracine;\n";
+        os << "\t}\n";
         os << "\tswitch(racine->genre) {\n";
 
         POUR (proteines_struct) {
@@ -376,11 +475,7 @@ struct GeneratriceCodeCPP {
             // Pour les structure et les fonctions, il nous faut proprement gérer les blocs parents
 
             if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
-                os << "\t\t\tif (orig->bloc_constantes) {\n";
-                os << "\t\t\t\tcopie->bloc_constantes = copie_noeud(assem, orig->bloc_constantes, "
-                      "bloc_parent)->comme_bloc();\n";
-                os << "\t\t\t\tbloc_parent = copie->bloc_constantes;\n";
-                os << "\t\t\t}\n";
+                os << copie_extra_structure;
             }
             else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
                 os << "\t\t\tcopie->bloc_constantes = assem->cree_bloc_seul(nullptr, "
@@ -426,7 +521,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(assem, it, bloc_parent)";
+                    os << "copie_noeud(it, bloc_parent)";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -443,7 +538,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(assem, orig->" << nom_enfant << ", bloc_parent)";
+                    os << "copie_noeud(orig->" << nom_enfant << ", bloc_parent)";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -503,6 +598,7 @@ struct GeneratriceCodeCPP {
         }
 
         os << "\t}\n";
+        os << "\tinsere_copie(racine, nracine);\n";
         os << "\treturn nracine;\n";
         os << "}\n";
     }
@@ -520,7 +616,7 @@ struct GeneratriceCodeCPP {
         os << "struct Statistiques;\n";
 
         // Prodéclarations des structures
-        dls::ensemble<kuri::chaine> noms_struct;
+        kuri::ensemble<kuri::chaine> noms_struct;
 
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
@@ -529,9 +625,8 @@ struct GeneratriceCodeCPP {
             }
         }
 
-        POUR (noms_struct) {
-            os << "struct " << it << ";\n";
-        }
+        noms_struct.pour_chaque_element(
+            [&](kuri::chaine_statique it) { os << "struct " << it << ";\n"; });
         os << "struct GeranteChaine;\n";
         os << "\n";
 
@@ -564,10 +659,10 @@ struct GeneratriceCodeCPP {
 
             os << " {\n";
 
-            // À FAIRE : spécialise le nom du genre, voir aussi adn.cc
             if (!it->accede_nom_genre().est_nul()) {
                 os << "\t" << it->accede_nom_code()
-                   << "() { genre = GenreNoeud::" << it->accede_nom_genre() << "; }\n";
+                   << "() { genre =  " << it->enum_discriminante()->nom()
+                   << "::" << it->accede_nom_genre() << "; }\n";
                 os << "\tCOPIE_CONSTRUCT(" << it->accede_nom_code() << ");\n";
                 os << "\n";
             }
@@ -754,6 +849,10 @@ struct GeneratriceCodeCPP {
                 continue;
             }
 
+            if (it->nom().nom_cpp() == "Annotation") {
+                continue;
+            }
+
             os << "\ttableau_page<" << nom_code << "> noeuds_code_" << it->accede_nom_comme()
                << "{};\n";
         }
@@ -765,6 +864,10 @@ struct GeneratriceCodeCPP {
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
             if (nom_code.est_nul()) {
+                continue;
+            }
+
+            if (it->nom().nom_cpp() == "Annotation") {
                 continue;
             }
 
@@ -792,6 +895,7 @@ struct GeneratriceCodeCPP {
     void genere_fichier_source_noeud_code(FluxSortieCPP &os)
     {
         os << "#include \"noeud_code.hh\"\n";
+        os << "#include \"compilation/compilatrice.hh\"\n";
         os << "#include \"compilation/espace_de_travail.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/gerante_chaine.hh\"\n";
@@ -848,6 +952,15 @@ struct GeneratriceCodeCPP {
                     }
 
                     if (nom_membre.nom_cpp() == "genre") {
+                        return;
+                    }
+
+                    if (nom_membre.nom_cpp() == "annotations") {
+                        os << "\t\t\t\tn->annotations.reserve(racine_typee->annotations.taille());"
+                              "\n";
+                        os << "\t\t\tPOUR (racine_typee->annotations) {\n";
+                        os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
+                        os << "\t\t\t}\n";
                         return;
                     }
 
@@ -932,7 +1045,7 @@ struct GeneratriceCodeCPP {
         os << "\tconst auto lexeme = racine->lexeme;\n";
         os << "\t// lexeme peut-être nul pour les blocs\n";
         os << "\tif (lexeme) {\n";
-        os << "\t\tconst auto fichier = espace->fichier(lexeme->fichier);\n";
+        os << "\t\tconst auto fichier = espace->compilatrice().fichier(lexeme->fichier);\n";
         os << "\t\tnoeud->chemin_fichier = fichier->chemin();\n";
         os << "\t\tnoeud->nom_fichier = fichier->nom();\n";
         os << "\t\tnoeud->numero_ligne = lexeme->ligne + 1;\n";
@@ -991,6 +1104,16 @@ struct GeneratriceCodeCPP {
                         return;
                     }
 
+                    if (nom_membre.nom_cpp() == "annotations") {
+                        os << "\t\t\t\tn->annotations.reserve(static_cast<int>(racine_typee->"
+                              "annotations.taille()));"
+                              "\n";
+                        os << "\t\t\tPOUR (racine_typee->annotations) {\n";
+                        os << "\t\t\t\tn->annotations.ajoute({it.nom, it.valeur});\n";
+                        os << "\t\t\t}\n";
+                        return;
+                    }
+
                     const auto desc_type = table_desc.valeur_ou(
                         membre.type->accede_nom().nom_kuri(), nullptr);
 
@@ -1044,7 +1167,8 @@ struct GeneratriceCodeCPP {
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = convertis_info_type(espace->typeuse, racine_typee->type);\n";
+            os << "\t\t\tn->type = convertis_info_type(espace->compilatrice().typeuse, "
+                  "racine_typee->type);\n";
 
             os << "\t\t\tnoeud = n;\n";
             os << "\t\t\tbreak;\n";
@@ -1131,13 +1255,6 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
 	bloc->bloc_parent = bloc_courant();
-	if (bloc->bloc_parent) {
-		bloc->possede_contexte = bloc->bloc_parent->possede_contexte;
-	}
-	else {
-		/* vrai si le bloc ne possède pas de parent (bloc de module) */
-		bloc->possede_contexte = true;
-	}
 	m_blocs.empile(bloc);
 	return bloc;
 }
@@ -1164,12 +1281,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
     {
         os << "#pragma once\n";
         os << "#include \"allocatrice.hh\"\n";
-        os << "#include \"biblinternes/structures/pile.hh\"\n";
+        os << "#include \"structures/pile.hh\"\n";
         os << "struct TypeCompose;\n";
         os << "struct AssembleuseArbre {\n";
         os << "private:\n";
         os << "\tAllocatriceNoeud &m_allocatrice;\n";
-        os << "\tdls::pile<NoeudBloc *> m_blocs{};\n";
+        os << "\tkuri::pile<NoeudBloc *> m_blocs{};\n";
         os << "public:\n";
 
         const char *methodes = R"(
@@ -1256,6 +1373,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
 	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, unsigned long valeur);
+ NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
 	NoeudExpressionLitteraleReel *cree_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
 	NoeudExpression *cree_reference_type(const Lexeme *lexeme, Type *type);
 	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
@@ -1304,19 +1422,22 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         // stats pour les tableaux
-        auto noms_tableaux = dls::ensemble<kuri::chaine>();
+        auto noms_tableaux = kuri::ensemble<kuri::chaine>();
+
+        auto cree_nom_tableau = [](kuri::chaine_statique nom_comme,
+                                   kuri::chaine_statique nom_membre) -> kuri::chaine {
+            return enchaine("taille_max_", nom_comme, "_", nom_membre);
+        };
 
         POUR (proteines_struct) {
             if (!it->possede_tableau()) {
                 continue;
             }
 
-            it->pour_chaque_membre_recursif([&it, &os, &noms_tableaux](const Membre &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto nom_tableau = enchaine("taille_max_",
-                                                      it->accede_nom_comme().nom_cpp(),
-                                                      "_",
-                                                      membre.nom.nom_cpp());
+            it->pour_chaque_membre_recursif([&](const Membre &membre) {
+                if (membre.type->est_tableau() || membre.nom.nom_cpp() == "monomorphisations") {
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              membre.nom.nom_cpp());
                     os << "auto " << nom_tableau << " = 0;\n";
                     noms_tableaux.insere(nom_tableau);
                 }
@@ -1336,14 +1457,23 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau()) {
                     const auto nom_membre = membre.nom;
-                    const auto nom_tableau = enchaine("taille_max_",
-                                                      it->accede_nom_comme().nom_cpp(),
-                                                      "_",
-                                                      nom_membre.nom_cpp());
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              nom_membre.nom_cpp());
                     os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille_memoire();\n";
+                }
+                else if (membre.nom.nom_cpp() == "monomorphisations") {
+                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                                                              membre.nom.nom_cpp());
+
+                    os << "if (noeud.monomorphisations) {\n";
+                    os << "memoire_" << nom_comme
+                       << " += noeud.monomorphisations->memoire_utilisee();\n";
+                    os << nom_tableau << " = std::max(" << nom_tableau
+                       << ", noeud.monomorphisations->nombre_items_max());\n";
+                    os << "}\n";
                 }
             });
             os << "});\n";
@@ -1354,9 +1484,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         os << "auto &stats_tableaux = stats.stats_tableaux;\n";
-        POUR (noms_tableaux) {
+        noms_tableaux.pour_chaque_element([&](kuri::chaine_statique it) {
             os << "stats_tableaux.fusionne_entree({\"" << it << "\", " << it << "});\n";
-        }
+        });
 
         os << "}\n";
     }
@@ -1479,20 +1609,16 @@ int main(int argc, char **argv)
     auto nom_fichier_sortie = std::filesystem::path(argv[1]);
 
     auto texte = charge_contenu_fichier(chemin_adn);
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte.c_str());
 
     auto fichier = Fichier();
-    fichier.donnees_constantes = &donnees_fichier;
-    fichier.donnees_constantes->chemin = chemin_adn;
+    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.chemin_ = chemin_adn;
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto rappel_erreur = [](kuri::chaine message) { std::cerr << message << '\n'; };
+    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
 
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
-
-    auto lexeuse = Lexeuse(contexte_lexage, &donnees_fichier);
+    auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
     if (lexeuse.possede_erreur()) {
@@ -1506,7 +1632,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProteineStruct *>();
+    auto table_desc = kuri::table_hachage<kuri::chaine_statique, ProteineStruct *>(
+        "Protéines structures");
 
     POUR (syntaxeuse.proteines) {
         if (!it->comme_struct()) {
@@ -1526,21 +1653,24 @@ int main(int argc, char **argv)
         }
     }
 
+    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+
     if (nom_fichier_sortie.filename() == "noeud_expression.cc") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_arbre_syntaxique(flux);
     }
     else if (nom_fichier_sortie.filename() == "noeud_expression.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_arbre_syntaxique(flux);
     }
     else if (nom_fichier_sortie.filename() == "noeud_code.cc") {
         {
-            std::ofstream fichier_sortie(argv[1]);
+            std::ofstream fichier_sortie(nom_fichier_tmp);
             auto flux = FluxSortieCPP(fichier_sortie);
             generatrice.genere_fichier_source_noeud_code(flux);
+            remplace_si_different("/tmp/noeud_code.cc", argv[1]);
         }
         {
             // Génère le fichier de message pour le module Compilatrice
@@ -1553,27 +1683,27 @@ int main(int argc, char **argv)
         }
     }
     else if (nom_fichier_sortie.filename() == "noeud_code.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_noeud_code(flux);
     }
     else if (nom_fichier_sortie.filename() == "assembleuse.cc") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_assembleuse(flux);
     }
     else if (nom_fichier_sortie.filename() == "assembleuse.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_assembleuse(flux);
     }
     else if (nom_fichier_sortie.filename() == "allocatrice.cc") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_allocatrice(flux);
     }
     else if (nom_fichier_sortie.filename() == "allocatrice.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_allocatrice(flux);
     }
@@ -1581,6 +1711,8 @@ int main(int argc, char **argv)
         std::cerr << "Chemin de fichier " << argv[1] << " inconnu !\n";
         return 1;
     }
+
+    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
 
     return 0;
 }

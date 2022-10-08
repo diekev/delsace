@@ -53,6 +53,7 @@ genere_code_adn(kuri_message_compilatrice genere_message message)
 set(BIBLIOTHEQUES
 	kuri_arbre_syntaxique
 	kuri_ipa_compilatrice
+	kuri_message_compilatrice
 	kuri_options_compilatrice
 	kuri_parsage
 	kuri_representation_intermediaire
@@ -64,22 +65,31 @@ set(BIBLIOTHEQUES
 	bib_moultfilage
 	bib_structures
 	memoire
+	nombre_decimaux
 )
 
 set(SOURCES
+	attente.hh
+	bibliotheque.hh
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
 	coulisse_asm.hh
 	coulisse_c.hh
+  coulisse_mv.hh
+  discrimination.hh
 	environnement.hh
 	erreur.h
 	espace_de_travail.hh
+	gestionnaire_code.hh
 	graphe_dependance.hh
+	interface_module_kuri.hh
+        log.hh
 	messagere.hh
 	metaprogramme.hh
 	monomorphisations.hh
 	operateurs.hh
+	programme.hh
 	portee.hh
 	structures.hh
 	syntaxeuse.hh
@@ -90,19 +100,27 @@ set(SOURCES
 	validation_expression_appel.hh
 	validation_semantique.hh
 
+	attente.cc
+	bibliotheque.cc
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
 	coulisse_asm.cc
 	coulisse_c.cc
+	coulisse_mv.cc
+  discrimination.cc
 	environnement.cc
 	erreur.cc
 	espace_de_travail.cc
+	gestionnaire_code.cc
 	graphe_dependance.cc
+	interface_module_kuri.cc
+        log.cc
 	messagere.cc
 	metaprogramme.cc
 	monomorphisations.cc
 	operateurs.cc
+	programme.cc
 	portee.cc
 	structures.cc
 	syntaxeuse.cc
@@ -115,8 +133,9 @@ set(SOURCES
 )
 
 if(AVEC_LLVM)
-	set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
-	set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
+    set(INCLUSIONS "${INCLUSIONS}" ${LLVM_INCLUDE_DIR})
+    set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" ${LLVM_LIBRARY})
+    set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
 endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

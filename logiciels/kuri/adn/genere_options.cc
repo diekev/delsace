@@ -37,6 +37,7 @@
 #include "structures/tableau.hh"
 
 #include "adn.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static void genere_code_cpp(FluxSortieCPP &os,
                             kuri::tableau<Proteine *> const &proteines,
@@ -82,20 +83,16 @@ int main(int argc, const char **argv)
     auto nom_fichier_sortie = std::filesystem::path(argv[1]);
 
     auto texte = charge_contenu_fichier(chemin_adn_ipa);
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte.c_str());
 
     auto fichier = Fichier();
-    fichier.donnees_constantes = &donnees_fichier;
-    fichier.donnees_constantes->chemin = chemin_adn_ipa;
+    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.chemin_ = chemin_adn_ipa;
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto rappel_erreur = [](kuri::chaine message) { std::cerr << message << '\n'; };
+    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
 
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
-
-    auto lexeuse = Lexeuse(contexte_lexage, &donnees_fichier);
+    auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
     if (lexeuse.possede_erreur()) {
@@ -109,14 +106,16 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+
     if (nom_fichier_sortie.filename() == "options.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         genere_code_cpp(flux, syntaxeuse.proteines, true);
     }
     else if (nom_fichier_sortie.filename() == "options.cc") {
         {
-            std::ofstream fichier_sortie(argv[1]);
+            std::ofstream fichier_sortie(nom_fichier_tmp);
             auto flux = FluxSortieCPP(fichier_sortie);
             genere_code_cpp(flux, syntaxeuse.proteines, false);
         }
@@ -129,6 +128,8 @@ int main(int argc, const char **argv)
             genere_code_kuri(flux, syntaxeuse.proteines);
         }
     }
+
+    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
 
     return 0;
 }

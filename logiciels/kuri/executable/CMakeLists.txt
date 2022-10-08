@@ -41,9 +41,6 @@ set(BIBLIOTHEQUES
 
 add_executable(kuri
     lanceur.cc
-	date.cc
-
-	date.hh
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
@@ -87,16 +84,16 @@ install(
 
 ################################################################################
 
-add_executable(test_transformation
-	test_transformation.cc
+add_executable(demon_kuri
+	demon.cc
 )
 
-target_include_directories(test_transformation PUBLIC "${INCLUSIONS}")
+target_include_directories(demon_kuri PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(test_transformation "${BIBLIOTHEQUES}")
+target_link_libraries(demon_kuri "${BIBLIOTHEQUES}")
 
 install(
-	TARGETS test_transformation RUNTIME DESTINATION ${RACINE_INSTALLATION}
+	TARGETS demon_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION}
 )
 
 ################################################################################
@@ -110,34 +107,35 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${INCLUSIONS_DELSACE_CHRONO}
-	/usr/lib/llvm-6.0/include/
+        ${CLANG_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
 	stdc++fs
 	bib_outils
-	/usr/lib/llvm-6.0/lib/libclangTooling.a
-	/usr/lib/llvm-6.0/lib/libclangFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangFrontendTool.a
-	/usr/lib/llvm-6.0/lib/libclangDriver.a
-	/usr/lib/llvm-6.0/lib/libclangSerialization.a
-	/usr/lib/llvm-6.0/lib/libclangCodeGen.a
-	/usr/lib/llvm-6.0/lib/libclangParse.a
-	/usr/lib/llvm-6.0/lib/libclangSema.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCheckers.a
-	/usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCore.a
-	/usr/lib/llvm-6.0/lib/libclangAnalysis.a
-	/usr/lib/llvm-6.0/lib/libclangARCMigrate.a
-	/usr/lib/llvm-6.0/lib/libclangRewrite.a
-	/usr/lib/llvm-6.0/lib/libclangRewriteFrontend.a
-	/usr/lib/llvm-6.0/lib/libclangEdit.a
-	/usr/lib/llvm-6.0/lib/libclangAST.a
-	/usr/lib/llvm-6.0/lib/libclangLex.a
-	/usr/lib/llvm-6.0/lib/libclangBasic.a
-	/usr/lib/llvm-6.0/lib/libLLVM.so
-	/usr/lib/llvm-6.0/lib/libclang.so
+        /usr/lib/llvm-12/lib/libclangTooling.a
+        /usr/lib/llvm-12/lib/libclangFrontend.a
+        /usr/lib/llvm-12/lib/libclangFrontendTool.a
+        /usr/lib/llvm-12/lib/libclangDriver.a
+        /usr/lib/llvm-12/lib/libclangSerialization.a
+        /usr/lib/llvm-12/lib/libclangCodeGen.a
+        /usr/lib/llvm-12/lib/libclangParse.a
+        /usr/lib/llvm-12/lib/libclangSema.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerFrontend.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCheckers.a
+        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCore.a
+        /usr/lib/llvm-12/lib/libclangAnalysis.a
+        /usr/lib/llvm-12/lib/libclangARCMigrate.a
+        /usr/lib/llvm-12/lib/libclangRewrite.a
+        /usr/lib/llvm-12/lib/libclangRewriteFrontend.a
+        /usr/lib/llvm-12/lib/libclangEdit.a
+        /usr/lib/llvm-12/lib/libclangAST.a
+        /usr/lib/llvm-12/lib/libclangLex.a
+        /usr/lib/llvm-12/lib/libclangBasic.a
+        /usr/lib/llvm-12/lib/libLLVM.so
+        /usr/lib/llvm-12/lib/libclang.so
 	bib_json
+        kuri_structures
 )
 
 add_executable(${NOM_PROJET}

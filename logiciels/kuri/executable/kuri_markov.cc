@@ -102,7 +102,7 @@ void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     std::ios::sync_with_stdio(false);
 
@@ -139,15 +139,15 @@ int main(int argc, char **argv)
             chemin = std::filesystem::absolute(chemin);
         }
 
-        auto compilatrice = Compilatrice{};
-        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+        auto compilatrice = Compilatrice("");
+        auto donnees_fichier = Fichier();
         auto tampon = charge_contenu_fichier(chemin.c_str());
-        donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+        donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(), donnees_fichier);
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
         lexeuse.performe_lexage();
 
-        test_markov_id_simple(donnees_fichier->lexemes);
+        test_markov_id_simple(donnees_fichier.lexemes);
     }
 
     return 0;

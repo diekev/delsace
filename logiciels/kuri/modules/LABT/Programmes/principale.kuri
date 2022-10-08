@@ -1,0 +1,43 @@
+importe Fondation
+importe LABT
+
+principale :: fonc () -> z32
+{
+    mémoire_début := mémoire_utilisée()
+    diffère {
+        Fondation.imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
+    }
+
+    texte := "{document titre = \"Document Test\" auteur = \"Kévin Dietrich\"
+        {chapitre titre=\"Introduction\"
+            Un paragraphe
+
+            {chapitre titre=\"Sous Chapitre\"
+                Un paragraphe
+
+                {lien texte=\"Pour en savoir plus\" url=\"http://en.savoir.plus/\"}
+            }
+
+            Un deuxième paragraphe
+        }
+    }
+    "
+
+    document := parse_document(texte)
+    diffère détruit_noeud(document)
+
+    {
+        chn := imprime(document, ImprimeAuFormat.HTML)
+        diffère déloge(chn)
+
+        imprime("%\n", chn)
+    }
+    {
+        chn := imprime(document, ImprimeAuFormat.TEXTE_SIMPLE)
+        diffère déloge(chn)
+
+        imprime("%\n", chn)
+    }
+
+    retourne 0
+}

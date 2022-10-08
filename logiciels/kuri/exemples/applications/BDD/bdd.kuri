@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe SysFichier
 
 // https://cstack.github.io/db_tutorial/
@@ -73,7 +72,7 @@ PrépareRésultat :: énum z32 {
 
 prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareRésultat
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     mots : []chaine
@@ -155,7 +154,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
 
 imprime_ligne :: fonc (ligne: *Ligne) -> rien
 {
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     chn_nom : chaine
@@ -238,7 +237,7 @@ principale :: fonc () -> z32
 
     marque := obtiens_marque_stockage_temporaire()
 
-    nouveau_contexte := contexte
+    nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     boucle {

@@ -4,9 +4,6 @@ importe SysFichier
 
 charge "catalogue_fichier"
 
-// À FAIRE : erreur si le fichier est inexistant
-// À FAIRE : initialise depuis un dossier
-
 RendeusePage :: struct {
     catalogue : CatalogueFichier
     cache_page : []PageGabarit
@@ -38,7 +35,12 @@ détruit_page_gabarit :: fonc (page : *PageGabarit) -> rien
     détruit_syntaxeuse(page.syntaxeuse)
 }
 
-trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> *PageGabarit
+RésultatRequêteCache :: union {
+    page: *PageGabarit
+    erreur_: chaine
+}
+
+trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> RésultatRequêteCache
 {
     pour * page dans rendeuse_gabarit.cache_page {
         si page.fichier.nom_court == nom_court {
@@ -49,7 +51,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     fichier := trouve_fichier(*rendeuse_gabarit.catalogue, nom_court)
 
     si fichier == nul {
-        retourne nul
+        retourne enchaine("Impossible de trouver le fichier « ", nom_court, " » !")
     }
 
     si fichier.données.taille == 0 {
@@ -57,7 +59,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     }
 
     si fichier.succès == faux {
-        retourne nul
+        retourne enchaine("Impossible de lire le fichier « ", nom_court, " », de chemin « ", fichier.chemin, " »")
     }
 
     lexeuse := construit_lexeuse(fichier.données)
@@ -67,7 +69,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     syntaxeuse.performe_syntaxage()
 
     si syntaxeuse.erreurs {
-        retourne nul
+        retourne copie_chaine("erreurs de syntaxage")
     }
 
     racine : *NoeudSyntaxique = nul
@@ -78,32 +80,43 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     }
 
     si syntaxeuse.est_extension {
-        page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu)
+        recherche_page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu)
 
-        // À FAIRE : indique que la base parente est manquante
-        si page_étendue == nul {
-            retourne nul
+        discr recherche_page_étendue {
+            page {
+                page_étendue := recherche_page_étendue.page
+                nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
+
+                blocs : []*NoeudSyntaxique
+                rassemble_blocs(racine, *blocs)
+                remplace_blocs(nouvelle_racine, blocs)
+                déloge(blocs)
+
+                racine = nouvelle_racine
+            }
+            erreur_ {
+                retourne recherche_page_étendue.erreur_
+            }
+            sinon {
+                retourne "erreur inconnue"
+            }
         }
-
-        nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
-
-        blocs : []*NoeudSyntaxique
-        rassemble_blocs(racine, *blocs)
-        remplace_blocs(nouvelle_racine, blocs)
-        déloge(blocs)
-
-        racine = nouvelle_racine
     }
 
     pour & syntaxeuse.inclusions {
-        page_étendue := trouve_dans_cache(rendeuse_gabarit, it.nom)
+        recherche_page_incluse := trouve_dans_cache(rendeuse_gabarit, it.nom)
 
-        // À FAIRE : indique que la page est manquante
-        si page_étendue == nul {
-            retourne nul
+        discr recherche_page_incluse {
+            page {
+                remplace_enfant(it.parent, it, recherche_page_incluse.page.racine)
+            }
+            erreur_ {
+                retourne recherche_page_incluse.erreur_
+            }
+            sinon {
+                retourne "erreur inconnue"
+            }
         }
-
-        remplace_enfant(it.parent, it, page_étendue.racine)
     }
 
     page : PageGabarit
@@ -115,7 +128,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
-} @IgnoreNASA
+} @FonctionLongue
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
@@ -163,27 +176,24 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
     }
 }
 
-ErreurRenduPage :: erreur {
-    PageManquante
-    RenduImpossible
-}
-
-ChaineOuErreur :: union {
-    c: chaine
-    e: ErreurRenduPage
-}
-
-rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> ChaineOuErreur
+rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> chaine
 {
-    //temps_présent := compte_ticks_microsecondes()
-    //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
+    //temps := maintenant_précis()
+    //diffère { imprime_log("", "Durée rendu gabarit : %µs", temps.temps_écoulé_microsecondes()) }
 
+    recherche_page := trouve_dans_cache(rendeuse_gabarit, nom_court)
 
-    page := trouve_dans_cache(rendeuse_gabarit, nom_court)
-
-    si page == nul {
-        retourne ErreurRenduPage.PageManquante
+    discr recherche_page {
+        page {}
+        erreur_ {
+            retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", recherche_page.erreur_, "</pre><div>")
+        }
+        sinon {
+            retourne enchaine("<p>Erreur interne</p>")
+        }
     }
+
+    page := recherche_page.page
 
     /* la page est vide */
     saufsi page.racine {
@@ -191,6 +201,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     }
 
     données_génération : DonnéesGénération
+    données_génération.nom_court_page = nom_court
     données_génération.valeur = données
 
     enchaineuse : Enchaineuse
@@ -199,8 +210,9 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 
-    si erreur_ != ErreurGénérationPage.AUCUNE {
-        retourne ErreurRenduPage.RenduImpossible
+    si erreur_ {
+        diffère déloge(erreur_)
+        retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", erreur_, "</pre><div>")
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
@@ -223,11 +235,23 @@ rappel_ajoute_fichier :: fonc (chemin: CheminFichier, rendeuse_page: *RendeusePa
     // À FAIRE : chemin absolu
     chemin_fichier := enchaine(rendeuse_page.dossier, chemin.chn)
 
-    ajoute_fichier(*rendeuse_page.catalogue, nom, chemin_fichier)
+    ajoute_fichier(*rendeuse_page.catalogue, copie_chaine(nom), copie_chaine(chemin_fichier))
 }
 
 initialise_depuis_dossier :: fonc (rendeuse_page: *RendeusePage, chemin: CheminFichier)
 {
     rendeuse_page.dossier = chemin.chn
     pour_chaque_chemin(chemin, rendeuse_page, rappel_ajoute_fichier)
+}
+
+ajoute_page_pour_formulaire :: fonc (rendeuse_page: *RendeusePage, nom_court: chaine, $T: type_de_données, nom_formulaire: chaine, méthode: chaine, cible: chaine)
+{
+    fichier : FichierTexte
+    fichier.nom_court = nom_court
+    fichier.succès = vrai
+
+    valeur : T
+    fichier.données = génère_formulaire_depuis_struct(valeur, nom_formulaire, méthode, cible)
+
+    tableau_ajoute(*rendeuse_page.catalogue.fichiers, fichier)
 }

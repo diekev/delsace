@@ -24,13 +24,17 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "biblinternes/outils/definitions.h"
 
 #include "structures/tableau.hh"
 
 namespace kuri {
 
-template <typename Cle, typename Valeur>
+#undef COMPTE_COLLISION
+
+template <typename Cle, typename Valeur, int FACTEUR_DE_CHARGE = 70>
 struct table_hachage {
   private:
     kuri::tableau<Cle, int> cles{};
@@ -43,6 +47,70 @@ struct table_hachage {
 
     static constexpr auto TAILLE_MIN = 32;
 
+    const char *nom = nullptr;
+
+#ifdef COMPTE_COLLISION
+    int nombre_de_collision_recherche = 0;
+    int nombre_de_collision_ajout = 0;
+#endif
+
+  public:
+    COPIE_CONSTRUCT(table_hachage);
+
+    explicit table_hachage(const char *identifiant) : nom(identifiant)
+    {
+    }
+
+    ~table_hachage()
+    {
+#ifdef COMPTE_COLLISION
+        auto &os = std::cout;
+
+        os << "Table \"" << nom << "\"\n";
+        os << "-- capacité            " << capacite << '\n';
+        os << "-- éléments            " << nombre_elements << '\n';
+        os << "-- collision recherche " << nombre_de_collision_recherche << '\n';
+        os << "-- collision ajout     " << nombre_de_collision_ajout << '\n';
+        os << "-- collision / élément "
+           << (static_cast<double>(nombre_de_collision_ajout) / nombre_elements) << '\n';
+#endif
+    }
+
+  private:
+    /* Utilise un incrément différent pour chaque empreinte.
+     *
+     * Quand nous insérons ou recherchons une valeur, nous commençons par
+     * la position correspond à l'empreinte. Si elle est occupée par
+     * quelque chose n'ayant pas la même empreinte (ou simplement par
+     * quelque chose lors d'une insertion), nous allons à la position suivante.
+     *
+     * Cette approche pose problème, car l'utilisation de l'index suivant pourrait
+     * causer des collisions futures avec des objets n'ayant pas la même empreinte
+     * mais devant se trouver à cette position.
+     *
+     * Pour éviter d'avoir des régions contiguës trop grande, et éviter trop
+     * de collisions, nous utilisons un décalage différent pour chaque
+     * empreinte : si il y a une collision, la position suivante sera
+     * `position de base + incrément`.
+     *
+     * L'incrément est également incrément à chaque collision.
+     *
+     * Visuellement, sans incrément nous aurions (où les valeurs A B C D E
+     * auraient la même empreinte, ou une empreinte différente mais la position
+     * fut déjà utilisée) :
+     *
+     * _ _ _ _ A B C D E _ _ _ _ _ _ _ _ _ _
+     *
+     * Avec :
+     *
+     * _ _ _ _ A _ B _ _ C _ _ _ D _ _ _ _ E
+     */
+    inline int increment_de_base_pour_empreinte(size_t empreinte)
+    {
+        /* - 1 pour être relativement premier avec la capacité. */
+        return 1 + static_cast<int>(empreinte % (static_cast<size_t>(capacite) - 1));
+    }
+
   public:
     void alloue(long taille)
     {
@@ -52,6 +120,7 @@ struct table_hachage {
         valeurs.redimensionne(static_cast<int>(taille));
         occupes.redimensionne(static_cast<int>(taille));
         empreintes.redimensionne(static_cast<int>(taille));
+        nombre_elements = 0;
 
         POUR (occupes) {
             it = 0;
@@ -62,7 +131,6 @@ struct table_hachage {
     {
         auto vieilles_cles = cles;
         auto vieilles_valeurs = valeurs;
-        auto vieilles_empreintes = empreintes;
         auto vieilles_occupes = occupes;
 
         auto nouvelle_taille = capacite * 2;
@@ -126,9 +194,9 @@ struct table_hachage {
         return valeur;
     }
 
-    bool possed(Cle const &cle)
+    bool possede(Cle const &cle)
     {
-        auto empreinte = calcule_empreinte(cle);
+        auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index(cle, empreinte);
         return index != -1;
     }
@@ -140,6 +208,7 @@ struct table_hachage {
         }
 
         auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto increment = increment_de_base_pour_empreinte(empreinte);
 
         while (occupes[index]) {
             if (empreintes[index] == empreinte) {
@@ -147,11 +216,15 @@ struct table_hachage {
                     return index;
                 }
             }
+#ifdef COMPTE_COLLISION
+            nombre_de_collision_recherche += 1;
+#endif
 
-            index += 1;
+            index += increment;
+            increment += 1;
 
-            if (index >= capacite) {
-                index = 0;
+            while (index >= capacite) {
+                index -= static_cast<int>(capacite);
             }
         }
 
@@ -176,26 +249,31 @@ struct table_hachage {
   private:
     int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
     {
-        auto index = trouve_index(cle, empreinte);
-
-        if (index == -1) {
-            if (nombre_elements * 2 >= capacite) {
-                agrandis();
-            }
-
-            index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
-
-            while (occupes[index]) {
-                index += 1;
-
-                if (index >= capacite) {
-                    index = 0;
-                }
-            }
-
-            nombre_elements += 1;
+        /* éléments / alloués >= FACTEUR_DE_CHARGE / 100
+         * donc
+         * éléments * 100 >= alloués * FACTEUR_DE_CHARGE
+         * + 1 pour être cohérent sur la division de nombre entiers
+         */
+        if ((nombre_elements + 1) * 100 >= capacite * FACTEUR_DE_CHARGE) {
+            agrandis();
         }
 
+        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto increment = increment_de_base_pour_empreinte(empreinte);
+
+        while (occupes[index]) {
+#ifdef COMPTE_COLLISION
+            nombre_de_collision_ajout += 1;
+#endif
+            index += increment;
+            increment += 1;
+
+            while (index >= capacite) {
+                index -= static_cast<int>(capacite);
+            }
+        }
+
+        nombre_elements += 1;
         return index;
     }
 };

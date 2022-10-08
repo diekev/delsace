@@ -65,6 +65,90 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
     return false;
 }
 
+static bool est_type_de_base(Type *type_de, Type *type_vers)
+{
+    if (type_de->est_structure() && type_vers->est_structure()) {
+        return est_type_de_base(type_de->comme_structure(), type_vers->comme_structure());
+    }
+
+    return false;
+}
+
+template <typename T, int tag>
+struct ValeurOpaqueTaguee {
+    T valeur;
+};
+
+enum {
+    INDEX_MEMBRE = 0,
+    AUCUN_TROUVE = 1,
+    PLUSIEURS_TROUVES = 2,
+};
+
+using IndexMembre = ValeurOpaqueTaguee<int, INDEX_MEMBRE>;
+using PlusieursMembres = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
+using AucunMembre = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+
+using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, AucunMembre>;
+
+static bool est_type_pointeur_nul(Type *type)
+{
+    return type->est_pointeur() && type->comme_pointeur()->type_pointe == nullptr;
+}
+
+static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose *type,
+                                                                          Type *type_a_tester)
+{
+    auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
+    int index_membre = -1;
+    int index_courant = 0;
+    POUR (type->membres) {
+        if (it.type == type_a_tester) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+        else if (type_a_tester->est_pointeur() && it.type->est_pointeur()) {
+            if (pointeur_nul) {
+                if (index_membre != -1) {
+                    return PlusieursMembres{-1};
+                }
+
+                index_membre = index_courant;
+            }
+            else {
+                auto type_pointe_de = type_a_tester->comme_pointeur()->type_pointe;
+                auto type_pointe_vers = it.type->comme_pointeur()->type_pointe;
+
+                if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
+                    if (index_membre != -1) {
+                        return PlusieursMembres{-1};
+                    }
+
+                    index_membre = index_courant;
+                }
+            }
+        }
+        else if (est_type_entier(it.type) && type_a_tester->est_entier_constant()) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+
+        index_courant += 1;
+    }
+
+    if (index_membre == -1) {
+        return AucunMembre{-1};
+    }
+
+    return IndexMembre{index_membre};
+}
+
 /* Trouve la transformation nécessaire pour aller d'un type à un autre de
  * manière conditionnelle.
  *
@@ -85,274 +169,235 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
  * graphe, qui sera sans doute révisée plus tard.
  */
 template <bool POUR_TRANSTYPAGE>
-bool cherche_transformation(EspaceDeTravail &espace,
-                            ContexteValidationCode &contexte,
-                            Type *type_de,
-                            Type *type_vers,
-                            TransformationType &transformation)
+ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
+                                              Type *type_de,
+                                              Type *type_vers)
 {
     if (type_de == type_vers) {
-        transformation = TypeTransformation::INUTILE;
-        return false;
+        return TypeTransformation::INUTILE;
     }
 
     /* nous avons un type de données pour chaque type connu lors de la
      * compilation, donc testons manuellement la compatibilité */
     if (type_de->genre == GenreType::TYPE_DE_DONNEES &&
         type_vers->genre == GenreType::TYPE_DE_DONNEES) {
-        transformation = TypeTransformation::INUTILE;
-        return false;
+        return TypeTransformation::INUTILE;
     }
 
     // À FAIRE(r16)
     if (type_de->genre == GenreType::ENTIER_CONSTANT &&
         (est_type_entier(type_vers) || type_vers->est_octet() || type_vers->est_reel())) {
-        transformation = {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
-        return false;
+        return TransformationType{TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
     }
 
     if (POUR_TRANSTYPAGE) {
         if (est_type_entier(type_vers) && type_de->genre == GenreType::OCTET) {
             if (type_vers->taille_octet > type_de->taille_octet) {
-                transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
             }
 
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         if (est_type_entier(type_de)) {
             if (type_vers->genre == GenreType::OCTET) {
                 if (type_vers->taille_octet < type_de->taille_octet) {
-                    transformation = {TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
-                    return false;
+                    return TransformationType{TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
                 }
 
-                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
 
             if (type_vers->genre == GenreType::BOOL) {
-                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
         if (type_vers->genre == GenreType::ERREUR &&
             type_de->genre == GenreType::ENTIER_CONSTANT) {
-            transformation = {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
         }
 
         if (type_de->genre == GenreType::BOOL && est_type_entier(type_vers)) {
             if (type_vers->taille_octet > type_de->taille_octet) {
-                transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-            }
-            else {
-                transformation = TypeTransformation::INUTILE;
+                return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
             }
 
-            return false;
+            return TypeTransformation::INUTILE;
         }
 
         if (type_de->genre == GenreType::ENUM) {
-            if (type_vers == type_de->comme_enum()->type_donnees) {
+            if (type_vers == static_cast<TypeEnum *>(type_de)->type_donnees) {
                 // on pourrait se passer de la conversion, ou normaliser le type
-                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
         if (type_de->genre == GenreType::ERREUR) {
             if (type_vers == type_de->comme_erreur()->type_donnees) {
                 // on pourrait se passer de la conversion, ou normaliser le type
-                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
         if (type_vers->genre == GenreType::ENUM &&
-            type_vers->comme_enum()->type_donnees == type_de) {
+            static_cast<TypeEnum *>(type_vers)->type_donnees == type_de) {
             // on pourrait se passer de la conversion, ou normaliser le type
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         if (type_de->est_opaque() && type_vers == type_de->comme_opaque()->type_opacifie) {
             // on pourrait se passer de la conversion, ou normaliser le type
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
     }
 
     if (type_de->genre == GenreType::ENTIER_CONSTANT && type_vers->genre == GenreType::ENUM) {
         // on pourrait se passer de la conversion, ou normaliser le type
-        transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-        return false;
+        return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
     }
 
     if (type_de->genre == GenreType::ENTIER_NATUREL &&
         type_vers->genre == GenreType::ENTIER_NATUREL) {
         if (type_de->taille_octet < type_vers->taille_octet) {
-            transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
         }
 
         if (POUR_TRANSTYPAGE) {
             if (type_de->taille_octet > type_vers->taille_octet) {
-                transformation = {TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
             }
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_de->genre == GenreType::ENTIER_RELATIF &&
         type_vers->genre == GenreType::ENTIER_RELATIF) {
         if (type_de->taille_octet < type_vers->taille_octet) {
-            transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
         }
 
         if (POUR_TRANSTYPAGE) {
             if (type_de->taille_octet > type_vers->taille_octet) {
-                transformation = {TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
             }
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (POUR_TRANSTYPAGE) {
         if (est_type_entier(type_de) && type_vers->genre == GenreType::REEL) {
-            transformation = {TypeTransformation::ENTIER_VERS_REEL, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::ENTIER_VERS_REEL, type_vers};
         }
 
         if (est_type_entier(type_vers) && type_de->genre == GenreType::REEL) {
-            transformation = {TypeTransformation::REEL_VERS_ENTIER, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::REEL_VERS_ENTIER, type_vers};
         }
 
         // converti relatif <-> naturel
         if (est_type_entier(type_de) && est_type_entier(type_vers)) {
             if (type_de->taille_octet > type_vers->taille_octet) {
-                transformation = {TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
-            }
-            else if (type_de->taille_octet < type_vers->taille_octet) {
-                transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-            }
-            else {
-                transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+                return TransformationType{TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
             }
 
-            return false;
+            if (type_de->taille_octet < type_vers->taille_octet) {
+                return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
+            }
+
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
     }
 
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
         auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
-                                     const char *nom_fonction) -> bool {
+                                     IdentifiantCode *nom_fonction) -> ResultatTransformation {
             if (fonction == nullptr) {
-                contexte.unite->attend_sur_interface_kuri(nom_fonction);
-                return true;
+                return Attente::sur_interface_kuri(nom_fonction);
             }
 
-            contexte.donnees_dependance.fonctions_utilisees.insere(fonction);
-            transformation = {fonction, type_vers};
-            return false;
+            return TransformationType{fonction, type_vers};
         };
 
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32, "DLS_vers_r32");
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r32,
+                                         ID::DLS_vers_r32);
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64, "DLS_vers_r64");
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r64,
+                                         ID::DLS_vers_r64);
             }
 
-            transformation = TypeTransformation::IMPOSSIBLE;
-            return false;
+            return TypeTransformation::IMPOSSIBLE;
         }
 
         /* cas spéciaux pour R16 */
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32,
-                                         "DLS_depuis_r32");
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r32,
+                                         ID::DLS_depuis_r32);
             }
 
             if (type_de->taille_octet == 8) {
-                return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64,
-                                         "DLS_depuis_r64");
+                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r64,
+                                         ID::DLS_depuis_r64);
             }
 
-            transformation = TypeTransformation::IMPOSSIBLE;
-            return false;
+            return TypeTransformation::IMPOSSIBLE;
         }
 
         if (type_de->taille_octet < type_vers->taille_octet) {
-            transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
         }
 
         if (POUR_TRANSTYPAGE) {
             if (type_de->taille_octet > type_vers->taille_octet) {
-                transformation = {TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::REDUIT_TAILLE_TYPE, type_vers};
             }
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_vers->genre == GenreType::UNION) {
         auto type_union = type_vers->comme_union();
 
         if ((type_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
-            contexte.unite->attend_sur_type(type_vers);
-            return true;
+            return Attente::sur_type(type_vers);
         }
 
-        auto index_membre = 0l;
+        auto resultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
 
-        POUR (type_union->membres) {
-            if (it.type == type_de) {
-                transformation = {TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
-                return false;
-            }
-
-            if (est_type_entier(it.type) && type_de->genre == GenreType::ENTIER_CONSTANT) {
-                transformation = {TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre};
-                return false;
-            }
-
-            index_membre += 1;
+        /* Nous pouvons construire une union depuis nul si un seul membre est un pointeur. */
+        if (std::holds_alternative<IndexMembre>(resultat)) {
+            return TransformationType{TypeTransformation::CONSTRUIT_UNION,
+                                      type_vers,
+                                      std::get<IndexMembre>(resultat).valeur};
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_vers->genre == GenreType::EINI) {
-        transformation = TypeTransformation::CONSTRUIT_EINI;
-        return false;
+        /* Il nous faut attendre sur le type pour pouvoir générer l'InfoType. */
+        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_de);
+        }
+        if (compilatrice.typeuse.type_annotation == nullptr) {
+            return Attente::sur_interface_kuri(ID::AnnotationCode);
+        }
+        return TypeTransformation::CONSTRUIT_EINI;
     }
 
     if (type_de->genre == GenreType::UNION) {
         auto type_union = type_de->comme_union();
 
         if ((type_union->drapeaux & TYPE_FUT_VALIDE) == 0) {
-            contexte.unite->attend_sur_type(type_union);
-            return true;
+            return Attente::sur_type(type_union);
         }
 
         auto index_membre = 0l;
@@ -361,61 +406,78 @@ bool cherche_transformation(EspaceDeTravail &espace,
             if (it.type == type_vers) {
                 if (!type_union->est_nonsure) {
                     auto decl_panique_membre_union =
-                        espace.interface_kuri->decl_panique_membre_union;
+                        compilatrice.interface_kuri->decl_panique_membre_union;
                     if (decl_panique_membre_union == nullptr) {
-                        contexte.unite->attend_sur_interface_kuri("panique_membre_union");
-                        return true;
+                        return Attente::sur_interface_kuri(ID::panique_membre_union);
                     }
-                    else if (decl_panique_membre_union->corps->unite == nullptr) {
-                        contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(
-                            &espace, decl_panique_membre_union->corps);
-                    }
-
-                    contexte.donnees_dependance.fonctions_utilisees.insere(
-                        decl_panique_membre_union);
                 }
 
-                transformation = {TypeTransformation::EXTRAIT_UNION, type_vers, index_membre};
-                return false;
+                return TransformationType{
+                    TypeTransformation::EXTRAIT_UNION, type_vers, index_membre};
             }
 
             index_membre += 1;
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_de->genre == GenreType::EINI) {
-        transformation = {TypeTransformation::EXTRAIT_EINI, type_vers};
-        return false;
+        return TransformationType{TypeTransformation::EXTRAIT_EINI, type_vers};
     }
 
     if (type_vers->genre == GenreType::FONCTION) {
         /* x : fonc()rien = nul; */
         if (type_de->genre == GenreType::POINTEUR &&
             type_de->comme_pointeur()->type_pointe == nullptr) {
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         /* Nous savons que les types sont différents, donc si l'un des deux est un
          * pointeur fonction, nous pouvons retourner faux. */
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_vers->genre == GenreType::REFERENCE) {
-        if (type_vers->comme_reference()->type_pointe == type_de) {
-            transformation = TypeTransformation::PREND_REFERENCE;
-            return false;
+        auto type_pointe = type_vers->comme_reference()->type_pointe;
+
+        if (type_de->est_reference()) {
+            auto type_pointe_de = type_de->comme_reference()->type_pointe;
+
+            if ((type_pointe_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_pointe_de);
+            }
+
+            if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_pointe);
+            }
+
+            if (est_type_de_base(type_pointe_de, type_pointe)) {
+                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+            }
+        }
+
+        if (type_pointe == type_de) {
+            return TypeTransformation::PREND_REFERENCE;
+        }
+
+        if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_de);
+        }
+
+        if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_pointe);
+        }
+
+        if (est_type_de_base(type_de, type_pointe)) {
+            return TransformationType{TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE,
+                                      type_vers};
         }
     }
 
     if (type_de->genre == GenreType::REFERENCE) {
         if (type_de->comme_reference()->type_pointe == type_vers) {
-            transformation = TypeTransformation::DEREFERENCE;
-            return false;
+            return TypeTransformation::DEREFERENCE;
         }
     }
 
@@ -428,26 +490,22 @@ bool cherche_transformation(EspaceDeTravail &espace,
                 auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
 
                 if (type_pointe_de == nullptr) {
-                    transformation = TypeTransformation::IMPOSSIBLE;
+                    return TypeTransformation::IMPOSSIBLE;
                 }
             }
 
-            transformation = TypeTransformation::CONSTRUIT_TABL_OCTET;
-            return false;
+            return TypeTransformation::CONSTRUIT_TABL_OCTET;
         }
 
         if (type_de->genre != GenreType::TABLEAU_FIXE) {
-            transformation = TypeTransformation::IMPOSSIBLE;
-            return false;
+            return TypeTransformation::IMPOSSIBLE;
         }
 
         if (type_pointe == type_de->comme_tableau_fixe()->type_pointe) {
-            transformation = TypeTransformation::CONVERTI_TABLEAU;
-            return false;
+            return TypeTransformation::CONVERTI_TABLEAU;
         }
 
-        transformation = TypeTransformation::IMPOSSIBLE;
-        return false;
+        return TypeTransformation::IMPOSSIBLE;
     }
 
     if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::POINTEUR) {
@@ -456,33 +514,28 @@ bool cherche_transformation(EspaceDeTravail &espace,
 
         /* x = nul; */
         if (type_pointe_de == nullptr) {
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         /* x : *z8 = y (*rien) */
         if (type_pointe_de->genre == GenreType::RIEN) {
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         /* x : *nul = y */
         if (type_pointe_vers == nullptr) {
-            transformation = TypeTransformation::INUTILE;
-            return false;
+            return TypeTransformation::INUTILE;
         }
 
         /* x : *rien = y; */
         if (type_pointe_vers->genre == GenreType::RIEN) {
-            transformation = TypeTransformation::CONVERTI_VERS_PTR_RIEN;
-            return false;
+            return TypeTransformation::CONVERTI_VERS_PTR_RIEN;
         }
 
         /* x : *octet = y; */
         // À FAIRE : pour transtypage uniquement
         if (type_pointe_vers->genre == GenreType::OCTET) {
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
         if (type_pointe_de->genre == GenreType::STRUCTURE &&
@@ -491,49 +544,43 @@ bool cherche_transformation(EspaceDeTravail &espace,
             auto ts_vers = type_pointe_vers->comme_structure();
 
             if ((ts_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                contexte.unite->attend_sur_type(ts_de);
-                return true;
+                return Attente::sur_type(ts_de);
             }
 
             if ((ts_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                contexte.unite->attend_sur_type(ts_vers);
-                return true;
+                return Attente::sur_type(ts_vers);
             }
 
             // À FAIRE : gère le décalage dans la structure, ceci ne peut
             // fonctionner que si la structure de base est au début de la
             // structure dérivée
             if (est_type_de_base(ts_de, ts_vers)) {
-                transformation = {TypeTransformation::CONVERTI_VERS_BASE, type_vers};
-                return false;
+                return TransformationType{TypeTransformation::CONVERTI_VERS_BASE, type_vers};
             }
 
             if (POUR_TRANSTYPAGE) {
                 if (est_type_de_base(ts_vers, ts_de)) {
-                    transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                    return false;
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
             }
         }
 
         if (POUR_TRANSTYPAGE) {
             // À FAIRE : pour les einis, nous devrions avoir une meilleure sûreté de type
-            transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
     }
 
     if (POUR_TRANSTYPAGE) {
         if ((type_de->est_pointeur() || type_de->est_fonction()) && est_type_entier(type_vers) &&
             type_vers->taille_octet == 8) {
-            transformation = {TypeTransformation::POINTEUR_VERS_ENTIER, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::POINTEUR_VERS_ENTIER, type_vers};
         }
 
         if (type_vers->genre == GenreType::POINTEUR &&
             (est_type_entier(type_de) || type_de->genre == GenreType::ENTIER_CONSTANT)) {
-            transformation = {TypeTransformation::ENTIER_VERS_POINTEUR, type_vers};
-            return false;
+            return TransformationType{TypeTransformation::ENTIER_VERS_POINTEUR, type_vers};
         }
 
         if (type_de->est_reference() && type_vers->est_reference()) {
@@ -545,38 +592,95 @@ bool cherche_transformation(EspaceDeTravail &espace,
                 auto ts_vers = type_pointe_vers->comme_structure();
 
                 if (est_type_de_base(ts_vers, ts_de)) {
-                    transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                    return false;
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
 
                 if (est_type_de_base(ts_de, ts_vers)) {
-                    transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
-                    return false;
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
                 }
             }
         }
     }
 
-    transformation = TypeTransformation::IMPOSSIBLE;
-    return false;
+    return TypeTransformation::IMPOSSIBLE;
 }
 
-bool cherche_transformation(EspaceDeTravail &espace,
-                            ContexteValidationCode &contexte,
-                            Type *type_de,
-                            Type *type_vers,
-                            TransformationType &transformation)
+ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
+                                              Type *type_de,
+                                              Type *type_vers)
 {
-    return cherche_transformation<false>(espace, contexte, type_de, type_vers, transformation);
+    return cherche_transformation<false>(compilatrice, type_de, type_vers);
 }
 
-bool cherche_transformation_pour_transtypage(EspaceDeTravail &espace,
-                                             ContexteValidationCode &contexte,
-                                             Type *type_de,
-                                             Type *type_vers,
-                                             TransformationType &transformation)
+ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
+                                                               Type *type_de,
+                                                               Type *type_vers)
 {
-    return cherche_transformation<true>(espace, contexte, type_de, type_vers, transformation);
+    return cherche_transformation<true>(compilatrice, type_de, type_vers);
+}
+
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
+                                                  Type *type_arg,
+                                                  Type *type_enf)
+{
+    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
+    }
+
+    auto transformation = std::get<TransformationType>(resultat);
+
+    if (transformation.type == TypeTransformation::INUTILE) {
+        /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
+        if (type_arg->est_pointeur() && type_arg->comme_pointeur()->type_pointe == nullptr &&
+            type_arg != type_enf) {
+            return PoidsTransformation{transformation, 0.0};
+        }
+
+        return PoidsTransformation{transformation, 1.0};
+    }
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        return PoidsTransformation{transformation, 0.0};
+    }
+
+    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
+     * donne un mi-poids à l'argument */
+    return PoidsTransformation{transformation, 0.5};
+}
+
+ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
+                                                  Type *type_arg,
+                                                  Type *type_enf,
+                                                  NoeudExpression *enfant)
+{
+    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
+    }
+
+    auto transformation = std::get<TransformationType>(resultat);
+
+    if (transformation.type == TypeTransformation::INUTILE) {
+        return PoidsTransformation{transformation, 1.0};
+    }
+
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        return PoidsTransformation{transformation, 0.0};
+    }
+
+    if (transformation.type == TypeTransformation::PREND_REFERENCE) {
+        return PoidsTransformation{transformation,
+                                   est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0};
+    }
+
+    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
+     * donne un mi-poids à l'argument */
+    return PoidsTransformation{transformation, 0.5};
 }
 
 #if 0
@@ -680,3 +784,8 @@ static constexpr auto table_transformation_type = [] {
 	return table;
 }();
 #endif
+
+std::ostream &operator<<(std::ostream &os, TransformationType type)
+{
+    return os << type.type;
+}

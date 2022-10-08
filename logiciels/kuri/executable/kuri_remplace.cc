@@ -132,19 +132,19 @@ static void reecris_fichier(std::filesystem::path &chemin, Configuration const &
             chemin = std::filesystem::absolute(chemin);
         }
 
-        auto compilatrice = Compilatrice{};
-        auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+        auto compilatrice = Compilatrice("");
+        auto donnees_fichier = Fichier();
         auto tampon = charge_contenu_fichier(chemin.c_str());
-        donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+        donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
-        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(),
-                               donnees_fichier,
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr),
+                               &donnees_fichier,
                                INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
         lexeuse.performe_lexage();
 
         auto os = std::ofstream(chemin);
 
-        for (auto const &lexeme : donnees_fichier->lexemes) {
+        for (auto const &lexeme : donnees_fichier.lexemes) {
             if (!est_mot_cle(lexeme.genre)) {
                 os << lexeme.chaine;
                 continue;

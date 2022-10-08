@@ -9,7 +9,6 @@ importe Fondation
     z8, z16, z32, z64
         r16, r32, r64  (int)
 
-
 Table de correspondance pour les types de bases avec d'autres langages de programmation
 
 +----------+----------------+

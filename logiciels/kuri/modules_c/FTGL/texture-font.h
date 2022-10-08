@@ -215,7 +215,7 @@ typedef struct texture_font_t {
             const void *base;
             size_t size;
         } memory;
-    };
+    } fileinfo;
 
     /**
      * Font size

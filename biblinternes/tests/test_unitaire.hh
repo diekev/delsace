@@ -45,271 +45,249 @@ class Controleuse;
  * `void foo(Controleuse &controleur);`
  */
 template <typename TypeFonction>
-concept bool ConceptFonctionTest = requires(
-		TypeFonction fonction,
-		Controleuse &controleur)
-{
-	{ fonction(controleur) } -> void;
+concept ConceptFonctionTest = requires(TypeFonction fonction,
+                                       Controleuse &controleur) {
+  { fonction(controleur) } -> std::same_as<void>;
 };
 
 /**
  * Concept pour les comparaisons de valeurs.
  */
 template <typename T>
-concept bool ConceptComparaison = requires(T a, T b)
-{
-	{ a == b } -> bool;
-	{ a != b } -> bool;
+concept ConceptComparaison = requires(T a, T b) {
+  { a == b } -> std::same_as<bool>;
+  { a != b } -> std::same_as<bool>;
 };
 
 /**
  * Concept pour les valeurs décimales.
  */
 template <typename T>
-concept bool ConceptDecimal = std::is_floating_point<T>::value;
+concept ConceptDecimal = std::is_floating_point<T>::value;
 #else
-#	define ConceptFonctionTest typename
-#	define ConceptComparaison typename
-#	define ConceptDecimal typename
+#define ConceptFonctionTest typename
+#define ConceptComparaison typename
+#define ConceptDecimal typename
 #endif
 
 class Controleuse {
-	std::ostream &m_flux = std::cerr;
-	long m_total = 0;
+  std::ostream &m_flux = std::cerr;
+  long m_total = 0;
 
-	using fonction_test = void(*)(Controleuse&);
+  using fonction_test = void (*)(Controleuse &);
 
-	dls::chaine m_proposition = "";
+  dls::chaine m_proposition = "";
 
-	long m_taille_max_erreur = 0l;
+  long m_taille_max_erreur = 0l;
 
-	dls::tableau<fonction_test> m_fonctions = {};
-	dls::tableau<dls::chaine> m_echecs = {};
+  dls::tableau<fonction_test> m_fonctions = {};
+  dls::tableau<dls::chaine> m_echecs = {};
 
 public:
-	explicit Controleuse(std::ostream &os = std::cerr);
+  explicit Controleuse(std::ostream &os = std::cerr);
 
-	/**
-	 * Verifie que la condition est vraie. Si la condition n'est pas vraie, une
-	 * note est ajoutée au flux de sortie contenant la cond_str, le fichier et
-	 * la ligne passés en argument, autrement, un point est imprimé.
-	 */
-	void verifie(const bool condition, const char *cond_str, const char *fichier, const int ligne);
+  /**
+   * Retourne vrai si une erreur existe.
+   */
+  bool possede_erreur() const { return m_echecs.taille() != 0; }
 
-	/**
-	 * Indique le début d'une proposition. Le paramètre est la raison de la
-	 * proposition. Cette raison sera imprimée en introduction chaque erreur
-	 * de la proposition
-	 */
-	void debute_proposition(const char *raison);
+  /**
+   * Verifie que la condition est vraie. Si la condition n'est pas vraie, une
+   * note est ajoutée au flux de sortie contenant la cond_str, le fichier et
+   * la ligne passés en argument, autrement, un point est imprimé.
+   */
+  void verifie(const bool condition, const char *cond_str, const char *fichier,
+               const int ligne);
 
-	/**
-	 * Indique le début d'une proposition. Le paramètre est la raison de la
-	 * proposition. Cette raison sera imprimée en introduction chaque erreur
-	 * de la proposition
-	 */
-	void debute_proposition(const dls::chaine &raison);
+  /**
+   * Indique le début d'une proposition. Le paramètre est la raison de la
+   * proposition. Cette raison sera imprimée en introduction chaque erreur
+   * de la proposition
+   */
+  void debute_proposition(const char *raison);
 
-	/**
-	 * Indique la fin d'une proposition. Si d'autres tests sont performés
-	 * après cette opération, et qu'aucune autre proposition n'a été débuté,
-	 * les messages d'erreur seront introduits par une raison nulle.
-	 */
-	void termine_proposition();
+  /**
+   * Indique le début d'une proposition. Le paramètre est la raison de la
+   * proposition. Cette raison sera imprimée en introduction chaque erreur
+   * de la proposition
+   */
+  void debute_proposition(const dls::chaine &raison);
 
-	/**
-	 * Verifie que la fonction spécifiée jete ou execption. Si une exception
-	 * n'est pas jetée, une note est ajoutée au flux de sortie contenant le
-	 * nom_fonction, le fichier et la ligne passés en argument, autrement, un
-	 * point est imprimé.
-	 */
-	template <typename Fonction>
-	void verifie_exception_jetee(
-			Fonction &&fonction,
-			const char *nom_fonction,
-			const char *fichier,
-			const int ligne);
+  /**
+   * Indique la fin d'une proposition. Si d'autres tests sont performés
+   * après cette opération, et qu'aucune autre proposition n'a été débuté,
+   * les messages d'erreur seront introduits par une raison nulle.
+   */
+  void termine_proposition();
 
-	/**
-	 * Verifie que deux entités sont égales. S'il n'y pas d'égalité, une note
-	 * est ajoutée au flux de sortie contenant le fichier et la ligne passés en
-	 * argument, autrement, un point est imprimé.
-	 */
-	template <ConceptComparaison TypeComparable>
-	void verifie_egalite(
-			const TypeComparable a,
-			const TypeComparable b,
-			const char *fichier,
-			const int ligne);
+  /**
+   * Verifie que la fonction spécifiée jete ou execption. Si une exception
+   * n'est pas jetée, une note est ajoutée au flux de sortie contenant le
+   * nom_fonction, le fichier et la ligne passés en argument, autrement, un
+   * point est imprimé.
+   */
+  template <typename Fonction>
+  void verifie_exception_jetee(Fonction &&fonction, const char *nom_fonction,
+                               const char *fichier, const int ligne);
 
-	/**
-	 * Verifie que deux valeurs décimales sont égales. S'il n'y pas d'égalité,
-	 * une note est ajoutée au flux de sortie contenant le fichier et la ligne
-	 * passés en argument, autrement, un point
-	 * est imprimé.
-	 */
-	template <ConceptDecimal TypeDecimal>
-	void verifie_egalite_decimale(
-			const TypeDecimal a,
-			const TypeDecimal b,
-			const char *fichier,
-			const int ligne);
+  /**
+   * Verifie que deux entités sont égales. S'il n'y pas d'égalité, une note
+   * est ajoutée au flux de sortie contenant le fichier et la ligne passés en
+   * argument, autrement, un point est imprimé.
+   */
+  template <ConceptComparaison TypeComparable>
+  void verifie_egalite(const TypeComparable a, const TypeComparable b,
+                       const char *fichier, const int ligne);
 
-	/**
-	 * Verifie que deux valeurs décimales sont égales dans un écart d'un epsilon
-	 * donné. S'il n'y pas d'égalité, une note est ajoutée au flux de sortie
-	 * contenant le fichier et la ligne passés en argument, autrement, un point
-	 * est imprimé.
-	 */
-	template <ConceptDecimal TypeDecimal>
-	void verifie_egalite_epsilon(
-			const TypeDecimal a,
-			const TypeDecimal b,
-			const TypeDecimal epsilon,
-			const char *fichier,
-			const int ligne);
+  /**
+   * Verifie que deux valeurs décimales sont égales. S'il n'y pas d'égalité,
+   * une note est ajoutée au flux de sortie contenant le fichier et la ligne
+   * passés en argument, autrement, un point
+   * est imprimé.
+   */
+  template <ConceptDecimal TypeDecimal>
+  void verifie_egalite_decimale(const TypeDecimal a, const TypeDecimal b,
+                                const char *fichier, const int ligne);
 
-	/**
-	 * Imprime les résultats du contrôle des tests dans le flux passé dans le
-	 * constructeur.
-	 */
-	void imprime_resultat();
+  /**
+   * Verifie que deux valeurs décimales sont égales dans un écart d'un epsilon
+   * donné. S'il n'y pas d'égalité, une note est ajoutée au flux de sortie
+   * contenant le fichier et la ligne passés en argument, autrement, un point
+   * est imprimé.
+   */
+  template <ConceptDecimal TypeDecimal>
+  void verifie_egalite_epsilon(const TypeDecimal a, const TypeDecimal b,
+                               const TypeDecimal epsilon, const char *fichier,
+                               const int ligne);
 
-	/**
-	 * Ajoute une fonction à ce contrôleur. La fonction doit prendre comme
-	 * unique argument une référence vers un contrôleur et appeler la méthode
-	 * Controleuse::verifie() soit directement, soit par
-	 * CU_VERIFIE_CONDITION.
-	 */
-	template <ConceptFonctionTest FonctionTest>
-	void ajoute_fonction(FonctionTest &&test)
-	{
-		m_fonctions.ajoute(test);
-	}
+  /**
+   * Imprime les résultats du contrôle des tests dans le flux passé dans le
+   * constructeur.
+   */
+  void imprime_resultat();
 
-	/**
-	 * Performe les tests présents dans les fonctions ajoutées à ce contrôleur.
-	 */
-	void performe_controles();
+  /**
+   * Ajoute une fonction à ce contrôleur. La fonction doit prendre comme
+   * unique argument une référence vers un contrôleur et appeler la méthode
+   * Controleuse::verifie() soit directement, soit par
+   * CU_VERIFIE_CONDITION.
+   */
+  template <ConceptFonctionTest FonctionTest>
+  void ajoute_fonction(FonctionTest &&test) {
+    m_fonctions.ajoute(test);
+  }
+
+  /**
+   * Performe les tests présents dans les fonctions ajoutées à ce contrôleur.
+   */
+  void performe_controles();
 
 private:
-	void pousse_erreur(const dls::chaine &erreur);
+  void pousse_erreur(const dls::chaine &erreur);
 };
 
 template <ConceptComparaison TypeComparable>
-void Controleuse::verifie_egalite(
-		const TypeComparable a,
-		const TypeComparable b,
-		const char *fichier,
-		const int ligne)
-{
-	if (!(a == b)) {
-		std::stringstream ss;
+void Controleuse::verifie_egalite(const TypeComparable a,
+                                  const TypeComparable b, const char *fichier,
+                                  const int ligne) {
+  if (!(a == b)) {
+    std::stringstream ss;
 
-		ss << fichier << ":" << ligne
-		   << "\n\tLes valeurs ne sont pas égales : "
-		   << a << " != " << b << " !";
+    ss << fichier << ":" << ligne
+       << "\n\tLes valeurs ne sont pas égales : " << a << " != " << b << " !";
 
-		pousse_erreur(ss.str());
-	}
+    pousse_erreur(ss.str());
+  }
 
-	m_flux << ".";
-	++m_total;
+  // m_flux << ".";
+  ++m_total;
 }
 
 template <ConceptDecimal TypeDecimal>
-void Controleuse::verifie_egalite_decimale(
-		const TypeDecimal a,
-		const TypeDecimal b,
-		const char *fichier,
-		const int ligne)
-{
-	if (std::abs(a - b) > std::numeric_limits<TypeDecimal>::epsilon()) {
-		std::stringstream ss;
+void Controleuse::verifie_egalite_decimale(const TypeDecimal a,
+                                           const TypeDecimal b,
+                                           const char *fichier,
+                                           const int ligne) {
+  if (std::abs(a - b) > std::numeric_limits<TypeDecimal>::epsilon()) {
+    std::stringstream ss;
 
-		ss << fichier << ":" << ligne
-		   << "\n\tLes valeurs ne sont pas environ égales : "
-		   << a << " != " << b << '!';
+    ss << fichier << ":" << ligne
+       << "\n\tLes valeurs ne sont pas environ égales : " << a << " != " << b
+       << '!';
 
-		pousse_erreur(ss.str());
-	}
+    pousse_erreur(ss.str());
+  }
 
-	m_flux << ".";
-	++m_total;
+  // m_flux << ".";
+  ++m_total;
 }
 
 template <ConceptDecimal TypeDecimal>
-void Controleuse::verifie_egalite_epsilon(
-		const TypeDecimal a,
-		const TypeDecimal b,
-		const TypeDecimal epsilon,
-		const char *fichier,
-		const int ligne)
-{
-	if (std::abs(a - b) > epsilon) {
-		std::stringstream ss;
+void Controleuse::verifie_egalite_epsilon(const TypeDecimal a,
+                                          const TypeDecimal b,
+                                          const TypeDecimal epsilon,
+                                          const char *fichier,
+                                          const int ligne) {
+  if (std::abs(a - b) > epsilon) {
+    std::stringstream ss;
 
-		ss << fichier << ":" << ligne
-		   << "\n\tLes valeurs ne sont pas égales dans un écart d'epsilon : "
-		   << a << " != " << b << " (epsilon : " << epsilon << ") !";
+    ss << fichier << ":" << ligne
+       << "\n\tLes valeurs ne sont pas égales dans un écart d'epsilon : " << a
+       << " != " << b << " (epsilon : " << epsilon << ") !";
 
-		pousse_erreur(ss.str());
-	}
+    pousse_erreur(ss.str());
+  }
 
-	m_flux << ".";
-	++m_total;
+  // m_flux << ".";
+  ++m_total;
 }
 
 template <typename Fonction>
-void Controleuse::verifie_exception_jetee(
-		Fonction &&fonction,
-		const char *nom_fonction,
-		const char *fichier,
-		const int ligne)
-{
-	auto exception_jetee = false;
+void Controleuse::verifie_exception_jetee(Fonction &&fonction,
+                                          const char *nom_fonction,
+                                          const char *fichier,
+                                          const int ligne) {
+  auto exception_jetee = false;
 
-	try {
-		fonction();
-	}
-	catch (...) {
-		exception_jetee = true;
-	}
+  try {
+    fonction();
+  } catch (...) {
+    exception_jetee = true;
+  }
 
-	if (!exception_jetee) {
-		std::stringstream ss;
+  if (!exception_jetee) {
+    std::stringstream ss;
 
-		ss << fichier << ":" << ligne
-		   << "\n\tLa fonction '" << nom_fonction
-		   << "' n'a pas jeté d'exceptions !";
+    ss << fichier << ":" << ligne << "\n\tLa fonction '" << nom_fonction
+       << "' n'a pas jeté d'exceptions !";
 
-		pousse_erreur(ss.str());
-	}
+    pousse_erreur(ss.str());
+  }
 
-	m_flux << ".";
-	++m_total;
+  // m_flux << ".";
+  ++m_total;
 }
 
-}  /* namespace test_unitaire */
-}  /* namespace dls */
+} /* namespace test_unitaire */
+} /* namespace dls */
 
-#define CU_DEBUTE_PROPOSITION(__controleur, __proposition) \
-	__controleur.debute_proposition(__proposition)
+#define CU_DEBUTE_PROPOSITION(__controleur, __proposition)                     \
+  __controleur.debute_proposition(__proposition)
 
-#define CU_TERMINE_PROPOSITION(__controleur) \
-	__controleur.termine_proposition()
+#define CU_TERMINE_PROPOSITION(__controleur) __controleur.termine_proposition()
 
-#define CU_VERIFIE_CONDITION(__controleur, __condition) \
-	__controleur.verifie(__condition, #__condition, __FILE__, __LINE__)
+#define CU_VERIFIE_CONDITION(__controleur, __condition)                        \
+  __controleur.verifie(__condition, #__condition, __FILE__, __LINE__)
 
-#define CU_VERIFIE_EGALITE(__controleur, __a, __b) \
-	__controleur.verifie_egalite(__a, __b, __FILE__, __LINE__)
+#define CU_VERIFIE_EGALITE(__controleur, __a, __b)                             \
+  __controleur.verifie_egalite(__a, __b, __FILE__, __LINE__)
 
-#define CU_VERIFIE_EGALITE_DECIMALE(__controleur, __a, __b) \
-	__controleur.verifie_egalite_decimale(__a, __b, __FILE__, __LINE__)
+#define CU_VERIFIE_EGALITE_DECIMALE(__controleur, __a, __b)                    \
+  __controleur.verifie_egalite_decimale(__a, __b, __FILE__, __LINE__)
 
-#define CU_VERIFIE_EGALITE_EPSILON(__controleur, __a, __b, __epsilon) \
-	__controleur.verifie_egalite_epsilon(__a, __b, __epsilon, __FILE__, __LINE__)
+#define CU_VERIFIE_EGALITE_EPSILON(__controleur, __a, __b, __epsilon)          \
+  __controleur.verifie_egalite_epsilon(__a, __b, __epsilon, __FILE__, __LINE__)
 
-#define CU_VERIFIE_EXCEPTION_JETEE(__controleur, __fonction) \
-	__controleur.verifie_exception_jetee(__fonction, #__fonction, __FILE__, __LINE__)
+#define CU_VERIFIE_EXCEPTION_JETEE(__controleur, __fonction)                   \
+  __controleur.verifie_exception_jetee(__fonction, #__fonction, __FILE__,      \
+                                       __LINE__)

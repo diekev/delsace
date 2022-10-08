@@ -80,3 +80,100 @@ quelque_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
 
     retourne faux
 }
+
+// -----------------------------
+
+TableauBooléen :: struct {
+    bits: []n64
+    taille_max: z64
+}
+
+crée_tableau_booléen :: fonc (taille: z64) -> TableauBooléen
+{
+    résultat: TableauBooléen
+
+    tableau_redimensionne(résultat.bits, taille)
+    résultat.bits.taille = taille
+    résultat.taille_max = taille_max
+
+    retourne résultat
+}
+
+index_et_décalage :: fonc (index: z64) -> z64, n64 #enligne
+{
+    index_octet := index / 64
+    index_bit := index comme n64 % 64
+}
+
+est_actif :: fonc (tableau: &TableauBooléen, index: z64) -> bool
+{
+    index_octet, index_bit := index_et_décalage(index)
+    retourne (tableau.bits[index_octet] >> index_bit) != 0
+}
+
+active :: fonc (tableau: &TableauBooléen, index: z64)
+{
+    index_octet, index_bit := index_et_décalage(index)
+    tableau.bits[index_octet] |= (1 << index_bit)
+}
+
+active_tout :: fonc (tableau: &TableauBooléen)
+{
+    pour & tableau.bits {
+        it = -1
+    }
+}
+
+désactive :: fonc (tableau: &TableauBooléen, index: z64)
+{
+    index_octet, index_bit := index_et_décalage(index)
+    masque := (1 << index_bit)
+    tableau.bits[index_octet] &= ~masque
+}
+
+désactive_tout :: fonc (tableau: &TableauBooléen)
+{
+    pour & tableau.bits {
+        it = 0
+    }
+}
+
+bascule_tout :: fonc (tableau: &TableauBooléen)
+{
+    pour & tableau.bits {
+        it ^= it
+    }
+}
+
+tout_actif :: fonc (tableau: &TableauBooléen) -> bool
+{
+    pour tableau.bits {
+        si it != -1 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+tout_inactif :: fonc (tableau: &TableauBooléen) -> bool
+{
+    pour tableau.bits {
+        si it != 0 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+quelque_actif :: fonc (tableau: &TableauBooléen) -> bool
+{
+    pour tableau.bits {
+        si it != 0 {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}

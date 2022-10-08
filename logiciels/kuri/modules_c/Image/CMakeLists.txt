@@ -19,31 +19,29 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+find_package(OpenImageIO REQUIRED)
+find_package(OpenEXR REQUIRED)
+
 set(NOM_PROJET module_c_image)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-    /opt/lib/oiio/include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${OPENIMAGEIO_INCLUDE_DIRS}
+    ${OPENEXR_INCLUDE_DIRS}
 )
 
 set(BIBLIOTHEQUES
-    /opt/lib/oiio/lib/libOpenImageIO.so
+    ${OPENIMAGEIO_LIBRARIES}
+    ${OPENEXR_LIBRARIES}
 )
 
-add_library(${NOM_PROJET} STATIC
+set(SOURCES
     image.cc
 
     image.h
     oiio.h
 )
 
-set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS ${NOM_PROJET}
-	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Image/)
+compile_module_c(${NOM_PROJET} image image.h Image "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
+set_property(TARGET ${NOM_PROJET}_statique PROPERTY CXX_STANDARD 14)
+set_property(TARGET ${NOM_PROJET}_dynamique PROPERTY CXX_STANDARD 14)

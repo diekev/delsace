@@ -1,0 +1,11 @@
+// les chaines globales ne compilent pas en C
+
+importe Support
+
+ma_chaine := "les programmeurs ne sont pas inspirés quand il s'agit de trouver des noms pour des variables de test"
+
+principale :: fonc () -> z32
+{
+    _ := ma_chaine
+    retourne 0
+}

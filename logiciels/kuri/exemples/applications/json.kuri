@@ -1,6 +1,6 @@
 importe Fondation
-importe Tori // pour imprime_json
 importe JSON
+importe Tori // pour imprime_json
 
 // -----------------------------------
 

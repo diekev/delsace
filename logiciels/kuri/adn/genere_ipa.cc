@@ -38,6 +38,7 @@
 #include "structures/tableau.hh"
 
 #include "adn.hh"
+#include "outils_dependants_sur_lexemes.hh"
 
 static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSortieKuri &os)
 {
@@ -73,6 +74,8 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         prodeclare_struct(os, "Module");
         prodeclare_struct(os, "OptionsDeCompilation");
         prodeclare_struct(os, "TableIdentifiant");
+        prodeclare_struct(os, "NoeudCode");
+        prodeclare_struct(os, "NoeudCodeEnteteFonction");
         os << "\n";
         prodeclare_struct_espace(os, "chaine_statique", "kuri", "");
         os << "\n";
@@ -193,20 +196,16 @@ int main(int argc, const char **argv)
     const auto chemin_adn_ipa = argv[3];
 
     auto texte = charge_contenu_fichier(chemin_adn_ipa);
-    auto donnees_fichier = DonneesConstantesFichier();
-    donnees_fichier.tampon = lng::tampon_source(texte.c_str());
 
     auto fichier = Fichier();
-    fichier.donnees_constantes = &donnees_fichier;
-    fichier.donnees_constantes->chemin = chemin_adn_ipa;
+    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.chemin_ = chemin_adn_ipa;
 
     auto gerante_chaine = dls::outils::Synchrone<GeranteChaine>();
     auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto rappel_erreur = [](kuri::chaine message) { std::cerr << message << '\n'; };
+    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, imprime_erreur};
 
-    auto contexte_lexage = ContexteLexage{gerante_chaine, table_identifiants, rappel_erreur};
-
-    auto lexeuse = Lexeuse(contexte_lexage, &donnees_fichier);
+    auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
     if (lexeuse.possede_erreur()) {
@@ -220,14 +219,16 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+
     if (nom_fichier_sortie.filename() == "ipa.hh") {
-        std::ofstream fichier_sortie(argv[1]);
+        std::ofstream fichier_sortie(nom_fichier_tmp);
         auto flux = FluxSortieCPP(fichier_sortie);
         genere_code_cpp(syntaxeuse.proteines, flux, true);
     }
     else if (nom_fichier_sortie.filename() == "ipa.cc") {
         {
-            std::ofstream fichier_sortie(argv[1]);
+            std::ofstream fichier_sortie(nom_fichier_tmp);
             auto flux = FluxSortieCPP(fichier_sortie);
             genere_code_cpp(syntaxeuse.proteines, flux, false);
         }
@@ -240,6 +241,8 @@ int main(int argc, const char **argv)
             genere_code_kuri(syntaxeuse.proteines, flux);
         }
     }
+
+    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
 
     return 0;
 }

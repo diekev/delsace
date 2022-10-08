@@ -32,6 +32,7 @@
 
 #include "parsage/identifiant.hh"
 #include "parsage/lexemes.hh"
+#include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
@@ -59,10 +60,11 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
     return os;
 }
 
-static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
+dls::vue_chaine_compacte chaine_expression(EspaceDeTravail const &espace,
+                                           const NoeudExpression *expr)
 {
     auto lexeme = expr->lexeme;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = calcule_etendue_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
     return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min],
@@ -74,15 +76,16 @@ void lance_erreur(const kuri::chaine &quoi,
                   const NoeudExpression *site,
                   Genre type)
 {
-    rapporte_erreur(&espace, site, quoi, type);
+    espace.rapporte_erreur(site, quoi, type);
 }
 
 void redefinition_fonction(EspaceDeTravail const &espace,
                            const NoeudExpression *site_redefinition,
                            const NoeudExpression *site_original)
 {
-    rapporte_erreur(
-        &espace, site_redefinition, "Redéfinition de la fonction !", Genre::FONCTION_REDEFINIE)
+    espace
+        .rapporte_erreur(
+            site_redefinition, "Redéfinition de la fonction !", Genre::FONCTION_REDEFINIE)
         .ajoute_message("La fonction fut déjà définie ici :\n\n")
         .ajoute_site(site_original);
 }
@@ -91,8 +94,8 @@ void redefinition_symbole(EspaceDeTravail const &espace,
                           const NoeudExpression *site_redefinition,
                           const NoeudExpression *site_original)
 {
-    rapporte_erreur(
-        &espace, site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
+    espace
+        .rapporte_erreur(site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
         .ajoute_message("Le symbole fut déjà défini ici :\n\n")
         .ajoute_site(site_original);
 }
@@ -103,10 +106,10 @@ void lance_erreur_transtypage_impossible(const Type *type_cible,
                                          const NoeudExpression *site_expression,
                                          const NoeudExpression *site)
 {
-    rapporte_erreur(&espace,
-                    site,
-                    "Aucune conversion connue pour transformer vers le type cible",
-                    Genre::TYPE_ARGUMENT)
+    espace
+        .rapporte_erreur(site,
+                         "Aucune conversion connue pour transformer vers le type cible",
+                         Genre::TYPE_ARGUMENT)
         .ajoute_message("Le type de l'expression '",
                         chaine_expression(espace, site_expression),
                         "' ne peut être transformer vers le type cible !\n")
@@ -119,10 +122,9 @@ void lance_erreur_assignation_type_differents(const Type *type_gauche,
                                               EspaceDeTravail const &espace,
                                               const NoeudExpression *site)
 {
-    rapporte_erreur(&espace,
-                    site,
-                    "Ne peut pas assigner des types différents !",
-                    Genre::ASSIGNATION_MAUVAIS_TYPE)
+    espace
+        .rapporte_erreur(
+            site, "Ne peut pas assigner des types différents !", Genre::ASSIGNATION_MAUVAIS_TYPE)
         .ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
@@ -132,19 +134,19 @@ void lance_erreur_type_operation(const Type *type_gauche,
                                  EspaceDeTravail const &espace,
                                  const NoeudExpression *site)
 {
-    rapporte_erreur(&espace, site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
+    espace.rapporte_erreur(site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
         .ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                                     NoeudExpression *b,
-                                    dls::tablet<DonneesCandidate, 10> const &candidates)
+                                    kuri::tablet<ErreurAppariement, 10> const &erreurs)
 {
-    auto e = rapporte_erreur(
-        &espace, b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
+    auto e = espace.rapporte_erreur(
+        b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
 
-    if (candidates.est_vide()) {
+    if (erreurs.est_vide()) {
         e.ajoute_message("\nFonction inconnue : aucune candidate trouvée\n");
         e.ajoute_message("Vérifiez que la fonction existe bel et bien dans un fichier importé\n");
     }
@@ -153,13 +155,13 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                          chaine_expression(espace, b->comme_appel()->expression),
                          " » !\n");
 
-        for (auto &dc : candidates) {
+        for (auto &dc : erreurs) {
             auto decl = dc.noeud_decl;
             e.ajoute_message("\nCandidate :");
 
             if (decl != nullptr) {
                 auto const &lexeme_df = decl->lexeme;
-                auto fichier_df = espace.fichier(lexeme_df->fichier);
+                auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
                 auto pos_df = position_lexeme(*lexeme_df);
 
                 e.ajoute_message(' ',
@@ -175,35 +177,16 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
 
             if (dc.raison == MECOMPTAGE_ARGS) {
-                auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
                 e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
-
-                if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-                    auto decl_fonc = decl->comme_entete_fonction();
-                    e.ajoute_message("\tRequiers ", decl_fonc->params.taille(), " arguments\n");
-                }
-                else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-                    auto type_struct =
-                        static_cast<NoeudStruct const *>(decl)->type->comme_structure();
-                    e.ajoute_message("\tRequiers ", type_struct->membres.taille(), " arguments\n");
-                }
-                else {
-                    if (dc.type) {
-                        auto type_fonc = dc.type->comme_fonction();
-                        e.ajoute_message("\tRequiers ",
-                                        type_fonc->types_entrees.taille() - dc.requiers_contexte,
-                                        " arguments\n");
-                    }
-                }
-
-                e.ajoute_message("\tObtenu ", noeud_appel->parametres.taille(), " arguments\n");
+                e.ajoute_message("\tRequiers ", dc.nombre_arguments.nombre_requis, " arguments\n");
+                e.ajoute_message("\tObtenu ", dc.nombre_arguments.nombre_obtenu, " arguments\n");
                 e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
             }
             else if (dc.raison == MENOMMAGE_ARG) {
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("Argument inconnu");
 
-                if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+                if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
                     auto decl_fonc = decl->comme_entete_fonction();
                     e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
@@ -214,13 +197,13 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
 
                     e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
                 }
-                else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+                else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
                     auto decl_struct = decl->comme_structure();
 
                     if (decl_struct->est_polymorphe) {
                         e.ajoute_message("\tLes paramètres de la structure sont : \n");
 
-                        POUR (decl_struct->params_polymorphiques) {
+                        POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
                             e.ajoute_message("\t\t", it->ident->nom, '\n');
                         }
                     }
@@ -238,12 +221,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == RENOMMAGE_ARG) {
                 e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("L'argument a déjà été nommé");
             }
             else if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
                 e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
-                e.ajoute_site(dc.noeud_erreur);
+                e.ajoute_site(dc.site_erreur);
                 e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés "
                                  "s'ils sont précédés d'arguments déjà nommés");
             }
@@ -263,11 +246,6 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
                 e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
-                e.genre_erreur(erreur::Genre::NORMAL);
-            }
-            else if (dc.raison == CONTEXTE_MANQUANT) {
-                e.ajoute_message("\tNe peut appeler une fonction avec contexte dans un bloc "
-                                 "n'ayant pas de contexte\n");
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
             else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
@@ -290,14 +268,14 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.genre_erreur(erreur::Genre::NORMAL);
             }
             else if (dc.raison == ARGUMENTS_MANQUANTS) {
-                if (dc.arguments_manquants.taille() == 1) {
+                if (dc.arguments_manquants_.taille() == 1) {
                     e.ajoute_message("\tUn argument est manquant :\n");
                 }
                 else {
                     e.ajoute_message("\tPlusieurs arguments sont manquants :\n");
                 }
 
-                for (auto ident : dc.arguments_manquants) {
+                for (auto ident : dc.arguments_manquants_) {
                     e.ajoute_message("\t\t", ident->nom, '\n');
                 }
             }
@@ -308,10 +286,12 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
             }
             else if (dc.raison == METYPAGE_ARG) {
                 e.ajoute_message("\tLe type de l'argument '",
-                                 chaine_expression(espace, dc.noeud_erreur),
+                                 chaine_expression(espace, dc.site_erreur),
                                  "' ne correspond pas à celui requis !\n");
-                e.ajoute_message("\tRequiers : ", chaine_type(dc.type_attendu), '\n');
-                e.ajoute_message("\tObtenu   : ", chaine_type(dc.type_obtenu), '\n');
+                e.ajoute_message(
+                    "\tRequiers : ", chaine_type(dc.type_arguments.type_attendu), '\n');
+                e.ajoute_message(
+                    "\tObtenu   : ", chaine_type(dc.type_arguments.type_obtenu), '\n');
                 e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
             }
         }
@@ -323,10 +303,11 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *decl_fonc,
                                   NoeudExpression const *decl_appel)
 {
-    rapporte_erreur(&espace,
-                    appl_fonc,
-                    "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !",
-                    Genre::APPEL_INVALIDE)
+    espace
+        .rapporte_erreur(
+            appl_fonc,
+            "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !",
+            Genre::APPEL_INVALIDE)
         .ajoute_message("Note : la fonction est appelée dans « ",
                         decl_fonc->ident->nom,
                         " » qui fut déclarée sans contexte via #!nulctx.\n\n")
@@ -341,10 +322,10 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression *b,
                                      long taille_tableau,
-                                     Type *type_tableau,
+                                     Type const *type_tableau,
                                      long index_acces)
 {
-    rapporte_erreur(&espace, b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
+    espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
                         taille_tableau,
                         " (de type : ",
@@ -362,13 +343,13 @@ struct CandidatMembre {
     kuri::chaine_statique chaine = "";
 };
 
-static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
+static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres,
                             kuri::chaine_statique const &nom_donne)
 {
     auto candidat = CandidatMembre{};
     candidat.distance = 1000;
 
-    for (auto const &nom_membre : membres) {
+    membres.pour_chaque_element([&](kuri::chaine_statique nom_membre) {
         auto candidat_possible = CandidatMembre();
         candidat_possible.distance = distance_levenshtein(nom_donne, nom_membre);
         candidat_possible.chaine = nom_membre;
@@ -376,18 +357,19 @@ static auto trouve_candidat(dls::ensemble<kuri::chaine_statique> const &membres,
         if (candidat_possible.distance < candidat.distance) {
             candidat = candidat_possible;
         }
-    }
+
+        return kuri::DecisionIteration::Continue;
+    });
 
     return candidat;
 }
 
 void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression *acces,
-                    NoeudExpression * /*structure*/,
-                    NoeudExpression *membre,
-                    TypeCompose *type)
+                    NoeudExpression const *acces,
+                    NoeudExpression const *membre,
+                    TypeCompose const *type)
 {
-    auto membres = dls::ensemble<kuri::chaine_statique>();
+    auto membres = kuri::ensemble<kuri::chaine_statique>();
 
     POUR (type->membres) {
         membres.insere(it.nom->nom);
@@ -408,10 +390,16 @@ void membre_inconnu(EspaceDeTravail const &espace,
         message = "de la structure";
     }
 
+    /* Les discriminations sur des unions peuvent avoir des expressions d'appel pour capturer le
+     * membre. */
+    if (membre->est_appel()) {
+        membre = membre->comme_appel()->expression;
+    }
+
     auto candidat = trouve_candidat(membres, membre->ident->nom);
 
-    auto e = rapporte_erreur(
-        &espace, acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
+    auto e = espace.rapporte_erreur(
+        acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
     e.ajoute_message("Le membre « ", membre->ident->nom, " » est inconnu !\n\n");
 
     if (membres.taille() == 0) {
@@ -420,33 +408,19 @@ void membre_inconnu(EspaceDeTravail const &espace,
     else {
         e.ajoute_message("Les membres ", message, " sont :\n");
 
-        POUR (membres) {
-            e.ajoute_message("\t", it, "\n");
-        }
+        membres.pour_chaque_element(
+            [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
     }
 }
 
-void membre_inactif(EspaceDeTravail const &espace,
-                    ContexteValidationCode &contexte,
-                    NoeudExpression *acces,
-                    NoeudExpression *structure,
-                    NoeudExpression *membre)
-{
-    rapporte_erreur(&espace, acces, "Accès à un membre inactif d'une union", Genre::MEMBRE_INACTIF)
-        .ajoute_message("Le membre « ", membre->ident->nom, " » est inactif dans ce contexte !\n")
-        .ajoute_message("Le membre actif dans ce contexte est « ",
-                        contexte.trouve_membre_actif(structure->ident->nom),
-                        " ».\n");
-}
-
 void valeur_manquante_discr(EspaceDeTravail const &espace,
-                            NoeudExpression *expression,
-                            dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
+                            NoeudExpression const *expression,
+                            kuri::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
-    auto e = rapporte_erreur(
-        &espace, expression, "Dans l'expression de discrimination", Genre::NORMAL);
+    auto e = espace.rapporte_erreur(
+        expression, "Dans l'expression de discrimination", Genre::NORMAL);
 
     if (valeurs_manquantes.taille() == 1) {
         e.ajoute_message("Une valeur n'est pas prise en compte :\n");
@@ -455,9 +429,10 @@ void valeur_manquante_discr(EspaceDeTravail const &espace,
         e.ajoute_message("Plusieurs valeurs ne sont pas prises en compte :\n");
     }
 
-    POUR (valeurs_manquantes) {
-        e.ajoute_message('\t', it, '\n');
-    }
+    valeurs_manquantes.pour_chaque_element([&](kuri::chaine_statique it) {
+        e.ajoute_message("\t", it, "\n");
+        return kuri::DecisionIteration::Continue;
+    });
 }
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)
@@ -473,7 +448,7 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
     }
 
     auto lexeme = site->lexeme;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     std::cerr << fichier->chemin() << ':' << lexeme->ligne + 1 << '\n';
 
     Enchaineuse enchaineuse;
@@ -516,12 +491,8 @@ Erreur &Erreur::ajoute_message(const kuri::chaine &m)
 Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 {
     assert(espace);
-
-    auto fichier = espace->fichier(site->lexeme->fichier);
-
-    imprime_ligne_avec_message(enchaineuse, fichier, site->lexeme, "");
+    imprime_ligne_avec_message(enchaineuse, espace->site_source_pour(site), "");
     enchaineuse << '\n';
-
     return *this;
 }
 
@@ -544,7 +515,7 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
         }
         case erreur::Genre::SYNTAXAGE:
         {
-            return "ERREUR DE LEXAGE";
+            return "ERREUR DE SYNTAXAGE";
         }
         case erreur::Genre::TYPE_INCONNU:
         case erreur::Genre::TYPE_DIFFERENTS:
@@ -564,29 +535,10 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-enum class TagPourSiteOuLigne {
-    INVALIDE,
-    SITE,
-    LIGNE,
-};
-
-template <>
-struct tag_pour_donnees<TagPourSiteOuLigne, const NoeudExpression *> {
-    static constexpr auto tag = TagPourSiteOuLigne::SITE;
-};
-
-template <>
-struct tag_pour_donnees<TagPourSiteOuLigne, int> {
-    static constexpr auto tag = TagPourSiteOuLigne::LIGNE;
-};
-
-using SiteOuLigne = Resultat<const NoeudExpression *, int, TagPourSiteOuLigne>;
-
-static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
-                                              Fichier const *fichier,
-                                              SiteOuLigne site_ou_ligne,
-                                              erreur::Genre genre,
-                                              const kuri::chaine_statique message)
+kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
+                                  SiteSource site,
+                                  erreur::Genre genre,
+                                  const kuri::chaine_statique message)
 {
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(genre);
@@ -607,77 +559,25 @@ static kuri::chaine genere_entete_erreur_impl(EspaceDeTravail const *espace,
         flux << "\nAvertissement : ";
     }
 
-    if (fichier) {
-        if (site_ou_ligne.est<const NoeudExpression *>()) {
-            const auto site = site_ou_ligne.resultat<const NoeudExpression *>();
-            imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
-            flux << '\n';
-        }
-        else if (site_ou_ligne.est<int>()) {
-            const auto ligne = site_ou_ligne.resultat<int>();
-            imprime_ligne_avec_message(flux, fichier, ligne, "");
-            flux << '\n';
-        }
+    imprime_ligne_avec_message(flux, site, "");
+    flux << '\n';
+
+    if (message) {
+        flux << message;
+        flux << '\n';
     }
 
-    flux << message;
-    flux << '\n';
     flux << '\n';
 
     return flux.chaine();
 }
 
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  NoeudExpression const *site,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message)
-{
-    const Fichier *fichier = nullptr;
-
-    if (site) {
-        fichier = espace->fichier(site->lexeme->fichier);
-    }
-
-    return genere_entete_erreur_impl(espace, fichier, site, genre, message);
-}
-
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
-                                  const Fichier *fichier,
-                                  int ligne,
-                                  erreur::Genre genre,
-                                  const kuri::chaine_statique message)
-{
-    return genere_entete_erreur_impl(espace, fichier, ligne, genre, message);
-}
-
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       NoeudExpression const *site,
-                       const kuri::chaine &message,
+                       SiteSource site,
+                       kuri::chaine const &message,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace);
     erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
-    erreur.genre_erreur(genre);
-    return erreur;
-}
-
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace,
-                                 const kuri::chaine &message,
-                                 erreur::Genre genre)
-{
-    auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur(espace, nullptr, genre, message);
-    erreur.genre_erreur(genre);
-    return erreur;
-}
-
-Erreur rapporte_erreur(EspaceDeTravail const *espace,
-                       kuri::chaine const &chemin_fichier,
-                       int ligne,
-                       kuri::chaine const &message)
-{
-    const auto fichier = espace->fichier(chemin_fichier);
-    auto erreur = Erreur(espace);
-    erreur.enchaineuse << genere_entete_erreur_impl(espace, fichier, ligne, {}, message);
     return erreur;
 }

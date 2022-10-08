@@ -11,6 +11,13 @@
 	@horslignée
 }
 
+struct Annotation {
+  @code AnnotationCode
+
+  chaine_statique nom [code]
+  chaine_statique valeur [code]
+}
+
 struct NoeudExpression {
     @code NoeudCode
 	// définis l'énumération qui devra être utilisée pour discriminé le noeud
@@ -226,6 +233,14 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
 	Atome *atome
 }
 
+struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
+	@comme déclaration_bibliothèque
+	@code  NoeudCodeDéclarationBibliothèque
+	@genre DÉCLARATION_BIBLIOTHÈQUE
+
+	Bibliothèque *bibliothèque
+}
+
 struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
 	@genre DÉCLARATION_VARIABLE
 	@comme déclaration_variable
@@ -247,6 +262,8 @@ struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
     NoeudExpression * [] arbre_aplatis
 
     DonneesAssignations [compressé] donnees_decl
+
+  Annotation [] annotations [code copie]
 }
 
 struct NoeudAssignation : NoeudExpression {
@@ -283,7 +300,7 @@ struct NoeudExpressionReference : NoeudExpression {
 	@comme référence_déclaration
 	@code  NoeudCodeRéférenceDéclaration
 
-	NoeudDéclaration *déclaration_référée [code]
+  NoeudDéclaration *déclaration_référée
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {
@@ -376,8 +393,11 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	chaine nom_broye_
 
 	Monomorphisations *monomorphisations
+  /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
+   * dans le contexte du site. */
+  NoeudExpression *site_monomorphisation
 
-	chaine_statique [] annotations [code copie]
+  Annotation [] annotations [code copie]
 
 	bool est_opérateur [code copie]
 	bool est_coroutine [code copie]
@@ -387,6 +407,15 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	bool est_déclaration_type [copie]
 	bool est_monomorphisation
 	bool est_métaprogramme
+  bool est_initialisation_type
+
+	/* pour les fonctions externes :
+	 * - nom du symbole dans la bibliothèque
+	 * - la bibliothèque où se trouve le Symbole
+	 * - le symbole lui-même */
+	chaine_statique nom_symbole
+	IdentifiantCode *ident_bibliothèque
+	Symbole *symbole
 
 	/* Le paramètre de sortie :
 	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
@@ -422,7 +451,12 @@ struct NoeudExpressionConstructionStructure : NoeudExpressionAppel {
 	@code  NoeudCodeConstructionStructure
 }
 
-struct NoeudStruct : NoeudDéclarationSymbole {
+struct NoeudDéclarationType : NoeudDéclarationSymbole {
+  @comme déclaration_type
+  @code  NoeudCodeDéclarationType
+}
+
+struct NoeudStruct : NoeudDéclarationType {
 	@genre DÉCLARATION_STRUCTURE
 	@comme structure
 	@code  NoeudCodeStructure
@@ -441,22 +475,36 @@ struct NoeudStruct : NoeudDéclarationSymbole {
 	uint32_t alignement_desire
 
 	NoeudBloc *bloc_constantes
-	NoeudDéclarationVariable * [] params_polymorphiques
 	NoeudExpression * [] arbre_aplatis_params
 
 	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
 	NoeudStruct *polymorphe_de_base
 
 	Monomorphisations *monomorphisations
+
+	MetaProgramme *metaprogramme_corps_texte
+
+  Annotation [] annotations [code copie]
 }
 
-struct NoeudEnum : NoeudDéclarationSymbole {
+struct NoeudEnum : NoeudDéclarationType {
 	@genre DÉCLARATION_ÉNUM
 	@comme énum
 	@code  NoeudCodeÉnum
 
 	NoeudExpression *expression_type [code enfant]
 	NoeudBloc *bloc [code enfant]
+
+  Annotation [] annotations [code copie]
+}
+
+struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
+  @genre DÉCLARATION_OPAQUE
+  @comme type_opaque
+  @code  NoeudCodeTypeOpaque
+
+  NoeudExpression * [] arbre_aplatis
+  NoeudExpression *expression_type [code enfant]
 }
 
 struct NoeudSi : NoeudExpression {
@@ -553,11 +601,12 @@ struct NoeudBloc : NoeudExpression {
 
 	// NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
 	NoeudExpression *appartiens_a_boucle
+        // À FAIRE: utilisation de variant
+        NoeudExpression *appartiens_a_differe
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées
-	bool est_nonsur
-	bool possede_contexte [copie]
+        bool est_nonsur
 	int nombre_recherches
 }
 
@@ -568,6 +617,7 @@ struct NoeudPaireDiscr : NoeudExpression {
 
     NoeudExpression * expression [code enfant]
     NoeudBloc * bloc [code enfant]
+    NoeudExpression * variable_capturée
 }
 
 struct NoeudDiscr : NoeudExpression {
@@ -628,6 +678,8 @@ struct NoeudDirectiveExécute : NoeudExpression {
 	NoeudExpression *expression [code enfant]
 
 	NoeudExpression * [] arbre_aplatis
+
+	MetaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
@@ -660,4 +712,37 @@ struct NoeudInstructionDiffère : NoeudExpression {
 	@code  NoeudCodeDiffère
 
 	NoeudExpression *expression [code enfant]
+}
+
+struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
+	@genre DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE
+	@comme dépendance_bibliothèque
+	@code  NoeudCodeDépendanceBibliothèque
+
+	IdentifiantCode *ident_bibliothèque_dépendante
+	IdentifiantCode *ident_bibliothèque_dépendue
+}
+
+struct NoeudDirectiveAjouteInit : NoeudExpression {
+  @genre DIRECTIVE_AJOUTE_INIT
+  @comme ajoute_init
+  @code NoeudCodeAjouteInit
+
+  NoeudExpression *expression [code enfant]
+  NoeudExpression * [] arbre_aplatis
+}
+
+struct NoeudDirectiveAjouteFini : NoeudExpression {
+  @genre DIRECTIVE_AJOUTE_FINI
+  @comme ajoute_fini
+  @code NoeudCodeAjouteFini
+
+  NoeudExpression *expression [code enfant]
+  NoeudExpression * [] arbre_aplatis
+}
+
+struct NoeudDirectivePréExécutable : NoeudDirectiveExécute {
+  @genre DIRECTIVE_PRÉ_EXÉCUTABLE
+  @comme pré_exécutable
+  @code NoeudCodePréExécutable
 }

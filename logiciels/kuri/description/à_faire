@@ -5,7 +5,6 @@
 - ajout de #portée_module
 - ajout de #portée_export
 - ajout de #convention_c
-- retravaille #bibliothèque_dynamique, #bibliothèque_statique
 - ajout de #thread_local
 - ajout de #macro
 - ajout de #boucle_pour
@@ -13,29 +12,33 @@
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
+- ajout de #dump pour imprimer des informations (code binaire, etc.)
+- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
 
 // -----------------------------------
 // Bugs
 
 - collision de symbole pour les retours des fonctions dans les fonctions
-- compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
-- impossible de convertir implicitement un opaque de pointeur vers un *octet
-- impossible de comparer un opaque de pointeur avec nul
-- impossible d'utiliser les types opaques dans les conditions, si le type opacifié est convertible en bool
-- crash dans les exécutables quand nous prenont l'adresse d'une référence
-- crash quand nous paniquons sur un membre non-actif d'une union
-- compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
-- erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
-- aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
-- compilation infinie si nous utilisons #exécute pour une globale
+- crash dans les exécutables quand nous prenons l'adresse d'une référence
+- compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
+- "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
+
+Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
+    - nous ne devrions utiliser que la fonction du module courant
+
+Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent pas en compte le décalage
+    exemple 9971 au lieu de 9991:
+    Erreur : .chaine_ajoutées:9991:34 : 
+    9971 |     _ := noeud_branche_arbre(ctx, val0)
+         |                                   ^~~~
+
 
 // -----------------------------------
 // Architecture/Qualité de code
 
 - supprime chaine::ajoute, en faveur de l'enchaineuse
 - structures: ajout d'un pointeur vers une Allocatrice
-- cache les nom broyés pour les IdentifiantsCode
 - chaine: ajoute de TypeIndex
 - ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
@@ -47,23 +50,44 @@
 - pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
 - ajout des bugs à la liste des tests de compilation, tests de régressions pour les bugs
+- ajout d'une fonction visite_noeud :
+    -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
+    -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
+- transforme les PositionCode en globales:
+    -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
+
 
 // -----------------------------------
 // Fonctionnalités diverses
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 - travail sur les itérateurs (via macros comme JAI?)
-- annotations pour les membres de structures/unions
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
+- tests des énums drapeaux dans les conditions des boucles
+    voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
+
+Test pour les retours de pointeurs
+
+    StructureGlobale :: struct {
+        adresse: *z32
+    }
+
+    globale : StructureGlobale
+
+    retourne_adresse_stockée_dans_globale :: fonc () -> *z32
+    {
+        retourne globale.adresse
+    }
+
+À voir si ceci fonctionne :
+    Module.StructurePoly(T = z32)(x = 5)
 
 // -----------------------------------
 // Avertissements
 
 - fonction non utilisée
-- variable non utilisée
-- paramètre non utilisé
 - membre structure (ou union) non utilisé
 - structure ou union non utilisée
 - module non utilisé dans un fichier
@@ -83,9 +107,7 @@
 
 // --------------------------- Compilatrice
 
-remplace DonneesCandidate::raison par une chaine de caractère
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
-sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 
 -- ajout d'un état aux validations des appels
     - étape rassemble candidates
@@ -157,7 +179,6 @@ remplace les noeuds de dépendances par des unités de compilations
 -- les types dérivés (pointeurs, références, tableaux, etc.) ne seront plus dans le graphe
 
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
-ajout de la construction des messages dans les tâches
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 
 considère revoir l'arbre syntaxique des références de membres, pour simpilfier la génération de code et économiser de la mémoire
@@ -194,8 +215,6 @@ Résultat de l'algorithme d'unification :
 -- pour la cuisson de paramètres non-constants : remplace les paramètres par des constantes
 
 // --------------------------- Contexte Implicite
-
-utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
 permettre aux utilisateurs du langage d'y ajouter des variables
 
@@ -269,8 +288,6 @@ vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
 
-- proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
-
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 
 - utilise des métaprogrammes pour exécuter les #si
@@ -311,7 +328,6 @@ ajout de tranches pour les tableaux et les chaines
     chn1 := "une chaine"
     chn2 := chn1[ 4 ... chn.taille - 1 ] // nous donne "chaine"
 
-
 // --------------------------- Types
 
 unions : utilise le plus petit type possible pour représenter le discriminant
@@ -336,9 +352,6 @@ typage un peu libre des énumérations
         Type3
     }
 
-constructions de la table de types
-    requiers d'avoir des fonctions d'initialisations pour tous les types
-
 ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via une opacité, mais les chaines seraient brisées)
 
 charge/données personnalisées pour les erreurs afin de transmettre plus de détails à la fonction appelante
@@ -362,6 +375,8 @@ normalisation de tous les types pour supprimer les unions et les entiers constan
     -- mention dans Internet/module.kuri
     -- // u : anonyme4 dans MySQL/mysql.kuri
     - passe en revue les initialisations des unions
+    - déplace la normalisation dans une passe secondaire après la génération de RI, le code courant est bien trop complexe
+        -- une analyse de la RI pourra mieux se faire avant la normalisation
 
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
@@ -378,14 +393,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
         a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
         b : énum ...
 
-initialisation de tableaux fixes :
--- appel la fonction d'initialisation pour les types membres
------ récursion sur les tableaux de tableaux
-
-    a : [4][4]z32
-    a[0][0] = 0
-    ...
-
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 - explore représenter les types comme de noeuds_syntaxiques afin de simplifier les appariements de gabarits
@@ -393,14 +400,12 @@ initialisation de tableaux fixes :
 - impression des types via imprime (requiers une table de types)
     voir cas dans Jorjala/LCC
 
-« rien » dans les unions
-
 - impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
 
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type
     voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
 
-- pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
+- pouvoir passer des pointeur comme référence
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 
@@ -423,8 +428,6 @@ révision des transtypages :
 
 // --------------------------- Discriminations
 
-discr sur union anonyme
-
 avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
 
     discr e {
@@ -437,14 +440,6 @@ avoir une meilleure sécurité de type pour les einis, via discr et un transtypa
     }
 
     le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
-
-transtypage automatique les unions vers le type discriminée :
-
-    discr u {
-        z32 { u += 5 }
-        r32 { u += 6.7 }
-        ...
-    }
 
 possibilité d'avoir des appels de fonctions où le premier argument est celui discriminé
 
@@ -567,31 +562,6 @@ instructions SIMD
 idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
     -- nécéssite support de la part du système d'exploitation
 
-directive #externe : argument définissant la bibliothèque où trouver le symbole
-- libc :: #bibiliothèque_externe "c"
-- write :: fonc (...) -> z32 #externe libc
-
-    libXXX_linux_x64.a
-    libXXX_linux_x64.so
-
-    struct Bibliotheque {
-        IdentifiantCode *ident;
-
-        dls::chaine nom = "";
-
-        dls::chaine chemin_statique = "";
-        dls::chaine chemin_dynamique = "";
-
-        // symboles
-    };
-
-    libc :: #bibliothèque_externe "c"
-
-    alembic :: #bibliothèque_externe "Alembic"
-    ipa_alembic :: #bibliothèque_externe "alembic"
-
-    #bibliothèque_mère ipa_alembic alembic
-
 génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?
 
@@ -647,7 +617,6 @@ ajoute :: fonc (x: z32, y: z32) -> z32
 
 À faire (32-bits)
 -----------------
-- version des biblithèques sur 32-bit (définir une convention de nommage)
 - proprement définir les types (taille des entiers et des pointeurs)
 
 
@@ -803,35 +772,6 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
-
-struct GestionnaireUnite {
-    void remplis_files_de_compilation()
-    {
-        POUR (unites_pretes_pour_messages) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_message(it);
-            }
-        }
-
-        POUR (unites_attendant_sur_message_recu) {
-            if (message_recu) {
-                unites_pretes_pour_ri.enfile(it);
-            }
-        }
-
-        POUR (unites_pretes_pour_ri) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_ri(it);
-            }
-        }
-
-        POUR (unites_pretes_pour_optimisations) {
-            if (toutes_les_dépendances_sont_satisfaites()) {
-                ordonnanceuse->ajoute_tache_pour_optimisation(it);
-            }
-        }
-    }
-};
 
 // idées pour réusiner les globles pour la RI et l'exécution du code
 // deux zones : lectures, écritures

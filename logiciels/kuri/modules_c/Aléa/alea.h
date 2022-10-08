@@ -29,10 +29,11 @@ extern "C" {
 #endif
 
 typedef struct GNA GNA;
+struct ContexteKuri;
 
-GNA *ALEA_cree_gna(unsigned graine);
+GNA *ALEA_cree_gna(struct ContexteKuri *ctx_kuri, unsigned graine);
 void ALEA_reseme_gna(GNA *gna, unsigned graine);
-void ALEA_detruit_gna(GNA *gna);
+void ALEA_detruit_gna(struct ContexteKuri *ctx_kuri, GNA *gna);
 
 float ALEA_uniforme_r32(GNA *gna, float min, float max);
 double ALEA_uniforme_r64(GNA *gna, double min, double max);

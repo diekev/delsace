@@ -27,9 +27,9 @@
 #include "code_binaire.hh"
 
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "structures/chaine.hh"
+#include "structures/intervalle.hh"
 
 struct AtomeFonction;
 struct Compilatrice;
@@ -37,25 +37,7 @@ struct MetaProgramme;
 struct Statistiques;
 struct TypeFonction;
 
-struct GestionnaireBibliotheques {
-    struct BibliothequePartagee {
-        dls::systeme_fichier::shared_library bib{};
-        kuri::chaine chemin{};
-    };
-
-    using type_fonction = void (*)();
-
-  private:
-    kuri::tableau<BibliothequePartagee> bibliotheques{};
-    dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
-
-  public:
-    void ajoute_bibliotheque(kuri::chaine const &chemin);
-    void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
-    type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
-
-    long memoire_utilisee() const;
-};
+struct Erreur;
 
 struct FrameAppel {
     AtomeFonction *fonction = nullptr;
@@ -64,42 +46,45 @@ struct FrameAppel {
     octet_t *pointeur_pile = nullptr;
 };
 
-enum {
-    DONNEES_CONSTANTES,
-    DONNEES_GLOBALES,
-};
-
-enum {
-    ADRESSE_CONSTANTE,
-    ADRESSE_GLOBALE,
-};
-
-// Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
-// dans les constantes ou les globales. Par exemple, les pointeurs des infos types des membres des
-// structures sont écris dans un tableau constant, et le pointeur du tableau constant doit être
-// écris dans la zone mémoire ou se trouve le tableaeu de membre de l'InfoTypeStructure.
-struct PatchDonneesConstantes {
-    int ou;
-    int quoi;
-    int decalage_ou;
-    int decalage_quoi;
-};
-
-std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
-
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 struct DonneesExecution {
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
-
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
+    long instructions_executees = 0;
+};
 
-    int ajoute_globale(Type *type, IdentifiantCode *ident);
+struct EchantillonProfilage {
+    FrameAppel frames[TAILLE_FRAMES_APPEL];
+    int profondeur_frame_appel = 0;
+    int poids = 0;
+};
+
+struct InformationProfilage {
+    MetaProgramme *metaprogramme = nullptr;
+    kuri::tableau<EchantillonProfilage> echantillons{};
+};
+
+struct PaireEnchantillonFonction {
+    AtomeFonction *fonction = nullptr;
+    int nombre_echantillons = 0;
+};
+
+enum class FormatRapportProfilage : int;
+
+struct Profileuse {
+    kuri::tableau<InformationProfilage> informations_pour_metaprogrammes{};
+
+    InformationProfilage &informations_pour(MetaProgramme *metaprogramme);
+
+    void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
+
+    void cree_rapports(FormatRapportProfilage format);
+
+    void cree_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
 };
 
 struct MachineVirtuelle {
@@ -116,6 +101,8 @@ struct MachineVirtuelle {
 
     tableau_page<DonneesExecution> donnees_execution{};
 
+    DonneesConstantesExecutions *donnees_constantes = nullptr;
+
     kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
     kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
 
@@ -128,34 +115,27 @@ struct MachineVirtuelle {
     unsigned char *ptr_donnees_constantes = nullptr;
     unsigned char *ptr_donnees_globales = nullptr;
 
+    Intervalle<void *> intervalle_adresses_globales{};
+    Intervalle<void *> intervalle_adresses_pile_execution{};
+
     FrameAppel *frames = nullptr;
     int profondeur_appel = 0;
 
     int nombre_de_metaprogrammes_executes = 0;
     double temps_execution_metaprogammes = 0;
+    long instructions_executees = 0;
 
     MetaProgramme *m_metaprogramme = nullptr;
 
+    Profileuse profileuse{};
+
   public:
-    GestionnaireBibliotheques gestionnaire_bibliotheques{};
-
-    kuri::tableau<Globale, int> globales{};
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
-    kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
-
     bool stop = false;
 
-    MachineVirtuelle(Compilatrice &compilatrice_);
+    explicit MachineVirtuelle(Compilatrice &compilatrice_);
     ~MachineVirtuelle();
 
     COPIE_CONSTRUCT(MachineVirtuelle);
-
-    typedef void (*fonction_symbole)();
-
-    fonction_symbole trouve_symbole(IdentifiantCode *symbole);
-
-    int ajoute_globale(Type *type, IdentifiantCode *ident);
 
     void ajoute_metaprogramme(MetaProgramme *metaprogramme);
 
@@ -179,10 +159,10 @@ struct MachineVirtuelle {
 
   private:
     template <typename T>
-    void empile(NoeudExpression *site, T valeur);
+    inline void empile(NoeudExpression *site, T valeur);
 
     template <typename T>
-    T depile(NoeudExpression *site);
+    inline T depile(NoeudExpression *site);
 
     void depile(NoeudExpression *site, long n);
 
@@ -198,13 +178,26 @@ struct MachineVirtuelle {
                                 NoeudExpression *site,
                                 ResultatInterpretation &resultat);
 
-    void empile_constante(NoeudExpression *site, FrameAppel *frame);
+    inline void empile_constante(NoeudExpression *site, FrameAppel *frame);
 
     void installe_metaprogramme(MetaProgramme *metaprogramme);
 
-    void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
+    void desinstalle_metaprogramme(MetaProgramme *metaprogramme, int compte_executees);
 
-    ResultatInterpretation execute_instructions();
+    ResultatInterpretation execute_instructions(int &compte_executees);
 
     void imprime_trace_appel(NoeudExpression *site);
+
+    void rapporte_erreur_execution(NoeudExpression *site, kuri::chaine_statique message);
+
+    bool adresse_est_assignable(const void *adresse);
+
+    ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction, NoeudExpression *site);
+
+    bool adressage_est_possible(NoeudExpression *site,
+                                const void *adresse_ou,
+                                const void *adresse_de,
+                                const long taille,
+                                bool assignation);
+    void ajoute_trace_appel(Erreur &e);
 };
