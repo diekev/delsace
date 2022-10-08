@@ -353,7 +353,7 @@ exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
         résultat %= mod
     }
 
-    retourne résultat   
+    retourne résultat
 }
 
 bilatéral_de :: fonc (x: r32) -> r32 #enligne

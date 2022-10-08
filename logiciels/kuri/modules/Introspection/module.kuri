@@ -761,7 +761,7 @@ trouve_fonction_pour_type :: fonc (fonctions: []FonctionInstrospection($T), info
 CréatriceTableFonction :: struct {
     /* L'annotation code qu'une fonction doit avoir pour être considérée. */
     annotation_désirée : chaine
-    
+
     /* Nom du tableau globale contenant les FonctionIntropection. */
     nom_table_fonctions : chaine
 
@@ -910,7 +910,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // membre de la structure.
 //
 // Par exemple pour une structure :
-// 
+//
 // Arguments :: struct {
 //  option: chaine
 //  nombre: z32
@@ -925,7 +925,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // L'anonymat se fait via une annotation "@anonyme" sur le membre.
 //
 // Par exemple pour une structure :
-// 
+//
 // Arguments :: struct {
 //  option: chaine @anonyme
 //  nombre: z32
@@ -936,9 +936,8 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // ./programme une_chaine --nombre 2
 //
 // Ici, Arguments.option aura la valeur "une_chaine"
-// 
+//
 // La valeur de l'argument anonyme n'a pas besoin d'être le premier de la liste.
-
 
 ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
     // #assert info_de(T).id == id_info.STRUCTURE
