@@ -21,6 +21,6 @@ principale :: fonc () -> z32
         s: Struct
         retourne s.x
     }
-    
+
     retourne fonction1() + fonction2()
 }

@@ -133,7 +133,7 @@ chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     pile := divise_et_empile_chemin(chemin)
-    diffère détruit(pile)    
+    diffère détruit(pile)
     retourne chemin_normalisé(pile)
 }
 

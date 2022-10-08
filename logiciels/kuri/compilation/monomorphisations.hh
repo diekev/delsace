@@ -71,7 +71,7 @@ struct ItemMonomorphisation {
 
 std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item);
 
-struct BaseMonorphisations {
+struct Monomorphisations {
   protected:
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
@@ -79,10 +79,10 @@ struct BaseMonorphisations {
     using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
     tableau_synchrone<dls::paire<tableau_items, NoeudExpression *>> monomorphisations{};
 
-    NoeudExpression *trouve_monomorphisation_impl(tableau_items const &items) const;
-
   public:
     void ajoute(tableau_items const &items, NoeudExpression *noeud);
+
+    NoeudExpression *trouve_monomorphisation(tableau_items const &items) const;
 
     long memoire_utilisee() const;
 
@@ -91,12 +91,4 @@ struct BaseMonorphisations {
     int nombre_items_max() const;
 
     void imprime(std::ostream &os);
-};
-
-template <typename TypeNoeud>
-struct Monomorphisations : public BaseMonorphisations {
-    TypeNoeud *trouve_monomorphisation(tableau_items const &items) const
-    {
-        return static_cast<TypeNoeud *>(trouve_monomorphisation_impl(items));
-    }
 };

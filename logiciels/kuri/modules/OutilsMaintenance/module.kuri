@@ -58,12 +58,23 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
         ajoute_au_tampon(*enchaineuse, it, "\n")
     }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture_tronquée) piège err {
+    raison : RaisonOuvertureFichier
+    raison.Écriture = vrai
+    raison.Troncage = vrai
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
+        imprime("Impossible d'ouvrir le fichier % : %\n", chemin, err)
         retourne
     }
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    _ := ferme(*fichier)
+    _ := tente copie_enchaineuse_fichier(*enchaineuse, *fichier) piège err {
+        imprime("Impossible d'écrire le fichier: %\n", err)
+        retourne
+    }
+
+    tente ferme(*fichier) piège err {
+        imprime("Impossible de fermer le fichier %\n", err)
+        retourne
+    }
 }
 
 // -------------------------------------
@@ -177,10 +188,30 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
         }
 
         lignes.taille = nouvelles_lignes.taille
+        données_fichier.lignes = lignes
         retourne vrai
     }
 
     retourne faux
+}
+
+// -------------------------------------
+
+supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier) -> bool
+{
+    lignes_furent_modifiés := faux
+    pour & données_fichier.lignes {
+        ancienne_taille := it.taille
+        tantque it.taille != 0 && est_espace_blanc(it[it.taille - 1]) {
+            it = recule(it, 1)
+        }
+
+        si it.taille != ancienne_taille {
+            lignes_furent_modifiés = vrai
+        }
+    }
+
+    retourne lignes_furent_modifiés
 }
 
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)

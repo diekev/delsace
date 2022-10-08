@@ -1,8 +1,8 @@
 // Interface pour les fonctions standardes définies par POSIX
 
 importe Chaine // pour ChaineC
-importe GlibC // pour timespec
 importe Fondation
+importe GlibC // pour timespec
 
 charge "confname"
 
