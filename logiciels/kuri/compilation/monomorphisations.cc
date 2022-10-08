@@ -37,7 +37,7 @@ std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
     return os;
 }
 
-NoeudExpression *BaseMonorphisations::trouve_monomorphisation_impl(const tableau_items &items) const
+NoeudExpression *Monomorphisations::trouve_monomorphisation(const tableau_items &items) const
 {
     auto monomorphisations_ = monomorphisations.verrou_lecture();
 
@@ -65,12 +65,12 @@ NoeudExpression *BaseMonorphisations::trouve_monomorphisation_impl(const tableau
     return nullptr;
 }
 
-void BaseMonorphisations::ajoute(const tableau_items &items, NoeudExpression *noeud)
+void Monomorphisations::ajoute(const tableau_items &items, NoeudExpression *noeud)
 {
     monomorphisations->ajoute({items, noeud});
 }
 
-long BaseMonorphisations::memoire_utilisee() const
+long Monomorphisations::memoire_utilisee() const
 {
     long memoire = 0;
     memoire += monomorphisations->taille() *
@@ -83,12 +83,12 @@ long BaseMonorphisations::memoire_utilisee() const
     return memoire;
 }
 
-int BaseMonorphisations::taille() const
+int Monomorphisations::taille() const
 {
     return monomorphisations->taille();
 }
 
-int BaseMonorphisations::nombre_items_max() const
+int Monomorphisations::nombre_items_max() const
 {
     int n = 0;
 
@@ -101,7 +101,7 @@ int BaseMonorphisations::nombre_items_max() const
     return n;
 }
 
-void BaseMonorphisations::imprime(std::ostream &os)
+void Monomorphisations::imprime(std::ostream &os)
 {
     auto monomorphisations_ = monomorphisations.verrou_lecture();
     if (monomorphisations_->taille() == 0) {

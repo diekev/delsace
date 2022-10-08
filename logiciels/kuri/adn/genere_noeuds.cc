@@ -129,7 +129,6 @@ struct GeneratriceCodeCPP {
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
         os << "#include \"utilitaires.hh\"\n";
-        os << "template <typename T> struct Monomorphisations;\n";
         os << "template <typename T> using tableau_synchrone = "
               "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
 
@@ -153,10 +152,6 @@ struct GeneratriceCodeCPP {
 
                     const auto type_nominal = type_pointe->comme_nominal();
                     const auto nom_type = type_nominal->nom_cpp.nom_cpp();
-
-                    if (nom_type == "Monomorphisations") {
-                        return;
-                    }
 
                     noms_struct.insere(nom_type);
                 });
@@ -1517,9 +1512,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
                << "{};\n";
         }
 
-        os << "\ttableau_page<Monomorphisations<NoeudDeclarationEnteteFonction>> "
-              "m_monomorphisations_fonctions{};\n";
-        os << "\ttableau_page<Monomorphisations<NoeudStruct>> m_monomorphisations_structs{};\n";
+        os << "\ttableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
+        os << "\ttableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
 
         os << "\n";
         os << "public:\n";
@@ -1562,12 +1556,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         os << "\t}\n";
 
         const char *cree_monomorphisations = R"(
-	Monomorphisations<NoeudDeclarationEnteteFonction> *cree_monomorphisations_fonction()
+    Monomorphisations *cree_monomorphisations_fonction()
 	{
 		return m_monomorphisations_fonctions.ajoute_element();
 	}
 
-	Monomorphisations<NoeudStruct> *cree_monomorphisations_struct()
+    Monomorphisations *cree_monomorphisations_struct()
 	{
 		return m_monomorphisations_structs.ajoute_element();
 	}
