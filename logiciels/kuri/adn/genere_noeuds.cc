@@ -70,6 +70,12 @@ static const char *copie_extra_entete_fonction = R"(
 					copie->param_sortie = copie->params_sorties[0]->comme_declaration_variable();
 				}
 			}
+            /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
+             * sont placés par la Syntaxeuse directement dans les membres. */
+            POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
+                auto copie_membre = copie_noeud(it, copie->bloc_constantes);
+                copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+            }
 			/* copie le corps du noeud directement */
 			{
 				auto expr_corps = orig->corps;
@@ -123,7 +129,6 @@ struct GeneratriceCodeCPP {
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
         os << "#include \"utilitaires.hh\"\n";
-        os << "template <typename T> struct Monomorphisations;\n";
         os << "template <typename T> using tableau_synchrone = "
               "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
 
@@ -147,10 +152,6 @@ struct GeneratriceCodeCPP {
 
                     const auto type_nominal = type_pointe->comme_nominal();
                     const auto nom_type = type_nominal->nom_cpp.nom_cpp();
-
-                    if (nom_type == "Monomorphisations") {
-                        return;
-                    }
 
                     noms_struct.insere(nom_type);
                 });
@@ -1511,9 +1512,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
                << "{};\n";
         }
 
-        os << "\ttableau_page<Monomorphisations<NoeudDeclarationEnteteFonction>> "
-              "m_monomorphisations_fonctions{};\n";
-        os << "\ttableau_page<Monomorphisations<NoeudStruct>> m_monomorphisations_structs{};\n";
+        os << "\ttableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
+        os << "\ttableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
 
         os << "\n";
         os << "public:\n";
@@ -1556,12 +1556,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         os << "\t}\n";
 
         const char *cree_monomorphisations = R"(
-	Monomorphisations<NoeudDeclarationEnteteFonction> *cree_monomorphisations_fonction()
+    Monomorphisations *cree_monomorphisations_fonction()
 	{
 		return m_monomorphisations_fonctions.ajoute_element();
 	}
 
-	Monomorphisations<NoeudStruct> *cree_monomorphisations_struct()
+    Monomorphisations *cree_monomorphisations_struct()
 	{
 		return m_monomorphisations_structs.ajoute_element();
 	}

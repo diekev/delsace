@@ -1,8 +1,8 @@
 // exemple de serveur sécurisé tiré de
 // https://simplestcodings.blogspot.com/2010/08/secure-server-client-using-openssl-in-c.html
 
-importe Fondation
 importe Chaine
+importe Fondation
 importe GlibC
 importe Internet
 importe OpenSSL

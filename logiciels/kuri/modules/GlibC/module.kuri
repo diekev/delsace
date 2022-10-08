@@ -759,7 +759,6 @@ TCP_FASTOPEN_CONNECT ::  30 /* Attempt FastOpen with connect.  */
 TCP_ULP :: 31 /* Attach a ULP to a TCP connection.  */
 TCP_MD5SIG_EXT :: 32 /* TCP MD5 Signature with extensions.  */
 
-
 pipe :: fonc (fd_pair: *z32) -> z32 #externe libc
 dup :: fonc (oldfd: z32) -> z32 #externe libc
 dup2 :: fonc (oldfd: z32, newfd: z32) -> z32 #externe libc

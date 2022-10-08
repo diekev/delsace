@@ -1,7 +1,7 @@
+importe Allocatrices
 importe Fondation
 importe Moteur
 importe SysFichier
-importe Allocatrices
 
 // tutoriel : http://notes.eatonphil.com/database-basics.html
 
@@ -39,7 +39,7 @@ lance_boucle_exécution :: fonc ()
             discr résultat {
                 Erreur(message) {
                     imprime("%\n", message)
-                    exécutrice.réinitialise() 
+                    exécutrice.réinitialise()
                 }
                 Table(table) {
                     imprime_table(table)
@@ -76,7 +76,7 @@ principale :: fonc () -> z32
 
     pousse_contexte nouveau_contexte {
         lance_boucle_exécution()
-    }    
+    }
 
     retourne 0
 }

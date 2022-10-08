@@ -35,6 +35,8 @@ struct NoeudExpression;
 struct NoeudBloc;
 struct NoeudDeclaration;
 
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *ident);
+
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident);
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,

@@ -28,7 +28,7 @@ importe SysFichier
  * - Pour les commandes, chaque ligne est considérée comme une nouvelle commande.
  *
  * Exemple pour un programme répondant « Salut ! » si on lui dit « Salut ! »
- * 
+ *
  *         --------------------------------------
  *         + Cas : Le programme est poli si nous le sommes.
  *         + Commandes :
@@ -311,7 +311,7 @@ imprime_cas :: fonc (cas: []CasÀTester)
     }
 }
 
-lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, cas: CasÀTester) -> bool 
+lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, cas: CasÀTester) -> bool
 {
     résultat := lance_test(données_test, série, ...cas.commandes)
 
@@ -329,7 +329,7 @@ lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest,
         pour cas.résultat {
             imprime("%\n", it)
         }
-    
+
         retourne faux
     }
 
