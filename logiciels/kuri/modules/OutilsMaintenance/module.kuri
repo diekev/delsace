@@ -195,6 +195,25 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
     retourne faux
 }
 
+// -------------------------------------
+
+supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier) -> bool
+{
+    lignes_furent_modifiés := faux
+    pour & données_fichier.lignes {
+        ancienne_taille := it.taille
+        tantque it.taille != 0 && est_espace_blanc(it[it.taille - 1]) {
+            it = recule(it, 1)
+        }
+
+        si it.taille != ancienne_taille {
+            lignes_furent_modifiés = vrai
+        }
+    }
+
+    retourne lignes_furent_modifiés
+}
+
 exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
 {
     si chemin.est_un_dossier() {
