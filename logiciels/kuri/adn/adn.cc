@@ -97,10 +97,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
     else if (type.est_nominal()) {
         const auto type_nominal = type.comme_nominal();
 
-        if (type_nominal->nom_cpp.nom_cpp() == "Monomorphisations") {
-            os << "Monomorphisations<CetteClasse>";
-        }
-        else if (type_nominal->nom_cpp.nom_cpp() == "chaine") {
+        if (type_nominal->nom_cpp.nom_cpp() == "chaine") {
             os << "kuri::chaine";
         }
         else if (type_nominal->nom_cpp.nom_cpp() == "chaine_statique") {
@@ -140,8 +137,6 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\n";
         }
 
-        // petit hack pour pouvoir sainement déclarer les Monomorphisations
-        os << "\tusing CetteClasse = " << m_nom << ";\n";
         os << "\tPOINTEUR_NUL(" << m_nom << ")\n";
 
         if (!m_membres.est_vide()) {

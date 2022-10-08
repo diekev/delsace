@@ -16,8 +16,7 @@ reproduis_bug :: fonc () #débogue
      * connecté à l'index de prise N. */
     bits_fonctions_pour_canaux: [TypeChaineRecherchée.nombre_éléments]n64
 
-
-    bits_fonctions_pour_canaux[TypeChaineRecherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR] |= 2    
+    bits_fonctions_pour_canaux[TypeChaineRecherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR] |= 2
 }
 
 #exécute reproduis_bug()

@@ -1,5 +1,5 @@
-importe Fondation
 importe Chaine
+importe Fondation
 importe GlibC
 importe POSIX
 
@@ -395,7 +395,6 @@ système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> ErreurFich
     retourne 0 comme ErreurFichier
 }
 
-
 système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Optionnel(TypeFichier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn)
@@ -558,20 +557,20 @@ système_verrouille_fichier :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> b
         // À FAIRE : errno
         retourne faux
     }
-    
+
     retourne vrai
 }
 
 système_déverrouille_fichier :: fonc (fichier: *Fichier)
 {
-    _ := flock(fichier.desc comme z32, LOCK_UN) 
+    _ := flock(fichier.desc comme z32, LOCK_UN)
 }
 
 // -----------------------------------------------------------------------
 
 système_référence_fichier :: fonc (ancien_fd: TypePoignéeFichier, nouveau_fd: TypePoignéeFichier)
 {
-    _ := dup2(ancien_fd comme z32, nouveau_fd comme z32) 
+    _ := dup2(ancien_fd comme z32, nouveau_fd comme z32)
 }
 
 système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> n64

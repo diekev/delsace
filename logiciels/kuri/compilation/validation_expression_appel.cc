@@ -1699,6 +1699,49 @@ static std::optional<Attente> apparies_candidates(
 
 /* ************************************************************************** */
 
+static NoeudBloc *bloc_constantes_pour(NoeudExpression *noeud)
+{
+    if (noeud->est_entete_fonction()) {
+        return noeud->comme_entete_fonction()->bloc_constantes;
+    }
+    if (noeud->est_structure()) {
+        return noeud->comme_structure()->bloc_constantes;
+    }
+    return nullptr;
+}
+
+static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
+    AssembleuseArbre *assembleuse,
+    NoeudExpression *a_copier,
+    Monomorphisations *monomorphisations,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+{
+    auto monomorphisation = monomorphisations->trouve_monomorphisation(items_monomorphisation);
+    if (monomorphisation) {
+        return {monomorphisation, false};
+    }
+
+    auto copie = copie_noeud(assembleuse, a_copier, a_copier->bloc_parent);
+    auto bloc_constantes = bloc_constantes_pour(copie);
+
+    /* Ajourne les constantes dans le bloc. */
+    POUR (items_monomorphisation) {
+        auto decl_constante =
+            trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_declaration_variable();
+        decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
+        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
+
+        if (!it.est_type) {
+            decl_constante->valeur_expression = it.valeur;
+        }
+    }
+
+    monomorphisations->ajoute(items_monomorphisation, copie);
+    return {copie, true};
+}
+
 static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     ContexteValidationCode &contexte,
     Compilatrice &compilatrice,
@@ -1707,56 +1750,39 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto monomorphisation = decl->monomorphisations->trouve_monomorphisation(
-        items_monomorphisation);
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+                                                          decl,
+                                                          decl->monomorphisations,
+                                                          std::move(items_monomorphisation));
 
-    if (monomorphisation) {
-        return {monomorphisation, false};
+    auto entete = copie->comme_entete_fonction();
+
+    if (!copie_nouvelle) {
+        return {entete, false};
     }
 
-    auto copie = static_cast<NoeudDeclarationEnteteFonction *>(
-        copie_noeud(contexte.m_tacheronne.assembleuse, decl, decl->bloc_parent));
-    copie->est_monomorphisation = true;
-    copie->est_polymorphe = false;
-    copie->site_monomorphisation = site;
-
-    // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
-    POUR (items_monomorphisation) {
-        // À FAIRE(poly) : lexème pour la  constante
-        auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
-            copie->lexeme);
-        decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
-        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
-        decl_constante->type = const_cast<Type *>(it.type);
-
-        if (!it.est_type) {
-            decl_constante->valeur_expression = it.valeur;
-        }
-
-        copie->bloc_constantes->membres->ajoute(decl_constante);
-    }
+    entete->est_monomorphisation = true;
+    entete->est_polymorphe = false;
+    entete->site_monomorphisation = site;
 
     // Supprime les valeurs polymorphiques
     // À FAIRE : optimise
     auto nouveau_params = kuri::tableau<NoeudExpression *, int>();
-    POUR (copie->params) {
-        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+    POUR (entete->params) {
+        auto decl_constante = trouve_dans_bloc_seul(entete->bloc_constantes, it->ident);
+        if (decl_constante) {
             continue;
         }
 
         nouveau_params.ajoute(it);
     }
 
-    if (nouveau_params.taille() != copie->params.taille()) {
-        copie->params = std::move(nouveau_params);
+    if (nouveau_params.taille() != entete->params.taille()) {
+        entete->params = std::move(nouveau_params);
     }
 
-    decl->monomorphisations->ajoute(items_monomorphisation, copie);
-
-    compilatrice.gestionnaire_code->requiers_typage(&espace, copie);
-
-    return {copie, true};
+    compilatrice.gestionnaire_code->requiers_typage(&espace, entete);
+    return {entete, true};
 }
 
 static NoeudStruct *monomorphise_au_besoin(
@@ -1765,50 +1791,39 @@ static NoeudStruct *monomorphise_au_besoin(
     NoeudStruct *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto monomorphisation = decl_struct->monomorphisations->trouve_monomorphisation(
-        items_monomorphisation);
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+                                                          decl_struct,
+                                                          decl_struct->monomorphisations,
+                                                          std::move(items_monomorphisation));
 
-    if (monomorphisation) {
-        return monomorphisation;
+    auto structure = copie->comme_structure();
+
+    if (!copie_nouvelle) {
+        return structure;
     }
 
-    auto copie = copie_noeud(
-                     contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)
-                     ->comme_structure();
-    copie->est_polymorphe = false;
-    copie->est_monomorphisation = true;
-    copie->polymorphe_de_base = decl_struct;
+    structure->est_polymorphe = false;
+    structure->est_monomorphisation = true;
+    structure->polymorphe_de_base = decl_struct;
 
     if (decl_struct->est_union) {
-        copie->type = espace.compilatrice().typeuse.reserve_type_union(copie);
+        structure->type = espace.compilatrice().typeuse.reserve_type_union(structure);
     }
     else {
-        copie->type = espace.compilatrice().typeuse.reserve_type_structure(copie);
+        structure->type = espace.compilatrice().typeuse.reserve_type_structure(structure);
     }
 
-    // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
+    /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
+     * En effet, la monomorphisation se base sur les membres du type. */
     POUR (items_monomorphisation) {
         auto decl_constante =
-            trouve_dans_bloc(copie->bloc_constantes, it.ident)->comme_declaration_variable();
-        decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
-        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
-        decl_constante->type = const_cast<Type *>(it.type);
-
-        if (!it.est_type) {
-            decl_constante->valeur_expression = it.valeur;
-        }
-
-        /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
-         * En effet, la monomorphisation se base sur les membres du type. */
-        copie->bloc->membres->ajoute(decl_constante);
+            trouve_dans_bloc(structure->bloc_constantes, it.ident)->comme_declaration_variable();
+        structure->bloc->membres->ajoute(decl_constante);
     }
 
-    decl_struct->monomorphisations->ajoute(items_monomorphisation, copie);
+    contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, structure);
 
-    contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, copie);
-
-    return copie;
+    return structure;
 }
 
 /* ************************************************************************** */
