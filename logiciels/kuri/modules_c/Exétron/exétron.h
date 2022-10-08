@@ -71,6 +71,37 @@ void EXETRON_variable_condition_attend(struct VariableCondition *condition_varia
 void EXETRON_detruit_variable_condition(struct ContexteKuri *ctx_kuri,
                                         struct VariableCondition *mutex);
 
+/* Exécutions en boucle parallèle. */
+
+/* Plage pour une exécution en parallèle. */
+struct PlageExecution {
+    long debut;
+    long fin;
+};
+
+/* Données des tâches à exécuter dans une boucle parallèle. */
+struct DonneesTacheParallele {
+    void (*fonction)(struct DonneesTacheParallele *donnees, struct PlageExecution const *plage);
+};
+
+/* Exécution de la tâche en série. */
+void EXETRON_boucle_serie(struct PlageExecution const *plage,
+                          struct DonneesTacheParallele *donnees);
+
+/* Exécution de la tâche en parallèle. Si la taille de la plage est inférieure ou égale à la
+ * granularite, la tâche sera exécuté dans le fil d'exécution que la fonction appelante. */
+void EXETRON_boucle_parallele(struct PlageExecution const *plage,
+                              struct DonneesTacheParallele *donnees,
+                              int granularite);
+
+/* Exécution de la tâche en parallèle pour des calculs léger. */
+void EXETRON_boucle_parallele_legere(struct PlageExecution const *plage,
+                                     struct DonneesTacheParallele *donnees);
+
+/* Exécution de la tâche en parallèle pour des calculs lourds. */
+void EXETRON_boucle_parallele_lourde(struct PlageExecution const *plage,
+                                     struct DonneesTacheParallele *donnees);
+
 #ifdef __cplusplus
 }
 #endif

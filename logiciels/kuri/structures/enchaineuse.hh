@@ -68,6 +68,8 @@ struct Enchaineuse {
     kuri::chaine chaine() const;
 
     void permute(Enchaineuse &autre);
+
+    void reinitialise();
 };
 
 template <typename T>

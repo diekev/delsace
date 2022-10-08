@@ -1,0 +1,11 @@
+/* Erreur de compilation si nous utilisons #exécute pour une globale. */
+
+a := #exécute 4 * 5
+
+principale :: fonc () -> z32
+{
+    saufsi a == 20 {
+        retourne 1
+    }
+    retourne 0
+}

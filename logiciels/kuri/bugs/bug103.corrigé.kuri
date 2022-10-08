@@ -1,0 +1,8 @@
+/* Erreur de syntaxage si le fichier ne fini pas sur une nouvelle ligne. */
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
+
+foo :: fonc () -> z32 #externe libc

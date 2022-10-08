@@ -31,6 +31,8 @@
 #include "coulisse_llvm.hh"
 #include "coulisse_mv.hh"
 
+#include "structures/enchaineuse.hh"
+
 Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
 {
     switch (options.coulisse) {
@@ -85,4 +87,42 @@ void Coulisse::detruit(Coulisse *coulisse)
         memoire::deloge("CoulisseMV", c);
         coulisse = nullptr;
     }
+}
+
+kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops)
+{
+    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
+        if (ops.nom_sortie == "") {
+            return "a.o";
+        }
+
+        return enchaine(ops.nom_sortie, ".o");
+    }
+
+    return "/tmp/compilation_kuri.o";
+}
+
+kuri::chaine nom_sortie_resultat_final(OptionsDeCompilation const &ops)
+{
+    if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        if (ops.nom_sortie == "") {
+            return "a.so";
+        }
+
+        return enchaine(ops.nom_sortie, ".so");
+    }
+
+    if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_STATIQUE) {
+        if (ops.nom_sortie == "") {
+            return "a.a";
+        }
+
+        return enchaine(ops.nom_sortie, ".a");
+    }
+
+    if (ops.nom_sortie == "") {
+        return "a.out";
+    }
+
+    return ops.nom_sortie;
 }

@@ -1,15 +1,3 @@
-// À FAIRE : bouge ça dans un module d'outils ou autre
-fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
-{
-    pour liste {
-        si valeur == it {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
 compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {

@@ -50,12 +50,11 @@ void GrilleParticules::ajoute(const dls::math::vec3f &position)
 bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, float distance)
 {
 #if 1
-	auto moitie = distance * 0.5f;
 	dls::ensemble<long> indices;
 
-	for (auto dx = -moitie; dx <= moitie; dx += moitie) {
-		for (auto dy = -moitie; dy <= moitie; dy += moitie) {
-			for (auto dz = -moitie; dz <= moitie; dz += moitie) {
+    for (auto dx = -distance; dx <= distance; dx += distance) {
+        for (auto dy = -distance; dy <= distance; dy += distance) {
+            for (auto dz = -distance; dz <= distance; dz += distance) {
 				auto const p = dls::math::vec3f{point.x + dx, point.y + dy, point.z + dz};
 				auto index_pos = calcul_index_pos(p);
 				indices.insere(index_pos);

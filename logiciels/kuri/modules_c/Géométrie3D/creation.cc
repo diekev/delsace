@@ -27,7 +27,10 @@
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/outils/constantes.h"
 
+#include "booleen/boolops_cpolyhedron_builder.hpp"  // pour Point3d
+#include "booleen_maillage.hh"
 #include "outils.hh"
+#include <CGAL/boost/graph/generators.h>
 
 namespace geo {
 
@@ -122,10 +125,15 @@ void cree_boite(Maillage &maillage,
 
     for (long i = 0; i < 6; ++i) {
         maillage.ajouteUnPolygone(polygones[i], 4);
-        attr_normaux.ecris_vec3(i, normaux[i]);
 
-        for (int j = 0; j < 4; ++j) {
-            attr_uvs.ecris_vec2(i * 4 + j, uvs[j]);
+        if (attr_normaux) {
+            attr_normaux.ecris_vec3(i, normaux[i]);
+        }
+
+        if (attr_uvs) {
+            for (int j = 0; j < 4; ++j) {
+                attr_uvs.ecris_vec2(i * 4 + j, uvs[j]);
+            }
         }
     }
 }
@@ -133,7 +141,7 @@ void cree_boite(Maillage &maillage,
 /* ************************************************************************** */
 
 /* utilisé pour déboguer les algorithmes de déduplications de doublons */
-#undef GENERE_DOUBLONS
+#define GENERE_DOUBLONS
 
 template <typename T>
 auto sphere(const T u, const T v, const T rayon)
@@ -150,6 +158,10 @@ void cree_sphere_uv(Maillage &maillage,
                     const float centre_y,
                     const float centre_z)
 {
+    if (resolution_u == 0 || resolution_v == 0 || rayon == 0.0f) {
+        return;
+    }
+
     auto index_point = 0;
     auto attr_normaux = maillage.ajouteAttributPoint<VEC3>("N");
 
@@ -201,15 +213,17 @@ void cree_sphere_uv(Maillage &maillage,
             maillage.ajouteUnPoint(p2.x, p2.y, p2.z);
             maillage.ajouteUnPoint(p3.x, p3.y, p3.z);
 
-            auto const n0 = normalise(p0);
-            auto const n1 = normalise(p1);
-            auto const n2 = normalise(p2);
-            auto const n3 = normalise(p3);
+            if (attr_normaux) {
+                auto const n0 = normalise(p0);
+                auto const n1 = normalise(p1);
+                auto const n2 = normalise(p2);
+                auto const n3 = normalise(p3);
 
-            attr_normaux.ecris_vec3(index_point++, n0);
-            attr_normaux.ecris_vec3(index_point++, n1);
-            attr_normaux.ecris_vec3(index_point++, n2);
-            attr_normaux.ecris_vec3(index_point++, n3);
+                attr_normaux.ecris_vec3(index_point++, n0);
+                attr_normaux.ecris_vec3(index_point++, n1);
+                attr_normaux.ecris_vec3(index_point++, n2);
+                attr_normaux.ecris_vec3(index_point++, n3);
+            }
 
             maillage.ajouteUnPolygone(poly, 4);
 
@@ -223,8 +237,10 @@ void cree_sphere_uv(Maillage &maillage,
     auto const p0 = sphere(debut_u, debut_v, rayon) + centre;
     maillage.ajouteUnPoint(p0.x, p0.y, p0.z);
 
-    auto const n0 = normalise(p0);
-    attr_normaux.ecris_vec3(index_point++, n0);
+    if (attr_normaux) {
+        auto const n0 = normalise(p0);
+        attr_normaux.ecris_vec3(index_point++, n0);
+    }
 
     for (int i = 0; i < resolution_u; i++) {
         for (int j = 1; j < resolution_v; j++) {
@@ -242,16 +258,20 @@ void cree_sphere_uv(Maillage &maillage,
             auto const pn = sphere(u, v, rayon) + centre;
             maillage.ajouteUnPoint(pn.x, pn.y, pn.z);
 
-            auto const nn = normalise(pn);
-            attr_normaux.ecris_vec3(index_point++, nn);
+            if (attr_normaux) {
+                auto const nn = normalise(pn);
+                attr_normaux.ecris_vec3(index_point++, nn);
+            }
         }
     }
 
     auto const p1 = sphere(fin_u, fin_v, rayon) + centre;
     maillage.ajouteUnPoint(p1.x, p1.y, p1.z);
 
-    auto const n1 = normalise(p1);
-    attr_normaux.ecris_vec3(index_point++, n1);
+    if (attr_normaux) {
+        auto const n1 = normalise(p1);
+        attr_normaux.ecris_vec3(index_point++, n1);
+    }
 
     /* Ajout des polygones. */
 
@@ -422,7 +442,9 @@ void cree_grille(Maillage &maillage,
             uv[0] = static_cast<float>(x) * increment_x_uv;
 
             maillage.ajouteUnPoint(point[0], point[1], point[2]);
-            attr_uvs.ecris_vec2(index_point, uv);
+            if (attr_uvs) {
+                attr_uvs.ecris_vec2(index_point, uv);
+            }
             index_point += 1;
         }
     }
@@ -445,8 +467,10 @@ void cree_grille(Maillage &maillage,
             poly[2] = static_cast<int>(index(x, y));
             poly[3] = static_cast<int>(index(x - 1, y));
 
-            maillage.ajouteUnPolygone(poly, 3);
-            attr_normaux.ecris_vec3(index_poly, normal);
+            maillage.ajouteUnPolygone(poly, 4);
+            if (attr_normaux) {
+                attr_normaux.ecris_vec3(index_poly, normal);
+            }
             index_poly += 1;
         }
     }
@@ -489,7 +513,9 @@ void cree_cercle(Maillage &maillage,
         poly[2] = static_cast<int>(i);
 
         maillage.ajouteUnPolygone(poly, 3);
-        attr_normaux.ecris_vec3(i - 1, normal);
+        if (attr_normaux) {
+            attr_normaux.ecris_vec3(i - 1, normal);
+        }
 
         index = i;
     }
@@ -624,32 +650,79 @@ static const int icoface[20][3] = {{0, 2, 1},   {1, 5, 0},  {0, 3, 2},  {0, 4, 3
 
 void cree_icosphere(Maillage &maillage,
                     const float rayon,
+                    const int subdivision,
                     const float centre_x,
                     const float centre_y,
                     const float centre_z)
 {
-    auto const rayon_div = rayon / 200.0f;
+    auto polyedre = EnrichedPolyhedron();
+    using vertex_descriptor = boost::graph_traits<EnrichedPolyhedron>::vertex_descriptor;
+    auto point_map = get(boost::vertex_point, polyedre);
+
+    kuri::tableau<vertex_descriptor> vertices;
+    vertices.reserve(12);
 
     maillage.reserveNombreDePoints(12);
     maillage.reserveNombreDePolygones(20);
 
     auto attr_normaux = maillage.ajouteAttributPoint<VEC3>("N");
 
-    dls::math::vec3f vec, nor;
+    dls::math::vec3f point, nor;
+    dls::math::vec3f centre = dls::math::vec3f(centre_x, centre_y, centre_z);
 
     for (int a = 0; a < 12; a++) {
-        vec[0] = rayon_div * icovert[a][0] + centre_x;
-        vec[1] = rayon_div * icovert[a][2] + centre_y;
-        vec[2] = rayon_div * icovert[a][1] + centre_z;
+        point[0] = icovert[a][0];
+        point[1] = icovert[a][2];
+        point[2] = icovert[a][1];
 
-        nor = normalise(vec);
-
-        maillage.ajouteUnPoint(vec[0], vec[1], vec[2]);
-        attr_normaux.ecris_vec3(a, nor);
+        auto vd = CGAL::add_vertex(polyedre);
+        put(point_map, vd, Point3d(point.x, point.y, point.z));
+        vertices.ajoute(vd);
     }
 
     for (auto i = 0; i < 20; ++i) {
-        maillage.ajouteUnPolygone(icoface[i], 3);
+        std::vector<vertex_descriptor> face_vertices(3);
+        face_vertices[0] = vertices[icoface[i][0]];
+        face_vertices[1] = vertices[icoface[i][1]];
+        face_vertices[2] = vertices[icoface[i][2]];
+
+        auto face = CGAL::Euler::add_face(face_vertices, polyedre);
+        if (face == boost::graph_traits<EnrichedPolyhedron>::null_face()) {
+            std::cerr << "Erreur lors de la construction de la face !\n";
+        }
+    }
+
+    /* La sphère est déjà à un niveau de subdivions, donc nous évitons le dernier niveau
+     * de subdivision. */
+    for (int i = 0; i < subdivision - 1; i++) {
+        subdivise_polyedre(polyedre);
+    }
+
+    /* Normalise tous les points. */
+    for (auto vert_iter = polyedre.vertices_begin(); vert_iter != polyedre.vertices_end();
+         ++vert_iter) {
+
+        auto point_polyedre = vert_iter->point();
+
+        auto p = dls::math::vec3f(point_polyedre.x(), point_polyedre.y(), point_polyedre.z());
+        p = normalise(p) * rayon + centre;
+        vert_iter->point() = Point3d(p.x, p.y, p.z);
+    }
+
+    convertis_vers_maillage(polyedre, maillage);
+
+    if (attr_normaux) {
+        auto index_vertex = 0;
+        for (auto vert_iter = polyedre.vertices_begin(); vert_iter != polyedre.vertices_end();
+             ++vert_iter) {
+
+            auto point_polyedre = vert_iter->point();
+
+            auto p = dls::math::vec3f(point_polyedre.x(), point_polyedre.y(), point_polyedre.z());
+            p = normalise(p);
+
+            attr_normaux.ecris_vec3(index_vertex++, p);
+        }
     }
 }
 

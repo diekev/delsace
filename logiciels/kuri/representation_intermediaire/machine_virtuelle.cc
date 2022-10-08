@@ -52,7 +52,7 @@
     ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
         reinterpret_cast<Symbole::type_fonction>(fonction)
 
-inline bool adresse_est_nulle(void *adresse)
+inline bool adresse_est_nulle(const void *adresse)
 {
     /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
@@ -479,6 +479,11 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     return true;
 }
 
+#define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
+    if (!pointeur) {                                                                              \
+        rapporte_erreur_execution(site, message);                                                 \
+    }
+
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
@@ -506,6 +511,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         auto &messagere = compilatrice.messagere;
         messagere->commence_interception(espace_recu);
@@ -517,6 +523,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
         auto espace_recu = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         if (espace_recu->metaprogramme != m_metaprogramme) {
             /* L'espace du « site » est celui de métaprogramme, et non
@@ -552,6 +559,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
         auto options = depile<OptionsDeCompilation *>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options de compilation nulles");
         compilatrice.ajourne_options_compilation(options);
         return;
     }
@@ -559,6 +567,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_compilation(espace, chaine);
         return;
     }
@@ -566,6 +575,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_fichier_compilation(espace, chaine);
         return;
     }
@@ -574,6 +584,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto chaine = depile<kuri::chaine_statique>(site);
         auto module = depile<Module *>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_au_module(espace, module, chaine);
         return;
     }
@@ -581,6 +593,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
         auto options = depile<OptionsDeCompilation *>(site);
         auto nom = depile<kuri::chaine_statique>(site);
+        RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
         auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
         empile(site, espace);
         return;
@@ -597,6 +610,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         return;
     }
@@ -606,12 +620,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ligne = depile<int>(site);
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
         auto espace = depile<EspaceDeTravail *>(site);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(site, compilatrice.possede_erreur(espace));
         return;
     }
@@ -625,6 +641,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
         auto message = depile<Message *>(site);
+        RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
         compilatrice.gestionnaire_code->message_recu(message);
         return;
     }
@@ -638,31 +655,23 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
         auto nom_module = kuri::chaine_statique("");
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                const auto module = fichier->module;
-                nom_module = module->nom()->nom;
-            }
-        }
-
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        const auto module = fichier->module;
+        nom_module = module->nom()->nom;
         empile(site, nom_module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
-        auto module = static_cast<Module *>(nullptr);
-
-        if (code) {
-            const auto fichier = compilatrice.fichier(code->chemin_fichier);
-            if (fichier) {
-                module = fichier->module;
-            }
-        }
-
+        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
+        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
+        auto module = fichier->module;
+        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun module correspond au module du noeud code");
         empile(site, module);
         return;
     }
@@ -1348,33 +1357,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille = LIS_4_OCTETS();
                 auto adresse_ou = depile<void *>(site);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "adresse_ou : " << adresse_ou << '\n';
-                //				std::cerr << "adresse_de : " << adresse_de << '\n';
-                //				std::cerr << "taille     : " << taille << '\n';
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(
-                            site,
-                            "Erreur interne : superposition de la copie dans la machine "
-                            "virtuelle lors d'une assignation !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
-                }
-
-                if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur_execution(site, "Assignation depuis une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur_execution(site, "Assignation vers une adresse nulle !");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, true)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1388,17 +1372,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto type = LIS_POINTEUR(Type);
                 // saute l'identifiant
                 frame->pointeur += 8;
-                //				std::cerr << "----------------\n";
-                //				std::cerr << "alloue : " << type->taille_octet << '\n';
                 this->pointeur_pile += type->taille_octet;
-                // std::cerr << "Empile " << type->taille_octet << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
 
                 if (type->taille_octet == 0) {
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(
                             site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
                         .ajoute_message("La type est : ", chaine_type(type), ".\n");
+                    compte_executees = i + 1;
+                    return ResultatInterpretation::ERREUR;
                 }
 
                 break;
@@ -1409,57 +1391,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = depile<void *>(site);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
 
-                if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) <
-                    taille) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(
-                            site,
-                            "Erreur interne : superposition de la copie dans la machine "
-                            "virtuelle lors d'un chargement !")
-                        .ajoute_message("La taille à copier est de    : ", taille, ".\n")
-                        .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-                        .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-                        .ajoute_message(
-                            "Le type du site  est         : ", chaine_type(site->type), "\n");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_de)) {
-                    rapporte_erreur_execution(site, "Copie depuis une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-                if (adresse_est_nulle(adresse_ou)) {
-                    rapporte_erreur_execution(site, "Copie vers une adresse nulle !");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
-#if 0
-                // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
-                if (!adresse_est_assignable(adresse_de)) {
-                    rapporte_erreur(m_metaprogramme->unite->espace,
-                                    site,
-                                    "Copie depuis une adresse non-chargeable !")
-                        .ajoute_message("L'adresse est : ", adresse_de, "\n");
-                    return ResultatInterpretation::ERREUR;
-                }
-#endif
-
-                if (!adresse_est_assignable(adresse_ou)) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
-                        .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, false)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
-                // std::cerr << "Empile " << taille << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
                 break;
             }
             case OP_REFERENCE_VARIABLE:
@@ -1534,7 +1472,11 @@ void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
     auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
 
     e.ajoute_message("Trace d'appel :\n\n");
+    ajoute_trace_appel(e);
+}
 
+void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
+{
     /* La première frame d'appel possède le même lexème que la directive d'exécution du
      * métaprogramme, donc ignorons-là également. */
     for (int i = profondeur_appel - 1; i >= 1; --i) {
@@ -1542,7 +1484,66 @@ void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
     }
 }
 
-bool MachineVirtuelle::adresse_est_assignable(void *adresse)
+bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
+                                              const void *adresse_ou,
+                                              const void *adresse_de,
+                                              const long taille,
+                                              bool assignation)
+{
+    auto const taille_disponible = std::abs(static_cast<const char *>(adresse_de) -
+                                            static_cast<const char *>(adresse_ou));
+    if (taille_disponible < taille) {
+        auto message = assignation ? "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'une assignation !" :
+                                     "Erreur interne : superposition de la copie dans la "
+                                     "machine virtuelle lors d'un chargement !";
+        m_metaprogramme->unite->espace->rapporte_erreur(site, message)
+            .ajoute_message("La taille à copier est de    : ", taille, ".\n")
+            .ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+            .ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+            .ajoute_message("Le type du site est          : ", chaine_type(site->type), "\n")
+            .ajoute_message("Le taille du type est        : ", site->type->taille_octet, "\n")
+            .ajoute_message("Le taille disponible est     : ", taille_disponible, "\n");
+        return false;
+    }
+
+    if (adresse_est_nulle(adresse_de)) {
+        auto message = assignation ? "Assignation depuis une adresse nulle !" :
+                                     "Chargement depuis une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
+
+    if (adresse_est_nulle(adresse_ou)) {
+        auto message = assignation ? "Assignation vers une adresse nulle !" :
+                                     "Chargement vers une adresse nulle !";
+        rapporte_erreur_execution(site, message);
+        return false;
+    }
+
+    if (!assignation) {
+        if (!adresse_est_assignable(adresse_ou)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie vers une adresse non-assignable !")
+                .ajoute_message("L'adresse est : ", adresse_ou, "\n");
+            return false;
+        }
+
+#if 0
+        // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
+        if (!adresse_est_assignable(adresse_de)) {
+            m_metaprogramme->unite->espace
+                ->rapporte_erreur(site, "Copie depuis une adresse non-chargeable !")
+                .ajoute_message("L'adresse est : ", adresse_de, "\n");
+            return false;
+        }
+#endif
+    }
+
+    return true;
+}
+
+bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
 {
     return intervalle_adresses_globales.possede_inclusif(adresse) ||
            intervalle_adresses_pile_execution.possede_inclusif(adresse);
@@ -1559,7 +1560,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
                               "d'appel vers une fonction ne faisant pas partie du métaprogramme.")
             .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
                             static_cast<void *>(ptr_fonction),
-                            "\n");
+                            "\n")
+            .ajoute_donnees([&](Erreur &e) { ajoute_trace_appel(e); });
         return ResultatInterpretation::ERREUR;
     }
 

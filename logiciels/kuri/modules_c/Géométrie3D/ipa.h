@@ -30,6 +30,23 @@ extern "C" {
 typedef unsigned char bool;
 #endif
 
+/* Structure de rappels pour gérer les longs calculs. Ceci sert à interrompre au besoin lesdits
+ * longs calculs. */
+struct Interruptrice {
+    void (*commence)(void *, const char *message);
+    void (*termine)(void *);
+    bool (*doit_interrompre)(void *, int pourcentage);
+    void *donnees;
+};
+
+/* Structure servant principalement à passer des messages d'erreurs. */
+struct ContexteEvaluation {
+    void (*rapporte_erreur)(void *, const char *, long);
+    void (*rapporte_avertissement)(void *, const char *, long);
+
+    void *donnees_utilisateur;
+};
+
 /* Structure servant à rafiner les polygones n'étant ni des triangles, ni des quadrilatères. */
 struct RafineusePolygone {
     void (*ajoute_triangle)(struct RafineusePolygone *, long v1, long v2, long v3);
@@ -242,6 +259,7 @@ void GEO3D_cree_cylindre(struct AdaptriceMaillage *adaptrice,
  */
 void GEO3D_cree_icosphere(struct AdaptriceMaillage *adaptrice,
                           const float rayon,
+                          const int subdivision,
                           const float centre_x,
                           const float centre_y,
                           const float centre_z);
@@ -309,6 +327,199 @@ bool GEO3D_performe_operation_booleenne(struct AdaptriceMaillage *maillage_a,
 
 void GEO3D_test_conversion_polyedre(struct AdaptriceMaillage *maillage_entree,
                                     struct AdaptriceMaillage *maillage_sortie);
+
+/* ************************************* */
+
+struct HierarchieBoiteEnglobante;
+
+struct HierarchieBoiteEnglobante *GEO3D_cree_hierarchie_boite_englobante(
+    struct AdaptriceMaillage *pour_maillage);
+
+void GEO3D_detruit_hierarchie_boite_englobante(struct HierarchieBoiteEnglobante *hbe);
+
+void GEO3D_visualise_hierarchie_boite_englobante(struct HierarchieBoiteEnglobante *hbe,
+                                                 int niveau,
+                                                 struct AdaptriceMaillage *maillage_sortie);
+
+/* ************************************* */
+
+void GEO3D_calcule_enveloppe_convexe(struct AdaptriceMaillage *maillage_entree,
+                                     struct AdaptriceMaillage *maillage_sortie);
+
+/* ************************************* */
+
+enum DeterminationQuantitePoints {
+    DET_QT_PNT_PAR_NOMBRE_ABSOLU,
+    DET_QT_PNT_PAR_DISTANCE,
+};
+
+enum TypeRayonnementPoint {
+    RAYONNEMENT_UNIFORME,
+    RAYONNEMENT_ALEATOIRE,
+};
+
+struct ParametreDistributionParticules {
+    int graine;
+
+    enum DeterminationQuantitePoints determination_quantite_points;
+
+    int nombre_absolu;
+
+    enum TypeRayonnementPoint type_rayonnement;
+
+    /* Distance minimale entre deux points. */
+    float distance_minimale;
+    float distance_maximale;
+
+    /* Paramètres pour contenir la génération de particules aux primitives d'un groupe. */
+    bool utilise_groupe;
+    const char *ptr_nom_groupe_primitive;
+    long taille_nom_groupe_primitive;
+
+    /* Paramètres pour exporter un attribut pour les rayons. */
+    bool exporte_rayon;
+    const char *ptr_nom_rayon;
+    long taille_nom_rayon;
+};
+
+void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticules *params,
+                                            struct AdaptriceMaillage *surface,
+                                            struct AdaptriceMaillage *points_resultants);
+
+struct ParametresDistributionPoisson2D {
+    /* Graine pour ensemmencer le générateur de nombre aléatoire. */
+    unsigned graine;
+
+    /* Distance minimale à respecter entre deux points. */
+    float distance_minimale;
+
+    /* Longueur de la zone à remplir. */
+    float longueur;
+
+    /* Largeur de la zone à remplir. */
+    float largeur;
+
+    /* Point de départ de la génération des points. */
+    float origine_x;
+    float origine_y;
+
+    /* Rappel pour déterminer si un point peut être ajouté à la coordonnée définie les paramètres x
+     * et y. Ceci peut par exemple être utile pour exclure des points se situant en dehors d'un
+     * polygone non rectangulaire. */
+    bool (*peut_ajouter_point)(void *, float x, float y);
+
+    /* Données utilisateur pour le rappel. */
+    void *donnees_utilisateur;
+};
+
+void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *params,
+                                       struct AdaptriceMaillage *points_resultants);
+
+void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
+                                    const float rayon,
+                                    struct AdaptriceMaillage *maillage_resultat);
+
+void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,
+                                               struct AdaptriceMaillage *resultat);
+
+/* ************************************* */
+
+struct ParametresErosionVent {
+    float direction;
+    int repetitions;
+    float erosion_amont;
+    float erosion_avale;
+};
+
+struct AdaptriceTerrain {
+    void (*accede_resolution)(struct AdaptriceTerrain *donnees, int *res_x, int *res_y);
+
+    void (*accede_taille)(struct AdaptriceTerrain *donnees, float *taille_x, float *taille_y);
+
+    void (*accede_position)(struct AdaptriceTerrain *donnees, float *x, float *y, float *z);
+
+    void (*accede_pointeur_donnees)(struct AdaptriceTerrain *terrain, float **pointeur_donnees);
+};
+
+void GEO3D_simule_erosion_vent(struct ParametresErosionVent *params,
+                               struct AdaptriceTerrain *terrain,
+                               struct AdaptriceTerrain *terrain_pour_facteur);
+
+struct ParametresInclinaisonTerrain {
+    float facteur;
+    float decalage;
+    bool inverse;
+};
+
+void GEO3D_incline_terrain(struct ParametresInclinaisonTerrain const *params,
+                           struct AdaptriceTerrain *terrain);
+
+enum TypeFiltreTerrain {
+    BOITE,
+    TRIANGULAIRE,
+    QUADRATIC,
+    CUBIQUE,
+    GAUSSIEN,
+    MITCHELL,
+    CATROM,
+};
+
+struct ParametresFiltrageTerrain {
+    enum TypeFiltreTerrain type;
+    float rayon;
+};
+
+void GEO3D_filtrage_terrain(struct ParametresFiltrageTerrain const *params,
+                            struct AdaptriceTerrain *terrain);
+
+struct ParametresErosionSimple {
+    int iterations;
+    bool inverse;
+    bool superficielle;
+    bool rugueux;
+    bool pente;
+};
+
+void GEO3D_erosion_simple(struct ParametresErosionSimple const *params,
+                          struct AdaptriceTerrain *terrain,
+                          struct AdaptriceTerrain *grille_poids);
+
+struct ParametresErosionComplexe {
+    int iterations;
+
+    /* Paramètres pour l'érosion hydraulique (rivières). */
+    int iterations_rivieres;
+    float quantite_pluie;
+    float variance_pluie;
+    float cap_trans;
+    float permea_sol;
+    float taux_sedimentation;
+    float dep_pente;
+    float evaporation;
+    float taux_fluvial;
+
+    /* Paramètre pour l'érosion d'avalanche. */
+    int iterations_avalanche;
+    float angle_talus;
+    float quantite_avale;
+
+    /* Paramètre pour l'érosion générale. */
+    int iterations_diffusion;
+    float diffusion_thermale;
+};
+
+void GEO3D_erosion_complexe(struct ParametresErosionComplexe *params,
+                            struct AdaptriceTerrain *terrain);
+
+struct ParametresProjectionTerrain {
+    float distance_max;
+
+    bool utilise_touche_la_plus_eloignee;
+};
+
+void GEO3D_projette_geometrie_sur_terrain(struct ParametresProjectionTerrain const *params,
+                                          struct AdaptriceTerrain *terrain,
+                                          struct AdaptriceMaillage *geometrie);
 
 #ifdef __cplusplus
 }

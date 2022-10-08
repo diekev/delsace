@@ -1,37 +1,21 @@
 importe Fondation
-importe GlibC
 
 Instantané :: struct {
     seconde: z64
     nanoseconde: z64
 }
 
-// Retourne le temps monotonic du système
+/* Retourne le temps monotonic du système. */
 maintenant :: fonc () -> Instantané
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t)
-
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne système_instantané()
 }
 
-// Retourne le temps monotonic du système
+/* Retourne le temps monotonic précis du système, cette fonction est plus lente
+ * que `maintenant`. */
 maintenant_précis :: fonc () -> Instantané
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC, *t)
-
-    inst : Instantané
-    inst.seconde = t.tv_sec
-    inst.nanoseconde = t.tv_nsec
-
-    retourne inst
+    retourne système_instantané_précis()
 }
 
 secondes :: fonc (inst: Instantané) -> z64
@@ -111,28 +95,12 @@ TempsSystème :: struct {
 
 maintenant_système :: fonc () -> TempsSystème
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_REALTIME_COARSE, *t)
-
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne système_temps_réel()
 }
 
 maintenant_système_précis :: fonc () -> TempsSystème
 {
-    t : timespec
-    // @erreur
-    _ := clock_gettime(CLOCK_REALTIME, *t)
-
-    temps : TempsSystème
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-
-    retourne temps
+    retourne système_temps_réel_précis()
 }
 
 millisecondes :: fonc (temps: TempsSystème) -> z64
@@ -168,6 +136,16 @@ opérateur <= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
 opérateur >= :: fonc (t0: TempsSystème, t1: TempsSystème) -> bool
 {
     retourne t0 > t1 || t0 == t1
+}
+
+// ----------------------------------------------------------------------------
+
+depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
+{
+    temps: T = ---
+    temps.seconde = millisecondes / 1_000
+    temps.nanoseconde = (millisecondes % 1_000) * 1_000_000
+    retourne temps
 }
 
 // ----------------------------------------------------------------------------
@@ -243,19 +221,54 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     minutes := (secondes / 60) % 60
     heures  := (secondes / 3600) % 24
 
-    jours := d - 1
-    mois := (m - 1) comme z32
     années := y
 
     date : Date = ---
-    date.jour = jours comme z32
-    date.mois = mois
+    date.jour = d comme z32
+    date.mois = m comme z32
     date.année = années comme z32
     date.heure = heures comme z32
     date.minute = minutes comme z32
     date.seconde = seconde comme z32
     date.jour_semaine = weekday_from_days(z - 719468) comme z32
     retourne date
+}
+
+// Returns number of days since civil 1970-01-01.  Negative values indicate
+//    days prior to 1970-01-01.
+// Preconditions:  y-m-d represents a date in the civil (Gregorian) calendar
+//                 m is in [1, 12]
+//                 d is in [1, last_day_of_month(y, m)]
+//                 y is "approximately" in
+//                   [numeric_limits<Int>::min()/366, numeric_limits<Int>::max()/366]
+//                 Exact range of validity is:
+//                 [civil_from_days(numeric_limits<Int>::min()),
+//                  civil_from_days(numeric_limits<Int>::max()-719468)]
+days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
+{
+    // static_assert(std::numeric_limits<unsigned>::digits >= 18,
+    //          "This algorithm has not been ported to a 16 bit unsigned integer");
+    // static_assert(std::numeric_limits<Int>::digits >= 20,
+    //          "This algorithm has not been ported to a 16 bit signed integer");
+    y -= (m <= 2) comme z32;
+    era := si (y >= 0) { y } sinon { y - 399 } / 400;
+    yoe := (y - era * 400) comme n32      // [0, 399]
+    doy := (153* si (m > 2) { m-3 } sinon { m+9 } + 2)/5 + d-1;  // [0, 365]
+    doe := yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096]
+    retourne era * 146097 + (doe comme z32) - 719468;
+}
+
+days_from_civil :: fonc (date: Date) -> z32
+{
+    retourne days_from_civil(date.année, date.mois comme n32, date.jour comme n32)
+}
+
+nombre_de_jours_entre :: fonc (date1: Date, date2: Date) -> z32
+{
+    jours_date1 := days_from_civil(date1)
+    jours_date2 := days_from_civil(date2)
+
+    retourne jours_date2 - jours_date1
 }
 
 /*
@@ -287,16 +300,16 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
                     ajoute_au_tampon(*enchaineuse, date.année)
                 }
                 'M' {
-                    si (date.mois + 1) < 10 {
+                    si (date.mois) < 10 {
                         ajoute_au_tampon(*enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.mois + 1)
+                    ajoute_au_tampon(*enchaineuse, date.mois)
                 }
                 'J' {
-                    si (date.jour + 1) < 10 {
+                    si (date.jour) < 10 {
                         ajoute_au_tampon(*enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.jour + 1)
+                    ajoute_au_tampon(*enchaineuse, date.jour)
                 }
                 'h' {
                     si (date.heure) < 10 {
@@ -370,9 +383,6 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
         }
     }
 
-    résultat.jour -= 1
-    résultat.mois -= 1
-
     retourne résultat
 }
 
@@ -386,9 +396,6 @@ parse_date_pour_info_type :: fonc (chn: chaine) -> bool, Date
 parse_date_depuis_mysql :: fonc (chn: chaine) -> bool, Date
 {
     date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss")
-    // À FAIRE: conversion propre
-    date.mois += 1
-    date.jour += 1
     retourne vrai, date
 } @ParsageMySQL
 
@@ -422,8 +429,8 @@ importe Compilatrice
 #test {
     date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
 
-    compilatrice_vérifie_égalité(date.jour, 21)
-    compilatrice_vérifie_égalité(date.mois, 10)
+    compilatrice_vérifie_égalité(date.jour, 22)
+    compilatrice_vérifie_égalité(date.mois, 11)
     compilatrice_vérifie_égalité(date.année, 2020)
     compilatrice_vérifie_égalité(date.heure, 6)
     compilatrice_vérifie_égalité(date.minute, 37)
@@ -505,4 +512,11 @@ vers_heures :: fonc (année: AnnéeJulienne) -> Heure
 vers_heures :: fonc (année: AnnéeSidérale) -> Heure
 {
     retourne vers_heures(Seconde(31_558_149 * année comme z32))
+}
+
+// ---------------------------------------------------
+
+dors :: fonc (instant: Instantané) -> bool
+{
+    retourne système_dors(instant)
 }

@@ -1,0 +1,10 @@
+/* Impossible de convertir implicitement un opaque de pointeur vers un *octet. */
+
+importe Chaine
+
+principale :: fonc () -> z32
+{
+    c := ChaineC(nul)
+    _ : *octet = c
+    retourne 0
+}

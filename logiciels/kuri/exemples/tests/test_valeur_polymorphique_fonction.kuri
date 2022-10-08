@@ -1,6 +1,6 @@
 importe Fondation
 
-imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N), $N: z64)
+imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N) @inutilisée, $N: z64)
 {
     imprime("N = %\n", N)
 }

@@ -180,7 +180,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     }
 
     retourne ipv6
-}
+} @FonctionLongue
 
 chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 {
@@ -377,6 +377,16 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
     ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon))
 } @FormattageImpression
 
+adresse_ipv4_depuis_entier_simple :: fonc (valeur: n32) -> AdresseIPv4
+{
+    données : [4]n8 = ---
+    données[0] = ((valeur >> 24) & 0xff) comme n8
+    données[1] = ((valeur >> 16) & 0xff) comme n8
+    données[2] = ((valeur >>  8) & 0xff) comme n8
+    données[3] = ((valeur      ) & 0xff) comme n8
+    retourne AdresseIPv4(données = données)
+}
+
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 {
     morceaux := divise(chn, '.')
@@ -389,20 +399,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
             retourne ErreurParsageIP.CaractèreInvalide
         }
 
-        données : [4]n8
-
-        données[0] = (valeur / 16_777_216) comme n8
-        valeur %= 16_777_216
-
-        données[1] = (valeur / 65_536) comme n8
-        valeur %= 65_536
-
-        données[2] = (valeur / 256) comme n8
-        valeur %= 256
-
-        données[3] = (valeur) comme n8
-
-        retourne AdresseIPv4(données = données)
+        retourne adresse_ipv4_depuis_entier_simple(valeur)
     }
 
     si morceaux.taille != 4 {

@@ -396,8 +396,16 @@ void UniteCompilation::rapporte_erreur() const
 
             e.ajoute_conseil("Si vous voulez performer une opération sur des types "
                              "non-communs, vous pouvez définir vos propres opérateurs avec "
-                             "la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: "
-                             "type2) -> type_retour\n{\n\t...\n}\n");
+                             "la syntaxe suivante :\n\n");
+            e.ajoute_message("opérateur ",
+                             operateur_attendu->lexeme->chaine,
+                             " :: fonc (a: ",
+                             chaine_type(type1),
+                             ", b: ",
+                             chaine_type(type2),
+                             ")");
+            e.ajoute_message(" -> TypeRetour\n");
+            e.ajoute_message("{\n\tretourne ...\n}\n");
         }
         else {
             auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
@@ -412,8 +420,14 @@ void UniteCompilation::rapporte_erreur() const
                 .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
                 .ajoute_conseil("Si vous voulez performer une opération sur des types "
                                 "non-communs, vous pouvez définir vos propres opérateurs avec "
-                                "la syntaxe suivante :\n\nopérateur op :: fonc (a: type) -> "
-                                "type_retour\n{\n\t...\n}\n");
+                                "la syntaxe suivante :\n\n")
+                .ajoute_message("opérateur ",
+                                operateur_attendu->lexeme->chaine,
+                                " :: fonc (a: ",
+                                chaine_type(type_operande),
+                                ")")
+                .ajoute_message(" -> TypeRetour\n")
+                .ajoute_message("{\n\tretourne ...\n}\n");
         }
     }
     else {

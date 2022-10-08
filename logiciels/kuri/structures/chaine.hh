@@ -205,9 +205,9 @@ struct chaine {
         return capacite_;
     }
 
-    chaine sous_chaine(TypeIndex index) const
+    chaine_statique sous_chaine(TypeIndex index) const
     {
-        return chaine(this->pointeur() + index, this->taille() - index);
+        return chaine_statique(this->pointeur() + index, this->taille() - index);
     }
 
     operator dls::vue_chaine_compacte() const

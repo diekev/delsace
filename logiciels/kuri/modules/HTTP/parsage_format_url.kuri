@@ -158,7 +158,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
     }
 
     retourne RésultatParsageFormatURL.Succès, données, résultat
-} @IgnoreNASA
+} @FonctionLongue
 
 /* DonnéesRésultat
  *
@@ -325,108 +325,62 @@ trouve_fonction_pour_type :: fonc (info_type: *InfoType) -> *FonctionParsage
     retourne trouve_fonction_pour_type(__fonctions_parsage_url, info_type)
 }
 
-ajoute_fonction_de_parsage_url :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
+fonction_parsage_url_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    ajoute_fonction(*__fonctions_parsage_url, info, fonction)
+    résultat : DonnéesFonctionPourTableFonction
+
+    si fonction.params.taille != 1 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle ne doit avoir qu'un seul paramètre")
+        retourne résultat
+    }
+
+    type_premier_paramètre := fonction.params[0].type
+    si type_premier_paramètre != info_de(chaine) {
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage URL invalide, le paramètre doit être de type « chaine ».")
+        retourne résultat
+    }
+
+    si fonction.params_sorties.taille != 2 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        retourne résultat
+    }
+
+    type_première_sortie := fonction.params_sorties[0].type
+
+    si type_première_sortie != info_de(bool) {
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».")
+        retourne résultat
+    }
+
+    résultat.fonction = fonction
+    résultat.info_type = fonction.params_sorties[1].type
+    retourne résultat
 }
 
-issitialise_parsage_url :: fonc ()
+génère_fonction_enveloppe_parsage_url :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-	déloge(__fonctions_parsage_url)
+    nom_enveloppe := enchaine("parsage_url_", données.fonction.nom)
+
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+    ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
 }
 
 génère_initialisation_parsage_url :: fonc ()
 {
-    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageURL")
-    diffère déloge(fonctions_de_parsage)
+    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions.annotation_désirée = "ParsageURL"
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url"
+    créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_parsage_url
+	créatrice_table_fonctions.initialise_types_de_bases = vrai
+    créatrice_table_fonctions.ajoute_module("HTTP")
 
-    saufsi fonctions_de_parsage {
-        retourne
-    }
-
-	/*
-		modèle fonction de parsage : fonc (chaine, []octet) (bool)
-	 */
-
-	enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère détruit_tampons(*enchaineuse)
-
-    // Il nous faut les modules.
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe HTTP\n")
-
-	modules_importés : []chaine
-    diffère déloge(modules_importés)
-	tableau_ajoute(*modules_importés, "Fondation")
-
-	/* Création des enveloppes pour les fonctions de parsage. */
-    pour fonctions_de_parsage {
-        // valide les types
-        si it.params.taille != 1 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour URL, elle ne doit avoir qu'un seul paramètre")
-            retourne
-        }
-
-        type_premier_paramètre := it.params[0].type
-        si type_premier_paramètre != info_de(chaine) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage URL invalide, le paramètre doit être de type « chaine ».")
-            retourne
-        }
-
-		si it.params_sorties.taille != 2 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour URL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-            retourne
-		}
-
-		type_première_sortie := it.params_sorties[0].type
-
-		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».")
-            retourne
-		}
-
-		nom_module := compilatrice_module_pour_code(it)
-		si nom_module {
-			pour module_importé dans modules_importés {
-				si module_importé == nom_module {
-					arrête
-				}
-			}
-			sansarrêt {
-				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
-				tableau_ajoute(*modules_importés, nom_module)
-			}
-		}
-
-        ajoute_au_tampon(*enchaineuse, "parsage_url_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
-		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
-    }
-
-    /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_parsage_url :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
-    ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*__fonctions_parsage_url)\n")
-
-    pour fonctions_de_parsage {
-        type_deuxième_paramètre := it.params_sorties[1].type
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_url(info_de(")
-        imprime_type(*enchaineuse, type_deuxième_paramètre)
-        ajoute_au_tampon(*enchaineuse, "), parsage_url_", it.nom, ")\n")
-    }
-
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_parsage_url()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_parsage_url()\n")
-
-    sources := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(sources)
-
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+    crée_table_fonctions(créatrice_table_fonctions)
 }

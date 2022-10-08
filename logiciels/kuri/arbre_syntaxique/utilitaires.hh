@@ -66,6 +66,10 @@ enum DrapeauxNoeud : unsigned int {
     ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
     DROITE_CONDITION = (1 << 24),
     EST_UTILISEE = (1 << 25),  // decl var
+    DEBOGUE = (1 << 26),
+    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
+    GAUCHE_EXPRESSION_APPEL = (1 << 28),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 29),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

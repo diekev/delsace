@@ -587,6 +587,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 	}
 
 	coûts := loge_tableau(z64, n + 1)
+    coûts.taille = n + 1
 
 	pour c, idx dans coûts {
 		c = idx
@@ -846,6 +847,10 @@ cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheA
         }
         BoyerMooreHorspool {
             retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
+        }
+        sinon {
+            // À FAIRE(langage) : erreur de compilation si ce bloc n'existe pas
+            retourne -1
         }
     }
 }

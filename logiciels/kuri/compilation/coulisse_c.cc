@@ -25,6 +25,7 @@
 #include "coulisse_c.hh"
 
 #include <fstream>
+#include <set>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
@@ -567,6 +568,10 @@ struct ConvertisseuseTypeC {
 
 /* ************************************************************************** */
 
+/* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
+ * l'accès au contexte. */
+#define AJOUTE_TRACE_APPEL
+
 static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
@@ -618,12 +623,34 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
+
+    // À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
+    // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
+    // la fonction principale défini par les programmes.
+    enchaineuse << "#define __principale principale\n\n";
+
+    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
 static bool est_type_tableau_fixe(Type *type)
 {
     return type->est_tableau_fixe() ||
            (type->est_opaque() && type->comme_opaque()->type_opacifie->est_tableau_fixe());
+}
+
+static bool est_pointeur_vers_tableau_fixe(Type const *type)
+{
+    if (!type->est_pointeur()) {
+        return false;
+    }
+
+    auto const type_pointeur = type->comme_pointeur();
+
+    if (!type_pointeur->type_pointe) {
+        return false;
+    }
+
+    return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
 struct GeneratriceCodeC {
@@ -942,6 +969,7 @@ struct GeneratriceCodeC {
                 auto inst_appel = inst->comme_appel();
 
                 /* La fonction d'initialisation des globales n'a pas de site. */
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace && inst_appel->site) {
                     auto const &lexeme = inst_appel->site->lexeme;
                     auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
@@ -963,6 +991,7 @@ struct GeneratriceCodeC {
                     os << ligne.taille();
                     os << ");\n";
                 }
+#endif
 
                 auto arguments = kuri::tablet<kuri::chaine, 10>();
 
@@ -995,9 +1024,11 @@ struct GeneratriceCodeC {
 
                 os << ");\n";
 
+#ifdef AJOUTE_TRACE_APPEL
                 if (!m_fonction_courante->sanstrace) {
                     os << "  TERMINE_RECORD_TRACE_APPEL;\n";
                 }
+#endif
 
                 break;
             }
@@ -1032,7 +1063,19 @@ struct GeneratriceCodeC {
                 assert(valeur != "");
 
                 if (valeur[0] == '&') {
-                    table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                    /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
+                     * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
+                     * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
+                     * membre de la structure qui est le tableau, et sert également à proprement
+                     * générer le code pour les indexages. */
+                    if (est_pointeur_vers_tableau_fixe(
+                            charge->type->comme_pointeur()->type_pointe)) {
+                        table_valeurs.insere(inst_charge,
+                                             enchaine("&(*", valeur.sous_chaine(1), ")"));
+                    }
+                    else {
+                        table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                    }
                 }
                 else {
                     table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
@@ -1068,7 +1111,10 @@ struct GeneratriceCodeC {
             case Instruction::Genre::LABEL:
             {
                 auto inst_label = inst->comme_label();
-                os << "\nlabel" << inst_label->id << ":;\n";
+                if (inst_label->id != 0) {
+                    os << "\n";
+                }
+                os << "label" << inst_label->id << ":;\n";
                 break;
             }
             case Instruction::Genre::OPERATION_UNAIRE:
@@ -1338,17 +1384,16 @@ struct GeneratriceCodeC {
         POUR (globales) {
             auto valeur_globale = it;
 
-            if (!valeur_globale->est_constante) {
-                continue;
-            }
-
             auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
             if (valeur_globale->est_externe) {
                 os << "extern ";
             }
-            else {
+            else if (valeur_globale->est_constante) {
                 os << "static const ";
+            }
+            else {
+                os << "static ";
             }
 
             os << nom_broye_type(type) << ' ';
@@ -1654,6 +1699,18 @@ static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_pr
     }
 }
 
+static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
+                                            ConstructriceRI &constructrice_ri,
+                                            AtomeFonction *fonction,
+                                            ProgrammeRepreInter &repr_inter_programme)
+{
+    constructrice_ri.genere_ri_pour_initialisation_globales(
+        &espace, fonction, repr_inter_programme.globales);
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne sont
+     * peut-être pas encore dans la liste. */
+    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
+}
+
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
@@ -1672,16 +1729,10 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
 
-    // génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme
-    // et principale
-    auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(
-        &espace, repr_inter_programme.globales);
-    repr_inter_programme.ajoute_fonction(atome_principale);
-
-    /* Renomme le point d'entrée « main » afin de ne pas avoir à créer une fonction supplémentaire
-     * qui appelera le point d'entrée. */
-    auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
-    atome_fonc->nom = "main";
+    // Génére le corps de la fonction d'initialisation des globales.
+    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
+    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
+    genere_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
@@ -1690,6 +1741,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 }
 
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
+                                                   ConstructriceRI &constructrice_ri,
                                                    EspaceDeTravail &espace,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1699,10 +1751,16 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
 
     /* Garantie l'utilisation des fonctions racines. */
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
             ++nombre_fonctions_racines;
+        }
+
+        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
+            decl_init_globales = it;
         }
     }
 
@@ -1710,6 +1768,11 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
         return false;
+    }
+
+    if (decl_init_globales) {
+        genere_ri_fonction_init_globale(
+            espace, constructrice_ri, decl_init_globales, repr_inter_programme);
     }
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
@@ -1731,7 +1794,7 @@ static bool genere_code_C(Compilatrice &compilatrice,
     }
 
     return genere_code_C_depuis_fonctions_racines(
-        compilatrice, espace, programme, bibliotheques, fichier_sortie);
+        compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1813,14 +1876,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
-        enchaineuse << " -o ";
-        enchaineuse << ops.nom_sortie;
-        enchaineuse << ".o";
-    }
-    else {
-        enchaineuse << " -o /tmp/compilation_kuri.o";
-    }
+    enchaineuse << " -o " << nom_sortie_fichier_objet(ops);
 
     return enchaineuse.chaine();
 }
@@ -1844,6 +1900,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
     of.close();
 
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
     auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
@@ -1858,6 +1915,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
         return false;
     }
+#endif
 
     return true;
 }
@@ -1871,6 +1929,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
 {
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
     compile_objet_r16(
         std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()),
         espace.options.architecture);
@@ -1904,6 +1965,8 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " /tmp/r16_tables_x64.o ";
     }
 
+    auto chemins_utilises = std::set<std::filesystem::path>();
+
     POUR (m_bibliotheques) {
         if (it->nom == "r16") {
             continue;
@@ -1914,11 +1977,16 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
+        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
+            continue;
+        }
+
         if (it->chemin_dynamique(espace.options)) {
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
         enchaineuse << " -L" << chemin_parent.c_str();
+        chemins_utilises.insert(chemin_parent);
     }
 
     /* À FAIRE(bibliothèques) : permet la liaison statique.
@@ -1942,14 +2010,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -m32 ";
     }
 
-    enchaineuse << " -o ";
-
-    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << espace.options.nom_sortie << ".so";
-    }
-    else {
-        enchaineuse << espace.options.nom_sortie;
-    }
+    enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
 
     auto commande = enchaineuse.chaine();
 
@@ -1964,4 +2025,5 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     temps_executable = debut_executable.temps();
     return true;
+#endif
 }

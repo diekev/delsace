@@ -65,6 +65,7 @@ struct UniteCompilation {
     int index_precedent = 0;
     int cycle = 0;
     bool tag = false;
+    bool annule = false;
 
   private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
@@ -127,6 +128,11 @@ struct UniteCompilation {
     inline bool attend_sur_noeud_code(NoeudCode **code)
     {
         return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;
+    }
+
+    inline bool attend_sur_declaration(NoeudDeclaration *decl)
+    {
+        return m_attente.est<AttenteSurDeclaration>() && m_attente.declaration() == decl;
     }
 
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \

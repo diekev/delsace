@@ -25,7 +25,10 @@
 #pragma once
 
 #include "biblinternes/structures/tableau.hh"
+#include "booleen/boolops_enriched_polyhedron.hpp"
 #include <string>
+
+struct ParametresFracture;
 
 namespace geo {
 
@@ -41,6 +44,11 @@ void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillag
 
 bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
                                               dls::tableau<CelluleVoronoi> const &cellules,
+                                              const ParametresFracture &params,
                                               Maillage &maillage_sortie);
+
+void subdivise_polyedre(EnrichedPolyhedron &polyedre);
+
+void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage);
 
 }  // namespace geo

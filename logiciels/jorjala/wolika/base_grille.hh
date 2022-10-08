@@ -125,6 +125,8 @@ public:
 		auto taille = dls::math::converti_type<double>(m_desc.etendue.taille());
 		taille /= m_desc.taille_pixel;
 
+        taille += 0.5f;
+
 		m_desc.resolution = dls::math::converti_type<int>(taille);
 
 		auto res_long = dls::math::converti_type<long>(m_desc.resolution);

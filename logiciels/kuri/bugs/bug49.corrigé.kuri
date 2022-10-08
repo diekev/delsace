@@ -1,6 +1,6 @@
 // les infos_types des z64 ne sont pas générés correctement dans les métaprogrammes, la taille_en_octet est de 0...
 
-importe Support
+importe Fondation
 
 imprime_z64 :: fonc () -> bool
 {
@@ -17,6 +17,8 @@ imprime_z64 :: fonc () -> bool
 principale :: fonc () -> z32
 {
     succès := #exécute imprime_z64()
-    imprime_succès(succès)
+    saufsi succès {
+        retourne 1
+    }
     retourne 0
 }

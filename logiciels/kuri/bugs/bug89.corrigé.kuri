@@ -1,0 +1,18 @@
+/* Boucle infini si une boucle « pour » utilise « > » avec un nombre naturel. */
+
+principale :: fonc () -> z32
+{
+    début : n32 = 10
+
+    nombre_itérations := 0
+
+    pour > début {
+        nombre_itérations += 1
+
+        si nombre_itérations > 10 {
+            panique("Trop d'itérations !")
+        }
+    }
+
+    retourne 0
+}

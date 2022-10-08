@@ -20,16 +20,19 @@
 # ***** END GPL LICENSE BLOCK *****
 
 find_package(OpenImageIO REQUIRED)
+find_package(OpenEXR REQUIRED)
 
 set(NOM_PROJET module_c_image)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-    /opt/lib/oiio/include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${OPENIMAGEIO_INCLUDE_DIRS}
+    ${OPENEXR_INCLUDE_DIRS}
 )
 
 set(BIBLIOTHEQUES
-    /opt/lib/oiio/lib/libOpenImageIO.so
+    ${OPENIMAGEIO_LIBRARIES}
+    ${OPENEXR_LIBRARIES}
 )
 
 set(SOURCES

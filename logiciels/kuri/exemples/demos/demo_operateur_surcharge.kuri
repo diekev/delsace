@@ -5,7 +5,6 @@ principale :: fonc () -> z32
 {
     u : Vec3
     v : Vec3
-    s := 1.0
 
 	u.x = 1.0
 	u.y = 2.0

@@ -1,0 +1,12 @@
+/* Crash si nous définissons un type pointeur polymorphique dans un type fonction.
+ * Similaire à bug86. */
+
+fonction_polymorphique :: fonc (rappel: fonc(*$T)(rien), données_rappel: *T)
+{
+    rappel(données)
+}
+
+principale :: fonc () -> z32
+{   
+    retourne 0
+}

@@ -295,7 +295,7 @@ auto filtre_grille(
 		interruptrice *chef = nullptr)
 {
 	auto table = cree_table_filtre(type, rayon);
-	auto grille_tmp = grille_couleur(grille.desc());
+    auto grille_tmp = grille_dense_2d<TG>(grille.desc());
 
 	auto const res_x = grille.desc().resolution.x;
 	auto const res_y = grille.desc().resolution.y;

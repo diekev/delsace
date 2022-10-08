@@ -592,6 +592,15 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
     return dossiers;
 }
 
+static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
+    Compilatrice const &compilatrice, NoeudExpression *site, int plateforme)
+{
+    if (plateforme == PLATEFORME_32_BIT) {
+        return dossiers_recherche_32_bits(compilatrice, site);
+    }
+    return dossiers_recherche_64_bits(compilatrice, site);
+}
+
 static void copie_chemins(ResultatRechercheBibliotheque const &resultat,
                           Bibliotheque *bibliotheque,
                           int plateforme)
@@ -605,10 +614,32 @@ static void copie_chemins(ResultatRechercheBibliotheque const &resultat,
     bibliotheque->chemins_de_base[plateforme] = resultat.chemin_de_base;
 }
 
+static void rapporte_erreur_bibliotheque_introuvable(
+    EspaceDeTravail &espace,
+    const NoeudExpression *site,
+    const Bibliotheque *bibliotheque,
+    int plateforme,
+    const kuri::chaine noms[2][4],
+    const kuri::tablet<kuri::chaine_statique, 4> &dossiers)
+{
+    auto e = espace.rapporte_erreur(site,
+                                    "Impossible de résoudre le chemin vers une bibliothèque");
+    e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
+    e.ajoute_message("La plateforme cible de l'espace est : ",
+                     (plateforme == PLATEFORME_32_BIT) ? "32-bit" : "64-bit",
+                     "\n");
+    e.ajoute_message("Les chemins testés furent :\n");
+    POUR (dossiers) {
+        e.ajoute_message("    ", it, "/", noms[STATIQUE][POUR_PRODUCTION], "\n");
+        e.ajoute_message("    ", it, "/", noms[DYNAMIQUE][POUR_PRODUCTION], "\n");
+    }
+}
+
 void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &espace,
                                                             NoeudExpression *site,
                                                             Bibliotheque *bibliotheque)
 {
+    auto const plateforme_requise = plateforme_pour_options(espace.options);
     // regarde soit dans le module courant, soit dans le chemin système
     // chemin_système : /lib/x86_64-linux-gnu/ pour 64-bit
     //                  /lib/i386-linux-gnu/ pour 32-bit
@@ -630,32 +661,25 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
         noms[DYNAMIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".so");
     }
 
-    /* Commence par les versions 64-bit. */
-    auto dossiers = dossiers_recherche_64_bits(compilatrice, site);
-    auto resultat = recherche_bibliotheque(espace, site, dossiers, noms);
+    const int plateformes[2] = {
+        PLATEFORME_32_BIT,
+        PLATEFORME_64_BIT,
+    };
 
-    if (!resultat.has_value()) {
-        auto e = espace.rapporte_erreur(site,
-                                        "Impossible de résoudre le chemin vers une bibliothèque");
-        e.ajoute_message("La bibliothèque en question est « ", bibliotheque->nom, " »\n\n");
-        e.ajoute_message("Les chemins testés furent :\n");
-        POUR (dossiers) {
-            e.ajoute_message("    ", it, "/", noms[STATIQUE][POUR_PRODUCTION], "\n");
-            e.ajoute_message("    ", it, "/", noms[DYNAMIQUE][POUR_PRODUCTION], "\n");
+    POUR (plateformes) {
+        auto dossiers = dossiers_recherche_plateforme(compilatrice, site, it);
+        auto resultat = recherche_bibliotheque(espace, site, dossiers, noms);
+
+        if (resultat.has_value()) {
+            copie_chemins(resultat.value(), bibliotheque, it);
+            continue;
         }
 
-        return;
-    }
-
-    copie_chemins(resultat.value(), bibliotheque, PLATEFORME_64_BIT);
-
-    /* Versions 32-bit. */
-    dossiers = dossiers_recherche_32_bits(compilatrice, site);
-    resultat = recherche_bibliotheque(espace, site, dossiers, noms);
-
-    if (resultat.has_value()) {
-        /* Pas d'erreur si non trouvés pour le moment. */
-        copie_chemins(resultat.value(), bibliotheque, PLATEFORME_32_BIT);
+        if (plateforme_requise == it) {
+            rapporte_erreur_bibliotheque_introuvable(
+                espace, site, bibliotheque, plateforme_requise, noms, dossiers);
+            return;
+        }
     }
 }
 

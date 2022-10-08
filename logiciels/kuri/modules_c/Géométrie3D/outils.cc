@@ -122,6 +122,11 @@ void Maillage::ajouteUnPoint(float x, float y, float z) const
     this->ajoute_un_point(this->donnees, x, y, z);
 }
 
+void Maillage::ajouteUnPoint(math::vec3f xyz) const
+{
+    this->ajoute_un_point(this->donnees, xyz.x, xyz.y, xyz.z);
+}
+
 void Maillage::ajouteListePolygones(const int *sommets,
                                     const int *sommets_par_polygones,
                                     long nombre_polygones)

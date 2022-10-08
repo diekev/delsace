@@ -1480,7 +1480,9 @@ static void transfere_instructions_blocs(kuri::tableau<Bloc *, int> const &blocs
     }
 }
 
-void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
+void optimise_code(EspaceDeTravail &espace,
+                   ConstructriceRI &constructrice,
+                   AtomeFonction *atome_fonc)
 {
     // if (atome_fonc->nom ==
     // "_KF9Fondation14imprime_chaine_P0__E2_8contexte19KsContexteProgramme6format8Kschaine4args8KtKseini_S1_8Kschaine")
@@ -1491,7 +1493,10 @@ void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
     // while (enligne_fonctions(constructrice, atome_fonc)) {}
     enligne_fonctions(constructrice, atome_fonc);
 
-    auto fonction_et_blocs = convertis_en_blocs(atome_fonc);
+    FonctionEtBlocs fonction_et_blocs;
+    if (!fonction_et_blocs.convertis_en_blocs(espace, atome_fonc)) {
+        return;
+    }
 
     performe_passes_optimisation(fonction_et_blocs.blocs);
 

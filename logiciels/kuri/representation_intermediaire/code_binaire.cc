@@ -110,6 +110,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
                               NoeudExpression *site,
                               Type *type)
 {
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
         std::cerr << "Le type est " << chaine_type(type) << '\n';
 
@@ -126,6 +127,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 
         erreur::imprime_site(*contexte.espace, site);
     });
+#endif
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);
@@ -256,7 +258,30 @@ void Chunk::emets_label(NoeudExpression *site, int index)
     emets(index);
 }
 
-/* ************************************************************************** */
+void Chunk::emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type)
+{
+    if (op == OperateurUnaire::Genre::Complement) {
+        if (type->genre == GenreType::REEL) {
+            emets(OP_COMPLEMENT_REEL);
+            emets(site);
+        }
+        else {
+            emets(OP_COMPLEMENT_ENTIER);
+            emets(site);
+        }
+    }
+    else if (op == OperateurUnaire::Genre::Non_Binaire) {
+        emets(OP_NON_BINAIRE);
+        emets(site);
+    }
+
+    if (type->genre == GenreType::ENTIER_CONSTANT) {
+        emets(4);
+    }
+    else {
+        emets(type->taille_octet);
+    }
+}
 
 static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 {
@@ -403,6 +428,28 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
+void Chunk::emets_operation_binaire(NoeudExpression *site,
+                                    OperateurBinaire::Genre op,
+                                    Type *type_gauche,
+                                    Type *type_droite)
+{
+    auto op_comp = converti_op_binaire(op);
+    emets(op_comp);
+    emets(site);
+
+    auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
+    if (taille_octet == 0) {
+        assert(type_gauche->genre == GenreType::ENTIER_CONSTANT &&
+               type_droite->genre == GenreType::ENTIER_CONSTANT);
+        emets(4);
+    }
+    else {
+        emets(taille_octet);
+    }
+}
+
+/* ************************************************************************** */
+
 static long instruction_simple(const char *nom, long decalage, std::ostream &os)
 {
     os << nom << '\n';
@@ -471,21 +518,25 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 case CONSTANTE_ENTIER_RELATIF | BITS_8:
                 {
                     LIS_CONSTANTE(char);
+                    os << " z8";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_16:
                 {
                     LIS_CONSTANTE(short);
+                    os << " z16";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_32:
                 {
                     LIS_CONSTANTE(int);
+                    os << " z32";
                     break;
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_64:
                 {
                     LIS_CONSTANTE(long);
+                    os << " z64";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_8:
@@ -493,31 +544,37 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                     // erreur de compilation pour transtype inutile avec drapeaux stricts
                     os << static_cast<long>(chunk.code[decalage]);
                     decalage += 1;
+                    os << " n8";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_16:
                 {
                     LIS_CONSTANTE(unsigned short);
+                    os << " n16";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_32:
                 {
                     LIS_CONSTANTE(unsigned int);
+                    os << " n32";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_64:
                 {
                     LIS_CONSTANTE(unsigned long);
+                    os << " n64";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_32:
                 {
                     LIS_CONSTANTE(float);
+                    os << " r32";
                     break;
                 }
                 case CONSTANTE_NOMBRE_REEL | BITS_64:
                 {
                     LIS_CONSTANTE(double);
+                    os << " r64";
                     break;
                 }
             }
@@ -620,7 +677,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
     }
 }
 
-void desassemble(const Chunk &chunk, const char *nom, std::ostream &os)
+void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
     for (auto decalage = 0l; decalage < chunk.compte;) {
@@ -1187,31 +1244,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
         {
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
-
             genere_code_binaire_pour_atome(op_unaire->valeur, chunk, true);
-
-            if (op_unaire->op == OperateurUnaire::Genre::Complement) {
-                if (type->genre == GenreType::REEL) {
-                    chunk.emets(OP_COMPLEMENT_REEL);
-                    chunk.emets(op_unaire->site);
-                }
-                else {
-                    chunk.emets(OP_COMPLEMENT_ENTIER);
-                    chunk.emets(op_unaire->site);
-                }
-            }
-            else if (op_unaire->op == OperateurUnaire::Genre::Non_Binaire) {
-                chunk.emets(OP_NON_BINAIRE);
-                chunk.emets(op_unaire->site);
-            }
-
-            if (type->genre == GenreType::ENTIER_CONSTANT) {
-                chunk.emets(4);
-            }
-            else {
-                chunk.emets(type->taille_octet);
-            }
-
+            chunk.emets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1221,26 +1255,39 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
             genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk, true);
 
-            auto op_comp = converti_op_binaire(op_binaire->op);
-            chunk.emets(op_comp);
-            chunk.emets(op_binaire->site);
-
             auto type_gauche = op_binaire->valeur_gauche->type;
             auto type_droite = op_binaire->valeur_droite->type;
-
-            auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
-            if (taille_octet == 0) {
-                assert(type_gauche->genre == GenreType::ENTIER_CONSTANT &&
-                       type_droite->genre == GenreType::ENTIER_CONSTANT);
-                chunk.emets(4);
-            }
-            else {
-                chunk.emets(taille_octet);
-            }
+            chunk.emets_operation_binaire(
+                op_binaire->site, op_binaire->op, type_gauche, type_droite);
 
             break;
         }
     }
+}
+
+static Type *type_entier_sous_jacent(Typeuse &typeuse, Type *type)
+{
+    if (type->est_entier_constant()) {
+        return typeuse[TypeBase::Z32];
+    }
+
+    if (type->est_enum()) {
+        return type->comme_enum()->type_donnees;
+    }
+
+    if (type->est_erreur()) {
+        return type->comme_erreur()->type_donnees;
+    }
+
+    if (type->est_type_de_donnees()) {
+        return typeuse[TypeBase::Z64];
+    }
+
+    if (type->est_octet()) {
+        return typeuse[TypeBase::N8];
+    }
+
+    return type;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
@@ -1272,10 +1319,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                 case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                 {
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-                    auto type = constante->type;
+                    auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                        constante->type);
 
-                    if (type->genre == GenreType::ENTIER_NATUREL ||
-                        type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+                    if (type->genre == GenreType::ENTIER_NATUREL) {
                         if (type->taille_octet == 1) {
                             chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
                         }
@@ -1303,14 +1350,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                             chunk.emets_constante(static_cast<long>(valeur_entiere));
                         }
                     }
-                    else if (type->genre == GenreType::ENTIER_CONSTANT) {
-                        chunk.emets_constante(static_cast<int>(valeur_entiere));
-                    }
-                    else if (type->est_octet()) {
-                        chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
-                    }
-                    else if (type->est_type_de_donnees()) {
-                        chunk.emets_constante(static_cast<long>(valeur_entiere));
+                    else if (type->est_reel()) {
+                        if (type->taille_octet == 4) {
+                            chunk.emets_constante(static_cast<float>(valeur_entiere));
+                        }
+                        else {
+                            chunk.emets_constante(static_cast<double>(valeur_entiere));
+                        }
                     }
 
                     break;
@@ -1331,6 +1377,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
+                    const long taille = valeur_constante->valeur.valeur_tableau.taille;
+
+                    for (auto i = 0; i < taille; i++) {
+                        genere_code_binaire_pour_constante(pointeur[i], chunk);
+                    }
+
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
@@ -1425,9 +1478,31 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             genere_code_binaire_pour_constante(transtype->valeur, chunk);
             break;
         }
-        default:
+        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
-            // À FAIRE
+            auto op_unaire = static_cast<OpUnaireConstant *>(constante);
+            genere_code_binaire_pour_constante(op_unaire->operande, chunk);
+            chunk.emets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
+            break;
+        }
+        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+        {
+            auto op_binaire = static_cast<OpBinaireConstant *>(constante);
+            genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
+            genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
+            chunk.emets_operation_binaire(nullptr,
+                                          op_binaire->op,
+                                          op_binaire->operande_gauche->type,
+                                          op_binaire->operande_droite->type);
+            break;
+        }
+        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+        {
+            auto index_constant = static_cast<AccedeIndexConstant *>(constante);
+            auto type_pointeur = index_constant->type->comme_pointeur();
+            genere_code_binaire_pour_constante(index_constant->index, chunk);
+            genere_code_binaire_pour_constante(index_constant->accede, chunk);
+            chunk.emets_acces_index(nullptr, type_pointeur->type_pointe);
             break;
         }
     }
@@ -1531,6 +1606,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
+                    assert_rappel(false, [&]() {
+                        std::cerr << "Les valeurs de globales de type tableau fixe ne sont pas "
+                                     "générées dans le code binaire pour le moment.\n";
+                        std::cerr << "Le type est " << chaine_type(constante->type) << '\n';
+                    });
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:

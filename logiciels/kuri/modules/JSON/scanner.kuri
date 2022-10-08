@@ -451,7 +451,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     // ------------------------
 
     retourne lexème_nombre
-} @IgnoreNASA
+} @FonctionLongue
 
 lis_chiffre :: fonc (scanner: *ScannerJSON, min: z8, max: z8) -> bool
 {
@@ -545,7 +545,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.FIN_OBJET
-} @IgnoreNASA
+} @FonctionLongue
 
 lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 {
@@ -703,7 +703,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.FIN_VALEUR
-} @IgnoreNASA
+} @FonctionLongue
 
 lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 {
@@ -794,7 +794,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.CROCHET_FERMANT
-} @IgnoreNASA
+} @FonctionLongue
 
 // -------------------------------------------------------
 // Parsage & Formattage
@@ -803,109 +803,58 @@ importe Compilatrice
 
 __fonctions_parsage_json : []FonctionParsage
 
-ajoute_fonction_de_parsage_json :: fonc (info: *InfoType, fonction: fonc(chaine, []octet)(bool))
+fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    ajoute_fonction(*__fonctions_parsage_json, info, fonction)
+    résultat : DonnéesFonctionPourTableFonction
+
+    type_premier_paramètre := fonction.params[0].type
+    si type_premier_paramètre != info_de(chaine) {
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage JSON invalide, le paramètre doit être de type « chaine ».")
+        retourne résultat
+    }
+
+    si fonction.params_sorties.taille != 2 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        retourne résultat
+    }
+
+    type_première_sortie := fonction.params_sorties[0].type
+
+    si type_première_sortie != info_de(bool) {
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
+        retourne résultat
+    }
+
+    résultat.fonction = fonction
+    résultat.info_type = fonction.params_sorties[1].type
+    retourne résultat
 }
 
-issitialise_json :: fonc ()
+génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-	déloge(__fonctions_parsage_json)
+    nom_enveloppe := enchaine("parsage_json_", données.fonction.nom)
+
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+    ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
 }
 
 génère_initialisation_json :: fonc ()
 {
-    fonctions_de_parsage := fonctions_parsées_avec_annotation("ParsageJSON")
-    diffère déloge(fonctions_de_parsage)
+    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions.annotation_désirée = "ParsageJSON"
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_json"
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+    créatrice_table_fonctions.ajoute_module("JSON")
 
-    saufsi fonctions_de_parsage {
-        retourne
-    }
-
-	/*
-		modèle fonction de parsage : fonc (chaine, []octet) (bool)
-	 */
-
-	enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère détruit_tampons(*enchaineuse)
-
-    // Il nous faut les modules.
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Introspection\n")
-    ajoute_au_tampon(*enchaineuse, "importe JSON\n")
-
-	modules_importés : []chaine
-    diffère déloge(modules_importés)
-	tableau_ajoute(*modules_importés, "Fondation")
-
-	/* Création des enveloppes pour les fonctions de parsage. */
-    pour fonctions_de_parsage {
-        // valide les types
-        si it.params.taille != 1 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle ne doit avoir qu'un seul paramètre")
-            retourne
-        }
-
-        type_premier_paramètre := it.params[0].type
-        si type_premier_paramètre != info_de(chaine) {
-            compilatrice_rapporte_erreur(it.params[0], "Fonction de parsage JSON invalide, le paramètre doit être de type « chaine ».")
-            retourne
-        }
-
-		si it.params_sorties.taille != 2 {
-            compilatrice_rapporte_erreur(it, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
-            retourne
-		}
-
-		type_première_sortie := it.params_sorties[0].type
-
-		si type_première_sortie != info_de(bool) {
-            compilatrice_rapporte_erreur(it.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
-            retourne
-		}
-
-		nom_module := compilatrice_module_pour_code(it)
-		si nom_module {
-			pour module_importé dans modules_importés {
-				si module_importé == nom_module {
-					arrête
-				}
-			}
-			sansarrêt {
-				ajoute_au_tampon(*enchaineuse, "importe ", nom_module, "\n")
-				tableau_ajoute(*modules_importés, nom_module)
-			}
-		}
-
-        ajoute_au_tampon(*enchaineuse, "parsage_json_", it.nom, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        ajoute_au_tampon(*enchaineuse, "\tsuccès, valeur := ", it.nom, "(chn)\n")
-		ajoute_au_tampon(*enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-		ajoute_au_tampon(*enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-		ajoute_au_tampon(*enchaineuse, "\tretourne vrai\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
-    }
-
-    /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_json :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
-
-    pour fonctions_de_parsage {
-        type_deuxième_paramètre := it.params_sorties[1].type
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction_de_parsage_json(info_de(")
-        imprime_type(*enchaineuse, type_deuxième_paramètre)
-        ajoute_au_tampon(*enchaineuse, "), parsage_json_", it.nom, ")\n")
-    }
-
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_json()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_json()\n")
-
-    sources := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(sources)
-
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+    crée_table_fonctions(créatrice_table_fonctions)
 }
 
 #pré_exécutable génère_initialisation_json()

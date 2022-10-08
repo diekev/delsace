@@ -1,0 +1,13 @@
+// aucune erreur n'est rapportée quand nous tentons de retourner un pointeur de la pile depuis une fonction
+// nous devrions également vérifier les pointeurs dans les structures récursivement
+
+foo :: fonc () -> *z32
+{
+    a := 0
+    retourne *a
+}
+principale :: fonc () -> z32
+{
+    x := foo()
+    retourne mémoire(x)
+}

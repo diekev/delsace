@@ -136,22 +136,22 @@ flux_compression_chaine_fin_de_flux :: fonc (flux: *FluxCompression) -> bool
     retourne chn.taille == 0
 }
 
-flux_compression_chaine_possede_erreur :: fonc (flux: *FluxCompression) -> bool
+flux_compression_chaine_possede_erreur :: fonc (flux: *FluxCompression @inutilisée) -> bool
 {
     retourne faux
 }
 
-taille_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression) -> n32
+taille_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression @inutilisée) -> n32
 {
     retourne 1024
 }
 
-cree_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, taille: n32) -> *n8
+cree_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression @inutilisée, taille: n32) -> *n8
 {
     retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
 }
 
-detruit_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression, pointeur: *n8, taille: n32) -> rien
+detruit_stockage_temporaire_ctx :: fonc (ctx: *ContexteCompression @inutilisée, pointeur: *n8, taille: n32) -> rien
 {
     déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
 }

@@ -147,6 +147,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
+    m_tacheronne.assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+
     decl_entete->est_metaprogramme = true;
 
     // le type de la fonction est fonc () -> (type_expression)
@@ -194,7 +198,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(directive->lexeme, nullptr);
+    decl_corps->bloc = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
@@ -216,6 +220,13 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     }
 
     decl_corps->bloc->expressions->ajoute(expr_ret);
+
+    /* Bloc corps. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc paramètres. */
+    m_tacheronne.assembleuse->depile_bloc();
+    /* Bloc constantes. */
+    m_tacheronne.assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -586,7 +597,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type->genre == GenreType::REFERENCE) {
                 type = type_dereference_pour(type);
-                transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+
+                /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
+                 * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
+                if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
+                    transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+                }
             }
 
             if (expr->type == nullptr) {
@@ -1502,7 +1518,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto expr = noeud->comme_expansion_variadique();
 
             if (expr->expression == nullptr) {
-                // nous avons un type variadique
+                /* Nous avons un type variadique externe. */
                 auto type_var = m_compilatrice.typeuse.type_variadique(nullptr);
                 expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_var);
                 return CodeRetourValidation::OK;
@@ -1599,6 +1615,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         .ajoute_message("Le type du l'union est ")
                         .ajoute_message(chaine_type(type_union))
                         .ajoute_message("\n");
+                    return CodeRetourValidation::Erreur;
                 }
             }
             else {
@@ -1623,6 +1640,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 if (decl != nullptr) {
                     rapporte_erreur_redefinition_symbole(var_piege, decl);
+                    return CodeRetourValidation::Erreur;
                 }
 
                 var_piege->type = type_de_l_erreur;
@@ -1858,6 +1876,41 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     return CodeRetourValidation::Erreur;
 }
 
+static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const &fonction1,
+                                            NoeudDeclarationEnteteFonction const &fonction2)
+{
+    if (fonction1.ident != fonction2.ident) {
+        return false;
+    }
+
+    /* À FAIRE(bibliothèque) : stocke les fonctions des bibliothèques dans celles-ci, afin de
+     * pouvoir comparer des fonctions externes même si elles sont définies par des modules
+     * différents. */
+    if (fonction1.possede_drapeau(EST_EXTERNE) && fonction2.possede_drapeau(EST_EXTERNE) &&
+        fonction1.ident_bibliotheque == fonction2.ident_bibliotheque) {
+        return true;
+    }
+
+    if (fonction1.type != fonction2.type) {
+        return false;
+    }
+
+    /* Il est valide de redéfinir la fonction principale dans un autre espace. */
+    if (fonction1.ident == ID::principale) {
+        if (!fonction1.unite || !fonction2.unite) {
+            /* S'il manque une unité, nous revérifierons lors de la validation de la deuxième
+             * fonction. */
+            return false;
+        }
+
+        if (fonction1.unite->espace != fonction2.unite->espace) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
@@ -1874,14 +1927,15 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     /* Valide les constantes polymorphiques. */
     if (decl->est_polymorphe) {
-        decl->bloc_constantes->membres.avec_verrou_ecriture(
-            [this](kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
-                    it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
-                    it->drapeaux |= DECLARATION_FUT_VALIDEE;
-                }
-            });
+
+        POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
+            /* Les valeurs polymorphiques sont dans les paramètres. */
+            if (it->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+                auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
+                it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
+                it->drapeaux |= DECLARATION_FUT_VALIDEE;
+            }
+        }
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -2111,12 +2165,10 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
-                        if (it->ident != decl->ident) {
-                            continue;
-                        }
+                        auto decl_it = it->comme_entete_fonction();
 
-                        if (it->type == decl->type) {
-                            rapporte_erreur_redefinition_fonction(decl, it);
+                        if (fonctions_ont_memes_definitions(*decl, *decl_it)) {
+                            rapporte_erreur_redefinition_fonction(decl, decl_it);
                             eu_erreur = true;
                             break;
                         }
@@ -2279,6 +2331,12 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 {
     auto type_fonc = fonction_courante()->type->comme_fonction();
     auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
+
+    auto const bloc_parent = inst->bloc_parent;
+    if (bloc_est_dans_differe(bloc_parent)) {
+        rapporte_erreur("« retourne » utilisée dans un bloc « diffère »", inst);
+        return CodeRetourValidation::Erreur;
+    }
 
     if (inst->expression == nullptr) {
         inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
@@ -2510,6 +2568,21 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     return CodeRetourValidation::OK;
 }
 
+static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
+{
+    if (decl->est_entete_fonction()) {
+        auto const entete = decl->comme_entete_fonction();
+        return entete->est_polymorphe;
+    }
+
+    if (decl->est_structure()) {
+        auto const structure = decl->comme_structure();
+        return structure->est_polymorphe;
+    }
+
+    return false;
+}
+
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
@@ -2574,6 +2647,13 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
+        /* Ne vérifions pas seulement le drapeau DECLARATION_FUT_VALIDEE, car la référence peut
+         * être vers le type en validation (p.e. un pointeur vers une autre instance de la
+         * structure). */
+        if (!decl->type) {
+            return Attente::sur_declaration(decl);
+        }
+
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
         expr->genre_valeur = GenreValeur::DROITE;
@@ -2591,11 +2671,19 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
+        if (est_declaration_polymorphique(decl) &&
+            !expr->possede_drapeau(GAUCHE_EXPRESSION_APPEL)) {
+            espace->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
+            return CodeRetourValidation::Erreur;
+        }
+
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
-        assert(decl->type || decl->est_entete_fonction() || decl->est_declaration_module());
+        assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
+                      [&]() { erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
-        decl->drapeaux |= EST_UTILISEE;
         expr->type = decl->type;
 
         /* si nous avons une valeur polymorphique, crée un type de données
@@ -2613,6 +2701,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
              * avoir à s'en soucier plus tard. */
             if (valeur.est_fonction()) {
+                decl->drapeaux |= EST_UTILISEE;
                 decl = valeur.fonction();
                 expr->declaration_referee = decl;
             }
@@ -2623,6 +2712,14 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
         expr->genre_valeur = GenreValeur::DROITE;
+    }
+
+    decl->drapeaux |= EST_UTILISEE;
+    if (decl->est_declaration_variable()) {
+        auto decl_var = decl->comme_declaration_variable();
+        if (decl_var->declaration_vient_d_un_emploi) {
+            decl_var->declaration_vient_d_un_emploi->drapeaux |= EST_UTILISEE;
+        }
     }
 
     return CodeRetourValidation::OK;
@@ -2659,9 +2756,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, bloc_parent);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(
-        lexeme, fonction->bloc_constantes);
+    m_tacheronne.assembleuse->bloc_courant(bloc_parent);
+
+    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2689,6 +2787,9 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto metaprogramme = m_compilatrice.cree_metaprogramme(espace);
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
+
+    m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->depile_bloc();
 
     return metaprogramme;
 }
@@ -2816,18 +2917,28 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
                          }
 
+                         auto site = noeud;
+                         if (noeud->est_declaration_variable()) {
+                             site = noeud->comme_declaration_variable()->valeur;
+                         }
+
                          auto message = enchaine(
                              "Dans la fonction ",
                              entete.ident->nom,
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
-                         espace.rapporte_avertissement(noeud, message);
+                         espace.rapporte_avertissement(site, message);
                      }
 
                      /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
                       * fonction fut utilisée. */
                      if (noeud->est_entete_fonction()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
+                     /* Ne traversons pas les structures et énumérations non plus. */
+                     if (noeud->est_declaration_type()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
@@ -2848,10 +2959,9 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     decl->type = entete->type;
 
     auto est_corps_texte = decl->est_corps_texte;
-    MetaProgramme *metaprogramme = nullptr;
 
-    if (unite->index_courant == 0 && est_corps_texte) {
-        metaprogramme = cree_metaprogramme_corps_texte(
+    if (est_corps_texte && !decl->possede_drapeau(METAPROGRAMME_CORPS_TEXTE_FUT_CREE)) {
+        auto metaprogramme = cree_metaprogramme_corps_texte(
             decl->bloc, entete->bloc_parent, decl->lexeme);
         metaprogramme->corps_texte_pour_fonction = entete;
 
@@ -2869,6 +2979,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         nouveau_corps->bloc_parent = decl->bloc_parent;
 
         fonction->est_monomorphisation = entete->est_monomorphisation;
+        fonction->site_monomorphisation = entete->site_monomorphisation;
 
         // préserve les constantes polymorphiques
         if (fonction->est_monomorphisation) {
@@ -2877,6 +2988,10 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
             }
         }
 
+        decl->drapeaux |= METAPROGRAMME_CORPS_TEXTE_FUT_CREE;
+
+        /* Puisque nous validons le #corps_texte, l'entête pour la fonction courante doit être
+         * celle de la fonction de métaprogramme. */
         entete = fonction;
     }
 
@@ -2918,6 +3033,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
+        /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
+         * métaprogramme : nous ne pouvons pas prendre l'adresse du métaprogramme créé ci-dessus.
+         * À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
+         * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
+         * la fonction soit validée afin de le compiler.
+         */
+        auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
         m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                              metaprogramme);
     }
@@ -3065,6 +3187,29 @@ static unsigned long valeur_max(Type *type)
     }
 
     return std::numeric_limits<long>::max();
+}
+
+static int nombre_de_bits_pour_type(Type *type)
+{
+    while (type->est_opaque()) {
+        type = type->comme_opaque()->type_opacifie;
+    }
+
+    /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
+
+    if (type->taille_octet == 1) {
+        return std::numeric_limits<unsigned char>::digits;
+    }
+
+    if (type->taille_octet == 2) {
+        return std::numeric_limits<unsigned short>::digits;
+    }
+
+    if (type->taille_octet == 4 || type->est_entier_constant()) {
+        return std::numeric_limits<unsigned int>::digits;
+    }
+
+    return std::numeric_limits<unsigned long>::digits;
 }
 
 template <int N>
@@ -3330,6 +3475,17 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
     auto &graphe = m_compilatrice.graphe_dependance;
 
+    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
+     * nous ferait modifier l'original). */
+    if (decl->type == nullptr) {
+        if (decl->est_union) {
+            decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
+        }
+        else {
+            decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
+        }
+    }
+
     auto noeud_dependance = graphe->cree_noeud_type(decl->type);
     decl->noeud_dependance = noeud_dependance;
 
@@ -3519,6 +3675,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                         return CodeRetourValidation::Erreur;
                     }
 
+                    if (var->type->est_variadique()) {
+                        rapporte_erreur("Ne peut avoir un type variadique dans une union",
+                                        decl_var,
+                                        erreur::Genre::TYPE_DIFFERENTS);
+                        return CodeRetourValidation::Erreur;
+                    }
+
                     if (var->type->est_structure() || var->type->est_union()) {
                         if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             return Attente::sur_type(var->type);
@@ -3627,6 +3790,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
                 if (var->type->est_rien()) {
                     rapporte_erreur("Ne peut avoir un type « rien » dans une structure",
+                                    decl_var,
+                                    erreur::Genre::TYPE_DIFFERENTS);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (var->type->est_variadique()) {
+                    rapporte_erreur("Ne peut avoir un type variadique dans une structure",
                                     decl_var,
                                     erreur::Genre::TYPE_DIFFERENTS);
                     return CodeRetourValidation::Erreur;
@@ -3798,12 +3968,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
                 bloc_final = it.decl->bloc_parent->bloc_parent;
             }
-            auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
-            if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-                if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
-                    rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
-                    return CodeRetourValidation::Erreur;
+            if (it.decl->ident && it.decl->ident->nom != "_") {
+                auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
+
+                if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+                    if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
+                        rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+                        return CodeRetourValidation::Erreur;
+                    }
                 }
             }
 
@@ -4007,9 +4180,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 graphe->cree_noeud_globale(decl_var);
             }
             else {
-                /* Les globales sont ajoutées au bloc parent par la syntaxeuse. */
-                auto bloc_parent = decl_var->bloc_parent;
-                bloc_parent->membres->ajoute(decl_var);
+                /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
+                 * syntaxeuse. */
+                if (!decl_var->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                    auto bloc_parent = decl_var->bloc_parent;
+                    bloc_parent->membres->ajoute(decl_var);
+                }
             }
 
             decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -4306,13 +4482,13 @@ CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *
     return CodeRetourValidation::OK;
 }
 
-void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud)
+void ContexteValidationCode::rapporte_erreur(const char *message, const NoeudExpression *noeud)
 {
     erreur::lance_erreur(message, *espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur(const char *message,
-                                             NoeudExpression *noeud,
+                                             const NoeudExpression *noeud,
                                              erreur::Genre genre)
 {
     erreur::lance_erreur(message, *espace, noeud, genre);
@@ -4583,6 +4759,12 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
 
     auto type2 = expression_type->type;
 
+    if (!type2) {
+        rapporte_erreur("Impossible de déterminer le type, ceci n'est peut-être pas un type",
+                        enfant2);
+        return CodeRetourValidation::Erreur;
+    }
+
     if (type2->genre != GenreType::TYPE_DE_DONNEES) {
         rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
                         enfant2);
@@ -4721,6 +4903,15 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
     }
 }
 
+static bool est_decalage_bits(GenreLexeme genre)
+{
+    return dls::outils::est_element(genre,
+                                    GenreLexeme::DECALAGE_DROITE,
+                                    GenreLexeme::DECALAGE_GAUCHE,
+                                    GenreLexeme::DEC_DROITE_EGAL,
+                                    GenreLexeme::DEC_GAUCHE_EGAL);
+}
+
 ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     NoeudExpressionBinaire *expr)
 {
@@ -4790,6 +4981,26 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
             return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (est_decalage_bits(expr->lexeme->genre)) {
+        auto resultat_decalage = evalue_expression(
+            m_compilatrice, expr->bloc_parent, expr->operande_droite);
+        /* Un résultat erroné veut dire que l'expression n'est pas constante.
+         * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
+         * réelles. */
+        if (!resultat_decalage.est_errone) {
+            auto const bits_max = nombre_de_bits_pour_type(type1);
+            auto const decalage = resultat_decalage.valeur.entiere();
+            if (resultat_decalage.valeur.entiere() >= bits_max) {
+                espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
+                    .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
+                    .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
+                                    bits_max - 1,
+                                    " pour le type ",
+                                    chaine_type(type1));
+            }
         }
     }
 

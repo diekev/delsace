@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe SysFichier
 
 // https://cstack.github.io/db_tutorial/

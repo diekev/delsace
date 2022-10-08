@@ -1839,8 +1839,9 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
                                    Programme * /*programme*/)
 {
     auto debut_executable = dls::chrono::compte_seconde();
-    if (!::cree_executable(
-            espace, espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
+    if (!::cree_executable(espace,
+                           nom_sortie_resultat_final(espace.options),
+                           vers_std_string(compilatrice.racine_kuri))) {
         espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;
     }

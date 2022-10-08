@@ -18,6 +18,5 @@ principale :: fonc () -> z32
 
     paginatrice.pages[0] = page
 
-    imprime_succès(vrai)
     retourne 0
 }

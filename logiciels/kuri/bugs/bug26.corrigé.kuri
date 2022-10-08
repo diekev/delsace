@@ -25,7 +25,6 @@ retourne_base :: fonc () -> *TypeBase
 
 principale :: fonc () -> z32
 {
-    x := retourne_base()
-    imprime_succès(vrai)
+    _ := retourne_base()
     retourne 0
 }

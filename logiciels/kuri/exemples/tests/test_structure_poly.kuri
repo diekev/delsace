@@ -31,10 +31,8 @@ principale :: fonc () -> z32
 
     imprime("%\n", v)
 
-/*
     w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0)
     imprime("%\n", w)
-*/
 
     x : Tablet(N = 5, T = z32)
 
@@ -43,10 +41,18 @@ principale :: fonc () -> z32
     }
 
     pour x.valeurs {
-        imprime("it = %\n", it)
+        imprime("x[%] = %\n", index_it, it)
     }
 
     y : Tablet(N = 10, T = z32)
+
+    pour & y.valeurs {
+        it = index_it comme z32
+    }
+
+    pour y.valeurs {
+        imprime("y[%] = %\n", index_it, it)
+    }
 
     o : Option(T0 = z32, T1 = r32)
     o = 6

@@ -1,0 +1,10 @@
+/* Mauvaise commande de compilation si #dépendance_bibliothèque réfèrence une
+ * bibliothèque inconnue.
+ * Le bug survient également si le module de la bibliothèque est importé. */
+
+#dépendance_bibliothèque libc libm
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

@@ -69,7 +69,7 @@ CommandeSMTP_DonnéesDiverses :: struct {
     données: chaine
 }
 
-chaine_pour_commande :: fonc (commande: *CommandeSMTP) -> Résultat(chaine)
+chaine_pour_commande :: fonc (commande: *CommandeSMTP) -> Optionnel(chaine)
 {
     discr commande.type {
         CommandeSMTP_EHLO {
@@ -159,11 +159,6 @@ détruit_commande :: fonc (commande: *CommandeSMTP)
     }
 }
 
-Résultat_ :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
-    Ok: TypeOk
-    Erreur: TypeErreur
-}
-
 ErreurParsageCommande :: énum {
     /* Une erreur de syntaxe fut détectée. */
     ErreurDeSyntaxe
@@ -176,8 +171,7 @@ ParseuseCommande :: struct {
     empl base: ParseuseChaine
 }
 
-// À FAIRE(langage) : construction d'union depuis un type dérivé
-parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat_(*CommandeSMTP, ErreurParsageCommande)
+parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat(*CommandeSMTP, ErreurParsageCommande)
 {
     parseuse.chn = texte
     parseuse.curseur = 0
@@ -200,7 +194,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
 
         commande := loge(CommandeSMTP_EHLO)
         commande.domaine = domaine
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "MAIL FROM") {
@@ -210,7 +204,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
             Ok(adresse) {
                 commande := loge(CommandeSMTP_MAIL_FROM)
                 commande.adresse = adresse
-                retourne commande comme *CommandeSMTP
+                retourne commande
             }
             Erreur(err) {
                 retourne err
@@ -228,7 +222,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
             Ok(adresse) {
                 commande := loge(CommandeSMTP_RCPT_TO)
                 commande.adresse = adresse
-                retourne commande comme *CommandeSMTP
+                retourne commande
             }
             Erreur(err) {
                 retourne err
@@ -245,7 +239,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_DATA)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "AUTH LOGIN") {
@@ -254,7 +248,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_AUTH_LOGIN)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     si consomme(parseuse, "QUIT") {
@@ -263,16 +257,16 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
         }
 
         commande := loge(CommandeSMTP_QUIT)
-        retourne commande comme *CommandeSMTP
+        retourne commande
     }
 
     // Selon le contexte, il faudra soit attendre sur CRLF ou CRLF.CRLF
     commande := loge(CommandeSMTP_DonnéesDiverses)
     commande.données = texte
-    retourne commande comme *CommandeSMTP
+    retourne commande
 }
 
-parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat_(AdresseCourriel, ErreurParsageCommande)
+parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat(AdresseCourriel, ErreurParsageCommande)
 {
     saufsi consomme(parseuse, ": <") {
         retourne ErreurParsageCommande.ErreurDeSyntaxe

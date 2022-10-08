@@ -318,8 +318,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             }
         }
         BOOLÉEN {
-            /* Pour le formattage, et l'extraction, les booléens sont des nombres entiers. */
-            type_python = système.crée_type_python_pour(info, "z32")
+            type_python = système.crée_type_python_pour(info, "bool")
             type_python.est_basique = vrai
             init_fonctions_type_bool(type_python.fonctions)
         }
@@ -494,6 +493,16 @@ ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, nom_module:
         si it == nom_module {
             retourne
         }
+
+        /* À FAIRE(langage) : permet de trouver les chemins des modules et les comparer.
+         * Ceci est n'est qu'un hack pour comparer les imports relatifs. */
+        si it[it.taille - 1] == '"' {
+            it = recule(it, 1)
+
+            si it.fini_par(nom_module) {
+                retourne
+            }
+        }
     }
 
     tableau_ajoute(*compilatrice.modules_kuri_à_importer, nom_module)
@@ -645,7 +654,7 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse)
 {
-    ajoute_au_tampon(enchaineuse, "importe GlibC\n") // Pour ChaineC
+    ajoute_au_tampon(enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(enchaineuse, "importe Python\n")
 

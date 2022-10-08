@@ -1,6 +1,6 @@
 importe Compilatrice
 importe Fondation
-importe GlibC
+importe GlibC // pour write
 
 // ----------------------------------------------------------------------------
 
@@ -585,9 +585,10 @@ test_union_sûr :: fonc () -> bool
     // allocation et modification
     e : EOuRS
 
-    si e != 127 comme z32 {
-        retourne faux
-    }
+    // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
+    // si e != 127 comme z32 {
+    //     retourne faux
+    // }
 
     // assignation d'un type, sans accès membre
     e = 5
@@ -641,9 +642,10 @@ test_union_sûr_anonyme :: fonc () -> bool
     // allocation et modification
     e : z32 | r32
 
-    si e != 0 comme z32 {
-        retourne faux
-    }
+    // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
+    // si e != 0 comme z32 {
+    //     retourne faux
+    // }
 
     // // assignation d'un type, sans accès membre
     e = 5
@@ -797,7 +799,7 @@ appel_fonction_avec_erreur_seule :: fonc () -> ErreurTest
 
 retourne_erreur_depuis_union :: fonc () -> bool
 {
-    r := tente appel_fonction_avec_erreur_union() piège err {
+    _ := tente appel_fonction_avec_erreur_union() piège err {
         retourne vrai
     }
 

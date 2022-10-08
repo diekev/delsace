@@ -2,7 +2,6 @@
 
 importe Chaine
 importe Fondation
-importe GlibC
 importe SysFichier
 importe Triage
 
@@ -164,7 +163,7 @@ peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, v
     retourne vrai
 }
 
-peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage, tag: *ChaineInternée, attribut: Attribut) -> bool
+peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutilisée, tag: *ChaineInternée, attribut: Attribut) -> bool
 {
     si tag == TAG_script {
         // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés

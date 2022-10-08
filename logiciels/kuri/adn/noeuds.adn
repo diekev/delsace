@@ -475,7 +475,6 @@ struct NoeudStruct : NoeudDéclarationType {
 	uint32_t alignement_desire
 
 	NoeudBloc *bloc_constantes
-	NoeudDéclarationVariable * [] params_polymorphiques
 	NoeudExpression * [] arbre_aplatis_params
 
 	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
@@ -602,11 +601,12 @@ struct NoeudBloc : NoeudExpression {
 
 	// NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
 	NoeudExpression *appartiens_a_boucle
+        // À FAIRE: utilisation de variant
+        NoeudExpression *appartiens_a_differe
 	NoeudDéclaration * [synchrone] membres [code]
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées
-	bool est_nonsur
-	bool possede_contexte [copie]
+        bool est_nonsur
 	int nombre_recherches
 }
 
@@ -617,6 +617,7 @@ struct NoeudPaireDiscr : NoeudExpression {
 
     NoeudExpression * expression [code enfant]
     NoeudBloc * bloc [code enfant]
+    NoeudExpression * variable_capturée
 }
 
 struct NoeudDiscr : NoeudExpression {

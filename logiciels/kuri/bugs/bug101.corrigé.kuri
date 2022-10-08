@@ -1,0 +1,15 @@
+/* Erreur de génération de code C si un type variadique est utilisé
+ * dans une expression quelconque. */
+
+Struct :: struct {
+    x : z32
+}
+
+principale :: fonc () -> z32
+{
+    x : ...Struct
+    si type_de(x) != ...Struct {
+        retourne 1
+    }
+    retourne 0
+}

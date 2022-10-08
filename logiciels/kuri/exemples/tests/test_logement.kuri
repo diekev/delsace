@@ -1,5 +1,4 @@
 importe Fondation
-importe GlibC
 importe Introspection
 
 imprime_tableau :: fonc(tabl : []r32) -> rien
@@ -10,7 +9,7 @@ imprime_tableau :: fonc(tabl : []r32) -> rien
 
     pour v, index dans tabl {
         x := v;
-        imprime("tabl[%] = %\n", index, v);
+        imprime("tabl[%] = %\n", index, x);
     }
 }
 

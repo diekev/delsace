@@ -218,7 +218,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
                                                NoeudExpression *expression,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
-                                               NoeudBloc *bloc_insertion,
+                                               NoeudPaireDiscr *paire_discr,
                                                TypeCompose::Membre const *membre,
                                                NoeudExpressionAppel *appel)
 {
@@ -251,6 +251,8 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
     param->type = membre->type;
     appel->type = membre->type;
 
+    auto bloc_insertion = paire_discr->bloc;
+
     /* L'initialisation est une extraction de la valeur de l'union.
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
     auto init_decl = assembleuse->cree_comme(param->lexeme);
@@ -267,6 +269,8 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
 
     bloc_insertion->expressions->pousse_front(decl_expr);
     bloc_insertion->membres->ajoute(decl_expr);
+
+    paire_discr->variable_capturee = decl_expr;
 
     return true;
 }
@@ -339,12 +343,18 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
+            if (membre->type->est_rien()) {
+                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                                        "Impossible de capturer une variable depuis un membre "
+                                        "d'union de type « rien »");
+                return CodeRetourValidation::Erreur;
+            }
             cree_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                expression,
                                                type_union,
                                                inst->bloc_parent,
-                                               inst->paires_discr[i]->bloc,
+                                               inst->paires_discr[i],
                                                membre,
                                                expression_valide->est_expression_appel);
         }
@@ -432,12 +442,18 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
+            if (ref_type->type->est_rien()) {
+                espace->rapporte_erreur(expression_valide->est_expression_appel,
+                                        "Impossible de capturer une variable depuis un membre "
+                                        "d'union de type « rien »");
+                return CodeRetourValidation::Erreur;
+            }
             cree_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                inst->expression_discriminee,
                                                type_union,
                                                inst->bloc_parent,
-                                               inst->paires_discr[i]->bloc,
+                                               inst->paires_discr[i],
                                                membre,
                                                expression_valide->est_expression_appel);
         }

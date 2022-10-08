@@ -641,6 +641,24 @@ tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien #enligne
     mémoire(tabl) = tmp
 }
 
+tableau_ajoute_élément :: fonc (tableau: *[]$T) -> *T
+{
+    valeur: T
+    tableau_ajoute(tableau, valeur)
+    /* Utilise ".pointeur" car [] s'applique au pointeur du tableau. */
+    retourne *tableau.pointeur[tableau.taille - 1]
+}
+
+élément_tableau_index_relatif :: fonc (tabl: []$T, index: z64) -> *T
+{
+    si index >= 0 {
+        retourne *tabl[index]
+    }
+
+    index = tabl.taille + index
+    retourne *tabl[index]
+}
+
 tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 {
     si taille <= tabl.capacité {
@@ -746,6 +764,26 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
+tableau_supprime_si :: fonc (tableau: *[]$T, prédicat: fonc(T)(bool))
+{
+    temp := mémoire(tableau)
+
+    nouveau_tableau : []T
+    tableau_réserve(*nouveau_tableau, tableau.taille)
+
+    pour temp {
+        si prédicat(it) {
+            continue
+        }
+
+        tableau_ajoute(*nouveau_tableau, it)
+    }
+
+    déloge(temp)
+
+    mémoire(tableau) = nouveau_tableau
+}
+
 tableau_supprime_valeur :: fonc (tabl: *[]$T, valeur: T)
 {
     tmp := mémoire(tabl)
@@ -769,6 +807,59 @@ tableau_vole_mémoire :: fonc (tableau: &[]$T) -> []T
     tableau.taille = 0
     tableau.capacité = 0
     retourne résultat
+}
+
+tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
+{
+    pour & v dans tableau {
+        v = valeur
+    }
+}
+
+est_adresse_borne_tableau :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    si adresse == tableau.pointeur {
+        retourne vrai
+    }
+
+    si adresse == (tableau.pointeur + tableau.taille - 1) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en incluant le premier et le dernier élément. */
+est_adresse_élément_bornes_incluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille - 1
+    retourne premier <= adresse <= dernier
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en excluant le premier et le dernier élément. */
+est_adresse_élément_bornes_excluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille
+    retourne premier < adresse < dernier
+}
+
+index_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
+{
+    retourne (adresse - tableau.pointeur)
+}
+
+tableau_détruit :: fonc (tableau: &[]$T)
+{
+    déloge(tableau)
+}
+
+mémoire_utilisée_tableau :: fonc (tableau: []$T) -> z64
+{
+    retourne tableau.taille * (taille_de(T) comme z64)
 }
 
 // --------------------------------
@@ -850,6 +941,11 @@ __fini_exécution_kuri :: fonc () #sanstrace #interface
     // Ici seront ajoutées toutes les expression des directives #ajoute_fini.
 }
 
+__init_globales_kuri :: fonc () #sanstrace #interface
+{
+    // Ici seront ajoutées l'initialisation de toutes les globales ayant besoin d'une initialisation spécifique
+}
+
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc () -> z32 #principale
 
@@ -880,6 +976,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     __initialise_contexte_extra(ctx, *trace_appel, *base_allocatrice, *stockage_temporaire)
 
     __init_exécution_kuri()
+
+    __init_globales_kuri()
 
     info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale()\n")
     trace_appel.info_appel = *info_appel

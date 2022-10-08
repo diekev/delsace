@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "structures/chaine.hh"
+
 struct Compilatrice;
 struct ConstructriceRI;
 struct EspaceDeTravail;
@@ -65,3 +67,10 @@ struct Coulisse {
                                  EspaceDeTravail &espace,
                                  Programme *programme) = 0;
 };
+
+/* Retourne le nom de sortie pour le fichier objet, soit le compilat intermédiaire, soit le final
+ * dans le cas où la compilation résulte en un fichier objet. */
+kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops);
+
+/* Retourne le nom de sortie pour le fichier final (exécutable ou bibliothèque). */
+kuri::chaine nom_sortie_resultat_final(OptionsDeCompilation const &ops);

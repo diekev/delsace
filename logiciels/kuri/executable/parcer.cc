@@ -50,6 +50,7 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
+#include "structures/chaine.hh"
 #include "structures/ensemble.hh"
 #include "structures/pile.hh"
 #include "structures/tableau.hh"
@@ -1082,6 +1083,8 @@ struct Convertisseuse {
 
     kuri::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
 
+    kuri::ensemble<kuri::chaine> modules_importes{};
+
     dls::chaine pour_bibliotheque{};
 
     void ajoute_typedef(dls::chaine &&nom_typedef, dls::chaine &&nom_type)
@@ -1213,7 +1216,15 @@ struct Convertisseuse {
                 else {
                     imprime_commentaire(cursor, flux_sortie);
                     auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                    if (nom != "ContexteKuri") {
+                    // À FAIRE : paramétrise ceci
+                    if (nom == "AdaptriceMaillage" || nom == "Interruptrice" ||
+                        nom == "ContexteEvaluation") {
+                        if (!modules_importes.possede("Géométrie3D")) {
+                            flux_sortie << "importe Géométrie3D\n\n";
+                            modules_importes.insere("Géométrie3D");
+                        }
+                    }
+                    else if (nom != "ContexteKuri") {
                         imprime_tab(flux_sortie);
                         flux_sortie << nom;
                         flux_sortie << " :: struct #externe;\n\n";

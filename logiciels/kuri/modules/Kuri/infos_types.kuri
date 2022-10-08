@@ -71,6 +71,17 @@ possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> boo
 	retourne faux
 }
 
+trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
+{
+	pour info.annotations {
+		si it.nom == nom {
+			retourne it
+		}
+	}
+
+	retourne nul
+}
+
 InfoTypeStructure :: struct #interface {
 	empl base : InfoType
 

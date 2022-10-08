@@ -1,0 +1,18 @@
+/* Les sous-structures ne sont pas membres des structures polymorphiques monomorphées. */
+
+importe Fondation
+
+Structure :: struct ($T: type_de_données) {
+    Noeud :: struct {
+        valeur: T
+    }
+
+    noeud: *Noeud
+}
+
+principale :: fonc () -> z32
+{
+    n : Structure(z32).Noeud
+    n.valeur = 5
+    retourne 0
+}

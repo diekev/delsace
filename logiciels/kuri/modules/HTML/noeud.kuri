@@ -58,7 +58,7 @@ ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
+ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: chaine @inutilisée)
 {
     // attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
     // tableau_ajoute(*noeud.attributs, attribut)
@@ -69,7 +69,7 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: ChaineUTF16, valeur: ChaineUTF16)
     ajoute_attribut(*noeud.attributs, nom, valeur)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: *ChaineInternée)
+ajoute_attribut :: fonc (noeud: *Noeud @inutilisée, nom: chaine @inutilisée, valeur: *ChaineInternée @inutilisée)
 {
     // attribut := Attribut(nom = copie_chaine(nom), valeur = valeur.chaine_native())
     // tableau_ajoute(*noeud.attributs, attribut)

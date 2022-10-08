@@ -30,6 +30,7 @@
 #include "biblinternes/outils/assert.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
@@ -52,8 +53,14 @@ struct Monomorpheuse {
 
     EspaceDeTravail &m_espace;
 
-    Monomorpheuse(EspaceDeTravail &espace) : m_espace(espace)
+    Monomorpheuse(EspaceDeTravail &espace, NoeudBloc *bloc_constantes) : m_espace(espace)
     {
+        bloc_constantes->membres.avec_verrou_lecture(
+            [&](const kuri::tableau<NoeudDeclaration *, int> &membres) {
+                POUR (membres) {
+                    ajoute_item(it->ident);
+                }
+            });
     }
 
     void ajoute_item(IdentifiantCode *ident)
@@ -88,7 +95,7 @@ struct Monomorpheuse {
                 return false;
             }
 
-            item->type = type;
+            item->type = type_donne;
             item->est_type = true;
             return true;
         }
@@ -188,7 +195,8 @@ struct Monomorpheuse {
             return true;
         }
 
-        if (type_poly->est_variadique()) {
+        /* type_cible peut-être variadique si nous avons une expansion variadique. */
+        if (type_poly->est_variadique() && !type_cible->est_variadique()) {
             type_poly = type_poly->comme_variadique()->type_pointe;
         }
 
@@ -230,15 +238,19 @@ struct Monomorpheuse {
 
                         POUR (type_compose->membres) {
                             if (it.nom == type1->ident) {
-                                type2 = it.type->comme_type_de_donnees()->type_connu;
+                                type2 = it.type->comme_type_de_donnees();
                                 break;
                             }
                         }
 
-                        paires_types.ajoute({type1, type2});
+                        if (type2) {
+                            paires_types.ajoute({type1, type2});
+                        }
                     }
 
-                    table_structures.ajoute({type_polymorphique, type_cible});
+                    table_structures.ajoute(
+                        {type_polymorphique,
+                         m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
                     return true;
                 }
 
@@ -254,7 +266,8 @@ struct Monomorpheuse {
             type_courant_poly = type_dereference_pour(type_courant_poly);
         }
 
-        paires_types.ajoute({type_polymorphique, type_cible});
+        paires_types.ajoute({type_polymorphique,
+                             m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
         return true;
     }
 
@@ -264,6 +277,9 @@ struct Monomorpheuse {
             IdentifiantCode *ident = nullptr;
             auto type_polymorphique = it.premier;
             auto type_cible = it.second;
+            if (type_cible->est_type_de_donnees()) {
+                type_cible = type_cible->comme_type_de_donnees()->type_connu;
+            }
             auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
 
             if (!type) {
@@ -282,7 +298,7 @@ struct Monomorpheuse {
                 return false;
             }
             if (item->type == nullptr) {
-                item->type = type;
+                item->type = m_espace.compilatrice().typeuse.type_type_de_donnees(type);
             }
         }
 
@@ -333,7 +349,7 @@ struct Monomorpheuse {
 
         POUR (table_structures) {
             if (it.premier == type_polymorphique) {
-                return it.second;
+                return it.second->comme_type_de_donnees()->type_connu;
             }
         }
 
@@ -368,7 +384,10 @@ struct Monomorpheuse {
 
             POUR (items) {
                 if (it.ident == type->ident) {
-                    resultat = it.type;
+                    resultat = const_cast<Type *>(it.type);
+                    if (resultat->est_type_de_donnees()) {
+                        resultat = resultat->comme_type_de_donnees()->type_connu;
+                    }
                     break;
                 }
             }
@@ -427,23 +446,6 @@ struct Monomorpheuse {
     }
 };
 
-static void init_monomorpheuse_depuis_decl(Monomorpheuse &monomorpheuse,
-                                           NoeudDeclarationEnteteFonction *decl)
-{
-    decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-            POUR (membres) {
-                monomorpheuse.ajoute_item(it->ident);
-            }
-        });
-
-    POUR (decl->params) {
-        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-            monomorpheuse.ajoute_item(it->ident);
-        }
-    }
-}
-
 struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
@@ -452,12 +454,15 @@ struct ApparieuseParams {
     bool m_arguments_nommes = false;
     bool m_dernier_argument_est_variadique = false;
     bool m_est_variadique = false;
+    bool m_expansion_rencontree = false;
+    bool m_fonction_externe = false;
     int m_index = 0;
+    int m_nombre_arg_variadiques_rencontres = 0;
 
   public:
     ErreurAppariement erreur{};
 
-    ApparieuseParams()
+    ApparieuseParams(bool fonction_externe) : m_fonction_externe(fonction_externe)
     {
     }
 
@@ -478,6 +483,25 @@ struct ApparieuseParams {
                            NoeudExpression *expr,
                            NoeudExpression *expr_ident)
     {
+        if (expr->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+            if (m_fonction_externe) {
+                erreur = ErreurAppariement::expansion_variadique_externe(expr);
+                return false;
+            }
+
+            if (m_expansion_rencontree) {
+                if (m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::expansion_variadique_post_argument(expr);
+                }
+                else {
+                    erreur = ErreurAppariement::multiple_expansions_variadiques(expr);
+                }
+                return false;
+            }
+
+            m_expansion_rencontree = true;
+        }
+
         if (ident) {
             m_arguments_nommes = true;
 
@@ -508,6 +532,11 @@ struct ApparieuseParams {
             args_rencontres.insere(ident);
 
             if (m_dernier_argument_est_variadique || index_param >= m_slots.taille()) {
+                if (m_expansion_rencontree && m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
+                    return false;
+                }
+                m_nombre_arg_variadiques_rencontres += 1;
                 m_slots.ajoute(expr);
             }
             else {
@@ -521,6 +550,11 @@ struct ApparieuseParams {
             }
 
             if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
+                if (m_expansion_rencontree && m_nombre_arg_variadiques_rencontres != 0) {
+                    erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
+                    return false;
+                }
+                m_nombre_arg_variadiques_rencontres += 1;
                 args_rencontres.insere(m_noms[m_noms.taille() - 1]);
                 m_slots.ajoute(expr);
                 m_index++;
@@ -618,8 +652,11 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
             candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
         }
+
+        return CodeRetourValidation::OK;
     }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
         auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
         auto accede = acces->accedee;
@@ -652,9 +689,20 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
         auto type_accede = accede->type;
 
-        while (type_accede->genre == GenreType::POINTEUR ||
-               type_accede->genre == GenreType::REFERENCE) {
-            type_accede = type_dereference_pour(type_accede);
+        if (type_accede->est_type_de_donnees()) {
+            /* Construction d'une structure ou union. */
+            type_accede = type_accede->comme_type_de_donnees()->type_connu;
+
+            if (!type_accede) {
+                contexte.rapporte_erreur("Impossible d'accéder à un « type_de_données »", acces);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+        else {
+            while (type_accede->genre == GenreType::POINTEUR ||
+                   type_accede->genre == GenreType::REFERENCE) {
+                type_accede = type_dereference_pour(type_accede);
+            }
         }
 
         if (type_accede->genre == GenreType::STRUCTURE) {
@@ -678,6 +726,28 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             }
 
             if (membre_trouve != false) {
+                if (acces->type->est_type_de_donnees()) {
+                    auto type_membre = acces->type->comme_type_de_donnees()->type_connu;
+                    if (!type_accede) {
+                        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                                 "dans une expression d'appel",
+                                                 acces);
+                        return CodeRetourValidation::Erreur;
+                    }
+
+                    if (type_membre->est_structure()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_structure()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+
+                    if (type_membre->est_union()) {
+                        candidates.ajoute(
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_union()->decl});
+                        return CodeRetourValidation::OK;
+                    }
+                }
+
                 candidates.ajoute({CANDIDATE_EST_ACCES, acces});
                 acces->index_membre = index_membre;
                 return CodeRetourValidation::OK;
@@ -685,24 +755,136 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         }
 
         candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
+        return CodeRetourValidation::OK;
     }
-    else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
         candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
+        return CodeRetourValidation::OK;
     }
-    else {
-        if (appelee->type->genre == GenreType::FONCTION) {
-            candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
-        }
-        else {
-            contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
-            return CodeRetourValidation::Erreur;
+
+    if (appelee->type->genre == GenreType::FONCTION) {
+        candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->est_construction_structure() || appelee->est_appel()) {
+        if (appelee->type->est_type_de_donnees()) {
+            auto type = appelee->type->comme_type_de_donnees()->type_connu;
+
+            if (type->est_structure()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_structure()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            if (type->est_union()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_union()->decl});
+                return CodeRetourValidation::OK;
+            }
         }
     }
 
-    return CodeRetourValidation::OK;
+    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
+    return CodeRetourValidation::Erreur;
+}
+
+static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
+    EspaceDeTravail &espace,
+    NoeudExpression *slot,
+    Type *type_du_parametre,
+    Type *type_de_l_expression)
+{
+    if (type_du_parametre->est_variadique()) {
+        /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
+         * sinon nous apparierons, par exemple, un « z32 » avec « ...z32 ».
+         */
+        type_du_parametre = type_dereference_pour(type_du_parametre);
+
+        if (type_du_parametre == nullptr) {
+            /* Pour les fonctions variadiques externes, nous acceptons tous les types. */
+            return PoidsTransformation{TransformationType(), 1.0};
+        }
+
+        if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+            /* Pour les expansions variadiques, nous devons également utiliser le type pointé. */
+            type_de_l_expression = type_dereference_pour(type_de_l_expression);
+        }
+    }
+
+    return verifie_compatibilite(
+        espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
+}
+
+static void cree_tableau_args_variadiques(ContexteValidationCode &contexte,
+                                          kuri::tablet<NoeudExpression *, 10> &slots,
+                                          int nombre_args,
+                                          Type *type_donnees_argument_variadique)
+{
+    auto index_premier_var_arg = nombre_args - 1;
+    if (slots.taille() == nombre_args &&
+        slots[index_premier_var_arg]->est_expansion_variadique()) {
+        return;
+    }
+
+    /* Pour les fonctions variadiques interne, nous créons un tableau
+     * correspondant au types des arguments. */
+    static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
+    auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(&lexeme_tableau);
+
+    noeud_tableau->type = type_donnees_argument_variadique;
+    // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
+    // sélectionné
+    noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
+
+    for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
+        noeud_tableau->expressions.ajoute(slots[i]);
+    }
+
+    if (index_premier_var_arg >= slots.taille()) {
+        slots.ajoute(noeud_tableau);
+    }
+    else {
+        slots[index_premier_var_arg] = noeud_tableau;
+    }
+
+    slots.redimensionne(nombre_args);
+}
+
+static void applique_transformations(ContexteValidationCode &contexte,
+                                     CandidateAppariement *candidate,
+                                     NoeudExpressionAppel *expr)
+{
+    auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
+    auto nombre_args_variadics = nombre_args_simples;
+
+    if (!candidate->exprs.est_vide() &&
+        candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
+        /* ne compte pas le tableau */
+        nombre_args_simples -= 1;
+        nombre_args_variadics = candidate->transformations.taille();
+    }
+
+    auto i = 0;
+    /* les drapeaux pour les arguments simples */
+    for (; i < nombre_args_simples; ++i) {
+        contexte.transtype_si_necessaire(expr->parametres_resolus[i],
+                                         candidate->transformations[i]);
+    }
+
+    /* les drapeaux pour les arguments variadics */
+    if (!candidate->exprs.est_vide() &&
+        candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
+        auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
+
+        for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
+            contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
+                                             candidate->transformations[i]);
+        }
+    }
 }
 
 static ResultatAppariement apparie_appel_pointeur(
+    ContexteValidationCode &contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression *decl_pointeur_fonction,
     EspaceDeTravail &espace,
@@ -726,55 +908,85 @@ static ResultatAppariement apparie_appel_pointeur(
         return ErreurAppariement::nommage_argument_pointeur_fonction(it.expr);
     }
 
-    /* vérifie la compatibilité des arguments pour déterminer
-     * s'il y aura besoin d'une transformation. */
+    /* Apparie les arguments au type. */
     auto type_fonction = type->comme_fonction();
+    auto fonction_variadique = false;
 
-    if (type_fonction->types_entrees.taille() != args.taille()) {
+    ApparieuseParams apparieuse(false);
+    for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
+        auto type_prm = type_fonction->types_entrees[i];
+        fonction_variadique |= type_prm->genre == GenreType::VARIADIQUE;
+        apparieuse.ajoute_param(nullptr, nullptr, type_prm->genre == GenreType::VARIADIQUE);
+    }
+
+    POUR (args) {
+        if (!apparieuse.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+            return apparieuse.erreur;
+        }
+    }
+
+    if (!apparieuse.tous_les_slots_sont_remplis()) {
         return ErreurAppariement::mecomptage_arguments(
             b, type_fonction->types_entrees.taille(), args.taille());
+    }
+
+    auto &slots = apparieuse.slots();
+    auto transformations = kuri::tableau<TransformationType, int>(
+        static_cast<int>(slots.taille()));
+    auto poids_args = 1.0;
+
+    /* Validation des types passés en paramètre. */
+    for (auto i = 0l; i < slots.taille(); ++i) {
+        auto index_param = std::min(i,
+                                    static_cast<long>(type_fonction->types_entrees.taille() - 1));
+        auto slot = slots[i];
+        auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
+        auto type_enf = slot->type;
+
+        auto resultat = apparie_type_parametre_appel_fonction(espace, slot, type_prm, type_enf);
+
+        if (std::holds_alternative<Attente>(resultat)) {
+            return ErreurAppariement::dependance_non_satisfaite(slot, std::get<Attente>(resultat));
+        }
+
+        auto poids_xform = std::get<PoidsTransformation>(resultat);
+        auto poids_pour_enfant = poids_xform.poids;
+
+        if (slot->est_expansion_variadique()) {
+            // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
+            // faudra convertir en un tableau dynamique
+            if (poids_pour_enfant != 1.0) {
+                poids_pour_enfant = 0.0;
+            }
+        }
+
+        poids_args *= poids_pour_enfant;
+
+        if (poids_args == 0.0) {
+            return ErreurAppariement::metypage_argument(slot, type_enf, type_prm);
+        }
+
+        transformations[static_cast<int>(i)] = poids_xform.transformation;
+    }
+
+    if (fonction_variadique) {
+        auto nombre_args = type_fonction->types_entrees.taille();
+        auto dernier_type_parametre =
+            type_fonction->types_entrees[type_fonction->types_entrees.taille() - 1];
+        auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
+        cree_tableau_args_variadiques(
+            contexte, slots, nombre_args, type_donnees_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
     exprs.reserve(type_fonction->types_entrees.taille());
 
-    auto transformations = kuri::tableau<TransformationType, int>(
-        type_fonction->types_entrees.taille());
-
-    auto poids_args = 1.0;
-
-    /* Validation des types passés en paramètre. */
-    for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
-        auto arg = args[i].expr;
-        auto type_prm = type_fonction->types_entrees[i];
-        auto type_enf = arg->type;
-
-        if (type_prm->genre == GenreType::VARIADIQUE) {
-            type_prm = type_dereference_pour(type_prm);
-        }
-
-        auto resultat = verifie_compatibilite(espace.compilatrice(), type_prm, type_enf, arg);
-
-        if (std::holds_alternative<Attente>(resultat)) {
-            return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
-        }
-
-        auto poids_xform = std::get<PoidsTransformation>(resultat);
-        poids_args *= poids_xform.poids;
-
-        if (poids_args == 0.0) {
-            return ErreurAppariement::metypage_argument(
-                arg, type_enf, type_dereference_pour(type_prm));
-        }
-
-        transformations[i] = poids_xform.transformation;
-
-        exprs.ajoute(arg);
+    POUR (slots) {
+        exprs.ajoute(it);
     }
 
-    auto candidate = CandidateAppariement::appel_pointeur(
+    return CandidateAppariement::appel_pointeur(
         poids_args, decl_pointeur_fonction, type, std::move(exprs), std::move(transformations));
-    return candidate;
 }
 
 static ResultatAppariement apparie_appel_init_de(
@@ -803,45 +1015,51 @@ static ResultatAppariement apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static ResultatAppariement apparie_appel_fonction(
+static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
     NoeudExpressionAppel *expr,
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (expr->drapeaux & POUR_CUISSON) {
-        if (!decl->est_polymorphe) {
-            return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
-        }
-
-        auto monomorpheuse = Monomorpheuse(espace);
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
-
-        // À FAIRE : vérifie que toutes les constantes ont été renseignées.
-        // À FAIRE : gère proprement la validation du type de la constante
-
-        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-        auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
-        POUR (args) {
-            if (noms_rencontres.possede(it.ident)) {
-                return ErreurAppariement::renommage_argument(it.expr, it.ident);
-            }
-            noms_rencontres.insere(it.ident);
-
-            auto item = monomorpheuse.item_pour_ident(it.ident);
-            if (item == nullptr) {
-                return ErreurAppariement::menommage_arguments(it.expr, it.ident);
-            }
-
-            auto type = it.expr->type->comme_type_de_donnees();
-            items_monomorphisation.ajoute({it.ident, type->type_connu, ValeurExpression(), true});
-        }
-
-        return CandidateAppariement::cuisson_fonction(
-            1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+    if (!decl->est_polymorphe) {
+        return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
+    auto monomorpheuse = Monomorpheuse(espace, decl->bloc_constantes);
+
+    // À FAIRE : vérifie que toutes les constantes ont été renseignées.
+    // À FAIRE : gère proprement la validation du type de la constante
+
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+    auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
+    POUR (args) {
+        if (noms_rencontres.possede(it.ident)) {
+            return ErreurAppariement::renommage_argument(it.expr, it.ident);
+        }
+        noms_rencontres.insere(it.ident);
+
+        auto item = monomorpheuse.item_pour_ident(it.ident);
+        if (item == nullptr) {
+            return ErreurAppariement::menommage_arguments(it.expr, it.ident);
+        }
+
+        auto type = it.expr->type->comme_type_de_donnees();
+        items_monomorphisation.ajoute({it.ident, type, ValeurExpression(), true});
+    }
+
+    return CandidateAppariement::cuisson_fonction(
+        1.0, decl, nullptr, {}, {}, std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args,
+    Monomorpheuse *monomorpheuse)
+{
     auto const nombre_args = decl->params.taille();
 
     if (!decl->est_variadique && (args.taille() > nombre_args)) {
@@ -859,7 +1077,8 @@ static ResultatAppariement apparie_appel_fonction(
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
 
-    auto apparieuse_params = ApparieuseParams();
+    auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
+    auto apparieuse_params = ApparieuseParams(decl->est_externe);
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -879,30 +1098,11 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     auto poids_args = 1.0;
-    auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
-    auto expansion_rencontree = false;
 
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    auto nombre_arg_variadiques_rencontres = 0;
-
-    // utilisé pour déterminer le type des données des arguments variadiques
-    // pour la création des tableaux ; nécessaire au cas où nous avons une
-    // fonction polymorphique, au quel cas le type serait un type polymorphique
-    auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
-
-    if (dernier_type_parametre->genre == GenreType::VARIADIQUE) {
-        dernier_type_parametre = type_dereference_pour(dernier_type_parametre);
-    }
-
-    auto type_donnees_argument_variadique = dernier_type_parametre;
-
-    auto monomorpheuse = Monomorpheuse(espace);
-
     if (decl->est_polymorphe) {
-        init_monomorpheuse_depuis_decl(monomorpheuse, decl);
-
         for (auto i = 0l; i < slots.taille(); ++i) {
             auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
             auto param = parametres_entree[index_arg];
@@ -910,20 +1110,20 @@ static ResultatAppariement apparie_appel_fonction(
             auto slot = slots[i];
 
             if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
+                if (!monomorpheuse->ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
 
             if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
+                if (!monomorpheuse->ajoute_paire_types(arg->type, slot->type)) {
                     return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
                 }
             }
         }
 
-        if (!monomorpheuse.resoud_polymorphes(espace.compilatrice().typeuse)) {
-            return monomorpheuse.erreur;
+        if (!monomorpheuse->resoud_polymorphes(espace.compilatrice().typeuse)) {
+            return monomorpheuse->erreur;
         }
     }
 
@@ -941,128 +1141,53 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_du_parametre = monomorpheuse.resoud_type_final(espace.compilatrice().typeuse,
-                                                                type_du_parametre);
+            type_du_parametre = monomorpheuse->resoud_type_final(espace.compilatrice().typeuse,
+                                                                 type_du_parametre);
         }
 
-        if (param->possede_drapeau(EST_VARIADIQUE)) {
-            if (type_dereference_pour(type_du_parametre) != nullptr) {
-                auto transformation = TransformationType();
-                auto type_deref = type_dereference_pour(type_du_parametre);
-                type_donnees_argument_variadique = type_deref;
-                auto poids_pour_enfant = 0.0;
+        auto resultat = apparie_type_parametre_appel_fonction(
+            espace, slot, type_du_parametre, type_de_l_expression);
 
-                if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                    if (!fonction_variadique_interne) {
-                        return ErreurAppariement::expansion_variadique_externe(slot);
-                    }
-
-                    if (expansion_rencontree) {
-                        return ErreurAppariement::multiple_expansions_variadiques(slot);
-                    }
-
-                    auto type_deref_enf = type_dereference_pour(type_de_l_expression);
-
-                    auto resultat = verifie_compatibilite(
-                        espace.compilatrice(), type_deref, type_deref_enf, slot);
-
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(
-                            arg, std::get<Attente>(resultat));
-                    }
-
-                    auto poids_xform = std::get<PoidsTransformation>(resultat);
-                    poids_pour_enfant = poids_xform.poids;
-                    transformation = poids_xform.transformation;
-
-                    // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
-                    // faudra convertir en un tableau dynamique
-                    if (poids_pour_enfant != 1.0) {
-                        poids_pour_enfant = 0.0;
-                    }
-
-                    expansion_rencontree = true;
-                }
-                else {
-                    auto resultat = verifie_compatibilite(
-                        espace.compilatrice(), type_deref, type_de_l_expression, slot);
-
-                    if (std::holds_alternative<Attente>(resultat)) {
-                        return ErreurAppariement::dependance_non_satisfaite(
-                            arg, std::get<Attente>(resultat));
-                    }
-
-                    auto poids_xform = std::get<PoidsTransformation>(resultat);
-                    poids_pour_enfant = poids_xform.poids;
-                    transformation = poids_xform.transformation;
-                }
-
-                // allège les polymorphes pour que les versions déjà monomorphées soient préférées
-                // pour la selection de la meilleure candidate
-                if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    poids_pour_enfant *= 0.95;
-                }
-
-                poids_args *= poids_pour_enfant;
-
-                if (poids_args == 0.0) {
-                    return ErreurAppariement::metypage_argument(
-                        slot, type_dereference_pour(type_du_parametre), type_de_l_expression);
-                }
-
-                if (fonction_variadique_interne) {
-                    if (expansion_rencontree && nombre_arg_variadiques_rencontres != 0) {
-                        if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                            return ErreurAppariement::expansion_variadique_post_argument(slot);
-                        }
-
-                        return ErreurAppariement::argument_post_expansion_variadique(slot);
-                    }
-                }
-
-                transformations[i] = transformation;
-            }
-            else {
-                if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-                    if (!fonction_variadique_interne) {
-                        return ErreurAppariement::expansion_variadique_externe(slot);
-                    }
-                }
-
-                transformations[i] = TransformationType();
-            }
-
-            nombre_arg_variadiques_rencontres += 1;
+        if (std::holds_alternative<Attente>(resultat)) {
+            return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
         }
-        else {
-            auto resultat = verifie_compatibilite(
-                espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
 
-            if (std::holds_alternative<Attente>(resultat)) {
-                return ErreurAppariement::dependance_non_satisfaite(arg,
-                                                                    std::get<Attente>(resultat));
+        auto poids_xform = std::get<PoidsTransformation>(resultat);
+        auto poids_pour_enfant = poids_xform.poids;
+
+        if (slot->est_expansion_variadique()) {
+            // aucune transformation acceptée sauf si nous avons un tableau fixe qu'il
+            // faudra convertir en un tableau dynamique
+            if (poids_pour_enfant != 1.0) {
+                poids_pour_enfant = 0.0;
             }
-
-            auto poids_xform = std::get<PoidsTransformation>(resultat);
-
-            // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
-            // la selection de la meilleure candidate
-            if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                poids_xform.poids *= 0.95;
-            }
-
-            poids_args *= poids_xform.poids;
-
-            if (poids_args == 0.0) {
-                return ErreurAppariement::metypage_argument(
-                    slot, type_du_parametre, type_de_l_expression);
-            }
-
-            transformations[i] = poids_xform.transformation;
         }
+
+        // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
+        // la selection de la meilleure candidate
+        if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            poids_pour_enfant *= 0.95;
+        }
+
+        poids_args *= poids_pour_enfant;
+
+        if (poids_args == 0.0) {
+            return ErreurAppariement::metypage_argument(
+                slot, type_du_parametre, type_de_l_expression);
+        }
+
+        transformations[i] = poids_xform.transformation;
     }
 
     if (fonction_variadique_interne) {
+        auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
+        auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
+
+        if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            type_donnees_argument_variadique = monomorpheuse->resoud_type_final(
+                espace.compilatrice().typeuse, type_donnees_argument_variadique);
+        }
+
         /* Il y a des collisions entre les fonctions variadiques et les fonctions non-variadiques
          * quand le nombre d'arguments correspond pour tous les cas.
          *
@@ -1082,35 +1207,8 @@ static ResultatAppariement apparie_appel_fonction(
          */
         poids_args *= 0.95;
 
-        auto index_premier_var_arg = nombre_args - 1;
-
-        if (slots.taille() != nombre_args ||
-            slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
-            /* Pour les fonctions variadiques interne, nous créons un tableau
-             * correspondant au types des arguments. */
-            static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-            auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(
-                &lexeme_tableau);
-
-            noeud_tableau->type = type_donnees_argument_variadique;
-            // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
-            // sélectionné
-            noeud_tableau->expressions.reserve(static_cast<int>(slots.taille()) -
-                                               index_premier_var_arg);
-
-            for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
-                noeud_tableau->expressions.ajoute(slots[i]);
-            }
-
-            if (index_premier_var_arg >= slots.taille()) {
-                slots.ajoute(noeud_tableau);
-            }
-            else {
-                slots[index_premier_var_arg] = noeud_tableau;
-            }
-
-            slots.redimensionne(nombre_args);
-        }
+        cree_tableau_args_variadiques(
+            contexte, slots, nombre_args, type_donnees_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
@@ -1141,7 +1239,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     if (decl->est_polymorphe) {
-        copie_tablet_tableau(monomorpheuse.items, items_monomorphisation);
+        copie_tablet_tableau(monomorpheuse->items, items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
@@ -1152,7 +1250,47 @@ static ResultatAppariement apparie_appel_fonction(
                                                 std::move(items_monomorphisation));
 }
 
+static ResultatAppariement apparie_appel_fonction(
+    EspaceDeTravail &espace,
+    ContexteValidationCode &contexte,
+    NoeudExpressionAppel *expr,
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tableau<IdentifiantEtExpression> const &args)
+{
+    if (expr->drapeaux & POUR_CUISSON) {
+        return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
+    }
+
+    if (decl->est_polymorphe) {
+        Monomorpheuse monomorpheuse(espace, decl->bloc_constantes);
+        return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
+    }
+
+    return apparie_appel_fonction(espace, contexte, expr, decl, args, nullptr);
+}
+
 /* ************************************************************************** */
+
+static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *expr)
+{
+    if (expr->est_reference_declaration()) {
+        auto ref_decl = expr->comme_reference_declaration();
+
+        if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    if (expr->type->est_type_de_donnees()) {
+        auto type_connu = expr->type->comme_type_de_donnees()->type_connu;
+
+        if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 static ResultatAppariement apparie_appel_structure(
     EspaceDeTravail &espace,
@@ -1163,14 +1301,15 @@ static ResultatAppariement apparie_appel_structure(
     auto type_compose = decl_struct->type->comme_compose();
 
     if (decl_struct->est_polymorphe) {
-        if (expr->parametres.taille() != decl_struct->params_polymorphiques.taille()) {
+        auto params_polymorphiques = decl_struct->bloc_constantes;
+        if (expr->parametres.taille() != params_polymorphiques->membres->taille()) {
             return ErreurAppariement::mecomptage_arguments(
-                expr, decl_struct->params_polymorphiques.taille(), expr->parametres.taille());
+                expr, params_polymorphiques->membres->taille(), expr->parametres.taille());
         }
 
-        auto apparieuse_params = ApparieuseParams();
+        auto apparieuse_params = ApparieuseParams(false);
 
-        POUR (decl_struct->params_polymorphiques) {
+        POUR (*params_polymorphiques->membres.verrou_lecture()) {
             apparieuse_params.ajoute_param(it->ident, nullptr, false);
         }
 
@@ -1190,64 +1329,46 @@ static ResultatAppariement apparie_appel_structure(
         kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
         auto index_param = 0;
+        // détecte les arguments polymorphiques dans les fonctions polymorphiques
+        auto est_type_argument_polymorphique = false;
         POUR (apparieuse_params.slots()) {
-            auto param = decl_struct->params_polymorphiques[index_param];
+            auto param = params_polymorphiques->membres->a(index_param);
             index_param += 1;
 
-            // vérifie la contrainte
-            if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
-                if (param->type->est_type_de_donnees()) {
-                    if (!it->type->est_type_de_donnees()) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, it->type, ValeurExpression(), true});
-                }
-                else {
-                    if (!(it->type == param->type ||
-                          (it->type->est_entier_constant() && est_type_entier(param->type)))) {
-                        return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                    }
-
-                    auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
-
-                    if (valeur.est_errone) {
-                        espace.rapporte_erreur(it, "La valeur n'est pas constante");
-                    }
-
-                    items_monomorphisation.ajoute(
-                        {param->ident, param->type, valeur.valeur, false});
-                }
-            }
-            else {
+            if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
                 assert_rappel(false, []() {
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
                 });
-            }
-        }
-
-        // détecte les arguments polymorphiques dans les fonctions polymorphiques
-        auto est_type_argument_polymorphique = false;
-        POUR (arguments) {
-            // vérifie si l'argument est une valeur polymorphique de la fonction
-            if (it.expr->est_reference_declaration()) {
-                auto ref_decl = it.expr->comme_reference_declaration();
-
-                if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
-                }
+                continue;
             }
 
-            if (it.expr->type->est_type_de_donnees()) {
-                auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
+            if (est_expression_type_ou_valeur_polymorphique(it)) {
+                est_type_argument_polymorphique = true;
+                continue;
+            }
 
-                if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    est_type_argument_polymorphique = true;
-                    break;
+            // vérifie la contrainte
+            if (param->type->est_type_de_donnees()) {
+                if (!it->type->est_type_de_donnees()) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
                 }
+
+                items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
+            }
+            else {
+                if (!(it->type == param->type ||
+                      (it->type->est_entier_constant() && est_type_entier(param->type)))) {
+                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
+                }
+
+                auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+
+                if (valeur.est_errone) {
+                    espace.rapporte_erreur(it, "La valeur n'est pas constante");
+                }
+
+                items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
             }
         }
 
@@ -1258,15 +1379,6 @@ static ResultatAppariement apparie_appel_structure(
             type_poly->structure = decl_struct;
 
             POUR (arguments) {
-                if (it.expr->est_reference_declaration()) {
-                    auto ref_decl = it.expr->comme_reference_declaration();
-
-                    if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                        type_poly->types_constants_structure.ajoute(it.expr->type);
-                        break;
-                    }
-                }
-
                 if (it.expr->type->est_type_de_donnees()) {
                     auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
@@ -1299,7 +1411,7 @@ static ResultatAppariement apparie_appel_structure(
     }
 
     // À FAIRE : détecte quand nous avons des constantes
-    auto apparieuse_params = ApparieuseParams();
+    auto apparieuse_params = ApparieuseParams(false);
 
     POUR (type_compose->membres) {
         if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
@@ -1483,7 +1595,8 @@ static std::optional<Attente> apparies_candidates(
 {
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
-            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl, espace, args));
+            resultat.resultats.ajoute(
+                apparie_appel_pointeur(contexte, expr, it.decl, espace, args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1557,7 +1670,8 @@ static std::optional<Attente> apparies_candidates(
                     }
                 }
                 else if (type->est_fonction()) {
-                    resultat.resultats.ajoute(apparie_appel_pointeur(expr, decl, espace, args));
+                    resultat.resultats.ajoute(
+                        apparie_appel_pointeur(contexte, expr, decl, espace, args));
                 }
                 else if (type->est_opaque()) {
                     auto type_opaque = type->comme_opaque();
@@ -1575,7 +1689,8 @@ static std::optional<Attente> apparies_candidates(
             resultat.resultats.ajoute(apparie_appel_init_de(it.decl, args));
         }
         else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            resultat.resultats.ajoute(apparie_appel_pointeur(expr, it.decl, espace, args));
+            resultat.resultats.ajoute(
+                apparie_appel_pointeur(contexte, expr, it.decl, espace, args));
         }
     }
 
@@ -1611,13 +1726,11 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
             copie->lexeme);
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
-        decl_constante->ident = it.ident;
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
+        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
 
-        if (it.est_type) {
-            decl_constante->type = espace.compilatrice().typeuse.type_type_de_donnees(it.type);
-        }
-        else {
-            decl_constante->type = it.type;
+        if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
         }
 
@@ -1662,6 +1775,7 @@ static NoeudStruct *monomorphise_au_besoin(
     auto copie = copie_noeud(
                      contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)
                      ->comme_structure();
+    copie->est_polymorphe = false;
     copie->est_monomorphisation = true;
     copie->polymorphe_de_base = decl_struct;
 
@@ -1672,23 +1786,21 @@ static NoeudStruct *monomorphise_au_besoin(
         copie->type = espace.compilatrice().typeuse.reserve_type_structure(copie);
     }
 
-    // À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
-    copie->bloc->membres->efface();
-
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
-        // À FAIRE(poly) : lexème pour la  constante
-        auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
-            decl_struct->lexeme);
+        auto decl_constante =
+            trouve_dans_bloc(copie->bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
-        decl_constante->ident = it.ident;
-        decl_constante->type = it.type;
+        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
+        decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
+        decl_constante->type = const_cast<Type *>(it.type);
 
         if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
         }
 
-        copie->bloc_constantes->membres->ajoute(decl_constante);
+        /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
+         * En effet, la monomorphisation se base sur les membres du type. */
         copie->bloc->membres->ajoute(decl_constante);
     }
 
@@ -1917,38 +2029,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             return CodeRetourValidation::Erreur;
         }
 
-        /* met en place les drapeaux sur les enfants */
-
-        auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
-        auto nombre_args_variadics = nombre_args_simples;
-
-        if (!candidate->exprs.est_vide() &&
-            candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-            /* ne compte pas le tableau */
-            nombre_args_simples -= 1;
-            nombre_args_variadics = candidate->transformations.taille();
-        }
-
-        auto i = 0;
-        /* les drapeaux pour les arguments simples */
-        for (; i < nombre_args_simples; ++i) {
-            contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                             candidate->transformations[i]);
-        }
-
-        /* les drapeaux pour les arguments variadics */
-        if (!candidate->exprs.est_vide() &&
-            candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-            auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(
-                candidate->exprs.back());
-
-            for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-                contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
-                                                 candidate->transformations[i]);
-            }
-        }
+        applique_transformations(contexte, candidate, expr);
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -1975,6 +2059,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = decl_fonction_appelee->type;
         expr->expression = decl_fonction_appelee;
+        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
@@ -1990,6 +2075,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
+                copie->drapeaux |= EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
         }
@@ -2016,16 +2102,15 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = candidate->type;
+        expr->noeud_fonction_appelee =
+            (expr->type->comme_type_de_donnees()->type_connu->comme_polymorphique()->structure);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
             expr->type = candidate->type->comme_fonction()->type_sortie;
         }
 
-        for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-            contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                             candidate->transformations[i]);
-        }
+        applique_transformations(contexte, candidate, expr);
 
         auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
         if (expr->type->genre != GenreType::RIEN && expr_gauche) {
@@ -2045,6 +2130,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
             return CodeRetourValidation::Erreur;
         }
+
+        if (expr->expression->est_reference_declaration()) {
+            auto ref = expr->expression->comme_reference_declaration();
+            ref->declaration_referee->drapeaux |= EST_UTILISEE;
+        }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
@@ -2058,6 +2148,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, candidate->exprs[0]->type);
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
@@ -2067,6 +2158,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             expr->type = type_opaque;
             expr->aide_generation_code = CONSTRUIT_OPAQUE;
+            expr->noeud_fonction_appelee = type_opaque->decl;
         }
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
@@ -2079,6 +2171,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 type_opaque->decl, type_opacifie->type_connu);
         }
 
+        expr->noeud_fonction_appelee = type_opaque->decl;
         expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(type_opaque);
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }

@@ -31,12 +31,23 @@ appel_fonction :: fonc (a: $T, b: $U, fonction: fonc(T, U)($V)) -> V
     retourne fonction(a, b)
 }
 
+imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
+{
+    imprime("%\n", message)
+    imprime("a = %\n", a)
+    pour args {
+        imprime("arg %: %\n", index_it, it)
+    }
+}
+
 arguments_variadiques :: fonc (a: $T, args: ...T)
 {
+    imprime_arguments_variadiques("arguments_variadiques", a, ...args)
 }
 
 arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
 {
+    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args)
 }
 
 argument_tableau_fixe :: fonc (a: [8]$T)
@@ -54,6 +65,11 @@ Polymorphe :: struct ($T: type_de_données) {
 
 Polymorphe2 :: struct ($T: type_de_données) {
     x : T
+}
+
+initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T))
+{
+    poly.x = 123 comme T
 }
 
 initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T), x: T)
@@ -97,6 +113,7 @@ principale :: fonc () -> z32
     argument_tableau_fixe(tableau_fixe)
 
     poly : Polymorphe(T = z32)
+    initialise_polymorphe(*poly)
     initialise_polymorphe(*poly, 6)
 
     imprime("poly : %\n", poly)

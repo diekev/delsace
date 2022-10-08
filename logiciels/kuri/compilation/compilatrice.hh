@@ -295,6 +295,7 @@ struct Compilatrice {
                                                       const NoeudExpression *site);
 
     kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);
+    MetaProgramme *metaprogramme_pour_fonction(const NoeudDeclarationEnteteFonction *entete);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

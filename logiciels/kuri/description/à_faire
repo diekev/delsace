@@ -12,32 +12,27 @@
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
+- ajout de #dump pour imprimer des informations (code binaire, etc.)
+- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
 
 // -----------------------------------
 // Bugs
 
 - collision de symbole pour les retours des fonctions dans les fonctions
-- collision de symbole dans la coulisse C si deux structures de mêmes noms sont définies dans des fonctions différentes
-- compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
-- impossible de convertir implicitement un opaque de pointeur vers un *octet
-- impossible de comparer un opaque de pointeur avec nul
-- impossible d'utiliser les types opaques dans les conditions, si le type opacifié est convertible en bool
 - crash dans les exécutables quand nous prenons l'adresse d'une référence
-- crash quand nous paniquons sur un membre non-actif d'une union
-- compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
-- erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
-- aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
-- compilation infinie si nous utilisons #exécute pour une globale
-- les fonctions surchargées ayant des valeurs polymorphiques collisionnent
-- les plages implicites des boucles pour de type entier naturel prennent la valeur maximale quand du type si le nombre de boucle = 0
-    pour m {} // si m == 0, alors la plage est de 0 ... m - 1 = 0 ... type.max
-- Couleur.Couleur(1.0, 1.0, 1.0, 1.0) sans importer Couleur crash
-- compilation infinie si nous avons une expression de déclaration de structure invalide :
-    struct MaStructure :: struct {
-
-    }
+- compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
+
+Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
+    - nous ne devrions utiliser que la fonction du module courant
+
+Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent pas en compte le décalage
+    exemple 9971 au lieu de 9991:
+    Erreur : .chaine_ajoutées:9991:34 : 
+    9971 |     _ := noeud_branche_arbre(ctx, val0)
+         |                                   ^~~~
+
 
 // -----------------------------------
 // Architecture/Qualité de code
@@ -70,6 +65,24 @@
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
+- tests des énums drapeaux dans les conditions des boucles
+    voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
+
+Test pour les retours de pointeurs
+
+    StructureGlobale :: struct {
+        adresse: *z32
+    }
+
+    globale : StructureGlobale
+
+    retourne_adresse_stockée_dans_globale :: fonc () -> *z32
+    {
+        retourne globale.adresse
+    }
+
+À voir si ceci fonctionne :
+    Module.StructurePoly(T = z32)(x = 5)
 
 // -----------------------------------
 // Avertissements

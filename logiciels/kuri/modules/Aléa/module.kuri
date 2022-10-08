@@ -78,22 +78,6 @@ mélange_tableau :: fonc (gna: *GNA, tableau: *[]$T)
 
 // ------------------------------------------------------
 
-// À FAIRE: #portée_fichier
-// À FAIRE: système pour ajouter dans init_execution_kuri, termine_execution_kuri
-fonctions_génération_données_aléatoires : []FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
-
-ajoute_fonction_génération_données_aléatoires :: fonc (info: *InfoType, fonction: fonc(&GénératriceDonnéesAléatoire, eini)(rien))
-{
-    ajoute_fonction(*fonctions_génération_données_aléatoires, info, fonction)
-}
-
-trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
-{
-    retourne trouve_fonction_pour_type(fonctions_génération_données_aléatoires, info)
-}
-
-// ------------------------------------------------------
-
 GénératriceDonnéesAléatoire :: struct {
     gna: *GNA
     taille_min_chaine := 1
@@ -139,7 +123,7 @@ chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: 
 
     résultat : chaine
 
-    pour i dans 0 ... taille - 1 {
+    pour taille {
         index_r32 := gna.uniforme(min_r32, max_r32)
         index_z32 := index_r32 comme z32
         caractère := alphabet.caractère_pour_index(index_z32)
@@ -158,12 +142,11 @@ génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléato
     retourne résultat
 }
 
-rappel_génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)
+rappel_génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, ptr: *chaine)
 {
     résultat := génère_chaine_aléatoire(génératrice)
-    ptr := mémoire(valeur.pointeur comme **chaine)
     mémoire(ptr) = résultat
-}
+} @FonctionGNA
 /*
 
 SérieAléatoire :: struct {
@@ -261,7 +244,23 @@ aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32
 
 aléatoire_bilatérale :: fonc (série: &SérieAléatoire) -> r32
 {
-    retourne série.aléatoire_unilatérale() * 2.0 - 1.0
+    retourne bilatéral_de(série.aléatoire_unilatérale())
+}
+
+vec3_aléatoire_unilatéral :: fonc (série: &SérieAléatoire) -> Vec3
+{
+    retourne Vec3(série.aléatoire_unilatérale(), série.aléatoire_unilatérale(), série.aléatoire_unilatérale())
+}
+
+vec3_aléatoire :: fonc (série: &SérieAléatoire) -> Vec3
+{
+    retourne Vec3(série.aléatoire_bilatérale(), série.aléatoire_bilatérale(), série.aléatoire_bilatérale())
+}
+
+aléatoire_entre :: fonc (série: &SérieAléatoire, min: $T, max: T) -> T
+{
+    résultat := série.aléatoire_unilatérale()
+    retourne (résultat * ((max - min) comme r32)) comme T + min
 }
 
 // -------------------------------------------------------------------------
@@ -299,3 +298,73 @@ séquence_hammersley_2d :: fonc (n: n32, r: *r64)
         r[s * 2 + 1] = inverse_radical(s);
     }
 }
+
+// ------------------------------------------------------
+
+importe Compilatrice
+
+// À FAIRE: #portée_fichier
+__fonctions_génération_données_aléatoires : []FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+
+trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+{
+    retourne trouve_fonction_pour_type(__fonctions_génération_données_aléatoires, info)
+}
+
+fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
+{
+    résultat : DonnéesFonctionPourTableFonction
+
+    si fonction.params.taille != 2 {
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : &GénératriceDonnéesAléatoire, et eini")
+        retourne résultat
+    }
+
+    type_premier_paramètre := fonction.params[0].type
+    type_deuxième_paramètre := fonction.params[1].type
+
+    si type_premier_paramètre != info_de(&GénératriceDonnéesAléatoire) {
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « &GénératriceDonnéesAléatoire ».")
+        retourne résultat
+    }
+
+    si type_deuxième_paramètre.id != id_info.POINTEUR {
+        compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
+        retourne résultat
+    }
+
+    pointeur := type_deuxième_paramètre comme *InfoTypePointeur
+
+    résultat.fonction = fonction
+    résultat.info_type = pointeur.type_pointé
+    retourne résultat
+}
+
+génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
+{
+    nom_enveloppe := enchaine("enveloppe_pour_gna_", données.fonction.nom)
+
+    enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)\n")
+    enchaineuse.ajoute_au_tampon("{\n")
+    /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
+    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **")
+    imprime_type(enchaineuse, données.info_type)
+    enchaineuse.ajoute_au_tampon(")\n")
+    enchaineuse.ajoute_au_tampon("\t", données.fonction.nom, "(génératrice, ptr)\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    retourne nom_enveloppe
+}
+
+génère_initialisation_gna :: fonc ()
+{
+    créatrice_table_fonctions : CréatriceTableFonction
+    créatrice_table_fonctions.annotation_désirée = "FonctionGNA"
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_génération_données_aléatoires"
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+
+    crée_table_fonctions(créatrice_table_fonctions)
+}
+
+#pré_exécutable génère_initialisation_gna()

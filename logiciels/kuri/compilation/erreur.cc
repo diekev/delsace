@@ -203,7 +203,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     if (decl_struct->est_polymorphe) {
                         e.ajoute_message("\tLes paramètres de la structure sont : \n");
 
-                        POUR (decl_struct->params_polymorphiques) {
+                        POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
                             e.ajoute_message("\t\t", it->ident->nom, '\n');
                         }
                     }
@@ -388,6 +388,12 @@ void membre_inconnu(EspaceDeTravail const &espace,
     }
     else {
         message = "de la structure";
+    }
+
+    /* Les discriminations sur des unions peuvent avoir des expressions d'appel pour capturer le
+     * membre. */
+    if (membre->est_appel()) {
+        membre = membre->comme_appel()->expression;
     }
 
     auto candidat = trouve_candidat(membres, membre->ident->nom);

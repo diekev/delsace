@@ -172,14 +172,18 @@ std::ostream &operator<<(std::ostream &os, ValeurExpression valeur);
 struct ResultatExpression {
     ValeurExpression valeur{};
     bool est_errone = true;
-    NoeudExpression *noeud_erreur = nullptr;
+    const NoeudExpression *noeud_erreur = nullptr;
     const char *message_erreur = nullptr;
 
     ResultatExpression() = default;
 
+    ResultatExpression(ValeurExpression valeur_valide) : valeur(valeur_valide), est_errone(false)
+    {
+    }
+
     COPIE_CONSTRUCT(ResultatExpression);
 };
 
-ResultatExpression evalue_expression(Compilatrice &compilatrice,
+ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                                      NoeudBloc *bloc,
-                                     NoeudExpression *b);
+                                     const NoeudExpression *b);

@@ -175,6 +175,13 @@ struct Erreur {
 
     Erreur &ajoute_conseil(kuri::chaine const &c);
 
+    template <typename Fonction>
+    Erreur &ajoute_donnees(Fonction rappel)
+    {
+        rappel(*this);
+        return *this;
+    }
+
     void genre_erreur(erreur::Genre genre_)
     {
         genre = genre_;

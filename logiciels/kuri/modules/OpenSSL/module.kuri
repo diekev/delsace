@@ -1,7 +1,7 @@
 // Interface pour la bibliothèque OpenSSL 1.1
 
 importe Fondation
-importe GlibC
+importe Chaine
 importe SysFichier
 
 charge "interface_openssl"
@@ -181,7 +181,7 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErre
         retourne converti_erreur_ssl(m_ssl, 0)
     }
 
-    si SSL_set_fd(m_ssl, fichier.desc) == 0 {
+    si SSL_set_fd(m_ssl, fichier.desc comme z32) == 0 {
         retourne converti_erreur_ssl(m_ssl, 0)
     }
 

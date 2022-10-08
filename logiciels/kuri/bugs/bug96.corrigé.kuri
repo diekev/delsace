@@ -1,0 +1,16 @@
+/* Crash si un type tableau est retourner sans que le type d'élément soit valide. */
+
+importe Couleur
+
+retourne_plusieurs_couleurs :: fonc () -> []Couleur
+{
+    couleurs: [5]Couleur.CouleurRVBA
+
+    retourne couleurs
+}
+
+principale :: fonc () -> z32
+{
+    x := retourne_plusieurs_couleurs()
+    retourne 0
+}

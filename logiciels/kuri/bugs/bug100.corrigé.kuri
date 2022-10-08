@@ -1,0 +1,15 @@
+/* Crash sur une discrimination qui ne fait rien. */
+
+Union :: union {
+    A: z32
+    B: r32
+}
+
+principale :: fonc () -> z32
+{
+    u: Union
+    discr u {
+        sinon {}
+    }
+    retourne 0
+}

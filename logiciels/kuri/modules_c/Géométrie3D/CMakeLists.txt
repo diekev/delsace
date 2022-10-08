@@ -21,14 +21,19 @@
 
 set(NOM_PROJET module_c_geometrie_3d)
 
+find_package(Eigen3 REQUIRED)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../jorjala/
         /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
+        ${EIGEN3_INCLUDE_DIR}
 )
 
 set(BIBLIOTHEQUES
     bib_outils
+    bib_structures
     memoire
 )
 
@@ -155,6 +160,8 @@ set(SOURCES_VORONOI
 )
 
 set(SOURCES
+    acceleration.cc
+    acceleration.hh
     creation.cc
     creation.h
     import_objet.cc
@@ -163,12 +170,21 @@ set(SOURCES
     ipa.h
     outils.cc
     outils.hh
+    particules.cc
+    particules.hh
 
     booleen_maillage.cc
     booleen_maillage.hh
 
     fracture.cc
     fracture.hh
+
+    triangulation.cc
+    triangulation.hh
+    triangulation_delaunay.hh
+
+    terrains.cc
+    terrains.hh
 
     ${SOURCES_BOOLEEN}
     # ${SOURCES_BOOLEEN_BLENDER}

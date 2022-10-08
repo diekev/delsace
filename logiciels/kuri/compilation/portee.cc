@@ -188,6 +188,19 @@ NoeudExpression *bloc_est_dans_boucle(NoeudBloc const *bloc, IdentifiantCode con
     return nullptr;
 }
 
+bool bloc_est_dans_differe(NoeudBloc const *bloc)
+{
+    while (bloc->bloc_parent) {
+        if (bloc->appartiens_a_differe) {
+            return true;
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return false;
+}
+
 NoeudExpression *derniere_instruction(NoeudBloc const *b)
 {
     auto expressions = b->expressions.verrou_lecture();
