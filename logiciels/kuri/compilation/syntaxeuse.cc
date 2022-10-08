@@ -631,6 +631,9 @@ void Syntaxeuse::analyse_une_chose()
                 requiers_typage(noeud);
             }
         }
+        else if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
+            requiers_typage(noeud);
+        }
 
         noeud->bloc_parent->expressions->ajoute(noeud);
     }

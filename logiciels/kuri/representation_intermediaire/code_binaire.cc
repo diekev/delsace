@@ -110,6 +110,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
                               NoeudExpression *site,
                               Type *type)
 {
+#ifndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
         std::cerr << "Le type est " << chaine_type(type) << '\n';
 
@@ -126,6 +127,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 
         erreur::imprime_site(*contexte.espace, site);
     });
+#endif
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);

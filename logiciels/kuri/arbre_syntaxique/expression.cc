@@ -477,6 +477,17 @@ std::ostream &operator<<(std::ostream &os, ValeurExpression valeur)
     else if (valeur.est_reelle()) {
         os << valeur.reelle();
     }
+    else if (valeur.est_chaine()) {
+        auto chaine = valeur.chaine();
+        os << chaine->lexeme->chaine;
+    }
+    else if (valeur.est_tableau_fixe()) {
+        os << "[...]";
+    }
+    else if (valeur.est_fonction()) {
+        auto const fonction = valeur.fonction();
+        os << (fonction->ident ? fonction->ident->nom : "");
+    }
     else {
         os << "invalide";
     }

@@ -67,6 +67,11 @@ Polymorphe2 :: struct ($T: type_de_données) {
     x : T
 }
 
+initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T))
+{
+    poly.x = 123 comme T
+}
+
 initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T), x: T)
 {
     poly.x = x
@@ -108,6 +113,7 @@ principale :: fonc () -> z32
     argument_tableau_fixe(tableau_fixe)
 
     poly : Polymorphe(T = z32)
+    initialise_polymorphe(*poly)
     initialise_polymorphe(*poly, 6)
 
     imprime("poly : %\n", poly)
