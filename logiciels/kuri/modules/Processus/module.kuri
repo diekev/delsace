@@ -1,7 +1,7 @@
 /* Module implémentant des fonctions pour travailler sur ou avec des processus. */
 
-importe Fondation
 importe Chaine
+importe Fondation
 importe GlibC // pour fork et al.
 importe POSIX // pour system
 importe SysFichier
@@ -64,7 +64,7 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
     valeur_retour := execvp(chn_c_programme, *arguments_chn_c[0])
 
     /* Termine le processus fils, si execvp réussi, nous ne serons plus là.
-     * Ceci n'est que pour les erreurs. Le processus parent devra vérifier 
+     * Ceci n'est que pour les erreurs. Le processus parent devra vérifier
      * l'état du processus manuellement. */
     exit(valeur_retour)
 }

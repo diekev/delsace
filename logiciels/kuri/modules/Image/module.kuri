@@ -1,6 +1,6 @@
+importe Chaine
 importe Couleur
 importe Fondation
-importe Chaine
 importe Math
 
 Image :: struct {

@@ -521,7 +521,6 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
-
 génère_fonction_pour_créer_itérateur :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type.type_itérateur {
@@ -609,7 +608,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
         diffère déloge(chn_erreur)
 
         enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n")
-        enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\")\n")  
+        enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\")\n")
         enchaineuse.ajoute_au_tampon("    }\n")
     }
 }

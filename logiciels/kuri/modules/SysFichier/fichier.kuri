@@ -95,7 +95,7 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
         chaine_ajoute(*chemin_dossier, pile.dépile())
 
         saute_premier_slash = faux
-        
+
         si est_un_dossier(CheminFichier(chemin_dossier)) {
             continue
         }

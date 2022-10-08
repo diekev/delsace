@@ -1,7 +1,7 @@
 // Interface pour la bibliothèque du langage Python permettant de définir des modules.
 
-importe Fondation
 importe Chaine
+importe Fondation
 importe Math
 
 libpython :: #bibliothèque "python3.10"
@@ -670,15 +670,15 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
                 si info_entier.taille_en_octet == 1 {
                     retourne "B\0"
                 }
-    
+
                 si info_entier.taille_en_octet == 2 {
                     retourne "H\0"
                 }
-    
+
                 si info_entier.taille_en_octet == 4 {
                     retourne "I\0"
                 }
-    
+
                 si info_entier.taille_en_octet == 8 {
                     retourne "L\0"
                 }
@@ -998,7 +998,6 @@ externe PyExc_UnicodeError: *PyObject
 externe PyExc_UnicodeTranslateError: *PyObject
 externe PyExc_ValueError: *PyObject
 externe PyExc_ZeroDivisionError: *PyObject
-
 
 PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
 

@@ -1,7 +1,7 @@
 // Interface pour la bibliothèque OpenSSL 1.1
 
-importe Fondation
 importe Chaine
+importe Fondation
 importe SysFichier
 
 charge "interface_openssl"
