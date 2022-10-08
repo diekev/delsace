@@ -1722,9 +1722,8 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 
     // ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
     POUR (items_monomorphisation) {
-        // À FAIRE(poly) : lexème pour la  constante
-        auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration_variable(
-            copie->lexeme);
+        auto decl_constante =
+            trouve_dans_bloc_seul(copie->bloc_constantes, it.ident)->comme_declaration_variable();
         decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->ident = const_cast<IdentifiantCode *>(it.ident);
@@ -1733,15 +1732,14 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         if (!it.est_type) {
             decl_constante->valeur_expression = it.valeur;
         }
-
-        copie->bloc_constantes->membres->ajoute(decl_constante);
     }
 
     // Supprime les valeurs polymorphiques
     // À FAIRE : optimise
     auto nouveau_params = kuri::tableau<NoeudExpression *, int>();
     POUR (copie->params) {
-        if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+        auto decl_constante = trouve_dans_bloc_seul(copie->bloc_constantes, it->ident);
+        if (decl_constante) {
             continue;
         }
 

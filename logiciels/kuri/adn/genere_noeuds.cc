@@ -70,6 +70,12 @@ static const char *copie_extra_entete_fonction = R"(
 					copie->param_sortie = copie->params_sorties[0]->comme_declaration_variable();
 				}
 			}
+            /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
+             * sont placés par la Syntaxeuse directement dans les membres. */
+            POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
+                auto copie_membre = copie_noeud(it, copie->bloc_constantes);
+                copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+            }
 			/* copie le corps du noeud directement */
 			{
 				auto expr_corps = orig->corps;

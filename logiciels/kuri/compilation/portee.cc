@@ -30,19 +30,27 @@
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *ident)
+{
+    auto membres = bloc->membres.verrou_lecture();
+    bloc->nombre_recherches += 1;
+    POUR (*membres) {
+        if (it->ident == ident) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident)
 {
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
-        auto membres = bloc_courant->membres.verrou_lecture();
-        bloc_courant->nombre_recherches += 1;
-        POUR (*membres) {
-            if (it->ident == ident) {
-                return it;
-            }
+        auto it = trouve_dans_bloc_seul(bloc_courant, ident);
+        if (it) {
+            return it;
         }
-
         bloc_courant = bloc_courant->bloc_parent;
     }
 
