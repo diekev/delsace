@@ -782,6 +782,11 @@ erreur_export_tampon :: fonc (view: *Py_buffer, message: chaine) -> z32
     retourne -1
 }
 
+possède_drapeau :: fonc (drapeaux: n64, valeur: n64) -> bool
+{
+    retourne (drapeaux & valeur) != 0
+}
+
 /* https://docs.python.org/3/c-api/typeobj.html#c.PyBufferProcs.bf_getbuffer */
 impl_get_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer, flags: z32) -> z32
 {
@@ -789,14 +794,14 @@ impl_get_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer, flags: z32)
 
     /* 1. Check if the request can be met. If not, raise PyExc_BufferError, set view->obj to NULL and return -1. */
     view.readonly = 1
-    si bit_est_actif(flags comme n64, PyBUF_WRITABLE comme n64) {
+    si possède_drapeau(flags comme n64, PyBUF_WRITABLE comme n64) {
         retourne erreur_export_tampon(view, "Impossible d'exporter le tampon pour une écriture")
     }
 
     /* 2. Fill in the requested fields. */
     objet_tampon.remplis_champs_requis_py_buffer(objet_tampon, view)
 
-    saufsi bit_est_actif(flags comme n64, PyBUF_FORMAT comme n64) {
+    saufsi possède_drapeau(flags comme n64, PyBUF_FORMAT comme n64) {
         view.format = nul
     }
 
