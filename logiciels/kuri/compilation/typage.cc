@@ -1741,7 +1741,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
     }
 }
 
-static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
+static kuri::tablet<kuri::chaine_statique, 6> noms_hierarchie(NoeudBloc *bloc)
 {
     kuri::tablet<kuri::chaine_statique, 6> noms;
 
@@ -1753,11 +1753,33 @@ static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
         bloc = bloc->bloc_parent;
     }
 
+    return noms;
+}
+
+static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
+{
+    auto const noms = noms_hierarchie(bloc);
+
     Enchaineuse enchaineuse;
     for (auto i = noms.taille() - 1; i >= 0; --i) {
         enchaineuse.ajoute(noms[i]);
     }
     enchaineuse.ajoute(nom);
+
+    return enchaineuse.chaine();
+}
+
+static kuri::chaine nom_hierarchique(NoeudBloc *bloc, IdentifiantCode const *ident)
+{
+    auto const noms = noms_hierarchie(bloc);
+
+    Enchaineuse enchaineuse;
+    /* -2 pour éviter le nom du module. */
+    for (auto i = noms.taille() - 2; i >= 0; --i) {
+        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(".");
+    }
+    enchaineuse.ajoute(ident ? ident->nom : "anonyme");
 
     return enchaineuse.chaine();
 }
@@ -1772,6 +1794,16 @@ const kuri::chaine &TypeStructure::nom_portable()
     return nom_portable_;
 }
 
+kuri::chaine_statique TypeStructure::nom_hierarchique()
+{
+    if (nom_hierarchique_ != "") {
+        return nom_hierarchique_;
+    }
+
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    return nom_hierarchique_;
+}
+
 const kuri::chaine &TypeUnion::nom_portable()
 {
     if (nom_portable_ != "") {
@@ -1780,6 +1812,16 @@ const kuri::chaine &TypeUnion::nom_portable()
 
     nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
     return nom_portable_;
+}
+
+kuri::chaine_statique TypeUnion::nom_hierarchique()
+{
+    if (nom_hierarchique_ != "") {
+        return nom_hierarchique_;
+    }
+
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    return nom_hierarchique_;
 }
 
 const kuri::chaine &TypeEnum::nom_portable()
@@ -1792,6 +1834,16 @@ const kuri::chaine &TypeEnum::nom_portable()
     return nom_portable_;
 }
 
+kuri::chaine_statique TypeEnum::nom_hierarchique()
+{
+    if (nom_hierarchique_ != "") {
+        return nom_hierarchique_;
+    }
+
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    return nom_hierarchique_;
+}
+
 const kuri::chaine &TypeOpaque::nom_portable()
 {
     if (nom_portable_ != "") {
@@ -1800,6 +1852,16 @@ const kuri::chaine &TypeOpaque::nom_portable()
 
     nom_portable_ = ::nom_portable(decl->bloc_parent, ident->nom);
     return nom_portable_;
+}
+
+kuri::chaine_statique TypeOpaque::nom_hierarchique()
+{
+    if (nom_hierarchique_ != "") {
+        return nom_hierarchique_;
+    }
+
+    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, ident);
+    return nom_hierarchique_;
 }
 
 NoeudDeclaration *decl_pour_type(const Type *type)
