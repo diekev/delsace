@@ -11,6 +11,9 @@ enum ResultatOperation {
     OK,
     IMAGE_INEXISTANTE,
     TYPE_IMAGE_NON_SUPPORTE,
+    AJOUT_CALQUE_IMPOSSIBLE,
+    AJOUT_CANAL_IMPOSSIBLE,
+    LECTURE_DONNEES_IMPOSSIBLE,
 };
 
 struct ImageIO {
@@ -30,6 +33,64 @@ void IMG_detruit_image(struct ImageIO *image);
 
 void IMG_calcul_empreinte_floue(
     const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat);
+
+/** Structure pour décrire la résolution d'une image.
+ */
+typedef struct DescriptionImage {
+    int hauteur;
+    int largeur;
+} DescriptionImage;
+
+/** Structure de rappel pour créer des calques et des canaux dans une image, ou pour accéder à
+ * ceux-ci.
+ * Les applications clientes doivent dériver cette structure afin de placer leurs données
+ * spécifiques dans la structure dérivée.
+ */
+struct AdaptriceImage {
+    /* Création de calques et canaux. */
+
+    /** Rappel pour initialiser les données de l'image. */
+    void (*initialise_image)(struct AdaptriceImage *, const DescriptionImage *desc);
+
+    /** Rappel pour créer un calque dans l'image. Ceci doit retourner le pointeur vers le
+     * nouveau calque créer. */
+    void *(*cree_calque)(struct AdaptriceImage *, const char *nom, long taille_nom);
+
+    /** Rappel pour ajouter un canal dans un calque retourner par `cree_calque`.
+     *  Ceci doit retourner le pointeur vers les données du calque.
+     */
+    void *(*ajoute_canal)(struct AdaptriceImage *, void *calque, const char *nom, long taille_nom);
+
+    /* Accès aux calques et canaux, et aux données de l'image. */
+
+    /** Rappel pour remplir la description de l'image. */
+    void (*decris_image)(struct AdaptriceImage *, struct DescriptionImage *);
+
+    /** Rappel pour accéder au nombre de calques dans l'image. */
+    int (*nombre_de_calques)(struct AdaptriceImage *);
+
+    /** Rappel pour accéder au calque à l'index donné. L'index est dans [0, nombre_de_calques), où
+     * nombre_de_calques est la valeur retournée par `nombre_de_calques`. */
+    const void *(*calque_pour_index)(struct AdaptriceImage *, long index);
+
+    /** Rappel pour accéder au nombre de canal dans le calque donné. */
+    int (*nombre_de_canaux)(struct AdaptriceImage *, const void *calque);
+
+    /** Rappel pour accéder aux données du canal du calque à l'index donné.
+     * L'index est dans [0, nombre_de_canaux), où nombre_de_canaux est la valeur retournée par
+     * `nombre_de_canaux`. */
+    const void *(*donnees_canal_pour_index)(struct AdaptriceImage *,
+                                            const void *calque,
+                                            long index);
+};
+
+enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
+                                                      long taille_chemin,
+                                                      struct AdaptriceImage *image);
+
+enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
+                                                      long taille_chemin,
+                                                      struct AdaptriceImage *image);
 
 #ifdef __cplusplus
 }

@@ -5,6 +5,8 @@
 
 #include "oiio.h"
 
+#include "biblinternes/outils/garde_portee.h"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -514,6 +516,192 @@ std::string encode(
 #endif
 
 extern "C" {
+
+struct NomCanal {
+    std::string nom_calque{};
+    std::string nom_canal{};
+};
+
+static NomCanal parse_nom_canal(std::string const &nom)
+{
+    auto const pos_point = nom.find('.');
+
+    if (pos_point == std::string::npos) {
+        return {"", nom};
+    }
+
+    auto resultat = NomCanal{};
+    resultat.nom_calque = nom.substr(0, pos_point);
+    resultat.nom_canal = nom.substr(pos_point + 1);
+    return resultat;
+}
+
+struct DescriptionCanal {
+    std::string nom{};
+    int index{};
+};
+
+struct DescriptionCalque {
+    std::string nom{};
+
+    std::vector<DescriptionCanal> canaux{};
+};
+
+struct ParseuseDonneesImage {
+    std::vector<DescriptionCalque> calques{};
+
+    void parse_canaux(std::vector<std::string> const &canaux, int canal_z)
+    {
+        auto index = 0;
+        for (auto const &name : canaux) {
+            ajoute_canal(name, index++, canal_z);
+        }
+    }
+
+    void ajoute_canal(std::string const &nom, int index, int canal_z)
+    {
+        auto nom_calque_canal = parse_nom_canal(nom);
+
+        auto nom_calque = nom_calque_canal.nom_calque;
+
+        if (nom_calque == "") {
+            nom_calque = "rgba";
+        }
+
+        if (index == canal_z) {
+            nom_calque = "depth";
+        }
+
+        auto &calque = trouve_ou_ajoute_calque(nom_calque);
+        calque.canaux.push_back({nom_calque_canal.nom_canal, index});
+    }
+
+    DescriptionCalque &trouve_ou_ajoute_calque(std::string const &nom)
+    {
+        for (auto &calque : calques) {
+            if (calque.nom == nom) {
+                return calque;
+            }
+        }
+
+        calques.emplace_back();
+        calques.back().nom = nom;
+        return calques.back();
+    }
+};
+
+ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
+                                                 long taille_chemin,
+                                                 AdaptriceImage *image)
+{
+    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
+
+    auto input = OIIO::ImageInput::open(chemin_);
+
+    if (input == nullptr) {
+        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
+    }
+
+    DIFFERE {
+        input->close();
+    };
+
+    const auto &spec = input->spec();
+
+    DescriptionImage desc_image{};
+    desc_image.hauteur = spec.height;
+    desc_image.largeur = spec.width;
+
+    auto parseuse = ParseuseDonneesImage();
+    parseuse.parse_canaux(spec.channelnames, spec.z_channel);
+
+    auto format = OIIO::TypeDesc::FLOAT;
+
+    image->initialise_image(image, &desc_image);
+
+    for (auto const &desc_calque : parseuse.calques) {
+        void *calque = image->cree_calque(
+            image, desc_calque.nom.c_str(), long(desc_calque.nom.size()));
+
+        if (!calque) {
+            return ResultatOperation::AJOUT_CALQUE_IMPOSSIBLE;
+        }
+
+        for (auto const &desc_canal : desc_calque.canaux) {
+            void *canal = image->ajoute_canal(
+                image, calque, desc_canal.nom.c_str(), long(desc_calque.nom.size()));
+
+            if (!canal) {
+                return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
+            }
+
+            auto const index_canal = desc_canal.index;
+
+            auto const succes = input->read_image(
+                0, 0, index_canal, index_canal + 1, format, canal);
+            if (!succes) {
+                return ResultatOperation::LECTURE_DONNEES_IMPOSSIBLE;
+            }
+        }
+    }
+
+    return ResultatOperation::OK;
+}
+
+// À FAIRE : paramétrise les calques à écrire.
+ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
+                                                 long taille_chemin,
+                                                 AdaptriceImage *image)
+{
+    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
+    auto out = OIIO::ImageOutput::create(chemin_);
+
+    if (out == nullptr) {
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
+
+    DIFFERE {
+        out->close();
+    };
+
+    DescriptionImage desc;
+    image->decris_image(image, &desc);
+
+    /* Considère uniquement le premier calque. */
+    const void *calque = image->calque_pour_index(image, 0);
+    const int nombre_de_canaux = image->nombre_de_canaux(image, calque);
+
+    auto spec = OIIO::ImageSpec(
+        desc.largeur, desc.hauteur, nombre_de_canaux, OIIO::TypeDesc::FLOAT);
+    out->open(chemin_, spec);
+
+    float *donnees = new float[desc.largeur * desc.hauteur * nombre_de_canaux];
+    DIFFERE {
+        delete[] donnees;
+    };
+
+    std::vector<const float *> canaux(nombre_de_canaux);
+    for (int i = 0; i < nombre_de_canaux; i++) {
+        canaux[i] = static_cast<const float *>(image->donnees_canal_pour_index(image, calque, i));
+    }
+
+    auto index = 0;
+    for (int y = 0; y < desc.hauteur; y++) {
+        for (int x = 0; x < desc.largeur; x++, index++) {
+            auto index_ptr = index * nombre_de_canaux;
+
+            for (int c = 0; c < nombre_de_canaux; c++) {
+                donnees[index_ptr + c] = canaux[c][index];
+            }
+        }
+    }
+
+    if (!out->write_image(OIIO::TypeDesc::FLOAT, donnees)) {
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
+
+    return ResultatOperation::OK;
+}
 
 ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
 {

@@ -25,6 +25,7 @@ find_package(OpenEXR REQUIRED)
 set(NOM_PROJET module_c_image)
 
 set(INCLUSIONS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
     ${CMAKE_CURRENT_SOURCE_DIR}/../../
     ${OPENIMAGEIO_INCLUDE_DIRS}
     ${OPENEXR_INCLUDE_DIRS}
@@ -33,6 +34,8 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
     ${OPENIMAGEIO_LIBRARIES}
     ${OPENEXR_LIBRARIES}
+
+    bib_outils
 )
 
 set(SOURCES
