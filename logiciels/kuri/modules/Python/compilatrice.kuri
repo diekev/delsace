@@ -227,8 +227,9 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
 {
     type_python := loge(TypePython)
     type_python.nom = nom
+    type_python.nom_sauf = remplace(nom, '.', '_')
     type_python.type_kuri = info
-    type_python.nom_globale_type = enchaine("PyType", nom, "PourPython")
+    type_python.nom_globale_type = enchaine("PyType", type_python.nom_sauf, "PourPython")
     tableau_ajoute(*système.types, type_python)
     retourne type_python
 }
@@ -335,7 +336,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         STRUCTURE {
             info_struct := info comme *InfoTypeStructure
             type_python = système.crée_type_python_pour(info, info_struct.nom)
-            init_fonctions_type_structure(type_python.fonctions, info_struct.nom)
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
 
             si info_struct.structs_employées {
                 type_base := système.convertis_vers_type_python(info_struct.structs_employées[0])
@@ -363,7 +364,7 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         UNION {
             info_union := info comme *InfoTypeUnion
             type_python = système.crée_type_python_pour(info, info_union.nom)
-            init_fonctions_type_structure(type_python.fonctions, info_union.nom)
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
             type_python.drapeaux.TYPE_EST_UNION = vrai
 
             pour info_union.membres {
@@ -406,11 +407,11 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
             type_élément := convertis_vers_type_python(système, type_pointé)
 
-            nom := enchaine("Tableau_", type_élément.nom)
+            nom := enchaine("Tableau_", remplace(type_élément.nom, '.', '_'))
             type_python = système.crée_type_python_pour(info, nom)
             type_python.drapeaux.TYPE_EST_TABLEAU = vrai
             type_python.type_élément = type_élément
-            init_fonctions_type_structure(type_python.fonctions, type_python.nom)
+            init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
 
             /* Crée un type itérateur pour ce type. */
             type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom))
