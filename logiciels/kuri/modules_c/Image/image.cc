@@ -629,7 +629,7 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 
         for (auto const &desc_canal : desc_calque.canaux) {
             void *canal = image->ajoute_canal(
-                image, calque, desc_canal.nom.c_str(), long(desc_calque.nom.size()));
+                image, calque, desc_canal.nom.c_str(), long(desc_canal.nom.size()));
 
             if (!canal) {
                 return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
