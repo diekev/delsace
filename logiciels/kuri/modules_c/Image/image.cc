@@ -635,10 +635,12 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                 return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
             }
 
+            float *donnees_canal = image->donnees_canal_pour_ecriture(image, canal);
+
             auto const index_canal = desc_canal.index;
 
             auto const succes = input->read_image(
-                0, 0, index_canal, index_canal + 1, format, canal);
+                0, 0, index_canal, index_canal + 1, format, donnees_canal);
             if (!succes) {
                 return ResultatOperation::LECTURE_DONNEES_IMPOSSIBLE;
             }
@@ -682,7 +684,8 @@ ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
 
     std::vector<const float *> canaux(nombre_de_canaux);
     for (int i = 0; i < nombre_de_canaux; i++) {
-        canaux[i] = static_cast<const float *>(image->donnees_canal_pour_index(image, calque, i));
+        auto canal = image->canal_pour_index(image, calque, i);
+        canaux[i] = image->donnees_canal_pour_lecture(image, canal);
     }
 
     auto index = 0;
