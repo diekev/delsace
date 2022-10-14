@@ -108,6 +108,48 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       long taille_chemin,
                                                       struct AdaptriceImage *image);
 
+// ----------------------------------------------------------------------------
+// Simumlation de grain sur image
+
+struct ParametresSimulationGrain {
+    /** Graine pour générer des nombres aléatoires et rendre le résultat unique. */
+    unsigned int graine;
+
+    /** Le nombre d'itérations de Monte-Carlo à effectuer pour générer le grain. */
+    int iterations;
+
+    /** Rayon des grains générés. Ceci est également la distance minimale à préserver entre les
+     * grains. */
+    float rayon_r;
+    float rayon_v;
+    float rayon_b;
+
+    /** Variation du rayon des grains. Ceci est en fait l'écart-type d'une distribution normale où
+     * le rayon des grains est la moyenne. Cette valeur peut donc être supérieure à 1. */
+    float sigma_r;
+    float sigma_v;
+    float sigma_b;
+
+    /** Variation du flou des grains. Ceci est en fait l'écart-type d'une distribution normale où
+     * le rayon des grains est la moyenne. Cette valeur peut donc être supérieure à 1. */
+    float sigma_filtre_r;
+    float sigma_filtre_v;
+    float sigma_filtre_b;
+};
+
+/**
+ * Simule du grain sur l'image d'entrée.
+ * Le grain est simulé pour tous les calques de l'image d'entrée.
+ * Pour chaque calque, jusque trois canaux sont utilisés pour la simulation; ces canaux sont les
+ * premiers canaux de l'image.
+ * Le résultat sera place dans l'image de sortie. Des calques et canaux avec des noms similaires à
+ * ceux de l'image d'entrée seront créés dans l'image de sortie. Seuls les canaux résultats seront
+ * dans l'image de sortie : aucune copie des autres canaux de l'image d'entrée ne sera faite.
+ */
+void IMG_simule_grain_image(const struct ParametresSimulationGrain *params,
+                            const struct AdaptriceImage *image_entree,
+                            struct AdaptriceImage *image_sortie);
+
 #ifdef __cplusplus
 }
 #endif

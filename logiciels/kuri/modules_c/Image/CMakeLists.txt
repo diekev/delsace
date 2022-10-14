@@ -38,12 +38,24 @@ set(BIBLIOTHEQUES
     bib_outils
 )
 
+set(SOURCES_ALGORITHMES
+    simulation_grain.cc
+    simulation_grain.hh
+)
+
+add_library(bib_algorithmes_image STATIC "${SOURCES_ALGORITHMES}")
+target_include_directories(bib_algorithmes_image PUBLIC "${INCLUSIONS}")
+target_link_libraries(bib_algorithmes_image "${BIBLIOTHEQUES}")
+set_property(TARGET bib_algorithmes_image PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 set(SOURCES
     image.cc
 
     image.h
     oiio.h
 )
+
+list(APPEND BIBLIOTHEQUES bib_algorithmes_image)
 
 compile_module_c(${NOM_PROJET} image image.h Image "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
 set_property(TARGET ${NOM_PROJET}_statique PROPERTY CXX_STANDARD 14)

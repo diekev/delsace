@@ -18,6 +18,13 @@
 #include <string_view>
 #include <vector>
 
+#include "simulation_grain.hh"
+
+#define RETOURNE_SI_NUL(x)                                                                        \
+    if (!(x)) {                                                                                   \
+        return;                                                                                   \
+    }
+
 #if 0
 #    ifndef M_PI
 #        define M_PI 3.14159265358979323846
@@ -802,4 +809,17 @@ void IMG_calcul_empreinte_floue(
 
     input->close();
 }
+}
+
+// ----------------------------------------------------------------------------
+// Simumlation de grain sur image
+
+void IMG_simule_grain_image(const ParametresSimulationGrain *params,
+                            const struct AdaptriceImage *image_entree,
+                            struct AdaptriceImage *image_sortie)
+{
+    RETOURNE_SI_NUL(params);
+    RETOURNE_SI_NUL(image_entree);
+    RETOURNE_SI_NUL(image_sortie);
+    image::simule_grain(*params, *image_entree, *image_sortie);
 }
