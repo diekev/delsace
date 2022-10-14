@@ -8,8 +8,8 @@ struct ParametresSimulationGrain;
 
 namespace image {
 
-void simule_grain(const ParametresSimulationGrain &params,
-                  const AdaptriceImage &entree,
-                  AdaptriceImage &sortie);
+void simule_grain_image(const ParametresSimulationGrain &params,
+                        const AdaptriceImage &entree,
+                        AdaptriceImage &sortie);
 
 }

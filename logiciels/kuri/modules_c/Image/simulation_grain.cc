@@ -8,6 +8,7 @@
 #include "biblinternes/outils/gna.hh"
 
 #include "biblinternes/structures/tableau.hh"
+#include "donnees_canal.hh"
 #include "image.h"
 #include <algorithm>
 #include <cmath>
@@ -73,26 +74,6 @@ static void init_lambdas(const ParamatresGrain &params, float lambdas[MAX_NIVEAU
     }
 }
 
-struct DonneesCanal {
-    int largeur = 0;
-    int hauteur = 0;
-    const float *donnees_entree = nullptr;
-    float *donnees_sortie = nullptr;
-
-    ParamatresGrain params;
-};
-
-static inline long calcule_index(DonneesCanal &image, int i, int j)
-{
-    return j * image.largeur + i;
-}
-
-static inline float valeur_entree(DonneesCanal &image, int i, int j)
-{
-    auto index = calcule_index(image, i, j);
-    return image.donnees_entree[index];
-}
-
 static unsigned int poisson(const float u, const float lambda)
 {
     /* Inverse transform sampling */
@@ -110,7 +91,7 @@ static unsigned int poisson(const float u, const float lambda)
     return x;
 }
 
-static float simule_grain_pour_coordonnees(DonneesCanal &canal,
+static float simule_grain_pour_coordonnees(DonneesCanal<ParamatresGrain> &canal,
                                            GNA &gna_local,
                                            const float *lambdas,
                                            const float gaussien_x,
@@ -176,7 +157,7 @@ static float simule_grain_pour_coordonnees(DonneesCanal &canal,
     return resultat;
 }
 
-static void simule_grain_image(DonneesCanal &image,
+static void simule_grain_image(DonneesCanal<ParamatresGrain> &image,
                                const unsigned int graine,
                                const int iterations)
 {
@@ -225,9 +206,9 @@ static void simule_grain_image(DonneesCanal &image,
     });
 }
 
-void simule_grain(const ParametresSimulationGrain &params,
-                  const AdaptriceImage &entree,
-                  AdaptriceImage &sortie)
+void simule_grain_image(const ParametresSimulationGrain &params,
+                        const AdaptriceImage &entree,
+                        AdaptriceImage &sortie)
 {
     auto const nombre_de_calques = entree.nombre_de_calques(&entree);
 
@@ -237,7 +218,7 @@ void simule_grain(const ParametresSimulationGrain &params,
         calcule_parametres(params.rayon_b, params.sigma_b, params.sigma_filtre_b),
     };
 
-    dls::tableau<DonneesCanal> canaux;
+    dls::tableau<DonneesCanal<ParamatresGrain>> canaux;
 
     DescriptionImage desc;
     entree.decris_image(&entree, &desc);
@@ -265,7 +246,7 @@ void simule_grain(const ParametresSimulationGrain &params,
 
             auto donnees_canal_sortie = sortie.donnees_canal_pour_ecriture(&sortie, canal_sortie);
 
-            DonneesCanal donnees;
+            DonneesCanal<ParamatresGrain> donnees;
             donnees.hauteur = desc.hauteur;
             donnees.largeur = desc.largeur;
             donnees.donnees_entree = donnees_canal_entree;

@@ -18,6 +18,8 @@
 #include <string_view>
 #include <vector>
 
+#include "champs_de_distance.hh"
+#include "filtrage.hh"
 #include "simulation_grain.hh"
 
 #define RETOURNE_SI_NUL(x)                                                                        \
@@ -811,15 +813,53 @@ void IMG_calcul_empreinte_floue(
 }
 }
 
+#define PASSE_APPEL(fonction, type_params)                                                        \
+    void IMG_##fonction(const type_params *params,                                                \
+                        const struct AdaptriceImage *image_entree,                                \
+                        struct AdaptriceImage *image_sortie)                                      \
+    {                                                                                             \
+        RETOURNE_SI_NUL(params);                                                                  \
+        RETOURNE_SI_NUL(image_entree);                                                            \
+        RETOURNE_SI_NUL(image_sortie);                                                            \
+        image::fonction(*params, *image_entree, *image_sortie);                                   \
+    }
+
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image
 
-void IMG_simule_grain_image(const ParametresSimulationGrain *params,
-                            const struct AdaptriceImage *image_entree,
-                            struct AdaptriceImage *image_sortie)
-{
-    RETOURNE_SI_NUL(params);
-    RETOURNE_SI_NUL(image_entree);
-    RETOURNE_SI_NUL(image_sortie);
-    image::simule_grain(*params, *image_entree, *image_sortie);
-}
+PASSE_APPEL(simule_grain_image, ParametresSimulationGrain)
+
+// ----------------------------------------------------------------------------
+// Filtrage de l'image
+
+PASSE_APPEL(filtre_image, IMG_ParametresFiltrageImage)
+
+// ----------------------------------------------------------------------------
+// Affinage de l'image.
+
+PASSE_APPEL(affine_image, IMG_ParametresAffinageImage)
+
+// ----------------------------------------------------------------------------
+// Dilatation de l'image.
+
+PASSE_APPEL(dilate_image, IMG_ParametresDilatationImage)
+
+// ----------------------------------------------------------------------------
+// Érosion d'image.
+
+PASSE_APPEL(erode_image, IMG_ParametresDilatationImage)
+
+// ----------------------------------------------------------------------------
+// Filtrage médian de l'image.
+
+PASSE_APPEL(filtre_median_image, IMG_ParametresMedianImage)
+
+// ----------------------------------------------------------------------------
+// Filtrage bilatéral de l'image.
+
+PASSE_APPEL(filtre_bilateral_image, IMG_ParametresFiltreBilateralImage)
+
+// ----------------------------------------------------------------------------
+// Champs de distance de l'image.
+
+PASSE_APPEL(genere_champs_de_distance, IMG_ParametresChampsDeDistance)

@@ -150,6 +150,101 @@ void IMG_simule_grain_image(const struct ParametresSimulationGrain *params,
                             const struct AdaptriceImage *image_entree,
                             struct AdaptriceImage *image_sortie);
 
+// ----------------------------------------------------------------------------
+// Filtrage de l'image
+
+enum IMG_TypeFiltre {
+    TYPE_FILTRE_BOITE,
+    TYPE_FILTRE_TRIANGULAIRE,
+    TYPE_FILTRE_QUADRATIC,
+    TYPE_FILTRE_CUBIC,
+    TYPE_FILTRE_GAUSSIEN,
+    TYPE_FILTRE_MITCHELL,
+    TYPE_FILTRE_CATROM,
+};
+
+struct IMG_ParametresFiltrageImage {
+    enum IMG_TypeFiltre filtre;
+    float rayon;
+};
+
+void IMG_filtre_image(const struct IMG_ParametresFiltrageImage *params,
+                      const struct AdaptriceImage *entree,
+                      struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Affinage de l'image.
+
+struct IMG_ParametresAffinageImage {
+    enum IMG_TypeFiltre filtre;
+    float rayon;
+    float poids;
+};
+
+void IMG_affine_image(const struct IMG_ParametresAffinageImage *params,
+                      const struct AdaptriceImage *entree,
+                      struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Dilatation de l'image.
+
+struct IMG_ParametresDilatationImage {
+    int rayon;
+};
+
+void IMG_dilate_image(const struct IMG_ParametresDilatationImage *params,
+                      const struct AdaptriceImage *entree,
+                      struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Érosion d'image.
+
+void IMG_erode_image(const struct IMG_ParametresDilatationImage *params,
+                     const struct AdaptriceImage *entree,
+                     struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Filtrage médian de l'image.
+
+struct IMG_ParametresMedianImage {
+    int rayon;
+};
+
+void IMG_filtre_median_image(const struct IMG_ParametresMedianImage *params,
+                             const struct AdaptriceImage *entree,
+                             struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Filtrage bilatéral de l'image.
+
+struct IMG_ParametresFiltreBilateralImage {
+    int rayon;
+    float sigma_s;
+    float sigma_i;
+};
+
+void IMG_filtre_bilateral_image(const struct IMG_ParametresFiltreBilateralImage *params,
+                                const struct AdaptriceImage *entree,
+                                struct AdaptriceImage *sortie);
+
+// ----------------------------------------------------------------------------
+// Champs de distance de l'image.
+
+enum IMG_TypeChampsDeDistance {
+    BALAYAGE_RAPIDE,
+    NAVIGATION_ESTIME,
+    DISTANCE_EUCLIDIENNE_SIGNEE_SEQUENTIELLE
+};
+
+struct IMG_ParametresChampsDeDistance {
+    float iso;
+    enum IMG_TypeChampsDeDistance methode;
+};
+
+void IMG_genere_champs_de_distance(const struct IMG_ParametresChampsDeDistance *params,
+                                   const struct AdaptriceImage *entree,
+                                   struct AdaptriceImage *sortie);
+
 #ifdef __cplusplus
 }
 #endif

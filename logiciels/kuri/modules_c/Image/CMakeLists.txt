@@ -35,11 +35,22 @@ set(BIBLIOTHEQUES
     ${OPENIMAGEIO_LIBRARIES}
     ${OPENEXR_LIBRARIES}
 
+    math
     bib_outils
 )
 
 set(SOURCES_ALGORITHMES
+    analyse.cc
+    application_fonction.cc
+    champs_de_distance.cc
+    filtrage.cc
     simulation_grain.cc
+
+    analyse.hh
+    application_fonction.hh
+    champs_de_distance.hh
+    donnees_canal.hh
+    filtrage.hh
     simulation_grain.hh
 )
 
