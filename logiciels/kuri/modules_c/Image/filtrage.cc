@@ -448,28 +448,38 @@ using CanalPourMedian = DonneesCanal<IMG_ParametresMedianImage>;
 
 void filtre_median_image(CanalPourMedian &image)
 {
-    applique_fonction_sur_entree(image, [&](float, int x, int y) {
-        // À FAIRE : par-thread
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
         auto taille = image.params.rayon;
         auto taille_fenetre = (2 * taille + 1) * (2 * taille + 1);
         auto moitie_taille = taille_fenetre / 2;
         auto est_paire = taille_fenetre % 2 == 0;
         auto valeurs_R = dls::tableau<float>(taille_fenetre);
 
-        auto index_v = 0;
-        for (auto j = -taille; j <= taille; ++j) {
-            for (auto i = -taille; i <= taille; ++i, ++index_v) {
-                valeurs_R[index_v] = valeur_entree(image, i, j);
+        for (int y = plage.begin(); y < plage.end(); ++y) {
+            for (int x = 0; x < res_x; ++x) {
+                auto index = calcule_index(image, x, y);
+                auto index_v = 0;
+                for (auto j = -taille; j <= taille; ++j) {
+                    for (auto i = -taille; i <= taille; ++i, ++index_v) {
+                        valeurs_R[index_v] = valeur_entree(image, x + i, y + j);
+                    }
+                }
+
+                std::sort(begin(valeurs_R), end(valeurs_R));
+
+                if (est_paire) {
+                    image.donnees_sortie[index] = (valeurs_R[moitie_taille] +
+                                                   valeurs_R[moitie_taille + 1]) *
+                                                  0.5f;
+                }
+                else {
+                    image.donnees_sortie[index] = valeurs_R[moitie_taille];
+                }
             }
         }
-
-        std::sort(begin(valeurs_R), end(valeurs_R));
-
-        if (est_paire) {
-            return (valeurs_R[moitie_taille] + valeurs_R[moitie_taille + 1]) * 0.5f;
-        }
-
-        return valeurs_R[moitie_taille];
     });
 }
 
