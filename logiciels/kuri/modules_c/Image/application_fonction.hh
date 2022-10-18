@@ -41,4 +41,36 @@ void applique_fonction_sur_sortie(DonneesCanal<T> &image, TypeOperation &&op)
     });
 }
 
+template <typename T, typename TypeOperation>
+void applique_fonction_sur_entree_vertical(DonneesCanal<T> &image, TypeOperation &&op)
+{
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_x), [&](tbb::blocked_range<int> const &plage) {
+        for (int x = plage.begin(); x < plage.end(); ++x) {
+            for (int y = 0; y < res_y; ++y) {
+                auto index = calcule_index(image, x, y);
+                image.donnees_sortie[index] = op(image.donnees_entree[index], x, y);
+            }
+        }
+    });
+}
+
+template <typename T, typename TypeOperation>
+void applique_fonction_sur_sortie_vertical(DonneesCanal<T> &image, TypeOperation &&op)
+{
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_x), [&](tbb::blocked_range<int> const &plage) {
+        for (int x = plage.begin(); x < plage.end(); ++x) {
+            for (int y = 0; y < res_y; ++y) {
+                auto index = calcule_index(image, x, y);
+                image.donnees_sortie[index] = op(image.donnees_sortie[index], x, y);
+            }
+        }
+    });
+}
+
 }  // namespace image

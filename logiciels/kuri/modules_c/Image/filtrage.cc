@@ -290,7 +290,7 @@ void filtre_image(CanalPourFiltrage &image)
     });
 
     /* Applique le filtre sur l'axe des Y. Nous devons l'appliquer sur la sortie. */
-    applique_fonction_sur_sortie(image, [&](float /*valeur*/, int x, int y) {
+    applique_fonction_sur_sortie_vertical(image, [&](float /*valeur*/, int x, int y) {
         auto valeur = 0.0f;
         auto rayon_i = static_cast<int>(rayon);
 
