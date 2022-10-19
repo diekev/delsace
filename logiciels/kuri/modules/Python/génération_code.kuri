@@ -589,11 +589,14 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
         enchaineuse.imprime_dans_enchaineuse("    pyobject_%: *PyObject\n", it.nom)
     }
 
-    enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, crée_chaine_c(\"")
+    enchaineuse.ajoute_au_tampon("    chn_objets := crée_chaine_c(\"")
     pour méthode.paramètres_entrée {
         enchaineuse.ajoute_au_tampon("O")
     }
-    enchaineuse.ajoute_au_tampon("\")")
+    enchaineuse.ajoute_au_tampon("\")\n")
+    enchaineuse.ajoute_au_tampon("diffère détruit_chaine_c(chn_objets)\n")
+
+    enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, chn_objets")
     virgule := ", "
     pour méthode.paramètres_entrée {
         enchaineuse.ajoute_au_tampon(virgule, "*pyobject_", it.nom)
