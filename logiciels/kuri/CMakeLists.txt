@@ -38,8 +38,8 @@ endif()
 find_program(GPERF NAME gperf)
 
 # À FAIRE : trouve ceux-ci de manière programmatique
-add_definitions(-DCOMPILATEUR_C_COULISSE_C="/usr/bin/gcc-10")
-add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="/usr/bin/g++-10")
+add_definitions(-DCOMPILATEUR_C_COULISSE_C="${CMAKE_C_COMPILER}")
+add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="${CMAKE_CXX_COMPILER}")
 
 # ------------------------------------------------------------------------------
 
