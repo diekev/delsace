@@ -21,7 +21,6 @@
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 option(AVEC_MODULES_C "Active la génération des modules implémentés en C" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
