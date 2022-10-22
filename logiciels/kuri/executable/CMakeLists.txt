@@ -146,6 +146,10 @@ if(AVEC_LLVM)
 	list(APPEND EXTLIB_COMPILE_FLAGS -Wno-comment)
 	set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
+	# Force l'utilisation de C++ 17 car LLVM utilise des fonctions du
+	# langage qui sont déclarées comme malformées en C++ 20.
+	set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 17) 
+
 	target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
 	target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
