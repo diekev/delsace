@@ -26,6 +26,10 @@ option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
 
+# Nous avons besoin de GPerf pour générer les empreintes parfaites
+# des lexèmes.
+find_program(gperf NAMES gperf REQUIRED)
+
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
 	add_definitions(-DAVEC_LLVM)
