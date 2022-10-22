@@ -106,35 +106,16 @@ if(AVEC_LLVM)
 		${CMAKE_CURRENT_SOURCE_DIR}/../
 		${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 		${INCLUSIONS_DELSACE_CHRONO}
-			${CLANG_INCLUDE_DIR}
+		${CLANG_INCLUDE_DIR}
 	)
 
 	set(BIBLIOTHEQUES
 		stdc++fs
 		bib_outils
-			/usr/lib/llvm-12/lib/libclangTooling.a
-			/usr/lib/llvm-12/lib/libclangFrontend.a
-			/usr/lib/llvm-12/lib/libclangFrontendTool.a
-			/usr/lib/llvm-12/lib/libclangDriver.a
-			/usr/lib/llvm-12/lib/libclangSerialization.a
-			/usr/lib/llvm-12/lib/libclangCodeGen.a
-			/usr/lib/llvm-12/lib/libclangParse.a
-			/usr/lib/llvm-12/lib/libclangSema.a
-			/usr/lib/llvm-12/lib/libclangStaticAnalyzerFrontend.a
-			/usr/lib/llvm-12/lib/libclangStaticAnalyzerCheckers.a
-			/usr/lib/llvm-12/lib/libclangStaticAnalyzerCore.a
-			/usr/lib/llvm-12/lib/libclangAnalysis.a
-			/usr/lib/llvm-12/lib/libclangARCMigrate.a
-			/usr/lib/llvm-12/lib/libclangRewrite.a
-			/usr/lib/llvm-12/lib/libclangRewriteFrontend.a
-			/usr/lib/llvm-12/lib/libclangEdit.a
-			/usr/lib/llvm-12/lib/libclangAST.a
-			/usr/lib/llvm-12/lib/libclangLex.a
-			/usr/lib/llvm-12/lib/libclangBasic.a
-			/usr/lib/llvm-12/lib/libLLVM.so
-			/usr/lib/llvm-12/lib/libclang.so
 		bib_json
-			kuri_structures
+		kuri_structures
+		${CLANG_LIBRARIES}
+		${LLVM_LIBRARY}
 	)
 
 	add_executable(${NOM_PROJET}

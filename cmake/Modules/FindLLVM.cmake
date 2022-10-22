@@ -94,12 +94,43 @@ if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 	endif()
 endif()
 
+if(LLVM_LIBPATH)
+	set(CLANG_LIBS
+		clangTooling
+		clangFrontend
+		clangFrontendTool
+		clangDriver
+		clangSerialization
+		clangCodeGen
+		clangParse
+		clangSema
+		clangStaticAnalyzerFrontend
+		clangStaticAnalyzerCheckers
+		clangStaticAnalyzerCore
+		clangAnalysis
+		clangARCMigrate
+		clangRewrite
+		clangRewriteFrontend
+		clangEdit
+		clangAST
+		clangLex
+		clangBasic
+		clang
+	)
+
+	set(CLANG_LIBRARIES)
+
+	foreach (__clang_lib__ ${CLANG_LIBS})
+		find_library(__clang_library__${__clang_lib__} NAMES ${__clang_lib__} PATHS ${LLVM_LIBPATH} NO_CACHE)
+		list(APPEND CLANG_LIBRARIES ${__clang_library__${__clang_lib__}})
+	endforeach()
+endif()
 
 # handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
-    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR)
+    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR CLANG_LIBRARIES)
 
 MARK_AS_ADVANCED(
   LLVM_LIBRARY
