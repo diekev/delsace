@@ -239,6 +239,7 @@ enum IMG_TypeChampsDeDistance {
 struct IMG_ParametresChampsDeDistance {
     float iso;
     enum IMG_TypeChampsDeDistance methode;
+    int emets_gradients;
 };
 
 void IMG_genere_champs_de_distance(const struct IMG_ParametresChampsDeDistance *params,
