@@ -299,7 +299,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     navigation_estime_ex(image, nearest_point);
 
     if (!image.params.emets_gradients) {
-        normalise(image);
+        // normalise(image);
     }
 }
 
@@ -395,7 +395,7 @@ void initialise(CanalPourChampsDeDistance &image,
         dls::math::hypotenuse(static_cast<float>(sx), static_cast<float>(sy)));
 
     applique_fonction_sur_entree(image, [&](float valeur, int x, int y) {
-        if (valeur < image.params.iso) {
+        if (valeur <= image.params.iso) {
             grille1[y][x] = math::vec2i{0, 0};
             grille2[y][x] = math::vec2i{max_dist, max_dist};
         }
@@ -444,7 +444,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 
                 auto const index = calcule_index(image, c, l);
                 gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
-                gradient_y[index] = static_cast<float>(p.y - c) / static_cast<float>(image.hauteur);
+                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
             }
         }
     }
@@ -496,6 +496,14 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     const long nombre_de_pixels = long(res_x) * long(res_y);
 
     float *donnees_sortie = image.donnees_sortie[0];
+    const auto sx = image.largeur;
+    const auto sy = image.hauteur;
+    const auto dimensions = math::Dimensions(math::Hauteur(sy), math::Largeur(sx));
+    const auto unite = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
+
+    /* We use two point grids: one which keeps track of the interior distances,
+     * while the other, the exterior distances. */
+    math::matrice_dyn<math::vec2<int>> grille1(dimensions);
 
     for (int i = 0; i < nombre_de_pixels; i++) {
         auto const valeur = image.donnees_entree[i] > image.params.iso ? 1.0f : 0.0f;
@@ -506,9 +514,11 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     for (int x = 1; x < res_x - 1; ++x) {
         for (int y = 1; y < res_y - 1; ++y) {
             auto const index = calcule_index(image, x, y);
-            if (donnees_sortie[index] != 0.0f) {
-                donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -516,9 +526,11 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     for (int x = res_x - 2; x >= 1; --x) {
         for (int y = 1; y < res_y - 1; ++y) {
             auto const index = calcule_index(image, x, y);
-            if (donnees_sortie[index] != 0.0f) {
-                donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -526,9 +538,11 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     for (int x = res_x - 2; x >= 1; --x) {
         for (int y = res_y - 2; y >= 1; --y) {
             auto const index = calcule_index(image, x, y);
-            if (donnees_sortie[index] != 0.0f) {
-                donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -536,8 +550,33 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     for (int x = 1; x < res_x - 1; ++x) {
         for (int y = res_y - 2; y >= 1; --y) {
             auto const index = calcule_index(image, x, y);
-            if (donnees_sortie[index] != 0.0f) {
-                donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
+            }
+            donnees_sortie[index] = dist;
+        }
+    }
+
+    /* indicate interior and exterior pixel */
+    auto index = 0;
+    if (!image.params.emets_gradients) {
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                if (image.donnees_entree[index] <= image.params.iso) {
+                    donnees_sortie[index] = -donnees_sortie[index];
+                }
+            }
+        }
+    }
+    else {
+        float *gradient_x = image.donnees_sortie[0];
+        float *gradient_y = image.donnees_sortie[1];
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                auto p = grille1[l][c];
+                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
             }
         }
     }
