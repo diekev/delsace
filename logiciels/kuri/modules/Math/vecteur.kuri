@@ -6,6 +6,12 @@ Vec2 :: struct {
     y := 0.0  @mutable
 }
 
+new_Vec3_pour_python :: fonc (vec: *Vec2) -> bool
+{
+    init_de(Vec2)(vec)
+    retourne vrai
+} @Python "new"
+
 opérateur == :: fonc (u: Vec2, v: Vec2) -> bool
 {
     retourne u.x == v.x && u.y == v.y
