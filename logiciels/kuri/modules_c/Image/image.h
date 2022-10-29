@@ -246,6 +246,13 @@ void IMG_genere_champs_de_distance(const struct IMG_ParametresChampsDeDistance *
                                    const struct AdaptriceImage *entree,
                                    struct AdaptriceImage *sortie);
 
+// ----------------------------------------------------------------------------
+// Défocalisation de l'image.
+
+void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
+                          struct AdaptriceImage *image_sortie,
+                          const float *rayon_flou_par_pixel);
+
 #ifdef __cplusplus
 }
 #endif

@@ -225,17 +225,14 @@ auto valeur_filtre(IMG_TypeFiltre type, T x)
 }
 
 template <typename T>
-static dls::tableau<T> cree_table_filtre(IMG_TypeFiltre type, T rayon)
+static void initialise_table_filtre(dls::tableau<T> &table, int taille, int n, IMG_TypeFiltre type, T rayon)
 {
+    table.redimensionne(n);
+
     /* nécessaire pour avoir une meilleure sûreté de type, sans avoir à écrire
      * static_cast partout */
     constexpr auto _0 = static_cast<T>(0);
     constexpr auto _1 = static_cast<T>(1.0);
-
-    auto taille = static_cast<int>(rayon);
-    auto n = 2 * taille + 1;
-
-    auto table = dls::tableau<T>(n);
 
     auto fac = (rayon > _0 ? _1 / rayon : _0);
     auto somme = _0;
@@ -251,7 +248,16 @@ static dls::tableau<T> cree_table_filtre(IMG_TypeFiltre type, T rayon)
     for (auto i = 0; i < n; i++) {
         table[i] *= somme;
     }
+}
 
+template <typename T>
+static dls::tableau<T> cree_table_filtre(IMG_TypeFiltre type, T rayon)
+{
+    auto taille = static_cast<int>(rayon);
+    auto n = 2 * taille + 1;
+
+    auto table = dls::tableau<T>(n);
+    initialise_table_filtre(table, taille, n, type, rayon);
     return table;
 }
 
@@ -549,6 +555,65 @@ void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
 
     for (auto &canal : canaux) {
         filtre_bilateral_image(canal);
+    }
+}
+
+/* ************************************************************************** */
+
+using CanalPourDefocalisation = DonneesCanal<float>;
+
+static void defocalise_canal(CanalPourDefocalisation &image, const float *rayon_flou_par_pixel)
+{
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    /* Applique filtre sur l'axe des X. */
+    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
+        dls::tableau<float> table;
+        for (int y = plage.begin(); y < plage.end(); ++y) {
+            for (int x = 0; x < res_x; ++x) {
+                auto valeur = 0.0f;
+                auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
+                auto rayon_i = static_cast<int>(rayon);
+                initialise_table_filtre(table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
+
+                for (auto ix = x - rayon_i, k = 0; ix < x + rayon_i + 1; ix++, ++k) {
+                    auto p = valeur_entree(image, ix, y);
+                    valeur += p * table[k];
+                }
+
+                image.donnees_sortie[calcule_index(image, x, y)] = valeur;
+            }
+        }
+    });
+
+    /* Applique le filtre sur l'axe des Y. Nous devons l'appliquer sur la sortie. */
+    boucle_parallele(tbb::blocked_range<int>(0, res_x), [&](tbb::blocked_range<int> const &plage) {
+        dls::tableau<float> table;
+        for (int x = plage.begin(); x < plage.end(); ++x) {
+            for (int y = 0; y < res_y; ++y) {
+                auto valeur = 0.0f;
+                auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
+                auto rayon_i = static_cast<int>(rayon);
+                initialise_table_filtre(table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
+
+                for (auto iy = y - rayon_i, k = 0; iy < y + rayon_i + 1; iy++, ++k) {
+                    auto p = valeur_sortie(image, x, iy);
+                    valeur += p * table[k];
+                }
+
+                image.donnees_sortie[calcule_index(image, x, y)] = valeur;
+            }
+        }
+    });
+} 
+
+void defocalise_image(const AdaptriceImage &entree, AdaptriceImage &sortie, const float *rayon_flou_par_pixel)
+{
+    auto canaux = parse_canaux<float>(entree, sortie);
+
+    for (auto &canal : canaux) {
+        defocalise_canal(canal, rayon_flou_par_pixel);
     }
 }
 
