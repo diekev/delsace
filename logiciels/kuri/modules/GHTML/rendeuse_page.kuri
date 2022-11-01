@@ -197,7 +197,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 
     /* la page est vide */
     saufsi page.racine {
-        retourne copie_chaine("")
+        retourne copie_chaine("<p>La page est vide</p>")
     }
 
     données_génération : DonnéesGénération
