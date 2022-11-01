@@ -90,7 +90,7 @@ divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
     retourne résultat
 }
 
-chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
+chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
     pile_secondaire : Pile(chaine)
     diffère détruit(pile_secondaire)
@@ -121,10 +121,15 @@ chemin_normalisé :: fonc (pile: &Pile(chaine)) -> CheminFichier
         chaine_ajoute(*résultat, séparateur_chemin())
     }
 
+    premier_slash := vrai
+
     tantque !pile_secondaire.est_vide() {
         morceau_courant := pile_secondaire.dépile()
-        chaine_ajoute(*résultat, séparateur_chemin())
+        si !premier_slash || chemin_est_absolu {
+            chaine_ajoute(*résultat, séparateur_chemin())
+        }
         chaine_ajoute(*résultat, morceau_courant)
+        premier_slash = faux
     }
 
     retourne CheminFichier(résultat)
@@ -134,7 +139,7 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     pile := divise_et_empile_chemin(chemin)
     diffère détruit(pile)
-    retourne chemin_normalisé(pile)
+    retourne chemin_normalisé(pile, chemin.chn.commence_par(séparateur_chemin()))
 }
 
 opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
@@ -189,8 +194,8 @@ opérateur >= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
 
 chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
-    chemin1_normalisé := chemin_normalisé(chemin1)
-    chemin2_normalisé := chemin_normalisé(chemin2)
+    chemin1_normalisé := chemin_normalisé(chemin1, chemin1.chn.commence_par(séparateur_chemin()))
+    chemin2_normalisé := chemin_normalisé(chemin2, chemin2.chn.commence_par(séparateur_chemin()))
     diffère déloge(chemin1_normalisé.chn)
     diffère déloge(chemin2_normalisé.chn)
     retourne chemin1_normalisé == chemin2_normalisé
@@ -203,7 +208,7 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
     diffère détruit(pile)
     divise_et_empile_chemin(pile, base)
     divise_et_empile_chemin(pile, feuille)
-    retourne chemin_normalisé(pile)
+    retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()))
 }
 
 est_absolu :: fonc (chm: CheminFichier) -> bool
