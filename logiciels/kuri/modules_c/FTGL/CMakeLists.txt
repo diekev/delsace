@@ -21,13 +21,15 @@
 
 set(NOM_PROJET module_c_ftgl)
 
+find_package(Freetype REQUIRED)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	/usr/include/freetype2/
+	${FREETYPE_INCLUDE_DIRS}
 )
 
 set(BIBLIOTHEQUES
-	freetype
+	${FREETYPE_LIBRARY}
 )
 
 set(SOURCES

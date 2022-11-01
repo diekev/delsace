@@ -19,7 +19,79 @@ using namespace dls;
 
 namespace image {
 
-using CanalPourChampsDeDistance = DonneesCanal<float>;
+struct CanalPourChampsDeDistance {
+    int largeur = 0;
+    int hauteur = 0;
+    const float *donnees_entree = nullptr;
+    float *donnees_sortie[2] = {};
+
+    IMG_ParametresChampsDeDistance params;
+};
+
+inline long calcule_index(CanalPourChampsDeDistance &image, int i, int j)
+{
+    return j * image.largeur + i;
+}
+
+inline float valeur_entree(CanalPourChampsDeDistance &image, int i, int j)
+{
+    if (i < 0 || i >= image.largeur) {
+        return 0.0f;
+    }
+
+    if (j < 0 || j >= image.hauteur) {
+        return 0.0f;
+    }
+
+    auto index = calcule_index(image, i, j);
+    return image.donnees_entree[index];
+}
+
+inline float valeur_sortie(CanalPourChampsDeDistance &image, int i, int j)
+{
+    if (i < 0 || i >= image.largeur) {
+        return 0.0f;
+    }
+
+    if (j < 0 || j >= image.hauteur) {
+        return 0.0f;
+    }
+
+    auto index = calcule_index(image, i, j);
+    return image.donnees_sortie[0][index];
+}
+
+template <typename TypeOperation>
+void applique_fonction_sur_entree(CanalPourChampsDeDistance &image, TypeOperation &&op)
+{
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
+        for (int y = plage.begin(); y < plage.end(); ++y) {
+            for (int x = 0; x < res_x; ++x) {
+                auto index = calcule_index(image, x, y);
+                image.donnees_sortie[0][index] = op(image.donnees_entree[index], x, y);
+            }
+        }
+    });
+}
+
+template <typename TypeOperation>
+void applique_fonction_sur_sortie(CanalPourChampsDeDistance &image, TypeOperation &&op)
+{
+    auto const res_x = image.largeur;
+    auto const res_y = image.hauteur;
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
+        for (int y = plage.begin(); y < plage.end(); ++y) {
+            for (int x = 0; x < res_x; ++x) {
+                auto index = calcule_index(image, x, y);
+                image.donnees_sortie[0][index] = op(image.donnees_sortie[0][index], x, y);
+            }
+        }
+    });
+}
 
 namespace navigation_estime {
 
@@ -40,7 +112,7 @@ void navigation_estime_ex(CanalPourChampsDeDistance &image,
     const auto decalage_x = 1;
     const auto decalage_y = sx;
 
-    auto distance = image.donnees_sortie;
+    auto distance = image.donnees_sortie[0];
 
     /* Forward pass from top left to bottom right. */
     for (auto l = 1; l < sy - 1; ++l) {
@@ -134,10 +206,23 @@ void navigation_estime_ex(CanalPourChampsDeDistance &image,
 
     /* indicate interior and exterior pixel */
     auto index = 0;
-    for (auto l = 0; l < sy; ++l) {
-        for (auto c = 0; c < sx; ++c, ++index) {
-            if (image.donnees_entree[index] < image.params) {
-                distance[index] = -distance[index];
+    if (!image.params.emets_gradients) {
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                if (image.donnees_entree[index] < image.params.iso) {
+                    distance[index] = -distance[index];
+                }
+            }
+        }
+    }
+    else {
+        float *gradient_x = image.donnees_sortie[0];
+        float *gradient_y = image.donnees_sortie[1];
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                auto p = nearest_point[l][c];
+                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
             }
         }
     }
@@ -174,25 +259,29 @@ void initialise(CanalPourChampsDeDistance &image, math::matrice_dyn<math::vec2i>
     const auto nl = image.hauteur;
     const auto max_dist = dls::math::hypotenuse(static_cast<float>(nc), static_cast<float>(nl));
 
+    float *donnees_sortie = image.donnees_sortie[0];
+
     auto index = 0l;
     for (auto l = 0; l < nl; ++l) {
         for (auto c = 0; c < nc; ++c) {
-            image.donnees_sortie[index++] = max_dist;
+            donnees_sortie[index++] = max_dist;
             nearest_point[l][c] = math::vec2i{0, 0};
         }
     }
 
+    auto const iso = image.params.iso;
+
     /* initialize immediate interior & exterior elements */
     for (auto l = 1; l < nl - 2; ++l) {
         for (auto c = 1; c < nc - 2; ++c) {
-            const bool inside = valeur_entree(image, c, l) > image.params;
+            const bool inside = valeur_entree(image, c, l) > iso;
 
-            if ((valeur_entree(image, c - 1, l) > image.params) != inside ||
-                (valeur_entree(image, c + 1, l) > image.params) != inside ||
-                (valeur_entree(image, c, l - 1) > image.params) != inside ||
-                (valeur_entree(image, c, l + 1) > image.params) != inside) {
+            if ((valeur_entree(image, c - 1, l) > iso) != inside ||
+                (valeur_entree(image, c + 1, l) > iso) != inside ||
+                (valeur_entree(image, c, l - 1) > iso) != inside ||
+                (valeur_entree(image, c, l + 1) > iso) != inside) {
                 index = calcule_index(image, c, l);
-                image.donnees_sortie[index] = 0.0f;
+                donnees_sortie[index] = 0.0f;
                 nearest_point[l][c] = math::vec2i{l, c};
             }
         }
@@ -209,7 +298,9 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     initialise(image, nearest_point);
     navigation_estime_ex(image, nearest_point);
 
-    normalise(image);
+    if (!image.params.emets_gradients) {
+        // normalise(image);
+    }
 }
 
 } /* namespace navigation_estime */
@@ -304,7 +395,7 @@ void initialise(CanalPourChampsDeDistance &image,
         dls::math::hypotenuse(static_cast<float>(sx), static_cast<float>(sy)));
 
     applique_fonction_sur_entree(image, [&](float valeur, int x, int y) {
-        if (valeur < image.params) {
+        if (valeur <= image.params.iso) {
             grille1[y][x] = math::vec2i{0, 0};
             grille2[y][x] = math::vec2i{max_dist, max_dist};
         }
@@ -335,14 +426,39 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     scan(grille2);
 
     /* Compute signed distance field from grid1 & grid2, and make it unsigned. */
-    for (auto l = 1, ye = sy - 1; l < ye; ++l) {
-        for (auto c = 1, xe = sx - 1; c < xe; ++c) {
-            const float dist1 = std::sqrt(static_cast<float>(distance_carre(grille1[l][c])));
-            const float dist2 = std::sqrt(static_cast<float>(distance_carre(grille2[l][c])));
-            const float dist = dist1 - dist2;
 
-            auto const index = calcule_index(image, c, l);
-            image.donnees_sortie[index] = dist * unite;
+    if (image.params.emets_gradients) {
+        float *gradient_x = image.donnees_sortie[0];
+        float *gradient_y = image.donnees_sortie[1];
+        for (auto l = 1, ye = sy - 1; l < ye; ++l) {
+            for (auto c = 1, xe = sx - 1; c < xe; ++c) {
+                const float dist1 = std::sqrt(static_cast<float>(distance_carre(grille1[l][c])));
+                const float dist2 = std::sqrt(static_cast<float>(distance_carre(grille2[l][c])));
+                dls::math::vec2<int> p;
+                if (dist1 < dist2) {
+                    p = grille1[l][c];
+                }
+                else {
+                    p = grille2[l][c];
+                }
+
+                auto const index = calcule_index(image, c, l);
+                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
+            }
+        }
+    }
+    else {
+        float *donnees_sortie = image.donnees_sortie[0];
+        for (auto l = 1, ye = sy - 1; l < ye; ++l) {
+            for (auto c = 1, xe = sx - 1; c < xe; ++c) {
+                const float dist1 = std::sqrt(static_cast<float>(distance_carre(grille1[l][c])));
+                const float dist2 = std::sqrt(static_cast<float>(distance_carre(grille2[l][c])));
+                const float dist = dist1 - dist2;
+
+                auto const index = calcule_index(image, c, l);
+                donnees_sortie[index] = dist * unite;
+            }
         }
     }
 }
@@ -351,12 +467,13 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 
 namespace generique {
 
-static float calcule_distance(DonneesCanal<float> &phi, int x, int y, float h)
+static float calcule_distance(CanalPourChampsDeDistance &phi, int x, int y, float h)
 {
-    auto a = std::min(phi.donnees_sortie[calcule_index(phi, x - 1, y)],
-                      phi.donnees_sortie[calcule_index(phi, x + 1, y)]);
-    auto b = std::min(phi.donnees_sortie[calcule_index(phi, x, y - 1)],
-                      phi.donnees_sortie[calcule_index(phi, x, y + 1)]);
+    float *donnees_phi = phi.donnees_sortie[0];
+    auto a = std::min(donnees_phi[calcule_index(phi, x - 1, y)],
+                      donnees_phi[calcule_index(phi, x + 1, y)]);
+    auto b = std::min(donnees_phi[calcule_index(phi, x, y - 1)],
+                      donnees_phi[calcule_index(phi, x, y + 1)]);
     auto xi = 0.0f;
 
     if (std::abs(a - b) >= h) {
@@ -366,10 +483,10 @@ static float calcule_distance(DonneesCanal<float> &phi, int x, int y, float h)
         xi = 0.5f * (a + b + std::sqrt(2.0f * h * h - (a - b) * (a - b)));
     }
 
-    return std::min(phi.donnees_sortie[calcule_index(phi, x, y)], xi);
+    return std::min(donnees_phi[calcule_index(phi, x, y)], xi);
 }
 
-void genere_champs_de_distance(DonneesCanal<float> &image)
+void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 {
     const int res_x = image.largeur;
     const int res_y = image.hauteur;
@@ -378,18 +495,30 @@ void genere_champs_de_distance(DonneesCanal<float> &image)
 
     const long nombre_de_pixels = long(res_x) * long(res_y);
 
+    float *donnees_sortie = image.donnees_sortie[0];
+    const auto sx = image.largeur;
+    const auto sy = image.hauteur;
+    const auto dimensions = math::Dimensions(math::Hauteur(sy), math::Largeur(sx));
+    const auto unite = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
+
+    /* We use two point grids: one which keeps track of the interior distances,
+     * while the other, the exterior distances. */
+    math::matrice_dyn<math::vec2<int>> grille1(dimensions);
+
     for (int i = 0; i < nombre_de_pixels; i++) {
-        auto const valeur = image.donnees_entree[i] > image.params ? 1.0f : 0.0f;
-        image.donnees_sortie[i] = valeur;
+        auto const valeur = image.donnees_entree[i] > image.params.iso ? 1.0f : 0.0f;
+        donnees_sortie[i] = valeur;
     }
 
     /* bas-droite */
     for (int x = 1; x < res_x - 1; ++x) {
         for (int y = 1; y < res_y - 1; ++y) {
             auto const index = calcule_index(image, x, y);
-            if (image.donnees_sortie[index] != 0.0f) {
-                image.donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -397,9 +526,11 @@ void genere_champs_de_distance(DonneesCanal<float> &image)
     for (int x = res_x - 2; x >= 1; --x) {
         for (int y = 1; y < res_y - 1; ++y) {
             auto const index = calcule_index(image, x, y);
-            if (image.donnees_sortie[index] != 0.0f) {
-                image.donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -407,9 +538,11 @@ void genere_champs_de_distance(DonneesCanal<float> &image)
     for (int x = res_x - 2; x >= 1; --x) {
         for (int y = res_y - 2; y >= 1; --y) {
             auto const index = calcule_index(image, x, y);
-            if (image.donnees_sortie[index] != 0.0f) {
-                image.donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
             }
+            donnees_sortie[index] = dist;
         }
     }
 
@@ -417,8 +550,33 @@ void genere_champs_de_distance(DonneesCanal<float> &image)
     for (int x = 1; x < res_x - 1; ++x) {
         for (int y = res_y - 2; y >= 1; --y) {
             auto const index = calcule_index(image, x, y);
-            if (image.donnees_sortie[index] != 0.0f) {
-                image.donnees_sortie[index] = calcule_distance(image, x, y, h);
+            auto dist = calcule_distance(image, x, y, h);
+            if (dist < donnees_sortie[index]) {
+                grille1[y][x] = math::vec2<int>(x, y);
+            }
+            donnees_sortie[index] = dist;
+        }
+    }
+
+    /* indicate interior and exterior pixel */
+    auto index = 0;
+    if (!image.params.emets_gradients) {
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                if (image.donnees_entree[index] <= image.params.iso) {
+                    donnees_sortie[index] = -donnees_sortie[index];
+                }
+            }
+        }
+    }
+    else {
+        float *gradient_x = image.donnees_sortie[0];
+        float *gradient_y = image.donnees_sortie[1];
+        for (auto l = 0; l < sy; ++l) {
+            for (auto c = 0; c < sx; ++c, ++index) {
+                auto p = grille1[l][c];
+                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
             }
         }
     }
@@ -426,15 +584,71 @@ void genere_champs_de_distance(DonneesCanal<float> &image)
 
 } /* namespace generique */
 
+template <typename TypeParametres>
+auto parse_canaux(const AdaptriceImage &entree, AdaptriceImage &sortie, IMG_ParametresChampsDeDistance const &params)
+{
+    dls::tableau<CanalPourChampsDeDistance> canaux;
+
+    DescriptionImage desc;
+    entree.decris_image(&entree, &desc);
+
+    auto const nombre_de_calques = entree.nombre_de_calques(&entree);
+
+    /* Crée les calques de sorties. */
+    for (auto i = 0; i < nombre_de_calques; i++) {
+        auto const calque_entree = entree.calque_pour_index(&entree, i);
+
+        char *ptr_nom;
+        long taille_nom;
+        entree.nom_calque(&entree, calque_entree, &ptr_nom, &taille_nom);
+
+        auto calque_sortie = sortie.cree_calque(&sortie, ptr_nom, taille_nom);
+
+        auto const nombre_de_canaux = entree.nombre_de_canaux(&entree, calque_entree);
+
+        const void *canal_entree = nullptr;
+        if (nombre_de_canaux == 4) {
+            canal_entree = entree.canal_pour_index(&entree, calque_entree, 3);
+        }
+        else {
+            canal_entree = entree.canal_pour_index(&entree, calque_entree, 0);
+        }
+
+        auto const donnees_canal_entree = entree.donnees_canal_pour_lecture(&entree,
+                                                                            canal_entree);
+
+
+        CanalPourChampsDeDistance donnees;
+        donnees.hauteur = desc.hauteur;
+        donnees.largeur = desc.largeur;
+        donnees.params = params;
+        donnees.donnees_entree = donnees_canal_entree;
+
+        /* Sortie pour le champs de distance, ou l'axe X des gradients. */
+        auto canal_sortie = sortie.ajoute_canal(&sortie, calque_sortie, ptr_nom, taille_nom);
+        auto donnees_canal_sortie = sortie.donnees_canal_pour_ecriture(&sortie, canal_sortie);
+
+        donnees.donnees_sortie[0] = donnees_canal_sortie;
+
+        if (params.emets_gradients) {
+            /* Sortie pour l'axe Y des gradients. */
+            canal_sortie = sortie.ajoute_canal(&sortie, calque_sortie, ptr_nom, taille_nom);
+            donnees_canal_sortie = sortie.donnees_canal_pour_ecriture(&sortie, canal_sortie);
+
+            donnees.donnees_sortie[1] = donnees_canal_sortie;
+        }
+
+        canaux.ajoute(donnees);
+    }
+
+    return canaux;
+}
+
 void genere_champs_de_distance(const IMG_ParametresChampsDeDistance &params,
                                const AdaptriceImage &entree,
                                AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<float>(entree, sortie);
-
-    for (auto &canal : canaux) {
-        canal.params = params.iso;
-    }
+    auto canaux = parse_canaux<float>(entree, sortie, params);
 
     for (auto &canal : canaux) {
         switch (params.methode) {

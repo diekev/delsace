@@ -35,4 +35,9 @@ void filtre_median_image(const IMG_ParametresMedianImage &params,
 void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
                             const AdaptriceImage &entree,
                             AdaptriceImage &sortie);
+
+void defocalise_image(const AdaptriceImage &entree,
+                      AdaptriceImage &sortie,
+                      const float *rayon_flou_par_pixel);
+
 }  // namespace image

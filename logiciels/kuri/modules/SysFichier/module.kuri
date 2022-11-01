@@ -97,9 +97,9 @@ chemin_courant :: fonc() -> CheminFichier
     retourne système_chemin_courant()
 }
 
-chemin_courant :: fonc(chemin : CheminFichier) -> rien
+chemin_courant :: fonc(chemin : CheminFichier) -> ErreurFichier
 {
-	système_chemin_courant(chemin)
+	retourne système_chemin_courant(chemin)
 }
 
 chemin_répertoire_personnel :: fonc () -> CheminFichier
