@@ -562,58 +562,71 @@ void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
 
 using CanalPourDefocalisation = DonneesCanal<float>;
 
-static void defocalise_canal(CanalPourDefocalisation &image, const float *rayon_flou_par_pixel)
+static void defocalise_canal(CanalPourDefocalisation &image,
+                             IMG_Fenetre &fenetre,
+                             const float *rayon_flou_par_pixel)
 {
+    auto const min_x = fenetre.min_x;
+    auto const max_x = fenetre.max_x + 1;
+    auto const min_y = fenetre.min_y;
+    auto const max_y = fenetre.max_y + 1;
     auto const res_x = image.largeur;
     auto const res_y = image.hauteur;
 
     /* Applique filtre sur l'axe des X. */
-    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
-        dls::tableau<float> table;
-        for (int y = plage.begin(); y < plage.end(); ++y) {
-            for (int x = 0; x < res_x; ++x) {
-                auto valeur = 0.0f;
-                auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
-                auto rayon_i = static_cast<int>(rayon);
-                initialise_table_filtre(table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
+    boucle_parallele(
+        tbb::blocked_range<int>(min_y, max_y), [&](tbb::blocked_range<int> const &plage) {
+            dls::tableau<float> table;
+            for (int y = plage.begin(); y < plage.end(); ++y) {
+                for (int x = min_x; x < max_x; ++x) {
+                    auto valeur = 0.0f;
+                    auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
+                    auto rayon_i = static_cast<int>(rayon);
+                    initialise_table_filtre(
+                        table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
 
-                for (auto ix = x - rayon_i, k = 0; ix < x + rayon_i + 1; ix++, ++k) {
-                    auto p = valeur_entree(image, ix, y);
-                    valeur += p * table[k];
+                    for (auto ix = x - rayon_i, k = 0; ix < x + rayon_i + 1; ix++, ++k) {
+                        auto p = valeur_entree(image, ix, y);
+                        valeur += p * table[k];
+                    }
+
+                    image.donnees_sortie[calcule_index(image, x, y)] = valeur;
                 }
-
-                image.donnees_sortie[calcule_index(image, x, y)] = valeur;
             }
-        }
-    });
+        });
 
     /* Applique le filtre sur l'axe des Y. Nous devons l'appliquer sur la sortie. */
-    boucle_parallele(tbb::blocked_range<int>(0, res_x), [&](tbb::blocked_range<int> const &plage) {
-        dls::tableau<float> table;
-        for (int x = plage.begin(); x < plage.end(); ++x) {
-            for (int y = 0; y < res_y; ++y) {
-                auto valeur = 0.0f;
-                auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
-                auto rayon_i = static_cast<int>(rayon);
-                initialise_table_filtre(table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
+    boucle_parallele(
+        tbb::blocked_range<int>(min_x, max_x), [&](tbb::blocked_range<int> const &plage) {
+            dls::tableau<float> table;
+            for (int x = plage.begin(); x < plage.end(); ++x) {
+                for (int y = min_y; y < max_y; ++y) {
+                    auto valeur = 0.0f;
+                    auto rayon = rayon_flou_par_pixel[calcule_index(image, x, y)];
+                    auto rayon_i = static_cast<int>(rayon);
+                    initialise_table_filtre(
+                        table, rayon_i, 2 * rayon_i + 1, TYPE_FILTRE_GAUSSIEN, rayon);
 
-                for (auto iy = y - rayon_i, k = 0; iy < y + rayon_i + 1; iy++, ++k) {
-                    auto p = valeur_sortie(image, x, iy);
-                    valeur += p * table[k];
+                    for (auto iy = y - rayon_i, k = 0; iy < y + rayon_i + 1; iy++, ++k) {
+                        auto p = valeur_sortie(image, x, iy);
+                        valeur += p * table[k];
+                    }
+
+                    image.donnees_sortie[calcule_index(image, x, y)] = valeur;
                 }
-
-                image.donnees_sortie[calcule_index(image, x, y)] = valeur;
             }
-        }
-    });
-} 
+        });
+}
 
-void defocalise_image(const AdaptriceImage &entree, AdaptriceImage &sortie, const float *rayon_flou_par_pixel)
+void defocalise_image(const AdaptriceImage &entree,
+                      AdaptriceImage &sortie,
+                      IMG_Fenetre &fenetre,
+                      const float *rayon_flou_par_pixel)
 {
     auto canaux = parse_canaux<float>(entree, sortie);
 
     for (auto &canal : canaux) {
-        defocalise_canal(canal, rayon_flou_par_pixel);
+        defocalise_canal(canal, fenetre, rayon_flou_par_pixel);
     }
 }
 

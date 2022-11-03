@@ -41,6 +41,16 @@ typedef struct DescriptionImage {
     int largeur;
 } DescriptionImage;
 
+/**
+ * Structure pour définir la fenêtre de données d'une image.
+ */
+typedef struct IMG_Fenetre {
+    int min_x;
+    int max_x;
+    int min_y;
+    int max_y;
+} IMG_Fenetre;
+
 /** Structure de rappel pour créer des calques et des canaux dans une image, ou pour accéder à
  * ceux-ci.
  * Les applications clientes doivent dériver cette structure afin de placer leurs données
@@ -77,6 +87,9 @@ struct AdaptriceImage {
 
     /** Rappel pour remplir la description de l'image. */
     void (*decris_image)(const struct AdaptriceImage *, struct DescriptionImage *);
+
+    /** Rappel pour remplir la fenêtre de l'image. */
+    void (*fenetre_image)(const struct AdaptriceImage *, struct IMG_Fenetre *);
 
     /** Rappel pour accéder au nombre de calques dans l'image. */
     int (*nombre_de_calques)(const struct AdaptriceImage *);
@@ -251,6 +264,7 @@ void IMG_genere_champs_de_distance(const struct IMG_ParametresChampsDeDistance *
 
 void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
                           struct AdaptriceImage *image_sortie,
+                          struct IMG_Fenetre *fenetre,
                           const float *rayon_flou_par_pixel);
 
 #ifdef __cplusplus

@@ -17,6 +17,8 @@ struct DonneesCanal {
     float *donnees_sortie = nullptr;
 
     TypeParametres params;
+
+    IMG_Fenetre fenetre{};
 };
 
 template <typename TypeParametres>
@@ -63,6 +65,9 @@ auto parse_canaux(const AdaptriceImage &entree, AdaptriceImage &sortie)
     DescriptionImage desc;
     entree.decris_image(&entree, &desc);
 
+    IMG_Fenetre fenetre;
+    entree.fenetre_image(&entree, &fenetre);
+
     auto const nombre_de_calques = entree.nombre_de_calques(&entree);
 
     /* Crée les calques de sorties. */
@@ -91,6 +96,7 @@ auto parse_canaux(const AdaptriceImage &entree, AdaptriceImage &sortie)
             DonneesCanal<TypeParametres> donnees;
             donnees.hauteur = desc.hauteur;
             donnees.largeur = desc.largeur;
+            donnees.fenetre = fenetre;
             donnees.donnees_entree = donnees_canal_entree;
             donnees.donnees_sortie = donnees_canal_sortie;
 

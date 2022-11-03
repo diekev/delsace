@@ -4,6 +4,7 @@
 #pragma once
 
 struct AdaptriceImage;
+struct IMG_Fenetre;
 struct IMG_ParametresAffinageImage;
 struct IMG_ParametresDilatationImage;
 struct IMG_ParametresFiltrageImage;
@@ -38,6 +39,7 @@ void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
 
 void defocalise_image(const AdaptriceImage &entree,
                       AdaptriceImage &sortie,
+                      IMG_Fenetre &fenetre,
                       const float *rayon_flou_par_pixel);
 
 }  // namespace image

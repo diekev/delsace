@@ -869,10 +869,12 @@ PASSE_APPEL(genere_champs_de_distance, IMG_ParametresChampsDeDistance)
 
 void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
                           struct AdaptriceImage *image_sortie,
+                          IMG_Fenetre *fenetre,
                           const float *rayon_flou_par_pixel)
 {
     RETOURNE_SI_NUL(image_entree);
     RETOURNE_SI_NUL(image_sortie);
+    RETOURNE_SI_NUL(fenetre);
     RETOURNE_SI_NUL(rayon_flou_par_pixel);
-    image::defocalise_image(*image_entree, *image_sortie, rayon_flou_par_pixel);
+    image::defocalise_image(*image_entree, *image_sortie, *fenetre, rayon_flou_par_pixel);
 }
