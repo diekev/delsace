@@ -8,6 +8,7 @@
 
 #include "application_fonction.hh"
 #include "donnees_canal.hh"
+#include <iostream>
 
 /* À FAIRE :
  * - OperatriceAnalyse
@@ -225,7 +226,8 @@ auto valeur_filtre(IMG_TypeFiltre type, T x)
 }
 
 template <typename T>
-static void initialise_table_filtre(dls::tableau<T> &table, int taille, int n, IMG_TypeFiltre type, T rayon)
+static void initialise_table_filtre(
+    dls::tableau<T> &table, int taille, int n, IMG_TypeFiltre type, T rayon)
 {
     table.redimensionne(n);
 
@@ -547,7 +549,8 @@ void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
                             const AdaptriceImage &entree,
                             AdaptriceImage &sortie)
 {
-    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresFiltreBilateralImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresFiltreBilateralImage>(entree,
+                                                                                     sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -627,6 +630,138 @@ void defocalise_image(const AdaptriceImage &entree,
 
     for (auto &canal : canaux) {
         defocalise_canal(canal, fenetre, rayon_flou_par_pixel);
+    }
+}
+
+/* ************************************************************************** */
+
+using CanalPourReechantillonnage = DonneesCanal<IMG_ParametresReechantillonnage>;
+
+static void reechantillonne_canal(CanalPourReechantillonnage &entree,
+                                  CanalPourReechantillonnage &sortie)
+{
+    /* Applique un filtre sur l'entrée. */
+    auto canal_pour_filtrage = CanalPourFiltrage();
+    canal_pour_filtrage.donnees_entree = entree.donnees_entree;
+    canal_pour_filtrage.donnees_sortie = entree.donnees_sortie;
+    canal_pour_filtrage.largeur = entree.largeur;
+    canal_pour_filtrage.hauteur = entree.hauteur;
+    canal_pour_filtrage.fenetre = entree.fenetre;
+    canal_pour_filtrage.params.filtre = entree.params.type_filtre;
+    canal_pour_filtrage.params.rayon = entree.params.taille_filtre;
+
+    filtre_image(canal_pour_filtrage);
+
+    /* Copie les données. */
+
+    auto const res_x = sortie.largeur;
+    auto const res_y = sortie.hauteur;
+    auto const facteur_x = static_cast<float>(entree.largeur) /
+                           static_cast<float>(sortie.params.nouvelle_largeur);
+    auto const facteur_y = static_cast<float>(entree.hauteur) /
+                           static_cast<float>(sortie.params.nouvelle_hauteur);
+
+    boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
+        for (int y = plage.begin(); y < plage.end(); ++y) {
+
+            for (int x = 0; x < res_x; ++x) {
+                auto x_orig = static_cast<int>(static_cast<float>(x) * facteur_x);
+                auto y_orig = static_cast<int>(static_cast<float>(y) * facteur_y);
+
+                auto valeur = valeur_sortie(entree, x_orig, y_orig);
+                auto index = calcule_index(sortie, x, y);
+                sortie.donnees_sortie[index] = valeur;
+            }
+        }
+    });
+}
+
+struct PaireCanal {
+    CanalPourReechantillonnage canal_entree{};
+    CanalPourReechantillonnage canal_sortie{};
+};
+
+auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree,
+                                    AdaptriceImage &sortie,
+                                    IMG_ParametresReechantillonnage const &params)
+{
+    dls::tableau<PaireCanal> canaux;
+
+    DescriptionImage desc;
+    entree.decris_image(&entree, &desc);
+
+    DescriptionImage desc_sortie;
+    desc_sortie.hauteur = params.nouvelle_hauteur;
+    desc_sortie.largeur = params.nouvelle_largeur;
+
+    IMG_Fenetre fenetre;
+    entree.fenetre_image(&entree, &fenetre);
+
+    auto const nombre_de_calques = entree.nombre_de_calques(&entree);
+
+    /* Crée les calques de sorties. */
+    for (auto i = 0; i < nombre_de_calques; i++) {
+        auto const calque_entree = entree.calque_pour_index(&entree, i);
+
+        char *ptr_nom;
+        long taille_nom;
+        entree.nom_calque(&entree, calque_entree, &ptr_nom, &taille_nom);
+
+        auto calque_sortie = sortie.cree_calque(&sortie, ptr_nom, taille_nom);
+
+        auto const nombre_de_canaux = entree.nombre_de_canaux(&entree, calque_entree);
+
+        for (auto j = 0; j < nombre_de_canaux; j++) {
+            auto const canal_entree = entree.canal_pour_index(&entree, calque_entree, j);
+            entree.nom_canal(&entree, canal_entree, &ptr_nom, &taille_nom);
+
+            auto const donnees_canal_entree = entree.donnees_canal_pour_lecture(&entree,
+                                                                                canal_entree);
+
+            auto canal_sortie = sortie.ajoute_canal(&sortie, calque_sortie, ptr_nom, taille_nom);
+
+            auto donnees_canal_sortie = sortie.donnees_canal_pour_ecriture(&sortie, canal_sortie);
+
+            DonneesCanal<IMG_ParametresReechantillonnage> donnees_entree;
+            donnees_entree.hauteur = desc.hauteur;
+            donnees_entree.largeur = desc.largeur;
+            donnees_entree.fenetre = fenetre;
+            donnees_entree.donnees_entree = donnees_canal_entree;
+            donnees_entree.donnees_sortie = nullptr;
+            donnees_entree.params = params;
+
+            DonneesCanal<IMG_ParametresReechantillonnage> donnees_sortie;
+            donnees_sortie.hauteur = desc_sortie.hauteur;
+            donnees_sortie.largeur = desc_sortie.largeur;
+            donnees_sortie.fenetre = fenetre;
+            donnees_sortie.donnees_entree = nullptr;
+            donnees_sortie.donnees_sortie = donnees_canal_sortie;
+            donnees_sortie.params = params;
+
+            canaux.ajoute({donnees_entree, donnees_sortie});
+        }
+    }
+
+    return canaux;
+}
+
+void reechantillonne_image(const IMG_ParametresReechantillonnage &params,
+                           const AdaptriceImage &entree,
+                           AdaptriceImage &sortie)
+{
+    auto canaux = extrait_canaux_et_cree_sorties(entree, sortie, params);
+
+    for (auto &canal : canaux) {
+        canal.canal_entree.donnees_sortie =
+            new float[canal.canal_entree.largeur * canal.canal_entree.hauteur];
+    }
+
+    for (auto &canal : canaux) {
+        reechantillonne_canal(canal.canal_entree, canal.canal_sortie);
+    }
+
+    for (auto &canal : canaux) {
+        delete[] canal.canal_entree.donnees_sortie;
     }
 }
 

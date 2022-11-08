@@ -267,6 +267,20 @@ void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
                           struct IMG_Fenetre *fenetre,
                           const float *rayon_flou_par_pixel);
 
+// ----------------------------------------------------------------------------
+// Rééchantillonnage de l'image.
+
+typedef struct IMG_ParametresReechantillonnage {
+    enum IMG_TypeFiltre type_filtre;
+    int taille_filtre;
+    int nouvelle_largeur;
+    int nouvelle_hauteur;
+} IMG_ParametresReechantillonnage;
+
+void IMG_reechantillonne_image(const struct IMG_ParametresReechantillonnage *params,
+                               const struct AdaptriceImage *entree,
+                               struct AdaptriceImage *sortie);
+
 #ifdef __cplusplus
 }
 #endif

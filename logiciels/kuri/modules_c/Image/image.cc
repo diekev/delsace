@@ -878,3 +878,8 @@ void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
     RETOURNE_SI_NUL(rayon_flou_par_pixel);
     image::defocalise_image(*image_entree, *image_sortie, *fenetre, rayon_flou_par_pixel);
 }
+
+// ----------------------------------------------------------------------------
+// Rééchantillonnage de l'image.
+
+PASSE_APPEL(reechantillonne_image, IMG_ParametresReechantillonnage)

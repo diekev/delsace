@@ -10,6 +10,7 @@ struct IMG_ParametresDilatationImage;
 struct IMG_ParametresFiltrageImage;
 struct IMG_ParametresFiltreBilateralImage;
 struct IMG_ParametresMedianImage;
+struct IMG_ParametresReechantillonnage;
 
 namespace image {
 
@@ -41,5 +42,9 @@ void defocalise_image(const AdaptriceImage &entree,
                       AdaptriceImage &sortie,
                       IMG_Fenetre &fenetre,
                       const float *rayon_flou_par_pixel);
+
+void reechantillonne_image(const IMG_ParametresReechantillonnage &params,
+                           const AdaptriceImage &entree,
+                           AdaptriceImage &sortie);
 
 }  // namespace image
