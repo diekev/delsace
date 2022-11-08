@@ -313,7 +313,7 @@ void filtre_image(const IMG_ParametresFiltrageImage &params,
                   const AdaptriceImage &entree,
                   AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresFiltrageImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresFiltrageImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -351,7 +351,7 @@ void affine_image(const IMG_ParametresAffinageImage &params,
                   const AdaptriceImage &entree,
                   AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresAffinageImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresAffinageImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -422,7 +422,7 @@ void dilate_image(const IMG_ParametresDilatationImage &params,
                   const AdaptriceImage &entree,
                   AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresDilatationImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresDilatationImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -437,7 +437,7 @@ void erode_image(const IMG_ParametresDilatationImage &params,
                  const AdaptriceImage &entree,
                  AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresDilatationImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresDilatationImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -493,7 +493,7 @@ void filtre_median_image(const IMG_ParametresMedianImage &params,
                          const AdaptriceImage &entree,
                          AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresMedianImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresMedianImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -547,7 +547,7 @@ void filtre_bilateral_image(const IMG_ParametresFiltreBilateralImage &params,
                             const AdaptriceImage &entree,
                             AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<IMG_ParametresFiltreBilateralImage>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<IMG_ParametresFiltreBilateralImage>(entree, sortie);
 
     for (auto &canal : canaux) {
         canal.params = params;
@@ -623,7 +623,7 @@ void defocalise_image(const AdaptriceImage &entree,
                       IMG_Fenetre &fenetre,
                       const float *rayon_flou_par_pixel)
 {
-    auto canaux = parse_canaux<float>(entree, sortie);
+    auto canaux = extrait_canaux_et_cree_sorties<float>(entree, sortie);
 
     for (auto &canal : canaux) {
         defocalise_canal(canal, fenetre, rayon_flou_par_pixel);

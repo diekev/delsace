@@ -585,7 +585,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 } /* namespace generique */
 
 template <typename TypeParametres>
-auto parse_canaux(const AdaptriceImage &entree, AdaptriceImage &sortie, IMG_ParametresChampsDeDistance const &params)
+auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree, AdaptriceImage &sortie, IMG_ParametresChampsDeDistance const &params)
 {
     dls::tableau<CanalPourChampsDeDistance> canaux;
 
@@ -648,7 +648,7 @@ void genere_champs_de_distance(const IMG_ParametresChampsDeDistance &params,
                                const AdaptriceImage &entree,
                                AdaptriceImage &sortie)
 {
-    auto canaux = parse_canaux<float>(entree, sortie, params);
+    auto canaux = extrait_canaux_et_cree_sorties<float>(entree, sortie, params);
 
     for (auto &canal : canaux) {
         switch (params.methode) {

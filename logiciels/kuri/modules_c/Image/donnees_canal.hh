@@ -58,7 +58,7 @@ inline float valeur_sortie(DonneesCanal<TypeParametres> &image, int i, int j)
 }
 
 template <typename TypeParametres>
-auto parse_canaux(const AdaptriceImage &entree, AdaptriceImage &sortie)
+auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree, AdaptriceImage &sortie)
 {
     dls::tableau<DonneesCanal<TypeParametres>> canaux;
 
