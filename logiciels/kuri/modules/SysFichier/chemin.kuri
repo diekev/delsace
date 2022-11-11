@@ -142,6 +142,78 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
     retourne chemin_normalisé(pile, chemin.chn.commence_par(séparateur_chemin()))
 }
 
+/* Retourne le chemin relatif de chemin_cible par rapport à chemin_racine.
+ *
+ * Par exemple, avec :
+ * chemin_racine = "/home/kevin/Image"
+ * chemin_cible = "/home/kevin/Vidéos"
+ *
+ * retourne "../Vidéos"
+ * 
+ * À FAIRE : vérifie que les chemins sont absolus.
+ * À FAIRE : vérifie que le chemin_racine est un dossier.
+ */
+chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> CheminFichier
+{
+    pile_racine := divise_et_empile_chemin(chemin_racine)
+    diffère détruit(pile_racine)
+
+    pile_cible := divise_et_empile_chemin(chemin_cible)
+    diffère détruit(pile_cible)
+
+    cible_est_fichier := est_un_fichier_régulier(chemin_cible)
+
+    /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
+    pile_racine.renverse()
+    pile_cible.renverse()
+
+    boucle {
+        si pile_racine.est_vide() || pile_cible.est_vide() {
+            arrête
+        }
+
+        nom_racine := pile_racine.tête()
+        nom_cible := pile_cible.tête()
+
+        si nom_cible != nom_racine {
+            arrête
+        }
+
+        _ := pile_racine.dépile()
+        _ := pile_cible.dépile()
+    }
+
+    /* Renverse la pile cible afin que l'empilement se fasse dans le « bon » ordre. */
+    pile_cible.renverse()
+
+    pile_résultat : Pile(chaine)
+    diffère détruit(pile_résultat)
+
+    tantque !pile_cible.est_vide() {
+        pile_résultat.empile(pile_cible.dépile())
+    }
+
+    tantque !pile_racine.est_vide() {
+        pile_résultat.empile("..")
+        _ := pile_racine.dépile()
+    }
+
+    résultat : chaine
+
+    tantque !pile_résultat.est_vide() {
+        chaine_ajoute(*résultat, pile_résultat.dépile())
+
+        /* N'ajoute pas de séparateur à la fin des noms de fichiers. */
+        si cible_est_fichier && pile_résultat.est_vide() {
+            arrête
+        }
+
+        chaine_ajoute(*résultat, séparateur_chemin())
+    }
+
+    retourne CheminFichier(résultat)
+}
+
 opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
     retourne chemin1.chn == chemin2.chn
