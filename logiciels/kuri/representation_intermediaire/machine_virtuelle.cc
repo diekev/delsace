@@ -644,6 +644,26 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_type)) {
+        auto info_type = depile<InfoType *>(site);
+        RAPPORTE_ERREUR_SI_NUL(info_type, "Reçu un InfoType nul");
+        auto nom_module = kuri::chaine_statique("");
+        const auto decl = compilatrice.typeuse.decl_pour_info_type(info_type);
+        if (!decl) {
+            empile(site, nom_module);
+            return;
+        }
+        const auto fichier = compilatrice.fichier(decl->lexeme->fichier);
+        if (!fichier) {
+            empile(site, nom_module);
+            return;
+        }
+        const auto module = fichier->module;
+        nom_module = module->nom()->nom;
+        empile(site, nom_module);
+        return;
+    }
+
     if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
         auto code = depile<NoeudCode *>(site);
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");

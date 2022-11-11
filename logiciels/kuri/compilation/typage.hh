@@ -664,6 +664,8 @@ struct Typeuse {
     }
 
     void rassemble_statistiques(Statistiques &stats) const;
+
+    NoeudDeclaration *decl_pour_info_type(const InfoType *info_type);
 };
 
 /* ************************************************************************** */

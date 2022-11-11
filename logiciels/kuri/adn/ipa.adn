@@ -12,6 +12,8 @@ fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chai
 
 fonction compilatrice_module_pour_code(NoeudCode * code) -> chaine_statique
 
+fonction compilatrice_module_pour_type(InfoType * type) -> chaine_statique
+
 fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
 fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void

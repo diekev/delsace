@@ -1121,6 +1121,26 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 #undef DONNES_ENTREE
 }
 
+NoeudDeclaration *Typeuse::decl_pour_info_type(InfoType const *info_type)
+{
+    POUR_TABLEAU_PAGE ((*types_structures.verrou_lecture())) {
+        if (it.info_type == info_type) {
+            return decl_pour_type(&it);
+        }
+    }
+    POUR_TABLEAU_PAGE ((*types_unions.verrou_lecture())) {
+        if (it.info_type == info_type) {
+            return decl_pour_type(&it);
+        }
+    }
+    POUR_TABLEAU_PAGE ((*types_enums.verrou_lecture())) {
+        if (it.info_type == info_type) {
+            return decl_pour_type(&it);
+        }
+    }
+    return nullptr;
+}
+
 /* ************************************************************************** */
 
 static void chaine_type_structure(Enchaineuse &enchaineuse, const TypeStructure *type_structure)
