@@ -858,7 +858,11 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 	créatrice.ajoute_module("Introspection")
 
     pour données_fonctions {
-		nom_module := compilatrice_module_pour_code(it.fonction)
+        module := compilatrice_module_pour_code(it.fonction)
+        saufsi module {
+            continue
+        }
+		nom_module := compilatrice_nom_module(module)
 		si nom_module {
 			créatrice.ajoute_module(nom_module)
 		}

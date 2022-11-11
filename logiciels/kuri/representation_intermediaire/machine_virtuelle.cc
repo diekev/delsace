@@ -639,8 +639,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         const auto fichier = compilatrice.fichier(code->chemin_fichier);
         RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
         const auto module = fichier->module;
-        nom_module = module->nom()->nom;
-        empile(site, nom_module);
+        empile(site, module);
         return;
     }
 
@@ -650,28 +649,42 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto nom_module = kuri::chaine_statique("");
         const auto decl = compilatrice.typeuse.decl_pour_info_type(info_type);
         if (!decl) {
-            empile(site, nom_module);
+            empile(site, nullptr);
             return;
         }
         const auto fichier = compilatrice.fichier(decl->lexeme->fichier);
         if (!fichier) {
-            empile(site, nom_module);
+            empile(site, nullptr);
             return;
         }
         const auto module = fichier->module;
-        nom_module = module->nom()->nom;
-        empile(site, nom_module);
+        empile(site, module);
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_pointeur_module_pour_code)) {
-        auto code = depile<NoeudCode *>(site);
-        RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
-        const auto fichier = compilatrice.fichier(code->chemin_fichier);
-        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
-        auto module = fichier->module;
-        RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun module correspond au module du noeud code");
+    if (EST_FONCTION_COMPILATRICE(compilatrice_nom_module)) {
+        auto module = depile<Module *>(site);
+        RAPPORTE_ERREUR_SI_NUL(module, "Reçu un Module nul");
+        empile(site, module->nom_->nom);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_chemin_module)) {
+        auto module = depile<Module *>(site);
+        RAPPORTE_ERREUR_SI_NUL(module, "Reçu un Module nul");
+        empile(site, module->chemin());
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_module_racine_compilation)) {
+        auto module = compilatrice.module_racine_compilation;
         empile(site, module);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_racine_installation_kuri)) {
+        kuri::chaine_statique racine_kuri = compilatrice.racine_kuri;
+        empile(site, racine_kuri);
         return;
     }
 

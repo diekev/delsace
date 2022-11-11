@@ -4,15 +4,38 @@ fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statiq
 
 fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
 
-fonction compilatrice_module_courant() -> Module *
-
-fonction compilatrice_pointeur_module_pour_code(NoeudCode * code) -> Module *
-
 fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
 
-fonction compilatrice_module_pour_code(NoeudCode * code) -> chaine_statique
+/* --------------------------------------------------------------------------
+ * Accès aux données d'installation de Kuri.
+ */
 
-fonction compilatrice_module_pour_type(InfoType * type) -> chaine_statique
+/* Retourne le chemin racine de l'installation de Kuri. */
+fonction compilatrice_racine_installation_kuri() -> chaine_statique
+
+/* --------------------------------------------------------------------------
+ * Accès aux modules.
+ */
+
+/* Retourne le module où se trouve l'appel à cette fonction. */
+fonction compilatrice_module_courant() -> Module *
+
+/* Retourne le module racine de la compilation. */
+fonction compilatrice_module_racine_compilation() -> Module *
+
+/* Retourne le module ayant défini le code, ou nul si aucun ne l'a défini. */
+fonction compilatrice_module_pour_code(NoeudCode * code) -> Module *
+
+/* Retourne le module ayant défini le type, ou nul si aucun ne l'a défini
+ * (par exemple pour les types de bases comme z32). */
+fonction compilatrice_module_pour_type(InfoType * type) -> Module *
+
+/* Retourne le nom du module (à savoir le nom du dossier), ou une chaine vide si le module
+ * est le module racine de la compilation (celui contenant le fichier principal de compilation). */
+fonction compilatrice_nom_module(Module * module) -> chaine_statique
+
+/* Retourne le chemin complet du module. */
+fonction compilatrice_chemin_module(Module * module) -> chaine_statique
 
 fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
 
