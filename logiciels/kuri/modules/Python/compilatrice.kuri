@@ -456,9 +456,8 @@ CompilatriceModulePython :: struct {
     système_type: SystèmeType
 
     /* Les modules kuri qu'il faudra importer dans le code généré.
-     * À FAIRE : les infos-types n'ont pas d'information pour les modules.
      */
-    modules_kuri_à_importer: []chaine
+    modules_kuri_à_importer: EnsembleDeModules
 }
 
 // 520622 byte(s) leaked in 1097 allocation
@@ -467,7 +466,7 @@ CompilatriceModulePython :: struct {
 // 461935 byte(s) leaked in  757 allocation
 détruit :: fonc (compilatrice: &CompilatriceModulePython)
 {
-    déloge(compilatrice.modules_kuri_à_importer)
+    détruit(*compilatrice.modules_kuri_à_importer)
     détruit(compilatrice.module)
     détruit(compilatrice.système_type)
 }
@@ -476,37 +475,14 @@ crée_compilatrice_pour_un_module :: fonc (nom_module: chaine) -> CompilatriceMo
 {
     compilatrice: CompilatriceModulePython
     compilatrice.module.nom = nom_module
+    initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
     retourne compilatrice
 }
 
 /* Ajout d'un module à la liste des modules Kuri à importer dans le code généré. */
-ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, nom_module: chaine)
+ajoute_module_kuri :: fonc (compilatrice: &CompilatriceModulePython, module: *Module)
 {
-    saufsi nom_module {
-        /* Il est possible d'avoir une fonction ou un type du module par
-         * défaut de compilation, qui n'a pas de nom. Le code généré sera
-         * ajouté au module défaut, donc il n'y aura pas d'erreurs de
-         * compilation si ce module n'est pas importé. */
-        retourne
-    }
-
-    pour compilatrice.modules_kuri_à_importer {
-        si it == nom_module {
-            retourne
-        }
-
-        /* À FAIRE(langage) : permet de trouver les chemins des modules et les comparer.
-         * Ceci est n'est qu'un hack pour comparer les imports relatifs. */
-        si it[it.taille - 1] == '"' {
-            it = recule(it, 1)
-
-            si it.fini_par(nom_module) {
-                retourne
-            }
-        }
-    }
-
-    tableau_ajoute(*compilatrice.modules_kuri_à_importer, nom_module)
+    ajoute_module(*compilatrice.modules_kuri_à_importer, module)
 }
 
 ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoType, drapeaux: DrapeauxType = DrapeauxType.zéro)
@@ -581,8 +557,8 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
 
     type_python := compilatrice.système_type.trouve_type(type_structure)
     saufsi type_python {
-        rapporte_erreur(CodeErreurCompilationPython.TYPE_INCONNU_DE_PYTHON, ContexteErreurPython(fonction, type_structure))
-        retourne
+        compilatrice.ajoute_type(type_structure)
+        type_python = compilatrice.système_type.trouve_type(type_structure)
     }
 
     si code_erreur == CodeErreurCompilationPython.FONCTION_INIT_REQUIERS_STRUCTURE {
@@ -655,13 +631,17 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> c
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse)
 {
+    /* Garantie la présence des modules pour les types, puisque certains types ne sont inclus que via des membres d'autres types. */
+    pour compilatrice.système_type.types {
+        module := compilatrice_module_pour_type(it.type_kuri)
+        compilatrice.ajoute_module_kuri(module)
+    }
+
     ajoute_au_tampon(enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(enchaineuse, "importe Python\n")
 
-    pour compilatrice.modules_kuri_à_importer {
-        ajoute_au_tampon(enchaineuse, "importe ", it, "\n")
-    }
+    génère_instructions_importe(*compilatrice.modules_kuri_à_importer, enchaineuse)
 
     module := compilatrice.module
 
