@@ -9,6 +9,8 @@ test.db
 *.so*
 config.json
 
+logiciels/kuri/modules/OpenVDB/lib/x86_64-linux-gnu/bin
+
 logiciels/kuri/modules/Aléa/*.h
 logiciels/kuri/modules/FTGL/*.h
 logiciels/kuri/modules/Image/*.h

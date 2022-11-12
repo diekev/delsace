@@ -134,6 +134,11 @@ opérateur != :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     retourne !(chn_utf32 == chn_native)
 }
 
+opérateur [] :: fonc (chn_utf32: ChaineUTF32, index: z64) -> n32
+{
+    retourne chn_utf32.points_de_code[index]
+}
+
 est_valide :: fonc (chn_utf32: ChaineUTF32) -> bool
 {
     pour chn_utf32.points_de_code {

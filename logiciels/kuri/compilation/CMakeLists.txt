@@ -133,9 +133,17 @@ set(SOURCES
 )
 
 if(AVEC_LLVM)
-    set(INCLUSIONS "${INCLUSIONS}" ${LLVM_INCLUDE_DIR})
-    set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" ${LLVM_LIBRARY})
-    set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
+	# Utilise un objet séparé pour la coulisse LLVM afin de forcer
+	# l'utilisation de C++ 17 car LLVM utilise des fonctions du langage
+	# qui sont déclarées comme malformées en C++ 20.
+	set(COULLISE_LLVM ${NOM_CIBLE}_coulisse_llvm)
+	add_library(${COULLISE_LLVM} STATIC coulisse_llvm.cc coulisse_llvm.hh)
+	target_link_libraries(${COULLISE_LLVM} "${BIBLIOTHEQUES}" ${LLVM_LIBRARY})
+	target_include_directories(${COULLISE_LLVM} PUBLIC "${INCLUSIONS}" ${LLVM_INCLUDE_DIR})
+
+	set_property(TARGET ${COULLISE_LLVM} PROPERTY CXX_STANDARD 17) 
+
+    set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" ${COULLISE_LLVM})
 endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

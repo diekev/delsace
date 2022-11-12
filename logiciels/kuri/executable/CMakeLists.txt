@@ -98,117 +98,85 @@ install(
 
 ################################################################################
 
-set(NOM_PROJET parcer)
+if(AVEC_LLVM)
+        set(NOM_PROJET parcer)
 
-find_package(LLVM REQUIRED)
+        set(INCLUSIONS
+                ${CMAKE_CURRENT_SOURCE_DIR}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+                ${INCLUSIONS_DELSACE_CHRONO}
+                ${CLANG_INCLUDE_DIR}
+        )
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-	${INCLUSIONS_DELSACE_CHRONO}
-        ${CLANG_INCLUDE_DIR}
-)
+        set(BIBLIOTHEQUES
+                stdc++fs
+                bib_outils
+                bib_json
+                kuri_structures
+                ${CLANG_LIBRARIES}
+                ${LLVM_LIBRARY}
+        )
 
-set(BIBLIOTHEQUES
-	stdc++fs
-	bib_outils
-        /usr/lib/llvm-12/lib/libclangTooling.a
-        /usr/lib/llvm-12/lib/libclangFrontend.a
-        /usr/lib/llvm-12/lib/libclangFrontendTool.a
-        /usr/lib/llvm-12/lib/libclangDriver.a
-        /usr/lib/llvm-12/lib/libclangSerialization.a
-        /usr/lib/llvm-12/lib/libclangCodeGen.a
-        /usr/lib/llvm-12/lib/libclangParse.a
-        /usr/lib/llvm-12/lib/libclangSema.a
-        /usr/lib/llvm-12/lib/libclangStaticAnalyzerFrontend.a
-        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCheckers.a
-        /usr/lib/llvm-12/lib/libclangStaticAnalyzerCore.a
-        /usr/lib/llvm-12/lib/libclangAnalysis.a
-        /usr/lib/llvm-12/lib/libclangARCMigrate.a
-        /usr/lib/llvm-12/lib/libclangRewrite.a
-        /usr/lib/llvm-12/lib/libclangRewriteFrontend.a
-        /usr/lib/llvm-12/lib/libclangEdit.a
-        /usr/lib/llvm-12/lib/libclangAST.a
-        /usr/lib/llvm-12/lib/libclangLex.a
-        /usr/lib/llvm-12/lib/libclangBasic.a
-        /usr/lib/llvm-12/lib/libLLVM.so
-        /usr/lib/llvm-12/lib/libclang.so
-	bib_json
-        kuri_structures
-)
+        add_executable(${NOM_PROJET}
+                parcer.cc
+        )
 
-add_executable(${NOM_PROJET}
-	parcer.cc
-)
+        get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
+        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wundef)
+        list(APPEND EXTLIB_COMPILE_FLAGS -Wno-comment)
+        set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
-get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wundef)
-list(APPEND EXTLIB_COMPILE_FLAGS -Wno-comment)
-set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+        # Force l'utilisation de C++ 17 car LLVM utilise des fonctions du
+        # langage qui sont déclarées comme malformées en C++ 20.
+        set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 17)
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+        target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+        target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
-install(
-	TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
-)
+        install(
+                TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
+        )
+endif()
 
 ################################################################################
 
-set(NOM_PROJET generatrice_api_c.cc)
+if(AVEC_LLVM)
+    set(NOM_PROJET generatrice_api_c.cc)
 
-find_package(LLVM REQUIRED)
+    find_package(LLVM REQUIRED)
 
-set(INCLUSIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-  ${INCLUSIONS_DELSACE_CHRONO}
-  /usr/lib/llvm-6.0/include/
-)
+    set(INCLUSIONS
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/../
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+      ${INCLUSIONS_DELSACE_CHRONO}
+      ${CLANG_INCLUDE_DIR}
+    )
 
-set(BIBLIOTHEQUES
-  stdc++fs
-  bib_outils
-  /usr/lib/llvm-6.0/lib/libclangTooling.a
-  /usr/lib/llvm-6.0/lib/libclangFrontend.a
-  /usr/lib/llvm-6.0/lib/libclangFrontendTool.a
-  /usr/lib/llvm-6.0/lib/libclangDriver.a
-  /usr/lib/llvm-6.0/lib/libclangSerialization.a
-  /usr/lib/llvm-6.0/lib/libclangCodeGen.a
-  /usr/lib/llvm-6.0/lib/libclangParse.a
-  /usr/lib/llvm-6.0/lib/libclangSema.a
-  /usr/lib/llvm-6.0/lib/libclangStaticAnalyzerFrontend.a
-  /usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCheckers.a
-  /usr/lib/llvm-6.0/lib/libclangStaticAnalyzerCore.a
-  /usr/lib/llvm-6.0/lib/libclangAnalysis.a
-  /usr/lib/llvm-6.0/lib/libclangARCMigrate.a
-  /usr/lib/llvm-6.0/lib/libclangRewrite.a
-  /usr/lib/llvm-6.0/lib/libclangRewriteFrontend.a
-  /usr/lib/llvm-6.0/lib/libclangEdit.a
-  /usr/lib/llvm-6.0/lib/libclangAST.a
-  /usr/lib/llvm-6.0/lib/libclangLex.a
-  /usr/lib/llvm-6.0/lib/libclangBasic.a
-  /usr/lib/llvm-6.0/lib/libLLVM.so
-  /usr/lib/llvm-6.0/lib/libclang.so
-  bib_json
-)
+    set(BIBLIOTHEQUES
+      stdc++fs
+      bib_outils
+      ${CLANG_LIBRARIES}
+      ${LLVM_LIBRARY}
+      bib_json
+    )
 
-add_executable(${NOM_PROJET}
-  generatrice_api_c.cc
-)
+    add_executable(${NOM_PROJET}
+      generatrice_api_c.cc
+    )
 
-get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wundef)
-list(APPEND EXTLIB_COMPILE_FLAGS -Wno-comment)
-set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+    get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
+    list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wundef)
+    list(APPEND EXTLIB_COMPILE_FLAGS -Wno-comment)
+    set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+    target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+    target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
-install(
-  TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
-)
+    install(
+      TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
+    )
+endif()
