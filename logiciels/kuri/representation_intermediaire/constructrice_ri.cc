@@ -3030,7 +3030,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(8);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::ENUM, type);
-            valeurs[3] = cree_chaine(type_enum->nom->nom);
+            valeurs[3] = cree_chaine(type_enum->nom_hierarchique());
             valeurs[4] = tableau_valeurs;
             valeurs[5] = tableau_noms;
             valeurs[6] = cree_constante_booleenne(type_enum->est_drapeau);
@@ -3043,14 +3043,6 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
         case GenreType::UNION:
         {
             auto type_union = type->comme_union();
-            auto nom_union = kuri::chaine_statique();
-
-            if (type_union->est_anonyme) {
-                nom_union = "anonyme";
-            }
-            else {
-                nom_union = type_union->decl->ident->nom;
-            }
 
             // ------------------------------------
             // Commence par assigner une globale non-initialisée comme info type
@@ -3107,7 +3099,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
 
             auto valeurs = kuri::tableau<AtomeConstante *>(8);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::UNION, type);
-            valeurs[3] = cree_chaine(nom_union);
+            valeurs[3] = cree_chaine(type_union->nom_hierarchique());
             valeurs[4] = tableau_membre;
             valeurs[5] = info_type_plus_grand;
             valeurs[6] = cree_z64(type_union->decalage_index);
@@ -3181,7 +3173,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::STRUCTURE, type);
-            valeurs[3] = cree_chaine(type_struct->nom->nom);
+            valeurs[3] = cree_chaine(type_struct->nom_hierarchique());
             valeurs[4] = tableau_membre;
             valeurs[5] = tableau_structs_employees;
 
@@ -3289,7 +3281,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
             /* { membres basiques, nom, type_opacifié } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::OPAQUE, type_opaque);
-            valeurs[3] = cree_chaine(type_opaque->ident->nom);
+            valeurs[3] = cree_chaine(type_opaque->nom_hierarchique());
             valeurs[4] = cree_info_type_avec_transtype(type_opacifie, site);
 
             type->atome_info_type = cree_globale_info_type(

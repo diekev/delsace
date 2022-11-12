@@ -318,6 +318,12 @@ struct TypeCompose : public Type {
      * struct dans le module Module). */
     kuri::chaine nom_portable_{};
 
+    /* Le nom de la hierarchie, sans le nom du module. Chaque nom est séparé par des points.
+     * Ceci est le nom qui sera utilisé dans les infos types.
+     * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
+     * type parent. */
+    kuri::chaine nom_hierarchique_ = "";
+
     static TypeCompose *cree_eini();
 
     static TypeCompose *cree_chaine();
@@ -357,6 +363,7 @@ struct TypeStructure final : public TypeCompose {
     bool est_anonyme = false;
 
     kuri::chaine const &nom_portable();
+    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeUnion final : public TypeCompose {
@@ -379,6 +386,7 @@ struct TypeUnion final : public TypeCompose {
     void cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif);
 
     kuri::chaine const &nom_portable();
+    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeEnum final : public TypeCompose {
@@ -396,6 +404,7 @@ struct TypeEnum final : public TypeCompose {
     bool est_erreur = false;
 
     kuri::chaine const &nom_portable();
+    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeTableauFixe final : public TypeCompose {
@@ -487,8 +496,10 @@ struct TypeOpaque : public Type {
     IdentifiantCode *ident = nullptr;
     Type *type_opacifie = nullptr;
     kuri::chaine nom_portable_ = "";
+    kuri::chaine nom_hierarchique_ = "";
 
     kuri::chaine const &nom_portable();
+    kuri::chaine_statique nom_hierarchique();
 };
 
 /* Pour les sorties multiples des fonctions. */
@@ -654,6 +665,8 @@ struct Typeuse {
     }
 
     void rassemble_statistiques(Statistiques &stats) const;
+
+    NoeudDeclaration *decl_pour_info_type(const InfoType *info_type);
 };
 
 /* ************************************************************************** */

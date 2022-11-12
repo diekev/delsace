@@ -1,6 +1,8 @@
 // Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
+importe Ensemble
 importe Fondation
+importe SysFichier
 
 charge "ipa"
 charge "code"
@@ -172,4 +174,76 @@ type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoTyp
     }
 
     retourne entête.params[0].type
+}
+
+// ---------------------------------------------------------------------------------------
+// EnsembleDeModules est un ensemble de modules pour tenir trace de modules intéressants.
+// Par exemple, les métaprogrammes peuvent l'utiliser pour rassembler les modules des
+// fonctions et des types intéressants afin de générer des instructions d'import pour
+// lesdits modules.
+
+EnsembleDeModules :: struct {
+    modules: []*Module
+    module_racine_compilation : *Module
+    chemin_racine_compilation : CheminFichier
+    chemin_modules_kuri : CheminFichier
+}
+
+initialise_ensemble_de_modules :: fonc (liste: *EnsembleDeModules)
+{
+    liste.module_racine_compilation = compilatrice_module_racine_compilation()
+
+    racine_kuri := compilatrice_racine_installation_kuri()
+    chemin_racine := CheminFichier(racine_kuri)
+    tmp_chemin_modules := chemin_racine / "modules/"
+
+    /* Il est possible que le dossier soit un lien symbolique, par exemple pour
+     * les développeurs souhaitant garder les modules synchronisés entre
+     * l'installation et le dépôt de sources. */
+    liste.chemin_modules_kuri = chemin_véritable(tmp_chemin_modules)
+
+    liste.chemin_racine_compilation = CheminFichier(compilatrice_chemin_module(liste.module_racine_compilation))
+
+    détruit_chemin(tmp_chemin_modules)
+}
+
+détruit :: fonc (liste: *EnsembleDeModules)
+{
+    déloge(liste.modules)
+    détruit_chemin(liste.chemin_modules_kuri)
+}
+
+ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
+{
+    saufsi module {
+        /* Permet d'avoir un module nul, si par exmple il est
+         * retourné via `compilatrice_module_pour_type` pour un
+         * type de base. */
+        retourne
+    }
+
+    si module == liste.module_racine_compilation {
+        /* Ignore le module racine de compilation. */
+        retourne
+    }
+
+    ensemble_ajoute(*liste.modules, module)
+}
+
+génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *Enchaineuse)
+{
+    pour liste.modules {
+        chemin_module := compilatrice_chemin_module(it)
+
+        si commence_par(chemin_module, liste.chemin_modules_kuri.chn) {
+            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), "\n")
+            continue
+        }
+
+        /* Essaie un chemin relatif au fichier principal de compilation. */
+        tmp_chemin_module := CheminFichier(chemin_module)
+        chemin_relatif := tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation)
+        diffère détruit_chemin(chemin_relatif)
+        ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n")
+    }
 }

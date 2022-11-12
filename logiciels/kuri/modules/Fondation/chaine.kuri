@@ -432,6 +432,11 @@ en_minuscule :: fonc(chn : chaine) -> chaine
 	retourne chn
 }
 
+commence_par :: fonc (chn: chaine, c: z8) -> bool
+{
+    retourne chn.taille > 0 && chn[0] == c
+}
+
 commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
 {
     si ligne.taille < motif.taille {

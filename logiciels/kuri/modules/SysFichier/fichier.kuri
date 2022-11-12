@@ -64,7 +64,7 @@ ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
 }
 
 /* Garantie l'existence de tous les dossiers menant vers la feuille du chemin. */
-crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
+crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -> ErreurFichier
 {
     pile := divise_et_empile_chemin(chemin)
     diffère détruit(pile)
@@ -73,8 +73,10 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
         retourne 0 comme ErreurFichier
     }
 
-    /* Supprime le dernier élément du chemin. */
-    _ := pile.dépile()
+    saufsi avec_feuille {
+        /* Supprime le dernier élément du chemin. */
+        _ := pile.dépile()
+    }
 
     si pile.est_vide() {
         /* Nous sommes à la racine sans doute. */
@@ -110,7 +112,7 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier) -> ErreurFichier
 
 ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier) -> RésultatFichier
 {
-    tente crée_dossiers_pour_chemin(chemin) piège err {
+    tente crée_dossiers_pour_chemin(chemin, faux) piège err {
         retourne err
     }
 
