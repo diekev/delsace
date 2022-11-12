@@ -22,6 +22,7 @@
 set(NOM_PROJET module_c_geometrie_3d)
 
 find_package(Eigen3 REQUIRED)
+find_package(CGAL REQUIRED)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
@@ -29,6 +30,7 @@ set(INCLUSIONS
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../jorjala/
         /home/kevin/src/blender/lib/linux_centos7_x86_64/boost/include
         ${EIGEN3_INCLUDE_DIR}
+        ${CGAL_INCLUDE_DIRS}
 )
 
 set(BIBLIOTHEQUES

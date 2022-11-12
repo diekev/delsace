@@ -12,6 +12,8 @@
 #include "structures/tableau_compresse.hh"
 #include "structures/tablet.hh"
 
+#include <optional>
+
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;

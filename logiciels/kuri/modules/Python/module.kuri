@@ -299,7 +299,10 @@ DrapeauxType :: énum_drapeau {
 }
 
 TypePython :: struct {
+    /* Le nom, à être utilisé dans le code Kuri généré pour les paramètres, membres, etc. */
     nom: chaine
+    /* Le nom mais sans les points, à être utilisé pour les fonctions, ou nom de structures. */
+    nom_sauf: chaine
     type_kuri: *InfoType
 
     nom_type_kuri: chaine
@@ -350,6 +353,7 @@ détruit :: fonc (type: *TypePython)
     déloge(type.membres)
     déloge(type.méthodes)
     déloge(type.nom_globale_type)
+    déloge(type.nom_sauf)
     déloge(type)
 }
 

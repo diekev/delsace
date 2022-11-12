@@ -163,7 +163,7 @@ struct Module {
 
     COPIE_CONSTRUCT(Module);
 
-    kuri::chaine const &chemin() const
+    kuri::chaine_statique chemin() const
     {
         return chemin_;
     }

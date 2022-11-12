@@ -21,11 +21,14 @@
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 option(AVEC_MODULES_C "Active la génération des modules implémentés en C" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
+
+# Nous avons besoin de GPerf pour générer les empreintes parfaites
+# des lexèmes.
+find_program(gperf NAMES gperf REQUIRED)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
@@ -35,8 +38,8 @@ endif()
 find_program(GPERF NAME gperf)
 
 # À FAIRE : trouve ceux-ci de manière programmatique
-add_definitions(-DCOMPILATEUR_C_COULISSE_C="/usr/bin/gcc-10")
-add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="/usr/bin/g++-10")
+add_definitions(-DCOMPILATEUR_C_COULISSE_C="${CMAKE_C_COMPILER}")
+add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="${CMAKE_CXX_COMPILER}")
 
 # ------------------------------------------------------------------------------
 

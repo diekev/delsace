@@ -5,6 +5,8 @@
 
 #include "oiio.h"
 
+#include "biblinternes/outils/garde_portee.h"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -15,6 +17,15 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "champs_de_distance.hh"
+#include "filtrage.hh"
+#include "simulation_grain.hh"
+
+#define RETOURNE_SI_NUL(x)                                                                        \
+    if (!(x)) {                                                                                   \
+        return;                                                                                   \
+    }
 
 #if 0
 #    ifndef M_PI
@@ -515,6 +526,195 @@ std::string encode(
 
 extern "C" {
 
+struct NomCanal {
+    std::string nom_calque{};
+    std::string nom_canal{};
+};
+
+static NomCanal parse_nom_canal(std::string const &nom)
+{
+    auto const pos_point = nom.find('.');
+
+    if (pos_point == std::string::npos) {
+        return {"", nom};
+    }
+
+    auto resultat = NomCanal{};
+    resultat.nom_calque = nom.substr(0, pos_point);
+    resultat.nom_canal = nom.substr(pos_point + 1);
+    return resultat;
+}
+
+struct DescriptionCanal {
+    std::string nom{};
+    int index{};
+};
+
+struct DescriptionCalque {
+    std::string nom{};
+
+    std::vector<DescriptionCanal> canaux{};
+};
+
+struct ParseuseDonneesImage {
+    std::vector<DescriptionCalque> calques{};
+
+    void parse_canaux(std::vector<std::string> const &canaux, int canal_z)
+    {
+        auto index = 0;
+        for (auto const &name : canaux) {
+            ajoute_canal(name, index++, canal_z);
+        }
+    }
+
+    void ajoute_canal(std::string const &nom, int index, int canal_z)
+    {
+        auto nom_calque_canal = parse_nom_canal(nom);
+
+        auto nom_calque = nom_calque_canal.nom_calque;
+
+        if (nom_calque == "") {
+            nom_calque = "rgba";
+        }
+
+        if (index == canal_z) {
+            nom_calque = "depth";
+        }
+
+        auto &calque = trouve_ou_ajoute_calque(nom_calque);
+        calque.canaux.push_back({nom_calque_canal.nom_canal, index});
+    }
+
+    DescriptionCalque &trouve_ou_ajoute_calque(std::string const &nom)
+    {
+        for (auto &calque : calques) {
+            if (calque.nom == nom) {
+                return calque;
+            }
+        }
+
+        calques.emplace_back();
+        calques.back().nom = nom;
+        return calques.back();
+    }
+};
+
+ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
+                                                 long taille_chemin,
+                                                 AdaptriceImage *image)
+{
+    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
+
+    auto input = OIIO::ImageInput::open(chemin_);
+
+    if (input == nullptr) {
+        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
+    }
+
+    DIFFERE {
+        input->close();
+    };
+
+    const auto &spec = input->spec();
+
+    DescriptionImage desc_image{};
+    desc_image.hauteur = spec.height;
+    desc_image.largeur = spec.width;
+
+    auto parseuse = ParseuseDonneesImage();
+    parseuse.parse_canaux(spec.channelnames, spec.z_channel);
+
+    auto format = OIIO::TypeDesc::FLOAT;
+
+    image->initialise_image(image, &desc_image);
+
+    for (auto const &desc_calque : parseuse.calques) {
+        void *calque = image->cree_calque(
+            image, desc_calque.nom.c_str(), long(desc_calque.nom.size()));
+
+        if (!calque) {
+            return ResultatOperation::AJOUT_CALQUE_IMPOSSIBLE;
+        }
+
+        for (auto const &desc_canal : desc_calque.canaux) {
+            void *canal = image->ajoute_canal(
+                image, calque, desc_canal.nom.c_str(), long(desc_canal.nom.size()));
+
+            if (!canal) {
+                return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
+            }
+
+            float *donnees_canal = image->donnees_canal_pour_ecriture(image, canal);
+
+            auto const index_canal = desc_canal.index;
+
+            auto const succes = input->read_image(
+                0, 0, index_canal, index_canal + 1, format, donnees_canal);
+            if (!succes) {
+                return ResultatOperation::LECTURE_DONNEES_IMPOSSIBLE;
+            }
+        }
+    }
+
+    return ResultatOperation::OK;
+}
+
+// À FAIRE : paramétrise les calques à écrire.
+ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
+                                                 long taille_chemin,
+                                                 AdaptriceImage *image)
+{
+    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
+    auto out = OIIO::ImageOutput::create(chemin_);
+
+    if (out == nullptr) {
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
+
+    DIFFERE {
+        out->close();
+    };
+
+    DescriptionImage desc;
+    image->decris_image(image, &desc);
+
+    /* Considère uniquement le premier calque. */
+    const void *calque = image->calque_pour_index(image, 0);
+    const int nombre_de_canaux = image->nombre_de_canaux(image, calque);
+
+    auto spec = OIIO::ImageSpec(
+        desc.largeur, desc.hauteur, nombre_de_canaux, OIIO::TypeDesc::FLOAT);
+    out->open(chemin_, spec);
+
+    float *donnees = new float[desc.largeur * desc.hauteur * nombre_de_canaux];
+    DIFFERE {
+        delete[] donnees;
+    };
+
+    std::vector<const float *> canaux(nombre_de_canaux);
+    for (int i = 0; i < nombre_de_canaux; i++) {
+        auto canal = image->canal_pour_index(image, calque, i);
+        canaux[i] = image->donnees_canal_pour_lecture(image, canal);
+    }
+
+    auto index = 0;
+    for (int y = 0; y < desc.hauteur; y++) {
+        for (int x = 0; x < desc.largeur; x++, index++) {
+            auto index_ptr = index * nombre_de_canaux;
+
+            for (int c = 0; c < nombre_de_canaux; c++) {
+                donnees[index_ptr + c] = canaux[c][index];
+            }
+        }
+    }
+
+    if (!out->write_image(OIIO::TypeDesc::FLOAT, donnees)) {
+        return ResultatOperation::IMAGE_INEXISTANTE;
+    }
+
+    return ResultatOperation::OK;
+}
+
 ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
 {
     auto input = OIIO::ImageInput::open(chemin);
@@ -612,3 +812,74 @@ void IMG_calcul_empreinte_floue(
     input->close();
 }
 }
+
+#define PASSE_APPEL(fonction, type_params)                                                        \
+    void IMG_##fonction(const type_params *params,                                                \
+                        const struct AdaptriceImage *image_entree,                                \
+                        struct AdaptriceImage *image_sortie)                                      \
+    {                                                                                             \
+        RETOURNE_SI_NUL(params);                                                                  \
+        RETOURNE_SI_NUL(image_entree);                                                            \
+        RETOURNE_SI_NUL(image_sortie);                                                            \
+        image::fonction(*params, *image_entree, *image_sortie);                                   \
+    }
+
+// ----------------------------------------------------------------------------
+// Simumlation de grain sur image
+
+PASSE_APPEL(simule_grain_image, ParametresSimulationGrain)
+
+// ----------------------------------------------------------------------------
+// Filtrage de l'image
+
+PASSE_APPEL(filtre_image, IMG_ParametresFiltrageImage)
+
+// ----------------------------------------------------------------------------
+// Affinage de l'image.
+
+PASSE_APPEL(affine_image, IMG_ParametresAffinageImage)
+
+// ----------------------------------------------------------------------------
+// Dilatation de l'image.
+
+PASSE_APPEL(dilate_image, IMG_ParametresDilatationImage)
+
+// ----------------------------------------------------------------------------
+// Érosion d'image.
+
+PASSE_APPEL(erode_image, IMG_ParametresDilatationImage)
+
+// ----------------------------------------------------------------------------
+// Filtrage médian de l'image.
+
+PASSE_APPEL(filtre_median_image, IMG_ParametresMedianImage)
+
+// ----------------------------------------------------------------------------
+// Filtrage bilatéral de l'image.
+
+PASSE_APPEL(filtre_bilateral_image, IMG_ParametresFiltreBilateralImage)
+
+// ----------------------------------------------------------------------------
+// Champs de distance de l'image.
+
+PASSE_APPEL(genere_champs_de_distance, IMG_ParametresChampsDeDistance)
+
+// ----------------------------------------------------------------------------
+// Défocalisation de l'image.
+
+void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
+                          struct AdaptriceImage *image_sortie,
+                          IMG_Fenetre *fenetre,
+                          const float *rayon_flou_par_pixel)
+{
+    RETOURNE_SI_NUL(image_entree);
+    RETOURNE_SI_NUL(image_sortie);
+    RETOURNE_SI_NUL(fenetre);
+    RETOURNE_SI_NUL(rayon_flou_par_pixel);
+    image::defocalise_image(*image_entree, *image_sortie, *fenetre, rayon_flou_par_pixel);
+}
+
+// ----------------------------------------------------------------------------
+// Rééchantillonnage de l'image.
+
+PASSE_APPEL(reechantillonne_image, IMG_ParametresReechantillonnage)
