@@ -2829,6 +2829,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
         m_tacheronne.assembleuse->depile_bloc();
         noeud_decl->bloc = bloc;
+        bloc->ident = noeud_decl->ident;
     }
 
     analyse_annotations(noeud_decl->annotations);

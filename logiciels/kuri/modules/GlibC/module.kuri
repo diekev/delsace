@@ -101,7 +101,7 @@ fsync :: fonc (fd: z32) -> z32 #externe libc
 fdatasync :: fonc (fd: z32) -> z32 #externe libc
 
 getcwd :: fonc (ptr : ChaineC, taille : z64) -> ChaineC #externe libc
-chdir :: fonc (ptr : ChaineC) -> rien #externe libc
+chdir :: fonc (ptr : ChaineC) -> z32 #externe libc
 
 abort :: fonc () -> rien #externe libc
 

@@ -1,3 +1,5 @@
+importe Fondation
+
 // ------------------------------------
 // vecteurs de nombres réels
 
@@ -5,6 +7,18 @@ Vec2 :: struct {
     x := 0.0  @mutable
     y := 0.0  @mutable
 }
+
+new_Vec2_pour_python :: fonc (vec: *Vec2, x: r32, y: r32) -> bool
+{
+    vec.x = x
+    vec.y = y
+    retourne vrai
+} @Python "new"
+
+str_adresse_courriel_pour_python :: fonc (v: *Vec2) -> chaine
+{
+    retourne imprime_chaine("Vec2(%, %)", v.x, v.y)
+} @Python "str"
 
 opérateur == :: fonc (u: Vec2, v: Vec2) -> bool
 {

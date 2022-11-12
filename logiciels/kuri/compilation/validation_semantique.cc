@@ -3532,7 +3532,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
 
     if (!decl->est_monomorphisation) {
-        auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
+        auto decl_precedente = trouve_dans_bloc(
+            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
 
         // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
         // structres (p.e. stat)

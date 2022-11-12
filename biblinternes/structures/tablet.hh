@@ -26,6 +26,8 @@
 
 #include "tableau.hh"
 
+#include <limits>
+
 namespace dls {
 
 template<typename T>

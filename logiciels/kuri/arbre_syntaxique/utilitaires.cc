@@ -2721,13 +2721,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             info_type->genre = GenreInfoType::STRUCTURE;
             info_type->taille_en_octet = type->taille_octet;
-
-            if (type_struct->nom) {
-                info_type->nom = type_struct->nom->nom;
-            }
-            else {
-                info_type->nom = "anonyme";
-            }
+            info_type->nom = type_struct->nom_hierarchique();
 
             info_type->membres.reserve(type_struct->membres.taille());
 
@@ -2772,13 +2766,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
             info_type->decalage_index = type_union->decalage_index;
             info_type->taille_en_octet = type_union->taille_octet;
-
-            if (type_union->nom) {
-                info_type->nom = type_union->nom->nom;
-            }
-            else {
-                info_type->nom = "anonyme";
-            }
+            info_type->nom = type_union->nom_hierarchique();
 
             info_type->membres.reserve(type_union->membres.taille());
 
@@ -2810,7 +2798,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
             info_type->genre = GenreInfoType::ENUM;
-            info_type->nom = type_enum->nom->nom;
+            info_type->nom = type_enum->nom_hierarchique();
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
             info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
@@ -2870,7 +2858,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
             info_type->genre = GenreInfoType::OPAQUE;
-            info_type->nom = type_opaque->ident->nom;
+            info_type->nom = type_opaque->nom_hierarchique();
             info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
 
             type->info_type = info_type;

@@ -5,6 +5,8 @@
 
 #include "tableau.hh"
 
+#include <limits>
+
 namespace kuri {
 
 template <typename T>

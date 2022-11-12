@@ -253,7 +253,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
                                                    Module *module,
                                                    NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(module->chemin()) + dls::chaine(nom) + ".kuri";
+    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(nom) + ".kuri";
 
     if (!std::filesystem::exists(chemin.c_str())) {
         erreur::lance_erreur("Impossible de trouver le fichier correspondant au module",

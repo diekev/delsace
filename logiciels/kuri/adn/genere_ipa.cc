@@ -55,6 +55,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         prodeclare_struct(os, "TableIdentifiant");
         prodeclare_struct(os, "NoeudCode");
         prodeclare_struct(os, "NoeudCodeEnteteFonction");
+        prodeclare_struct(os, "InfoType");
         os << "\n";
         prodeclare_struct_espace(os, "chaine_statique", "kuri", "");
         os << "\n";
