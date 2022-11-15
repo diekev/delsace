@@ -13,6 +13,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/ensemblon.hh"
+#include "structures/table_hachage.hh"
 #include "structures/tablet.hh"
 
 #include "operateurs.hh"
@@ -279,9 +280,6 @@ struct TypeFonction : public Type {
 
     kuri::tableau<Type *, int> types_entrees{};
     Type *type_sortie{};
-
-    uint64_t tag_entrees = 0;
-    uint64_t tag_sorties = 0;
 
     void marque_polymorphique();
 };
@@ -550,6 +548,71 @@ inline const TypeCompose *Type::comme_compose() const
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_statique> &noms);
 
+/**
+ * Arbre Trie pour stocker les types de fonctions selon les types d'entrée et de sortie.
+ *
+ * Chaque type d'entrée et de sortie est stocké dans un noeud de l'arbre selon sa position
+ * dans les paramètres de la fonction. Les noeuds possèdent ensuite un pointeur vers les
+ * types suivants possible. Un noeud final est ajouté après le noeud du type de sortie afin
+ * de stocker le type fonction final.
+ *
+ * Les noeuds enfants peuvent être stockés dans l'une de deux listes : une pour les entrées,
+ * une pour les sorties.
+ *
+ * https://fr.wikipedia.org/wiki/Trie_(informatique)
+ */
+struct Trie {
+    static constexpr auto TAILLE_MAX_ENFANTS_TABLET = 16;
+    struct Noeud;
+
+    /**
+     * Structure pour abstraire les listes d'enfants des noeuds.
+     *
+     * Par défaut nous utilisons un tablet, mais si nous avons trop d'enfants (déterminer
+     * selon TAILLE_MAX_ENFANTS_TABLET), nous les stockons dans une table de hachage afin
+     * d'accélérer les requêtes.
+     */
+    struct StockageEnfants {
+        kuri::tablet<Noeud *, TAILLE_MAX_ENFANTS_TABLET> enfants{};
+        kuri::table_hachage<Type const *, Noeud *> table{"Noeud Trie"};
+
+        Noeud *trouve_noeud_pour_type(Type const *type);
+
+        long taille() const;
+
+        void ajoute(Noeud *noeud);
+    };
+
+    /**
+     * Noeud stockant un type, et les pointeurs vers les types entrée et sortie possibles après
+     * celui-ci.
+     */
+    struct Noeud {
+        Type const *type = nullptr;
+        StockageEnfants enfants{};
+        StockageEnfants enfants_sortie{};
+
+        Noeud *trouve_noeud_pour_type(Type const *type);
+
+        Noeud *trouve_noeud_sortie_pour_type(Type const *type);
+    };
+
+    Noeud *racine = nullptr;
+    tableau_page<Noeud> noeuds{};
+
+    using TypeResultat = std::variant<Noeud *, TypeFonction *>;
+
+    /**
+     * Retourne soit un TypeFonction existant, soit un Noeud pour insérer un nouveau
+     * TypeFonction selon les types entrée et sortie donnés.
+     */
+    TypeResultat trouve_type_ou_noeud_insertion(kuri::tablet<Type *, 6> const &entrees,
+                                                Type *type_sortie);
+
+  private:
+    Noeud *ajoute_enfant(Noeud *parent, Type const *type, bool est_sortie);
+};
+
 // À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux
 // types
 struct Typeuse {
@@ -605,6 +668,9 @@ struct Typeuse {
     // »
     TypeCompose *type_eini = nullptr;
     TypeCompose *type_chaine = nullptr;
+
+    /* Trie pour les types fonctions. */
+    Trie trie;
 
     // -------------------------
 
