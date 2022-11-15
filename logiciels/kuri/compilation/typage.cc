@@ -256,16 +256,6 @@ void TypeCompose::marque_polymorphique()
     }
 }
 
-/* Les tableaux fixes dont la taille des éléments est supérieure à 16 octets sont alignés sur 16
- * octets, peu importe l'alignement du type des éléments. */
-static unsigned alignement_tableau_fixe(unsigned alignement_sous_type, unsigned nombre_elements)
-{
-    if (nombre_elements * alignement_sous_type > 16) {
-        return 16;
-    }
-    return alignement_sous_type;
-}
-
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
                                  kuri::tableau<TypeCompose::Membre, int> &&membres_)
@@ -276,8 +266,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     this->membres = std::move(membres_);
     this->type_pointe = type_pointe_;
     this->taille = taille_;
-    this->alignement = alignement_tableau_fixe(type_pointe_->alignement,
-                                               static_cast<unsigned>(taille_));
+    this->alignement = type_pointe_->alignement;
     this->taille_octet = type_pointe_->taille_octet * static_cast<unsigned>(taille_);
     this->drapeaux |= (TYPE_FUT_VALIDE);
 
