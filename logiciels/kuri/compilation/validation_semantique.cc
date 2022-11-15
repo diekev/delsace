@@ -540,7 +540,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, "opérateur unaire");
             auto expr = noeud->comme_expression_unaire();
             expr->genre_valeur = GenreValeur::DROITE;
 
@@ -556,6 +555,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (type->est_type_de_donnees() && dls::outils::est_element(expr->lexeme->genre,
                                                                         GenreLexeme::FOIS_UNAIRE,
                                                                         GenreLexeme::ESP_UNAIRE)) {
+                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
+                              "opérateur unaire type");
                 auto type_de_donnees = type->comme_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu;
 
@@ -570,10 +571,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
                 }
 
+                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
+                              "opérateur unaire type (type_type_de_donnees)");
                 noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
                 break;
             }
 
+            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, "opérateur unaire");
             if (type->genre == GenreType::REFERENCE) {
                 type = type_dereference_pour(type);
 
