@@ -101,6 +101,15 @@ struct TypeC {
 struct ConvertisseuseTypeC {
   private:
     mutable tableau_page<TypeC> types_c{};
+    Enchaineuse enchaineuse_tmp;
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return enchaineuse_tmp.chaine_statique();
+    }
 
   public:
     TypeC &type_c_pour(Type *type) const
@@ -336,41 +345,45 @@ struct ConvertisseuseTypeC {
             {
                 auto type_fonc = type->comme_fonction();
 
-                auto prefixe = Enchaineuse();
-                auto suffixe = Enchaineuse();
-
                 auto nouveau_nom_broye = Enchaineuse();
                 nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
 
                 auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
-                prefixe << nom_broye_sortie << " (*";
+
+                /* Crée le préfixe. */
+                enchaineuse_tmp.reinitialise();
+                enchaineuse_tmp << nom_broye_sortie << " (*";
+                auto prefixe = enchaineuse_tmp.chaine();
+
+                /* Réinitialise pour le suffixe. */
+                enchaineuse_tmp.reinitialise();
 
                 auto virgule = "(";
 
                 POUR (type_fonc->types_entrees) {
                     auto const &nom_broye_dt = nom_broye_type(it);
 
-                    suffixe << virgule;
-                    suffixe << nom_broye_dt;
+                    enchaineuse_tmp << virgule;
+                    enchaineuse_tmp << nom_broye_dt;
                     nouveau_nom_broye << nom_broye_dt;
                     virgule = ",";
                 }
 
                 if (type_fonc->types_entrees.taille() == 0) {
-                    suffixe << virgule;
+                    enchaineuse_tmp << virgule;
                     virgule = ",";
                 }
 
                 nouveau_nom_broye << 1;
                 nouveau_nom_broye << nom_broye_sortie;
 
-                suffixe << ")";
+                enchaineuse_tmp << ")";
+                auto suffixe = enchaineuse_tmp.chaine();
 
                 type->nom_broye = nouveau_nom_broye.chaine();
                 type_c.nom = type->nom_broye;
 
-                type_c.typedef_ = enchaine(
-                    prefixe.chaine(), nouveau_nom_broye.chaine(), ")", suffixe.chaine());
+                type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine(), ")", suffixe);
                 enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
                 /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
                  * directement. */
@@ -643,6 +656,16 @@ struct GeneratriceCodeC {
     // index pour les rendre uniques
     int index_chaine = 0;
 
+    Enchaineuse enchaineuse_tmp;
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return enchaineuse_tmp.chaine_statique();
+    }
+
     GeneratriceCodeC(EspaceDeTravail &espace) : m_espace(espace)
     {
     }
@@ -873,26 +896,27 @@ struct GeneratriceCodeC {
                                 auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
                                 auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
 
-                                auto resultat = Enchaineuse();
+                                enchaineuse_tmp.reinitialise();
 
                                 auto virgule = "{ ";
 
                                 for (auto i = 0; i < taille_donnees; ++i) {
                                     auto octet = pointeur_donnnees[i];
-                                    resultat << virgule;
-                                    resultat << "0x";
-                                    resultat << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                                    resultat << dls::num::char_depuis_hex(octet & 0x0f);
+                                    enchaineuse_tmp << virgule;
+                                    enchaineuse_tmp << "0x";
+                                    enchaineuse_tmp
+                                        << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                                    enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
                                     virgule = ", ";
                                 }
 
                                 if (taille_donnees == 0) {
-                                    resultat << "{";
+                                    enchaineuse_tmp << "{";
                                 }
 
-                                resultat << " }";
+                                enchaineuse_tmp << " }";
 
-                                return resultat.chaine();
+                                return enchaineuse_tmp.chaine();
                             }
                         }
                     }
@@ -933,12 +957,12 @@ struct GeneratriceCodeC {
                 if (inst->ident != nullptr) {
                     auto nom = enchaine(broye_nom_simple(inst->ident), "_", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
+                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
                 }
                 else {
                     auto nom = enchaine("val", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
+                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
                 }
 
                 break;
@@ -1385,7 +1409,7 @@ struct GeneratriceCodeC {
             else {
                 auto nom_globale = enchaine("globale", valeur_globale);
                 os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+                table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
             }
 
             os << ";\n";
@@ -1468,7 +1492,7 @@ struct GeneratriceCodeC {
             else {
                 auto nom_globale = enchaine("globale", valeur_globale);
                 os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+                table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
             }
 
             if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
