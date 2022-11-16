@@ -2148,7 +2148,9 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
                             continue;
                         }
 
-                        auto decl_it = it->comme_entete_fonction();
+                        /* NOTE : utilisation d'un transtypage au lieu de #comme_entete_fonction()
+                         * car cela se voit dans les profilages par manque d'optimisation. */
+                        auto decl_it = static_cast<NoeudDeclarationEnteteFonction *>(it);
 
                         if (fonctions_ont_memes_definitions(*decl, *decl_it)) {
                             rapporte_erreur_redefinition_fonction(decl, decl_it);
