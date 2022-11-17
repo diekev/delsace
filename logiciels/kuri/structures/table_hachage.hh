@@ -161,6 +161,13 @@ struct table_hachage {
         return valeurs[index];
     }
 
+    Valeur &trouve_ref(Cle const &cle)
+    {
+        auto empreinte = std::hash<Cle>()(cle);
+        auto index = trouve_index(cle, empreinte);
+        return valeurs[index];
+    }
+
     Valeur valeur_ou(Cle const &cle, Valeur defaut)
     {
         auto trouvee = false;
