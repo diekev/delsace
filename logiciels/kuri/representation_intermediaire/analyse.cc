@@ -905,12 +905,23 @@ struct Graphe {
     };
 
     kuri::tableau<Connexion> connexions{};
+    mutable kuri::table_hachage<Atome *, kuri::tablet<int, 4>> connexions_pour_inst{""};
 
   public:
     /* a est utilisé par b */
     void ajoute_connexion(Atome *a, Atome *b, int index_bloc)
     {
         connexions.ajoute({a, b, index_bloc});
+
+        if (connexions_pour_inst.possede(a)) {
+            auto &idx = connexions_pour_inst.trouve_ref(a);
+            idx.ajoute(static_cast<int>(connexions.taille() - 1));
+        }
+        else {
+            kuri::tablet<int, 4> idx;
+            idx.ajoute(static_cast<int>(connexions.taille() - 1));
+            connexions_pour_inst.insere(a, idx);
+        }
     }
 
     void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc)
@@ -924,8 +935,10 @@ struct Graphe {
 
     bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
     {
-        POUR (connexions) {
-            if (it.utilise == inst && index_bloc != it.index_bloc) {
+        auto idx = connexions_pour_inst.valeur_ou(inst, {});
+        POUR (idx) {
+            auto &connexion = connexions[it];
+            if (index_bloc != connexion.index_bloc) {
                 return false;
             }
         }
@@ -936,10 +949,10 @@ struct Graphe {
     template <typename Fonction>
     void visite_utilisateurs(Instruction *inst, Fonction rappel) const
     {
-        POUR (connexions) {
-            if (it.utilise == inst) {
-                rappel(it.utilisateur);
-            }
+        auto idx = connexions_pour_inst.valeur_ou(inst, {});
+        POUR (idx) {
+            auto &connexion = connexions[it];
+            rappel(connexion.utilisateur);
         }
     }
 };

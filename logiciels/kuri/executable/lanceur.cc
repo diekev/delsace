@@ -272,6 +272,7 @@ int main(int argc, char *argv[])
                     imprime_stats(it->stats_typage.enumerations);
                     imprime_stats(it->stats_typage.structures);
                     imprime_stats(it->stats_typage.assignations);
+                    imprime_stats(it->stats_typage.finalisation);
                 }
 #endif
             }

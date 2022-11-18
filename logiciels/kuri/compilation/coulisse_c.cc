@@ -101,6 +101,15 @@ struct TypeC {
 struct ConvertisseuseTypeC {
   private:
     mutable tableau_page<TypeC> types_c{};
+    Enchaineuse enchaineuse_tmp;
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return enchaineuse_tmp.chaine_statique();
+    }
 
   public:
     TypeC &type_c_pour(Type *type) const
@@ -336,41 +345,45 @@ struct ConvertisseuseTypeC {
             {
                 auto type_fonc = type->comme_fonction();
 
-                auto prefixe = Enchaineuse();
-                auto suffixe = Enchaineuse();
-
                 auto nouveau_nom_broye = Enchaineuse();
                 nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
 
                 auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
-                prefixe << nom_broye_sortie << " (*";
+
+                /* Crée le préfixe. */
+                enchaineuse_tmp.reinitialise();
+                enchaineuse_tmp << nom_broye_sortie << " (*";
+                auto prefixe = enchaineuse_tmp.chaine();
+
+                /* Réinitialise pour le suffixe. */
+                enchaineuse_tmp.reinitialise();
 
                 auto virgule = "(";
 
                 POUR (type_fonc->types_entrees) {
                     auto const &nom_broye_dt = nom_broye_type(it);
 
-                    suffixe << virgule;
-                    suffixe << nom_broye_dt;
+                    enchaineuse_tmp << virgule;
+                    enchaineuse_tmp << nom_broye_dt;
                     nouveau_nom_broye << nom_broye_dt;
                     virgule = ",";
                 }
 
                 if (type_fonc->types_entrees.taille() == 0) {
-                    suffixe << virgule;
+                    enchaineuse_tmp << virgule;
                     virgule = ",";
                 }
 
                 nouveau_nom_broye << 1;
                 nouveau_nom_broye << nom_broye_sortie;
 
-                suffixe << ")";
+                enchaineuse_tmp << ")";
+                auto suffixe = enchaineuse_tmp.chaine();
 
                 type->nom_broye = nouveau_nom_broye.chaine();
                 type_c.nom = type->nom_broye;
 
-                type_c.typedef_ = enchaine(
-                    prefixe.chaine(), nouveau_nom_broye.chaine(), ")", suffixe.chaine());
+                type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine(), ")", suffixe);
                 enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
                 /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
                  * directement. */
@@ -514,7 +527,7 @@ struct ConvertisseuseTypeC {
                 enchaineuse << "{\n\t";
                 enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
                 enchaineuse << "\n\tlong taille;\n"
-                            << "\tlong " << broye_nom_simple("capacité") << ";\n} Tableau_"
+                            << "\tlong " << broye_nom_simple(ID::capacite) << ";\n} Tableau_"
                             << nom_broye << ";\n\n";
             }
         }
@@ -632,6 +645,21 @@ static bool est_pointeur_vers_tableau_fixe(Type const *type)
     return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
+static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+{
+    if (valeur_globale->est_externe) {
+        os << "extern ";
+    }
+    else if (valeur_globale->est_constante) {
+        os << "static const ";
+    }
+    else {
+        // À FAIRE : permet de définir la visibilité des globales
+        //           en dehors des fichiers dynamiques.
+        // os << "static ";
+    }
+}
+
 struct GeneratriceCodeC {
     kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
     kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
@@ -642,6 +670,16 @@ struct GeneratriceCodeC {
     // pour celles des noms des fonctions pour les traces d'appel), utilisons un
     // index pour les rendre uniques
     int index_chaine = 0;
+
+    Enchaineuse enchaineuse_tmp;
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return enchaineuse_tmp.chaine_statique();
+    }
 
     GeneratriceCodeC(EspaceDeTravail &espace) : m_espace(espace)
     {
@@ -873,26 +911,27 @@ struct GeneratriceCodeC {
                                 auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
                                 auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
 
-                                auto resultat = Enchaineuse();
+                                enchaineuse_tmp.reinitialise();
 
                                 auto virgule = "{ ";
 
                                 for (auto i = 0; i < taille_donnees; ++i) {
                                     auto octet = pointeur_donnnees[i];
-                                    resultat << virgule;
-                                    resultat << "0x";
-                                    resultat << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                                    resultat << dls::num::char_depuis_hex(octet & 0x0f);
+                                    enchaineuse_tmp << virgule;
+                                    enchaineuse_tmp << "0x";
+                                    enchaineuse_tmp
+                                        << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                                    enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
                                     virgule = ", ";
                                 }
 
                                 if (taille_donnees == 0) {
-                                    resultat << "{";
+                                    enchaineuse_tmp << "{";
                                 }
 
-                                resultat << " }";
+                                enchaineuse_tmp << " }";
 
-                                return resultat.chaine();
+                                return enchaineuse_tmp.chaine();
                             }
                         }
                     }
@@ -933,12 +972,12 @@ struct GeneratriceCodeC {
                 if (inst->ident != nullptr) {
                     auto nom = enchaine(broye_nom_simple(inst->ident), "_", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
+                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
                 }
                 else {
                     auto nom = enchaine("val", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
+                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
                 }
 
                 break;
@@ -1355,39 +1394,70 @@ struct GeneratriceCodeC {
         }
     }
 
+    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+    {
+        declare_visibilite_globale(os, valeur_globale);
+
+        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+        os << nom_broye_type(type) << ' ';
+
+        if (valeur_globale->ident) {
+            auto nom_globale = broye_nom_simple(valeur_globale->ident);
+            os << nom_globale;
+            table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+        }
+        else {
+            auto nom_globale = enchaine("globale", valeur_globale);
+            os << nom_globale;
+            table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+        }
+    }
+
+    void declare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc)
+    {
+        if (atome_fonc->enligne) {
+            os << "static __attribute__((always_inline)) inline ";
+        }
+
+        auto type_fonction = atome_fonc->type->comme_fonction();
+        os << nom_broye_type(type_fonction->type_sortie) << " ";
+        os << atome_fonc->nom;
+
+        auto virgule = "(";
+
+        for (auto param : atome_fonc->params_entrees) {
+            os << virgule;
+
+            auto type_pointeur = param->type->comme_pointeur();
+            auto type_param = type_pointeur->type_pointe;
+            os << nom_broye_type(type_param) << ' ';
+
+            // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
+            // (void fonction(...)), n'imprime pas de nom
+            if (type_param->est_variadique() &&
+                type_param->comme_variadique()->type_pointe == nullptr) {
+                continue;
+            }
+
+            os << broye_nom_simple(param->ident);
+
+            virgule = ", ";
+        }
+
+        if (atome_fonc->params_entrees.taille() == 0) {
+            os << virgule;
+        }
+
+        os << ")";
+    }
+
     void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
                      Enchaineuse &os)
     {
         // prédéclare les globales pour éviter les problèmes de références cycliques
         POUR (globales) {
-            auto valeur_globale = it;
-
-            auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-
-            if (valeur_globale->est_externe) {
-                os << "extern ";
-            }
-            else if (valeur_globale->est_constante) {
-                os << "static const ";
-            }
-            else {
-                os << "static ";
-            }
-
-            os << nom_broye_type(type) << ' ';
-
-            if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
-            else {
-                auto nom_globale = enchaine("globale", valeur_globale);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
-
+            declare_globale(os, it);
             os << ";\n";
         }
 
@@ -1395,44 +1465,8 @@ struct GeneratriceCodeC {
         // dépendances cycliques, mais aussi pour prendre en compte les cas où
         // les globales utilises des fonctions dans leurs initialisations
         POUR (fonctions) {
-            auto atome_fonc = it;
-
-            auto type_fonction = atome_fonc->type->comme_fonction();
-
-            if (atome_fonc->enligne) {
-                os << "static __attribute__((always_inline)) inline ";
-            }
-
-            os << nom_broye_type(type_fonction->type_sortie) << " ";
-
-            os << atome_fonc->nom;
-
-            auto virgule = "(";
-
-            for (auto param : atome_fonc->params_entrees) {
-                os << virgule;
-
-                auto type_pointeur = param->type->comme_pointeur();
-                auto type_param = type_pointeur->type_pointe;
-                os << nom_broye_type(type_param) << ' ';
-
-                // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
-                // (void fonction(...)), n'imprime pas de nom
-                if (type_param->est_variadique() &&
-                    type_param->comme_variadique()->type_pointe == nullptr) {
-                    continue;
-                }
-
-                os << broye_nom_simple(param->ident->nom);
-
-                virgule = ", ";
-            }
-
-            if (atome_fonc->params_entrees.taille() == 0) {
-                os << virgule;
-            }
-
-            os << ");\n\n";
+            declare_fonction(os, it);
+            os << ";\n\n";
         }
 
         // définis ensuite les globales
@@ -1445,31 +1479,7 @@ struct GeneratriceCodeC {
                     valeur_globale->initialisateur, os, true);
             }
 
-            auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-
-            if (valeur_globale->est_externe) {
-                os << "extern ";
-            }
-            else {
-                os << "static ";
-
-                if (valeur_globale->est_constante) {
-                    os << "const ";
-                }
-            }
-
-            os << nom_broye_type(type) << ' ';
-
-            if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
-            else {
-                auto nom_globale = enchaine("globale", valeur_globale);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
+            declare_globale(os, valeur_globale);
 
             if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
                 os << " = " << valeur_initialisateur;
@@ -1481,42 +1491,20 @@ struct GeneratriceCodeC {
         // définis enfin les fonction
         POUR (fonctions) {
             auto atome_fonc = it;
-
             if (atome_fonc->instructions.taille() == 0) {
                 // ignore les fonctions externes
                 continue;
             }
 
-            if (atome_fonc->enligne) {
-                os << "static __attribute__((always_inline)) inline ";
-            }
+            declare_fonction(os, atome_fonc);
 
             // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
-            auto type_fonction = atome_fonc->type->comme_fonction();
-            os << nom_broye_type(type_fonction->type_sortie) << " ";
-
-            os << atome_fonc->nom;
-
-            auto virgule = "(";
-
-            for (auto param : atome_fonc->params_entrees) {
-                os << virgule;
-
-                auto type_pointeur = param->type->comme_pointeur();
-                os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-                os << broye_nom_simple(param->ident->nom);
-
+            for (auto param : it->params_entrees) {
                 table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
-
-                virgule = ", ";
             }
 
-            if (atome_fonc->params_entrees.taille() == 0) {
-                os << virgule;
-            }
-
-            os << ")\n{\n";
+            os << "\n{\n";
 
             if (!atome_fonc->sanstrace) {
                 os << "INITIALISE_TRACE_APPEL(\"";
@@ -1540,11 +1528,12 @@ struct GeneratriceCodeC {
             auto numero_inst = atome_fonc->params_entrees.taille();
 
             /* crée une variable local pour la valeur de sortie */
+            auto type_fonction = atome_fonc->type->comme_fonction();
             if (!type_fonction->type_sortie->est_rien()) {
                 auto param = atome_fonc->param_sortie;
                 auto type_pointeur = param->type->comme_pointeur();
                 os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-                os << broye_nom_simple(param->ident->nom);
+                os << broye_nom_simple(param->ident);
                 os << ";\n";
 
                 table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
