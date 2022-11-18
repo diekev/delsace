@@ -645,6 +645,19 @@ static bool est_pointeur_vers_tableau_fixe(Type const *type)
     return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
+static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+{
+    if (valeur_globale->est_externe) {
+        os << "extern ";
+    }
+    else if (valeur_globale->est_constante) {
+        os << "static const ";
+    }
+    else {
+        os << "static ";
+    }
+}
+
 struct GeneratriceCodeC {
     kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
     kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
@@ -1379,39 +1392,32 @@ struct GeneratriceCodeC {
         }
     }
 
+    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+    {
+        declare_visibilite_globale(os, valeur_globale);
+
+        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+        os << nom_broye_type(type) << ' ';
+
+        if (valeur_globale->ident) {
+            auto nom_globale = broye_nom_simple(valeur_globale->ident);
+            os << nom_globale;
+            table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+        }
+        else {
+            auto nom_globale = enchaine("globale", valeur_globale);
+            os << nom_globale;
+            table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+        }
+    }
+
     void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
                      Enchaineuse &os)
     {
         // prédéclare les globales pour éviter les problèmes de références cycliques
         POUR (globales) {
-            auto valeur_globale = it;
-
-            auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-
-            if (valeur_globale->est_externe) {
-                os << "extern ";
-            }
-            else if (valeur_globale->est_constante) {
-                os << "static const ";
-            }
-            else {
-                os << "static ";
-            }
-
-            os << nom_broye_type(type) << ' ';
-
-            if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
-            else {
-                auto nom_globale = enchaine("globale", valeur_globale);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
-            }
-
+            declare_globale(os, it);
             os << ";\n";
         }
 
@@ -1469,31 +1475,7 @@ struct GeneratriceCodeC {
                     valeur_globale->initialisateur, os, true);
             }
 
-            auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-
-            if (valeur_globale->est_externe) {
-                os << "extern ";
-            }
-            else {
-                os << "static ";
-
-                if (valeur_globale->est_constante) {
-                    os << "const ";
-                }
-            }
-
-            os << nom_broye_type(type) << ' ';
-
-            if (valeur_globale->ident) {
-                auto nom_globale = broye_nom_simple(valeur_globale->ident);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-            }
-            else {
-                auto nom_globale = enchaine("globale", valeur_globale);
-                os << nom_globale;
-                table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
-            }
+            declare_globale(os, valeur_globale);
 
             if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
                 os << " = " << valeur_initialisateur;
