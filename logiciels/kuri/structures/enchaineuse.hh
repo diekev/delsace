@@ -49,6 +49,17 @@ struct Enchaineuse {
     void permute(Enchaineuse &autre);
 
     void reinitialise();
+
+    /**
+     * Retourne une chaine_statique provenant du premier tampon de l'enchaineuse.
+     * Aucune vérification n'est faite pour savoir si le tampon contient une chaine
+     * complète ; les appelants doivent savoir si la chaine est suffisament petite
+     * pour tenir dans un seul tampon.
+     *
+     * Ceci peut être utilisé en conjonction avec #reinitialise() pour lors de la
+     * génération de plusieurs petites chaines.
+     */
+    kuri::chaine_statique chaine_statique() const;
 };
 
 template <typename T>

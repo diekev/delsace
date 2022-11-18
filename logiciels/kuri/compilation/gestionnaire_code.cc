@@ -481,10 +481,27 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
  * ajoutes les dépedances de ces types aux dépendances.
  * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
  * programmes. */
-static void epends_dependances_types(GrapheDependance &graphe,
-                                     DonnneesResolutionDependances &donnees_resolution)
+static bool epends_dependances_types(GrapheDependance &graphe,
+                                     DonnneesResolutionDependances &donnees_resolution,
+                                     Programme *programme)
 {
     auto &dependances = donnees_resolution.dependances;
+    auto programme_possede_deja_les_types = true;
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        if (!programme->possede(type)) {
+            programme_possede_deja_les_types = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (programme_possede_deja_les_types) {
+        /* Le programme possède déjà tous les types, ce qui veut dire que leurs dépendances furent
+         * déjà ajoutées au programme. */
+        return false;
+    }
+
     auto &dependances_ependues = donnees_resolution.dependances_ependues;
 
     /* Traverse le graphe pour chaque dépendance sur un type. */
@@ -557,6 +574,7 @@ static void epends_dependances_types(GrapheDependance &graphe,
     }
 
     dependances.fusionne(dependances_ependues);
+    return true;
 }
 
 /* Détermine si nous devons ajouter les dépendances du noeud au programme. */
@@ -626,8 +644,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
             continue;
         }
         if (!dependances_ependues) {
-            epends_dependances_types(graphe, dependances);
-            dependances_ependues = true;
+            dependances_ependues = epends_dependances_types(graphe, dependances, it);
         }
         if (!ajoute_dependances_au_programme(dependances.dependances, espace, *it)) {
             break;
