@@ -527,7 +527,7 @@ struct ConvertisseuseTypeC {
                 enchaineuse << "{\n\t";
                 enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
                 enchaineuse << "\n\tlong taille;\n"
-                            << "\tlong " << broye_nom_simple("capacité") << ";\n} Tableau_"
+                            << "\tlong " << broye_nom_simple(ID::capacite) << ";\n} Tableau_"
                             << nom_broye << ";\n\n";
             }
         }
@@ -1437,7 +1437,7 @@ struct GeneratriceCodeC {
                 continue;
             }
 
-            os << broye_nom_simple(param->ident->nom);
+            os << broye_nom_simple(param->ident);
 
             virgule = ", ";
         }
@@ -1531,7 +1531,7 @@ struct GeneratriceCodeC {
                 auto param = atome_fonc->param_sortie;
                 auto type_pointeur = param->type->comme_pointeur();
                 os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-                os << broye_nom_simple(param->ident->nom);
+                os << broye_nom_simple(param->ident);
                 os << ";\n";
 
                 table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
