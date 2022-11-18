@@ -157,6 +157,12 @@ kuri::chaine Enchaineuse::chaine() const
     return resultat;
 }
 
+kuri::chaine_statique Enchaineuse::chaine_statique() const
+{
+    auto taille = taille_chaine();
+    return {&m_tampon_base.donnees[0], taille};
+}
+
 void Enchaineuse::permute(Enchaineuse &autre)
 {
     if (tampon_courant != &m_tampon_base && autre.tampon_courant != &autre.m_tampon_base) {

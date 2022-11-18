@@ -2071,6 +2071,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->drapeaux |= EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
+            expr->noeud_fonction_appelee = copie;
         }
         else {
             expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
@@ -2082,6 +2083,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                                      candidate->transformations[i]);
                 }
             }
+            expr->noeud_fonction_appelee = candidate->noeud_decl;
 
             if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
                 espace.rapporte_erreur(

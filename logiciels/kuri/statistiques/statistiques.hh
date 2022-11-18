@@ -194,6 +194,7 @@ struct StatistiquesTypage {
     EntreesStats<EntreeTemps> enumerations{"Énumérations"};
     EntreesStats<EntreeTemps> structures{"Structures"};
     EntreesStats<EntreeTemps> assignations{"Assignations"};
+    EntreesStats<EntreeTemps> finalisation{"Finalisation"};
 };
 
 void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
