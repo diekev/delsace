@@ -654,7 +654,9 @@ static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *vale
         os << "static const ";
     }
     else {
-        os << "static ";
+        // À FAIRE : permet de définir la visibilité des globales
+        //           en dehors des fichiers dynamiques.
+        // os << "static ";
     }
 }
 
