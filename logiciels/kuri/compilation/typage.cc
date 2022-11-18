@@ -256,16 +256,6 @@ void TypeCompose::marque_polymorphique()
     }
 }
 
-/* Les tableaux fixes dont la taille des éléments est supérieure à 16 octets sont alignés sur 16
- * octets, peu importe l'alignement du type des éléments. */
-static unsigned alignement_tableau_fixe(unsigned alignement_sous_type, unsigned nombre_elements)
-{
-    if (nombre_elements * alignement_sous_type > 16) {
-        return 16;
-    }
-    return alignement_sous_type;
-}
-
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
                                  kuri::tableau<TypeCompose::Membre, int> &&membres_)
@@ -276,8 +266,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     this->membres = std::move(membres_);
     this->type_pointe = type_pointe_;
     this->taille = taille_;
-    this->alignement = alignement_tableau_fixe(type_pointe_->alignement,
-                                               static_cast<unsigned>(taille_));
+    this->alignement = type_pointe_->alignement;
     this->taille_octet = type_pointe_->taille_octet * static_cast<unsigned>(taille_);
     this->drapeaux |= (TYPE_FUT_VALIDE);
 
@@ -782,44 +771,25 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
     return it;
 }
 
-// static int nombre_types_apparies = 0;
-// static int nombre_appels = 0;
-
 TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
                                      Type *type_sortie,
                                      bool ajoute_operateurs)
 {
-    // nombre_appels += 1;
-
     auto types_fonctions_ = types_fonctions.verrou_ecriture();
 
-    uint64_t tag_entrees = 0;
-    uint64_t tag_sorties = 0;
+    auto candidat = trie.trouve_type_ou_noeud_insertion(entrees, type_sortie);
 
-    POUR (entrees) {
-        tag_entrees |= reinterpret_cast<uint64_t>(it);
+    if (std::holds_alternative<TypeFonction *>(candidat)) {
+        /* Le type est dans le Trie, retournons-le. */
+        return std::get<TypeFonction *>(candidat);
     }
 
-    tag_sorties |= reinterpret_cast<uint64_t>(type_sortie);
-
-    POUR_TABLEAU_PAGE ((*types_fonctions_)) {
-        if (it.tag_entrees != tag_entrees || it.tag_sorties != tag_sorties) {
-            continue;
-        }
-
-        auto type = discr_type_fonction(&it, entrees);
-
-        if (type != nullptr) {
-            //			nombre_types_apparies += 1;
-            //			std::cerr << "appariements : " << nombre_types_apparies << '\n';
-            //			std::cerr << "appels       : " << nombre_appels << '\n';
-            return type;
-        }
-    }
-
+    /* Créons un nouveau type. */
     auto type = types_fonctions_->ajoute_element(entrees, type_sortie);
-    type->tag_entrees = tag_entrees;
-    type->tag_sorties = tag_sorties;
+
+    /* Insère le type dans le Trie. */
+    auto noeud = std::get<Trie::Noeud *>(candidat);
+    noeud->type = type;
 
     if (ajoute_operateurs) {
         operateurs_->ajoute_operateurs_basiques_fonction(*this, type);
@@ -836,8 +806,6 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
         graphe->connecte_type_type(type, type_sortie);
     }
 
-    //	std::cerr << "appariements : " << nombre_types_apparies << '\n';
-    //	std::cerr << "appels       : " << nombre_appels << '\n';
     return type;
 }
 
@@ -2022,4 +1990,97 @@ std::optional<Attente> attente_sur_type_si_drapeau_manquant(
     }
 
     return {};
+}
+
+/* --------------------------------------------------------------------------- */
+
+Trie::Noeud *Trie::StockageEnfants::trouve_noeud_pour_type(const Type *type)
+{
+    if (enfants.taille() >= TAILLE_MAX_ENFANTS_TABLET && table.taille() != 0) {
+        return table.valeur_ou(type, nullptr);
+    }
+
+    POUR (enfants) {
+        if (it->type == type) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+long Trie::StockageEnfants::taille() const
+{
+    if (enfants.taille() >= TAILLE_MAX_ENFANTS_TABLET && table.taille() != 0) {
+        return table.taille();
+    }
+    return enfants.taille();
+}
+
+void Trie::StockageEnfants::ajoute(Noeud *noeud)
+{
+    if (enfants.taille() >= TAILLE_MAX_ENFANTS_TABLET) {
+        if (table.taille() == 0) {
+            POUR (enfants) {
+                table.insere(it->type, it);
+            }
+        }
+
+        table.insere(noeud->type, noeud);
+        return;
+    }
+
+    enfants.ajoute(noeud);
+}
+
+Trie::Noeud *Trie::Noeud::trouve_noeud_pour_type(const Type *type)
+{
+    return enfants.trouve_noeud_pour_type(type);
+}
+
+Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type)
+{
+    return enfants_sortie.trouve_noeud_pour_type(type);
+}
+
+Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrees,
+                                                        Type *type_sortie)
+{
+    if (racine == nullptr) {
+        racine = noeuds.ajoute_element();
+    }
+
+    auto enfant_courant = racine;
+    POUR (entrees) {
+        auto enfant_suivant = enfant_courant->trouve_noeud_pour_type(it);
+        if (!enfant_suivant) {
+            enfant_suivant = ajoute_enfant(enfant_courant, it, false);
+        }
+        enfant_courant = enfant_suivant;
+    }
+
+    auto enfant_suivant = enfant_courant->trouve_noeud_sortie_pour_type(type_sortie);
+    if (!enfant_suivant) {
+        enfant_suivant = ajoute_enfant(enfant_courant, type_sortie, true);
+    }
+
+    if (enfant_suivant->enfants.taille() == 0) {
+        /* Le type fonction n'est pas dans l'arbre, retournons le noeud qui devra le tenir. */
+        return ajoute_enfant(enfant_suivant, nullptr, false);
+    }
+
+    /* Le type fonction est dans l'arbre, retournons-le. */
+    return const_cast<TypeFonction *>(enfant_suivant->enfants.enfants[0]->type->comme_fonction());
+}
+
+Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sortie)
+{
+    auto enfant = noeuds.ajoute_element();
+    enfant->type = type;
+    if (est_sortie) {
+        parent->enfants_sortie.ajoute(enfant);
+    }
+    else {
+        parent->enfants.ajoute(enfant);
+    }
+    return enfant;
 }

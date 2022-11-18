@@ -274,64 +274,70 @@ void simule_erosion_vent(ParametresErosionVent &params,
 
     auto const dir = direction * constantes<float>::TAU;
 
+    auto const inv_x = 1.0f / static_cast<float>(desc.resolution.x);
+
     /* Direction où va le vent. */
-    auto const direction_avale = dls::math::vec2f(std::cos(dir),
-                                                  std::cos(dir + constantes<float>::PI / 2.0f));
+    auto const direction_avale = dls::math::vec2f(std::cos(dir), std::sin(dir)) * inv_x;
 
     /* Direction d'où vient le vent. */
-    auto const direction_amont = dls::math::vec2f(std::cos(dir - constantes<float>::PI),
-                                                  std::cos(dir - constantes<float>::PI / 2.0f));
-
+    auto const direction_amont = -direction_avale;
     auto temp = wlk::grille_dense_2d<float>(desc);
 
     for (auto r = 0; r < repetitions; ++r) {
         copie_donnees_calque(grille_entree, temp);
 
-        auto index = 0;
-        for (auto y = 0; y < desc.resolution.y; ++y) {
-            for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-                auto const pos_monde = grille_entree.index_vers_unit(dls::math::vec2i(x, y));
+        boucle_parallele(
+            tbb::blocked_range<int>(0, desc.resolution.y),
+            [&](tbb::blocked_range<int> const &plage) {
+                for (auto y = plage.begin(); y < plage.end(); ++y) {
+                    for (auto x = 0; x < desc.resolution.x; ++x) {
+                        auto index = grille_entree.calcul_index(dls::math::vec2i{x, y});
+                        auto const pos_monde = grille_entree.index_vers_unit(
+                            dls::math::vec2i(x, y));
 
-                auto const hauteur = grille_entree.valeur(index);
+                        auto const hauteur = grille_entree.valeur(index);
 
-                /* Position où va le vent. */
-                auto const position_avale = pos_monde + direction_avale;
+                        /* Position où va le vent. */
+                        auto const position_avale = pos_monde + direction_avale;
 
-                auto hauteur_avale = wlk::echantillonne_lineaire(
-                    temp, position_avale.x, position_avale.y);
-                hauteur_avale = std::min(hauteur_avale, hauteur);
+                        auto hauteur_avale = wlk::echantillonne_lineaire(
+                            temp, position_avale.x, position_avale.y);
+                        hauteur_avale = std::min(hauteur_avale, hauteur);
 
-                /* Position d'où vient le vent. */
-                auto const position_amont = pos_monde + direction_amont;
+                        /* Position d'où vient le vent. */
+                        auto const position_amont = pos_monde + direction_amont;
 
-                auto const hauteur_amont = wlk::echantillonne_lineaire(
-                    temp, position_amont.x, position_amont.y);
+                        auto const hauteur_amont = wlk::echantillonne_lineaire(
+                            temp, position_amont.x, position_amont.y);
 
-                /* Le normal définit la pente et donc la quantité d'érosion. */
-                auto const normal = calcul_normal(temp, pos_monde);
-                // produit_scalaire(normal, dls::math::vec3f(0.0f, 1.0f, 0.0f);
-                auto const facteur = normal.z;
+                        /* Le normal définit la pente et donc la quantité d'érosion. */
+                        auto const normal = calcul_normal(temp, pos_monde);
+                        // produit_scalaire(normal, dls::math::vec3f(0.0f, 1.0f, 0.0f);
+                        auto const facteur = normal.z;
 
-                /* Nous enlevons ce qui est emporté par le vent. */
-                auto nouvelle_hauteur = dls::math::entrepolation_lineaire(
-                    hauteur, hauteur_avale, facteur * erosion_avale);
+                        /* Nous enlevons ce qui est emporté par le vent. */
+                        auto nouvelle_hauteur = dls::math::entrepolation_lineaire(
+                            hauteur, hauteur_avale, facteur * erosion_avale);
 
-                /* Nous ajoutons ce qui est amené par le vent. */
-                nouvelle_hauteur += dls::math::entrepolation_lineaire(
-                    hauteur, hauteur_amont, std::acos(facteur) * erosion_amont);
+                        /* Nous ajoutons ce qui est amené par le vent. */
+                        nouvelle_hauteur += dls::math::entrepolation_lineaire(
+                            hauteur, hauteur_amont, (1.0f - facteur) * erosion_amont);
 
-                /* Division par deux pour ne pas ajouter plus de matière. */
-                nouvelle_hauteur *= 0.5f;
+                        /* Division par deux pour ne pas ajouter plus de matière. */
+                        nouvelle_hauteur *= 0.5f;
 
-                if (grille_poids != nullptr) {
-                    auto poids = grille_poids->valeur(index);
-                    nouvelle_hauteur = dls::math::entrepolation_lineaire(
-                        nouvelle_hauteur, hauteur, dls::math::restreint(poids, 0.0f, 1.0f));
+                        if (grille_poids != nullptr) {
+                            auto poids = grille_poids->valeur(index);
+                            nouvelle_hauteur = dls::math::entrepolation_lineaire(
+                                nouvelle_hauteur,
+                                hauteur,
+                                dls::math::restreint(poids, 0.0f, 1.0f));
+                        }
+
+                        grille_entree.valeur(index, nouvelle_hauteur);
+                    }
                 }
-
-                grille_entree.valeur(index, nouvelle_hauteur);
-            }
-        }
+            });
     }
 
     /* copie les données */
@@ -472,30 +478,37 @@ struct erodeuse {
     {
         if (eau == nullptr) {
             eau = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(eau, 0.0f);
         }
 
         if (sediment == nullptr) {
             sediment = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(sediment, 0.0f);
         }
 
         if (scour == nullptr) {
             scour = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(scour, 0.0f);
         }
 
         if (flowrate == nullptr) {
             flowrate = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(flowrate, 0.0f);
         }
 
         if (sedimentpct == nullptr) {
             sedimentpct = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(sedimentpct, 0.0f);
         }
 
         if (avalanced == nullptr) {
             avalanced = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(avalanced, 0.0f);
         }
 
         if (capacity == nullptr) {
             capacity = memoire::loge<type_grille>("grille_erodeuse", desc);
+            remplis(capacity, 0.0f);
         }
     }
 
@@ -540,6 +553,13 @@ struct erodeuse {
 
         for (auto i = 0; i < this->roche.nombre_elements(); ++i) {
             this->roche.valeur(i) += gna.uniforme(0.0f, 1.0f) * valeur;
+        }
+    }
+
+    void remplis(type_grille *grille, float valeur)
+    {
+        for (auto i = 0; i < this->roche.nombre_elements(); ++i) {
+            grille->valeur(i) = valeur;
         }
     }
 
@@ -603,7 +623,10 @@ struct erodeuse {
 
         // self.maxrss = max(getmemsize(), self.maxrss);
 
-        this->roche = temp;
+        // this->roche = temp;
+        for (auto i = 0; i < this->roche.nombre_elements(); ++i) {
+            this->roche.valeur(i) = temp.valeur(i);
+        }
     }
 
     void avalanche(float delta, int iterava, float prob)
@@ -867,94 +890,99 @@ void erosion_simple(ParametresErosionSimple const &params,
     for (auto r = 0; r < iterations; ++r) {
         copie_donnees_calque(grille_entree, temp);
 
-        auto index = 0;
-        for (auto y = 0; y < desc.resolution.y; ++y) {
-            for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-                auto pos_monde = grille_entree.index_vers_unit(dls::math::vec2i(x, y));
+        boucle_parallele(
+            tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
+                for (auto y = plage.begin(); y < plage.end(); ++y) {
+                    for (auto x = 0; x < desc.resolution.x; ++x) {
+                        auto index = grille_entree.calcul_index(dls::math::vec2i{x, y});
+                        auto pos_monde = grille_entree.index_vers_unit(dls::math::vec2i(x, y));
 
-                auto uv = pos_monde;
+                        auto uv = pos_monde;
 
-                auto centre = wlk::echantillonne_lineaire(temp, uv.x, uv.y);
-                auto gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y);
-                auto droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y);
-                auto haut = wlk::echantillonne_lineaire(temp, uv.x, uv.y + t);
-                auto bas = wlk::echantillonne_lineaire(temp, uv.x, uv.y - t);
-                auto haut_gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y + t);
-                auto haut_droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y + t);
-                auto bas_gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y - t);
-                auto bas_droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y - t);
+                        auto centre = wlk::echantillonne_lineaire(temp, uv.x, uv.y);
+                        auto gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y);
+                        auto droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y);
+                        auto haut = wlk::echantillonne_lineaire(temp, uv.x, uv.y + t);
+                        auto bas = wlk::echantillonne_lineaire(temp, uv.x, uv.y - t);
+                        auto haut_gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y + t);
+                        auto haut_droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y + t);
+                        auto bas_gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y - t);
+                        auto bas_droit = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y - t);
 
-                auto a = dls::math::vec4f(gauche, droit, haut, bas);
-                auto b = dls::math::vec4f(haut_gauche, haut_droit, bas_gauche, bas_droit);
+                        auto a = dls::math::vec4f(gauche, droit, haut, bas);
+                        auto b = dls::math::vec4f(haut_gauche, haut_droit, bas_gauche, bas_droit);
 
-                float count = 1.0f;
-                float sum = centre;
-                float result;
+                        float count = 1.0f;
+                        float sum = centre;
+                        float result;
 
-                if (inverse) {
-                    for (auto i = 0u; i < 4; ++i) {
-                        if (a[i] > centre) {
-                            count += 1.0f;
-                            sum += a[i];
-                        }
-                    }
+                        if (inverse) {
+                            for (auto i = 0u; i < 4; ++i) {
+                                if (a[i] > centre) {
+                                    count += 1.0f;
+                                    sum += a[i];
+                                }
+                            }
 
-                    if (!rugueux) {
-                        for (auto i = 0u; i < 4; ++i) {
-                            if (b[i] > centre) {
-                                count += 1.0f;
-                                sum += b[i];
+                            if (!rugueux) {
+                                for (auto i = 0u; i < 4; ++i) {
+                                    if (b[i] > centre) {
+                                        count += 1.0f;
+                                        sum += b[i];
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-                else {
-                    for (auto i = 0u; i < 4; ++i) {
-                        if (a[i] < centre) {
-                            count += 1.0f;
-                            sum += a[i];
-                        }
-                    }
+                        else {
+                            for (auto i = 0u; i < 4; ++i) {
+                                if (a[i] < centre) {
+                                    count += 1.0f;
+                                    sum += a[i];
+                                }
+                            }
 
-                    if (!rugueux) {
-                        for (auto i = 0u; i < 4; ++i) {
-                            if (b[i] < centre) {
-                                count += 1.0f;
-                                sum += b[i];
+                            if (!rugueux) {
+                                for (auto i = 0u; i < 4; ++i) {
+                                    if (b[i] < centre) {
+                                        count += 1.0f;
+                                        sum += b[i];
+                                    }
+                                }
                             }
                         }
+
+                        if (pente) {
+                            auto normal = normalise(
+                                dls::math::vec3f(gauche - droit, s + t, bas - haut));
+
+                            float factor = normal.z;  // normal . up
+
+                            if (superficielle) {
+                                factor = 1.0f - factor;
+                            }
+                            else {
+                                factor = factor - 0.05f * count;
+                            }
+
+                            result = dls::math::entrepolation_lineaire(
+                                sum / count, centre, factor);
+                        }
+                        else {
+                            result = sum / count;
+                        }
+
+                        if (grille_poids != nullptr) {
+                            // À FAIRE
+                            //                    auto poids = grille_poids->valeur(index);
+                            //                    result = dls::math::entrepolation_lineaire(
+                            //                        result, centre, dls::math::restreint(poids,
+                            //                        0.0f, 1.0f));
+                        }
+
+                        grille_entree.valeur(index, result);
                     }
                 }
-
-                if (pente) {
-                    auto normal = normalise(dls::math::vec3f(gauche - droit, s + t, bas - haut));
-
-                    float factor = normal.z;  // normal . up
-
-                    if (superficielle) {
-                        factor = 1.0f - factor;
-                    }
-                    else {
-                        factor = factor - 0.05f * count;
-                    }
-
-                    result = dls::math::entrepolation_lineaire(sum / count, centre, factor);
-                }
-                else {
-                    result = sum / count;
-                }
-
-                if (grille_poids != nullptr) {
-                    // À FAIRE
-                    //                    auto poids = grille_poids->valeur(index);
-                    //                    result = dls::math::entrepolation_lineaire(
-                    //                        result, centre, dls::math::restreint(poids,
-                    //                        0.0f, 1.0f));
-                }
-
-                grille_entree.valeur(index, result);
-            }
-        }
+            });
     }
 
     copie_donnees_calque(grille_entree, terrain);
