@@ -2284,17 +2284,7 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
             continue;
         }
 
-        auto resultat_validation = valide_semantique_noeud(noeud_enfant);
-
-        if (std::holds_alternative<Attente>(resultat_validation)) {
-            return std::get<Attente>(resultat_validation);
-        }
-
-        auto code_etat = std::get<CodeRetourValidation>(resultat_validation);
-
-        if (code_etat == CodeRetourValidation::Erreur) {
-            return CodeRetourValidation::Erreur;
-        }
+        TENTE(valide_semantique_noeud(noeud_enfant));
     }
 
     return CodeRetourValidation::OK;
