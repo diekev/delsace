@@ -57,23 +57,6 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression const *noeud)
-{
-    auto membres = bloc->membres.verrou_lecture();
-    bloc->nombre_recherches += 1;
-    POUR (*membres) {
-        if (it == noeud) {
-            continue;
-        }
-
-        if (it->ident == noeud->ident) {
-            return it;
-        }
-    }
-
-    return nullptr;
-}
-
 NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
