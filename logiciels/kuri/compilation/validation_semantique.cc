@@ -397,10 +397,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             aplatis_arbre(decl);
             POUR (decl->arbre_aplatis) {
-                auto resultat_validation = valide_semantique_noeud(it);
-                if (!est_ok(resultat_validation)) {
-                    return resultat_validation;
-                }
+                TENTE(valide_semantique_noeud(it));
             }
 
             auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
@@ -749,11 +746,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
             else {
-                auto const resultat_transtype = transtype_si_necessaire(expr->operande_droite,
-                                                                        type_cible);
-                if (!est_ok(resultat_transtype)) {
-                    return resultat_transtype;
-                }
+                TENTE(transtype_si_necessaire(expr->operande_droite, type_cible));
             }
 
             break;
@@ -1277,11 +1270,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
-                auto const resultat_transtype = transtype_si_necessaire(feuilles->expressions[i],
-                                                                        type_feuille);
-                if (!est_ok(resultat_transtype)) {
-                    return resultat_transtype;
-                }
+                TENTE(transtype_si_necessaire(feuilles->expressions[i], type_feuille));
             }
 
             noeud->type = m_compilatrice.typeuse.type_tableau_fixe(type_feuille,
@@ -1755,14 +1744,11 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 return Attente::sur_symbole(ref);
             }
 
-            auto res = valide_reference_declaration(ref, module_ref->bloc);
-            if (!est_ok(res)) {
-                return res;
-            }
+            TENTE(valide_reference_declaration(ref, module_ref->bloc));
 
             expression_membre->type = membre->type;
             expression_membre->genre_valeur = membre->genre_valeur;
-            return res;
+            return CodeRetourValidation::OK;
         }
     }
 
@@ -2573,11 +2559,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                     break;
                 }
 
-                auto resultat = valide_typage_et_ajoute(
-                    donnees, variables.defile(), it, membre.type);
-                if (!est_ok(resultat)) {
-                    return resultat;
-                }
+                TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type));
             }
         }
         else {
@@ -2586,10 +2568,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                 return CodeRetourValidation::Erreur;
             }
 
-            auto resultat = valide_typage_et_ajoute(donnees, variables.defile(), it, it->type);
-            if (!est_ok(resultat)) {
-                return resultat;
-            }
+            TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, it->type));
         }
 
         donnees_retour.ajoute(std::move(donnees));
@@ -3057,10 +3036,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
 
-    auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-    if (!est_ok(resultat_validation)) {
-        return resultat_validation;
-    }
+    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
     auto bloc = decl->bloc;
     auto inst_ret = derniere_instruction(bloc);
@@ -3116,10 +3092,7 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
     auto entete = decl->entete;
     decl->type = entete->type;
 
-    auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-    if (!est_ok(resultat_validation)) {
-        return resultat_validation;
-    }
+    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
     auto inst_ret = derniere_instruction(decl->bloc);
 
@@ -3464,10 +3437,7 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
         type_enum->type_donnees = m_compilatrice.typeuse[TypeBase::Z32];
     }
     else if (decl->expression_type != nullptr) {
-        auto resultat_validation = valide_semantique_noeud(decl->expression_type);
-        if (!est_ok(resultat_validation)) {
-            return resultat_validation;
-        }
+        TENTE(valide_semantique_noeud(decl->expression_type));
 
         if (resoud_type_final(decl->expression_type, type_enum->type_donnees) ==
             CodeRetourValidation::Erreur) {
@@ -3556,10 +3526,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis_params);
-        if (!est_ok(resultat_validation)) {
-            return resultat_validation;
-        }
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis_params));
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -3605,10 +3572,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         return Attente::sur_parsage(fichier);
     }
 
-    auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-    if (!est_ok(resultat_validation)) {
-        return resultat_validation;
-    }
+    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
 
@@ -3766,10 +3730,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                     transtype_si_necessaire(expression, donnees.transformations[i]);
 
                     // À FAIRE(emploi) : préserve l'emploi dans les données types
-                    auto const resultat_ajout = ajoute_donnees_membre(var, expression);
-                    if (!est_ok(resultat_ajout)) {
-                        return resultat_ajout;
-                    }
+                    TENTE(ajoute_donnees_membre(var, expression));
                 }
             }
         }
@@ -3837,11 +3798,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
         if (decl_var->declaration_vient_d_un_emploi) {
             // À FAIRE(emploi) : préserve l'emploi dans les données types
-            auto const resultat_ajout = ajoute_donnees_membre(decl_var, decl_var->expression);
-            if (!est_ok(resultat_ajout)) {
-                return resultat_ajout;
-            }
-
+            TENTE(ajoute_donnees_membre(decl_var, decl_var->expression));
             continue;
         }
 
@@ -3886,10 +3843,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 transtype_si_necessaire(expression, donnees.transformations[i]);
 
                 // À FAIRE(emploi) : préserve l'emploi dans les données types
-                auto const resultat_ajout = ajoute_donnees_membre(var, expression);
-                if (!est_ok(resultat_ajout)) {
-                    return resultat_ajout;
-                }
+                TENTE(ajoute_donnees_membre(var, expression));
             }
         }
     }
@@ -4175,10 +4129,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                         break;
                     }
 
-                    auto resultat = ajoute_variable(donnees, variables.defile(), it, membre.type);
-                    if (!est_ok(resultat)) {
-                        return resultat;
-                    }
+                    TENTE(ajoute_variable(donnees, variables.defile(), it, membre.type));
                 }
             }
             else if (it->type->est_rien()) {
@@ -4189,10 +4140,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 return CodeRetourValidation::Erreur;
             }
             else {
-                auto resultat = ajoute_variable(donnees, variables.defile(), it, it->type);
-                if (!est_ok(resultat)) {
-                    return resultat;
-                }
+                TENTE(ajoute_variable(donnees, variables.defile(), it, it->type));
             }
 
             donnees_assignations.ajoute(std::move(donnees));
@@ -4452,17 +4400,11 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                     break;
                 }
 
-                auto resultat = ajoute_variable(donnees, variables.defile(), it, membre.type);
-                if (!est_ok(resultat)) {
-                    return resultat;
-                }
+                TENTE(ajoute_variable(donnees, variables.defile(), it, membre.type));
             }
         }
         else {
-            auto resultat = ajoute_variable(donnees, variables.defile(), it, it->type);
-            if (!est_ok(resultat)) {
-                return resultat;
-            }
+            TENTE(ajoute_variable(donnees, variables.defile(), it, it->type));
         }
 
         donnees_assignations.ajoute(std::move(donnees));
@@ -4471,11 +4413,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
     // a, b = c
     auto donnees = &donnees_assignations.back();
     while (!variables.est_vide()) {
-        auto resultat = ajoute_variable(
-            *donnees, variables.defile(), donnees->expression, donnees->expression->type);
-        if (!est_ok(resultat)) {
-            return resultat;
-        }
+        TENTE(ajoute_variable(
+            *donnees, variables.defile(), donnees->expression, donnees->expression->type));
     }
 
     inst->donnees_exprs.reserve(static_cast<int>(donnees_assignations.taille()));
