@@ -421,6 +421,12 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
 	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
 	NoeudDéclarationVariable *param_sortie
+
+        /* Toutes les fonctions dans le bloc parent de celle-ci qui ont le même
+         * identifiant que celle-ci. Ceci n'est mis en place que pour la première
+         * fonction du bloc à être ajoutée comme membre de ce dernier, ce qui est
+         * dans l'ordre lexical si ajoutée lors du syntaxage. */
+        NoeudDéclarationEnteteFonction * [] ensemble_de_surchages
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {

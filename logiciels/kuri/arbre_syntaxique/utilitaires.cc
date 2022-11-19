@@ -2557,6 +2557,14 @@ void NoeudBloc::reserve_membres(int nombre)
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
 {
+    if (decl->est_entete_fonction()) {
+        auto decl_existante = declaration_pour_ident(decl->ident);
+        if (decl_existante && decl_existante->est_entete_fonction()) {
+            auto entete_existante = decl_existante->comme_entete_fonction();
+            entete_existante->ensemble_de_surchages.ajoute(decl->comme_entete_fonction());
+        }
+    }
+
     membres->ajoute(decl);
 }
 

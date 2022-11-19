@@ -2136,32 +2136,19 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
         if (decl->ident != ID::__point_d_entree_systeme) {
             CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
                           "valide_type_fonction (redéfinition)");
-            auto eu_erreur = false;
-            decl->bloc_parent->membres.avec_verrou_lecture(
-                [&](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-                    POUR (membres) {
-                        if (it == decl) {
-                            continue;
-                        }
-
-                        if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-                            continue;
-                        }
-
-                        /* NOTE : utilisation d'un transtypage au lieu de #comme_entete_fonction()
-                         * car cela se voit dans les profilages par manque d'optimisation. */
-                        auto decl_it = static_cast<NoeudDeclarationEnteteFonction *>(it);
-
-                        if (fonctions_ont_memes_definitions(*decl, *decl_it)) {
-                            rapporte_erreur_redefinition_fonction(decl, decl_it);
-                            eu_erreur = true;
-                            break;
-                        }
+            auto decl_existante = decl->bloc_parent->declaration_avec_meme_ident_que(decl);
+            if (decl_existante && decl_existante->est_entete_fonction()) {
+                auto entete_existante = decl_existante->comme_entete_fonction();
+                POUR (entete_existante->ensemble_de_surchages) {
+                    if (it == decl) {
+                        continue;
                     }
-                });
 
-            if (eu_erreur) {
-                return CodeRetourValidation::Erreur;
+                    if (fonctions_ont_memes_definitions(*decl, *it)) {
+                        rapporte_erreur_redefinition_fonction(decl, it);
+                        return CodeRetourValidation::Erreur;
+                    }
+                }
             }
         }
     }
