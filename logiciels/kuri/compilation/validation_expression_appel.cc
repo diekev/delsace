@@ -1866,13 +1866,12 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // trouve la fonction, pour savoir ce que l'on a
 
+    ListeCandidatesExpressionAppel liste_candidates;
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
-
-        ListeCandidatesExpressionAppel candidates;
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidates");
 
         auto resultat_validation = trouve_candidates_pour_appel(
-            espace, contexte, expr, args, candidates);
+            espace, contexte, expr, args, liste_candidates);
         if (est_attente(resultat_validation)) {
             return std::get<Attente>(resultat_validation);
         }
@@ -1882,8 +1881,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             //           rattrappable
             return Attente::sur_symbole(symbole_pour_expression(expr->expression));
         }
+    }
 
-        auto attente_possible = apparies_candidates(espace, contexte, expr, args, candidates, ctx);
+    {
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "apparie candidate");
+
+        auto attente_possible = apparies_candidates(
+            espace, contexte, expr, args, liste_candidates, ctx);
         if (attente_possible.has_value()) {
             return attente_possible.value();
         }
