@@ -149,6 +149,10 @@ struct Module {
     kuri::tablet<Fichier *, 16> fichiers{};
     bool importe = false;
 
+    /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier qu'il reste des fichiers à
+     * parser. */
+    bool fichiers_sont_sales = true;
+
     kuri::chaine chemin_bibliotheque_32bits{};
     kuri::chaine chemin_bibliotheque_64bits{};
 
@@ -162,6 +166,8 @@ struct Module {
     }
 
     COPIE_CONSTRUCT(Module);
+
+    void ajoute_fichier(Fichier *fichier);
 
     kuri::chaine_statique chemin() const
     {

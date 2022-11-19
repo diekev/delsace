@@ -30,6 +30,11 @@ bool Fichier::importe_module(IdentifiantCode *nom_module) const
     return importe;
 }
 
+void Module::ajoute_fichier(Fichier *fichier)
+{
+    fichiers.ajoute(fichier);
+}
+
 Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
     auto chemin_normalise = kuri::chaine(chemin);
@@ -87,6 +92,8 @@ FichierNeuf SystemeModule::cree_fichier(Module *module,
     df->chemin_ = chemin;
     df->id_ = fichiers.taille() - 1;
     df->module = module;
+
+    module->ajoute_fichier(df);
 
     table_fichiers.insere(df->chemin(), df);
 
