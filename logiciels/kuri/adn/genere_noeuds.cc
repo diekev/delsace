@@ -128,6 +128,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
         os << "#include \"structures/tableau_compresse.hh\"\n";
+        os << "#include \"structures/table_hachage.hh\"\n";
         os << "#include \"compilation/transformation_type.hh\"\n";
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";

@@ -168,6 +168,8 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tkuri::chaine const &nom_broye(EspaceDeTravail *espace);\n";
         }
         else if (m_nom.nom_cpp() == "NoeudBloc") {
+            os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *> "
+                  "table_membres{\"membres_bloc\"};\n";
             os << "\tint nombre_de_membres() const;\n";
             os << "\tvoid reserve_membres(int nombre);\n";
             os << "\tvoid ajoute_membre(NoeudDeclaration *decl);\n";

@@ -2555,6 +2555,35 @@ void NoeudBloc::reserve_membres(int nombre)
     membres->reserve(nombre);
 }
 
+static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
+
+template <typename T>
+using PointeurTableauVerrouille = typename tableau_synchrone<T>::PointeurVerrouille;
+
+using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *>;
+
+static void ajoute_membre(TableMembres &table_membres, NoeudDeclaration *decl)
+{
+    /* Nous devons faire en sorte que seul le premier membre du nom est ajouté, afin que l'ensemble
+     * de surcharge lui soit réservé, et que c'est ce membre qui est retourné. */
+    if (table_membres.possede(decl->ident)) {
+        return;
+    }
+    table_membres.insere(decl->ident, decl);
+}
+
+static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaration *> &membres,
+                                       TableMembres &table_membres)
+{
+    if (table_membres.taille() != 0) {
+        return;
+    }
+
+    POUR (*membres) {
+        ajoute_membre(table_membres, it);
+    }
+}
+
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
 {
     if (decl->est_declaration_symbole()) {
@@ -2565,12 +2594,24 @@ void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
         }
     }
 
-    membres->ajoute(decl);
+    auto membres_ = membres.verrou_ecriture();
+    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
+        init_table_hachage_membres(membres_, table_membres);
+        ::ajoute_membre(table_membres, decl);
+    }
+
+    membres_->ajoute(decl);
 }
 
 void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
 {
-    membres->pousse_front(decl);
+    auto membres_ = membres.verrou_ecriture();
+    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
+        init_table_hachage_membres(membres_, table_membres);
+        ::ajoute_membre(table_membres, decl);
+    }
+
+    membres_->pousse_front(decl);
 }
 
 void NoeudBloc::fusionne_membres(NoeudBloc *de)
@@ -2594,6 +2635,11 @@ NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
+
+    if (table_membres.taille() != 0) {
+        return table_membres.valeur_ou(ident_recherche, nullptr);
+    }
+
     POUR (*membres_) {
         if (it->ident == ident_recherche) {
             return it;
@@ -2606,6 +2652,15 @@ NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression con
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
+
+    if (table_membres.taille() != 0) {
+        auto resultat = table_membres.valeur_ou(expr->ident, nullptr);
+        if (resultat != expr) {
+            return resultat;
+        }
+        return nullptr;
+    }
+
     POUR (*membres_) {
         if (it != expr && it->ident == expr->ident) {
             return it;
