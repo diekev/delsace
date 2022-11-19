@@ -1038,8 +1038,6 @@ static bool declaration_est_invalide(NoeudExpression *decl)
 
 static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
 {
-    kuri::ensemble<Module *> modules_visites;
-
     POUR_TABLEAU_PAGE (sys_module.modules) {
         for (auto fichier : it.fichiers) {
             if (!fichier->fut_charge) {
