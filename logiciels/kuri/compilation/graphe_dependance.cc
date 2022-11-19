@@ -276,10 +276,16 @@ void GrapheDependance::reduction_transitive()
               << relations_totales << std::endl;
 }
 
+void GrapheDependance::prepare_visite()
+{
+    index_visite++;
+}
+
 void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
                                                      kuri::tableau<AtomeFonction *> &fonctions,
                                                      kuri::ensemble<AtomeFonction *> &utilises)
 {
+    prepare_visite();
     traverse(racine, [&](NoeudDependance *noeud) {
         AtomeFonction *atome_fonction = nullptr;
 

@@ -504,6 +504,9 @@ static bool epends_dependances_types(GrapheDependance &graphe,
 
     auto &dependances_ependues = donnees_resolution.dependances_ependues;
 
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
+
     /* Traverse le graphe pour chaque dépendance sur un type. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         dependances_ependues.types_utilises.insere(type);
@@ -518,10 +521,8 @@ static bool epends_dependances_types(GrapheDependance &graphe,
         return kuri::DecisionIteration::Continue;
     });
 
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         dependances_ependues.fonctions_utilisees.insere(fonction);
@@ -543,10 +544,8 @@ static bool epends_dependances_types(GrapheDependance &graphe,
         return kuri::DecisionIteration::Continue;
     });
 
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         dependances_ependues.globales_utilisees.insere(globale);
@@ -567,11 +566,6 @@ static bool epends_dependances_types(GrapheDependance &graphe,
 
         return kuri::DecisionIteration::Continue;
     });
-
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
 
     dependances.fusionne(dependances_ependues);
     return true;
