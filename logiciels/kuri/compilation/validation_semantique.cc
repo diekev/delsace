@@ -3,6 +3,8 @@
 
 #include "validation_semantique.hh"
 
+#include "biblinternes/outils/definitions.h"
+
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -19,6 +21,14 @@
     if (m_compilatrice.interface_kuri->decl_##nom == nullptr) {                                   \
         return Attente::sur_interface_kuri(id);                                                   \
     }
+
+#define TENTE_IMPL(var, x)                                                                        \
+    auto var = x;                                                                                 \
+    if (!est_ok(var)) {                                                                           \
+        return var;                                                                               \
+    }
+
+#define TENTE(x) TENTE_IMPL(VARIABLE_ANONYME(resultat), x)
 
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice,
                                                Tacheronne &tacheronne,
@@ -1897,6 +1907,10 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
 ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
+    if (decl->est_operateur) {
+        return valide_entete_operateur(decl);
+    }
+
 #ifdef STATISTIQUES_DETAILLEES
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
@@ -1906,270 +1920,28 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     });
 #endif
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction");
 
-    /* Valide les constantes polymorphiques. */
-    if (decl->est_polymorphe) {
+    valide_parametres_constants_fonction(decl);
 
-        POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
-            /* Les valeurs polymorphiques sont dans les paramètres. */
-            if (it->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-                auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
-                it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
-                it->drapeaux |= DECLARATION_FUT_VALIDEE;
-            }
-        }
-
-        if (!decl->monomorphisations) {
-            decl->monomorphisations =
-                m_tacheronne.allocatrice_noeud.cree_monomorphisations_fonction();
-        }
-    }
-
-    {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (arbre aplatis)");
-        auto resultat_validation = valide_arbre_aplatis(decl, decl->arbre_aplatis);
-        if (!est_ok(resultat_validation)) {
-            return resultat_validation;
-        }
-    }
-
-    // -----------------------------------
     {
         CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                      "valide_type_fonction (validation paramètres)");
-        auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
-        auto dernier_est_variadic = false;
-
-        for (auto i = 0; i < decl->params.taille(); ++i) {
-            if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
-                unite->espace->rapporte_erreur(
-                    decl->params[i], "Le paramètre n'est ni une déclaration, ni un emploi");
-                return CodeRetourValidation::Erreur;
-            }
-
-            auto param = decl->parametre_entree(i);
-            auto variable = param->valeur;
-            auto expression = param->expression;
-
-            if (noms.possede(variable->ident)) {
-                rapporte_erreur(
-                    "Redéfinition de l'argument", variable, erreur::Genre::ARGUMENT_REDEFINI);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (dernier_est_variadic) {
-                rapporte_erreur("Argument déclaré après un argument variadic", variable);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (expression != nullptr) {
-                if (decl->est_operateur) {
-                    rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de "
-                                    "valeur par défaut",
-                                    param);
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-
-            noms.insere(variable->ident);
-
-            if (param->type->genre == GenreType::VARIADIQUE) {
-                param->drapeaux |= EST_VARIADIQUE;
-                decl->est_variadique = true;
-                dernier_est_variadic = true;
-
-                auto type_var = param->type->comme_variadique();
-
-                if (!decl->est_externe && type_var->type_pointe == nullptr) {
-                    rapporte_erreur("La déclaration de fonction variadique sans type n'est"
-                                    " implémentée que pour les fonctions externes",
-                                    param);
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-        }
-
-        if (decl->est_polymorphe) {
-            decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-            return CodeRetourValidation::OK;
-        }
+                      "valide_entete_fonction (arbre aplatis)");
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
     }
 
-    // -----------------------------------
+    TENTE(valide_parametres_fonction(decl))
 
-    TypeFonction *type_fonc = nullptr;
-    {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (typage)");
-
-        kuri::tablet<Type *, 6> types_entrees;
-        types_entrees.reserve(decl->params.taille());
-
-        POUR (decl->params) {
-            types_entrees.ajoute(it->type);
-        }
-
-        Type *type_sortie = nullptr;
-
-        if (decl->params_sorties.taille() == 1) {
-            if (resoud_type_final(
-                    decl->params_sorties[0]->comme_declaration_variable()->expression_type,
-                    type_sortie) == CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-        }
-        else {
-            kuri::tablet<TypeCompose::Membre, 6> membres;
-            membres.reserve(decl->params_sorties.taille());
-
-            for (auto &expr : decl->params_sorties) {
-                auto type_declare = expr->comme_declaration_variable();
-                if (resoud_type_final(type_declare->expression_type, type_sortie) ==
-                    CodeRetourValidation::Erreur) {
-                    return CodeRetourValidation::Erreur;
-                }
-
-                // À FAIRE(état validation) : nous ne devrions pas revalider les paramètres
-                if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                    return Attente::sur_type(type_sortie);
-                }
-
-                membres.ajoute({nullptr, type_sortie});
-            }
-
-            type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
-        }
-
-        decl->param_sortie->type = type_sortie;
-
-        if (decl->ident == ID::principale) {
-            if (decl->params.taille() != 0) {
-                espace->rapporte_erreur(
-                    decl->params[0],
-                    "La fonction principale ne doit pas prendre de paramètres d'entrée !");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (decl->param_sortie->type->est_tuple()) {
-                espace->rapporte_erreur(
-                    decl->param_sortie,
-                    "La fonction principale ne peut retourner qu'une seule valeur !");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (decl->param_sortie->type != m_compilatrice.typeuse[TypeBase::Z32]) {
-                espace->rapporte_erreur(decl->param_sortie,
-                                        "La fonction principale doit retourner un z32 !");
-                return CodeRetourValidation::Erreur;
-            }
-        }
-
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
-        type_fonc = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
-        decl->type = type_fonc;
+    if (decl->est_polymorphe) {
+        /* Puisque les types sont polymorphiques, nous n'avons pas besoin de les valider.
+         * Ce sera fait lors de la monomorphisation de la fonction. */
+        decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+        return CodeRetourValidation::OK;
     }
 
-    if (decl->est_operateur) {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (opérateurs)");
-        auto type_resultat = type_fonc->type_sortie;
-
-        if (type_resultat == m_compilatrice.typeuse[TypeBase::RIEN]) {
-            rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (est_operateur_bool(decl->lexeme->genre) &&
-            type_resultat != m_compilatrice.typeuse[TypeBase::BOOL]) {
-            rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
-            return CodeRetourValidation::Erreur;
-        }
-
-        auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
-
-        if (decl->params.taille() == 1) {
-            auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
-            auto type1 = type_fonc->types_entrees[0];
-
-            for (auto i = 0; i < iter_op.taille(); ++i) {
-                auto op = &iter_op[i];
-
-                if (op->type_operande == type1) {
-                    if (op->est_basique) {
-                        rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                        .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                        .ajoute_site(op->decl);
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-
-            operateurs->ajoute_perso_unaire(decl->lexeme->genre, type1, type_resultat, decl);
-        }
-        else if (decl->params.taille() == 2) {
-            auto type1 = type_fonc->types_entrees[0];
-            auto type2 = type_fonc->types_entrees[1];
-
-            for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre).plage()) {
-                if (op->type2 == type2) {
-                    if (op->est_basique) {
-                        rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                        .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                        .ajoute_site(op->decl);
-                    return CodeRetourValidation::Erreur;
-                }
-            }
-
-            operateurs->ajoute_perso(decl->lexeme->genre, type1, type2, type_resultat, decl);
-        }
-    }
-    else {
-        // À FAIRE(moultfilage) : vérifie l'utilisation des synchrones pour les tableaux
-        // Le point d'entrée est copié pour chaque espace, donc il est possible qu'il existe
-        // plusieurs fois dans le bloc.
-        if (decl->ident != ID::__point_d_entree_systeme) {
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                          "valide_type_fonction (redéfinition)");
-            auto decl_existante = decl->bloc_parent->declaration_avec_meme_ident_que(decl);
-            if (decl_existante && decl_existante->est_entete_fonction()) {
-                auto entete_existante = decl_existante->comme_entete_fonction();
-                POUR (entete_existante->ensemble_de_surchages) {
-                    if (it == decl) {
-                        continue;
-                    }
-
-                    if (fonctions_ont_memes_definitions(*decl, *it)) {
-                        rapporte_erreur_redefinition_fonction(decl, it);
-                        return CodeRetourValidation::Erreur;
-                    }
-                }
-            }
-        }
-    }
-
-    // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
-    if (decl->est_externe && decl->ident && decl->ident->nom != "__principale" &&
-        !decl->possede_drapeau(COMPILATRICE)) {
-        auto bibliotheque = m_compilatrice.gestionnaire_bibliotheques->trouve_bibliotheque(
-            decl->ident_bibliotheque);
-
-        if (!bibliotheque) {
-            espace
-                ->rapporte_erreur(decl,
-                                  "Impossible de définir la bibliothèque où trouver la fonction")
-                .ajoute_message(
-                    "« ", decl->ident_bibliotheque->nom, " » ne réfère à aucune bibliothèque !");
-            return CodeRetourValidation::Erreur;
-        }
-
-        decl->symbole = bibliotheque->cree_symbole(decl->nom_symbole);
-    }
+    TENTE(valide_types_parametres_fonction(decl));
+    TENTE(valide_definition_unique_fonction(decl));
+    TENTE(valide_symbole_fonction(decl));
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
@@ -2177,6 +1949,323 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     possede_erreur = false;
 #endif
 
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_entete_operateur(
+    NoeudDeclarationEnteteFonction *decl)
+{
+#ifdef STATISTIQUES_DETAILLEES
+    auto possede_erreur = true;
+    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+        if (possede_erreur) {
+            m_tacheronne.stats_typage.fonctions.fusionne_entree({"tentatives râtées", temps});
+        }
+    });
+#endif
+
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction");
+
+    {
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
+                      "valide_entete_fonction (arbre aplatis)");
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+    }
+
+    TENTE(valide_parametres_fonction(decl));
+    TENTE(valide_types_parametres_fonction(decl));
+
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
+                  "valide_entete_fonction (types opérateurs)");
+    auto type_fonc = decl->type->comme_fonction();
+    auto type_resultat = type_fonc->type_sortie;
+
+    if (type_resultat == m_compilatrice.typeuse[TypeBase::RIEN]) {
+        rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (est_operateur_bool(decl->lexeme->genre) &&
+        type_resultat != m_compilatrice.typeuse[TypeBase::BOOL]) {
+        rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
+        return CodeRetourValidation::Erreur;
+    }
+
+    TENTE(valide_definition_unique_operateur(decl));
+
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+#ifdef STATISTIQUES_DETAILLEES
+    possede_erreur = false;
+#endif
+
+    return CodeRetourValidation::OK;
+}
+
+void ContexteValidationCode::valide_parametres_constants_fonction(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    if (!decl->est_polymorphe) {
+        /* Seules les fonctions polymorphiques ont des constantes. */
+        return;
+    }
+
+    POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
+        if (!it->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+            /* Les valeurs polymorphiques sont dans les paramètres, et seront donc validées avec
+             * les paramètres. */
+            continue;
+        }
+
+        auto type_poly = m_compilatrice.typeuse.cree_polymorphique(it->ident);
+        it->type = m_compilatrice.typeuse.type_type_de_donnees(type_poly);
+        it->drapeaux |= DECLARATION_FUT_VALIDEE;
+    }
+
+    if (!decl->monomorphisations) {
+        decl->monomorphisations = m_tacheronne.allocatrice_noeud.cree_monomorphisations_fonction();
+    }
+}
+
+ResultatValidation ContexteValidationCode::valide_parametres_fonction(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
+                  "valide_entete_fonction (validation paramètres)");
+    auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
+    auto dernier_est_variadic = false;
+
+    for (auto i = 0; i < decl->params.taille(); ++i) {
+        if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
+            unite->espace->rapporte_erreur(decl->params[i],
+                                           "Le paramètre n'est ni une déclaration, ni un emploi");
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto param = decl->parametre_entree(i);
+        auto variable = param->valeur;
+        auto expression = param->expression;
+
+        if (noms.possede(variable->ident)) {
+            rapporte_erreur(
+                "Redéfinition de l'argument", variable, erreur::Genre::ARGUMENT_REDEFINI);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (dernier_est_variadic) {
+            rapporte_erreur("Argument déclaré après un argument variadic", variable);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (expression != nullptr) {
+            if (decl->est_operateur) {
+                rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de "
+                                "valeur par défaut",
+                                param);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+
+        noms.insere(variable->ident);
+
+        if (param->type->genre == GenreType::VARIADIQUE) {
+            param->drapeaux |= EST_VARIADIQUE;
+            decl->est_variadique = true;
+            dernier_est_variadic = true;
+
+            auto type_var = param->type->comme_variadique();
+
+            if (!decl->est_externe && type_var->type_pointe == nullptr) {
+                rapporte_erreur("La déclaration de fonction variadique sans type n'est"
+                                " implémentée que pour les fonctions externes",
+                                param);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (typage)");
+
+    kuri::tablet<Type *, 6> types_entrees;
+    types_entrees.reserve(decl->params.taille());
+
+    POUR (decl->params) {
+        types_entrees.ajoute(it->type);
+    }
+
+    Type *type_sortie = nullptr;
+
+    if (decl->params_sorties.taille() == 1) {
+        if (resoud_type_final(
+                decl->params_sorties[0]->comme_declaration_variable()->expression_type,
+                type_sortie) == CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+    else {
+        kuri::tablet<TypeCompose::Membre, 6> membres;
+        membres.reserve(decl->params_sorties.taille());
+
+        for (auto &expr : decl->params_sorties) {
+            auto type_declare = expr->comme_declaration_variable();
+            if (resoud_type_final(type_declare->expression_type, type_sortie) ==
+                CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            // À FAIRE(état validation) : nous ne devrions pas revalider les paramètres
+            if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_sortie);
+            }
+
+            membres.ajoute({nullptr, type_sortie});
+        }
+
+        type_sortie = m_compilatrice.typeuse.cree_tuple(membres);
+    }
+
+    decl->param_sortie->type = type_sortie;
+
+    if (decl->ident == ID::principale) {
+        if (decl->params.taille() != 0) {
+            espace->rapporte_erreur(
+                decl->params[0],
+                "La fonction principale ne doit pas prendre de paramètres d'entrée !");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (decl->param_sortie->type->est_tuple()) {
+            espace->rapporte_erreur(
+                decl->param_sortie,
+                "La fonction principale ne peut retourner qu'une seule valeur !");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (decl->param_sortie->type != m_compilatrice.typeuse[TypeBase::Z32]) {
+            espace->rapporte_erreur(decl->param_sortie,
+                                    "La fonction principale doit retourner un z32 !");
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (type_fonction)");
+    decl->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    if (decl->ident == ID::__point_d_entree_systeme) {
+        /* Le point d'entrée est copié pour chaque espace, donc il est possible qu'il existe
+         * plusieurs fois dans le bloc. */
+        return CodeRetourValidation::OK;
+    }
+
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (redéfinition)");
+    auto decl_existante = decl->bloc_parent->declaration_avec_meme_ident_que(decl);
+
+    if (!decl_existante || !decl_existante->est_entete_fonction()) {
+        return CodeRetourValidation::OK;
+    }
+
+    auto entete_existante = decl_existante->comme_entete_fonction();
+    POUR (entete_existante->ensemble_de_surchages) {
+        if (it == decl) {
+            continue;
+        }
+
+        if (fonctions_ont_memes_definitions(*decl, *it)) {
+            rapporte_erreur_redefinition_fonction(decl, it);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
+                  "valide_entete_fonction (redéfinition opérateur)");
+    auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
+    auto type_fonc = decl->type->comme_fonction();
+    auto type_resultat = type_fonc->type_sortie;
+
+    if (decl->params.taille() == 1) {
+        auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
+        auto type1 = type_fonc->types_entrees[0];
+
+        for (auto i = 0; i < iter_op.taille(); ++i) {
+            auto op = &iter_op[i];
+
+            if (op->type_operande == type1) {
+                if (op->est_basique) {
+                    rapporte_erreur("redéfinition de l'opérateur basique", decl);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                    .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                    .ajoute_site(op->decl);
+                return CodeRetourValidation::Erreur;
+            }
+        }
+
+        operateurs->ajoute_perso_unaire(decl->lexeme->genre, type1, type_resultat, decl);
+        return CodeRetourValidation::OK;
+    }
+
+    auto type1 = type_fonc->types_entrees[0];
+    auto type2 = type_fonc->types_entrees[1];
+
+    for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre).plage()) {
+        if (op->type2 == type2) {
+            if (op->est_basique) {
+                rapporte_erreur("redéfinition de l'opérateur basique", decl);
+                return CodeRetourValidation::Erreur;
+            }
+
+            espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                .ajoute_site(op->decl);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    operateurs->ajoute_perso(decl->lexeme->genre, type1, type2, type_resultat, decl);
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_symbole_fonction(
+    NoeudDeclarationEnteteFonction *decl)
+{
+    // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
+    if (!(decl->est_externe && decl->ident && decl->ident->nom != "__principale" &&
+          !decl->possede_drapeau(COMPILATRICE))) {
+        return CodeRetourValidation::OK;
+    }
+
+    auto bibliotheque = m_compilatrice.gestionnaire_bibliotheques->trouve_bibliotheque(
+        decl->ident_bibliotheque);
+
+    if (!bibliotheque) {
+        espace
+            ->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver la fonction")
+            .ajoute_message(
+                "« ", decl->ident_bibliotheque->nom, " » ne réfère à aucune bibliothèque !");
+        return CodeRetourValidation::Erreur;
+    }
+
+    decl->symbole = bibliotheque->cree_symbole(decl->nom_symbole);
     return CodeRetourValidation::OK;
 }
 
