@@ -818,14 +818,12 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
     auto types_type_de_donnees_ = types_type_de_donnees.verrou_ecriture();
 
     if ((type_connu->drapeaux & POSSEDE_TYPE_TYPE_DE_DONNEES) != 0) {
-        POUR_TABLEAU_PAGE ((*types_type_de_donnees_)) {
-            if (it.type_connu == type_connu) {
-                return &it;
-            }
-        }
+        return table_types_de_donnees.valeur_ou(type_connu, nullptr);
     }
 
-    return types_type_de_donnees_->ajoute_element(type_connu);
+    auto resultat = types_type_de_donnees_->ajoute_element(type_connu);
+    table_types_de_donnees.insere(type_connu, resultat);
+    return resultat;
 }
 
 TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)

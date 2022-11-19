@@ -672,6 +672,8 @@ struct Typeuse {
     /* Trie pour les types fonctions. */
     Trie trie;
 
+    kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
+
     // -------------------------
 
     Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o);
