@@ -119,6 +119,9 @@ int main(int argc, char *argv[])
             else if (strcmp(argv[i], "--profile_exécution") == 0) {
                 compilatrice.profile_metaprogrammes = true;
             }
+            else if (strcmp(argv[i], "--débogue_exécution") == 0) {
+                compilatrice.debogue_execution = true;
+            }
             else if (strcmp(argv[i], "--format_profile") == 0) {
                 ++i;
 

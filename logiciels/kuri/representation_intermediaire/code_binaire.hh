@@ -248,23 +248,30 @@ struct Chunk {
     int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,
                            NoeudExpression *site,
-                           Type *type);
-    void emets_charge(NoeudExpression *site, Type *type);
-    void emets_charge_variable(NoeudExpression *site, int pointeur, Type *type);
+                           Type *type,
+                           bool ajoute_verification);
+    void emets_charge(NoeudExpression *site, Type *type, bool ajoute_verification);
+    void emets_charge_variable(NoeudExpression *site,
+                               int pointeur,
+                               Type *type,
+                               bool ajoute_verification);
     void emets_reference_globale(NoeudExpression *site, int pointeur);
     void emets_reference_variable(NoeudExpression *site, int pointeur);
     void emets_reference_membre(NoeudExpression *site, unsigned decalage);
     void emets_appel(NoeudExpression *site,
                      AtomeFonction *fonction,
                      unsigned taille_arguments,
-                     InstructionAppel *inst_appel);
+                     InstructionAppel *inst_appel,
+                     bool ajoute_verification);
     void emets_appel_externe(NoeudExpression *site,
                              AtomeFonction *fonction,
                              unsigned taille_arguments,
-                             InstructionAppel *inst_appel);
+                             InstructionAppel *inst_appel,
+                             bool ajoute_verification);
     void emets_appel_pointeur(NoeudExpression *site,
                               unsigned taille_arguments,
-                              InstructionAppel *inst_appel);
+                              InstructionAppel *inst_appel,
+                              bool ajoute_verification);
     void emets_acces_index(NoeudExpression *site, Type *type);
 
     void emets_branche(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index);
@@ -315,6 +322,8 @@ class ConvertisseuseRI {
      * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
      * endroit à la fin de la génération de code. */
     kuri::tableau<PatchLabel> patchs_labels{};
+
+    bool verifie_adresses = false;
 
 #ifdef OPTIMISE_ALLOCS
     kuri::pile<int> pile_taille{};

@@ -69,6 +69,7 @@ struct Compilatrice {
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
     bool profile_metaprogrammes = false;
+    bool debogue_execution = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     template <typename T>
