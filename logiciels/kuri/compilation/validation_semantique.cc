@@ -2858,9 +2858,8 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
-                     /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
-                      * utilisée, bien que ceci ne soit pas en score formalisé dans le langage. */
-                     if (noeud->ident && noeud->ident->nom == "_") {
+                     /* '_' sers à définir une variable qui ne sera pas utilisée. */
+                     if (noeud->ident == ID::_) {
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
@@ -3955,7 +3954,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 bloc_final = it.decl->bloc_parent->bloc_parent;
             }
 
-            if (it.decl->ident && it.decl->ident->nom != "_") {
+            if (it.decl->ident && it.decl->ident != ID::_) {
                 auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
                 if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
