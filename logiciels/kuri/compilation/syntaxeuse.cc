@@ -546,7 +546,7 @@ void Syntaxeuse::analyse_une_chose()
         consomme();
 
         auto noeud = m_tacheronne.assembleuse->cree_importe(lexeme);
-        noeud->bloc_parent->expressions->ajoute(noeud);
+        noeud->bloc_parent->ajoute_expression(noeud);
 
         if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu une chaine littérale après 'importe'");
@@ -562,7 +562,7 @@ void Syntaxeuse::analyse_une_chose()
         consomme();
 
         auto noeud = m_tacheronne.assembleuse->cree_charge(lexeme);
-        noeud->bloc_parent->expressions->ajoute(noeud);
+        noeud->bloc_parent->ajoute_expression(noeud);
 
         if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
             rapporte_erreur("Attendu une chaine littérale après 'charge'");
@@ -608,7 +608,7 @@ void Syntaxeuse::analyse_une_chose()
             requiers_typage(noeud);
         }
 
-        noeud->bloc_parent->expressions->ajoute(noeud);
+        noeud->bloc_parent->ajoute_expression(noeud);
     }
     else {
         rapporte_erreur("attendu une expression ou une instruction");
@@ -2398,7 +2398,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 empile_etat("dans l'analyse du bloc", lexeme_courant());
                 noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
                 auto pousse_contexte = analyse_instruction_pousse_contexte();
-                noeud_corps->bloc->expressions->ajoute(pousse_contexte);
+                noeud_corps->bloc->ajoute_expression(pousse_contexte);
                 m_tacheronne.assembleuse->depile_bloc();
                 depile_etat();
             }

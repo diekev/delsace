@@ -180,6 +180,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                   "*ident_recherche);\n";
             os << "\tNoeudDeclaration *declaration_avec_meme_ident_que(NoeudExpression const "
                   "*expr);\n";
+            os << "\tvoid ajoute_expression(NoeudExpression *expr);\n";
         }
 
         // Prodéclare les fonctions de discrimination.

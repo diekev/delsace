@@ -205,10 +205,10 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
         unite->noeud = ancienne_racine;
     }
     else {
-        decl_corps->bloc->expressions->ajoute(expression);
+        decl_corps->bloc->ajoute_expression(expression);
     }
 
-    decl_corps->bloc->expressions->ajoute(expr_ret);
+    decl_corps->bloc->ajoute_expression(expr_ret);
 
     /* Bloc corps. */
     m_tacheronne.assembleuse->depile_bloc();
