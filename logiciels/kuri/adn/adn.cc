@@ -167,6 +167,20 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                   "faut le fichier pour le module\n";
             os << "\tkuri::chaine const &nom_broye(EspaceDeTravail *espace);\n";
         }
+        else if (m_nom.nom_cpp() == "NoeudBloc") {
+            os << "\tint nombre_de_membres() const;\n";
+            os << "\tvoid reserve_membres(int nombre);\n";
+            os << "\tvoid ajoute_membre(NoeudDeclaration *decl);\n";
+            os << "\tvoid ajoute_membre_au_debut(NoeudDeclaration *decl);\n";
+            os << "\tvoid fusionne_membres(NoeudBloc *de);\n";
+            os << "\tNoeudDeclaration *membre_pour_index(int index);\n";
+            os << "\tNoeudDeclaration *declaration_pour_ident(IdentifiantCode const "
+                  "*ident_recherche);\n";
+            os << "\tNoeudDeclaration *declaration_avec_meme_ident_que(NoeudExpression const "
+                  "*expr);\n";
+            os << "\tvoid declarations_pour_ident(kuri::tablet<NoeudDeclaration *, 10> "
+                  "&declarations, IdentifiantCode const *ident_recherche);\n";
+        }
 
         // Prodéclare les fonctions de discrimination.
         if (est_racine_hierarchie()) {

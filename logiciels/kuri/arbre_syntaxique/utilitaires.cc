@@ -1177,7 +1177,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
 
-                bloc->membres->ajoute(decl_temp);
+                bloc->ajoute_membre(decl_temp);
                 bloc->expressions->ajoute(decl_temp);
                 bloc->expressions->ajoute(nouveau_si);
                 bloc->expressions->ajoute(ref_temp);
@@ -1294,7 +1294,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 pousse_contexte->lexeme, contexte_courant->type, nullptr, ref_contexte_courant);
             auto ref_sauvegarde_contexte = assem->cree_reference_declaration(
                 pousse_contexte->lexeme, sauvegarde_contexte);
-            bloc_substitution->membres->ajoute(sauvegarde_contexte);
+            bloc_substitution->ajoute_membre(sauvegarde_contexte);
             bloc_substitution->expressions->ajoute(sauvegarde_contexte);
 
             // __contexte_fil_principal = expr
@@ -1442,8 +1442,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto ref_index = index_it->valeur->comme_reference_declaration();
 
     auto bloc_pre = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
-    bloc_pre->membres->ajoute(it);
-    bloc_pre->membres->ajoute(index_it);
+    bloc_pre->ajoute_membre(it);
+    bloc_pre->ajoute_membre(index_it);
 
     bloc_pre->expressions->ajoute(it);
     bloc_pre->expressions->ajoute(index_it);
@@ -1540,7 +1540,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 var->lexeme, expression_iteree->type, nullptr, nombre_iterations);
             auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
             bloc_pre->expressions->ajoute(iterations);
-            bloc_pre->membres->ajoute(iterations);
+            bloc_pre->ajoute_membre(iterations);
 
             /* condition */
 
@@ -2304,7 +2304,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     auto decl_variable = assem->cree_declaration_variable(
         la_discriminee->lexeme, la_discriminee->type, nullptr, la_discriminee);
 
-    bloc->membres->ajoute(decl_variable);
+    bloc->ajoute_membre(decl_variable);
     bloc->expressions->ajoute(decl_variable);
 
     auto ref_decl = assem->cree_reference_declaration(decl_variable->lexeme, decl_variable);
@@ -2543,6 +2543,79 @@ kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *e
     }
 
     return nom_broye_;
+}
+
+int NoeudBloc::nombre_de_membres() const
+{
+    return membres->taille();
+}
+
+void NoeudBloc::reserve_membres(int nombre)
+{
+    membres->reserve(nombre);
+}
+
+void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
+{
+    membres->ajoute(decl);
+}
+
+void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
+{
+    membres->pousse_front(decl);
+}
+
+void NoeudBloc::fusionne_membres(NoeudBloc *de)
+{
+    if (!de) {
+        /* Permet de passer un bloc nul. */
+        return;
+    }
+
+    POUR ((*de->membres.verrou_lecture())) {
+        ajoute_membre(it);
+    }
+}
+
+NoeudDeclaration *NoeudBloc::membre_pour_index(int index)
+{
+    return membres->a(index);
+}
+
+NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche)
+{
+    auto membres_ = membres.verrou_lecture();
+    nombre_recherches += 1;
+    POUR (*membres_) {
+        if (it->ident == ident_recherche) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr)
+{
+    auto membres_ = membres.verrou_lecture();
+    nombre_recherches += 1;
+    POUR (*membres_) {
+        if (it != expr && it->ident == expr->ident) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+void NoeudBloc::declarations_pour_ident(kuri::tablet<NoeudDeclaration *, 10> &declarations,
+                                        IdentifiantCode const *ident_recherche)
+{
+    auto membres_ = membres.verrou_lecture();
+    nombre_recherches += 1;
+    POUR (*membres_) {
+        if (it->ident == ident_recherche) {
+            declarations.ajoute(it);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -3486,7 +3559,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_tableau,
                 ID::resultat,
                 assembleuse->cree_non_initialisation(&lexeme_sentinel));
-            assembleuse->bloc_courant()->membres->ajoute(valeur_resultat);
+            assembleuse->bloc_courant()->ajoute_membre(valeur_resultat);
             assembleuse->bloc_courant()->expressions->ajoute(valeur_resultat);
             auto ref_resultat = assembleuse->cree_reference_declaration(&lexeme_sentinel,
                                                                         valeur_resultat);
@@ -3500,7 +3573,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 &lexeme_sentinel, type_pointeur_type_pointe, ID::it, init_it);
             auto ref_it = assembleuse->cree_reference_declaration(&lexeme_sentinel, decl_it);
 
-            assembleuse->bloc_courant()->membres->ajoute(decl_it);
+            assembleuse->bloc_courant()->ajoute_membre(decl_it);
 
             auto variable = assembleuse->cree_virgule(&lexeme_sentinel);
             variable->expressions.ajoute(decl_it);

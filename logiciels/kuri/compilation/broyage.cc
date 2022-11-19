@@ -470,7 +470,7 @@ kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
 
     /* paramètres */
     enchaineuse << "_P";
-    enchaineuse << decl->bloc_constantes->membres->taille();
+    enchaineuse << decl->bloc_constantes->nombre_de_membres();
     enchaineuse << "_";
 
     decl->bloc_constantes->membres.avec_verrou_lecture(

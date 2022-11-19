@@ -365,7 +365,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud_module->module = module;
                 noeud_module->ident = module->nom();
                 noeud_module->bloc_parent = inst->bloc_parent;
-                noeud_module->bloc_parent->membres->ajoute(noeud_module);
+                noeud_module->bloc_parent->ajoute_membre(noeud_module);
                 noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
             }
 
@@ -1044,7 +1044,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             noeud->aide_generation_code = aide_generation_code;
 
-            enfant3->membres->reserve(feuilles->expressions.taille());
+            enfant3->reserve_membres(feuilles->expressions.taille());
 
             auto nombre_feuilles = feuilles->expressions.taille() - requiers_index;
 
@@ -1055,7 +1055,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_f->valeur->type = type;
                 decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-                enfant3->membres->ajoute(decl_f);
+                enfant3->ajoute_membre(decl_f);
             }
 
             if (requiers_index) {
@@ -1071,7 +1071,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                 decl_idx->valeur->type = decl_idx->type;
                 decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
-                enfant3->membres->ajoute(decl_idx);
+                enfant3->ajoute_membre(decl_idx);
             }
 
             break;
@@ -1640,7 +1640,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     decl_var_piege;
 
                 // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
-                inst->bloc->membres->pousse_front(decl_var_piege);
+                inst->bloc->ajoute_membre_au_debut(decl_var_piege);
 
                 auto di = derniere_instruction(inst->bloc);
 
@@ -1718,7 +1718,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_membre->index_membre_employe = index_membre++;
                 decl_membre->expression = it.expression_valeur_defaut;
 
-                bloc_parent->membres->ajoute(decl_membre);
+                bloc_parent->ajoute_membre(decl_membre);
             }
             break;
         }
@@ -2969,7 +2969,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         // préserve les constantes polymorphiques
         if (fonction->est_monomorphisation) {
             POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-                fonction->bloc_constantes->membres->ajoute(it);
+                fonction->bloc_constantes->ajoute_membre(it);
             }
         }
 
@@ -3215,7 +3215,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
     auto &membres = type_enum->membres;
     membres.reserve(decl->bloc->expressions->taille());
-    decl->bloc->membres->reserve(decl->bloc->expressions->taille());
+    decl->bloc->reserve_membres(decl->bloc->expressions->taille());
 
     long valeur_enum_min = std::numeric_limits<long>::max();
     long valeur_enum_max = std::numeric_limits<long>::min();
@@ -3230,7 +3230,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
         auto decl_expr = it->comme_declaration_variable();
         decl_expr->type = type_enum;
 
-        decl->bloc->membres->ajoute(decl_expr);
+        decl->bloc->ajoute_membre(decl_expr);
 
         auto var = decl_expr->valeur;
 
@@ -3514,7 +3514,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 decl->bloc_constantes->membres.avec_verrou_ecriture(
                     [fonction](kuri::tableau<NoeudDeclaration *, int> &membres) {
                         POUR (membres) {
-                            fonction->bloc_constantes->membres->ajoute(it);
+                            fonction->bloc_constantes->ajoute_membre(it);
                         }
                     });
             }
@@ -3552,7 +3552,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto type_compose = decl->type->comme_compose();
     // @réinitialise en cas d'erreurs passées
     type_compose->membres.efface();
-    type_compose->membres.reserve(decl->bloc->membres->taille());
+    type_compose->membres.reserve(decl->bloc->nombre_de_membres());
 
     auto verifie_inclusion_valeur = [&decl, this](NoeudExpression *enf) {
         if (enf->type == decl->type) {
@@ -4170,7 +4170,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                  * syntaxeuse. */
                 if (!decl_var->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
                     auto bloc_parent = decl_var->bloc_parent;
-                    bloc_parent->membres->ajoute(decl_var);
+                    bloc_parent->ajoute_membre(decl_var);
                 }
             }
 

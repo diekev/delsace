@@ -521,13 +521,7 @@ void Syntaxeuse::quand_commence()
         m_tacheronne.assembleuse->bloc_courant(bloc_parent);
 
         recipiente->bloc = analyse_bloc(false);
-
-        if (recipiente->bloc_constantes) {
-            POUR ((*recipiente->bloc_constantes->membres.verrou_lecture())) {
-                recipiente->bloc->membres->ajoute(it);
-            }
-        }
-
+        recipiente->bloc->fusionne_membres(recipiente->bloc_constantes);
         recipiente->est_corps_texte = false;
     }
 
@@ -592,7 +586,7 @@ void Syntaxeuse::analyse_une_chose()
             noeud->drapeaux |= EST_GLOBALE;
 
             if (noeud->est_declaration_variable()) {
-                noeud->bloc_parent->membres->ajoute(noeud->comme_declaration_variable());
+                noeud->bloc_parent->ajoute_membre(noeud->comme_declaration_variable());
                 requiers_typage(noeud);
             }
             else if (noeud->est_entete_fonction()) {
@@ -1062,7 +1056,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             if (!bloc_constantes_polymorphiques.est_vide()) {
                 auto bloc_constantes = bloc_constantes_polymorphiques.haut();
-                bloc_constantes->membres->ajoute(noeud_decl_param);
+                bloc_constantes->ajoute_membre(noeud_decl_param);
             }
             else if (!m_est_declaration_type_opaque) {
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
@@ -1271,7 +1265,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         noeud->expression_type = analyse_expression(
                             donnees_precedence, racine_expression, lexeme_final);
                         m_est_declaration_type_opaque = false;
-                        noeud->bloc_parent->membres->ajoute(noeud);
+                        noeud->bloc_parent->ajoute_membre(noeud);
                         return noeud;
                     }
 
@@ -2093,7 +2087,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     consomme();
 
     auto noeud_decl = m_tacheronne.assembleuse->cree_enum(gauche->lexeme);
-    noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
 
     if (lexeme->genre != GenreLexeme::ERREUR) {
         if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
@@ -2188,7 +2182,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     DIFFERE {
         auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->membres->taille() != 0) {
+        if (bloc_constantes->nombre_de_membres() != 0) {
             noeud->est_polymorphe = true;
         }
 
@@ -2200,9 +2194,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
          */
         if (noeud->est_declaration_type && !bloc_constantes_polymorphiques.est_vide()) {
             auto bloc_constantes_pere = bloc_constantes_polymorphiques.haut();
-            POUR (*noeud->bloc_constantes->membres.verrou_lecture()) {
-                bloc_constantes_pere->membres->ajoute(it);
-            }
+            bloc_constantes_pere->fusionne_membres(noeud->bloc_constantes);
         }
     };
 
@@ -2269,7 +2261,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
     }
     else {
-        noeud->bloc_parent->membres->ajoute(noeud);
+        noeud->bloc_parent->ajoute_membre(noeud);
 
         // nous avons la déclaration d'une fonction
         if (apparie(GenreLexeme::RETOUR_TYPE)) {
@@ -2654,7 +2646,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
     noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
-    noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
 
     if (gauche->ident == ID::InfoType) {
         noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
@@ -2689,7 +2681,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         bloc_constantes_polymorphiques.empile(noeud_decl->bloc_constantes);
         DIFFERE {
             auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-            if (bloc_constantes->membres->taille() != 0) {
+            if (bloc_constantes->nombre_de_membres() != 0) {
                 noeud_decl->est_polymorphe = true;
             }
         };

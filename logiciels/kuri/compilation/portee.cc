@@ -11,14 +11,7 @@
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *ident)
 {
-    auto membres = bloc->membres.verrou_lecture();
-    bloc->nombre_recherches += 1;
-    POUR (*membres) {
-        if (it->ident == ident) {
-            return it;
-        }
-    }
-    return nullptr;
+    return bloc->declaration_pour_ident(ident);
 }
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident)
@@ -43,12 +36,9 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
     auto bloc_courant = bloc;
 
     while (bloc_courant != bloc_final) {
-        auto membres = bloc_courant->membres.verrou_lecture();
-        bloc_courant->nombre_recherches += 1;
-        POUR (*membres) {
-            if (it != decl && it->ident == decl->ident) {
-                return it;
-            }
+        auto autre_decl = bloc->declaration_avec_meme_ident_que(decl);
+        if (autre_decl) {
+            return autre_decl;
         }
 
         bloc_courant = bloc_courant->bloc_parent;
@@ -88,14 +78,7 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
-        bloc_courant->nombre_recherches += 1;
-        auto membres = bloc_courant->membres.verrou_lecture();
-        POUR (*membres) {
-            if (it->ident == ident) {
-                declarations.ajoute(it);
-            }
-        }
-
+        bloc_courant->declarations_pour_ident(declarations, ident);
         bloc_courant = bloc_courant->bloc_parent;
     }
 }

@@ -53,7 +53,7 @@ static const char *copie_extra_entete_fonction = R"(
              * sont placés par la Syntaxeuse directement dans les membres. */
             POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                 auto copie_membre = copie_noeud(it, copie->bloc_constantes);
-                copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+                copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
             }
 			/* copie le corps du noeud directement */
 			{
@@ -67,10 +67,10 @@ static const char *copie_extra_entete_fonction = R"(
 			})";
 
 static const char *copie_extra_bloc = R"(
-            copie->membres->reserve(orig->membres->taille());
+            copie->reserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_declaration_type() || it->est_entete_fonction()) {
-                    copie->membres->ajoute(it->comme_declaration());
+                    copie->ajoute_membre(it->comme_declaration());
                 }
             })";
 
@@ -85,7 +85,7 @@ static const char *copie_extra_structure = R"(
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                     auto copie_membre = copie_noeud(it, bloc_parent);
-                    copie->bloc_constantes->membres->ajoute(copie_membre->comme_declaration_variable());
+                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
                 }
             }
 )";
@@ -128,6 +128,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
         os << "#include \"structures/tableau_compresse.hh\"\n";
+        os << "#include \"structures/tablet.hh\"\n";
         os << "#include \"compilation/transformation_type.hh\"\n";
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
