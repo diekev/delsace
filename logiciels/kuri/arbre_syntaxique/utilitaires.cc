@@ -2601,6 +2601,7 @@ void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
     }
 
     membres_->ajoute(decl);
+    membres_sont_sales = true;
 }
 
 void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
@@ -2612,6 +2613,7 @@ void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
     }
 
     membres_->pousse_front(decl);
+    membres_sont_sales = true;
 }
 
 void NoeudBloc::fusionne_membres(NoeudBloc *de)
@@ -2672,6 +2674,7 @@ NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression con
 void NoeudBloc::ajoute_expression(NoeudExpression *expr)
 {
     expressions->ajoute(expr);
+    expressions_sont_sales = true;
 }
 
 // -----------------------------------------------------------------------------

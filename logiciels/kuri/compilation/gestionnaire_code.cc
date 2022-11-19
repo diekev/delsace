@@ -1036,33 +1036,42 @@ static bool declaration_est_invalide(NoeudExpression *decl)
     return true;
 }
 
-static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
+static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_module)
 {
     POUR_TABLEAU_PAGE (sys_module.modules) {
-        for (auto fichier : it.fichiers) {
-            if (!fichier->fut_charge) {
-                return false;
-            }
-
-            if (!fichier->fut_parse) {
-                return false;
-            }
-        }
-
         if (it.bloc == nullptr) {
             return false;
         }
 
-        for (auto decl : (*it.bloc->membres.verrou_lecture())) {
-            if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
-                return false;
+        if (it.fichiers_sont_sales) {
+            for (auto fichier : it.fichiers) {
+                if (!fichier->fut_charge) {
+                    return false;
+                }
+
+                if (!fichier->fut_parse) {
+                    return false;
+                }
             }
+            it.fichiers_sont_sales = false;
         }
 
-        for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
-            if (decl->est_importe() && declaration_est_invalide(decl)) {
-                return false;
+        if (it.bloc->membres_sont_sales) {
+            for (auto decl : (*it.bloc->membres.verrou_lecture())) {
+                if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
+                    return false;
+                }
             }
+            it.bloc->membres_sont_sales = false;
+        }
+
+        if (it.bloc->expressions_sont_sales) {
+            for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
+                if (decl->est_importe() && declaration_est_invalide(decl)) {
+                    return false;
+                }
+            }
+            it.bloc->expressions_sont_sales = false;
         }
     }
 
@@ -1103,7 +1112,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
-        *m_compilatrice->sys_module.verrou_lecture());
+        *m_compilatrice->sys_module.verrou_ecriture());
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */

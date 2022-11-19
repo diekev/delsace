@@ -33,6 +33,7 @@ bool Fichier::importe_module(IdentifiantCode *nom_module) const
 void Module::ajoute_fichier(Fichier *fichier)
 {
     fichiers.ajoute(fichier);
+    fichiers_sont_sales = true;
 }
 
 Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)

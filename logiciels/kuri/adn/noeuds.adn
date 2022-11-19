@@ -613,6 +613,10 @@ struct NoeudBloc : NoeudExpression {
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées
         bool est_nonsur
+        /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
+         * membres du bloc pour savoir s'il en reste à valider. */
+        bool membres_sont_sales
+        bool expressions_sont_sales
 	int nombre_recherches
 }
 
