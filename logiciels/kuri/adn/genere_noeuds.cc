@@ -128,7 +128,6 @@ struct GeneratriceCodeCPP {
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
         os << "#include \"structures/tableau_compresse.hh\"\n";
-        os << "#include \"structures/tablet.hh\"\n";
         os << "#include \"compilation/transformation_type.hh\"\n";
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
@@ -1412,6 +1411,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         };
 
         POUR (proteines_struct) {
+            const auto nom_genre = it->accede_nom_genre();
+            if (nom_genre.est_nul()) {
+                continue;
+            }
             if (!it->possede_tableau()) {
                 continue;
             }
@@ -1427,6 +1430,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         POUR (proteines_struct) {
+            const auto nom_genre = it->accede_nom_genre();
+            if (nom_genre.est_nul()) {
+                continue;
+            }
             if (!it->possede_tableau()) {
                 continue;
             }

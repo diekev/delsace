@@ -78,7 +78,14 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
-        bloc_courant->declarations_pour_ident(declarations, ident);
+        auto decl = bloc_courant->declaration_pour_ident(ident);
+        if (decl && decl->est_declaration_symbole()) {
+            auto decl_symbole = decl->comme_declaration_symbole();
+            declarations.ajoute(decl);
+            POUR (*decl_symbole->ensemble_de_surchages.verrou_lecture()) {
+                declarations.ajoute(it);
+            }
+        }
         bloc_courant = bloc_courant->bloc_parent;
     }
 }

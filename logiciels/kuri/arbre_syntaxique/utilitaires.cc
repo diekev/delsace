@@ -2557,11 +2557,11 @@ void NoeudBloc::reserve_membres(int nombre)
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
 {
-    if (decl->est_entete_fonction()) {
+    if (decl->est_declaration_symbole()) {
         auto decl_existante = declaration_pour_ident(decl->ident);
-        if (decl_existante && decl_existante->est_entete_fonction()) {
-            auto entete_existante = decl_existante->comme_entete_fonction();
-            entete_existante->ensemble_de_surchages.ajoute(decl->comme_entete_fonction());
+        if (decl_existante && decl_existante->est_declaration_symbole()) {
+            auto entete_existante = decl_existante->comme_declaration_symbole();
+            entete_existante->ensemble_de_surchages->ajoute(decl->comme_declaration_symbole());
         }
     }
 
@@ -2612,18 +2612,6 @@ NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression con
         }
     }
     return nullptr;
-}
-
-void NoeudBloc::declarations_pour_ident(kuri::tablet<NoeudDeclaration *, 10> &declarations,
-                                        IdentifiantCode const *ident_recherche)
-{
-    auto membres_ = membres.verrou_lecture();
-    nombre_recherches += 1;
-    POUR (*membres_) {
-        if (it->ident == ident_recherche) {
-            declarations.ajoute(it);
-        }
-    }
 }
 
 // -----------------------------------------------------------------------------

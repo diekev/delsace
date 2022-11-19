@@ -2163,12 +2163,12 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
     }
 
     auto entete_existante = decl_existante->comme_entete_fonction();
-    POUR (entete_existante->ensemble_de_surchages) {
-        if (it == decl) {
+    POUR (*entete_existante->ensemble_de_surchages.verrou_lecture()) {
+        if (it == decl || !it->est_entete_fonction()) {
             continue;
         }
 
-        if (fonctions_ont_memes_definitions(*decl, *it)) {
+        if (fonctions_ont_memes_definitions(*decl, *(it->comme_entete_fonction()))) {
             rapporte_erreur_redefinition_fonction(decl, it);
             return CodeRetourValidation::Erreur;
         }

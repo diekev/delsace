@@ -178,8 +178,6 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                   "*ident_recherche);\n";
             os << "\tNoeudDeclaration *declaration_avec_meme_ident_que(NoeudExpression const "
                   "*expr);\n";
-            os << "\tvoid declarations_pour_ident(kuri::tablet<NoeudDeclaration *, 10> "
-                  "&declarations, IdentifiantCode const *ident_recherche);\n";
         }
 
         // Prodéclare les fonctions de discrimination.
