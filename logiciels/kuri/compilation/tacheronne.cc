@@ -533,7 +533,7 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     /* Pour les imports et chargements. */
     temps_validation -= contexte.temps_chargement;
 
-    CHRONO_TYPAGE(stats_typage.finalisation, "gere_unite_pour_typage (finalisation)");
+    CHRONO_TYPAGE(stats_typage.finalisation, FINALISATION__FINALISATION);
     compilatrice.gestionnaire_code->typage_termine(unite);
 }
 

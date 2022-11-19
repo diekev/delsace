@@ -1846,7 +1846,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     args.reserve(expr->parametres.taille());
 
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "prépare arguments");
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__PREPARE_ARGUMENTS);
 
         POUR (expr->parametres) {
             // l'argument est nommé
@@ -1868,7 +1869,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
     ListeCandidatesExpressionAppel liste_candidates;
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidates");
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__TROUVE_CANDIDATES);
 
         auto resultat_validation = trouve_candidates_pour_appel(
             espace, contexte, expr, args, liste_candidates);
@@ -1884,7 +1886,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
 
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "apparie candidate");
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__APPARIE_CANDIDATES);
 
         auto attente_possible = apparies_candidates(
             espace, contexte, expr, args, liste_candidates, ctx);
@@ -1950,7 +1953,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // copie les données
 
-    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "copie données");
+    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                  VALIDATION_APPEL__COPIE_DONNEES);
 
 #if 0
 	struct StatisExprs {

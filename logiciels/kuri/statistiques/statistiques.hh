@@ -11,9 +11,9 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#    define CHRONO_TYPAGE(entree_stats, nom)                                                      \
+#    define CHRONO_TYPAGE(entree_stats, index)                                                    \
         dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) {      \
-            entree_stats.fusionne_entree({nom, temps});                                           \
+            entree_stats.fusionne_entree(index, {"", temps});                                     \
         })
 #else
 #    define CHRONO_TYPAGE(entree_stats, nom)
@@ -120,6 +120,17 @@ struct EntreesStats {
     {
     }
 
+    EntreesStats(kuri::chaine const &nom_, std::initializer_list<const char *> &&noms_entrees)
+        : nom(nom_)
+    {
+        entrees.reserve(static_cast<int>(noms_entrees.size()));
+        for (auto nom_entree : noms_entrees) {
+            T e;
+            e.nom = nom_entree;
+            entrees.ajoute(e);
+        }
+    }
+
     void ajoute_entree(T const &entree)
     {
         totaux += entree;
@@ -138,6 +149,12 @@ struct EntreesStats {
         }
 
         entrees.ajoute(entree);
+    }
+
+    void fusionne_entree(int index, T const &entree)
+    {
+        totaux += entree;
+        entrees[index] += entree;
     }
 };
 
@@ -184,19 +201,118 @@ struct Statistiques {
     StatistiquesTableaux stats_tableaux{"Tableaux"};
 };
 
+#define EXTRAIT_CHAINE_ENUM(ident, chaine) chaine,
+#define EXTRAIT_IDENT_ENUM(ident, chaine) ident,
+
+#define INIT_NOMS_ENTREES_IMPL(MACRO)                                                             \
+    {                                                                                             \
+        MACRO(EXTRAIT_CHAINE_ENUM)                                                                \
+    }
+#define INIT_NOMS_ENTREES(NOM) INIT_NOMS_ENTREES_IMPL(ENTREES_POUR_##NOM)
+
+#define DEFINIS_ENUM_IMPL(NOM, MACRO) enum { MACRO(EXTRAIT_IDENT_ENUM) NOM##__COMPTE };
+
+#define DEFINIS_ENUM(NOM) DEFINIS_ENUM_IMPL(NOM, ENTREES_POUR_##NOM)
+
+#define ENTREES_POUR_VALIDATION_APPEL(OP)                                                         \
+    OP(VALIDATION_APPEL__PREPARE_ARGUMENTS, "prépare arguments")                                  \
+    OP(VALIDATION_APPEL__TROUVE_CANDIDATES, "trouve candidates")                                  \
+    OP(VALIDATION_APPEL__APPARIE_CANDIDATES, "apparie candidates")                                \
+    OP(VALIDATION_APPEL__COPIE_DONNEES, "copie données")
+
+#define ENTREES_POUR_FINALISATION(OP) OP(FINALISATION__FINALISATION, "finalisation")
+
+#define ENTREES_POUR_OPERATEUR_UNAIRE(OP)                                                         \
+    OP(OPERATEUR_UNAIRE__TYPE, "opérateur unaire type")                                           \
+    OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_donnees)")         \
+    OP(OPERATEUR_UNAIRE__OPERATEUR_UNAIRE, "opérateur unaire")
+
+#define ENTREES_POUR_OPERATEUR_BINAIRE(OP) OP(OPERATEUR_BINAIRE__VALIDATION, "validation")
+
+#define ENTREES_POUR_DECLARATION_VARIABLES(OP)                                                    \
+    OP(DECLARATION_VARIABLES__RASSEMBLE_VARIABLES, "rassemble variables")                         \
+    OP(DECLARATION_VARIABLES__RASSEMBLE_EXPRESSIONS, "rassemble expressions")                     \
+    OP(DECLARATION_VARIABLES__ENFILE_VARIABLES, "enfile variables")                               \
+    OP(DECLARATION_VARIABLES__ASSIGNATION_EXPRESSIONS, "assignation expressions")                 \
+    OP(DECLARATION_VARIABLES__PREPARATION, "préparation")                                         \
+    OP(DECLARATION_VARIABLES__REDEFINITION, "redéfinition")                                       \
+    OP(DECLARATION_VARIABLES__RESOLUTION_TYPE, "résolution type")                                 \
+    OP(DECLARATION_VARIABLES__VALIDATION_FINALE, "validation finale")                             \
+    OP(DECLARATION_VARIABLES__COPIE_DONNEES, "copie données")
+
+#define ENTREES_POUR_REFERENCE_DECLARATION(OP) OP(REFERENCE_DECLARATION__VALIDATION, "validation")
+
+#define ENTREES_POUR_ENTETE_FONCTION(OP)                                                          \
+    OP(ENTETE_FONCTION__TENTATIVES_RATEES, "tentatives râtés")                                    \
+    OP(ENTETE_FONCTION__ENTETE_FONCTION, "valide_entete_fonction")                                \
+    OP(ENTETE_FONCTION__ARBRE_APLATIS, "arbre aplatis")                                           \
+    OP(ENTETE_FONCTION__TYPES_OPERATEURS, "types opérateurs")                                     \
+    OP(ENTETE_FONCTION__PARAMETRES, "paramètres")                                                 \
+    OP(ENTETE_FONCTION__TYPES_PARAMETRES, "types paramètres")                                     \
+    OP(ENTETE_FONCTION__TYPES_FONCTION, "type fonction")                                          \
+    OP(ENTETE_FONCTION__REDEFINITION, "redéfinition fonction")                                    \
+    OP(ENTETE_FONCTION__REDEFINITION_OPERATEUR, "redéfinition opérateur")
+
+#define ENTREES_POUR_CORPS_FONCTION(OP) OP(CORPS_FONCTION__VALIDATION, "validation")
+
+#define ENTREES_POUR_ENUMERATION(OP) OP(ENUMERATION__VALIDATION, "validation")
+
+#define ENTREES_POUR_STRUCTURE(OP) OP(STRUCTURE__VALIDATION, "validation")
+
+#define ENTREES_POUR_ASSIGNATION(OP) OP(ASSIGNATION__VALIDATION, "validation")
+
+DEFINIS_ENUM(VALIDATION_APPEL)
+DEFINIS_ENUM(FINALISATION)
+DEFINIS_ENUM(OPERATEUR_UNAIRE)
+DEFINIS_ENUM(OPERATEUR_BINAIRE)
+DEFINIS_ENUM(DECLARATION_VARIABLES)
+DEFINIS_ENUM(REFERENCE_DECLARATION)
+DEFINIS_ENUM(ENTETE_FONCTION)
+DEFINIS_ENUM(CORPS_FONCTION)
+DEFINIS_ENUM(ENUMERATION)
+DEFINIS_ENUM(STRUCTURE)
+DEFINIS_ENUM(ASSIGNATION)
+
 struct StatistiquesTypage {
-    EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables"};
-    EntreesStats<EntreeTemps> validation_appel{"Appels"};
-    EntreesStats<EntreeTemps> ref_decl{"Références Déclarations"};
-    EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire"};
-    EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire"};
-    EntreesStats<EntreeTemps> fonctions{"Fonctions"};
-    EntreesStats<EntreeTemps> enumerations{"Énumérations"};
-    EntreesStats<EntreeTemps> structures{"Structures"};
-    EntreesStats<EntreeTemps> assignations{"Assignations"};
-    EntreesStats<EntreeTemps> finalisation{"Finalisation"};
+    EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables",
+                                              INIT_NOMS_ENTREES(DECLARATION_VARIABLES)};
+    EntreesStats<EntreeTemps> validation_appel{"Appels", INIT_NOMS_ENTREES(VALIDATION_APPEL)};
+    EntreesStats<EntreeTemps> ref_decl{"Références Déclarations",
+                                       INIT_NOMS_ENTREES(REFERENCE_DECLARATION)};
+    EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire",
+                                                INIT_NOMS_ENTREES(OPERATEUR_UNAIRE)};
+    EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire",
+                                                 INIT_NOMS_ENTREES(OPERATEUR_BINAIRE)};
+    EntreesStats<EntreeTemps> entetes_fonctions{"Entêtes Fonctions",
+                                                INIT_NOMS_ENTREES(ENTETE_FONCTION)};
+    EntreesStats<EntreeTemps> corps_fonctions{"Corps Fonctions",
+                                              INIT_NOMS_ENTREES(CORPS_FONCTION)};
+    EntreesStats<EntreeTemps> enumerations{"Énumérations", INIT_NOMS_ENTREES(ENUMERATION)};
+    EntreesStats<EntreeTemps> structures{"Structures", INIT_NOMS_ENTREES(STRUCTURE)};
+    EntreesStats<EntreeTemps> assignations{"Assignations", INIT_NOMS_ENTREES(ASSIGNATION)};
+    EntreesStats<EntreeTemps> finalisation{"Finalisation", INIT_NOMS_ENTREES(FINALISATION)};
+
+    void imprime_stats();
 };
 
 void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
 
 void imprime_stats_detaillee(Statistiques &stats);
+
+#undef EXTRAIT_CHAINE_ENUM
+#undef EXTRAIT_IDENT_ENUM
+#undef INIT_NOMS_ENTREES_IMPL
+#undef INIT_NOMS_ENTREES
+#undef DEFINIS_ENUM_IMPL
+#undef DEFINIS_ENUM
+#undef ENTREES_POUR_VALIDATION_APPEL
+#undef ENTREES_POUR_FINALISATION
+#undef ENTREES_POUR_OPERATEUR_UNAIRE
+#undef ENTREES_POUR_OPERATEUR_BINAIRE
+#undef ENTREES_POUR_DECLARATION_VARIABLES
+#undef ENTREES_POUR_REFERENCE_DECLARATION
+#undef ENTREES_POUR_ENTETE_FONCTION
+#undef ENTREES_POUR_CORPS_FONCTION
+#undef ENTREES_POUR_ENUMERATION
+#undef ENTREES_POUR_STRUCTURE
+#undef ENTREES_POUR_ASSIGNATION

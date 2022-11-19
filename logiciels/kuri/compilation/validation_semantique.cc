@@ -562,8 +562,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (type->est_type_de_donnees() && dls::outils::est_element(expr->lexeme->genre,
                                                                         GenreLexeme::FOIS_UNAIRE,
                                                                         GenreLexeme::ESP_UNAIRE)) {
-                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                              "opérateur unaire type");
+                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
                 auto type_de_donnees = type->comme_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu;
 
@@ -579,12 +578,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                              "opérateur unaire type (type_type_de_donnees)");
+                              OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
                 noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
                 break;
             }
 
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, "opérateur unaire");
+            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
+                          OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->genre == GenreType::REFERENCE) {
                 type = type_dereference_pour(type);
 
@@ -1901,18 +1901,18 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            m_tacheronne.stats_typage.fonctions.fusionne_entree({"tentatives râtées", temps});
+            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entree(
+                ENTETE_FONCTION__TENTATIVES_RATEES, {"", temps});
         }
     });
 #endif
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
     valide_parametres_constants_fonction(decl);
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                      "valide_entete_fonction (arbre aplatis)");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
     }
 
@@ -1945,24 +1945,23 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            m_tacheronne.stats_typage.fonctions.fusionne_entree({"tentatives râtées", temps});
+            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entree(
+                {"tentatives râtées", temps});
         }
     });
 #endif
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                      "valide_entete_fonction (arbre aplatis)");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
     }
 
     TENTE(valide_parametres_fonction(decl));
     TENTE(valide_types_parametres_fonction(decl));
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                  "valide_entete_fonction (types opérateurs)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_OPERATEURS);
     auto type_fonc = decl->type->comme_fonction();
     auto type_resultat = type_fonc->type_sortie;
 
@@ -2016,8 +2015,7 @@ void ContexteValidationCode::valide_parametres_constants_fonction(
 ResultatValidation ContexteValidationCode::valide_parametres_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                  "valide_entete_fonction (validation paramètres)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__PARAMETRES);
     auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
     auto dernier_est_variadic = false;
 
@@ -2076,7 +2074,7 @@ ResultatValidation ContexteValidationCode::valide_parametres_fonction(
 ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (typage)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_PARAMETRES);
 
     kuri::tablet<Type *, 6> types_entrees;
     types_entrees.reserve(decl->params.taille());
@@ -2140,7 +2138,7 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
         }
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (type_fonction)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_FONCTION);
     decl->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
 
     return CodeRetourValidation::OK;
@@ -2155,7 +2153,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
         return CodeRetourValidation::OK;
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_entete_fonction (redéfinition)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__REDEFINITION);
     auto decl_existante = decl->bloc_parent->declaration_avec_meme_ident_que(decl);
 
     if (!decl_existante || !decl_existante->est_entete_fonction()) {
@@ -2180,8 +2178,8 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
 ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
     NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions,
-                  "valide_entete_fonction (redéfinition opérateur)");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions,
+                  ENTETE_FONCTION__REDEFINITION_OPERATEUR);
     auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
     auto type_fonc = decl->type->comme_fonction();
     auto type_resultat = type_fonc->type_sortie;
@@ -2616,7 +2614,7 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
     expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
@@ -3024,7 +3022,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         entete = fonction;
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.corps_fonctions, CORPS_FONCTION__VALIDATION);
 
     TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
@@ -3420,7 +3418,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 
 ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, ENUMERATION__VALIDATION);
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {
@@ -3564,7 +3562,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
         auto decl_precedente = trouve_dans_bloc(
@@ -3937,7 +3935,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
     auto &feuilles_variables = ctx.feuilles_variables;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "rassemble variables");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__RASSEMBLE_VARIABLES);
         rassemble_expressions(decl->valeur, feuilles_variables);
     }
 
@@ -3945,7 +3944,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     auto &decls_et_refs = ctx.decls_et_refs;
     decls_et_refs.redimensionne(feuilles_variables.taille());
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "préparation");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__PREPARATION);
 
         if (feuilles_variables.taille() == 1) {
             auto variable = feuilles_variables[0]->comme_reference_declaration();
@@ -3972,7 +3972,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
 
         {
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "redéfinition");
+            CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                          DECLARATION_VARIABLES__REDEFINITION);
             if (it.decl->ident && it.decl->ident != ID::_) {
                 auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
@@ -3985,7 +3986,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
         }
 
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "résolution type");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__RESOLUTION_TYPE);
         if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
@@ -3994,7 +3996,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
     auto &feuilles_expressions = ctx.feuilles_expressions;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "rassemble expressions");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__RASSEMBLE_EXPRESSIONS);
         rassemble_expressions(decl->expression, feuilles_expressions);
     }
 
@@ -4003,7 +4006,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
     auto &variables = ctx.variables;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "enfile variables");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__ENFILE_VARIABLES);
 
         POUR (feuilles_variables) {
             variables.enfile(it);
@@ -4077,7 +4081,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     };
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "assignation expressions");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__ASSIGNATION_EXPRESSIONS);
 
         POUR (feuilles_expressions) {
             auto &donnees = ctx.donnees_temp;
@@ -4161,7 +4166,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     }
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "validation finale");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__VALIDATION_FINALE);
 
         POUR (decls_et_refs) {
             auto decl_var = it.decl;
@@ -4194,7 +4200,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
     /* Les paramètres de fonctions n'ont pas besoin de données pour les assignations d'expressions.
      */
     if (!decl->possede_drapeau(EST_PARAMETRE)) {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "copie données");
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+                      DECLARATION_VARIABLES__COPIE_DONNEES);
 
         decl->donnees_decl.reserve(static_cast<int>(donnees_assignations.taille()));
 
@@ -4220,7 +4227,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
 ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, ASSIGNATION__VALIDATION);
     auto variable = inst->variable;
 
     kuri::file_fixe<NoeudExpression *, 6> variables;
@@ -4631,7 +4638,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
     expr->genre_valeur = GenreValeur::DROITE;
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
     if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
         return valide_operateur_binaire_tableau(expr);
