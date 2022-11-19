@@ -2328,7 +2328,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 }
             }
             else if (ident_directive == ID::principale) {
-                if (noeud->ident->nom != "__principale") {
+                if (noeud->ident != ID::__principale) {
                     rapporte_erreur("#principale utilisée sur une fonction n'étant pas la "
                                     "fonction __principale");
                 }

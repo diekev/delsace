@@ -2235,7 +2235,7 @@ ResultatValidation ContexteValidationCode::valide_symbole_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
-    if (!(decl->est_externe && decl->ident && decl->ident->nom != "__principale" &&
+    if (!(decl->est_externe && decl->ident && decl->ident != ID::__principale &&
           !decl->possede_drapeau(COMPILATRICE))) {
         return CodeRetourValidation::OK;
     }

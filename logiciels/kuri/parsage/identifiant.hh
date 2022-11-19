@@ -73,6 +73,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(it, "it")                                                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(index_it, "index_it")                                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(principale, "principale")                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__principale, "__principale")                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(enligne, "enligne")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(horsligne, "horsligne")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe")                                         \
