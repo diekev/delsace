@@ -509,7 +509,9 @@ static bool epends_dependances_types(GrapheDependance &graphe,
 
     /* Traverse le graphe pour chaque dépendance sur un type. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        dependances_ependues.types_utilises.insere(type);
+        if (programme->possede(type)) {
+            return kuri::DecisionIteration::Continue;
+        }
 
         auto noeud_dependance = graphe.cree_noeud_type(type);
         graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
@@ -525,7 +527,10 @@ static bool epends_dependances_types(GrapheDependance &graphe,
     graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        dependances_ependues.fonctions_utilisees.insere(fonction);
+        if (programme->possede(fonction)) {
+            return kuri::DecisionIteration::Continue;
+        }
+
         dependances_ependues.types_utilises.insere(fonction->type);
 
         auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
@@ -548,7 +553,10 @@ static bool epends_dependances_types(GrapheDependance &graphe,
     graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        dependances_ependues.globales_utilisees.insere(globale);
+        if (programme->possede(globale)) {
+            return kuri::DecisionIteration::Continue;
+        }
+
         dependances_ependues.types_utilises.insere(globale->type);
 
         auto noeud_dependance = graphe.cree_noeud_globale(globale);
