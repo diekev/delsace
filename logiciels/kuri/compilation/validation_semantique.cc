@@ -571,9 +571,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (expr->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
+                    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
+                                  OPERATEUR_UNAIRE__POINTEUR);
                     type_connu = m_compilatrice.typeuse.type_pointeur_pour(type_connu);
                 }
                 else if (expr->lexeme->genre == GenreLexeme::ESP_UNAIRE) {
+                    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
+                                  OPERATEUR_UNAIRE__REFERENCE);
                     type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
                 }
 
@@ -2682,6 +2686,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
             return Attente::sur_declaration(decl);
         }
 
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
         expr->genre_valeur = GenreValeur::DROITE;

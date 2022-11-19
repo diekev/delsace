@@ -225,6 +225,8 @@ struct Statistiques {
 #define ENTREES_POUR_OPERATEUR_UNAIRE(OP)                                                         \
     OP(OPERATEUR_UNAIRE__TYPE, "opérateur unaire type")                                           \
     OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_donnees)")         \
+    OP(OPERATEUR_UNAIRE__POINTEUR, "opérateur unaire type (pointeur)")                            \
+    OP(OPERATEUR_UNAIRE__REFERENCE, "opérateur unaire type (reference)")                          \
     OP(OPERATEUR_UNAIRE__OPERATEUR_UNAIRE, "opérateur unaire")
 
 #define ENTREES_POUR_OPERATEUR_BINAIRE(OP) OP(OPERATEUR_BINAIRE__VALIDATION, "validation")
@@ -240,7 +242,9 @@ struct Statistiques {
     OP(DECLARATION_VARIABLES__VALIDATION_FINALE, "validation finale")                             \
     OP(DECLARATION_VARIABLES__COPIE_DONNEES, "copie données")
 
-#define ENTREES_POUR_REFERENCE_DECLARATION(OP) OP(REFERENCE_DECLARATION__VALIDATION, "validation")
+#define ENTREES_POUR_REFERENCE_DECLARATION(OP)                                                    \
+    OP(REFERENCE_DECLARATION__VALIDATION, "validation")                                           \
+    OP(REFERENCE_DECLARATION__TYPE_DE_DONNES, "type de données")
 
 #define ENTREES_POUR_ENTETE_FONCTION(OP)                                                          \
     OP(ENTETE_FONCTION__TENTATIVES_RATEES, "tentatives râtés")                                    \
