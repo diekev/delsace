@@ -685,7 +685,7 @@ struct GeneratriceCodeC {
     {
     }
 
-    COPIE_CONSTRUCT(GeneratriceCodeC);
+    EMPECHE_COPIE(GeneratriceCodeC);
 
     kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
     {
