@@ -101,7 +101,7 @@ struct TypeC {
 struct ConvertisseuseTypeC {
   private:
     mutable tableau_page<TypeC> types_c{};
-    Enchaineuse enchaineuse_tmp;
+    Enchaineuse enchaineuse_tmp{};
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -671,7 +671,7 @@ struct GeneratriceCodeC {
     // index pour les rendre uniques
     int index_chaine = 0;
 
-    Enchaineuse enchaineuse_tmp;
+    Enchaineuse enchaineuse_tmp{};
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)

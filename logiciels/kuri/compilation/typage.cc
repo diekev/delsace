@@ -2030,14 +2030,14 @@ void Trie::StockageEnfants::ajoute(Noeud *noeud)
     enfants.ajoute(noeud);
 }
 
-Trie::Noeud *Trie::Noeud::trouve_noeud_pour_type(const Type *type)
+Trie::Noeud *Trie::Noeud::trouve_noeud_pour_type(const Type *type_)
 {
-    return enfants.trouve_noeud_pour_type(type);
+    return enfants.trouve_noeud_pour_type(type_);
 }
 
-Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type)
+Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type_)
 {
-    return enfants_sortie.trouve_noeud_pour_type(type);
+    return enfants_sortie.trouve_noeud_pour_type(type_);
 }
 
 Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrees,

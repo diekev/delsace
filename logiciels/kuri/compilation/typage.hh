@@ -670,7 +670,7 @@ struct Typeuse {
     TypeCompose *type_chaine = nullptr;
 
     /* Trie pour les types fonctions. */
-    Trie trie;
+    Trie trie{};
 
     kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
 
