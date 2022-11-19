@@ -169,7 +169,7 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
         return di;
     }
 
-    if (di->genre == GenreNoeud::INSTRUCTION_SI) {
+    if (di->est_si()) {
         auto inst = static_cast<NoeudSi *>(di);
 
         if (inst->bloc_si_faux == nullptr) {
