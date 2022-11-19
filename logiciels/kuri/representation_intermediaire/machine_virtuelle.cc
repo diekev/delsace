@@ -394,6 +394,13 @@ inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 }
 
 template <typename T>
+inline T depile(NoeudExpression *site, octet_t *&pointeur_pile)
+{
+    pointeur_pile -= static_cast<long>(sizeof(T));
+    return *reinterpret_cast<T *>(pointeur_pile);
+}
+
+template <typename T>
 inline T MachineVirtuelle::depile(NoeudExpression *site)
 {
     this->pointeur_pile -= static_cast<long>(sizeof(T));
@@ -1285,14 +1292,28 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 frame = &frames[profondeur_appel - 1];
                 break;
             }
-            case OP_APPEL:
+            case OP_VERIFIE_CIBLE_APPEL:
             {
-                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                auto est_pointeur = LIS_OCTET();
+                AtomeFonction *ptr_fonction = nullptr;
+                if (est_pointeur) {
+                    /* Ne perturbe pas notre pile. */
+                    auto ptr = this->pointeur_pile;
+                    auto adresse = ::depile<void *>(site, ptr);
+                    ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
+                }
+                else {
+                    ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                }
                 if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
-
+                break;
+            }
+            case OP_APPEL:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 // saute l'instruction d'appel
                 frame->pointeur += 8;
@@ -1312,11 +1333,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL_EXTERNE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
-                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
 
@@ -1337,11 +1353,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto valeur_inst = LIS_8_OCTETS();
                 auto adresse = depile<void *>(site);
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
-                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
                 if (ptr_fonction->est_externe) {
@@ -1364,17 +1375,27 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
-            case OP_ASSIGNE:
+            case OP_VERIFIE_ADRESSAGE_ASSIGNE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto adresse_ou = depile<void *>(site);
-                auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+
+                /* Ne perturbe pas notre pile. */
+                auto ptr = this->pointeur_pile;
+                auto adresse_ou = ::depile<void *>(site, ptr);
+                auto adresse_de = static_cast<void *>(ptr - taille);
 
                 if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, true)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
+                break;
+            }
+            case OP_ASSIGNE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto adresse_ou = depile<void *>(site);
+                auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 depile(site, taille);
                 break;
@@ -1397,17 +1418,27 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
-            case OP_CHARGE:
+            case OP_VERIFIE_ADRESSAGE_CHARGE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto adresse_de = depile<void *>(site);
-                auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+
+                /* Ne perturbe pas notre pile. */
+                auto ptr = this->pointeur_pile;
+                auto adresse_de = ::depile<void *>(site, ptr);
+                auto adresse_ou = static_cast<void *>(ptr);
 
                 if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, false)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
 
+                break;
+            }
+            case OP_CHARGE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto adresse_de = depile<void *>(site);
+                auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
                 break;

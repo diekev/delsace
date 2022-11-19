@@ -107,6 +107,10 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
         erreur::imprime_site(*contexte.espace, site);
     });
 #endif
+    emets(OP_VERIFIE_ADRESSAGE_ASSIGNE);
+    emets(site);
+    emets(type->taille_octet);
+
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);
@@ -115,6 +119,10 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 void Chunk::emets_charge(NoeudExpression *site, Type *type)
 {
     assert(type->taille_octet);
+    emets(OP_VERIFIE_ADRESSAGE_CHARGE);
+    emets(site);
+    emets(type->taille_octet);
+
     emets(OP_CHARGE);
     emets(site);
     emets(type->taille_octet);
@@ -153,6 +161,11 @@ void Chunk::emets_appel(NoeudExpression *site,
                         unsigned taille_arguments,
                         InstructionAppel *inst_appel)
 {
+    emets(OP_VERIFIE_CIBLE_APPEL);
+    emets(site);
+    emets(false); /* est pointeur */
+    emets(fonction);
+
     emets(OP_APPEL);
     emets(site);
     emets(fonction);
@@ -165,6 +178,11 @@ void Chunk::emets_appel_externe(NoeudExpression *site,
                                 unsigned taille_arguments,
                                 InstructionAppel *inst_appel)
 {
+    emets(OP_VERIFIE_CIBLE_APPEL);
+    emets(site);
+    emets(false); /* est pointeur */
+    emets(fonction);
+
     emets(OP_APPEL_EXTERNE);
     emets(site);
     emets(fonction);
@@ -176,6 +194,10 @@ void Chunk::emets_appel_pointeur(NoeudExpression *site,
                                  unsigned taille_arguments,
                                  InstructionAppel *inst_appel)
 {
+    emets(OP_VERIFIE_CIBLE_APPEL);
+    emets(site);
+    emets(true); /* est pointeur */
+
     emets(OP_APPEL_POINTEUR);
     emets(site);
     emets(taille_arguments);
@@ -612,12 +634,19 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
+        case OP_VERIFIE_ADRESSAGE_ASSIGNE:
+        case OP_VERIFIE_ADRESSAGE_CHARGE:
         {
             return instruction_1d<int>(chunk, chaine_code_operation(instruction), decalage, os);
         }
         case OP_BRANCHE_CONDITION:
         {
             return instruction_2d<int, int>(
+                chunk, chaine_code_operation(instruction), decalage, os);
+        }
+        case OP_VERIFIE_CIBLE_APPEL:
+        {
+            return instruction_2d<int, long>(
                 chunk, chaine_code_operation(instruction), decalage, os);
         }
         case OP_ALLOUE:
