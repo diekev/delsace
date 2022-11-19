@@ -3944,16 +3944,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
     }
 
-    {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "typage et redéfinition");
+    POUR (decls_et_refs) {
+        auto bloc_final = NoeudBloc::nul();
+        if (it.decl->possede_drapeau(EST_PARAMETRE) ||
+            it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
+            bloc_final = it.decl->bloc_parent->bloc_parent;
+        }
 
-        POUR (decls_et_refs) {
-            auto bloc_final = NoeudBloc::nul();
-            if (it.decl->possede_drapeau(EST_PARAMETRE) ||
-                it.decl->possede_drapeau(EST_MEMBRE_STRUCTURE)) {
-                bloc_final = it.decl->bloc_parent->bloc_parent;
-            }
-
+        {
+            CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "redéfinition");
             if (it.decl->ident && it.decl->ident != ID::_) {
                 auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
 
@@ -3964,11 +3963,12 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     }
                 }
             }
+        }
 
-            if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
-                CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "résolution type");
+        if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
+            CodeRetourValidation::Erreur) {
+            return CodeRetourValidation::Erreur;
         }
     }
 
