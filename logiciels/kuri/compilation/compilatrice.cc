@@ -642,15 +642,6 @@ AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const kuri::cha
     return atome_fonc;
 }
 
-AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme,
-                                           const kuri::chaine &nom_fonction,
-                                           kuri::tableau<Atome *, int> &&params)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
-    return atome_fonc;
-}
-
 /* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
  * générer le code linéairement. Cette fonction nous sers soit à trouver le
  * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
