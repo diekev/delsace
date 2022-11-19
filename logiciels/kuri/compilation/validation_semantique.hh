@@ -111,7 +111,7 @@ struct ContexteValidationCode {
                            Tacheronne &tacheronne,
                            UniteCompilation &unite);
 
-    COPIE_CONSTRUCT(ContexteValidationCode);
+    EMPECHE_COPIE(ContexteValidationCode);
 
     ResultatValidation valide();
 
