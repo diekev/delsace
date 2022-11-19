@@ -163,6 +163,20 @@ kuri::chaine_statique Enchaineuse::chaine_statique() const
     return {&m_tampon_base.donnees[0], taille};
 }
 
+kuri::chaine_statique Enchaineuse::ajoute_chaine_statique(kuri::chaine_statique chaine)
+{
+    /* Avons nous de la place pour la chaine dans le tampon courant ? */
+    if (tampon_courant->occupe + chaine.taille() >= TAILLE_TAMPON) {
+        /* Ajoute un tampon. */
+        ajoute_tampon();
+    }
+
+    auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
+    memcpy(ptr, chaine.pointeur(), static_cast<size_t>(chaine.taille()));
+    tampon_courant->occupe += static_cast<int>(chaine.taille());
+    return {ptr, chaine.taille()};
+}
+
 void Enchaineuse::permute(Enchaineuse &autre)
 {
     if (tampon_courant != &m_tampon_base && autre.tampon_courant != &autre.m_tampon_base) {

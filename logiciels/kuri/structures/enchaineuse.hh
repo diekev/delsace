@@ -60,6 +60,12 @@ struct Enchaineuse {
      * génération de plusieurs petites chaines.
      */
     kuri::chaine_statique chaine_statique() const;
+
+    /**
+     * Ajoute la chaine en un seul morceau dans l'enchaineuse, et retourne une
+     * nouvelle chaine pour les données ajoutées.
+     */
+    kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
 };
 
 template <typename T>

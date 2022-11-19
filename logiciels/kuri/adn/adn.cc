@@ -165,7 +165,8 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
             os << "\t// @design : ce n'est pas très propre de passer l'espace ici, mais il nous "
                   "faut le fichier pour le module\n";
-            os << "\tkuri::chaine const &nom_broye(EspaceDeTravail *espace);\n";
+            os << "\tkuri::chaine_statique nom_broye(EspaceDeTravail *espace, Broyeuse "
+                  "&broyeuse);\n";
         }
         else if (m_nom.nom_cpp() == "NoeudBloc") {
             os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *> "

@@ -11,7 +11,7 @@
 
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
-    kuri::chaine nom_broye{};
+    kuri::chaine_statique nom_broye{};
 };
 
 struct TableIdentifiant {

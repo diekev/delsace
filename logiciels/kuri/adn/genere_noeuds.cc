@@ -135,6 +135,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"utilitaires.hh\"\n";
         os << "template <typename T> using tableau_synchrone = "
               "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
+        os << "class Broyeuse;\n";
 
         // Prodéclarations des structures
         kuri::ensemble<kuri::chaine> noms_struct;

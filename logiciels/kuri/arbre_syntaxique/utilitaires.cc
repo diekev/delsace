@@ -2517,7 +2517,8 @@ bool expression_est_constante(NoeudExpression *expression)
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
-kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
+kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace,
+                                                                Broyeuse &broyeuse)
 {
     if (nom_broye_ != "") {
         return nom_broye_;
@@ -2525,18 +2526,7 @@ kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *e
 
     if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
         auto fichier = espace->compilatrice().fichier(lexeme->fichier);
-
-        if (est_metaprogramme) {
-            nom_broye_ = enchaine("metaprogramme", this);
-        }
-        else if (est_initialisation_type) {
-            auto type_param = params[0]->type->comme_pointeur()->type_pointe;
-            // Ajout du pointeur du type pour différencier les types monomorphisés.
-            nom_broye_ = enchaine("initialise_", type_param);
-        }
-        else {
-            nom_broye_ = broye_nom_fonction(this, fichier->module->nom()->nom);
-        }
+        nom_broye_ = broyeuse.broye_nom_fonction(this, fichier->module->nom());
     }
     else {
         nom_broye_ = lexeme->chaine;

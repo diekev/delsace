@@ -396,7 +396,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	NoeudBloc *bloc_constantes
 	NoeudBloc *bloc_parametres
 
-	chaine nom_broye_
+        chaine_statique nom_broye_
 
 	Monomorphisations *monomorphisations
   /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions

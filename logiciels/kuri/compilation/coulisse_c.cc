@@ -34,10 +34,11 @@ enum {
 };
 
 static void genere_declaration_structure(Enchaineuse &enchaineuse,
+                                         Broyeuse &broyeuse,
                                          TypeStructure *type_compose,
                                          int quoi)
 {
-    auto nom_broye = broye_nom_simple(type_compose->nom_portable());
+    auto nom_broye = broyeuse.broye_nom_simple(type_compose->nom_portable());
 
     if (type_compose->decl && type_compose->decl->est_monomorphisation) {
         nom_broye = enchaine(nom_broye, type_compose);
@@ -57,7 +58,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
             continue;
         }
 
-        enchaineuse << nom_broye_type(it.type) << ' ';
+        enchaineuse << broyeuse.nom_broye_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
@@ -65,7 +66,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
                         << ";\n";
         }
         else {
-            enchaineuse << broye_nom_simple(it.nom) << ";\n";
+            enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
         }
     }
 
@@ -102,6 +103,7 @@ struct ConvertisseuseTypeC {
   private:
     mutable tableau_page<TypeC> types_c{};
     Enchaineuse enchaineuse_tmp{};
+    mutable Broyeuse broyeuse{};
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -122,7 +124,7 @@ struct ConvertisseuseTypeC {
 
         TypeC *type_c = types_c.ajoute_element();
         type_c->type_kuri = type;
-        type_c->nom = nom_broye_type(type);
+        type_c->nom = broyeuse.nom_broye_type(type);
         return *type_c;
     }
 
@@ -157,14 +159,14 @@ struct ConvertisseuseTypeC {
             case GenreType::ENUM:
             {
                 auto type_enum = static_cast<TypeEnum *>(type);
-                auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
+                auto nom_broye_type_donnees = broyeuse.nom_broye_type(type_enum->type_donnees);
                 type_c.typedef_ = nom_broye_type_donnees;
                 break;
             }
             case GenreType::OPAQUE:
             {
                 auto type_opaque = type->comme_opaque();
-                auto nom_broye_type_opacifie = nom_broye_type(type_opaque->type_opacifie);
+                auto nom_broye_type_opacifie = broyeuse.nom_broye_type(type_opaque->type_opacifie);
                 type_c.typedef_ = nom_broye_type_opacifie;
                 break;
             }
@@ -262,18 +264,17 @@ struct ConvertisseuseTypeC {
                     return;
                 }
 
-                auto nom_struct = broye_nom_simple(type_struct->nom_portable());
+                auto nom_struct = broyeuse.broye_nom_simple(type_struct->nom_portable());
 
                 // struct anomyme
                 if (type_struct->est_anonyme) {
                     type_c.typedef_ = enchaine(
                         "struct ", nom_struct, dls::vers_chaine(type_struct));
                 }
+                else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+                }
                 else {
-                    if (type_struct->decl && type_struct->decl->est_monomorphisation) {
-                        nom_struct = enchaine(nom_struct, type_struct);
-                    }
-
                     type_c.typedef_ = enchaine("struct ", nom_struct);
                 }
 
@@ -282,7 +283,7 @@ struct ConvertisseuseTypeC {
             case GenreType::UNION:
             {
                 auto type_union = type->comme_union();
-                auto nom_union = broye_nom_simple(type_union->nom_portable());
+                auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
 
                 if (type_union->est_anonyme) {
                     type_c.typedef_ = enchaine("struct ", nom_union, dls::vers_chaine(type_union));
@@ -291,13 +292,12 @@ struct ConvertisseuseTypeC {
                     auto decl = type_union->decl;
                     if (decl->est_nonsure || decl->est_externe) {
                         auto type_le_plus_grand = type_union->type_le_plus_grand;
-                        type_c.typedef_ = nom_broye_type(type_le_plus_grand);
+                        type_c.typedef_ = broyeuse.nom_broye_type(type_le_plus_grand);
+                    }
+                    else if (type_union->decl && type_union->decl->est_monomorphisation) {
+                        type_c.typedef_ = enchaine("struct ", nom_union, type_union);
                     }
                     else {
-                        if (type_union->decl && type_union->decl->est_monomorphisation) {
-                            nom_union = enchaine(nom_union, type_union);
-                        }
-
                         type_c.typedef_ = enchaine("struct ", nom_union);
                     }
                 }
@@ -348,7 +348,7 @@ struct ConvertisseuseTypeC {
                 auto nouveau_nom_broye = Enchaineuse();
                 nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
 
-                auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
+                auto const &nom_broye_sortie = broyeuse.nom_broye_type(type_fonc->type_sortie);
 
                 /* Crée le préfixe. */
                 enchaineuse_tmp.reinitialise();
@@ -361,7 +361,7 @@ struct ConvertisseuseTypeC {
                 auto virgule = "(";
 
                 POUR (type_fonc->types_entrees) {
-                    auto const &nom_broye_dt = nom_broye_type(it);
+                    auto const &nom_broye_dt = broyeuse.nom_broye_type(it);
 
                     enchaineuse_tmp << virgule;
                     enchaineuse_tmp << nom_broye_dt;
@@ -457,7 +457,7 @@ struct ConvertisseuseTypeC {
             }
 
             auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-            genere_declaration_structure(enchaineuse, type_struct, quoi);
+            genere_declaration_structure(enchaineuse, broyeuse, type_struct, quoi);
 
             POUR (type_struct->membres) {
                 if (it.type->est_pointeur()) {
@@ -479,13 +479,14 @@ struct ConvertisseuseTypeC {
                 genere_code_pour_type(it.type, enchaineuse);
             }
 
-            auto nom_broye = nom_broye_type(type_tuple);
+            auto nom_broye = broyeuse.nom_broye_type(type_tuple);
 
             enchaineuse << "typedef struct " << nom_broye << " {\n";
 
             auto index_membre = 0;
             for (auto &membre : type_tuple->membres) {
-                enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++ << ";\n";
+                enchaineuse << broyeuse.nom_broye_type(membre.type) << " _" << index_membre++
+                            << ";\n";
             }
 
             enchaineuse << "} " << nom_broye << ";\n";
@@ -505,9 +506,9 @@ struct ConvertisseuseTypeC {
         else if (type->est_tableau_fixe()) {
             auto tableau_fixe = type->comme_tableau_fixe();
             genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-            auto const &nom_broye = nom_broye_type(type);
+            auto const &nom_broye = broyeuse.nom_broye_type(type);
             enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
-                        << nom_broye_type(tableau_fixe->type_pointe);
+                        << broyeuse.nom_broye_type(tableau_fixe->type_pointe);
             enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
             enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
         }
@@ -522,13 +523,13 @@ struct ConvertisseuseTypeC {
             genere_code_pour_type(type_pointe, enchaineuse);
 
             if (!type_c.code_machine_fut_genere) {
-                auto const &nom_broye = nom_broye_type(type);
+                auto const &nom_broye = broyeuse.nom_broye_type(type);
                 enchaineuse << "typedef struct Tableau_" << nom_broye;
                 enchaineuse << "{\n\t";
-                enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
+                enchaineuse << broyeuse.nom_broye_type(type_pointe) << " *pointeur;";
                 enchaineuse << "\n\tlong taille;\n"
-                            << "\tlong " << broye_nom_simple(ID::capacite) << ";\n} Tableau_"
-                            << nom_broye << ";\n\n";
+                            << "\tlong " << broyeuse.broye_nom_simple(ID::capacite)
+                            << ";\n} Tableau_" << nom_broye << ";\n\n";
             }
         }
         else if (type->est_opaque()) {
@@ -666,6 +667,8 @@ struct GeneratriceCodeC {
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
+    Broyeuse broyeuse{};
+
     // les atomes pour les chaines peuvent être générés plusieurs fois (notamment
     // pour celles des noms des fonctions pour les traces d'appel), utilisons un
     // index pour les rendre uniques
@@ -715,8 +718,11 @@ struct GeneratriceCodeC {
                         auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
                         auto valeur = genere_code_pour_atome(
                             transtype_const->valeur, os, pour_globale);
-                        return enchaine(
-                            "(", nom_broye_type(transtype_const->type), ")(", valeur, ")");
+                        return enchaine("(",
+                                        broyeuse.nom_broye_type(transtype_const->type),
+                                        ")(",
+                                        valeur,
+                                        ")");
                     }
                     case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
                     {
@@ -856,7 +862,8 @@ struct GeneratriceCodeC {
                                         resultat << "membre_invisible";
                                     }
                                     else {
-                                        resultat << broye_nom_simple(type->membres[i].nom);
+                                        resultat
+                                            << broyeuse.broye_nom_simple(type->membres[i].nom);
                                     }
                                     resultat << " = ";
                                     resultat << genere_code_pour_atome(
@@ -877,8 +884,8 @@ struct GeneratriceCodeC {
                                 }
 
                                 auto nom = enchaine("val", atome, index_chaine++);
-                                os << "  " << nom_broye_type(atome->type) << " " << nom << " = "
-                                   << resultat.chaine() << ";\n";
+                                os << "  " << broyeuse.nom_broye_type(atome->type) << " " << nom
+                                   << " = " << resultat.chaine() << ";\n";
                                 return nom;
                             }
                             case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
@@ -964,13 +971,13 @@ struct GeneratriceCodeC {
             case Instruction::Genre::ALLOCATION:
             {
                 auto type_pointeur = inst->type->comme_pointeur();
-                os << "  " << nom_broye_type(type_pointeur->type_pointe);
+                os << "  " << broyeuse.nom_broye_type(type_pointeur->type_pointe);
 
                 // les portées ne sont plus respectées : deux variables avec le même nom dans deux
                 // portées différentes auront le même nom ici dans la même portée donc nous
                 // ajoutons le numéro de l'instruction de la variable pour les différencier
                 if (inst->ident != nullptr) {
-                    auto nom = enchaine(broye_nom_simple(inst->ident), "_", inst->numero);
+                    auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
                     os << ' ' << nom << ";\n";
                     table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
                 }
@@ -1022,7 +1029,7 @@ struct GeneratriceCodeC {
                 auto type_fonction = inst_appel->appele->type->comme_fonction();
                 if (!type_fonction->type_sortie->est_rien()) {
                     auto nom_ret = enchaine("__ret", inst->numero);
-                    os << nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                    os << broyeuse.nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
                     table_valeurs.insere(inst, nom_ret);
                 }
 
@@ -1140,7 +1147,8 @@ struct GeneratriceCodeC {
                 auto inst_un = inst->comme_op_unaire();
                 auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
 
-                os << "  " << nom_broye_type(inst_un->type) << " val" << inst->numero << " = ";
+                os << "  " << broyeuse.nom_broye_type(inst_un->type) << " val" << inst->numero
+                   << " = ";
 
                 switch (inst_un->op) {
                     case OperateurUnaire::Genre::Positif:
@@ -1185,7 +1193,8 @@ struct GeneratriceCodeC {
                 auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
                 auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
 
-                os << "  " << nom_broye_type(inst_bin->type) << " val" << inst->numero << " = ";
+                os << "  " << broyeuse.nom_broye_type(inst_bin->type) << " val" << inst->numero
+                   << " = ";
 
                 os << valeur_gauche;
 
@@ -1341,10 +1350,11 @@ struct GeneratriceCodeC {
                 auto valeur_accede = kuri::chaine();
 
                 if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
-                    valeur_accede = broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
+                    valeur_accede = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
                 }
                 else {
-                    valeur_accede = broye_nom_simple(table_globales.valeur_ou(accede, ""));
+                    valeur_accede = broyeuse.broye_nom_simple(
+                        table_globales.valeur_ou(accede, ""));
                 }
 
                 assert(valeur_accede != "");
@@ -1377,7 +1387,7 @@ struct GeneratriceCodeC {
                     valeur_accede = enchaine(valeur_accede, "_", index_membre);
                 }
                 else {
-                    valeur_accede = enchaine(valeur_accede, broye_nom_simple(membre.nom));
+                    valeur_accede = enchaine(valeur_accede, broyeuse.broye_nom_simple(membre.nom));
                 }
 
                 table_valeurs.insere(inst_acces, valeur_accede);
@@ -1387,7 +1397,8 @@ struct GeneratriceCodeC {
             {
                 auto inst_transtype = inst->comme_transtype();
                 auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
-                valeur = enchaine("((", nom_broye_type(inst_transtype->type), ")(", valeur, "))");
+                valeur = enchaine(
+                    "((", broyeuse.nom_broye_type(inst_transtype->type), ")(", valeur, "))");
                 table_valeurs.insere(inst, valeur);
                 break;
             }
@@ -1399,10 +1410,10 @@ struct GeneratriceCodeC {
         declare_visibilite_globale(os, valeur_globale);
 
         auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-        os << nom_broye_type(type) << ' ';
+        os << broyeuse.nom_broye_type(type) << ' ';
 
         if (valeur_globale->ident) {
-            auto nom_globale = broye_nom_simple(valeur_globale->ident);
+            auto nom_globale = broyeuse.broye_nom_simple(valeur_globale->ident);
             os << nom_globale;
             table_globales.insere(valeur_globale, enchaine("&", nom_globale));
         }
@@ -1420,7 +1431,7 @@ struct GeneratriceCodeC {
         }
 
         auto type_fonction = atome_fonc->type->comme_fonction();
-        os << nom_broye_type(type_fonction->type_sortie) << " ";
+        os << broyeuse.nom_broye_type(type_fonction->type_sortie) << " ";
         os << atome_fonc->nom;
 
         auto virgule = "(";
@@ -1430,7 +1441,7 @@ struct GeneratriceCodeC {
 
             auto type_pointeur = param->type->comme_pointeur();
             auto type_param = type_pointeur->type_pointe;
-            os << nom_broye_type(type_param) << ' ';
+            os << broyeuse.nom_broye_type(type_param) << ' ';
 
             // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
             // (void fonction(...)), n'imprime pas de nom
@@ -1439,7 +1450,7 @@ struct GeneratriceCodeC {
                 continue;
             }
 
-            os << broye_nom_simple(param->ident);
+            os << broyeuse.broye_nom_simple(param->ident);
 
             virgule = ", ";
         }
@@ -1501,7 +1512,8 @@ struct GeneratriceCodeC {
             // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
             for (auto param : it->params_entrees) {
-                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
+                table_valeurs.insere(param,
+                                     enchaine("&", broyeuse.broye_nom_simple(param->ident)));
             }
 
             os << "\n{\n";
@@ -1532,11 +1544,12 @@ struct GeneratriceCodeC {
             if (!type_fonction->type_sortie->est_rien()) {
                 auto param = atome_fonc->param_sortie;
                 auto type_pointeur = param->type->comme_pointeur();
-                os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-                os << broye_nom_simple(param->ident);
+                os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
+                os << broyeuse.broye_nom_simple(param->ident);
                 os << ";\n";
 
-                table_valeurs.insere(param, enchaine("&", broye_nom_simple(param->ident)));
+                table_valeurs.insere(param,
+                                     enchaine("&", broyeuse.broye_nom_simple(param->ident)));
             }
 
             /* Génère le code pour les accès de membres des retours mutliples. */

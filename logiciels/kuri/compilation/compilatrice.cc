@@ -15,6 +15,7 @@
 
 #include "structures/date.hh"
 
+#include "broyage.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
@@ -151,6 +152,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         nullptr,
         table_idents->identifiant_pour_chaine("libpthread"),
         "pthread");
+
+    broyeuse = memoire::loge<Broyeuse>("Broyeuse");
 }
 
 Compilatrice::~Compilatrice()
@@ -158,6 +161,8 @@ Compilatrice::~Compilatrice()
     POUR ((*espaces_de_travail.verrou_ecriture())) {
         memoire::deloge("EspaceDeTravail", it);
     }
+
+    memoire::deloge("Broyeuse", broyeuse);
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace,
@@ -691,7 +696,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
+        decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
     atome_fonc->type = normalise_type(typeuse, decl->type);
     atome_fonc->est_externe = decl->est_externe;
     atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);

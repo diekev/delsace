@@ -20,6 +20,7 @@
 #include "tacheronne.hh"
 #include "typage.hh"
 
+struct Broyeuse;
 struct ContexteLexage;
 struct EspaceDeTravail;
 struct NoeudCodeEnteteFonction;
@@ -130,6 +131,8 @@ struct Compilatrice {
     /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
      * disponible. */
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+
+    Broyeuse *broyeuse = nullptr;
 
     /* ********************************************************************** */
 
