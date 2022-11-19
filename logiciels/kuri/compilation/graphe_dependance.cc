@@ -237,8 +237,6 @@ void GrapheDependance::reduction_transitive()
     auto relations_supprimees = 0;
     auto relations_totales = 0;
 
-    auto relations_filtrees = kuri::tableau_compresse<Relation>();
-
     POUR_TABLEAU_PAGE_NOMME(cible, noeuds)
     {
         /* Réinitialisation des drapeaux. */
@@ -256,7 +254,7 @@ void GrapheDependance::reduction_transitive()
             marque_chemins_atteignables(*relation.noeud_fin);
         }
 
-        relations_filtrees = cible.relations();
+        auto relations_filtrees = kuri::tableau_compresse<Relation>();
 
         for (auto &relation : cible.relations().plage()) {
             ++relations_totales;
