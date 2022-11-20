@@ -33,65 +33,6 @@ enum {
     STRUCTURE_ANONYME,
 };
 
-static void genere_declaration_structure(Enchaineuse &enchaineuse,
-                                         Broyeuse &broyeuse,
-                                         TypeStructure *type_compose,
-                                         int quoi)
-{
-    auto nom_broye = broyeuse.broye_nom_simple(type_compose->nom_portable());
-
-    if (type_compose->decl && type_compose->decl->est_monomorphisation) {
-        nom_broye = enchaine(nom_broye, type_compose);
-    }
-
-    if (quoi == STRUCTURE) {
-        enchaineuse << "typedef struct " << nom_broye << "{\n";
-    }
-    else if (quoi == STRUCTURE_ANONYME) {
-        enchaineuse << "typedef struct " << nom_broye;
-        enchaineuse << type_compose;
-        enchaineuse << "{\n";
-    }
-
-    POUR (type_compose->membres) {
-        if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
-            continue;
-        }
-
-        enchaineuse << broyeuse.nom_broye_type(it.type) << ' ';
-
-        /* Cas pour les structures vides. */
-        if (it.nom == ID::chaine_vide) {
-            enchaineuse << "membre_invisible"
-                        << ";\n";
-        }
-        else {
-            enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
-        }
-    }
-
-    enchaineuse << "} ";
-
-    if (type_compose->decl) {
-        if (type_compose->decl->est_compacte) {
-            enchaineuse << " __attribute__((packed)) ";
-        }
-
-        if (type_compose->decl->alignement_desire != 0) {
-            enchaineuse << " __attribute__((aligned(" << type_compose->decl->alignement_desire
-                        << "))) ";
-        }
-    }
-
-    enchaineuse << nom_broye;
-
-    if (quoi == STRUCTURE_ANONYME) {
-        enchaineuse << type_compose;
-    }
-
-    enchaineuse << ";\n\n";
-}
-
 struct TypeC {
     Type *type_kuri = nullptr;
     kuri::chaine_statique nom = "";
@@ -461,7 +402,7 @@ struct ConvertisseuseTypeC {
             }
 
             auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-            genere_declaration_structure(enchaineuse, broyeuse, type_struct, quoi);
+            genere_declaration_structure(enchaineuse, type_struct, quoi);
 
             POUR (type_struct->membres) {
                 if (it.type->est_pointeur()) {
@@ -561,7 +502,69 @@ struct ConvertisseuseTypeC {
         type_c.code_machine_fut_genere = true;
         cree_typedef(type, enchaineuse);
     }
+
+    void genere_declaration_structure(Enchaineuse &enchaineuse,
+                                      TypeStructure *type_compose,
+                                      int quoi);
 };
+
+void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
+                                                       TypeStructure *type_compose,
+                                                       int quoi)
+{
+    auto nom_broye = broyeuse.broye_nom_simple(type_compose->nom_portable());
+
+    if (type_compose->decl && type_compose->decl->est_monomorphisation) {
+        nom_broye = enchaine(nom_broye, type_compose);
+    }
+
+    if (quoi == STRUCTURE) {
+        enchaineuse << "typedef struct " << nom_broye << "{\n";
+    }
+    else if (quoi == STRUCTURE_ANONYME) {
+        enchaineuse << "typedef struct " << nom_broye;
+        enchaineuse << type_compose;
+        enchaineuse << "{\n";
+    }
+
+    POUR (type_compose->membres) {
+        if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+            continue;
+        }
+
+        enchaineuse << broyeuse.nom_broye_type(it.type) << ' ';
+
+        /* Cas pour les structures vides. */
+        if (it.nom == ID::chaine_vide) {
+            enchaineuse << "membre_invisible"
+                        << ";\n";
+        }
+        else {
+            enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
+        }
+    }
+
+    enchaineuse << "} ";
+
+    if (type_compose->decl) {
+        if (type_compose->decl->est_compacte) {
+            enchaineuse << " __attribute__((packed)) ";
+        }
+
+        if (type_compose->decl->alignement_desire != 0) {
+            enchaineuse << " __attribute__((aligned(" << type_compose->decl->alignement_desire
+                        << "))) ";
+        }
+    }
+
+    enchaineuse << nom_broye;
+
+    if (quoi == STRUCTURE_ANONYME) {
+        enchaineuse << type_compose;
+    }
+
+    enchaineuse << ";\n\n";
+}
 
 /* ************************************************************************** */
 
