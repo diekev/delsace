@@ -1749,7 +1749,8 @@ static bool cree_executable(EspaceDeTravail const &espace,
 bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
                                       EspaceDeTravail &espace,
                                       Programme *programme,
-                                      ConstructriceRI & /*constructrice_ri*/)
+                                      ConstructriceRI & /*constructrice_ri*/,
+                                      Broyeuse &)
 {
     auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 

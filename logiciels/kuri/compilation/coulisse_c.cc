@@ -45,7 +45,7 @@ struct ConvertisseuseTypeC {
     mutable tableau_page<TypeC> types_c{};
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
-    mutable Broyeuse broyeuse{};
+    Broyeuse &broyeuse;
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -56,7 +56,11 @@ struct ConvertisseuseTypeC {
     }
 
   public:
-    TypeC &type_c_pour(Type *type) const
+    ConvertisseuseTypeC(Broyeuse &broyeuse_) : broyeuse(broyeuse_)
+    {
+    }
+
+    TypeC &type_c_pour(Type *type)
     {
         POUR_TABLEAU_PAGE (types_c) {
             if (it.type_kuri == type) {
@@ -70,7 +74,7 @@ struct ConvertisseuseTypeC {
         return *type_c;
     }
 
-    bool typedef_fut_genere(Type *type_kuri) const
+    bool typedef_fut_genere(Type *type_kuri)
     {
         auto &type_c = type_c_pour(type_kuri);
         return type_c.typedef_ != "";
@@ -674,7 +678,7 @@ struct GeneratriceCodeC {
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
-    Broyeuse broyeuse{};
+    Broyeuse &broyeuse;
 
     // les atomes pour les chaines peuvent être générés plusieurs fois (notamment
     // pour celles des noms des fonctions pour les traces d'appel), utilisons un
@@ -692,7 +696,8 @@ struct GeneratriceCodeC {
         return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
     }
 
-    GeneratriceCodeC(EspaceDeTravail &espace) : m_espace(espace)
+    GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
+        : m_espace(espace), broyeuse(broyeuse_)
     {
     }
 
@@ -1586,12 +1591,13 @@ struct GeneratriceCodeC {
 static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     ProgrammeRepreInter const &repr_inter_programme,
+                                    Broyeuse &broyeuse,
                                     std::ostream &fichier_sortie)
 {
-    ConvertisseuseTypeC convertisseuse_type_c;
+    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
     Enchaineuse enchaineuse;
 
-    auto generatrice = GeneratriceCodeC(espace);
+    auto generatrice = GeneratriceCodeC(espace, broyeuse);
     genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     POUR (repr_inter_programme.types) {
@@ -1708,6 +1714,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      EspaceDeTravail &espace,
                                                      Programme *programme,
                                                      kuri::tableau<Bibliotheque *> &bibliotheques,
+                                                     Broyeuse &broyeuse,
                                                      std::ostream &fichier_sortie)
 {
     auto fonction_principale = espace.fonction_principale;
@@ -1728,7 +1735,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
+    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
     return true;
 }
 
@@ -1737,6 +1744,7 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    EspaceDeTravail &espace,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
+                                                   Broyeuse &broyeuse,
                                                    std::ostream &fichier_sortie)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
@@ -1769,7 +1777,7 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, fichier_sortie);
+    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
     return true;
 }
 
@@ -1778,15 +1786,26 @@ static bool genere_code_C(Compilatrice &compilatrice,
                           EspaceDeTravail &espace,
                           Programme *programme,
                           kuri::tableau<Bibliotheque *> &bibliotheques,
+                          Broyeuse &broyeuse,
                           std::ostream &fichier_sortie)
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        return genere_code_C_depuis_fonction_principale(
-            compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
+        return genere_code_C_depuis_fonction_principale(compilatrice,
+                                                        constructrice_ri,
+                                                        espace,
+                                                        programme,
+                                                        bibliotheques,
+                                                        broyeuse,
+                                                        fichier_sortie);
     }
 
-    return genere_code_C_depuis_fonctions_racines(
-        compilatrice, constructrice_ri, espace, programme, bibliotheques, fichier_sortie);
+    return genere_code_C_depuis_fonctions_racines(compilatrice,
+                                                  constructrice_ri,
+                                                  espace,
+                                                  programme,
+                                                  bibliotheques,
+                                                  broyeuse,
+                                                  fichier_sortie);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1876,7 +1895,8 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
 bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
                                    EspaceDeTravail &espace,
                                    Programme *programme,
-                                   ConstructriceRI &constructrice_ri)
+                                   ConstructriceRI &constructrice_ri,
+                                   Broyeuse &broyeuse)
 {
     m_bibliotheques.efface();
 
@@ -1885,7 +1905,8 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
     std::cout << "Génération du code..." << std::endl;
     auto debut_generation_code = dls::chrono::compte_seconde();
-    if (!genere_code_C(compilatrice, constructrice_ri, espace, programme, m_bibliotheques, of)) {
+    if (!genere_code_C(
+            compilatrice, constructrice_ri, espace, programme, m_bibliotheques, broyeuse, of)) {
         return false;
     }
     temps_generation_code = debut_generation_code.temps();
