@@ -289,7 +289,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreType::TUPLE:
         {
-            enchaineuse << "Kl" << dls::vers_chaine(type);
+            enchaineuse << "Kl" << type;
             break;
         }
     }

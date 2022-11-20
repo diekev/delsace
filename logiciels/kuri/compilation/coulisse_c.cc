@@ -49,7 +49,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
     }
     else if (quoi == STRUCTURE_ANONYME) {
         enchaineuse << "typedef struct " << nom_broye;
-        enchaineuse << dls::vers_chaine(type_compose);
+        enchaineuse << type_compose;
         enchaineuse << "{\n";
     }
 
@@ -86,7 +86,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
     enchaineuse << nom_broye;
 
     if (quoi == STRUCTURE_ANONYME) {
-        enchaineuse << dls::vers_chaine(type_compose);
+        enchaineuse << type_compose;
     }
 
     enchaineuse << ";\n\n";
@@ -268,8 +268,7 @@ struct ConvertisseuseTypeC {
 
                 // struct anomyme
                 if (type_struct->est_anonyme) {
-                    type_c.typedef_ = enchaine(
-                        "struct ", nom_struct, dls::vers_chaine(type_struct));
+                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
                 }
                 else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
                     type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
@@ -286,7 +285,7 @@ struct ConvertisseuseTypeC {
                 auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
 
                 if (type_union->est_anonyme) {
-                    type_c.typedef_ = enchaine("struct ", nom_union, dls::vers_chaine(type_union));
+                    type_c.typedef_ = enchaine("struct ", nom_union, type_union);
                 }
                 else {
                     auto decl = type_union->decl;

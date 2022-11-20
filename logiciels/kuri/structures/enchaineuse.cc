@@ -214,6 +214,18 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine &chn)
     return enchaineuse;
 }
 
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn)
+{
+    enchaineuse.ajoute(chn.begin(), chn.taille());
+    return enchaineuse;
+}
+
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn)
+{
+    enchaineuse.ajoute(chn.begin(), chn.taille());
+    return enchaineuse;
+}
+
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn)
 {
     auto ptr = chn;
@@ -225,4 +237,21 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn)
     enchaineuse.ajoute(ptr, chn - ptr);
 
     return enchaineuse;
+}
+
+unsigned nombre_vers_chaine(char *tampon, unsigned long valeur)
+{
+    auto const n = dls::num::nombre_chiffre_base_10_pro(valeur);
+
+    auto pos = n - 1;
+
+    while (valeur >= 10) {
+        auto const q = valeur / 10;
+        auto const r = valeur % 10;
+        tampon[pos--] = static_cast<char>('0' + r);
+        valeur = q;
+    }
+
+    tampon[0] = static_cast<char>('0' + valeur);
+    return n;
 }
