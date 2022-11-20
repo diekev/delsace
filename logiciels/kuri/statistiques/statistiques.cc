@@ -258,3 +258,35 @@ void imprime_stats_detaillee(Statistiques &stats)
     std::cout << "Tableaux :\n";
     imprime_stats_tableaux(stats.stats_tableaux);
 }
+
+static void imprime_stats_temps(EntreesStats<EntreeTemps> &stats)
+{
+    std::sort(stats.entrees.begin(),
+              stats.entrees.end(),
+              [](const EntreeTemps &a, const EntreeTemps &b) { return a.temps > b.temps; });
+
+    auto tableau = Tableau({"Nom", "Temps"});
+    tableau.alignement(1, Alignement::DROITE);
+
+    POUR (stats.entrees) {
+        tableau.ajoute_ligne({dls::chaine(it.nom), formatte_nombre(it.temps)});
+    }
+
+    std::cout << stats.nom << " :\n";
+    imprime_tableau(tableau);
+}
+
+void StatistiquesTypage::imprime_stats()
+{
+    imprime_stats_temps(validation_decl);
+    imprime_stats_temps(validation_appel);
+    imprime_stats_temps(ref_decl);
+    imprime_stats_temps(operateurs_unaire);
+    imprime_stats_temps(operateurs_binaire);
+    imprime_stats_temps(entetes_fonctions);
+    imprime_stats_temps(corps_fonctions);
+    imprime_stats_temps(enumerations);
+    imprime_stats_temps(structures);
+    imprime_stats_temps(assignations);
+    imprime_stats_temps(finalisation);
+}

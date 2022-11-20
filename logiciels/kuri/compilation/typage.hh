@@ -182,7 +182,7 @@ struct Type {
     int drapeaux = 0;
     unsigned index_dans_table_types = 0;
 
-    kuri::chaine nom_broye{};
+    kuri::chaine_statique nom_broye{};
 
     InfoType *info_type = nullptr;
     AtomeConstante *atome_info_type = nullptr;
@@ -670,7 +670,9 @@ struct Typeuse {
     TypeCompose *type_chaine = nullptr;
 
     /* Trie pour les types fonctions. */
-    Trie trie;
+    Trie trie{};
+
+    kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
 
     // -------------------------
 

@@ -5,6 +5,7 @@
 
 #include "structures/chaine.hh"
 
+class Broyeuse;
 struct Compilatrice;
 struct ConstructriceRI;
 struct EspaceDeTravail;
@@ -35,7 +36,8 @@ struct Coulisse {
     virtual bool cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
-                                    ConstructriceRI &constructrice_ri) = 0;
+                                    ConstructriceRI &constructrice_ri,
+                                    Broyeuse &) = 0;
 
     /* Crée l'exécutable depuis le fichier objet.
      *

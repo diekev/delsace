@@ -87,7 +87,8 @@ int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *
 
 void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
                               NoeudExpression *site,
-                              Type *type)
+                              Type *type,
+                              bool ajoute_verification)
 {
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
@@ -107,24 +108,41 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
         erreur::imprime_site(*contexte.espace, site);
     });
 #endif
+
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_ADRESSAGE_ASSIGNE);
+        emets(site);
+        emets(type->taille_octet);
+    }
+
     emets(OP_ASSIGNE);
     emets(site);
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge(NoeudExpression *site, Type *type)
+void Chunk::emets_charge(NoeudExpression *site, Type *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
+
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_ADRESSAGE_CHARGE);
+        emets(site);
+        emets(type->taille_octet);
+    }
+
     emets(OP_CHARGE);
     emets(site);
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge_variable(NoeudExpression *site, int pointeur, Type *type)
+void Chunk::emets_charge_variable(NoeudExpression *site,
+                                  int pointeur,
+                                  Type *type,
+                                  bool ajoute_verification)
 {
     assert(type->taille_octet);
     emets_reference_variable(site, pointeur);
-    emets_charge(site, type);
+    emets_charge(site, type, ajoute_verification);
 }
 
 void Chunk::emets_reference_globale(NoeudExpression *site, int pointeur)
@@ -151,8 +169,16 @@ void Chunk::emets_reference_membre(NoeudExpression *site, unsigned decalage)
 void Chunk::emets_appel(NoeudExpression *site,
                         AtomeFonction *fonction,
                         unsigned taille_arguments,
-                        InstructionAppel *inst_appel)
+                        InstructionAppel *inst_appel,
+                        bool ajoute_verification)
 {
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_CIBLE_APPEL);
+        emets(site);
+        emets(false); /* est pointeur */
+        emets(fonction);
+    }
+
     emets(OP_APPEL);
     emets(site);
     emets(fonction);
@@ -163,8 +189,16 @@ void Chunk::emets_appel(NoeudExpression *site,
 void Chunk::emets_appel_externe(NoeudExpression *site,
                                 AtomeFonction *fonction,
                                 unsigned taille_arguments,
-                                InstructionAppel *inst_appel)
+                                InstructionAppel *inst_appel,
+                                bool ajoute_verification)
 {
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_CIBLE_APPEL);
+        emets(site);
+        emets(false); /* est pointeur */
+        emets(fonction);
+    }
+
     emets(OP_APPEL_EXTERNE);
     emets(site);
     emets(fonction);
@@ -174,8 +208,15 @@ void Chunk::emets_appel_externe(NoeudExpression *site,
 
 void Chunk::emets_appel_pointeur(NoeudExpression *site,
                                  unsigned taille_arguments,
-                                 InstructionAppel *inst_appel)
+                                 InstructionAppel *inst_appel,
+                                 bool ajoute_verification)
 {
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_CIBLE_APPEL);
+        emets(site);
+        emets(true); /* est pointeur */
+    }
+
     emets(OP_APPEL_POINTEUR);
     emets(site);
     emets(taille_arguments);
@@ -612,12 +653,19 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
+        case OP_VERIFIE_ADRESSAGE_ASSIGNE:
+        case OP_VERIFIE_ADRESSAGE_CHARGE:
         {
             return instruction_1d<int>(chunk, chaine_code_operation(instruction), decalage, os);
         }
         case OP_BRANCHE_CONDITION:
         {
             return instruction_2d<int, int>(
+                chunk, chaine_code_operation(instruction), decalage, os);
+        }
+        case OP_VERIFIE_CIBLE_APPEL:
+        {
+            return instruction_2d<int, long>(
                 chunk, chaine_code_operation(instruction), decalage, os);
         }
         case OP_ALLOUE:
@@ -825,6 +873,7 @@ ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *meta
     : espace(espace_), donnees_executions(&espace_->compilatrice().donnees_constantes_executions),
       metaprogramme(metaprogramme_)
 {
+    verifie_adresses = espace->compilatrice().debogue_execution;
 }
 
 bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctions)
@@ -1035,7 +1084,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
         {
             auto charge = instruction->comme_charge();
             genere_code_binaire_pour_atome(charge->chargee, chunk, true);
-            chunk.emets_charge(charge->site, charge->type);
+            chunk.emets_charge(charge->site, charge->type, verifie_adresses);
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
@@ -1044,7 +1093,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             genere_code_binaire_pour_atome(stocke->ou, chunk, true);
-            chunk.emets_assignation(contexte(), stocke->site, stocke->valeur->type);
+            chunk.emets_assignation(
+                contexte(), stocke->site, stocke->valeur->type, verifie_adresses);
             break;
         }
         case Instruction::Genre::APPEL:
@@ -1076,15 +1126,17 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
                 auto atome_appelee = static_cast<AtomeFonction *>(appelee);
 
                 if (atome_appelee->est_externe) {
-                    chunk.emets_appel_externe(appel->site, atome_appelee, taille_arguments, appel);
+                    chunk.emets_appel_externe(
+                        appel->site, atome_appelee, taille_arguments, appel, verifie_adresses);
                 }
                 else {
-                    chunk.emets_appel(appel->site, atome_appelee, taille_arguments, appel);
+                    chunk.emets_appel(
+                        appel->site, atome_appelee, taille_arguments, appel, verifie_adresses);
                 }
             }
             else {
                 genere_code_binaire_pour_atome(appelee, chunk, true);
-                chunk.emets_appel_pointeur(appel->site, taille_arguments, appel);
+                chunk.emets_appel_pointeur(appel->site, taille_arguments, appel, verifie_adresses);
             }
 
             break;
@@ -1197,7 +1249,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
                 if (type_accede->genre == GenreType::POINTEUR) {
-                    chunk.emets_charge(index->site, type_pointeur);
+                    chunk.emets_charge(index->site, type_pointeur, verifie_adresses);
                 }
             }
 
