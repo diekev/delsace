@@ -37,6 +37,23 @@ inline bool adresse_est_nulle(const void *adresse)
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
 
+static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInterpretation res)
+{
+#define CASE(NOM)                                                                                 \
+    case MachineVirtuelle::ResultatInterpretation::NOM:                                           \
+        os << #NOM;                                                                               \
+        break
+    switch (res) {
+        CASE(OK);
+        CASE(ERREUR);
+        CASE(COMPILATION_ARRETEE);
+        CASE(TERMINE);
+        CASE(PASSE_AU_SUIVANT);
+    }
+#undef CASE
+    return os;
+}
+
 namespace oper {
 
 #pragma GCC diagnostic push
