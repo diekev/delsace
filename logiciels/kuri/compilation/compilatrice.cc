@@ -638,7 +638,8 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
+    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */;
+    auto atome_fonc = fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
     return atome_fonc;
 }
 
