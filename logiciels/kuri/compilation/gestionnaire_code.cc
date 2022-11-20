@@ -477,6 +477,53 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 }
 
+/* Retourne vrai si toutes les dépendances font déjà partie du programme. Si tel est le cas, nous
+ * n'aurons pas à traverser le graphe de dépendances. */
+static bool programme_possede_toutes_les_dependances(
+    DonnneesResolutionDependances &donnees_resolution, Programme *programme)
+{
+    auto &dependances = donnees_resolution.dependances;
+    auto programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        if (!programme->possede(type)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (!programme_possede_tout) {
+        return false;
+    }
+
+    programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        if (!programme->possede(fonction)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (!programme_possede_tout) {
+        return false;
+    }
+
+    programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        if (!programme->possede(globale)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    return programme_possede_tout;
+}
+
 /* Traverse le graphe de dépendances pour chaque type présents dans les dépendances courantes, et
  * ajoutes les dépedances de ces types aux dépendances.
  * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
@@ -486,27 +533,20 @@ static bool epends_dependances_types(GrapheDependance &graphe,
                                      Programme *programme)
 {
     auto &dependances = donnees_resolution.dependances;
-    auto programme_possede_deja_les_types = true;
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        if (!programme->possede(type)) {
-            programme_possede_deja_les_types = false;
-            return kuri::DecisionIteration::Arrete;
-        }
-
-        return kuri::DecisionIteration::Continue;
-    });
-
-    if (programme_possede_deja_les_types) {
-        /* Le programme possède déjà tous les types, ce qui veut dire que leurs dépendances furent
-         * déjà ajoutées au programme. */
+    if (programme_possede_toutes_les_dependances(donnees_resolution, programme)) {
         return false;
     }
 
     auto &dependances_ependues = donnees_resolution.dependances_ependues;
 
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
+
     /* Traverse le graphe pour chaque dépendance sur un type. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        dependances_ependues.types_utilises.insere(type);
+        if (programme->possede(type)) {
+            return kuri::DecisionIteration::Continue;
+        }
 
         auto noeud_dependance = graphe.cree_noeud_type(type);
         graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
@@ -518,13 +558,14 @@ static bool epends_dependances_types(GrapheDependance &graphe,
         return kuri::DecisionIteration::Continue;
     });
 
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        dependances_ependues.fonctions_utilisees.insere(fonction);
+        if (programme->possede(fonction)) {
+            return kuri::DecisionIteration::Continue;
+        }
+
         dependances_ependues.types_utilises.insere(fonction->type);
 
         auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
@@ -543,13 +584,14 @@ static bool epends_dependances_types(GrapheDependance &graphe,
         return kuri::DecisionIteration::Continue;
     });
 
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
+    /* Indique une nouvelle visite du graphe. */
+    graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        dependances_ependues.globales_utilisees.insere(globale);
+        if (programme->possede(globale)) {
+            return kuri::DecisionIteration::Continue;
+        }
+
         dependances_ependues.types_utilises.insere(globale->type);
 
         auto noeud_dependance = graphe.cree_noeud_globale(globale);
@@ -567,11 +609,6 @@ static bool epends_dependances_types(GrapheDependance &graphe,
 
         return kuri::DecisionIteration::Continue;
     });
-
-    /* Réinitialise le graphe pour les traversées futures. */
-    POUR_TABLEAU_PAGE (graphe.noeuds) {
-        it.fut_visite = false;
-    }
 
     dependances.fusionne(dependances_ependues);
     return true;
@@ -1034,35 +1071,42 @@ static bool declaration_est_invalide(NoeudExpression *decl)
     return true;
 }
 
-static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule const &sys_module)
+static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_module)
 {
-    kuri::ensemble<Module *> modules_visites;
-
     POUR_TABLEAU_PAGE (sys_module.modules) {
-        for (auto fichier : it.fichiers) {
-            if (!fichier->fut_charge) {
-                return false;
-            }
-
-            if (!fichier->fut_parse) {
-                return false;
-            }
-        }
-
         if (it.bloc == nullptr) {
             return false;
         }
 
-        for (auto decl : (*it.bloc->membres.verrou_lecture())) {
-            if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
-                return false;
+        if (it.fichiers_sont_sales) {
+            for (auto fichier : it.fichiers) {
+                if (!fichier->fut_charge) {
+                    return false;
+                }
+
+                if (!fichier->fut_parse) {
+                    return false;
+                }
             }
+            it.fichiers_sont_sales = false;
         }
 
-        for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
-            if (decl->est_importe() && declaration_est_invalide(decl)) {
-                return false;
+        if (it.bloc->membres_sont_sales) {
+            for (auto decl : (*it.bloc->membres.verrou_lecture())) {
+                if (decl->est_entete_fonction() && declaration_est_invalide(decl)) {
+                    return false;
+                }
             }
+            it.bloc->membres_sont_sales = false;
+        }
+
+        if (it.bloc->expressions_sont_sales) {
+            for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
+                if (decl->est_importe() && declaration_est_invalide(decl)) {
+                    return false;
+                }
+            }
+            it.bloc->expressions_sont_sales = false;
         }
     }
 
@@ -1103,7 +1147,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
-        *m_compilatrice->sys_module.verrou_lecture());
+        *m_compilatrice->sys_module.verrou_ecriture());
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
@@ -1452,9 +1496,14 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
 
     auto modules = programme->modules_utilises();
     auto executions_requises = false;
+    auto executions_en_cours = false;
     modules.pour_chaque_element([&](Module *module) {
         auto execute = module->directive_pre_executable;
-        if (execute && !module->execution_directive_requise) {
+        if (!execute) {
+            return;
+        }
+
+        if (!module->execution_directive_requise) {
             /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
              * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
              * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
@@ -1464,9 +1513,13 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
             module->execution_directive_requise = true;
             executions_requises = true;
         }
+
+        /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
+         * le code machine. */
+        executions_en_cours |= !execute->metaprogramme->fut_execute;
     });
 
-    if (executions_requises) {
+    if (executions_requises || executions_en_cours) {
         return;
     }
 

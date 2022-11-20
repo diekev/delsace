@@ -657,7 +657,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
                 auto retourne = assem->cree_retourne(corps->lexeme);
                 retourne->bloc_parent = corps->bloc;
-                corps->bloc->expressions->ajoute(retourne);
+                corps->bloc->ajoute_expression(retourne);
             }
             else if (corps->aide_generation_code == REQUIERS_RETOUR_UNION_VIA_RIEN) {
                 cree_retourne_union_via_rien(corps->entete, corps->bloc, corps->lexeme);
@@ -1039,8 +1039,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             condition->condition = boucle->condition;
 
             auto nouveau_bloc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
-            nouveau_bloc->expressions->ajoute(boucle->bloc);
-            nouveau_bloc->expressions->ajoute(condition);
+            nouveau_bloc->ajoute_expression(boucle->bloc);
+            nouveau_bloc->ajoute_expression(condition);
 
             nouvelle_boucle->bloc = nouveau_bloc;
             boucle->substitution = nouvelle_boucle;
@@ -1073,8 +1073,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             condition->condition = boucle->condition;
 
             auto nouveau_bloc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
-            nouveau_bloc->expressions->ajoute(condition);
-            nouveau_bloc->expressions->ajoute(boucle->bloc);
+            nouveau_bloc->ajoute_expression(condition);
+            nouveau_bloc->ajoute_expression(boucle->bloc);
 
             nouvelle_boucle->bloc = nouveau_bloc;
             boucle->substitution = nouvelle_boucle;
@@ -1177,10 +1177,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
                 corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
 
-                bloc->membres->ajoute(decl_temp);
-                bloc->expressions->ajoute(decl_temp);
-                bloc->expressions->ajoute(nouveau_si);
-                bloc->expressions->ajoute(ref_temp);
+                bloc->ajoute_membre(decl_temp);
+                bloc->ajoute_expression(decl_temp);
+                bloc->ajoute_expression(nouveau_si);
+                bloc->ajoute_expression(ref_temp);
 
                 si->substitution = bloc;
             }
@@ -1294,13 +1294,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 pousse_contexte->lexeme, contexte_courant->type, nullptr, ref_contexte_courant);
             auto ref_sauvegarde_contexte = assem->cree_reference_declaration(
                 pousse_contexte->lexeme, sauvegarde_contexte);
-            bloc_substitution->membres->ajoute(sauvegarde_contexte);
-            bloc_substitution->expressions->ajoute(sauvegarde_contexte);
+            bloc_substitution->ajoute_membre(sauvegarde_contexte);
+            bloc_substitution->ajoute_expression(sauvegarde_contexte);
 
             // __contexte_fil_principal = expr
             auto permute_contexte = assem->cree_assignation_variable(
                 pousse_contexte->lexeme, ref_contexte_courant, pousse_contexte->expression);
-            bloc_substitution->expressions->ajoute(permute_contexte);
+            bloc_substitution->ajoute_expression(permute_contexte);
 
             /* Il est possible qu'une instruction de retour se trouve dans le bloc, donc nous
              * devons différer la restauration du contexte :
@@ -1311,7 +1311,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             differe->bloc_parent = bloc_substitution;
             differe->expression = assem->cree_assignation_variable(
                 pousse_contexte->lexeme, ref_contexte_courant, ref_sauvegarde_contexte);
-            bloc_substitution->expressions->ajoute(differe);
+            bloc_substitution->ajoute_expression(differe);
 
             /* À FAIRE : surécrire le bloc_parent d'un bloc avec un bloc de substitution peut avoir
              * des conséquences incertaines mais nous avons du bloc de substitution dans la liste
@@ -1319,7 +1319,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             pousse_contexte->bloc->bloc_parent = bloc_substitution;
 
             /* Finalement ajoute le code du bloc, après l'instruction de différation. */
-            bloc_substitution->expressions->ajoute(pousse_contexte->bloc);
+            bloc_substitution->ajoute_expression(pousse_contexte->bloc);
 
             pousse_contexte->substitution = bloc_substitution;
             return;
@@ -1442,11 +1442,11 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     auto ref_index = index_it->valeur->comme_reference_declaration();
 
     auto bloc_pre = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
-    bloc_pre->membres->ajoute(it);
-    bloc_pre->membres->ajoute(index_it);
+    bloc_pre->ajoute_membre(it);
+    bloc_pre->ajoute_membre(index_it);
 
-    bloc_pre->expressions->ajoute(it);
-    bloc_pre->expressions->ajoute(index_it);
+    bloc_pre->ajoute_expression(it);
+    bloc_pre->ajoute_expression(index_it);
 
     auto bloc_inc = assem->cree_bloc_seul(nullptr, boucle->bloc_parent);
 
@@ -1539,8 +1539,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto iterations = assem->cree_declaration_variable(
                 var->lexeme, expression_iteree->type, nullptr, nombre_iterations);
             auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
-            bloc_pre->expressions->ajoute(iterations);
-            bloc_pre->membres->ajoute(iterations);
+            bloc_pre->ajoute_expression(iterations);
+            bloc_pre->ajoute_membre(iterations);
 
             /* condition */
 
@@ -1549,7 +1549,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             }
 
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
-            bloc_pre->expressions->ajoute(init_it);
+            bloc_pre->ajoute_expression(init_it);
 
             if (iterations->type->est_entier_naturel()) {
                 /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
@@ -1577,26 +1577,26 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 condition->condition = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
             }
-            boucle->bloc->expressions->ajoute(condition);
+            boucle->bloc->ajoute_expression(condition);
 
             /* corps */
-            boucle->bloc->expressions->ajoute(bloc);
+            boucle->bloc->ajoute_expression(bloc);
 
             /* suivant */
             if (inverse_boucle) {
                 auto inc_it = assem->cree_decrementation(ref_it->lexeme, ref_it);
-                bloc_inc->expressions->ajoute(inc_it);
+                bloc_inc->ajoute_expression(inc_it);
             }
             else {
                 auto inc_it = assem->cree_incrementation(ref_it->lexeme, ref_it);
-                bloc_inc->expressions->ajoute(inc_it);
+                bloc_inc->ajoute_expression(inc_it);
             }
 
             auto inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
-            bloc_inc->expressions->ajoute(inc_it);
+            bloc_inc->ajoute_expression(inc_it);
 
             auto dec_iterations = assem->cree_decrementation(ref_it->lexeme, ref_iterations);
-            bloc_inc->expressions->ajoute(dec_iterations);
+            bloc_inc->ajoute_expression(dec_iterations);
 
             break;
         }
@@ -1692,15 +1692,15 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto assign_it = assem->cree_assignation_variable(
                 inst->lexeme, ref_it, expression_assignee);
 
-            boucle->bloc->expressions->ajoute(condition);
-            boucle->bloc->expressions->ajoute(assign_it);
+            boucle->bloc->ajoute_expression(condition);
+            boucle->bloc->ajoute_expression(assign_it);
 
             /* corps */
-            boucle->bloc->expressions->ajoute(bloc);
+            boucle->bloc->ajoute_expression(bloc);
 
             /* incrémente */
             auto inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
-            bloc_inc->expressions->ajoute(inc_it);
+            bloc_inc->ajoute_expression(inc_it);
             break;
         }
         case GENERE_BOUCLE_COROUTINE:
@@ -1865,7 +1865,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
         auto di = bloc->expressions->derniere();
         di = assem->cree_assignation_variable(di->lexeme, ref_temp, di);
         bloc->expressions->supprime_dernier();
-        bloc->expressions->ajoute(di);
+        bloc->ajoute_expression(di);
     }
     else if (expr->est_si()) {
         auto si = expr->comme_si();
@@ -1927,8 +1927,8 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
 
     retourne->expression = ref_param_sortie;
 
-    bloc_d_insertion->expressions->ajoute(assignation);
-    bloc_d_insertion->expressions->ajoute(retourne);
+    bloc_d_insertion->ajoute_expression(assignation);
+    bloc_d_insertion->ajoute_expression(retourne);
 }
 
 /* Les retours sont simplifiés sous forme d'assignations des valeurs de retours,
@@ -1975,8 +1975,8 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
     }
 
     auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
-    bloc->expressions->ajoute(assignation);
-    bloc->expressions->ajoute(retour);
+    bloc->ajoute_expression(assignation);
+    bloc->ajoute_expression(retour);
     retour->bloc_parent = bloc;
 
     inst->substitution = bloc;
@@ -2304,8 +2304,8 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     auto decl_variable = assem->cree_declaration_variable(
         la_discriminee->lexeme, la_discriminee->type, nullptr, la_discriminee);
 
-    bloc->membres->ajoute(decl_variable);
-    bloc->expressions->ajoute(decl_variable);
+    bloc->ajoute_membre(decl_variable);
+    bloc->ajoute_expression(decl_variable);
 
     auto ref_decl = assem->cree_reference_declaration(decl_variable->lexeme, decl_variable);
 
@@ -2323,13 +2323,13 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     /* Nous avons une discrimination avec seulement un bloc_sinon, il est donc inutile de généré un
      * arbre. */
     if (discr->paires_discr.taille() == 0) {
-        bloc->expressions->ajoute(discr->bloc_sinon);
+        bloc->ajoute_expression(discr->bloc_sinon);
         return;
     }
 
     /* Génération de l'arbre de « si ». */
     auto si_courant = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
-    bloc->expressions->ajoute(si_courant);
+    bloc->ajoute_expression(si_courant);
 
     for (auto i = 0; i < discr->paires_discr.taille(); ++i) {
         auto &it = discr->paires_discr[i];
@@ -2429,7 +2429,7 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
     arrete->boucle_controlee = inst;
     arrete->bloc_parent = bloc_si_vrai;
 
-    bloc_si_vrai->expressions->ajoute(arrete);
+    bloc_si_vrai->ajoute_expression(arrete);
     condition->bloc_si_vrai = bloc_si_vrai;
 
     return condition;
@@ -2517,7 +2517,8 @@ bool expression_est_constante(NoeudExpression *expression)
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
-kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
+kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace,
+                                                                Broyeuse &broyeuse)
 {
     if (nom_broye_ != "") {
         return nom_broye_;
@@ -2525,24 +2526,145 @@ kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *e
 
     if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
         auto fichier = espace->compilatrice().fichier(lexeme->fichier);
-
-        if (est_metaprogramme) {
-            nom_broye_ = enchaine("metaprogramme", this);
-        }
-        else if (est_initialisation_type) {
-            auto type_param = params[0]->type->comme_pointeur()->type_pointe;
-            // Ajout du pointeur du type pour différencier les types monomorphisés.
-            nom_broye_ = enchaine("initialise_", type_param);
-        }
-        else {
-            nom_broye_ = broye_nom_fonction(this, fichier->module->nom()->nom);
-        }
+        nom_broye_ = broyeuse.broye_nom_fonction(this, fichier->module->nom());
     }
     else {
         nom_broye_ = lexeme->chaine;
     }
 
     return nom_broye_;
+}
+
+int NoeudBloc::nombre_de_membres() const
+{
+    return membres->taille();
+}
+
+void NoeudBloc::reserve_membres(int nombre)
+{
+    membres->reserve(nombre);
+}
+
+static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
+
+template <typename T>
+using PointeurTableauVerrouille = typename tableau_synchrone<T>::PointeurVerrouille;
+
+using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *>;
+
+static void ajoute_membre(TableMembres &table_membres, NoeudDeclaration *decl)
+{
+    /* Nous devons faire en sorte que seul le premier membre du nom est ajouté, afin que l'ensemble
+     * de surcharge lui soit réservé, et que c'est ce membre qui est retourné. */
+    if (table_membres.possede(decl->ident)) {
+        return;
+    }
+    table_membres.insere(decl->ident, decl);
+}
+
+static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaration *> &membres,
+                                       TableMembres &table_membres)
+{
+    if (table_membres.taille() != 0) {
+        return;
+    }
+
+    POUR (*membres) {
+        ajoute_membre(table_membres, it);
+    }
+}
+
+void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
+{
+    if (decl->est_declaration_symbole()) {
+        auto decl_existante = declaration_pour_ident(decl->ident);
+        if (decl_existante && decl_existante->est_declaration_symbole()) {
+            auto entete_existante = decl_existante->comme_declaration_symbole();
+            entete_existante->ensemble_de_surchages->ajoute(decl->comme_declaration_symbole());
+        }
+    }
+
+    auto membres_ = membres.verrou_ecriture();
+    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
+        init_table_hachage_membres(membres_, table_membres);
+        ::ajoute_membre(table_membres, decl);
+    }
+
+    membres_->ajoute(decl);
+    membres_sont_sales = true;
+}
+
+void NoeudBloc::ajoute_membre_au_debut(NoeudDeclaration *decl)
+{
+    auto membres_ = membres.verrou_ecriture();
+    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
+        init_table_hachage_membres(membres_, table_membres);
+        ::ajoute_membre(table_membres, decl);
+    }
+
+    membres_->pousse_front(decl);
+    membres_sont_sales = true;
+}
+
+void NoeudBloc::fusionne_membres(NoeudBloc *de)
+{
+    if (!de) {
+        /* Permet de passer un bloc nul. */
+        return;
+    }
+
+    POUR ((*de->membres.verrou_lecture())) {
+        ajoute_membre(it);
+    }
+}
+
+NoeudDeclaration *NoeudBloc::membre_pour_index(int index)
+{
+    return membres->a(index);
+}
+
+NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche)
+{
+    auto membres_ = membres.verrou_lecture();
+    nombre_recherches += 1;
+
+    if (table_membres.taille() != 0) {
+        return table_membres.valeur_ou(ident_recherche, nullptr);
+    }
+
+    POUR (*membres_) {
+        if (it->ident == ident_recherche) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr)
+{
+    auto membres_ = membres.verrou_lecture();
+    nombre_recherches += 1;
+
+    if (table_membres.taille() != 0) {
+        auto resultat = table_membres.valeur_ou(expr->ident, nullptr);
+        if (resultat != expr) {
+            return resultat;
+        }
+        return nullptr;
+    }
+
+    POUR (*membres_) {
+        if (it != expr && it->ident == expr->ident) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+void NoeudBloc::ajoute_expression(NoeudExpression *expr)
+{
+    expressions->ajoute(expr);
+    expressions_sont_sales = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3376,7 +3498,7 @@ static void cree_assignation(AssembleuseArbre *assembleuse,
     auto assignation = assembleuse->cree_assignation_variable(
         &lexeme_sentinel, variable, expression);
     assignation->type = expression->type;
-    bloc->expressions->ajoute(assignation);
+    bloc->ajoute_expression(assignation);
 }
 
 static void cree_initialisation_defaut_pour_type(Type *type,
@@ -3414,7 +3536,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
             appel->parametres_resolus.ajoute(prise_adresse);
-            assembleuse->bloc_courant()->expressions->ajoute(appel);
+            assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
         }
         case GenreType::BOOL:
@@ -3486,8 +3608,8 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 type_tableau,
                 ID::resultat,
                 assembleuse->cree_non_initialisation(&lexeme_sentinel));
-            assembleuse->bloc_courant()->membres->ajoute(valeur_resultat);
-            assembleuse->bloc_courant()->expressions->ajoute(valeur_resultat);
+            assembleuse->bloc_courant()->ajoute_membre(valeur_resultat);
+            assembleuse->bloc_courant()->ajoute_expression(valeur_resultat);
             auto ref_resultat = assembleuse->cree_reference_declaration(&lexeme_sentinel,
                                                                         valeur_resultat);
 
@@ -3500,7 +3622,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 &lexeme_sentinel, type_pointeur_type_pointe, ID::it, init_it);
             auto ref_it = assembleuse->cree_reference_declaration(&lexeme_sentinel, decl_it);
 
-            assembleuse->bloc_courant()->membres->ajoute(decl_it);
+            assembleuse->bloc_courant()->ajoute_membre(decl_it);
 
             auto variable = assembleuse->cree_virgule(&lexeme_sentinel);
             variable->expressions.ajoute(decl_it);
@@ -3521,13 +3643,13 @@ static void cree_initialisation_defaut_pour_type(Type *type,
                 &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
             appel->parametres_resolus.ajoute(ref_it);
 
-            pour->bloc->expressions->ajoute(appel);
+            pour->bloc->ajoute_expression(appel);
 
-            assembleuse->bloc_courant()->expressions->ajoute(pour);
+            assembleuse->bloc_courant()->ajoute_expression(pour);
 
             auto assignation_resultat = assembleuse->cree_assignation_variable(
                 &lexeme_sentinel, ref_param, ref_resultat);
-            assembleuse->bloc_courant()->expressions->ajoute(assignation_resultat);
+            assembleuse->bloc_courant()->ajoute_expression(assignation_resultat);
             break;
         }
         case GenreType::OPAQUE:
@@ -3552,7 +3674,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             auto appel = assembleuse->cree_appel(
                 &lexeme_sentinel, fonc_init, typeuse[TypeBase::RIEN]);
             appel->parametres_resolus.ajoute(comme);
-            assembleuse->bloc_courant()->expressions->ajoute(appel);
+            assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
         }
         case GenreType::TUPLE:

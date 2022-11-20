@@ -667,9 +667,8 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
             continue;
         }
 
-        /* '_' est un peu spécial, il sers à définir une variable qui ne sera pas
-         * utilisée, bien que ceci ne soit pas encore formalisé dans le langage. */
-        if (it->ident && it->ident->nom == "_") {
+        /* '_' sers à définir une variable qui ne sera pas utilisée. */
+        if (it->ident == ID::_) {
             it->nombre_utilisations += 1;
             continue;
         }

@@ -88,7 +88,7 @@ unsigned nombre_chiffre_base_10_pro(unsigned long v)
 		}
 
 		resultat += 4;
-		v /= 1000U;
+        v /= 10000U;
 	}
 }
 

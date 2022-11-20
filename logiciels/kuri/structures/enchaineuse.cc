@@ -163,6 +163,20 @@ kuri::chaine_statique Enchaineuse::chaine_statique() const
     return {&m_tampon_base.donnees[0], taille};
 }
 
+kuri::chaine_statique Enchaineuse::ajoute_chaine_statique(kuri::chaine_statique chaine)
+{
+    /* Avons nous de la place pour la chaine dans le tampon courant ? */
+    if (tampon_courant->occupe + chaine.taille() >= TAILLE_TAMPON) {
+        /* Ajoute un tampon. */
+        ajoute_tampon();
+    }
+
+    auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
+    memcpy(ptr, chaine.pointeur(), static_cast<size_t>(chaine.taille()));
+    tampon_courant->occupe += static_cast<int>(chaine.taille());
+    return {ptr, chaine.taille()};
+}
+
 void Enchaineuse::permute(Enchaineuse &autre)
 {
     if (tampon_courant != &m_tampon_base && autre.tampon_courant != &autre.m_tampon_base) {
@@ -200,6 +214,18 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine &chn)
     return enchaineuse;
 }
 
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn)
+{
+    enchaineuse.ajoute(chn.begin(), chn.taille());
+    return enchaineuse;
+}
+
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn)
+{
+    enchaineuse.ajoute(chn.begin(), chn.taille());
+    return enchaineuse;
+}
+
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn)
 {
     auto ptr = chn;
@@ -211,4 +237,21 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn)
     enchaineuse.ajoute(ptr, chn - ptr);
 
     return enchaineuse;
+}
+
+unsigned nombre_vers_chaine(char *tampon, unsigned long valeur)
+{
+    auto const n = dls::num::nombre_chiffre_base_10_pro(valeur);
+
+    auto pos = n - 1;
+
+    while (valeur >= 10) {
+        auto const q = valeur / 10;
+        auto const r = valeur % 10;
+        tampon[pos--] = static_cast<char>('0' + r);
+        valeur = q;
+    }
+
+    tampon[0] = static_cast<char>('0' + valeur);
+    return n;
 }

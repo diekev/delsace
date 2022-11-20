@@ -28,6 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	memoire
+        bib_outils
 )
 
 set(SOURCES

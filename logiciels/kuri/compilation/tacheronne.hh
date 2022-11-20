@@ -9,6 +9,7 @@
 
 #include "structures/file.hh"
 
+#include "broyage.hh"
 #include "statistiques/statistiques.hh"
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
@@ -170,6 +171,8 @@ struct Tacheronne {
     ContexteValidationDeclaration contexte_validation_declaration{};
 
     tableau_page<Lexeme> lexemes_extra{};
+
+    Broyeuse broyeuse{};
 
     double temps_validation = 0.0;
     double temps_lexage = 0.0;
