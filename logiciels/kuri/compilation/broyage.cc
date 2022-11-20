@@ -15,11 +15,6 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "typage.hh"
 
-// À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés
-// pour les fonctions
-//           il faudra trouver comment calculer la taille de la chaine pour la préfixer (peut-être
-//           en prébroyant le nom broyé et en le stockant dans IdentifiantCode ?)
-
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
 {
     auto debut = nom.pointeur();
