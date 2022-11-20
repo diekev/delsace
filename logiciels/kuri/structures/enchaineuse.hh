@@ -77,7 +77,7 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 {
     if constexpr (std::is_integral_v<T>) {
         char tampon[32];
-        auto const n = nombre_vers_chaine(tampon, (unsigned long)valeur);
+        auto const n = nombre_vers_chaine(tampon, static_cast<unsigned long>(valeur));
         enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
         return enchaineuse;
     }
@@ -94,7 +94,7 @@ template <typename T>
 inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, T *valeur)
 {
     char tampon[32];
-    auto const n = nombre_vers_chaine(tampon, (unsigned long)valeur);
+    auto const n = nombre_vers_chaine(tampon, reinterpret_cast<unsigned long>(valeur));
     enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
     return enchaineuse;
 }
