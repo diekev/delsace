@@ -382,10 +382,12 @@ struct ConvertisseuseTypeC {
                 auto suffixe = stockage_chn.ajoute_chaine_statique(
                     enchaineuse_tmp.chaine_statique());
 
-                type->nom_broye = stockage_chn.ajoute_chaine_statique(nouveau_nom_broye.chaine());
+                type->nom_broye = stockage_chn.ajoute_chaine_statique(
+                    nouveau_nom_broye.chaine_statique());
                 type_c.nom = type->nom_broye;
 
-                type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine(), ")", suffixe);
+                type_c.typedef_ = enchaine(
+                    prefixe, nouveau_nom_broye.chaine_statique(), ")", suffixe);
                 enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
                 /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
                  * directement. */
