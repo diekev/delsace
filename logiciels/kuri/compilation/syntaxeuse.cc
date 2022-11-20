@@ -1373,7 +1373,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     if (!it->est_reference_declaration()) {
                         m_unite->espace->rapporte_erreur(
-                            it, "Expression innatendu à gauche de « := »");
+                            it, "Expression inattendue à gauche de « := »");
                     }
 
                     m_tacheronne.assembleuse->cree_declaration_variable(
@@ -1382,7 +1382,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             }
             else if (!gauche->est_reference_declaration()) {
                 m_unite->espace->rapporte_erreur(gauche,
-                                                 "Expression innatendu à gauche de « := »");
+                                                 "Expression inattendue à gauche de « := »");
             }
 
             consomme();
