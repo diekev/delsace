@@ -218,6 +218,11 @@ void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
 Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
                                           PhaseCompilation nouvelle_phase)
 {
+#define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
+    if (nom == nom_espace) {                                                                      \
+        std::cerr << __func__ << " : " << nouvelle_phase << '\n';                                 \
+    }
+
     if (phase == PhaseCompilation::COMPILATION_TERMINEE) {
         /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
          * pas le code. Or, les tâches de typage subséquentes feront regresser sa phase de
@@ -229,6 +234,8 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &mes
 
     phase = nouvelle_phase;
     return messagere->ajoute_message_phase_compilation(this);
+
+#undef IMPRIME_CHANGEMENT_DE_PHASE
 }
 
 SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
