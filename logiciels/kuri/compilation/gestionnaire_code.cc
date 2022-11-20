@@ -1461,9 +1461,14 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
 
     auto modules = programme->modules_utilises();
     auto executions_requises = false;
+    auto executions_en_cours = false;
     modules.pour_chaque_element([&](Module *module) {
         auto execute = module->directive_pre_executable;
-        if (execute && !module->execution_directive_requise) {
+        if (!execute) {
+            return;
+        }
+
+        if (!module->execution_directive_requise) {
             /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
              * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
              * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
@@ -1473,9 +1478,13 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
             module->execution_directive_requise = true;
             executions_requises = true;
         }
+
+        /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
+         * le code machine. */
+        executions_en_cours |= !execute->metaprogramme->fut_execute;
     });
 
-    if (executions_requises) {
+    if (executions_requises || executions_en_cours) {
         return;
     }
 
