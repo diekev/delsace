@@ -101,6 +101,23 @@ struct Programme {
 
     EtatCompilation m_etat_compilation{};
 
+    enum {
+        TYPES,
+        FONCTIONS,
+        GLOBALES,
+
+        NOMBRE_ELEMENTS,
+    };
+
+    enum {
+        POUR_TYPAGE,
+        POUR_RI,
+
+        NOMBRE_RAISONS,
+    };
+
+    mutable bool elements_sont_sales[NOMBRE_ELEMENTS][NOMBRE_RAISONS];
+
   public:
     /* Création. */
 

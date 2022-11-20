@@ -15,11 +15,6 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 #include "typage.hh"
 
-// À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés
-// pour les fonctions
-//           il faudra trouver comment calculer la taille de la chaine pour la préfixer (peut-être
-//           en prébroyant le nom broyé et en le stockant dans IdentifiantCode ?)
-
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
 {
     auto debut = nom.pointeur();
@@ -57,15 +52,19 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique con
     }
 }
 
-kuri::chaine broye_nom_simple(kuri::chaine_statique const &nom)
+kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique const &nom)
 {
-    Enchaineuse enchaineuse;
-    broye_nom_simple(enchaineuse, nom);
-    return enchaineuse.chaine();
+    stockage_temp.reinitialise();
+    ::broye_nom_simple(stockage_temp, nom);
+    return chaine_finale_pour_stockage_temp();
 }
 
-kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident)
+kuri::chaine_statique Broyeuse::broye_nom_simple(IdentifiantCode *ident)
 {
+    if (!ident) {
+        return "";
+    }
+
     if (ident->nom_broye != "") {
         return ident->nom_broye;
     }
@@ -290,24 +289,124 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreType::TUPLE:
         {
-            enchaineuse << "Kl" << dls::vers_chaine(type);
+            enchaineuse << "Kl" << type;
             break;
         }
     }
 }
 
-kuri::chaine const &nom_broye_type(Type *type)
+kuri::chaine_statique Broyeuse::nom_broye_type(Type *type)
 {
     if (type->nom_broye != "") {
         return type->nom_broye;
     }
 
-    Enchaineuse enchaineuse;
-    nom_broye_type(enchaineuse, type);
+    stockage_temp.reinitialise();
+    ::nom_broye_type(stockage_temp, type);
 
-    type->nom_broye = enchaineuse.chaine();
+    type->nom_broye = chaine_finale_pour_stockage_temp();
 
     return type->nom_broye;
+}
+
+static const char *nom_pour_operateur(Lexeme const &lexeme)
+{
+    switch (lexeme.genre) {
+        default:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
+                          << chaine_du_genre_de_lexeme(lexeme.genre) << "\n";
+            });
+            break;
+        }
+        case GenreLexeme::INFERIEUR:
+        {
+            return "inf";
+        }
+        case GenreLexeme::INFERIEUR_EGAL:
+        {
+            return "infeg";
+        }
+        case GenreLexeme::SUPERIEUR:
+        {
+            return "sup";
+        }
+        case GenreLexeme::SUPERIEUR_EGAL:
+        {
+            return "supeg";
+        }
+        case GenreLexeme::DIFFERENCE:
+        {
+            return "dif";
+        }
+        case GenreLexeme::EGALITE:
+        {
+            return "egl";
+        }
+        case GenreLexeme::PLUS:
+        {
+            return "plus";
+        }
+        case GenreLexeme::PLUS_UNAIRE:
+        {
+            return "pls_unr";
+        }
+        case GenreLexeme::MOINS:
+        {
+            return "moins";
+        }
+        case GenreLexeme::MOINS_UNAIRE:
+        {
+            return "mns_unr";
+        }
+        case GenreLexeme::FOIS:
+        {
+            return "mul";
+        }
+        case GenreLexeme::DIVISE:
+        {
+            return "div";
+        }
+        case GenreLexeme::DECALAGE_DROITE:
+        {
+            return "dcd";
+        }
+        case GenreLexeme::DECALAGE_GAUCHE:
+        {
+            return "dcg";
+        }
+        case GenreLexeme::POURCENT:
+        {
+            return "mod";
+        }
+        case GenreLexeme::ESPERLUETTE:
+        {
+            return "et";
+        }
+        case GenreLexeme::BARRE:
+        {
+            return "ou";
+        }
+        case GenreLexeme::TILDE:
+        {
+            return "non";
+        }
+        case GenreLexeme::EXCLAMATION:
+        {
+            return "excl";
+        }
+        case GenreLexeme::CHAPEAU:
+        {
+            return "oux";
+        }
+        case GenreLexeme::CROCHET_OUVRANT:
+        {
+            return "oux";
+        }
+    }
+
+    return "inconnu";
 }
 
 /* format :
@@ -325,201 +424,126 @@ kuri::chaine const &nom_broye_type(Type *type)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
-                                kuri::chaine const &nom_module)
+kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
+                                                   IdentifiantCode *nom_module)
 {
-    Enchaineuse enchaineuse;
+    stockage_temp.reinitialise();
+
     auto type_fonc = decl->type->comme_fonction();
-    enchaineuse << "_K";
 
-    enchaineuse << (decl->est_coroutine ? "C" : "F");
-
-    /* module */
-    auto nom_ascii = broye_nom_simple(nom_module);
-
-    enchaineuse << nom_ascii.taille();
-    enchaineuse << nom_ascii;
-
-    /* nom de la fonction */
-    if (decl->est_operateur) {
-        // XXX - ici ce devrait être nom_ascii, mais sauvons quelques allocations
-        enchaineuse << "operateur";
-
-        switch (decl->lexeme->genre) {
-            default:
-            {
-                assert_rappel(false, [&]() {
-                    std::cerr << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
-                              << chaine_du_genre_de_lexeme(decl->lexeme->genre) << "\n";
-                });
-                break;
-            }
-            case GenreLexeme::INFERIEUR:
-            {
-                enchaineuse << "inf";
-                break;
-            }
-            case GenreLexeme::INFERIEUR_EGAL:
-            {
-                enchaineuse << "infeg";
-                break;
-            }
-            case GenreLexeme::SUPERIEUR:
-            {
-                enchaineuse << "sup";
-                break;
-            }
-            case GenreLexeme::SUPERIEUR_EGAL:
-            {
-                enchaineuse << "supeg";
-                break;
-            }
-            case GenreLexeme::DIFFERENCE:
-            {
-                enchaineuse << "dif";
-                break;
-            }
-            case GenreLexeme::EGALITE:
-            {
-                enchaineuse << "egl";
-                break;
-            }
-            case GenreLexeme::PLUS:
-            {
-                enchaineuse << "plus";
-                break;
-            }
-            case GenreLexeme::PLUS_UNAIRE:
-            {
-                enchaineuse << "pls_unr";
-                break;
-            }
-            case GenreLexeme::MOINS:
-            {
-                enchaineuse << "moins";
-                break;
-            }
-            case GenreLexeme::MOINS_UNAIRE:
-            {
-                enchaineuse << "mns_unr";
-                break;
-            }
-            case GenreLexeme::FOIS:
-            {
-                enchaineuse << "mul";
-                break;
-            }
-            case GenreLexeme::DIVISE:
-            {
-                enchaineuse << "div";
-                break;
-            }
-            case GenreLexeme::DECALAGE_DROITE:
-            {
-                enchaineuse << "dcd";
-                break;
-            }
-            case GenreLexeme::DECALAGE_GAUCHE:
-            {
-                enchaineuse << "dcg";
-                break;
-            }
-            case GenreLexeme::POURCENT:
-            {
-                enchaineuse << "mod";
-                break;
-            }
-            case GenreLexeme::ESPERLUETTE:
-            {
-                enchaineuse << "et";
-                break;
-            }
-            case GenreLexeme::BARRE:
-            {
-                enchaineuse << "ou";
-                break;
-            }
-            case GenreLexeme::TILDE:
-            {
-                enchaineuse << "non";
-                break;
-            }
-            case GenreLexeme::EXCLAMATION:
-            {
-                enchaineuse << "excl";
-                break;
-            }
-            case GenreLexeme::CHAPEAU:
-            {
-                enchaineuse << "oux";
-                break;
-            }
-            case GenreLexeme::CROCHET_OUVRANT:
-            {
-                enchaineuse << "oux";
-                break;
-            }
-        }
-    }
-    else {
-        nom_ascii = broye_nom_simple(decl->ident);
+    if (decl->est_metaprogramme) {
+        stockage_temp << "metaprogramme" << decl;
+        return chaine_finale_pour_stockage_temp();
     }
 
-    enchaineuse << nom_ascii.taille();
-    enchaineuse << nom_ascii;
+    if (decl->est_initialisation_type) {
+        auto type_param = decl->parametre_entree(0)->type->comme_pointeur()->type_pointe;
+        // Ajout du pointeur du type pour différencier les types monomorphés.
+        stockage_temp << "initialise_" << type_param;
+        return chaine_finale_pour_stockage_temp();
+    }
 
-    /* paramètres */
-    enchaineuse << "_P";
-    enchaineuse << decl->bloc_constantes->membres->taille();
-    enchaineuse << "_";
+    /* Prépare les données afin de ne pas polluer l'enchaineuse. */
+    auto nom_ascii_module = broye_nom_simple(nom_module);
+    auto nom_ascii_fonction = broye_nom_simple(decl->ident);
 
     decl->bloc_constantes->membres.avec_verrou_lecture(
         [&](kuri::tableau<NoeudDeclaration *, int> const &membres) {
             POUR (membres) {
-                nom_ascii = broye_nom_simple(it->ident);
-                enchaineuse << nom_ascii.taille();
-                enchaineuse << nom_ascii;
+                broye_nom_simple(it->ident);
 
                 auto type = it->type;
-
                 if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu) {
                     type = type->comme_type_de_donnees()->type_connu;
                 }
 
-                auto const &nom_broye = nom_broye_type(type);
-                enchaineuse << nom_broye.taille();
-                enchaineuse << nom_broye;
+                nom_broye_type(type);
+            }
+        });
+
+    for (auto i = 0; i < decl->params.taille(); ++i) {
+        auto param = decl->parametre_entree(i);
+        broye_nom_simple(param->valeur->ident);
+        nom_broye_type(param->type);
+    }
+
+    nom_broye_type(type_fonc->type_sortie);
+
+    /* Crée le nom broyé. */
+    stockage_temp.reinitialise();
+
+    /* Module et nom. */
+    stockage_temp << "_K";
+    stockage_temp << (decl->est_coroutine ? "C" : "F");
+    stockage_temp << nom_ascii_module.taille();
+    stockage_temp << nom_ascii_module;
+
+    /* nom de la fonction */
+    if (decl->est_operateur) {
+        stockage_temp << "operateur" << nom_pour_operateur(*decl->lexeme);
+    }
+    else {
+        stockage_temp << nom_ascii_fonction.taille();
+        stockage_temp << nom_ascii_fonction;
+    }
+
+    /* paramètres */
+    stockage_temp << "_P";
+    stockage_temp << decl->bloc_constantes->nombre_de_membres();
+    stockage_temp << "_";
+
+    decl->bloc_constantes->membres.avec_verrou_lecture(
+        [&](kuri::tableau<NoeudDeclaration *, int> const &membres) {
+            POUR (membres) {
+                auto nom_ascii = it->ident->nom_broye;
+                stockage_temp << nom_ascii.taille();
+                stockage_temp << nom_ascii;
+
+                auto type = it->type;
+                if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu) {
+                    type = type->comme_type_de_donnees()->type_connu;
+                }
+
+                auto nom_broye = type->nom_broye;
+                stockage_temp << nom_broye.taille();
+                stockage_temp << nom_broye;
             }
         });
 
     /* entrées */
-    enchaineuse << "_E";
-    enchaineuse << decl->params.taille();
-    enchaineuse << "_";
+    stockage_temp << "_E";
+    stockage_temp << decl->params.taille();
+    stockage_temp << "_";
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
 
-        nom_ascii = broye_nom_simple(param->valeur->ident);
-        enchaineuse << nom_ascii.taille();
-        enchaineuse << nom_ascii;
+        auto nom_ascii = param->valeur->ident->nom_broye;
+        stockage_temp << nom_ascii.taille();
+        stockage_temp << nom_ascii;
 
-        auto const &nom_broye = nom_broye_type(param->type);
-        enchaineuse << nom_broye.taille();
-        enchaineuse << nom_broye;
+        auto nom_broye = param->type->nom_broye;
+        stockage_temp << nom_broye.taille();
+        stockage_temp << nom_broye;
     }
 
     /* sorties */
-    enchaineuse << "_S";
-    enchaineuse << "_";
+    stockage_temp << "_S";
+    stockage_temp << "_";
 
-    auto const &nom_broye = nom_broye_type(type_fonc->type_sortie);
-    enchaineuse << nom_broye.taille();
-    enchaineuse << nom_broye;
+    auto nom_broye = type_fonc->type_sortie->nom_broye;
+    stockage_temp << nom_broye.taille();
+    stockage_temp << nom_broye;
 
     /* Ajout du pointeur car les fonctions nichées dans des fonctions polymorphiques peuvent finir
      * avec le même nom broyé. */
-    enchaineuse << decl;
+    stockage_temp << decl;
 
-    return enchaineuse.chaine();
+    return chaine_finale_pour_stockage_temp();
+}
+
+kuri::chaine_statique Broyeuse::chaine_finale_pour_stockage_temp()
+{
+    auto resultat_temp = stockage_temp.chaine_statique();
+    return stockage_chaines.ajoute_chaine_statique(resultat_temp);
 }

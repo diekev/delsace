@@ -231,6 +231,12 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
 
 	NoeudDependance *noeud_dependance
 	Atome *atome
+
+        /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
+         * identifiant. Ceci n'est mis en place que pour le premier symbole
+         * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+         * lexical si ajoutée lors du syntaxage. */
+        NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
@@ -390,7 +396,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	NoeudBloc *bloc_constantes
 	NoeudBloc *bloc_parametres
 
-	chaine nom_broye_
+        chaine_statique nom_broye_
 
 	Monomorphisations *monomorphisations
   /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
@@ -420,7 +426,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 	/* Le paramètre de sortie :
 	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
 	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
-	NoeudDéclarationVariable *param_sortie
+        NoeudDéclarationVariable *param_sortie
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
@@ -607,6 +613,10 @@ struct NoeudBloc : NoeudExpression {
 	NoeudExpression * [synchrone]  expressions [code enfant]
 	NoeudInstructionDiffère * [] instructions_différées
         bool est_nonsur
+        /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
+         * membres du bloc pour savoir s'il en reste à valider. */
+        bool membres_sont_sales
+        bool expressions_sont_sales
 	int nombre_recherches
 }
 

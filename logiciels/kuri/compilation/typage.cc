@@ -818,14 +818,12 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
     auto types_type_de_donnees_ = types_type_de_donnees.verrou_ecriture();
 
     if ((type_connu->drapeaux & POSSEDE_TYPE_TYPE_DE_DONNEES) != 0) {
-        POUR_TABLEAU_PAGE ((*types_type_de_donnees_)) {
-            if (it.type_connu == type_connu) {
-                return &it;
-            }
-        }
+        return table_types_de_donnees.valeur_ou(type_connu, nullptr);
     }
 
-    return types_type_de_donnees_->ajoute_element(type_connu);
+    auto resultat = types_type_de_donnees_->ajoute_element(type_connu);
+    table_types_de_donnees.insere(type_connu, resultat);
+    return resultat;
 }
 
 TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
@@ -2032,14 +2030,14 @@ void Trie::StockageEnfants::ajoute(Noeud *noeud)
     enfants.ajoute(noeud);
 }
 
-Trie::Noeud *Trie::Noeud::trouve_noeud_pour_type(const Type *type)
+Trie::Noeud *Trie::Noeud::trouve_noeud_pour_type(const Type *type_)
 {
-    return enfants.trouve_noeud_pour_type(type);
+    return enfants.trouve_noeud_pour_type(type_);
 }
 
-Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type)
+Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type_)
 {
-    return enfants_sortie.trouve_noeud_pour_type(type);
+    return enfants_sortie.trouve_noeud_pour_type(type_);
 }
 
 Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrees,

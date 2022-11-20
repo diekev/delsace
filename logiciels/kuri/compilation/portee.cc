@@ -11,14 +11,7 @@
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *ident)
 {
-    auto membres = bloc->membres.verrou_lecture();
-    bloc->nombre_recherches += 1;
-    POUR (*membres) {
-        if (it->ident == ident) {
-            return it;
-        }
-    }
-    return nullptr;
+    return bloc->declaration_pour_ident(ident);
 }
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident)
@@ -43,32 +36,12 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
     auto bloc_courant = bloc;
 
     while (bloc_courant != bloc_final) {
-        auto membres = bloc_courant->membres.verrou_lecture();
-        bloc_courant->nombre_recherches += 1;
-        POUR (*membres) {
-            if (it != decl && it->ident == decl->ident) {
-                return it;
-            }
+        auto autre_decl = bloc->declaration_avec_meme_ident_que(decl);
+        if (autre_decl) {
+            return autre_decl;
         }
 
         bloc_courant = bloc_courant->bloc_parent;
-    }
-
-    return nullptr;
-}
-
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression const *noeud)
-{
-    auto membres = bloc->membres.verrou_lecture();
-    bloc->nombre_recherches += 1;
-    POUR (*membres) {
-        if (it == noeud) {
-            continue;
-        }
-
-        if (it->ident == noeud->ident) {
-            return it;
-        }
     }
 
     return nullptr;
@@ -105,14 +78,14 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
-        bloc_courant->nombre_recherches += 1;
-        auto membres = bloc_courant->membres.verrou_lecture();
-        POUR (*membres) {
-            if (it->ident == ident) {
+        auto decl = bloc_courant->declaration_pour_ident(ident);
+        if (decl && decl->est_declaration_symbole()) {
+            auto decl_symbole = decl->comme_declaration_symbole();
+            declarations.ajoute(decl);
+            POUR (*decl_symbole->ensemble_de_surchages.verrou_lecture()) {
                 declarations.ajoute(it);
             }
         }
-
         bloc_courant = bloc_courant->bloc_parent;
     }
 }
@@ -203,7 +176,7 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
         return di;
     }
 
-    if (di->genre == GenreNoeud::INSTRUCTION_SI) {
+    if (di->est_si()) {
         auto inst = static_cast<NoeudSi *>(di);
 
         if (inst->bloc_si_faux == nullptr) {

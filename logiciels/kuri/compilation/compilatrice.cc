@@ -15,6 +15,7 @@
 
 #include "structures/date.hh"
 
+#include "broyage.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
@@ -151,6 +152,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         nullptr,
         table_idents->identifiant_pour_chaine("libpthread"),
         "pthread");
+
+    broyeuse = memoire::loge<Broyeuse>("Broyeuse");
 }
 
 Compilatrice::~Compilatrice()
@@ -158,6 +161,8 @@ Compilatrice::~Compilatrice()
     POUR ((*espaces_de_travail.verrou_ecriture())) {
         memoire::deloge("EspaceDeTravail", it);
     }
+
+    memoire::deloge("Broyeuse", broyeuse);
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace,
@@ -633,16 +638,8 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
-    return atome_fonc;
-}
-
-AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme,
-                                           const kuri::chaine &nom_fonction,
-                                           kuri::tableau<Atome *, int> &&params)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
+    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */;
+    auto atome_fonc = fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
     return atome_fonc;
 }
 
@@ -691,7 +688,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
+        decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
     atome_fonc->type = normalise_type(typeuse, decl->type);
     atome_fonc->est_externe = decl->est_externe;
     atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
