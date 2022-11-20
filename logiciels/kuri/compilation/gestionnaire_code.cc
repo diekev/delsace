@@ -477,6 +477,53 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 }
 
+/* Retourne vrai si toutes les dépendances font déjà partie du programme. Si tel est le cas, nous
+ * n'aurons pas à traverser le graphe de dépendances. */
+static bool programme_possede_toutes_les_dependances(
+    DonnneesResolutionDependances &donnees_resolution, Programme *programme)
+{
+    auto &dependances = donnees_resolution.dependances;
+    auto programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
+        if (!programme->possede(type)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (!programme_possede_tout) {
+        return false;
+    }
+
+    programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
+        if (!programme->possede(fonction)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    if (!programme_possede_tout) {
+        return false;
+    }
+
+    programme_possede_tout = true;
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        if (!programme->possede(globale)) {
+            programme_possede_tout = false;
+            return kuri::DecisionIteration::Arrete;
+        }
+
+        return kuri::DecisionIteration::Continue;
+    });
+
+    return programme_possede_tout;
+}
+
 /* Traverse le graphe de dépendances pour chaque type présents dans les dépendances courantes, et
  * ajoutes les dépedances de ces types aux dépendances.
  * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
@@ -486,19 +533,7 @@ static bool epends_dependances_types(GrapheDependance &graphe,
                                      Programme *programme)
 {
     auto &dependances = donnees_resolution.dependances;
-    auto programme_possede_deja_les_types = true;
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        if (!programme->possede(type)) {
-            programme_possede_deja_les_types = false;
-            return kuri::DecisionIteration::Arrete;
-        }
-
-        return kuri::DecisionIteration::Continue;
-    });
-
-    if (programme_possede_deja_les_types) {
-        /* Le programme possède déjà tous les types, ce qui veut dire que leurs dépendances furent
-         * déjà ajoutées au programme. */
+    if (programme_possede_toutes_les_dependances(donnees_resolution, programme)) {
         return false;
     }
 
