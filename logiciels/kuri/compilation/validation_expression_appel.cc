@@ -1281,9 +1281,9 @@ static ResultatAppariement apparie_appel_structure(
 
     if (decl_struct->est_polymorphe) {
         auto params_polymorphiques = decl_struct->bloc_constantes;
-        if (expr->parametres.taille() != params_polymorphiques->membres->taille()) {
+        if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
             return ErreurAppariement::mecomptage_arguments(
-                expr, params_polymorphiques->membres->taille(), expr->parametres.taille());
+                expr, params_polymorphiques->nombre_de_membres(), expr->parametres.taille());
         }
 
         auto apparieuse_params = ApparieuseParams(false);
@@ -1311,7 +1311,7 @@ static ResultatAppariement apparie_appel_structure(
         // détecte les arguments polymorphiques dans les fonctions polymorphiques
         auto est_type_argument_polymorphique = false;
         POUR (apparieuse_params.slots()) {
-            auto param = params_polymorphiques->membres->a(index_param);
+            auto param = params_polymorphiques->membre_pour_index(index_param);
             index_param += 1;
 
             if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
@@ -1796,7 +1796,7 @@ static NoeudStruct *monomorphise_au_besoin(
     POUR (items_monomorphisation) {
         auto decl_constante = trouve_dans_bloc_seul(structure->bloc_constantes, it.ident)
                                   ->comme_declaration_variable();
-        structure->bloc->membres->ajoute(decl_constante);
+        structure->bloc->ajoute_membre(decl_constante);
     }
 
     contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, structure);
@@ -1846,7 +1846,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     args.reserve(expr->parametres.taille());
 
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "prépare arguments");
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__PREPARE_ARGUMENTS);
 
         POUR (expr->parametres) {
             // l'argument est nommé
@@ -1866,13 +1867,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // trouve la fonction, pour savoir ce que l'on a
 
+    ListeCandidatesExpressionAppel liste_candidates;
     {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
-
-        ListeCandidatesExpressionAppel candidates;
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__TROUVE_CANDIDATES);
 
         auto resultat_validation = trouve_candidates_pour_appel(
-            espace, contexte, expr, args, candidates);
+            espace, contexte, expr, args, liste_candidates);
         if (est_attente(resultat_validation)) {
             return std::get<Attente>(resultat_validation);
         }
@@ -1882,8 +1883,14 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             //           rattrappable
             return Attente::sur_symbole(symbole_pour_expression(expr->expression));
         }
+    }
 
-        auto attente_possible = apparies_candidates(espace, contexte, expr, args, candidates, ctx);
+    {
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__APPARIE_CANDIDATES);
+
+        auto attente_possible = apparies_candidates(
+            espace, contexte, expr, args, liste_candidates, ctx);
         if (attente_possible.has_value()) {
             return attente_possible.value();
         }
@@ -1946,7 +1953,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // copie les données
 
-    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "copie données");
+    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                  VALIDATION_APPEL__COPIE_DONNEES);
 
 #if 0
 	struct StatisExprs {

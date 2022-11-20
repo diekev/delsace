@@ -22,8 +22,6 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
                                    NoeudDeclaration const *decl,
                                    NoeudBloc *bloc_final = nullptr);
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression const *noeud);
-
 NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier);

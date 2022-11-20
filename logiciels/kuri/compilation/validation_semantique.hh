@@ -111,7 +111,7 @@ struct ContexteValidationCode {
                            Tacheronne &tacheronne,
                            UniteCompilation &unite);
 
-    COPIE_CONSTRUCT(ContexteValidationCode);
+    EMPECHE_COPIE(ContexteValidationCode);
 
     ResultatValidation valide();
 
@@ -119,6 +119,13 @@ struct ContexteValidationCode {
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
     ResultatValidation valide_entete_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_entete_operateur(NoeudDeclarationEnteteFonction *);
+    void valide_parametres_constants_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_parametres_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_types_parametres_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_definition_unique_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_definition_unique_operateur(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_symbole_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
