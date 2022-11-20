@@ -218,6 +218,15 @@ void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
 Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
                                           PhaseCompilation nouvelle_phase)
 {
+    if (phase == PhaseCompilation::COMPILATION_TERMINEE) {
+        /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
+         * pas le code. Or, les tâches de typage subséquentes feront regresser sa phase de
+         * compilation si la compilation est terminée pour celui-ci. Si tel est le cas, la
+         * compilation sera infinie. Empêchons donc de modifier la phase de compilation de l'espace
+         * si sa compilation fut déjà terminée. */
+        return nullptr;
+    }
+
     phase = nouvelle_phase;
     return messagere->ajoute_message_phase_compilation(this);
 }
