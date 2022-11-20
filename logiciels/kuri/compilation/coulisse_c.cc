@@ -94,8 +94,8 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse,
 
 struct TypeC {
     Type *type_kuri = nullptr;
-    kuri::chaine nom = "";
-    kuri::chaine typedef_ = "";
+    kuri::chaine_statique nom = "";
+    kuri::chaine_statique typedef_ = "";
     bool code_machine_fut_genere = false;
 };
 
@@ -103,6 +103,7 @@ struct ConvertisseuseTypeC {
   private:
     mutable tableau_page<TypeC> types_c{};
     Enchaineuse enchaineuse_tmp{};
+    Enchaineuse stockage_chn{};
     mutable Broyeuse broyeuse{};
 
     template <typename... Ts>
@@ -110,7 +111,7 @@ struct ConvertisseuseTypeC {
     {
         enchaineuse_tmp.reinitialise();
         ((enchaineuse_tmp << ts), ...);
-        return enchaineuse_tmp.chaine_statique();
+        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
     }
 
   public:
@@ -352,7 +353,8 @@ struct ConvertisseuseTypeC {
                 /* Crée le préfixe. */
                 enchaineuse_tmp.reinitialise();
                 enchaineuse_tmp << nom_broye_sortie << " (*";
-                auto prefixe = enchaineuse_tmp.chaine();
+                auto prefixe = stockage_chn.ajoute_chaine_statique(
+                    enchaineuse_tmp.chaine_statique());
 
                 /* Réinitialise pour le suffixe. */
                 enchaineuse_tmp.reinitialise();
@@ -377,9 +379,10 @@ struct ConvertisseuseTypeC {
                 nouveau_nom_broye << nom_broye_sortie;
 
                 enchaineuse_tmp << ")";
-                auto suffixe = enchaineuse_tmp.chaine();
+                auto suffixe = stockage_chn.ajoute_chaine_statique(
+                    enchaineuse_tmp.chaine_statique());
 
-                type->nom_broye = nouveau_nom_broye.chaine();
+                type->nom_broye = stockage_chn.ajoute_chaine_statique(nouveau_nom_broye.chaine());
                 type_c.nom = type->nom_broye;
 
                 type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine(), ")", suffixe);
@@ -661,8 +664,8 @@ static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *vale
 }
 
 struct GeneratriceCodeC {
-    kuri::table_hachage<Atome const *, kuri::chaine> table_valeurs{"Valeurs locales C"};
-    kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales C"};
+    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_valeurs{"Valeurs locales C"};
+    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -674,13 +677,14 @@ struct GeneratriceCodeC {
     int index_chaine = 0;
 
     Enchaineuse enchaineuse_tmp{};
+    Enchaineuse stockage_chn{};
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
         enchaineuse_tmp.reinitialise();
         ((enchaineuse_tmp << ts), ...);
-        return enchaineuse_tmp.chaine_statique();
+        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
     }
 
     GeneratriceCodeC(EspaceDeTravail &espace) : m_espace(espace)
@@ -689,7 +693,7 @@ struct GeneratriceCodeC {
 
     EMPECHE_COPIE(GeneratriceCodeC);
 
-    kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
+    kuri::chaine_statique genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
     {
         switch (atome->genre_atome) {
             case Atome::Genre::FONCTION:
@@ -879,7 +883,8 @@ struct GeneratriceCodeC {
                                 resultat << " }";
 
                                 if (pour_globale) {
-                                    return resultat.chaine();
+                                    return stockage_chn.ajoute_chaine_statique(
+                                        resultat.chaine_statique());
                                 }
 
                                 auto nom = enchaine("val", atome, index_chaine++);
@@ -910,7 +915,8 @@ struct GeneratriceCodeC {
                                     resultat << " } }";
                                 }
 
-                                return resultat.chaine();
+                                return stockage_chn.ajoute_chaine_statique(
+                                    resultat.chaine_statique());
                             }
                             case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
                             {
@@ -937,7 +943,8 @@ struct GeneratriceCodeC {
 
                                 enchaineuse_tmp << " }";
 
-                                return enchaineuse_tmp.chaine();
+                                return stockage_chn.ajoute_chaine_statique(
+                                    enchaineuse_tmp.chaine_statique());
                             }
                         }
                     }
@@ -978,12 +985,12 @@ struct GeneratriceCodeC {
                 if (inst->ident != nullptr) {
                     auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
+                    table_valeurs.insere(inst, enchaine("&", nom));
                 }
                 else {
                     auto nom = enchaine("val", inst->numero);
                     os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", kuri::chaine(nom)));
+                    table_valeurs.insere(inst, enchaine("&", nom));
                 }
 
                 break;
@@ -1075,7 +1082,7 @@ struct GeneratriceCodeC {
             {
                 auto inst_charge = inst->comme_charge();
                 auto charge = inst_charge->chargee;
-                auto valeur = kuri::chaine();
+                auto valeur = kuri::chaine_statique();
 
                 if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
                     valeur = table_valeurs.valeur_ou(charge, "");
@@ -1086,7 +1093,7 @@ struct GeneratriceCodeC {
 
                 assert(valeur != "");
 
-                if (valeur[0] == '&') {
+                if (valeur.pointeur()[0] == '&') {
                     /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
                      * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
                      * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
@@ -1112,7 +1119,7 @@ struct GeneratriceCodeC {
                 auto inst_stocke = inst->comme_stocke_mem();
                 auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
                 auto ou = inst_stocke->ou;
-                auto valeur_ou = kuri::chaine();
+                auto valeur_ou = kuri::chaine_statique();
 
                 if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
                     valeur_ou = table_valeurs.valeur_ou(ou, "");
@@ -1121,7 +1128,7 @@ struct GeneratriceCodeC {
                     valeur_ou = table_globales.valeur_ou(ou, "");
                 }
 
-                if (valeur_ou[0] == '&') {
+                if (valeur_ou.pointeur()[0] == '&') {
                     valeur_ou = valeur_ou.sous_chaine(1);
                 }
                 else {
@@ -1346,7 +1353,7 @@ struct GeneratriceCodeC {
                 auto inst_acces = inst->comme_acces_membre();
 
                 auto accede = inst_acces->accede;
-                auto valeur_accede = kuri::chaine();
+                auto valeur_accede = kuri::chaine_statique();
 
                 if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
                     valeur_accede = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
@@ -1369,7 +1376,7 @@ struct GeneratriceCodeC {
                 auto index_membre = static_cast<int>(
                     static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
-                if (valeur_accede[0] == '&') {
+                if (valeur_accede.pointeur()[0] == '&') {
                     valeur_accede = enchaine(valeur_accede, ".");
                 }
                 else {
@@ -1482,7 +1489,7 @@ struct GeneratriceCodeC {
         // définis ensuite les globales
         POUR (globales) {
             auto valeur_globale = it;
-            auto valeur_initialisateur = kuri::chaine();
+            auto valeur_initialisateur = kuri::chaine_statique();
 
             if (valeur_globale->initialisateur) {
                 valeur_initialisateur = genere_code_pour_atome(
