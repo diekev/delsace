@@ -13,7 +13,7 @@
 énum ArchitectureCible {
     @code ArchitectureCible
 
-	X86
+    X86
     X64
 }
 
@@ -27,12 +27,12 @@
 
 énum NiveauOptimisation {
     AUCUN
-	O0
-	O1
-	O2
-	Os
-	Oz
-	O3
+    O0
+    O1
+    O2
+    Os
+    Oz
+    O3
 }
 
 énum CompilationPour {
@@ -46,10 +46,10 @@ struct OptionsDeCompilation {
 
     chaine_statique nom_sortie = "a.out"
 
-	TypeCoulisse coulisse = .C
-	RésultatCompilation résultat = .EXÉCUTABLE
-	ArchitectureCible architecture = .X64
-	NiveauOptimisation niveau_optimisation = .AUCUN
+    TypeCoulisse coulisse = .C
+    RésultatCompilation résultat = .EXÉCUTABLE
+    ArchitectureCible architecture = .X64
+    NiveauOptimisation niveau_optimisation = .AUCUN
     CompilationPour compilation_pour = .PRODUCTION
 
     bool émets_métriques = vrai
