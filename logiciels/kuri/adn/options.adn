@@ -56,4 +56,7 @@ struct OptionsDeCompilation {
     bool continue_si_erreur = faux
     bool erreur_si_avertissement = faux
     bool utilise_asan = faux
+    /* Ajoute des protections pour détecter les dépassements de pile lors de
+     * l'exécution. */
+    bool protège_pile = vrai
 }

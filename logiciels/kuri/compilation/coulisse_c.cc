@@ -1877,9 +1877,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
      * lieu d'une chaine littérale à printf et al. */
     enchaineuse << "-Wno-format-security ";
 
-    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
-        /* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une
-         * manière de le faire depuis les métaprogrammes */
+    if (!ops.protege_pile) {
         enchaineuse << "-fno-stack-protector ";
     }
 
