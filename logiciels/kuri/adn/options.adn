@@ -59,4 +59,6 @@ struct OptionsDeCompilation {
     /* Ajoute des protections pour détecter les dépassements de pile lors de
      * l'exécution. */
     bool protège_pile = vrai
+    /* Détermine si les traces d'appels doivent être utilisée dans le programme. */
+    bool utilise_trace_appel = vrai
 }

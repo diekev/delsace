@@ -976,6 +976,88 @@ struct GeneratriceCodeC {
         return "";
     }
 
+    void debute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os)
+    {
+#ifndef AJOUTE_TRACE_APPEL
+        return;
+#else
+        /* La fonction d'initialisation des globales n'a pas de site. */
+        if (m_fonction_courante->sanstrace || !inst_appel->site) {
+            return;
+        }
+
+        if (!m_espace.options.utilise_trace_appel) {
+            return;
+        }
+
+        auto const &lexeme = inst_appel->site->lexeme;
+        auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
+        auto pos = position_lexeme(*lexeme);
+
+        os << "  DEBUTE_RECORD_TRACE_APPEL(";
+        os << pos.numero_ligne << ",";
+        os << pos.pos << ",";
+        os << "\"";
+
+        auto ligne = fichier->tampon()[pos.index_ligne];
+
+        POUR (ligne) {
+            os << "\\x" << dls::num::char_depuis_hex((it & 0xf0) >> 4)
+               << dls::num::char_depuis_hex(it & 0x0f);
+        }
+
+        os << "\",";
+        os << ligne.taille();
+        os << ");\n";
+#endif
+    }
+
+    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os)
+    {
+#ifndef AJOUTE_TRACE_APPEL
+        return;
+#else
+        if (m_fonction_courante->sanstrace || !inst_appel->site) {
+            return;
+        }
+
+        if (!m_espace.options.utilise_trace_appel) {
+            return;
+        }
+
+        os << "  TERMINE_RECORD_TRACE_APPEL;\n";
+#endif
+    }
+
+    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os)
+    {
+#ifndef AJOUTE_TRACE_APPEL
+        return;
+#else
+        if (atome_fonc->sanstrace) {
+            return;
+        }
+
+        if (!m_espace.options.utilise_trace_appel) {
+            return;
+        }
+
+        os << "INITIALISE_TRACE_APPEL(\"";
+
+        if (atome_fonc->lexeme != nullptr) {
+            auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
+            os << atome_fonc->lexeme->chaine << "\", " << atome_fonc->lexeme->chaine.taille()
+               << ", \"" << fichier->nom() << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
+        }
+        else {
+            os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
+               << "\"???\", 3, ";
+        }
+
+        os << atome_fonc->nom << ");\n";
+#endif
+    }
+
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os)
     {
         switch (inst->genre) {
@@ -1009,30 +1091,7 @@ struct GeneratriceCodeC {
             {
                 auto inst_appel = inst->comme_appel();
 
-                /* La fonction d'initialisation des globales n'a pas de site. */
-#ifdef AJOUTE_TRACE_APPEL
-                if (!m_fonction_courante->sanstrace && inst_appel->site) {
-                    auto const &lexeme = inst_appel->site->lexeme;
-                    auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
-                    auto pos = position_lexeme(*lexeme);
-
-                    os << "  DEBUTE_RECORD_TRACE_APPEL(";
-                    os << pos.numero_ligne << ",";
-                    os << pos.pos << ",";
-                    os << "\"";
-
-                    auto ligne = fichier->tampon()[pos.index_ligne];
-
-                    POUR (ligne) {
-                        os << "\\x" << dls::num::char_depuis_hex((it & 0xf0) >> 4)
-                           << dls::num::char_depuis_hex(it & 0x0f);
-                    }
-
-                    os << "\",";
-                    os << ligne.taille();
-                    os << ");\n";
-                }
-#endif
+                debute_trace_appel(inst_appel, os);
 
                 auto arguments = kuri::tablet<kuri::chaine, 10>();
 
@@ -1065,11 +1124,7 @@ struct GeneratriceCodeC {
 
                 os << ");\n";
 
-#ifdef AJOUTE_TRACE_APPEL
-                if (!m_fonction_courante->sanstrace) {
-                    os << "  TERMINE_RECORD_TRACE_APPEL;\n";
-                }
-#endif
+                termine_trace_appel(inst_appel, os);
 
                 break;
             }
@@ -1534,22 +1589,7 @@ struct GeneratriceCodeC {
 
             os << "\n{\n";
 
-            if (!atome_fonc->sanstrace) {
-                os << "INITIALISE_TRACE_APPEL(\"";
-
-                if (atome_fonc->lexeme != nullptr) {
-                    auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
-                    os << atome_fonc->lexeme->chaine << "\", "
-                       << atome_fonc->lexeme->chaine.taille() << ", \"" << fichier->nom()
-                       << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
-                }
-                else {
-                    os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
-                       << "\"???\", 3, ";
-                }
-
-                os << atome_fonc->nom << ");\n";
-            }
+            initialise_trace_appel(atome_fonc, os);
 
             m_fonction_courante = atome_fonc;
 
