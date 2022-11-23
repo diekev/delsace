@@ -169,6 +169,9 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
 
         enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n")
         enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")
+        enchaineuse.ajoute_au_tampon("    si v == nul {\n")
+        enchaineuse.ajoute_au_tampon("        retourne PyErr_AttributNonSupprimable(self, nom_membre)\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
 
         pour type.membres {
             enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom ,"\" {\n")

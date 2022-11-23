@@ -1070,6 +1070,17 @@ PyErr_AttributNonMutable :: fonc (objet: *PyObject, clé: chaine) -> z32
     retourne -1
 }
 
+/* Erreur si l'on tente du supprimé un attribut, par exemple via del o[clé]. */
+PyErr_AttributNonSupprimable :: fonc (objet: *PyObject, clé: chaine) -> z32
+{
+    chn_type := PyType_ChaineNom(objet)
+    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas supprimable")
+    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne -1
+}
+
 /* Fonctions de comparaison d'énum pour le code généré. */
 
 Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
