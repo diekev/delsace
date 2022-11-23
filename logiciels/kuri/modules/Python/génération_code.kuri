@@ -2,10 +2,29 @@ importe Fondation
 
 /* Génération du code Kuri à partir des données du module. */
 
+/* Retourne vrai si le type peut avoir des accesseurs ou mutateurs. */
+type_supporte_getset :: fonc (type: *TypePython) -> bool
+{
+    si type.confidentialité == ConfidentialitéType.OPAQUE {
+        retourne faux
+    }
+
+    si type.drapeaux.TYPE_EST_ÉNUM || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ITÉRATEUR {
+        retourne faux
+    }
+
+    si type.membres.taille == 0 {
+        /* Inutile de générer du code pour types n'ayant pas de membres. */
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 /* Génère les méthodes pour accéder et muter les membres du type. Retourne la globales où les méthodes sont initialisés. */
 génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    si type.confidentialité == ConfidentialitéType.OPAQUE || type.drapeaux.TYPE_EST_ÉNUM {
+    saufsi type_supporte_getset(type) {
         retourne copie_chaine("")
     }
 
@@ -99,9 +118,16 @@ assigne_énum_depuis_chaine := «
     retourne nom_globale
 }
 
+/* Retourne vrai si le type peut avoir être accéder via objet["clé"]. */
+type_supporte_mapping :: fonc (type: *TypePython) -> bool
+{
+    /* Pour le moment la logique est la même que pour les accesseurs/mutateurs. */
+    retourne type_supporte_getset(type)
+}
+
 génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    si type.confidentialité == ConfidentialitéType.OPAQUE || type.drapeaux.TYPE_EST_ÉNUM {
+    saufsi type_supporte_mapping(type) {
         retourne copie_chaine("")
     }
 
