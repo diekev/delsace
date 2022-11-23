@@ -15,6 +15,7 @@ digit :: n32
 PyAsyncMethods :: struct #externe
 PyNumberMethods :: struct #externe
 
+/* https://docs.python.org/3/c-api/typeobj.html#mapping-structs */
 PyMappingMethods :: struct #externe {
     mp_length: fonc(*PyObject)(Py_ssize_t)
     mp_subscript: fonc(*PyObject, *PyObject)(*PyObject)
