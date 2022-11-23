@@ -543,6 +543,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     }
 
     si fonction_itérateur_next {
+        enchaineuse.ajoute_au_tampon("    tp_iter = iter_pour_type_itérateur,\n")
         enchaineuse.ajoute_au_tampon("    tp_iternext = ", fonction_itérateur_next, ",\n")
     }
 

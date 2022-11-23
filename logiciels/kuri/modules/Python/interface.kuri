@@ -676,6 +676,8 @@ membre_est_accessible_via_itération :: fonc (membre: *InfoTypeMembreStructure) 
 
 /* Les itérateurs peuvent définir un PyTypeObject.tp_iter, et dans ce cas doivent
  * retourner l'instance de l'itérateur.
+ * Cette fonction est utilisée pour initialise PyTypeObject.tp_iter pour tous les
+ * les types itérateurs, pas seulement PyTypeItérateurPourInfoType.
  * Cette fonction correspond à PyTypeObject.tp_iter.
  * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter */
 iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
