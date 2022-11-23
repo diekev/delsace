@@ -635,6 +635,89 @@ PyBUF_READ  :: 0x100
 PyBUF_WRITE :: 0x200
 
 // ---------------------------------------------------
+// Fonctions pour générer les itérateurs pour infos types.
+// Ces itérateurs retournent les noms des membres accessibles
+// via Python.
+
+/* Objet Python pour un itérateur sur InfoType */
+PyItérateurInfoType :: struct {
+    empl base: PyObject
+    infos: *InfoTypeStructure
+    index_courant: z64
+}
+
+/* Type objet Python pour un itérateur sur InfoType. */
+PyTypeItérateurPourInfoType := PyTypeObject(
+    ob_refcnt = 1,
+    ob_size = 0,
+    tp_basicsize = taille_de(PyItérateurInfoType) comme Py_ssize_t,
+    tp_name = crée_chaine_c("kuri.ItérateurPourInfoType"),
+    tp_flags = Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_VERSION_TAG,
+    tp_iter = iter_pour_type_itérateur,
+    tp_iternext = iternext_pour_itérateur_infos_type,
+    tp_base = *PyBaseObject_Type,
+    tp_hash = PyObject_HashNotImplemented
+)
+
+/* Retourne vrai si le membre est accessible via Python, et donc dont le nom
+ * peut être retourné via l'itérateur. */
+membre_est_accessible_via_itération :: fonc (membre: *InfoTypeMembreStructure) -> bool
+{
+    si possède_annotation(membre, "accessible") {
+        retourne vrai
+    }
+
+    si possède_annotation(membre, "mutable") {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* Les itérateurs peuvent définir un PyTypeObject.tp_iter, et dans ce cas doivent
+ * retourner l'instance de l'itérateur.
+ * Cette fonction correspond à PyTypeObject.tp_iter.
+ * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter */
+iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
+{
+    retourne self
+}
+
+/* Retourne le nom du prochain membre de la structure, ou nul si l'itérateur est
+ * exhausté.
+ * Cette fonction correspond à PyTypeObject.tp_iternext.
+ * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iternext */
+iternext_pour_itérateur_infos_type :: fonc (self: *PyObject) -> *PyObject
+{
+    py_self := self comme *PyItérateurInfoType
+    
+    index_courant := py_self.index_courant
+    infos := py_self.infos
+
+    pour index_courant ... infos.membres.taille - 1 {
+        info_membre := infos.membres[it]
+        saufsi membre_est_accessible_via_itération(info_membre) {
+            continue
+        }
+        py_self.index_courant = it + 1
+        retourne PyUnicode_FromChaine(info_membre.nom)
+    }
+
+    retourne nul
+}
+
+/* Retourne un PyItérateurInfoType pour les infos données. */
+itérateur_pour_infos_type :: fonc (infos: *InfoTypeStructure) -> *PyObject
+{
+    type_itérateur := *PyTypeItérateurPourInfoType
+    py_itérateur_ := type_itérateur.tp_alloc(type_itérateur, 1)
+    py_itérateur := py_itérateur_ comme *PyItérateurInfoType
+    py_itérateur.infos = infos
+    py_itérateur.index_courant = 0
+    retourne py_itérateur comme *PyObject
+}
+
+// ---------------------------------------------------
 // Fonctions pour générer les interfaces de tampons
 
 /* Structure de base pour les objets supportant le protocol de tampon. */

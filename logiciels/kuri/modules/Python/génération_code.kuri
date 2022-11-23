@@ -625,15 +625,31 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     enchaineuse.ajoute_au_tampon("}\n")
 }
 
+type_supporte_itération :: fonc (type: *TypePython) -> bool
+{
+    si type.type_itérateur {
+        retourne vrai
+    }
+
+    si type_supporte_mapping(type) {
+        /* Les types pouvant être "mappés" ont des itérateurs afin de pouvoir 
+         * supporter, par exemple, les expressions types 'if x in y'.
+         * Ceci n'est pas supporté pour les unions. */
+        retourne type.drapeaux.TYPE_EST_UNION == faux
+    }
+
+    retourne faux
+}
+
 génère_fonction_pour_créer_itérateur :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    saufsi type.type_itérateur {
+    saufsi type_supporte_itération(type) {
         retourne copie_chaine("")
     }
 
     nom_fonction := enchaine("itérateur_pour_", type.nom_sauf)
 
-    corps_fonction := «
+    corps_fonction_pour_type_itérateur := «
     type_itérateur := *%
     py_itérateur_ := type_itérateur.tp_alloc(type_itérateur, 1)
     py_itérateur := %(py_itérateur_)
@@ -642,9 +658,23 @@ génère_fonction_pour_créer_itérateur :: fonc (enchaineuse: *Enchaineuse, typ
     retourne py_itérateur comme *PyObject
     »
 
-    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (ob: *PyObject) -> *PyObject\n")
+    corps_fonction_pour_info_type := «
+    retourne itérateur_pour_infos_type(info_de(%))
+    »
+
+    inutilisée := ""
+    saufsi type.type_itérateur {
+        inutilisée = " @inutilisée"
+    }
+
+    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (ob: *PyObject", inutilisée, ") -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.imprime_dans_enchaineuse(corps_fonction, type.type_itérateur.nom_globale_type, type.type_itérateur.fonctions.pour_extraction_valeur, type.fonctions.pour_extraction_valeur)
+    si type.type_itérateur {
+        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_type_itérateur, type.type_itérateur.nom_globale_type, type.type_itérateur.fonctions.pour_extraction_valeur, type.fonctions.pour_extraction_valeur)
+    }
+    sinon {
+        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_info_type, type.nom_type_kuri)
+    }
     enchaineuse.ajoute_au_tampon("}\n")
 
     retourne nom_fonction
@@ -911,12 +941,20 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     }
 
     /* Rassemble les types dans l'ordre. */
+    itérateur_info_type_est_requis := faux
     enchaineuse.ajoute_au_tampon("    tous_les_types := [\n")
     pour types {
         si it.est_basique {
             continue
         }
+        si type_supporte_itération(it) && !it.type_itérateur {
+            itérateur_info_type_est_requis = vrai
+        }
         ajoute_type_à_la_liste(enchaineuse, it)
+    }
+    /* Type itérateur info type. */
+    si itérateur_info_type_est_requis {
+        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\0\".pointeur)),\n")
     }
     /* Sentinelle pour simplifier la génération de code pour les virgules. */
     enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(nul, ChaineC(nul))\n")
