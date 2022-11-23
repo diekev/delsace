@@ -99,6 +99,73 @@ assigne_énum_depuis_chaine := «
     retourne nom_globale
 }
 
+génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
+{
+    si type.confidentialité == ConfidentialitéType.OPAQUE || type.drapeaux.TYPE_EST_ÉNUM {
+        retourne copie_chaine("")
+    }
+
+    /* Génère la fonction pour PyMappingMethods.mp_length. */
+    nom_fonction_mp_length := enchaine("mp_length_pour_", type.nom_sauf)
+    diffère déloge(nom_fonction_mp_length)
+
+    enchaineuse.ajoute_au_tampon(nom_fonction_mp_length, " :: fonc (self: *PyObject @inutilisée) -> Py_ssize_t\n")
+    enchaineuse.imprime_dans_enchaineuse("{\nretourne %\n}\n", type.membres.taille)
+
+    /* Génère la fonction pour PyMappingMethods.mp_subscript. */
+    nom_fonction_mp_subscript := enchaine("mp_subscript_pour_", type.nom_sauf)
+    diffère déloge(nom_fonction_mp_length)
+
+    enchaineuse.ajoute_au_tampon(nom_fonction_mp_subscript, " :: fonc (self: *PyObject, key: *PyObject) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")
+
+    possède_membre_mutable := faux
+
+    pour type.membres {
+        enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom ,"\" {\n")
+        enchaineuse.ajoute_au_tampon("         retourne get_", type.nom_sauf,"_", it.nom, "(self, nul)\n")
+        enchaineuse.ajoute_au_tampon("    }\n")
+
+        si it.confidentialité == ConfidentialitéType.MUTABLE {
+            possède_membre_mutable = vrai
+        }
+    }
+
+    enchaineuse.ajoute_au_tampon("     retourne PyErr_CléInconnue(self, nom_membre)\n")
+    enchaineuse.ajoute_au_tampon("}\n")
+
+    /* Génère la fonction pour PyMappingMethods.mp_ass_subscript. */
+    nom_fonction_mp_ass_subscript := "nul"
+    diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(nom_fonction_mp_ass_subscript) }
+
+    si possède_membre_mutable {
+        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom)
+
+        enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n")
+        enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")
+
+        pour type.membres {
+            enchaineuse.ajoute_au_tampon("    si nom_membre == \"", it.nom ,"\" {\n")
+            si it.confidentialité == ConfidentialitéType.MUTABLE {
+                enchaineuse.ajoute_au_tampon("         retourne set_", type.nom_sauf,"_", it.nom, "(self, v, nul)\n")
+            }
+            sinon {
+                enchaineuse.ajoute_au_tampon("         retourne PyErr_AttributNonMutable(self, nom_membre)\n")
+            }
+            enchaineuse.ajoute_au_tampon("    }\n")
+        }
+        enchaineuse.ajoute_au_tampon("     _ := PyErr_CléInconnue(self, nom_membre)\n retourne -1\n")
+        enchaineuse.ajoute_au_tampon("}\n")
+    }
+
+    /* Génère la globale. */
+    nom_globale := enchaine("py_mapping_methods_pour_", type.nom_sauf)
+
+    enchaineuse.ajoute_au_tampon(nom_globale, " := PyMappingMethods (", nom_fonction_mp_length, ", ", nom_fonction_mp_subscript,", ", nom_fonction_mp_ass_subscript, ")\n")
+
+    retourne nom_globale
+}
+
 génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     méthode := type.new
@@ -373,6 +440,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     globale_getset := génère_méthodes_getset_pour_type(enchaineuse, type)
     diffère déloge(globale_getset)
 
+    /* Afin de supporter les expressions de type : o[key] = v */
+    globale_as_mapping := génère_globale_as_mapping(enchaineuse, type)
+    diffère déloge(globale_as_mapping)
+
     fonction_new := génère_fonction_new(enchaineuse, type)
     diffère déloge(fonction_new)
 
@@ -455,6 +526,10 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     }
     sinon {
         enchaineuse.ajoute_au_tampon("    tp_base = *PyBaseObject_Type,\n")
+    }
+
+    si globale_as_mapping {
+        enchaineuse.ajoute_au_tampon("    tp_as_mapping = *", globale_as_mapping, ",\n")
     }
 
     si type.drapeaux.TYPE_EST_TABLEAU {

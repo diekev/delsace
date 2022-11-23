@@ -14,7 +14,13 @@ digit :: n32
 
 PyAsyncMethods :: struct #externe
 PyNumberMethods :: struct #externe
-PyMappingMethods :: struct #externe
+
+PyMappingMethods :: struct #externe {
+    mp_length: fonc(*PyObject)(Py_ssize_t)
+    mp_subscript: fonc(*PyObject, *PyObject)(*PyObject)
+    mp_ass_subscript: fonc(*PyObject, *PyObject, *PyObject)(z32)
+}
+
 PyMemberDef :: struct #externe
 
 PyGetSetDef :: struct #externe {
@@ -1036,6 +1042,28 @@ PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) 
     chn_type := PyType_ChaineNom(valeur)
     chn_erreur := enchaine("Ne peut assigner un objet de type '", chn_type, "' à un objet de type '", type_variable, "'")
     PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne -1
+}
+
+/* Erreur si un objet n'a pas de membre du nom de la clé, pour l'accès via o[clé]. */
+PyErr_CléInconnue :: fonc (objet: *PyObject, clé: chaine) -> *PyObject
+{
+    chn_type := PyType_ChaineNom(objet)
+    chn_erreur := enchaine("Attribut '", clé, "' inconnue pour l'objet de type ", chn_type)
+    PyErr_SetObject(PyExc_KeyError, PyUnicode_FromChaine(chn_erreur))
+    déloge(chn_type)
+    déloge(chn_erreur)
+    retourne nul
+}
+
+/* Erreur si l'attribut n'est pas mutable, pour l'assignation via o[clé] = v. */
+PyErr_AttributNonMutable :: fonc (objet: *PyObject, clé: chaine) -> z32
+{
+    chn_type := PyType_ChaineNom(objet)
+    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas écrivable")
+    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur))
     déloge(chn_type)
     déloge(chn_erreur)
     retourne -1
