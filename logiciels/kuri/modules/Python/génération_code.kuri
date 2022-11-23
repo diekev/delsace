@@ -5,7 +5,7 @@ importe Fondation
 /* Génère les méthodes pour accéder et muter les membres du type. Retourne la globales où les méthodes sont initialisés. */
 génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    si type.confidentialité == ConfidentialitéType.OPAQUE {
+    si type.confidentialité == ConfidentialitéType.OPAQUE || type.drapeaux.TYPE_EST_ÉNUM {
         retourne copie_chaine("")
     }
 
