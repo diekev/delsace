@@ -1034,7 +1034,7 @@ PyErr_ComparaisonImpossible :: fonc (opérande: *PyObject, type_autre_opérande:
 PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) -> z32
 {
     chn_type := PyType_ChaineNom(valeur)
-    chn_erreur := enchaine("Ne peut assigner un objet de type % à un objet de type ", type_variable)
+    chn_erreur := enchaine("Ne peut assigner un objet de type '", chn_type, "' à un objet de type '", type_variable, "'")
     PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
     déloge(chn_type)
     déloge(chn_erreur)
