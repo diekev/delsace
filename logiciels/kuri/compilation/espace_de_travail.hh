@@ -14,6 +14,7 @@
 #include "erreur.h"
 #include "messagere.hh"
 #include "options.hh"
+#include "tache.hh"
 
 struct Coulisse;
 struct ConstructriceRI;
@@ -34,13 +35,7 @@ struct SiteSource;
  */
 struct EspaceDeTravail {
   private:
-    std::atomic<int> nombre_taches_chargement = 0;
-    std::atomic<int> nombre_taches_lexage = 0;
-    std::atomic<int> nombre_taches_parsage = 0;
-    std::atomic<int> nombre_taches_typage = 0;
-    std::atomic<int> nombre_taches_ri = 0;
-    std::atomic<int> nombre_taches_execution = 0;
-    std::atomic<int> nombre_taches_optimisation = 0;
+    std::atomic<int> nombre_de_taches[size_t(GenreTache::NOMBRE_ELEMENTS)] = {};
 
     PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
 
@@ -77,24 +72,16 @@ struct EspaceDeTravail {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+    void tache_ajoutee(GenreTache genre_tache, dls::outils::Synchrone<Messagere> &messagere);
+    void tache_terminee(GenreTache genre_tache,
+                        dls::outils::Synchrone<Messagere> &messagere,
+                        bool peut_envoyer_changement_de_phase);
 
-    void tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier);
-    void tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
-                               bool peut_envoyer_changement_de_phase);
-    void tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_execution_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere);
-    void tache_liaison_executable_terminee(dls::outils::Synchrone<Messagere> &messagere);
+    void progresse_phase_pour_tache_terminee(GenreTache genre_tache,
+                                             dls::outils::Synchrone<Messagere> &messagere,
+                                             bool peut_envoyer_changement_de_phase);
+    void regresse_phase_pour_tache_ajoutee(GenreTache genre_tache,
+                                           dls::outils::Synchrone<Messagere> &messagere);
 
     bool peut_generer_code_final() const;
     bool parsage_termine() const;

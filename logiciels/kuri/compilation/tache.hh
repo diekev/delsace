@@ -31,6 +31,8 @@ enum class GenreTache {
 #define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX) ACTION,
     ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
 #undef ENUMERE_GENRE_TACHE
+
+        NOMBRE_ELEMENTS
 };
 
 const char *chaine_genre_tache(GenreTache genre);
