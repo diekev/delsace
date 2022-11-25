@@ -93,6 +93,7 @@ set(SOURCES
 	portee.hh
 	structures.hh
 	syntaxeuse.hh
+        tache.hh
 	tacheronne.hh
 	transformation_type.hh
 	typage.hh
@@ -124,6 +125,7 @@ set(SOURCES
 	portee.cc
 	structures.cc
 	syntaxeuse.cc
+        tache.cc
 	tacheronne.cc
 	transformation_type.cc
 	typage.cc
