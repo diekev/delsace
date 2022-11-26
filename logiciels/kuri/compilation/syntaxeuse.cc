@@ -2087,7 +2087,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     consomme();
 
     auto noeud_decl = m_tacheronne.assembleuse->cree_enum(gauche->lexeme);
-    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
 
     if (lexeme->genre != GenreLexeme::ERREUR) {
         if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
@@ -2143,6 +2142,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
     depile_etat();
 
+    /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
+    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
     return noeud_decl;
 }
 
@@ -2261,8 +2262,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
     }
     else {
-        noeud->bloc_parent->ajoute_membre(noeud);
-
         // nous avons la déclaration d'une fonction
         if (apparie(GenreLexeme::RETOUR_TYPE)) {
             consomme();
@@ -2423,6 +2422,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
      * les différents espaces de travail, évitant une potentielle concurrence critique. */
     if (noeud->ident == ID::__point_d_entree_systeme) {
         m_compilatrice.fonction_point_d_entree = noeud;
+    }
+
+    /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
+    if (!noeud->est_declaration_type) {
+        noeud->bloc_parent->ajoute_membre(noeud);
     }
 
     return noeud;
@@ -2646,7 +2650,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
     noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
-    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
 
     if (gauche->ident == ID::InfoType) {
         noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
@@ -2831,6 +2834,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
 
     depile_etat();
+
+    /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
+     * sémantique pourrait accéder un bloc nul. */
+    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
 
     return noeud_decl;
 }

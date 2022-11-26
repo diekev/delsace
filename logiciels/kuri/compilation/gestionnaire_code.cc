@@ -21,6 +21,11 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
+#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTache::genre, m_compilatrice->messagere)
+#define TACHE_TERMINEE(genre, envoyer_changement_de_phase)                                        \
+    espace->tache_terminee(                                                                       \
+        GenreTache::genre, m_compilatrice->messagere, envoyer_changement_de_phase)
+
 GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
       m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
@@ -728,40 +733,40 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espac
 
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
-    espace->tache_chargement_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(CHARGEMENT);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
 }
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_charge);
-    espace->tache_lexage_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(LEXAGE);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
 }
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_lexe);
-    espace->tache_parsage_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(PARSAGE);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
 }
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-    espace->tache_typage_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(TYPAGE);
     cree_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
 }
 
 void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-    espace->tache_ri_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(GENERATION_RI);
     cree_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
 }
 
 void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
     EspaceDeTravail *espace, MetaProgramme *metaprogramme, bool peut_planifier_compilation)
 {
-    espace->tache_ri_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(GENERATION_RI);
 
     auto unite = cree_unite_pour_noeud(espace,
                                        metaprogramme->fonction,
@@ -856,7 +861,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 
     /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
-    espace->tache_execution_ajoutee(m_compilatrice->messagere);
+    TACHE_AJOUTEE(EXECUTION);
 
     /* Ajoute le programme à la liste des programmes avant de traiter les dépendances. */
     metaprogramme_cree(metaprogramme);
@@ -952,10 +957,13 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier->fut_charge);
 
     auto espace = unite->espace;
-    espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
+    TACHE_TERMINEE(CHARGEMENT, true);
+    m_compilatrice->messagere->ajoute_message_fichier_ferme(espace, unite->fichier->chemin());
 
+    /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
     unites_en_attente.ajoute(unite);
+    TACHE_AJOUTEE(LEXAGE);
 }
 
 void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
@@ -964,10 +972,12 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier->fut_lexe);
 
     auto espace = unite->espace;
-    espace->tache_lexage_terminee(m_compilatrice->messagere);
+    TACHE_TERMINEE(LEXAGE, true);
 
+    /* Une fois que nous avons lexer un fichier, il faut le parser. */
     unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
     unites_en_attente.ajoute(unite);
+    TACHE_AJOUTEE(PARSAGE);
 }
 
 void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
@@ -975,7 +985,7 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier);
     assert(unite->fichier->fut_parse);
     auto espace = unite->espace;
-    espace->tache_parsage_terminee(m_compilatrice->messagere);
+    TACHE_TERMINEE(PARSAGE, true);
 }
 
 static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
@@ -1134,7 +1144,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     const auto message = m_compilatrice->messagere->ajoute_message_typage_code(espace, noeud);
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
-        espace->tache_ri_ajoutee(m_compilatrice->messagere);
+        TACHE_AJOUTEE(GENERATION_RI);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
         unites_en_attente.ajoute(unite);
     }
@@ -1151,7 +1161,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
-    espace->tache_typage_terminee(m_compilatrice->messagere, peut_envoyer_changement_de_phase);
+    TACHE_TERMINEE(TYPAGE, peut_envoyer_changement_de_phase);
 
     if (noeud->est_entete_fonction()) {
         m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
@@ -1176,7 +1186,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
     });
 
     auto espace = unite->espace;
-    espace->tache_ri_terminee(m_compilatrice->messagere);
+    TACHE_TERMINEE(GENERATION_RI, true);
     if (espace->optimisations) {
         // À FAIRE(gestion) : tâches d'optimisations
     }
@@ -1193,7 +1203,7 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
     auto espace = unite->espace;
-    espace->tache_optimisation_terminee(m_compilatrice->messagere);
+    TACHE_TERMINEE(OPTIMISATION, true);
 }
 
 void GestionnaireCode::message_recu(Message const *message)
@@ -1210,7 +1220,7 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
     assert(unite->metaprogramme);
     assert(unite->metaprogramme->fut_execute);
     auto espace = unite->espace;
-    espace->tache_execution_terminee(m_compilatrice->messagere);
+    TACHE_TERMINEE(EXECUTION, true);
     enleve_programme(unite->metaprogramme->programme);
 }
 
@@ -1227,7 +1237,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
         requiers_liaison_executable(espace, unite->programme);
     }
     else {
-        espace->tache_generation_objet_terminee(m_compilatrice->messagere);
+        TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
 
         if (espace->options.resultat != ResultatCompilation::RIEN) {
             espace->change_de_phase(m_compilatrice->messagere,
@@ -1255,7 +1265,7 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
         requiers_execution(unite->espace, metaprogramme);
     }
     else {
-        espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
+        TACHE_TERMINEE(LIAISON_PROGRAMME, true);
         espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
     }
 }
@@ -1278,7 +1288,8 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
 {
     assert((unite->type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0);
     unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
-    unite->espace->tache_ri_ajoutee(m_compilatrice->messagere);
+    auto espace = unite->espace;
+    TACHE_AJOUTEE(GENERATION_RI);
     unite->noeud = unite->type->fonction_init;
     unites_en_attente.ajoute(unite);
 }

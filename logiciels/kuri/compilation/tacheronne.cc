@@ -14,25 +14,6 @@
 
 #include "representation_intermediaire/optimisations.hh"
 
-const char *chaine_genre_tache(GenreTache genre)
-{
-#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
-    case GenreTache::ACTION:                                                                      \
-        return CHAINE;
-    switch (genre) {
-        ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
-    }
-#undef ENUMERE_GENRE_TACHE
-
-    return "erreur";
-}
-
-std::ostream &operator<<(std::ostream &os, GenreTache genre)
-{
-    os << chaine_genre_tache(genre);
-    return os;
-}
-
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 {
     const char *virgule = "";
@@ -46,37 +27,6 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 
 #undef ENUMERE_CAPACITE
     return os;
-}
-
-Tache Tache::dors(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::DORS;
-    t.espace = espace_;
-    return t;
-}
-
-Tache Tache::compilation_terminee()
-{
-    Tache t;
-    t.genre = GenreTache::COMPILATION_TERMINEE;
-    return t;
-}
-
-Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::GENERATION_CODE_MACHINE;
-    t.espace = espace_;
-    return t;
-}
-
-Tache Tache::liaison_objet(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::LIAISON_PROGRAMME;
-    t.espace = espace_;
-    return t;
 }
 
 static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
