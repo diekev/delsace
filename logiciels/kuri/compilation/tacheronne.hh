@@ -11,6 +11,7 @@
 
 #include "broyage.hh"
 #include "statistiques/statistiques.hh"
+#include "tache.hh"
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
 
@@ -20,49 +21,6 @@
 struct Compilatrice;
 struct MetaProgramme;
 struct Tacheronne;
-
-#define ENUMERE_TACHES_POSSIBLES(O)                                                               \
-    O(CHARGER, CHARGEMENT, "chargement", 0)                                                       \
-    O(LEXER, LEXAGE, "lexage", 1)                                                                 \
-    O(PARSER, PARSAGE, "parsage", 2)                                                              \
-    O(CREER_FONCTION_INIT_TYPE, CREATION_FONCTION_INIT_TYPE, "création fonction init type", 3)    \
-    O(TYPER, TYPAGE, "typage", 4)                                                                 \
-    O(CONVERTIR_NOEUD_CODE, CONVERSION_NOEUD_CODE, "conversion noeud code", 5)                    \
-    O(ENVOYER_MESSAGE, ENVOIE_MESSAGE, "envoie message", 6)                                       \
-    O(GENERER_RI, GENERATION_RI, "génération RI", 7)                                              \
-    O(EXECUTER, EXECUTION, "exécution", 8)                                                        \
-    O(OPTIMISER, OPTIMISATION, "optimisation", 9)                                                 \
-    O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 10)                       \
-    O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 11)
-
-#define ENUMERE_GENRES_TACHE(O)                                                                   \
-    O(DORMIR, DORS, "dormir", 0)                                                                  \
-    O(COMPILATION_TERMINEE, COMPILATION_TERMINEE, "compilation terminée", 0)                      \
-    ENUMERE_TACHES_POSSIBLES(O)
-
-enum class GenreTache {
-#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX) ACTION,
-    ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
-#undef ENUMERE_GENRE_TACHE
-};
-
-const char *chaine_genre_tache(GenreTache genre);
-
-std::ostream &operator<<(std::ostream &os, GenreTache genre);
-
-struct Tache {
-    GenreTache genre = GenreTache::DORS;
-    UniteCompilation *unite = nullptr;
-    EspaceDeTravail *espace = nullptr;
-
-    static Tache dors(EspaceDeTravail *espace_);
-
-    static Tache compilation_terminee();
-
-    static Tache genere_fichier_objet(EspaceDeTravail *espace_);
-
-    static Tache liaison_objet(EspaceDeTravail *espace_);
-};
 
 /* Drapeaux pour les tâches étant dans des files. */
 enum class DrapeauxTacheronne : uint32_t {

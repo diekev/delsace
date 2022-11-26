@@ -122,13 +122,13 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         *espace_de_travail_defaut, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
 
     auto malloc_ = libc->cree_symbole("malloc");
-    malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+    malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
 
     auto realloc_ = libc->cree_symbole("realloc");
-    realloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+    realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
 
     auto free_ = libc->cree_symbole("free");
-    free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
+    free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
 
     /* La bibliothèque r16. */
     auto bibr16 = gestionnaire_bibliotheques->cree_bibliotheque(
@@ -138,13 +138,13 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         "r16");
 
     bibr16->cree_symbole("DLS_vers_r32")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r32));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
     bibr16->cree_symbole("DLS_depuis_r32")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
     bibr16->cree_symbole("DLS_vers_r64")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r64));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
     bibr16->cree_symbole("DLS_depuis_r64")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
 
     /* La bibliothèque pthread. */
     gestionnaire_bibliotheques->cree_bibliotheque(
