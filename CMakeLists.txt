@@ -205,6 +205,14 @@ macro(desactive_drapeaux_compilation_c cible)
 	set_target_properties(${cible} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 endmacro()
 
+macro(desactive_drapeaux_compilation_pour_nvcc cible)
+        get_target_property(EXTLIB_COMPILE_FLAGS ${cible} COMPILE_OPTIONS)
+        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -O3)
+        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -march=native)
+        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
+        set_target_properties(${cible} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+endmacro()
+
 # ------------------------------------------------------------------------------
 
 option(AVEC_CRESUS "Compiler Crésus" ON)
