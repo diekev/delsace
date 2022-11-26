@@ -25,6 +25,7 @@ option(AVEC_MODULES_C "Active la génération des modules implémentés en C" OF
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
+option(AVEC_GVDB "Active la génération du module GVDB" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
@@ -141,6 +142,10 @@ if(AVEC_MODULES_C)
     if(AVEC_OPENVDB)
         add_subdirectory(modules_c/openvdb)
     endif()
+
+    if(AVEC_GVDB)
+        add_subdirectory(modules_c/GVDB)
+    endif()
 endif()
 
 
@@ -154,7 +159,7 @@ install(
 macro(compile_fichier __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
     set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
-    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
+    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
     add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
     set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
 endmacro()
@@ -162,7 +167,7 @@ endmacro()
 macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
     string(REPLACE "/" "_" NOM_DOSSIER ${__nom_dossier__})
     set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
-    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
+    # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
     add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
     set_tests_properties(${NOM_TEST} PROPERTIES WILL_FAIL TRUE TIMEOUT 10)
 endmacro()
