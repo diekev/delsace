@@ -109,14 +109,14 @@ alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
 détruit_image :: fonc (image: &ImageIO)
 {
     tableau : []r32 = ---
-    tableau.pointeur = image.données
+    tableau.pointeur = image.donnees
     tableau.taille = image.nombre_éléments_données()
     déloge(tableau)
 
-    image.données = nul
+    image.donnees = nul
     image.hauteur = 0
     image.largeur = 0
-    image.composants = 0
+    image.nombre_composants = 0
 }
 
 nombre_de_pixels :: fonc (image: ImageIO) -> z64

@@ -3,342 +3,342 @@
 
 énum GenreNoeud {
     // définis le type sous-jacent de l'énumération
-	@type uint8_t
-	// définis le type qui sera discriminé
-	@discr NoeudExpression
-	// les membre de l'énumération sont enlignés dans le type discriminé
-	// c'est une erreur que de déclarer des membres ici
-	@horslignée
+    @type uint8_t
+    // définis le type qui sera discriminé
+    @discr NoeudExpression
+    // les membre de l'énumération sont enlignés dans le type discriminé
+    // c'est une erreur que de déclarer des membres ici
+    @horslignée
 }
 
 struct Annotation {
-  @code AnnotationCode
+    @code AnnotationCode
 
-  chaine_statique nom [code]
-  chaine_statique valeur [code]
+    chaine_statique nom [code]
+    chaine_statique valeur [code]
 }
 
 struct NoeudExpression {
     @code NoeudCode
-	// définis l'énumération qui devra être utilisée pour discriminé le noeud
-	@discr GenreNoeud
+    // définis l'énumération qui devra être utilisée pour discriminé le noeud
+    @discr GenreNoeud
 
-	GenreNoeud genre [code]
-	GenreValeur genre_valeur
-	char aide_generation_code
-	char _rembourrage
-	DrapeauxNoeud drapeaux
-	Lexeme const * lexème [code]
-	IdentifiantCode * ident [code]
-	Type * type [code]
+    GenreNoeud genre [code]
+    GenreValeur genre_valeur
+    char aide_generation_code
+    char _rembourrage
+    DrapeauxNoeud drapeaux
+    Lexeme const * lexème [code]
+    IdentifiantCode * ident [code]
+    Type * type [code]
 
-	NoeudBloc * bloc_parent
+    NoeudBloc * bloc_parent
 
-	UniteCompilation * unite
-	NoeudCode * noeud_code
+    UniteCompilation * unite
+    NoeudCode * noeud_code
 
-	/* Pour la simplification de l'arbre syntaxique. */
-	NoeudExpression * substitution
+    /* Pour la simplification de l'arbre syntaxique. */
+    NoeudExpression * substitution
 }
 
 struct NoeudExpressionRéférenceType : NoeudExpression {
-	@genre EXPRESSION_RÉFÉRENCE_TYPE
-	@comme référence_type
-	@code  NoeudCodeRéférenceType
+    @genre EXPRESSION_RÉFÉRENCE_TYPE
+    @comme référence_type
+    @code  NoeudCodeRéférenceType
 }
 
 struct NoeudExpressionInfoDe : NoeudExpression {
-	@genre EXPRESSION_INFO_DE
-	@comme info_de
-	@code  NoeudCodeInfoDe
+    @genre EXPRESSION_INFO_DE
+    @comme info_de
+    @code  NoeudCodeInfoDe
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionInitDe : NoeudExpression {
-	@genre EXPRESSION_INIT_DE
-	@comme init_de
-	@code  NoeudCodeInitDe
+    @genre EXPRESSION_INIT_DE
+    @comme init_de
+    @code  NoeudCodeInitDe
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionTailleDe : NoeudExpression {
-	@genre EXPRESSION_TAILLE_DE
-	@comme taille_de
-	@code  NoeudCodeTailleDe
+    @genre EXPRESSION_TAILLE_DE
+    @comme taille_de
+    @code  NoeudCodeTailleDe
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionTypeDe : NoeudExpression {
-	@genre EXPRESSION_TYPE_DE
-	@comme type_de
-	@code  NoeudCodeTypeDe
+    @genre EXPRESSION_TYPE_DE
+    @comme type_de
+    @code  NoeudCodeTypeDe
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionConstructionTableau : NoeudExpression {
-	@genre EXPRESSION_CONSTRUCTION_TABLEAU
-	@comme construction_tableau
-	@code  NoeudCodeConstructionTableau
+    @genre EXPRESSION_CONSTRUCTION_TABLEAU
+    @comme construction_tableau
+    @code  NoeudCodeConstructionTableau
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionExpansionVariadique : NoeudExpression {
-	@genre EXPANSION_VARIADIQUE
-	@comme expansion_variadique
-	@code  NoeudCodeExpansionVariadique
+    @genre EXPANSION_VARIADIQUE
+    @comme expansion_variadique
+    @code  NoeudCodeExpansionVariadique
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionMémoire : NoeudExpression {
-	@genre EXPRESSION_MÉMOIRE
-	@comme mémoire
-	@code  NoeudCodeMémoire
+    @genre EXPRESSION_MÉMOIRE
+    @comme mémoire
+    @code  NoeudCodeMémoire
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudInstructionCharge : NoeudExpression {
-	@genre INSTRUCTION_CHARGE
-	@comme charge
-	@code  NoeudCodeCharge
+    @genre INSTRUCTION_CHARGE
+    @comme charge
+    @code  NoeudCodeCharge
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudInstructionArrête : NoeudExpression {
-	@genre INSTRUCTION_ARRÊTE
-	@comme arrête
-	@code  NoeudCodeInstructionArrête
+    @genre INSTRUCTION_ARRÊTE
+    @comme arrête
+    @code  NoeudCodeInstructionArrête
 
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	/* La boucle qui est controlée par cette instruction. */
-	NoeudExpression *boucle_controlée [code]
+    /* La boucle qui est controlée par cette instruction. */
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionContinue : NoeudExpression {
-	@genre INSTRUCTION_CONTINUE
-	@comme continue
-	@code  NoeudCodeInstructionContinue
+    @genre INSTRUCTION_CONTINUE
+    @comme continue
+    @code  NoeudCodeInstructionContinue
 
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	/* La boucle qui est controlée par cette instruction. */
-	NoeudExpression *boucle_controlée [code]
+    /* La boucle qui est controlée par cette instruction. */
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionReprends : NoeudExpression {
-	@genre INSTRUCTION_REPRENDS
-	@comme reprends
-	@code  NoeudCodeInstructionReprends
+    @genre INSTRUCTION_REPRENDS
+    @comme reprends
+    @code  NoeudCodeInstructionReprends
 
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	/* La boucle qui est controlée par cette instruction. */
-	NoeudExpression *boucle_controlée [code]
+    /* La boucle qui est controlée par cette instruction. */
+    NoeudExpression *boucle_controlée [code]
 }
 
 struct NoeudInstructionEmpl : NoeudExpression {
-	@genre INSTRUCTION_EMPL
-	@comme empl
-	@code  NoeudCodeEmpl
+    @genre INSTRUCTION_EMPL
+    @comme empl
+    @code  NoeudCodeEmpl
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudInstructionImporte : NoeudExpression {
-	@genre INSTRUCTION_IMPORTE
-	@comme importe
-	@code  NoeudCodeImporte
+    @genre INSTRUCTION_IMPORTE
+    @comme importe
+    @code  NoeudCodeImporte
 
-	NoeudExpression * expression [code enfant]
+    NoeudExpression * expression [code enfant]
 }
 
 struct NoeudExpressionNonIntialisation : NoeudExpression {
-	@genre INSTRUCTION_NON_INITIALISATION
-	@comme non_initialisation
-	@code  NoeudCodeNonInitialisation
+    @genre INSTRUCTION_NON_INITIALISATION
+    @comme non_initialisation
+    @code  NoeudCodeNonInitialisation
 }
 
 struct NoeudExpressionLittéraleNul : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_NUL
-	@comme littérale_nul
-	@code  NoeudCodeLittéraleNul
+    @genre EXPRESSION_LITTÉRALE_NUL
+    @comme littérale_nul
+    @code  NoeudCodeLittéraleNul
 }
 
 struct NoeudExpressionLittéraleBool : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_BOOLÉEN
-	@comme littérale_bool
-	@code  NoeudCodeLittéraleBool
+    @genre EXPRESSION_LITTÉRALE_BOOLÉEN
+    @comme littérale_bool
+    @code  NoeudCodeLittéraleBool
 
-	bool valeur [code copie]
+    bool valeur [code copie]
 }
 
 struct NoeudExpressionLittéraleEntier : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_NOMBRE_ENTIER
-	@comme littérale_entier
-	@code  NoeudCodeLittéraleEntier
+    @genre EXPRESSION_LITTÉRALE_NOMBRE_ENTIER
+    @comme littérale_entier
+    @code  NoeudCodeLittéraleEntier
 
-	uint64_t valeur [code copie]
+    uint64_t valeur [code copie]
 }
 
 struct NoeudExpressionLittéraleRéel : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_NOMBRE_RÉEL
-	@comme littérale_réel
-	@code  NoeudCodeLittéraleRéel
+    @genre EXPRESSION_LITTÉRALE_NOMBRE_RÉEL
+    @comme littérale_réel
+    @code  NoeudCodeLittéraleRéel
 
-	double valeur [code copie]
+    double valeur [code copie]
 }
 
 struct NoeudExpressionLittéraleChaine : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_CHAINE
-	@comme littérale_chaine
-	@code  NoeudCodeLittéraleChaine
+    @genre EXPRESSION_LITTÉRALE_CHAINE
+    @comme littérale_chaine
+    @code  NoeudCodeLittéraleChaine
 
-	long valeur [code copie]
+    long valeur [code copie]
 }
 
 struct NoeudExpressionLittéraleCaractère : NoeudExpression {
-	@genre EXPRESSION_LITTÉRALE_CARACTÈRE
-	@comme littérale_caractère
-	@code  NoeudCodeLittéraleCaractère
+    @genre EXPRESSION_LITTÉRALE_CARACTÈRE
+    @comme littérale_caractère
+    @code  NoeudCodeLittéraleCaractère
 
-	uint32_t valeur [code copie]
+    uint32_t valeur [code copie]
 }
 
 struct NoeudDéclaration : NoeudExpression {
-	@comme déclaration
-	@code  NoeudCodeDéclaration
+    @comme déclaration
+    @code  NoeudCodeDéclaration
 }
 
 struct NoeudModule : NoeudDéclaration {
-	@genre DÉCLARATION_MODULE
-	@comme déclaration_module
-	@code  NoeudCodeModule
+    @genre DÉCLARATION_MODULE
+    @comme déclaration_module
+    @code  NoeudCodeModule
 
-	Module *module [code copie]
+    Module *module [code copie]
 }
 
 struct NoeudDéclarationSymbole : NoeudDéclaration {
-	@comme déclaration_symbole
-	@code  NoeudCodeDéclarationSymbole
+    @comme déclaration_symbole
+    @code  NoeudCodeDéclarationSymbole
 
-	NoeudDependance *noeud_dependance
-	Atome *atome
+    NoeudDependance *noeud_dependance
+    Atome *atome
 
-        /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
-         * identifiant. Ceci n'est mis en place que pour le premier symbole
-         * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
-         * lexical si ajoutée lors du syntaxage. */
-        NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
+    /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
+     * identifiant. Ceci n'est mis en place que pour le premier symbole
+     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+     * lexical si ajoutée lors du syntaxage. */
+    NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
-	@comme déclaration_bibliothèque
-	@code  NoeudCodeDéclarationBibliothèque
-	@genre DÉCLARATION_BIBLIOTHÈQUE
+    @comme déclaration_bibliothèque
+    @code  NoeudCodeDéclarationBibliothèque
+    @genre DÉCLARATION_BIBLIOTHÈQUE
 
-	Bibliothèque *bibliothèque
+    Bibliothèque *bibliothèque
 }
 
 struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
-	@genre DÉCLARATION_VARIABLE
-	@comme déclaration_variable
-	@code  NoeudCodeDéclarationVariable
+    @genre DÉCLARATION_VARIABLE
+    @comme déclaration_variable
+    @code  NoeudCodeDéclarationVariable
 
-	// pour une expression de style a := 5, a est la valeur, et 5 l'expression
-	// pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
-	NoeudExpression *valeur [code enfant]
-	NoeudExpression *expression [code enfant]
+    // pour une expression de style a := 5, a est la valeur, et 5 l'expression
+    // pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
+    NoeudExpression *valeur [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	NoeudExpression *expression_type [code enfant]
+    NoeudExpression *expression_type [code enfant]
 
-	ValeurExpression valeur_expression
+    ValeurExpression valeur_expression
 
-	NoeudDéclarationSymbole *declaration_vient_d_un_emploi
-	int index_membre_employe
+    NoeudDéclarationSymbole *declaration_vient_d_un_emploi
+    int index_membre_employe
 
-	// pour les variables globales
+    // pour les variables globales
     NoeudExpression * [] arbre_aplatis
 
     DonneesAssignations [compressé] donnees_decl
 
-  Annotation [] annotations [code copie]
+    Annotation [] annotations [code copie]
 }
 
 struct NoeudAssignation : NoeudExpression {
-	@genre EXPRESSION_ASSIGNATION_VARIABLE
-	@comme assignation_variable
-	@code  NoeudCodeAssignation
+    @genre EXPRESSION_ASSIGNATION_VARIABLE
+    @comme assignation_variable
+    @code  NoeudCodeAssignation
 
-	NoeudExpression *variable [code enfant]
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *variable [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	DonneesAssignations [compressé] donnees_exprs
+    DonneesAssignations [compressé] donnees_exprs
 }
 
 struct NoeudRetour : NoeudExpression {
-	@genre INSTRUCTION_RETOUR
-	@comme retourne
-	@code  NoeudCodeRetour
+    @genre INSTRUCTION_RETOUR
+    @comme retourne
+    @code  NoeudCodeRetour
 
-	NoeudExpression *expression [code enfant]
-	DonneesAssignations [compressé] donnees_exprs
+    NoeudExpression *expression [code enfant]
+    DonneesAssignations [compressé] donnees_exprs
 }
 
 struct NoeudRetiens : NoeudExpression {
-	@genre INSTRUCTION_RETIENS
-	@comme retiens
-	@code  NoeudCodeRetiens
+    @genre INSTRUCTION_RETIENS
+    @comme retiens
+    @code  NoeudCodeRetiens
 
-	NoeudExpression *expression [code enfant]
-	DonneesAssignations [compressé] donnees_exprs
+    NoeudExpression *expression [code enfant]
+    DonneesAssignations [compressé] donnees_exprs
 }
 
 struct NoeudExpressionReference : NoeudExpression {
-	@genre EXPRESSION_RÉFÉRENCE_DÉCLARATION
-	@comme référence_déclaration
-	@code  NoeudCodeRéférenceDéclaration
+    @genre EXPRESSION_RÉFÉRENCE_DÉCLARATION
+    @comme référence_déclaration
+    @code  NoeudCodeRéférenceDéclaration
 
-  NoeudDéclaration *déclaration_référée
+    NoeudDéclaration *déclaration_référée
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {
-	@genre OPÉRATEUR_UNAIRE
-	@comme expression_unaire
-	@code  NoeudCodeExpressionUnaire
+    @genre OPÉRATEUR_UNAIRE
+    @comme expression_unaire
+    @code  NoeudCodeExpressionUnaire
 
-	NoeudExpression *opérande [code enfant]
-	OperateurUnaire const *op
+    NoeudExpression *opérande [code enfant]
+    OperateurUnaire const *op
 }
 
 struct NoeudExpressionBinaire : NoeudExpression {
-	@genre OPÉRATEUR_BINAIRE
-	@comme expression_binaire
-	@code  NoeudCodeExpressionBinaire
+    @genre OPÉRATEUR_BINAIRE
+    @comme expression_binaire
+    @code  NoeudCodeExpressionBinaire
 
-	NoeudExpression *opérande_gauche [code enfant]
-	NoeudExpression *opérande_droite [code enfant]
-	OperateurBinaire const *op
-	bool permute_operandes
+    NoeudExpression *opérande_gauche [code enfant]
+    NoeudExpression *opérande_droite [code enfant]
+    OperateurBinaire const *op
+    bool permute_operandes
 }
 
 struct NoeudExpressionComparaisonChainée : NoeudExpressionBinaire {
-	@genre OPÉRATEUR_COMPARAISON_CHAINÉE
-	@comme comparaison_chainée
-	@code  NoeudCodeExpressionComparaisonChainée
+    @genre OPÉRATEUR_COMPARAISON_CHAINÉE
+    @comme comparaison_chainée
+    @code  NoeudCodeExpressionComparaisonChainée
 }
 
 struct NoeudExpressionIndexage : NoeudExpressionBinaire {
-	@genre EXPRESSION_INDEXAGE
-	@comme indexage
-	@code  NoeudCodeExpressionIndexage
+    @genre EXPRESSION_INDEXAGE
+    @comme indexage
+    @code  NoeudCodeExpressionIndexage
 }
 
 struct NoeudExpressionParenthèse : NoeudExpression {
@@ -350,280 +350,280 @@ struct NoeudExpressionParenthèse : NoeudExpression {
 }
 
 struct NoeudExpressionPlage : NoeudExpression {
-	@genre EXPRESSION_PLAGE
-	@comme plage
-	@code  NoeudCodeExpressionPlage
+    @genre EXPRESSION_PLAGE
+    @comme plage
+    @code  NoeudCodeExpressionPlage
 
-	NoeudExpression *début [code enfant]
-	NoeudExpression *fin [code enfant]
+    NoeudExpression *début [code enfant]
+    NoeudExpression *fin [code enfant]
 }
 
 struct NoeudExpressionMembre : NoeudExpression {
-	@genre EXPRESSION_RÉFÉRENCE_MEMBRE
-	@comme référence_membre
-	@code  NoeudCodeRéférenceMembre
+    @genre EXPRESSION_RÉFÉRENCE_MEMBRE
+    @comme référence_membre
+    @code  NoeudCodeRéférenceMembre
 
-	NoeudExpression *accédée [code enfant]
-	NoeudExpression *membre [code enfant]
-	int index_membre
+    NoeudExpression *accédée [code enfant]
+    NoeudExpression *membre [code enfant]
+    int index_membre
 }
 
 struct NoeudExpressionMembreUnion : NoeudExpressionMembre {
-	@genre EXPRESSION_RÉFÉRENCE_MEMBRE_UNION
-	@comme référence_membre_union
-	@code  NoeudCodeRéférenceMembreUnion
+    @genre EXPRESSION_RÉFÉRENCE_MEMBRE_UNION
+    @comme référence_membre_union
+    @code  NoeudCodeRéférenceMembreUnion
 }
 
 // À FAIRE(poly) : opérateurs polymorphiques
 struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
-	@genre DÉCLARATION_ENTÊTE_FONCTION
-	@comme entête_fonction
-	@code  NoeudCodeEntêteFonction
+    @genre DÉCLARATION_ENTÊTE_FONCTION
+    @comme entête_fonction
+    @code  NoeudCodeEntêteFonction
 
-	NoeudDéclarationCorpsFonction *corps [code enfant]
-	NoeudExpression * [] arbre_aplatis
+    NoeudDéclarationCorpsFonction *corps [code enfant]
+    NoeudExpression * [] arbre_aplatis
 
-	// Ceux-ci ne peuvent pas être des NoeudDéclarationVariables car la structure est partagée avec les types
-	// qui utilisent des expressions simples comme paramètres
-	NoeudExpression * [] params [code enfant]
-	NoeudExpression * [] params_sorties [code enfant]
+    // Ceux-ci ne peuvent pas être des NoeudDéclarationVariables car la structure est partagée avec les types
+    // qui utilisent des expressions simples comme paramètres
+    NoeudExpression * [] params [code enfant]
+    NoeudExpression * [] params_sorties [code enfant]
 
-	/* La hiérarchie des blocs pour les fonctions est la suivante :
-	 * - bloc_constantes (qui contient les constantes déclarées pour les polymorphes)
-	 * -- bloc_parametres (qui contient la déclaration des paramètres d'entrées et de sorties)
-	 * --- bloc_corps (qui se trouve dans NoeudDéclarationCorpsFonction)
-	 */
-	NoeudBloc *bloc_constantes
-	NoeudBloc *bloc_parametres
+    /* La hiérarchie des blocs pour les fonctions est la suivante :
+     * - bloc_constantes (qui contient les constantes déclarées pour les polymorphes)
+     * -- bloc_parametres (qui contient la déclaration des paramètres d'entrées et de sorties)
+     * --- bloc_corps (qui se trouve dans NoeudDéclarationCorpsFonction)
+     */
+    NoeudBloc *bloc_constantes
+    NoeudBloc *bloc_parametres
 
-        chaine_statique nom_broye_
+    chaine_statique nom_broye_
 
-	Monomorphisations *monomorphisations
-  /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
-   * dans le contexte du site. */
-  NoeudExpression *site_monomorphisation
+    Monomorphisations *monomorphisations
+    /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
+     * dans le contexte du site. */
+    NoeudExpression *site_monomorphisation
 
-  Annotation [] annotations [code copie]
+    Annotation [] annotations [code copie]
 
-	bool est_opérateur [code copie]
-	bool est_coroutine [code copie]
-	bool est_polymorphe
-	bool est_variadique
-	bool est_externe
-	bool est_déclaration_type [copie]
-	bool est_monomorphisation
-	bool est_métaprogramme
-  bool est_initialisation_type
+    bool est_opérateur [code copie]
+    bool est_coroutine [code copie]
+    bool est_polymorphe
+    bool est_variadique
+    bool est_externe
+    bool est_déclaration_type [copie]
+    bool est_monomorphisation
+    bool est_métaprogramme
+    bool est_initialisation_type
 
-	/* pour les fonctions externes :
-	 * - nom du symbole dans la bibliothèque
-	 * - la bibliothèque où se trouve le Symbole
-	 * - le symbole lui-même */
-	chaine_statique nom_symbole
-	IdentifiantCode *ident_bibliothèque
-	Symbole *symbole
+    /* pour les fonctions externes :
+     * - nom du symbole dans la bibliothèque
+     * - la bibliothèque où se trouve le Symbole
+     * - le symbole lui-même */
+    chaine_statique nom_symbole
+    IdentifiantCode *ident_bibliothèque
+    Symbole *symbole
 
-	/* Le paramètre de sortie :
-	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
-	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
-        NoeudDéclarationVariable *param_sortie
+    /* Le paramètre de sortie :
+     * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
+     * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
+    NoeudDéclarationVariable *param_sortie
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
-	@genre DÉCLARATION_CORPS_FONCTION
-	@comme corps_fonction
-	@code  NoeudCodeCorpsFonction
+    @genre DÉCLARATION_CORPS_FONCTION
+    @comme corps_fonction
+    @code  NoeudCodeCorpsFonction
 
-	NoeudDéclarationEnteteFonction *entête [code]
-	NoeudBloc *bloc [code enfant]
-	NoeudExpression * [] arbre_aplatis
-	bool est_corps_texte [copie]
+    NoeudDéclarationEnteteFonction *entête [code]
+    NoeudBloc *bloc [code enfant]
+    NoeudExpression * [] arbre_aplatis
+    bool est_corps_texte [copie]
 }
 
 struct NoeudExpressionAppel : NoeudExpression {
-	@genre EXPRESSION_APPEL
-	@comme appel
-	@code  NoeudCodeAppel
+    @genre EXPRESSION_APPEL
+    @comme appel
+    @code  NoeudCodeAppel
 
-	NoeudExpression * expression [code enfant]
-	NoeudExpression * [] paramètres [code enfant]
-	NoeudExpression * [] paramètres_résolus
-	NoeudExpression const * noeud_fonction_appelée
+    NoeudExpression * expression [code enfant]
+    NoeudExpression * [] paramètres [code enfant]
+    NoeudExpression * [] paramètres_résolus
+    NoeudExpression const * noeud_fonction_appelée
 }
 
 struct NoeudExpressionConstructionStructure : NoeudExpressionAppel {
-	@genre EXPRESSION_CONSTRUCTION_STRUCTURE
-	@comme construction_structure
-	@code  NoeudCodeConstructionStructure
+    @genre EXPRESSION_CONSTRUCTION_STRUCTURE
+    @comme construction_structure
+    @code  NoeudCodeConstructionStructure
 }
 
 struct NoeudDéclarationType : NoeudDéclarationSymbole {
-  @comme déclaration_type
-  @code  NoeudCodeDéclarationType
+    @comme déclaration_type
+    @code  NoeudCodeDéclarationType
 }
 
 struct NoeudStruct : NoeudDéclarationType {
-	@genre DÉCLARATION_STRUCTURE
-	@comme structure
-	@code  NoeudCodeStructure
+    @genre DÉCLARATION_STRUCTURE
+    @comme structure
+    @code  NoeudCodeStructure
 
-	NoeudBloc *bloc [code enfant]
-	NoeudExpression * [] arbre_aplatis
+    NoeudBloc *bloc [code enfant]
+    NoeudExpression * [] arbre_aplatis
 
-	bool est_union [copie]
-	bool est_nonsure [copie]
-	bool est_externe [copie]
-	bool est_polymorphe
-	bool est_monomorphisation
-	bool est_corps_texte [copie]
-	bool est_compacte [copie]
+    bool est_union [copie]
+    bool est_nonsure [copie]
+    bool est_externe [copie]
+    bool est_polymorphe
+    bool est_monomorphisation
+    bool est_corps_texte [copie]
+    bool est_compacte [copie]
 
-	uint32_t alignement_desire
+    uint32_t alignement_desire
 
-	NoeudBloc *bloc_constantes
-	NoeudExpression * [] arbre_aplatis_params
+    NoeudBloc *bloc_constantes
+    NoeudExpression * [] arbre_aplatis_params
 
-	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
-	NoeudStruct *polymorphe_de_base
+    /* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
+    NoeudStruct *polymorphe_de_base
 
-	Monomorphisations *monomorphisations
+    Monomorphisations *monomorphisations
 
-	MetaProgramme *metaprogramme_corps_texte
+    MetaProgramme *metaprogramme_corps_texte
 
-  Annotation [] annotations [code copie]
+    Annotation [] annotations [code copie]
 }
 
 struct NoeudEnum : NoeudDéclarationType {
-	@genre DÉCLARATION_ÉNUM
-	@comme énum
-	@code  NoeudCodeÉnum
+    @genre DÉCLARATION_ÉNUM
+    @comme énum
+    @code  NoeudCodeÉnum
 
-	NoeudExpression *expression_type [code enfant]
-	NoeudBloc *bloc [code enfant]
+    NoeudExpression *expression_type [code enfant]
+    NoeudBloc *bloc [code enfant]
 
-  Annotation [] annotations [code copie]
+    Annotation [] annotations [code copie]
 }
 
 struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
-  @genre DÉCLARATION_OPAQUE
-  @comme type_opaque
-  @code  NoeudCodeTypeOpaque
+    @genre DÉCLARATION_OPAQUE
+    @comme type_opaque
+    @code  NoeudCodeTypeOpaque
 
-  NoeudExpression * [] arbre_aplatis
-  NoeudExpression *expression_type [code enfant]
+    NoeudExpression * [] arbre_aplatis
+    NoeudExpression *expression_type [code enfant]
 }
 
 struct NoeudSi : NoeudExpression {
-	@genre INSTRUCTION_SI
-	@comme si
-	@code NoeudCodeSi
+    @genre INSTRUCTION_SI
+    @comme si
+    @code NoeudCodeSi
 
-	NoeudExpression *condition [code enfant]
-	NoeudExpression *bloc_si_vrai [code enfant]
-	NoeudExpression *bloc_si_faux [code enfant]
+    NoeudExpression *condition [code enfant]
+    NoeudExpression *bloc_si_vrai [code enfant]
+    NoeudExpression *bloc_si_faux [code enfant]
 }
 
 struct NoeudSaufsi : NoeudSi {
-	@genre INSTRUCTION_SAUFSI
-	@comme saufsi
-	@code NoeudCodeSaufsi
+    @genre INSTRUCTION_SAUFSI
+    @comme saufsi
+    @code NoeudCodeSaufsi
 }
 
 struct NoeudSiStatique : NoeudExpression {
-	@genre INSTRUCTION_SI_STATIQUE
-	@comme si_statique
-	@code  NoeudCodeSiStatique
+    @genre INSTRUCTION_SI_STATIQUE
+    @comme si_statique
+    @code  NoeudCodeSiStatique
 
-	NoeudExpression *condition [code enfant]
-	NoeudBloc *bloc_si_vrai [code enfant]
-	NoeudBloc *bloc_si_faux [code enfant]
+    NoeudExpression *condition [code enfant]
+    NoeudBloc *bloc_si_vrai [code enfant]
+    NoeudBloc *bloc_si_faux [code enfant]
 
-	int index_bloc_si_faux
-	int index_apres
-	bool condition_est_vraie
-	bool visite
+    int index_bloc_si_faux
+    int index_apres
+    bool condition_est_vraie
+    bool visite
 }
 
 struct NoeudPour : NoeudExpression {
-	@genre INSTRUCTION_POUR
-	@comme pour
-	@code  NoeudCodePour
+    @genre INSTRUCTION_POUR
+    @comme pour
+    @code  NoeudCodePour
 
-	NoeudExpression *variable [code enfant]
-	NoeudExpression *expression [code enfant]
-	NoeudBloc *bloc [code enfant]
-	NoeudBloc *bloc_sansarret [code enfant]
-	NoeudBloc *bloc_sinon [code enfant]
+    NoeudExpression *variable [code enfant]
+    NoeudExpression *expression [code enfant]
+    NoeudBloc *bloc [code enfant]
+    NoeudBloc *bloc_sansarret [code enfant]
+    NoeudBloc *bloc_sinon [code enfant]
 
-	bool prend_référence [copie]
-	bool prend_pointeur [copie]
-	GenreLexeme lexeme_op = .INFERIEUR
+    bool prend_référence [copie]
+    bool prend_pointeur [copie]
+    GenreLexeme lexeme_op = .INFERIEUR
 }
 
 struct NoeudBoucle : NoeudExpression {
-	@genre INSTRUCTION_BOUCLE
-	@comme boucle
-	@code  NoeudCodeBoucle
+    @genre INSTRUCTION_BOUCLE
+    @comme boucle
+    @code  NoeudCodeBoucle
 
-	NoeudExpression *condition [code enfant]
-	NoeudBloc *bloc [code enfant]
+    NoeudExpression *condition [code enfant]
+    NoeudBloc *bloc [code enfant]
 
-	/* pour la simplification du [code] des boucles pour */
+    /* pour la simplification du [code] des boucles pour */
 
-	/* bloc utilisé pour définir les varibles d'itérations */
-	NoeudBloc *bloc_pre
+    /* bloc utilisé pour définir les varibles d'itérations */
+    NoeudBloc *bloc_pre
 
-	/* bloc utilisé pour définir l'incrémentation des variables d'itérations,
-	 * cible de l'instruction « continue » des « pour » */
-	NoeudBloc *bloc_inc
+    /* bloc utilisé pour définir l'incrémentation des variables d'itérations,
+    * cible de l'instruction « continue » des « pour » */
+    NoeudBloc *bloc_inc
 
-	/* blocs venant directement du bloc pour */
-	NoeudBloc *bloc_sansarret
-	NoeudBloc *bloc_sinon
+    /* blocs venant directement du bloc pour */
+    NoeudBloc *bloc_sansarret
+    NoeudBloc *bloc_sinon
 
-	/* Pour le ciblage des instructions de controle. */
-	InstructionLabel *label_pour_arrete
-	InstructionLabel *label_pour_arrete_implicite
-	InstructionLabel *label_pour_continue
-	InstructionLabel *label_pour_reprends
+    /* Pour le ciblage des instructions de controle. */
+    InstructionLabel *label_pour_arrete
+    InstructionLabel *label_pour_arrete_implicite
+    InstructionLabel *label_pour_continue
+    InstructionLabel *label_pour_reprends
 }
 
 struct NoeudRépète : NoeudBoucle {
-	@genre INSTRUCTION_RÉPÈTE
-	@comme répète
-	@code  NoeudCodeRépète
+    @genre INSTRUCTION_RÉPÈTE
+    @comme répète
+    @code  NoeudCodeRépète
 }
 
 struct NoeudTantque : NoeudBoucle {
-	@genre INSTRUCTION_TANTQUE
-	@comme tantque
-	@code  NoeudCodeTantque
+    @genre INSTRUCTION_TANTQUE
+    @comme tantque
+    @code  NoeudCodeTantque
 }
 
 struct NoeudBloc : NoeudExpression {
-	@genre INSTRUCTION_COMPOSÉE
-	@comme bloc
-	@code  NoeudCodeBloc
+    @genre INSTRUCTION_COMPOSÉE
+    @comme bloc
+    @code  NoeudCodeBloc
 
-	// NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
-	NoeudExpression *appartiens_a_boucle
-        // À FAIRE: utilisation de variant
-        NoeudExpression *appartiens_a_differe
-	NoeudDéclaration * [synchrone] membres [code]
-	NoeudExpression * [synchrone]  expressions [code enfant]
-	NoeudInstructionDiffère * [] instructions_différées
-        bool est_nonsur
-        /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
-         * membres du bloc pour savoir s'il en reste à valider. */
-        bool membres_sont_sales
-        bool expressions_sont_sales
-	int nombre_recherches
+    // NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
+    NoeudExpression *appartiens_a_boucle
+    // À FAIRE: utilisation de variant
+    NoeudExpression *appartiens_a_differe
+    NoeudDéclaration * [synchrone] membres [code]
+    NoeudExpression * [synchrone]  expressions [code enfant]
+    NoeudInstructionDiffère * [] instructions_différées
+    bool est_nonsur
+    /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
+     * membres du bloc pour savoir s'il en reste à valider. */
+    bool membres_sont_sales
+    bool expressions_sont_sales
+    int nombre_recherches
 }
 
 struct NoeudPaireDiscr : NoeudExpression {
     @genre EXPRESSION_PAIRE_DISCRIMINATION
-	@comme paire_discr
-	@code  NoeudCodePaireDiscr
+    @comme paire_discr
+    @code  NoeudCodePaireDiscr
 
     NoeudExpression * expression [code enfant]
     NoeudBloc * bloc [code enfant]
@@ -631,128 +631,128 @@ struct NoeudPaireDiscr : NoeudExpression {
 }
 
 struct NoeudDiscr : NoeudExpression {
-	@genre INSTRUCTION_DISCR
-	@comme discr
-	@code  NoeudCodeDiscr
+    @genre INSTRUCTION_DISCR
+    @comme discr
+    @code  NoeudCodeDiscr
 
-	NoeudExpression *expression_discriminée [code enfant]
-	NoeudPaireDiscr * [] paires_discr [code enfant]
-	NoeudBloc *bloc_sinon [code enfant]
-	OperateurBinaire const *op
+    NoeudExpression *expression_discriminée [code enfant]
+    NoeudPaireDiscr * [] paires_discr [code enfant]
+    NoeudBloc *bloc_sinon [code enfant]
+    OperateurBinaire const *op
 }
 
 struct NoeudDiscrÉnum : NoeudDiscr {
-	@genre INSTRUCTION_DISCR_ÉNUM
-	@comme discr_énum
-	@code  NoeudCodeDiscrÉnum
+    @genre INSTRUCTION_DISCR_ÉNUM
+    @comme discr_énum
+    @code  NoeudCodeDiscrÉnum
 }
 
 struct NoeudDiscrUnion : NoeudDiscr {
-	@genre INSTRUCTION_DISCR_UNION
-	@comme discr_union
-	@code  NoeudCodeDiscrUnion
+    @genre INSTRUCTION_DISCR_UNION
+    @comme discr_union
+    @code  NoeudCodeDiscrUnion
 }
 
 struct NoeudPousseContexte : NoeudExpression {
-	@genre INSTRUCTION_POUSSE_CONTEXTE
-	@comme pousse_contexte
-	@code  NoeudCodePousseContexte
+    @genre INSTRUCTION_POUSSE_CONTEXTE
+    @comme pousse_contexte
+    @code  NoeudCodePousseContexte
 
-	NoeudExpression *expression [code enfant]
-	NoeudBloc *bloc [code enfant]
+    NoeudExpression *expression [code enfant]
+    NoeudBloc *bloc [code enfant]
 }
 
 struct NoeudTableauArgsVariadiques : NoeudExpression {
-	@genre EXPRESSION_TABLEAU_ARGS_VARIADIQUES
-	@comme args_variadiques
-	@code  NoeudCodeArgsVariadiques
+    @genre EXPRESSION_TABLEAU_ARGS_VARIADIQUES
+    @comme args_variadiques
+    @code  NoeudCodeArgsVariadiques
 
-	NoeudExpression * [] expressions [code enfant]
+    NoeudExpression * [] expressions [code enfant]
 }
 
 struct NoeudInstructionTente : NoeudExpression {
-	@genre INSTRUCTION_TENTE
-	@comme tente
-	@code  NoeudIntructionTente
+    @genre INSTRUCTION_TENTE
+    @comme tente
+    @code  NoeudIntructionTente
 
-	NoeudExpression *expression_appelée [code enfant]
-	NoeudExpression *expression_piégée [code enfant]
-	NoeudBloc *bloc [code enfant]
+    NoeudExpression *expression_appelée [code enfant]
+    NoeudExpression *expression_piégée [code enfant]
+    NoeudBloc *bloc [code enfant]
 }
 
 struct NoeudDirectiveExécute : NoeudExpression {
-	@genre DIRECTIVE_EXÉCUTE
-	@comme exécute
-	@code  NoeudCodeDirectiveExécute
+    @genre DIRECTIVE_EXÉCUTE
+    @comme exécute
+    @code  NoeudCodeDirectiveExécute
 
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant]
 
-	NoeudExpression * [] arbre_aplatis
+    NoeudExpression * [] arbre_aplatis
 
-	MetaProgramme *métaprogramme
+    MetaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
-	@genre DIRECTIVE_CUISINE
-	@comme cuisine
-	@code  NoeudCodeDirectiveCuisine
+    @genre DIRECTIVE_CUISINE
+    @comme cuisine
+    @code  NoeudCodeDirectiveCuisine
 }
 
 struct NoeudExpressionVirgule : NoeudExpression {
-	@genre EXPRESSION_VIRGULE
-	@comme virgule
-	@code  NoeudCodeExpressionVirgule
+    @genre EXPRESSION_VIRGULE
+    @comme virgule
+    @code  NoeudCodeExpressionVirgule
 
-	NoeudExpression * [] expressions [code enfant]
+    NoeudExpression * [] expressions [code enfant]
 }
 
 struct NoeudComme : NoeudExpression {
-	@genre EXPRESSION_COMME
-	@comme comme
-	@code  NoeudCodeComme
+    @genre EXPRESSION_COMME
+    @comme comme
+    @code  NoeudCodeComme
 
-	NoeudExpression *expression [code enfant]
-	NoeudExpression *expression_type [code enfant]
-	TransformationType transformation
+    NoeudExpression *expression [code enfant]
+    NoeudExpression *expression_type [code enfant]
+    TransformationType transformation
 }
 
 struct NoeudInstructionDiffère : NoeudExpression {
-	@genre INSTRUCTION_DIFFÈRE
-	@comme diffère
-	@code  NoeudCodeDiffère
+    @genre INSTRUCTION_DIFFÈRE
+    @comme diffère
+    @code  NoeudCodeDiffère
 
-	NoeudExpression *expression [code enfant]
+    NoeudExpression *expression [code enfant]
 }
 
 struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
-	@genre DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE
-	@comme dépendance_bibliothèque
-	@code  NoeudCodeDépendanceBibliothèque
+    @genre DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE
+    @comme dépendance_bibliothèque
+    @code  NoeudCodeDépendanceBibliothèque
 
-	IdentifiantCode *ident_bibliothèque_dépendante
-	IdentifiantCode *ident_bibliothèque_dépendue
+    IdentifiantCode *ident_bibliothèque_dépendante
+    IdentifiantCode *ident_bibliothèque_dépendue
 }
 
 struct NoeudDirectiveAjouteInit : NoeudExpression {
-  @genre DIRECTIVE_AJOUTE_INIT
-  @comme ajoute_init
-  @code NoeudCodeAjouteInit
+    @genre DIRECTIVE_AJOUTE_INIT
+    @comme ajoute_init
+    @code NoeudCodeAjouteInit
 
-  NoeudExpression *expression [code enfant]
-  NoeudExpression * [] arbre_aplatis
+    NoeudExpression *expression [code enfant]
+    NoeudExpression * [] arbre_aplatis
 }
 
 struct NoeudDirectiveAjouteFini : NoeudExpression {
-  @genre DIRECTIVE_AJOUTE_FINI
-  @comme ajoute_fini
-  @code NoeudCodeAjouteFini
+    @genre DIRECTIVE_AJOUTE_FINI
+    @comme ajoute_fini
+    @code NoeudCodeAjouteFini
 
-  NoeudExpression *expression [code enfant]
-  NoeudExpression * [] arbre_aplatis
+    NoeudExpression *expression [code enfant]
+    NoeudExpression * [] arbre_aplatis
 }
 
 struct NoeudDirectivePréExécutable : NoeudDirectiveExécute {
-  @genre DIRECTIVE_PRÉ_EXÉCUTABLE
-  @comme pré_exécutable
-  @code NoeudCodePréExécutable
+    @genre DIRECTIVE_PRÉ_EXÉCUTABLE
+    @comme pré_exécutable
+    @code NoeudCodePréExécutable
 }

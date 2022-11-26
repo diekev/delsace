@@ -17,6 +17,8 @@
 #include "programme.hh"
 #include "statistiques/statistiques.hh"
 
+#define NOMBRE_DE_TACHES(x) nombre_de_taches[size_t(GenreTache::x)]
+
 /* ************************************************************************** */
 
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
@@ -25,6 +27,10 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     : nom(nom_), options(opts), m_compilatrice(compilatrice)
 {
     programme = Programme::cree_pour_espace(this);
+
+    POUR (nombre_de_taches) {
+        it = 0;
+    }
 }
 
 EspaceDeTravail::~EspaceDeTravail()
@@ -44,141 +50,139 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
     programme->rassemble_statistiques(stats);
 }
 
-void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::tache_ajoutee(GenreTache genre_tache,
+                                    dls::outils::Synchrone<Messagere> &messagere)
 {
-    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-    nombre_taches_chargement += 1;
+    nombre_de_taches[size_t(genre_tache)] += 1;
+    regresse_phase_pour_tache_ajoutee(genre_tache, messagere);
 }
 
-void EspaceDeTravail::tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::tache_terminee(GenreTache genre_tache,
+                                     dls::outils::Synchrone<Messagere> &messagere,
+                                     bool peut_envoyer_changement_de_phase)
 {
-    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-    nombre_taches_lexage += 1;
+    nombre_de_taches[size_t(genre_tache)] -= 1;
+    assert(nombre_de_taches[size_t(genre_tache)] >= 0);
+    progresse_phase_pour_tache_terminee(genre_tache, messagere, peut_envoyer_changement_de_phase);
 }
 
-void EspaceDeTravail::tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::progresse_phase_pour_tache_terminee(
+    GenreTache genre_tache,
+    dls::outils::Synchrone<Messagere> &messagere,
+    bool peut_envoyer_changement_de_phase)
 {
-    change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
-    nombre_taches_parsage += 1;
-}
+    PhaseCompilation nouvelle_phase = phase;
+    switch (genre_tache) {
+        case GenreTache::CHARGEMENT:
+        case GenreTache::LEXAGE:
+        {
+            nouvelle_phase = PhaseCompilation::PARSAGE_EN_COURS;
+            break;
+        }
+        case GenreTache::PARSAGE:
+        {
+            if (parsage_termine()) {
+                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINE;
+            }
+            break;
+        }
+        case GenreTache::TYPAGE:
+        {
+            if (nombre_de_taches[size_t(genre_tache)] == 0 &&
+                phase == PhaseCompilation::PARSAGE_TERMINE && peut_envoyer_changement_de_phase) {
+                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINE;
 
-void EspaceDeTravail::tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    if (phase > PhaseCompilation::PARSAGE_TERMINE) {
-        change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
-    }
-
-    nombre_taches_typage += 1;
-}
-
-void EspaceDeTravail::tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    if (phase > PhaseCompilation::TYPAGE_TERMINE) {
-        change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
-    }
-
-    nombre_taches_ri += 1;
-}
-
-void EspaceDeTravail::tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> & /*messagere*/)
-{
-    nombre_taches_optimisation += 1;
-}
-
-void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> & /*messagere*/)
-{
-    nombre_taches_execution += 1;
-}
-
-void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere,
-                                                Fichier *fichier)
-{
-    messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
-
-    /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
-    tache_lexage_ajoutee(messagere);
-
-    nombre_taches_chargement -= 1;
-    assert(nombre_taches_chargement >= 0);
-}
-
-void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    /* Une fois que nous lexer quelque chose, il faut le parser. */
-    tache_parsage_ajoutee(messagere);
-    nombre_taches_lexage -= 1;
-    assert(nombre_taches_lexage >= 0);
-}
-
-void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    nombre_taches_parsage -= 1;
-    assert(nombre_taches_parsage >= 0);
-
-    if (parsage_termine()) {
-        change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
-    }
-}
-
-void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere,
-                                            bool peut_envoyer_changement_de_phase)
-{
-    nombre_taches_typage -= 1;
-    assert(nombre_taches_typage >= 0);
-
-    if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE &&
-        peut_envoyer_changement_de_phase) {
-        change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
-
-        /* Il est possible que les dernières tâches de typages soient pour des choses qui n'ont pas
-         * de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
-        if (nombre_taches_ri == 0) {
-            change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+                /* Il est possible que les dernières tâches de typages soient pour des choses qui
+                 * n'ont pas de RI, donc avançons jusqu'à GENERATION_CODE_TERMINEE. */
+                if (nombre_de_taches[size_t(GenreTache::GENERATION_RI)] == 0) {
+                    /* Notifie pour le changement de phase précédent. */
+                    change_de_phase(messagere, nouvelle_phase);
+                    nouvelle_phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
+                }
+            }
+            break;
+        }
+        case GenreTache::GENERATION_RI:
+        case GenreTache::OPTIMISATION:
+        {
+            if (nombre_de_taches[size_t(GenreTache::GENERATION_RI)] == 0 &&
+                nombre_de_taches[size_t(GenreTache::OPTIMISATION)] == 0 &&
+                phase == PhaseCompilation::TYPAGE_TERMINE) {
+                nouvelle_phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
+            }
+            break;
+        }
+        case GenreTache::DORS:
+        case GenreTache::COMPILATION_TERMINEE:
+        case GenreTache::CREATION_FONCTION_INIT_TYPE:
+        case GenreTache::CONVERSION_NOEUD_CODE:
+        case GenreTache::ENVOIE_MESSAGE:
+        case GenreTache::GENERATION_CODE_MACHINE:
+        case GenreTache::LIAISON_PROGRAMME:
+        case GenreTache::EXECUTION:
+        case GenreTache::NOMBRE_ELEMENTS:
+        {
+            break;
         }
     }
-}
 
-void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    nombre_taches_ri -= 1;
-    assert(nombre_taches_ri >= 0);
-
-    if (optimisations) {
-        tache_optimisation_ajoutee(messagere);
-    }
-
-    if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
-        phase == PhaseCompilation::TYPAGE_TERMINE) {
-        change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+    if (nouvelle_phase != phase) {
+        change_de_phase(messagere, nouvelle_phase);
     }
 }
 
-void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
+void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
+    GenreTache genre_tache, dls::outils::Synchrone<Messagere> &messagere)
 {
-    nombre_taches_optimisation -= 1;
-    assert(nombre_taches_optimisation >= 0);
-
-    if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 &&
-        phase == PhaseCompilation::TYPAGE_TERMINE) {
-        change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+    PhaseCompilation nouvelle_phase = phase;
+    switch (genre_tache) {
+        case GenreTache::CHARGEMENT:
+        case GenreTache::LEXAGE:
+        case GenreTache::PARSAGE:
+        {
+            nouvelle_phase = PhaseCompilation::PARSAGE_EN_COURS;
+            break;
+        }
+        case GenreTache::TYPAGE:
+        {
+            if (phase > PhaseCompilation::PARSAGE_TERMINE) {
+                nouvelle_phase = PhaseCompilation::PARSAGE_TERMINE;
+            }
+            break;
+        }
+        case GenreTache::GENERATION_RI:
+        case GenreTache::OPTIMISATION:
+        {
+            if (phase > PhaseCompilation::TYPAGE_TERMINE) {
+                nouvelle_phase = PhaseCompilation::TYPAGE_TERMINE;
+            }
+            break;
+        }
+        case GenreTache::GENERATION_CODE_MACHINE:
+        {
+            nouvelle_phase = PhaseCompilation::APRES_GENERATION_OBJET;
+            break;
+        }
+        case GenreTache::LIAISON_PROGRAMME:
+        {
+            nouvelle_phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
+            break;
+        }
+        case GenreTache::DORS:
+        case GenreTache::COMPILATION_TERMINEE:
+        case GenreTache::CREATION_FONCTION_INIT_TYPE:
+        case GenreTache::CONVERSION_NOEUD_CODE:
+        case GenreTache::ENVOIE_MESSAGE:
+        case GenreTache::EXECUTION:
+        case GenreTache::NOMBRE_ELEMENTS:
+        {
+            break;
+        }
     }
-}
 
-void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> & /*messagere*/)
-{
-    nombre_taches_execution -= 1;
-    assert(nombre_taches_execution >= 0);
-}
-
-void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
-{
-    change_de_phase(messagere, PhaseCompilation::APRES_GENERATION_OBJET);
-}
-
-void EspaceDeTravail::tache_liaison_executable_terminee(
-    dls::outils::Synchrone<Messagere> &messagere)
-{
-    change_de_phase(messagere, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
+    if (nouvelle_phase != phase) {
+        change_de_phase(messagere, nouvelle_phase);
+    }
 }
 
 bool EspaceDeTravail::peut_generer_code_final() const
@@ -187,11 +191,11 @@ bool EspaceDeTravail::peut_generer_code_final() const
         return false;
     }
 
-    if (nombre_taches_execution == 0) {
+    if (NOMBRE_DE_TACHES(EXECUTION) == 0) {
         return true;
     }
 
-    if (nombre_taches_execution == 1 && metaprogramme) {
+    if (NOMBRE_DE_TACHES(EXECUTION) == 1 && metaprogramme) {
         return true;
     }
 
@@ -200,19 +204,19 @@ bool EspaceDeTravail::peut_generer_code_final() const
 
 bool EspaceDeTravail::parsage_termine() const
 {
-    return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 &&
-           nombre_taches_parsage == 0;
+    return NOMBRE_DE_TACHES(CHARGEMENT) == 0 && NOMBRE_DE_TACHES(LEXAGE) == 0 &&
+           NOMBRE_DE_TACHES(PARSAGE) == 0;
 }
 
 void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
 {
-    os << "nombre_taches_chargement : " << nombre_taches_chargement << '\n';
-    os << "nombre_taches_lexage : " << nombre_taches_lexage << '\n';
-    os << "nombre_taches_parsage : " << nombre_taches_parsage << '\n';
-    os << "nombre_taches_typage : " << nombre_taches_typage << '\n';
-    os << "nombre_taches_ri : " << nombre_taches_ri << '\n';
-    os << "nombre_taches_execution : " << nombre_taches_execution << '\n';
-    os << "nombre_taches_optimisation : " << nombre_taches_optimisation << '\n';
+    os << "nombre_taches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
+    os << "nombre_taches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
+    os << "nombre_taches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
+    os << "nombre_taches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
+    os << "nombre_taches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
+    os << "nombre_taches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
+    os << "nombre_taches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
 }
 
 Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,

@@ -918,11 +918,12 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
                 }
             }
 
-            if (!decl->symbole->charge(espace, decl)) {
+            if (!decl->symbole->charge(
+                    espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
                 return false;
             }
 
-            donnees_externe.ptr_fonction = decl->symbole->ptr_fonction;
+            donnees_externe.ptr_fonction = decl->symbole->adresse_pour_execution();
         }
 
         if (decl->est_variadique) {

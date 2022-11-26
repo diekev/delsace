@@ -196,10 +196,95 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
 
 // -------------------------------------------------------------------------
 
+/**
+ * Luminance calculée selon la recommandation ITU-R BT.709
+ * https://en.wikipedia.org/wiki/Relative_luminance
+ *
+ * Les vraies valeurs sont :
+ * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
+ * selon : "Derivation of Basic Television Color Equations", RP 177-1993
+ *
+ * Puisque ces valeurs ont une somme supérieur à 1.0, nous utilisons une des
+ * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
+ */
+
+luminance :: fonc (c: CouleurRVBA) -> r32
+{
+	retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
+}
+
+/**
+ * Calcul du contraste entre une couleur de zone (avant-plan) et une couleur
+ * de fond (arrière-plan).
+ *
+ * https://fr.wikipedia.org/wiki/Contraste
+ */
+calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
+{
+	luminosite_fond := luminance(fond)
+
+	si luminosite_fond == 0.0 {
+		retourne 0.0
+	}
+
+	luminosite_zone := luminance(zone)
+
+	retourne (luminosite_zone - luminosite_fond) / luminosite_fond
+}
+
+// -------------------------------------------------------------------------
+
 Spectre :: struct {
-    x: r32
-    y: r32
-    z: r32
+    x: r32 @accessible
+    y: r32 @accessible
+    z: r32 @accessible
+}
+
+init_spectre_pour_python :: fonc (spectre: *Spectre, x: r32, y: r32, z: r32) -> bool
+{
+    spectre.x = x
+    spectre.y = y
+    spectre.z = z
+    retourne vrai
+} @Python "new"
+
+spectre_rvb_vers_tsv :: fonc (spectre: Spectre) -> Spectre
+{
+    couleur_rvb := spectre_vers_couleur_rvba(spectre)
+    couleur_tsv := rvb_vers_tsv(couleur_rvb)
+    résultat: Spectre = ---
+    résultat.x = couleur_tsv.t
+    résultat.y = couleur_tsv.s
+    résultat.z = couleur_tsv.v
+    retourne résultat
+} @Python
+
+spectre_tsv_vers_rvb :: fonc (spectre: Spectre) -> Spectre
+{
+    couleur_tsv := spectre_vers_couleur_tsv(spectre)
+    couleur_rvb := tsv_vers_rvb(couleur_tsv)
+    résultat: Spectre = ---
+    résultat.x = couleur_rvb.r
+    résultat.y = couleur_rvb.v
+    résultat.z = couleur_rvb.b
+    retourne résultat
+} @Python
+
+contraste_entre :: fonc (spectre1: Spectre, spectre2: Spectre) -> r32
+{
+    c1 := spectre_vers_couleur_rvba(spectre1)
+    c2 := spectre_vers_couleur_rvba(spectre2)
+    retourne calcule_contraste_local(c1, c2)
+} @Python
+
+spectre_vers_couleur_rvba :: fonc (spectre: Spectre) -> CouleurRVBA
+{
+    retourne CouleurRVBA(spectre.x, spectre.y, spectre.z)
+}
+
+spectre_vers_couleur_tsv :: fonc (spectre: Spectre) -> CouleurTSV
+{
+    retourne CouleurTSV(spectre.x, spectre.y, spectre.z)
 }
 
 opérateur + :: fonc (s1: Spectre, s2: Spectre) -> Spectre
