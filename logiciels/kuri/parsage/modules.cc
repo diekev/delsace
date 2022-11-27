@@ -45,6 +45,10 @@ Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_
     }
 
     POUR_TABLEAU_PAGE (modules) {
+        if (it.nom() != nom) {
+            continue;
+        }
+
         if (it.chemin() == chemin_normalise) {
             return &it;
         }
