@@ -990,7 +990,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme && entete->est_externe;
+        return !entete->est_metaprogramme && !entete->est_polymorphe && entete->est_externe;
     }
 
     if (noeud->est_corps_fonction()) {
@@ -1027,6 +1027,14 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
+        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->est_polymorphe) {
+            return false;
+        }
+
+        if (noeud->est_structure() && noeud->comme_structure()->est_polymorphe) {
+            return false;
+        }
+
         return !(noeud->est_charge() || noeud->est_importe());
     }
 
