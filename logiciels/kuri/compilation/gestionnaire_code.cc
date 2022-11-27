@@ -208,19 +208,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 }
             }
 
-            if (noeud->est_entete_fonction()) {
-                /* Visite manuellement les enfants des entêtes, car nous irions visiter le corps
-                 * qui ne fut pas encore typé. */
-                auto entete = noeud->comme_entete_fonction();
-
-                POUR (entete->params) {
-                    rassemble_dependances(it);
-                }
-
-                POUR (entete->params_sorties) {
-                    rassemble_dependances(it);
-                }
-
+            if (noeud->est_corps_fonction() && racine != noeud) {
+                /* Ignore le corps qui ne fut pas encore typé. */
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
