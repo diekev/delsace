@@ -3,6 +3,10 @@ importe Couleur
 importe Fondation
 importe Math
 
+libtbb :: #bibliothèque "tbb"
+
+#dépendance_bibliothèque libmodule_c_image libtbb
+
 Image :: struct {
     tampon : []Couleur.Couleur
     largeur: z32
