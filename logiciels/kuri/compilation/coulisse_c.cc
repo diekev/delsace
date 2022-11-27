@@ -48,6 +48,8 @@ struct ConvertisseuseTypeC {
     Enchaineuse stockage_chn{};
     Broyeuse &broyeuse;
 
+    kuri::table_hachage<Type *, TypeC *> table_types_c{""};
+
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -63,15 +65,15 @@ struct ConvertisseuseTypeC {
 
     TypeC &type_c_pour(Type *type)
     {
-        POUR_TABLEAU_PAGE (types_c) {
-            if (it.type_kuri == type) {
-                return it;
-            }
+        auto type_c = table_types_c.valeur_ou(type, nullptr);
+        if (type_c) {
+            return *type_c;
         }
 
-        TypeC *type_c = types_c.ajoute_element();
+        type_c = types_c.ajoute_element();
         type_c->type_kuri = type;
         type_c->nom = broyeuse.nom_broye_type(type);
+        table_types_c.insere(type, type_c);
         return *type_c;
     }
 
@@ -605,17 +607,6 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
    __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
 	)";
 
-#if 0
-	enchaineuse << "#include <signal.h>\n";
-	enchaineuse << "static void gere_erreur_segmentation(int s)\n";
-	enchaineuse << "{\n";
-	enchaineuse << "    if (s == SIGSEGV) {\n";
-	enchaineuse << "        " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur de ségmentation dans une fonction\");\n";
-	enchaineuse << "    }\n";
-	enchaineuse << "    " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur inconnue\");\n";
-	enchaineuse << "}\n";
-#endif
-
     /* déclaration des types de bases */
     enchaineuse << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
@@ -1024,16 +1015,35 @@ void GeneratriceCodeC::debute_trace_appel(const InstructionAppel *inst_appel, En
     auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
     auto pos = position_lexeme(*lexeme);
 
-    os << "  DEBUTE_RECORD_TRACE_APPEL(";
+    static const auto DEBUTE_RECORD = kuri::chaine_statique("  DEBUTE_RECORD_TRACE_APPEL(");
+
+    os << DEBUTE_RECORD;
     os << pos.numero_ligne << ",";
     os << pos.pos << ",";
     os << "\"";
 
     auto ligne = fichier->tampon()[pos.index_ligne];
 
+    char tampon[1024];
+    char *ptr_tampon = tampon;
+    int taille_tampon = 0;
+
     POUR (ligne) {
-        os << "\\x" << dls::num::char_depuis_hex((it & 0xf0) >> 4)
-           << dls::num::char_depuis_hex(it & 0x0f);
+        *ptr_tampon++ = '\\';
+        *ptr_tampon++ = 'x';
+        *ptr_tampon++ = dls::num::char_depuis_hex((it & 0xf0) >> 4);
+        *ptr_tampon++ = dls::num::char_depuis_hex(it & 0x0f);
+        taille_tampon += 4;
+
+        if (taille_tampon == 1024) {
+            os << kuri::chaine_statique(tampon, taille_tampon);
+            ptr_tampon = tampon;
+            taille_tampon = 0;
+        }
+    }
+
+    if (taille_tampon) {
+        os << kuri::chaine_statique(tampon, taille_tampon);
     }
 
     os << "\",";
