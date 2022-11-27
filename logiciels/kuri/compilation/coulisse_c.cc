@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <set>
+#include <sys/wait.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
@@ -657,13 +658,18 @@ static bool est_pointeur_vers_tableau_fixe(Type const *type)
     return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
-static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+static void declare_visibilite_globale(Enchaineuse &os,
+                                       AtomeGlobale const *valeur_globale,
+                                       bool pour_entete)
 {
     if (valeur_globale->est_externe) {
         os << "extern ";
     }
     else if (valeur_globale->est_constante) {
-        os << "static const ";
+        if (pour_entete) {
+            os << "extern ";
+        }
+        os << "const ";
     }
     else {
         // À FAIRE : permet de définir la visibilité des globales
@@ -710,13 +716,23 @@ struct GeneratriceCodeC {
 
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale);
+    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
 
     void declare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
 
     void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
+                     CoulisseC &coulisse,
                      Enchaineuse &os);
+
+    void genere_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
+
+    void genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                            const kuri::tableau<AtomeFonction *> &fonctions,
+                            Enchaineuse &os);
+
+    void genere_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
+    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
 };
 
 GeneratriceCodeC::GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
@@ -1486,9 +1502,11 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
     }
 }
 
-void GeneratriceCodeC::declare_globale(Enchaineuse &os, const AtomeGlobale *valeur_globale)
+void GeneratriceCodeC::declare_globale(Enchaineuse &os,
+                                       const AtomeGlobale *valeur_globale,
+                                       bool pour_entete)
 {
-    declare_visibilite_globale(os, valeur_globale);
+    declare_visibilite_globale(os, valeur_globale, pour_entete);
 
     auto type = valeur_globale->type->comme_pointeur()->type_pointe;
     os << broyeuse.nom_broye_type(type) << ' ';
@@ -1543,13 +1561,13 @@ void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *at
     os << ")";
 }
 
-void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
-                                   const kuri::tableau<AtomeFonction *> &fonctions,
-                                   Enchaineuse &os)
+void GeneratriceCodeC::genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                                          const kuri::tableau<AtomeFonction *> &fonctions,
+                                          Enchaineuse &os)
 {
     // prédéclare les globales pour éviter les problèmes de références cycliques
     POUR (globales) {
-        declare_globale(os, it);
+        declare_globale(os, it, true);
         os << ";\n";
     }
 
@@ -1561,8 +1579,90 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         os << ";\n\n";
     }
 
+    // Définie ensuite les fonctions enlignées.
+    POUR (fonctions) {
+        /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
+        if (it->instructions.taille() == 0 || !it->enligne) {
+            continue;
+        }
+
+        genere_code_fonction(it, os);
+    }
+}
+
+void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enchaineuse &os)
+{
+    declare_fonction(os, atome_fonc);
+
+    // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+
+    for (auto param : atome_fonc->params_entrees) {
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    os << "\n{\n";
+
+    initialise_trace_appel(atome_fonc, os);
+
+    m_fonction_courante = atome_fonc;
+
+    auto numero_inst = atome_fonc->params_entrees.taille();
+
+    /* crée une variable local pour la valeur de sortie */
+    auto type_fonction = atome_fonc->type->comme_fonction();
+    if (!type_fonction->type_sortie->est_rien()) {
+        auto param = atome_fonc->param_sortie;
+        auto type_pointeur = param->type->comme_pointeur();
+        os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
+        os << broyeuse.broye_nom_simple(param->ident);
+        os << ";\n";
+
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    /* Génère le code pour les accès de membres des retours mutliples. */
+    if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+        for (auto &param : atome_fonc->decl->params_sorties) {
+            genere_code_pour_instruction(
+                param->comme_declaration_variable()->atome->comme_instruction(), os);
+        }
+    }
+
+    for (auto inst : atome_fonc->instructions) {
+        inst->numero = numero_inst++;
+        genere_code_pour_instruction(inst, os);
+    }
+
+    m_fonction_courante = nullptr;
+
+    os << "}\n\n";
+}
+
+void GeneratriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os)
+{
+    auto fichier = coulisse.ajoute_fichier_c();
+    std::ofstream of;
+    of.open(
+        std::string(fichier.chemin_fichier.pointeur(), size_t(fichier.chemin_fichier.taille())));
+    os.imprime_dans_flux(of);
+    of.close();
+    os.reinitialise();
+}
+
+void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
+                                   const kuri::tableau<AtomeFonction *> &fonctions,
+                                   CoulisseC &coulisse,
+                                   Enchaineuse &os)
+{
+    os.reinitialise();
+    os << "#include \"compilation_kuri.h\"\n";
+
     // définis ensuite les globales
     POUR (globales) {
+        if (it->est_externe) {
+            /* Inutile de regénérer le code. */
+            continue;
+        }
         auto valeur_globale = it;
         auto valeur_initialisateur = kuri::chaine_statique();
 
@@ -1571,7 +1671,7 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
                 valeur_globale->initialisateur, os, true);
         }
 
-        declare_globale(os, valeur_globale);
+        declare_globale(os, valeur_globale, false);
 
         if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
             os << " = " << valeur_initialisateur;
@@ -1580,81 +1680,67 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         os << ";\n";
     }
 
+    vide_enchaineuse_dans_fichier(coulisse, os);
+    os << "#include \"compilation_kuri.h\"\n";
+
+    /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
+     * fichiers. */
+    constexpr auto nombre_instructions_max_par_fichier = 50000;
+    int nombre_instructions = 0;
+
     // définis enfin les fonction
     POUR (fonctions) {
-        auto atome_fonc = it;
-        if (atome_fonc->instructions.taille() == 0) {
-            // ignore les fonctions externes
+        /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
+        if (it->instructions.taille() == 0 || it->enligne) {
             continue;
         }
 
-        declare_fonction(os, atome_fonc);
+        genere_code_fonction(it, os);
+        nombre_instructions += it->instructions.taille();
 
-        // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
-
-        for (auto param : it->params_entrees) {
-            table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
+        if (nombre_instructions > nombre_instructions_max_par_fichier) {
+            vide_enchaineuse_dans_fichier(coulisse, os);
+            os << "#include \"compilation_kuri.h\"\n";
+            nombre_instructions = 0;
         }
+    }
 
-        os << "\n{\n";
-
-        initialise_trace_appel(atome_fonc, os);
-
-        m_fonction_courante = atome_fonc;
-
-        auto numero_inst = atome_fonc->params_entrees.taille();
-
-        /* crée une variable local pour la valeur de sortie */
-        auto type_fonction = atome_fonc->type->comme_fonction();
-        if (!type_fonction->type_sortie->est_rien()) {
-            auto param = atome_fonc->param_sortie;
-            auto type_pointeur = param->type->comme_pointeur();
-            os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
-            os << broyeuse.broye_nom_simple(param->ident);
-            os << ";\n";
-
-            table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
-        }
-
-        /* Génère le code pour les accès de membres des retours mutliples. */
-        if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
-            for (auto &param : atome_fonc->decl->params_sorties) {
-                genere_code_pour_instruction(
-                    param->comme_declaration_variable()->atome->comme_instruction(), os);
-            }
-        }
-
-        for (auto inst : atome_fonc->instructions) {
-            inst->numero = numero_inst++;
-            genere_code_pour_instruction(inst, os);
-        }
-
-        m_fonction_courante = nullptr;
-
-        os << "}\n\n";
+    if (nombre_instructions != 0) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
     }
 }
 
-static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
-                                    EspaceDeTravail &espace,
-                                    ProgrammeRepreInter const &repr_inter_programme,
-                                    Broyeuse &broyeuse,
-                                    std::ostream &fichier_sortie)
+void GeneratriceCodeC::genere_code(ProgrammeRepreInter const &repr_inter_programme,
+                                   CoulisseC &coulisse)
 {
-    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
     Enchaineuse enchaineuse;
-
-    auto generatrice = GeneratriceCodeC(espace, broyeuse);
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
+    genere_code_debut_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
     POUR (repr_inter_programme.types) {
         convertisseuse_type_c.genere_code_pour_type(it, enchaineuse);
     }
 
-    generatrice.genere_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+    genere_code_entete(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
-    enchaineuse.imprime_dans_flux(fichier_sortie);
+    std::ofstream of;
+    of.open("/tmp/compilation_kuri.h");
+    enchaineuse.imprime_dans_flux(of);
+    of.close();
+
+    genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
+}
+
+static void genere_code_C_depuis_RI(EspaceDeTravail &espace,
+                                    ProgrammeRepreInter const &repr_inter_programme,
+                                    CoulisseC &coulisse,
+                                    Broyeuse &broyeuse)
+{
+
+    auto generatrice = GeneratriceCodeC(espace, broyeuse);
+    generatrice.genere_code(repr_inter_programme, coulisse);
 }
 
 static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1751,18 +1837,18 @@ static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
 {
     constructrice_ri.genere_ri_pour_initialisation_globales(
         &espace, fonction, repr_inter_programme.globales);
-    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne sont
-     * peut-être pas encore dans la liste. */
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
+     * sont peut-être pas encore dans la liste. */
     repr_inter_programme.ajourne_globales_pour_fonction(fonction);
 }
 
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
+                                                     CoulisseC &coulisse,
                                                      Programme *programme,
                                                      kuri::tableau<Bibliotheque *> &bibliotheques,
-                                                     Broyeuse &broyeuse,
-                                                     std::ostream &fichier_sortie)
+                                                     Broyeuse &broyeuse)
 {
     auto fonction_principale = espace.fonction_principale;
     if (fonction_principale == nullptr) {
@@ -1782,17 +1868,17 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     return true;
 }
 
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    ConstructriceRI &constructrice_ri,
                                                    EspaceDeTravail &espace,
+                                                   CoulisseC &coulisse,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
-                                                   Broyeuse &broyeuse,
-                                                   std::ostream &fichier_sortie)
+                                                   Broyeuse &broyeuse)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
@@ -1824,35 +1910,25 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     return true;
 }
 
 static bool genere_code_C(Compilatrice &compilatrice,
                           ConstructriceRI &constructrice_ri,
                           EspaceDeTravail &espace,
+                          CoulisseC &coulisse,
                           Programme *programme,
                           kuri::tableau<Bibliotheque *> &bibliotheques,
-                          Broyeuse &broyeuse,
-                          std::ostream &fichier_sortie)
+                          Broyeuse &broyeuse)
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        return genere_code_C_depuis_fonction_principale(compilatrice,
-                                                        constructrice_ri,
-                                                        espace,
-                                                        programme,
-                                                        bibliotheques,
-                                                        broyeuse,
-                                                        fichier_sortie);
+        return genere_code_C_depuis_fonction_principale(
+            compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
     }
 
-    return genere_code_C_depuis_fonctions_racines(compilatrice,
-                                                  constructrice_ri,
-                                                  espace,
-                                                  programme,
-                                                  bibliotheques,
-                                                  broyeuse,
-                                                  fichier_sortie);
+    return genere_code_C_depuis_fonctions_racines(
+        compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1888,10 +1964,11 @@ static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation 
 }
 
 static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
-                                                  OptionsDeCompilation const &ops)
+                                                  OptionsDeCompilation const &ops,
+                                                  CoulisseC::FichierC const &fichier)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c /tmp/compilation_kuri.c ";
+    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c " << fichier.chemin_fichier << " ";
 
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -fPIC ";
@@ -1932,7 +2009,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    enchaineuse << " -o " << nom_sortie_fichier_objet(ops);
+    enchaineuse << " -o " << fichier.chemin_fichier_objet;
 
     return enchaineuse.chaine();
 }
@@ -1945,34 +2022,58 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 {
     m_bibliotheques.efface();
 
-    std::ofstream of;
-    of.open("/tmp/compilation_kuri.c");
-
     std::cout << "Génération du code..." << std::endl;
     auto debut_generation_code = dls::chrono::compte_seconde();
     if (!genere_code_C(
-            compilatrice, constructrice_ri, espace, programme, m_bibliotheques, broyeuse, of)) {
+            compilatrice, constructrice_ri, espace, *this, programme, m_bibliotheques, broyeuse)) {
         return false;
     }
     temps_generation_code = debut_generation_code.temps();
 
-    of.close();
-
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
-    auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
+    kuri::tablet<pid_t, 16> enfants;
 
-    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+    POUR (m_fichiers) {
+        auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
-    auto err = system(dls::chaine(commande).c_str());
+        auto child_pid = fork();
+        if (child_pid == 0) {
+            auto err = system(dls::chaine(commande).c_str());
+            exit(err == 0 ? 0 : 1);
+        }
+
+        enfants.ajoute(child_pid);
+    }
+
+    auto possede_erreur = false;
+    POUR (enfants) {
+        int etat;
+        if (waitpid(it, &etat, 0) != it) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (!WIFEXITED(etat)) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (WEXITSTATUS(etat) != 0) {
+            possede_erreur = true;
+            continue;
+        }
+    }
+
+    if (possede_erreur) {
+        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+        return false;
+    }
 
     temps_fichier_objet = debut_fichier_objet.temps();
 
-    if (err != 0) {
-        espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
-        return false;
-    }
 #endif
 
     return true;
@@ -2014,7 +2115,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         }
     }
 
-    enchaineuse << " /tmp/compilation_kuri.o ";
+    POUR (m_fichiers) {
+        enchaineuse << " " << it.chemin_fichier_objet << " ";
+    }
 
     if (espace.options.architecture == ArchitectureCible::X86) {
         enchaineuse << " /tmp/r16_tables_x86.o ";
@@ -2061,7 +2164,8 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
     }
     /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
-     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
+     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe).
+     */
     enchaineuse << " -Wl,-Bdynamic";
 
     if (espace.options.architecture == ArchitectureCible::X86) {
@@ -2084,4 +2188,15 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     temps_executable = debut_executable.temps();
     return true;
 #endif
+}
+
+CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
+{
+    auto nom_base_fichier = enchaine("/tmp/compilation_kuri", m_fichiers.taille());
+    auto nom_fichier = enchaine(nom_base_fichier, ".c");
+    auto nom_fichier_objet = enchaine(nom_base_fichier, ".o");
+
+    FichierC resultat = {nom_fichier, nom_fichier_objet};
+    m_fichiers.ajoute(resultat);
+    return m_fichiers.derniere();
 }

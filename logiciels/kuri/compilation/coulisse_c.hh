@@ -12,6 +12,13 @@ struct Bibliotheque;
 struct CoulisseC final : public Coulisse {
     kuri::tableau<Bibliotheque *> m_bibliotheques{};
 
+    struct FichierC {
+        kuri::chaine chemin_fichier{};
+        kuri::chaine chemin_fichier_objet{};
+    };
+
+    kuri::tableau<FichierC> m_fichiers{};
+
     bool cree_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
                             Programme *programme,
@@ -21,4 +28,6 @@ struct CoulisseC final : public Coulisse {
     bool cree_executable(Compilatrice &compilatrice,
                          EspaceDeTravail &espace,
                          Programme *programme) override;
+
+    FichierC &ajoute_fichier_c();
 };
