@@ -2158,7 +2158,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
     }
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__REDEFINITION);
-    auto decl_existante = decl->bloc_parent->declaration_avec_meme_ident_que(decl);
+    auto decl_existante = decl->bloc_parent->declaration_pour_ident(decl->ident);
 
     if (!decl_existante || !decl_existante->est_entete_fonction()) {
         return CodeRetourValidation::OK;
