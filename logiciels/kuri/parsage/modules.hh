@@ -33,7 +33,7 @@ struct NoeudDirectivePreExecutable;
 struct SiteSource;
 struct Statistiques;
 
-enum class SourceFichier {
+enum class SourceFichier : unsigned char {
     /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
     DISQUE,
     /* Le fichier vient d'une instruction "ajoute_chaine_*". */
@@ -56,19 +56,19 @@ struct Fichier {
     long id_ = 0;
 
     std::mutex mutex{};
+
+    SourceFichier source = SourceFichier::DISQUE;
     bool fut_lexe = false;
     bool fut_charge = false;
     bool en_chargement = false;
     bool en_lexage = false;
+    bool fut_parse = false;
 
     kuri::ensemblon<Module *, 16> modules_importes{};
-
-    bool fut_parse = false;
 
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
-    SourceFichier source = SourceFichier::DISQUE;
     /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     long decalage_fichier = 0;
 
