@@ -165,7 +165,7 @@ struct Module {
         chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
-    COPIE_CONSTRUCT(Module);
+    EMPECHE_COPIE(Module);
 
     void ajoute_fichier(Fichier *fichier);
 
