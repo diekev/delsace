@@ -208,19 +208,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 }
             }
 
-            if (noeud->est_entete_fonction()) {
-                /* Visite manuellement les enfants des entêtes, car nous irions visiter le corps
-                 * qui ne fut pas encore typé. */
-                auto entete = noeud->comme_entete_fonction();
-
-                POUR (entete->params) {
-                    rassemble_dependances(it);
-                }
-
-                POUR (entete->params_sorties) {
-                    rassemble_dependances(it);
-                }
-
+            if (noeud->est_corps_fonction() && racine != noeud) {
+                /* Ignore le corps qui ne fut pas encore typé. */
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
@@ -1001,7 +990,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme && entete->est_externe;
+        return !entete->est_metaprogramme && !entete->est_polymorphe && entete->est_externe;
     }
 
     if (noeud->est_corps_fonction()) {
@@ -1038,6 +1027,14 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
+        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->est_polymorphe) {
+            return false;
+        }
+
+        if (noeud->est_structure() && noeud->comme_structure()->est_polymorphe) {
+            return false;
+        }
+
         return !(noeud->est_charge() || noeud->est_importe());
     }
 
@@ -1084,6 +1081,11 @@ static bool declaration_est_invalide(NoeudExpression *decl)
 static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_module)
 {
     POUR_TABLEAU_PAGE (sys_module.modules) {
+        /* Il est possible d'avoir un module vide. */
+        if (it.fichiers.est_vide()) {
+            continue;
+        }
+
         if (it.bloc == nullptr) {
             return false;
         }

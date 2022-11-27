@@ -1056,6 +1056,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             if (!bloc_constantes_polymorphiques.est_vide()) {
                 auto bloc_constantes = bloc_constantes_polymorphiques.haut();
+
+                if (bloc_constantes->declaration_pour_ident(noeud->ident) != nullptr) {
+                    recule();
+                    rapporte_erreur("redéfinition du type polymorphique");
+                }
+
                 bloc_constantes->ajoute_membre(noeud_decl_param);
             }
             else if (!m_est_declaration_type_opaque) {
