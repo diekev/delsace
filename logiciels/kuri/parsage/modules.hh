@@ -74,7 +74,7 @@ struct Fichier {
 
     Fichier() = default;
 
-    COPIE_CONSTRUCT(Fichier);
+    EMPECHE_COPIE(Fichier);
 
     /**
      * Retourne vrai si le fichier importe un module du nom spécifié.
