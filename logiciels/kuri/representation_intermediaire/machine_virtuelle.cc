@@ -610,7 +610,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur)) {
         auto message = depile<kuri::chaine_statique>(site);
-        auto ligne = depile<int>(site);
+        /* Dans les noeuds codes, les lignes commencent à 1. */
+        auto ligne = depile<int>(site) - 1;
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
@@ -620,7 +621,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement)) {
         auto message = depile<kuri::chaine_statique>(site);
-        auto ligne = depile<int>(site);
+        /* Dans les noeuds codes, les lignes commencent à 1. */
+        auto ligne = depile<int>(site) - 1;
         auto fichier = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
