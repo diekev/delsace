@@ -466,6 +466,10 @@ void Tacheronne::gere_tache()
                 compilatrice.gestionnaire_code->fonction_initialisation_type_creee(unite);
                 break;
             }
+            case GenreTache::NOMBRE_ELEMENTS:
+            {
+                break;
+            }
         }
     }
 
