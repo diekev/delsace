@@ -81,12 +81,12 @@ struct Fichier {
      */
     bool importe_module(IdentifiantCode *nom_module) const;
 
-    kuri::chaine const &chemin() const
+    kuri::chaine_statique chemin() const
     {
         return chemin_;
     }
 
-    kuri::chaine const &nom() const
+    kuri::chaine_statique nom() const
     {
         return nom_;
     }
