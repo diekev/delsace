@@ -339,6 +339,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     memoire_fonctions += fonctions.memoire_utilisee();
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
         memoire_fonctions += it.params_entrees.taille_memoire();
+        memoire_fonctions += it.instructions.taille_memoire();
         memoire_fonctions += it.chunk.capacite;
         memoire_fonctions += it.chunk.locales.taille_memoire();
         memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
