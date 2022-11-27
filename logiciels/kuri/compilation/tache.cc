@@ -10,6 +10,10 @@ const char *chaine_genre_tache(GenreTache genre)
         return CHAINE;
     switch (genre) {
         ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
+        case GenreTache::NOMBRE_ELEMENTS:
+        {
+            break;
+        }
     }
 #undef ENUMERE_GENRE_TACHE
 
