@@ -607,17 +607,6 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
    __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
 	)";
 
-#if 0
-	enchaineuse << "#include <signal.h>\n";
-	enchaineuse << "static void gere_erreur_segmentation(int s)\n";
-	enchaineuse << "{\n";
-	enchaineuse << "    if (s == SIGSEGV) {\n";
-	enchaineuse << "        " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur de ségmentation dans une fonction\");\n";
-	enchaineuse << "    }\n";
-	enchaineuse << "    " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur inconnue\");\n";
-	enchaineuse << "}\n";
-#endif
-
     /* déclaration des types de bases */
     enchaineuse << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
