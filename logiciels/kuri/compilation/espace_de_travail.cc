@@ -160,12 +160,16 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
         }
         case GenreTache::GENERATION_CODE_MACHINE:
         {
-            nouvelle_phase = PhaseCompilation::APRES_GENERATION_OBJET;
+            if (phase > PhaseCompilation::APRES_GENERATION_OBJET) {
+                nouvelle_phase = PhaseCompilation::APRES_GENERATION_OBJET;
+            }
             break;
         }
         case GenreTache::LIAISON_PROGRAMME:
         {
-            nouvelle_phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
+            if (phase > PhaseCompilation::APRES_LIAISON_EXECUTABLE) {
+                nouvelle_phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
+            }
             break;
         }
         case GenreTache::DORS:

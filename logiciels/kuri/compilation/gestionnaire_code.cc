@@ -900,6 +900,7 @@ UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTra
 {
     auto unite = cree_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
     unite->programme = programme;
+    TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
     return unite;
 }
 
@@ -907,6 +908,7 @@ void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Prog
 {
     auto unite = cree_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
     unite->programme = programme;
+    TACHE_AJOUTEE(LIAISON_PROGRAMME);
 }
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
@@ -1569,6 +1571,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
      * d'attente. */
     if (espace->unite_pour_code_machine) {
         espace->unite_pour_code_machine->annule = true;
+        TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
     }
 
     auto unite_code_machine = requiers_generation_code_machine(espace, espace->programme);

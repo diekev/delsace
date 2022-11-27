@@ -33,7 +33,7 @@ struct NoeudDirectivePreExecutable;
 struct SiteSource;
 struct Statistiques;
 
-enum class SourceFichier {
+enum class SourceFichier : unsigned char {
     /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
     DISQUE,
     /* Le fichier vient d'une instruction "ajoute_chaine_*". */
@@ -56,37 +56,37 @@ struct Fichier {
     long id_ = 0;
 
     std::mutex mutex{};
+
+    SourceFichier source = SourceFichier::DISQUE;
     bool fut_lexe = false;
     bool fut_charge = false;
     bool en_chargement = false;
     bool en_lexage = false;
+    bool fut_parse = false;
 
     kuri::ensemblon<Module *, 16> modules_importes{};
-
-    bool fut_parse = false;
 
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
-    SourceFichier source = SourceFichier::DISQUE;
     /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     long decalage_fichier = 0;
 
     Fichier() = default;
 
-    COPIE_CONSTRUCT(Fichier);
+    EMPECHE_COPIE(Fichier);
 
     /**
      * Retourne vrai si le fichier importe un module du nom spécifié.
      */
     bool importe_module(IdentifiantCode *nom_module) const;
 
-    kuri::chaine const &chemin() const
+    kuri::chaine_statique chemin() const
     {
         return chemin_;
     }
 
-    kuri::chaine const &nom() const
+    kuri::chaine_statique nom() const
     {
         return nom_;
     }
@@ -141,7 +141,10 @@ using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFi
 struct Module {
     /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
     IdentifiantCode *nom_ = nullptr;
+
     kuri::chaine chemin_{""};
+    kuri::chaine chemin_bibliotheque_32bits{};
+    kuri::chaine chemin_bibliotheque_64bits{};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
@@ -152,12 +155,9 @@ struct Module {
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier qu'il reste des fichiers à
      * parser. */
     bool fichiers_sont_sales = true;
-
-    kuri::chaine chemin_bibliotheque_32bits{};
-    kuri::chaine chemin_bibliotheque_64bits{};
+    bool execution_directive_requise = false;
 
     NoeudDirectivePreExecutable *directive_pre_executable = nullptr;
-    bool execution_directive_requise = false;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
@@ -165,7 +165,7 @@ struct Module {
         chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
-    COPIE_CONSTRUCT(Module);
+    EMPECHE_COPIE(Module);
 
     void ajoute_fichier(Fichier *fichier);
 

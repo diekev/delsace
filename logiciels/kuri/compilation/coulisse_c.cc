@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <set>
+#include <sys/wait.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
@@ -657,13 +658,18 @@ static bool est_pointeur_vers_tableau_fixe(Type const *type)
     return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
-static void declare_visibilite_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
+static void declare_visibilite_globale(Enchaineuse &os,
+                                       AtomeGlobale const *valeur_globale,
+                                       bool pour_entete)
 {
     if (valeur_globale->est_externe) {
         os << "extern ";
     }
     else if (valeur_globale->est_constante) {
-        os << "static const ";
+        if (pour_entete) {
+            os << "extern ";
+        }
+        os << "const ";
     }
     else {
         // À FAIRE : permet de définir la visibilité des globales
@@ -696,958 +702,1045 @@ struct GeneratriceCodeC {
         return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
     }
 
-    GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
-        : m_espace(espace), broyeuse(broyeuse_)
-    {
-    }
+    GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_);
 
     EMPECHE_COPIE(GeneratriceCodeC);
 
-    kuri::chaine_statique genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
-    {
-        switch (atome->genre_atome) {
-            case Atome::Genre::FONCTION:
-            {
-                auto atome_fonc = static_cast<AtomeFonction const *>(atome);
-                return atome_fonc->nom;
-            }
-            case Atome::Genre::CONSTANTE:
-            {
-                auto atome_const = static_cast<AtomeConstante const *>(atome);
+    kuri::chaine_statique genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 
-                switch (atome_const->genre) {
-                    case AtomeConstante::Genre::GLOBALE:
-                    {
-                        auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
+    void debute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
 
-                        if (valeur_globale->ident) {
-                            return valeur_globale->ident->nom;
-                        }
+    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
 
-                        return table_valeurs.valeur_ou(valeur_globale, "");
-                    }
-                    case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                    {
-                        auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
-                        auto valeur = genere_code_pour_atome(
-                            transtype_const->valeur, os, pour_globale);
-                        return enchaine("(",
-                                        broyeuse.nom_broye_type(transtype_const->type),
-                                        ")(",
-                                        valeur,
-                                        ")");
-                    }
-                    case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                    {
-                        break;
-                    }
-                    case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                    {
-                        break;
-                    }
-                    case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                    {
-                        auto inst_acces = static_cast<AccedeIndexConstant const *>(atome_const);
-                        auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
-                        auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
+    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os);
 
-                        if (est_type_tableau_fixe(
-                                inst_acces->accede->type->comme_pointeur()->type_pointe)) {
-                            valeur_accede = enchaine(valeur_accede, ".d");
-                        }
+    void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-                        return enchaine(valeur_accede, "[", valeur_index, "]");
-                    }
-                    case AtomeConstante::Genre::VALEUR:
-                    {
-                        auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
+    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
 
-                        switch (valeur_const->valeur.genre) {
-                            case AtomeValeurConstante::Valeur::Genre::NULLE:
-                            {
-                                return "0";
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::TYPE:
-                            {
-                                auto type = valeur_const->valeur.type;
-                                if (type->est_type_de_donnees()) {
-                                    auto type_de_donnees = type->comme_type_de_donnees();
-                                    if (type_de_donnees->type_connu) {
-                                        return enchaine(
-                                            type_de_donnees->type_connu->index_dans_table_types);
-                                    }
-                                }
-                                return enchaine(type->index_dans_table_types);
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                            {
-                                return enchaine(valeur_const->valeur.type->taille_octet);
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::REELLE:
-                            {
-                                auto type = valeur_const->type;
-
-                                if (type->taille_octet == 4) {
-                                    return enchaine("(float)", valeur_const->valeur.valeur_reelle);
-                                }
-
-                                return enchaine("(double)", valeur_const->valeur.valeur_reelle);
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                            {
-                                auto type = valeur_const->type;
-                                auto valeur_entiere = valeur_const->valeur.valeur_entiere;
-
-                                if (type->est_entier_naturel()) {
-                                    if (type->taille_octet == 1) {
-                                        return enchaine(static_cast<unsigned int>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 2) {
-                                        return enchaine(
-                                            static_cast<unsigned short>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 4) {
-                                        return enchaine(static_cast<unsigned int>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 8) {
-                                        return enchaine(valeur_entiere, "UL");
-                                    }
-                                }
-                                else {
-                                    if (type->taille_octet == 1) {
-                                        return enchaine(static_cast<int>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 2) {
-                                        return enchaine(static_cast<short>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 4 || type->taille_octet == 0) {
-                                        return enchaine(static_cast<int>(valeur_entiere));
-                                    }
-                                    else if (type->taille_octet == 8) {
-                                        return enchaine(valeur_entiere, "L");
-                                    }
-                                }
-
-                                return "";
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                            {
-                                return enchaine(valeur_const->valeur.valeur_booleenne);
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                            {
-                                return enchaine(valeur_const->valeur.valeur_entiere);
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                            {
-                                return "";
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                            {
-                                auto type = static_cast<TypeCompose *>(atome->type);
-                                auto tableau_valeur =
-                                    valeur_const->valeur.valeur_structure.pointeur;
-                                auto resultat = Enchaineuse();
-
-                                auto virgule = "{ ";
-                                // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
-                                // n'est pas initialisé
-                                auto virgule_placee = false;
-
-                                auto index_membre = 0;
-                                for (auto i = 0; i < type->membres.taille(); ++i) {
-                                    if (type->membres[i].drapeaux &
-                                        TypeCompose::Membre::EST_CONSTANT) {
-                                        continue;
-                                    }
-
-                                    // les tableaux fixes ont une initialisation nulle
-                                    if (tableau_valeur[index_membre] == nullptr) {
-                                        index_membre += 1;
-                                        continue;
-                                    }
-
-                                    resultat << virgule;
-                                    virgule_placee = true;
-
-                                    resultat << ".";
-                                    if (type->membres[i].nom == ID::chaine_vide) {
-                                        resultat << "membre_invisible";
-                                    }
-                                    else {
-                                        resultat
-                                            << broyeuse.broye_nom_simple(type->membres[i].nom);
-                                    }
-                                    resultat << " = ";
-                                    resultat << genere_code_pour_atome(
-                                        tableau_valeur[index_membre], os, pour_globale);
-
-                                    virgule = ", ";
-                                    index_membre += 1;
-                                }
-
-                                if (!virgule_placee) {
-                                    resultat << "{ 0";
-                                }
-
-                                resultat << " }";
-
-                                if (pour_globale) {
-                                    return stockage_chn.ajoute_chaine_statique(
-                                        resultat.chaine_statique());
-                                }
-
-                                auto nom = enchaine("val", atome, index_chaine++);
-                                os << "  " << broyeuse.nom_broye_type(atome->type) << " " << nom
-                                   << " = " << resultat.chaine() << ";\n";
-                                return nom;
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                            {
-                                auto pointeur_tableau =
-                                    valeur_const->valeur.valeur_tableau.pointeur;
-                                auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
-                                auto resultat = Enchaineuse();
-
-                                auto virgule = "{ .d = { ";
-
-                                for (auto i = 0; i < taille_tableau; ++i) {
-                                    resultat << virgule;
-                                    resultat << genere_code_pour_atome(
-                                        pointeur_tableau[i], os, pour_globale);
-                                    virgule = ", ";
-                                }
-
-                                if (taille_tableau == 0) {
-                                    resultat << "{}";
-                                }
-                                else {
-                                    resultat << " } }";
-                                }
-
-                                return stockage_chn.ajoute_chaine_statique(
-                                    resultat.chaine_statique());
-                            }
-                            case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                            {
-                                auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
-                                auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
-
-                                enchaineuse_tmp.reinitialise();
-
-                                auto virgule = "{ ";
-
-                                for (auto i = 0; i < taille_donnees; ++i) {
-                                    auto octet = pointeur_donnnees[i];
-                                    enchaineuse_tmp << virgule;
-                                    enchaineuse_tmp << "0x";
-                                    enchaineuse_tmp
-                                        << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                                    enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
-                                    virgule = ", ";
-                                }
-
-                                if (taille_donnees == 0) {
-                                    enchaineuse_tmp << "{";
-                                }
-
-                                enchaineuse_tmp << " }";
-
-                                return stockage_chn.ajoute_chaine_statique(
-                                    enchaineuse_tmp.chaine_statique());
-                            }
-                        }
-                    }
-                }
-
-                return "";
-            }
-            case Atome::Genre::INSTRUCTION:
-            {
-                auto inst = atome->comme_instruction();
-                return table_valeurs.valeur_ou(inst, "");
-            }
-            case Atome::Genre::GLOBALE:
-            {
-                return table_globales.valeur_ou(atome, "");
-            }
-        }
-
-        return "";
-    }
-
-    void debute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os)
-    {
-#ifndef AJOUTE_TRACE_APPEL
-        return;
-#else
-        /* La fonction d'initialisation des globales n'a pas de site. */
-        if (m_fonction_courante->sanstrace || !inst_appel->site) {
-            return;
-        }
-
-        if (!m_espace.options.utilise_trace_appel) {
-            return;
-        }
-
-        auto const &lexeme = inst_appel->site->lexeme;
-        auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
-        auto pos = position_lexeme(*lexeme);
-
-        os << "  DEBUTE_RECORD_TRACE_APPEL(";
-        os << pos.numero_ligne << ",";
-        os << pos.pos << ",";
-        os << "\"";
-
-        auto ligne = fichier->tampon()[pos.index_ligne];
-
-        POUR (ligne) {
-            os << "\\x" << dls::num::char_depuis_hex((it & 0xf0) >> 4)
-               << dls::num::char_depuis_hex(it & 0x0f);
-        }
-
-        os << "\",";
-        os << ligne.taille();
-        os << ");\n";
-#endif
-    }
-
-    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os)
-    {
-#ifndef AJOUTE_TRACE_APPEL
-        return;
-#else
-        if (m_fonction_courante->sanstrace || !inst_appel->site) {
-            return;
-        }
-
-        if (!m_espace.options.utilise_trace_appel) {
-            return;
-        }
-
-        os << "  TERMINE_RECORD_TRACE_APPEL;\n";
-#endif
-    }
-
-    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os)
-    {
-#ifndef AJOUTE_TRACE_APPEL
-        return;
-#else
-        if (atome_fonc->sanstrace) {
-            return;
-        }
-
-        if (!m_espace.options.utilise_trace_appel) {
-            return;
-        }
-
-        os << "INITIALISE_TRACE_APPEL(\"";
-
-        if (atome_fonc->lexeme != nullptr) {
-            auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
-            os << atome_fonc->lexeme->chaine << "\", " << atome_fonc->lexeme->chaine.taille()
-               << ", \"" << fichier->nom() << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
-        }
-        else {
-            os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
-               << "\"???\", 3, ";
-        }
-
-        os << atome_fonc->nom << ");\n";
-#endif
-    }
-
-    void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os)
-    {
-        switch (inst->genre) {
-            case Instruction::Genre::INVALIDE:
-            {
-                os << "  invalide\n";
-                break;
-            }
-            case Instruction::Genre::ALLOCATION:
-            {
-                auto type_pointeur = inst->type->comme_pointeur();
-                os << "  " << broyeuse.nom_broye_type(type_pointeur->type_pointe);
-
-                // les portées ne sont plus respectées : deux variables avec le même nom dans deux
-                // portées différentes auront le même nom ici dans la même portée donc nous
-                // ajoutons le numéro de l'instruction de la variable pour les différencier
-                if (inst->ident != nullptr) {
-                    auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
-                    os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
-                }
-                else {
-                    auto nom = enchaine("val", inst->numero);
-                    os << ' ' << nom << ";\n";
-                    table_valeurs.insere(inst, enchaine("&", nom));
-                }
-
-                break;
-            }
-            case Instruction::Genre::APPEL:
-            {
-                auto inst_appel = inst->comme_appel();
-
-                debute_trace_appel(inst_appel, os);
-
-                auto arguments = kuri::tablet<kuri::chaine, 10>();
-
-                POUR (inst_appel->args) {
-                    arguments.ajoute(genere_code_pour_atome(it, os, false));
-                }
-
-                os << "  ";
-
-                auto type_fonction = inst_appel->appele->type->comme_fonction();
-                if (!type_fonction->type_sortie->est_rien()) {
-                    auto nom_ret = enchaine("__ret", inst->numero);
-                    os << broyeuse.nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
-                    table_valeurs.insere(inst, nom_ret);
-                }
-
-                os << genere_code_pour_atome(inst_appel->appele, os, false);
-
-                auto virgule = "(";
-
-                POUR (arguments) {
-                    os << virgule;
-                    os << it;
-                    virgule = ", ";
-                }
-
-                if (inst_appel->args.taille() == 0) {
-                    os << virgule;
-                }
-
-                os << ");\n";
-
-                termine_trace_appel(inst_appel, os);
-
-                break;
-            }
-            case Instruction::Genre::BRANCHE:
-            {
-                auto inst_branche = inst->comme_branche();
-                os << "  goto label" << inst_branche->label->id << ";\n";
-                break;
-            }
-            case Instruction::Genre::BRANCHE_CONDITION:
-            {
-                auto inst_branche = inst->comme_branche_cond();
-                auto condition = genere_code_pour_atome(inst_branche->condition, os, false);
-                os << "  if (" << condition;
-                os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
-                os << "else goto label" << inst_branche->label_si_faux->id << ";\n";
-                break;
-            }
-            case Instruction::Genre::CHARGE_MEMOIRE:
-            {
-                auto inst_charge = inst->comme_charge();
-                auto charge = inst_charge->chargee;
-                auto valeur = kuri::chaine_statique();
-
-                if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-                    valeur = table_valeurs.valeur_ou(charge, "");
-                }
-                else {
-                    valeur = table_globales.valeur_ou(charge, "");
-                }
-
-                assert(valeur != "");
-
-                if (valeur.pointeur()[0] == '&') {
-                    /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
-                     * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
-                     * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
-                     * membre de la structure qui est le tableau, et sert également à proprement
-                     * générer le code pour les indexages. */
-                    if (est_pointeur_vers_tableau_fixe(
-                            charge->type->comme_pointeur()->type_pointe)) {
-                        table_valeurs.insere(inst_charge,
-                                             enchaine("&(*", valeur.sous_chaine(1), ")"));
-                    }
-                    else {
-                        table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
-                    }
-                }
-                else {
-                    table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
-                }
-
-                break;
-            }
-            case Instruction::Genre::STOCKE_MEMOIRE:
-            {
-                auto inst_stocke = inst->comme_stocke_mem();
-                auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
-                auto ou = inst_stocke->ou;
-                auto valeur_ou = kuri::chaine_statique();
-
-                if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
-                    valeur_ou = table_valeurs.valeur_ou(ou, "");
-                }
-                else {
-                    valeur_ou = table_globales.valeur_ou(ou, "");
-                }
-
-                if (valeur_ou.pointeur()[0] == '&') {
-                    valeur_ou = valeur_ou.sous_chaine(1);
-                }
-                else {
-                    valeur_ou = enchaine("(*", valeur_ou, ")");
-                }
-
-                os << "  " << valeur_ou << " = " << valeur << ";\n";
-
-                break;
-            }
-            case Instruction::Genre::LABEL:
-            {
-                auto inst_label = inst->comme_label();
-                if (inst_label->id != 0) {
-                    os << "\n";
-                }
-                os << "label" << inst_label->id << ":;\n";
-                break;
-            }
-            case Instruction::Genre::OPERATION_UNAIRE:
-            {
-                auto inst_un = inst->comme_op_unaire();
-                auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
-
-                os << "  " << broyeuse.nom_broye_type(inst_un->type) << " val" << inst->numero
-                   << " = ";
-
-                switch (inst_un->op) {
-                    case OperateurUnaire::Genre::Positif:
-                    {
-                        break;
-                    }
-                    case OperateurUnaire::Genre::Invalide:
-                    {
-                        break;
-                    }
-                    case OperateurUnaire::Genre::Complement:
-                    {
-                        os << '-';
-                        break;
-                    }
-                    case OperateurUnaire::Genre::Non_Binaire:
-                    {
-                        os << '~';
-                        break;
-                    }
-                    case OperateurUnaire::Genre::Non_Logique:
-                    {
-                        os << '!';
-                        break;
-                    }
-                    case OperateurUnaire::Genre::Prise_Adresse:
-                    {
-                        os << '&';
-                        break;
-                    }
-                }
-
-                os << valeur;
-                os << ";\n";
-
-                table_valeurs.insere(inst, enchaine("val", inst->numero));
-                break;
-            }
-            case Instruction::Genre::OPERATION_BINAIRE:
-            {
-                auto inst_bin = inst->comme_op_binaire();
-                auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
-                auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
-
-                os << "  " << broyeuse.nom_broye_type(inst_bin->type) << " val" << inst->numero
-                   << " = ";
-
-                os << valeur_gauche;
-
-                switch (inst_bin->op) {
-                    case OperateurBinaire::Genre::Addition:
-                    case OperateurBinaire::Genre::Addition_Reel:
-                    {
-                        os << " + ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Soustraction:
-                    case OperateurBinaire::Genre::Soustraction_Reel:
-                    {
-                        os << " - ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Multiplication:
-                    case OperateurBinaire::Genre::Multiplication_Reel:
-                    {
-                        os << " * ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Division_Naturel:
-                    case OperateurBinaire::Genre::Division_Relatif:
-                    case OperateurBinaire::Genre::Division_Reel:
-                    {
-                        os << " / ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Reste_Naturel:
-                    case OperateurBinaire::Genre::Reste_Relatif:
-                    {
-                        os << " % ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Egal:
-                    case OperateurBinaire::Genre::Comp_Egal_Reel:
-                    {
-                        os << " == ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Inegal:
-                    case OperateurBinaire::Genre::Comp_Inegal_Reel:
-                    {
-                        os << " != ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Inf:
-                    case OperateurBinaire::Genre::Comp_Inf_Nat:
-                    case OperateurBinaire::Genre::Comp_Inf_Reel:
-                    {
-                        os << " < ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Inf_Egal:
-                    case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
-                    case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
-                    {
-                        os << " <= ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Sup:
-                    case OperateurBinaire::Genre::Comp_Sup_Nat:
-                    case OperateurBinaire::Genre::Comp_Sup_Reel:
-                    {
-                        os << " > ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Comp_Sup_Egal:
-                    case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
-                    case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
-                    {
-                        os << " >= ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Et_Binaire:
-                    {
-                        os << " & ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Ou_Binaire:
-                    {
-                        os << " | ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Ou_Exclusif:
-                    {
-                        os << " ^ ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Dec_Gauche:
-                    {
-                        os << " << ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Dec_Droite_Arithm:
-                    case OperateurBinaire::Genre::Dec_Droite_Logique:
-                    {
-                        os << " >> ";
-                        break;
-                    }
-                    case OperateurBinaire::Genre::Invalide:
-                    case OperateurBinaire::Genre::Indexage:
-                    {
-                        os << " invalide ";
-                        break;
-                    }
-                }
-
-                os << valeur_droite;
-                os << ";\n";
-
-                table_valeurs.insere(inst, enchaine("val", inst->numero));
-
-                break;
-            }
-            case Instruction::Genre::RETOUR:
-            {
-                auto inst_retour = inst->comme_retour();
-                if (inst_retour->valeur != nullptr) {
-                    auto atome = inst_retour->valeur;
-                    auto valeur_retour = genere_code_pour_atome(atome, os, false);
-                    os << "  return";
-                    os << ' ';
-                    os << valeur_retour;
-                }
-                else {
-                    os << "  return";
-                }
-                os << ";\n";
-                break;
-            }
-            case Instruction::Genre::ACCEDE_INDEX:
-            {
-                auto inst_acces = inst->comme_acces_index();
-                auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
-                auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
-
-                if (est_type_tableau_fixe(
-                        inst_acces->accede->type->comme_pointeur()->type_pointe)) {
-                    valeur_accede = enchaine(valeur_accede, ".d");
-                }
-
-                auto valeur = enchaine(valeur_accede, "[", valeur_index, "]");
-                table_valeurs.insere(inst, valeur);
-                break;
-            }
-            case Instruction::Genre::ACCEDE_MEMBRE:
-            {
-                auto inst_acces = inst->comme_acces_membre();
-
-                auto accede = inst_acces->accede;
-                auto valeur_accede = kuri::chaine_statique();
-
-                if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
-                    valeur_accede = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
-                }
-                else {
-                    valeur_accede = broyeuse.broye_nom_simple(
-                        table_globales.valeur_ou(accede, ""));
-                }
-
-                assert(valeur_accede != "");
-
-                auto type_pointeur = inst_acces->accede->type->comme_pointeur();
-
-                auto type_pointe = type_pointeur->type_pointe;
-                if (type_pointe->est_opaque()) {
-                    type_pointe = type_pointe->comme_opaque()->type_opacifie;
-                }
-
-                auto type_compose = static_cast<TypeCompose *>(type_pointe);
-                auto index_membre = static_cast<int>(
-                    static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
-
-                if (valeur_accede.pointeur()[0] == '&') {
-                    valeur_accede = enchaine(valeur_accede, ".");
-                }
-                else {
-                    valeur_accede = enchaine("&", valeur_accede, "->");
-                }
-
-                auto const &membre = type_compose->membres[index_membre];
-
-                /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
-                if (membre.nom == ID::chaine_vide) {
-                    valeur_accede = enchaine(valeur_accede, "membre_invisible");
-                }
-                else if (type_compose->est_tuple()) {
-                    valeur_accede = enchaine(valeur_accede, "_", index_membre);
-                }
-                else {
-                    valeur_accede = enchaine(valeur_accede, broyeuse.broye_nom_simple(membre.nom));
-                }
-
-                table_valeurs.insere(inst_acces, valeur_accede);
-                break;
-            }
-            case Instruction::Genre::TRANSTYPE:
-            {
-                auto inst_transtype = inst->comme_transtype();
-                auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
-                valeur = enchaine(
-                    "((", broyeuse.nom_broye_type(inst_transtype->type), ")(", valeur, "))");
-                table_valeurs.insere(inst, valeur);
-                break;
-            }
-        }
-    }
-
-    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale)
-    {
-        declare_visibilite_globale(os, valeur_globale);
-
-        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
-        os << broyeuse.nom_broye_type(type) << ' ';
-
-        if (valeur_globale->ident) {
-            auto nom_globale = broyeuse.broye_nom_simple(valeur_globale->ident);
-            os << nom_globale;
-            table_globales.insere(valeur_globale, enchaine("&", nom_globale));
-        }
-        else {
-            auto nom_globale = enchaine("globale", valeur_globale);
-            os << nom_globale;
-            table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
-        }
-    }
-
-    void declare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc)
-    {
-        if (atome_fonc->enligne) {
-            os << "static __attribute__((always_inline)) inline ";
-        }
-
-        auto type_fonction = atome_fonc->type->comme_fonction();
-        os << broyeuse.nom_broye_type(type_fonction->type_sortie) << " ";
-        os << atome_fonc->nom;
-
-        auto virgule = "(";
-
-        for (auto param : atome_fonc->params_entrees) {
-            os << virgule;
-
-            auto type_pointeur = param->type->comme_pointeur();
-            auto type_param = type_pointeur->type_pointe;
-            os << broyeuse.nom_broye_type(type_param) << ' ';
-
-            // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
-            // (void fonction(...)), n'imprime pas de nom
-            if (type_param->est_variadique() &&
-                type_param->comme_variadique()->type_pointe == nullptr) {
-                continue;
-            }
-
-            os << broyeuse.broye_nom_simple(param->ident);
-
-            virgule = ", ";
-        }
-
-        if (atome_fonc->params_entrees.taille() == 0) {
-            os << virgule;
-        }
-
-        os << ")";
-    }
+    void declare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
 
     void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
-                     Enchaineuse &os)
-    {
-        // prédéclare les globales pour éviter les problèmes de références cycliques
-        POUR (globales) {
-            declare_globale(os, it);
-            os << ";\n";
+                     CoulisseC &coulisse,
+                     Enchaineuse &os);
+
+    void genere_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
+
+    void genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                            const kuri::tableau<AtomeFonction *> &fonctions,
+                            Enchaineuse &os);
+
+    void genere_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
+    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
+};
+
+GeneratriceCodeC::GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
+    : m_espace(espace), broyeuse(broyeuse_)
+{
+}
+
+kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
+                                                               Enchaineuse &os,
+                                                               bool pour_globale)
+{
+    switch (atome->genre_atome) {
+        case Atome::Genre::FONCTION:
+        {
+            auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+            return atome_fonc->nom;
         }
+        case Atome::Genre::CONSTANTE:
+        {
+            auto atome_const = static_cast<AtomeConstante const *>(atome);
 
-        // prédéclare ensuite les fonction pour éviter les problèmes de
-        // dépendances cycliques, mais aussi pour prendre en compte les cas où
-        // les globales utilises des fonctions dans leurs initialisations
-        POUR (fonctions) {
-            declare_fonction(os, it);
-            os << ";\n\n";
-        }
+            switch (atome_const->genre) {
+                case AtomeConstante::Genre::GLOBALE:
+                {
+                    auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
 
-        // définis ensuite les globales
-        POUR (globales) {
-            auto valeur_globale = it;
-            auto valeur_initialisateur = kuri::chaine_statique();
+                    if (valeur_globale->ident) {
+                        return valeur_globale->ident->nom;
+                    }
 
-            if (valeur_globale->initialisateur) {
-                valeur_initialisateur = genere_code_pour_atome(
-                    valeur_globale->initialisateur, os, true);
-            }
+                    return table_valeurs.valeur_ou(valeur_globale, "");
+                }
+                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+                {
+                    auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
+                    auto valeur = genere_code_pour_atome(
+                        transtype_const->valeur, os, pour_globale);
+                    return enchaine(
+                        "(", broyeuse.nom_broye_type(transtype_const->type), ")(", valeur, ")");
+                }
+                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+                {
+                    auto inst_acces = static_cast<AccedeIndexConstant const *>(atome_const);
+                    auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
+                    auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-            declare_globale(os, valeur_globale);
+                    if (est_type_tableau_fixe(
+                            inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+                        valeur_accede = enchaine(valeur_accede, ".d");
+                    }
 
-            if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
-                os << " = " << valeur_initialisateur;
-            }
+                    return enchaine(valeur_accede, "[", valeur_index, "]");
+                }
+                case AtomeConstante::Genre::VALEUR:
+                {
+                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
 
-            os << ";\n";
-        }
+                    switch (valeur_const->valeur.genre) {
+                        case AtomeValeurConstante::Valeur::Genre::NULLE:
+                        {
+                            return "0";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TYPE:
+                        {
+                            auto type = valeur_const->valeur.type;
+                            if (type->est_type_de_donnees()) {
+                                auto type_de_donnees = type->comme_type_de_donnees();
+                                if (type_de_donnees->type_connu) {
+                                    return enchaine(
+                                        type_de_donnees->type_connu->index_dans_table_types);
+                                }
+                            }
+                            return enchaine(type->index_dans_table_types);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            return enchaine(valeur_const->valeur.type->taille_octet);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::REELLE:
+                        {
+                            auto type = valeur_const->type;
 
-        // définis enfin les fonction
-        POUR (fonctions) {
-            auto atome_fonc = it;
-            if (atome_fonc->instructions.taille() == 0) {
-                // ignore les fonctions externes
-                continue;
-            }
+                            if (type->taille_octet == 4) {
+                                return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+                            }
 
-            declare_fonction(os, atome_fonc);
+                            return enchaine("(double)", valeur_const->valeur.valeur_reelle);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+                        {
+                            auto type = valeur_const->type;
+                            auto valeur_entiere = valeur_const->valeur.valeur_entiere;
 
-            // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+                            if (type->est_entier_naturel()) {
+                                if (type->taille_octet == 1) {
+                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 2) {
+                                    return enchaine(static_cast<unsigned short>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 4) {
+                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 8) {
+                                    return enchaine(valeur_entiere, "UL");
+                                }
+                            }
+                            else {
+                                if (type->taille_octet == 1) {
+                                    return enchaine(static_cast<int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 2) {
+                                    return enchaine(static_cast<short>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 4 || type->taille_octet == 0) {
+                                    return enchaine(static_cast<int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 8) {
+                                    return enchaine(valeur_entiere, "L");
+                                }
+                            }
 
-            for (auto param : it->params_entrees) {
-                table_valeurs.insere(param,
-                                     enchaine("&", broyeuse.broye_nom_simple(param->ident)));
-            }
+                            return "";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+                        {
+                            return enchaine(valeur_const->valeur.valeur_booleenne);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+                        {
+                            return enchaine(valeur_const->valeur.valeur_entiere);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        {
+                            return "";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+                        {
+                            auto type = static_cast<TypeCompose *>(atome->type);
+                            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
+                            auto resultat = Enchaineuse();
 
-            os << "\n{\n";
+                            auto virgule = "{ ";
+                            // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
+                            // n'est pas initialisé
+                            auto virgule_placee = false;
 
-            initialise_trace_appel(atome_fonc, os);
+                            auto index_membre = 0;
+                            for (auto i = 0; i < type->membres.taille(); ++i) {
+                                if (type->membres[i].drapeaux &
+                                    TypeCompose::Membre::EST_CONSTANT) {
+                                    continue;
+                                }
 
-            m_fonction_courante = atome_fonc;
+                                // les tableaux fixes ont une initialisation nulle
+                                if (tableau_valeur[index_membre] == nullptr) {
+                                    index_membre += 1;
+                                    continue;
+                                }
 
-            auto numero_inst = atome_fonc->params_entrees.taille();
+                                resultat << virgule;
+                                virgule_placee = true;
 
-            /* crée une variable local pour la valeur de sortie */
-            auto type_fonction = atome_fonc->type->comme_fonction();
-            if (!type_fonction->type_sortie->est_rien()) {
-                auto param = atome_fonc->param_sortie;
-                auto type_pointeur = param->type->comme_pointeur();
-                os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
-                os << broyeuse.broye_nom_simple(param->ident);
-                os << ";\n";
+                                resultat << ".";
+                                if (type->membres[i].nom == ID::chaine_vide) {
+                                    resultat << "membre_invisible";
+                                }
+                                else {
+                                    resultat << broyeuse.broye_nom_simple(type->membres[i].nom);
+                                }
+                                resultat << " = ";
+                                resultat << genere_code_pour_atome(
+                                    tableau_valeur[index_membre], os, pour_globale);
 
-                table_valeurs.insere(param,
-                                     enchaine("&", broyeuse.broye_nom_simple(param->ident)));
-            }
+                                virgule = ", ";
+                                index_membre += 1;
+                            }
 
-            /* Génère le code pour les accès de membres des retours mutliples. */
-            if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
-                for (auto &param : atome_fonc->decl->params_sorties) {
-                    genere_code_pour_instruction(
-                        param->comme_declaration_variable()->atome->comme_instruction(), os);
+                            if (!virgule_placee) {
+                                resultat << "{ 0";
+                            }
+
+                            resultat << " }";
+
+                            if (pour_globale) {
+                                return stockage_chn.ajoute_chaine_statique(
+                                    resultat.chaine_statique());
+                            }
+
+                            auto nom = enchaine("val", atome, index_chaine++);
+                            os << "  " << broyeuse.nom_broye_type(atome->type) << " " << nom
+                               << " = " << resultat.chaine() << ";\n";
+                            return nom;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+                        {
+                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+                            auto resultat = Enchaineuse();
+
+                            auto virgule = "{ .d = { ";
+
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                resultat << virgule;
+                                resultat << genere_code_pour_atome(
+                                    pointeur_tableau[i], os, pour_globale);
+                                virgule = ", ";
+                            }
+
+                            if (taille_tableau == 0) {
+                                resultat << "{}";
+                            }
+                            else {
+                                resultat << " } }";
+                            }
+
+                            return stockage_chn.ajoute_chaine_statique(resultat.chaine_statique());
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+                        {
+                            auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
+                            auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
+
+                            enchaineuse_tmp.reinitialise();
+
+                            auto virgule = "{ ";
+
+                            for (auto i = 0; i < taille_donnees; ++i) {
+                                auto octet = pointeur_donnnees[i];
+                                enchaineuse_tmp << virgule;
+                                enchaineuse_tmp << "0x";
+                                enchaineuse_tmp << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                                enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
+                                virgule = ", ";
+                            }
+
+                            if (taille_donnees == 0) {
+                                enchaineuse_tmp << "{";
+                            }
+
+                            enchaineuse_tmp << " }";
+
+                            return stockage_chn.ajoute_chaine_statique(
+                                enchaineuse_tmp.chaine_statique());
+                        }
+                    }
                 }
             }
 
-            for (auto inst : atome_fonc->instructions) {
-                inst->numero = numero_inst++;
-                genere_code_pour_instruction(inst, os);
-            }
-
-            m_fonction_courante = nullptr;
-
-            os << "}\n\n";
+            return "";
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            auto inst = atome->comme_instruction();
+            return table_valeurs.valeur_ou(inst, "");
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            return table_globales.valeur_ou(atome, "");
         }
     }
-};
 
-static void genere_code_C_depuis_RI(Compilatrice &compilatrice,
-                                    EspaceDeTravail &espace,
-                                    ProgrammeRepreInter const &repr_inter_programme,
-                                    Broyeuse &broyeuse,
-                                    std::ostream &fichier_sortie)
+    return "";
+}
+
+void GeneratriceCodeC::debute_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
 {
-    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
-    Enchaineuse enchaineuse;
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    /* La fonction d'initialisation des globales n'a pas de site. */
+    if (m_fonction_courante->sanstrace || !inst_appel->site) {
+        return;
+    }
 
-    auto generatrice = GeneratriceCodeC(espace, broyeuse);
-    genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
+
+    auto const &lexeme = inst_appel->site->lexeme;
+    auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
+    auto pos = position_lexeme(*lexeme);
+
+    os << "  DEBUTE_RECORD_TRACE_APPEL(";
+    os << pos.numero_ligne << ",";
+    os << pos.pos << ",";
+    os << "\"";
+
+    auto ligne = fichier->tampon()[pos.index_ligne];
+
+    POUR (ligne) {
+        os << "\\x" << dls::num::char_depuis_hex((it & 0xf0) >> 4)
+           << dls::num::char_depuis_hex(it & 0x0f);
+    }
+
+    os << "\",";
+    os << ligne.taille();
+    os << ");\n";
+#endif
+}
+
+void GeneratriceCodeC::termine_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
+{
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    if (m_fonction_courante->sanstrace || !inst_appel->site) {
+        return;
+    }
+
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
+
+    os << "  TERMINE_RECORD_TRACE_APPEL;\n";
+#endif
+}
+
+void GeneratriceCodeC::initialise_trace_appel(const AtomeFonction *atome_fonc, Enchaineuse &os)
+{
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    if (atome_fonc->sanstrace) {
+        return;
+    }
+
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
+
+    os << "INITIALISE_TRACE_APPEL(\"";
+
+    if (atome_fonc->lexeme != nullptr) {
+        auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
+        os << atome_fonc->lexeme->chaine << "\", " << atome_fonc->lexeme->chaine.taille() << ", \""
+           << fichier->nom() << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
+    }
+    else {
+        os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
+           << "\"???\", 3, ";
+    }
+
+    os << atome_fonc->nom << ");\n";
+#endif
+}
+
+void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
+{
+    switch (inst->genre) {
+        case Instruction::Genre::INVALIDE:
+        {
+            os << "  invalide\n";
+            break;
+        }
+        case Instruction::Genre::ALLOCATION:
+        {
+            auto type_pointeur = inst->type->comme_pointeur();
+            os << "  " << broyeuse.nom_broye_type(type_pointeur->type_pointe);
+
+            // les portées ne sont plus respectées : deux variables avec le même nom dans deux
+            // portées différentes auront le même nom ici dans la même portée donc nous
+            // ajoutons le numéro de l'instruction de la variable pour les différencier
+            if (inst->ident != nullptr) {
+                auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
+                os << ' ' << nom << ";\n";
+                table_valeurs.insere(inst, enchaine("&", nom));
+            }
+            else {
+                auto nom = enchaine("val", inst->numero);
+                os << ' ' << nom << ";\n";
+                table_valeurs.insere(inst, enchaine("&", nom));
+            }
+
+            break;
+        }
+        case Instruction::Genre::APPEL:
+        {
+            auto inst_appel = inst->comme_appel();
+
+            debute_trace_appel(inst_appel, os);
+
+            auto arguments = kuri::tablet<kuri::chaine, 10>();
+
+            POUR (inst_appel->args) {
+                arguments.ajoute(genere_code_pour_atome(it, os, false));
+            }
+
+            os << "  ";
+
+            auto type_fonction = inst_appel->appele->type->comme_fonction();
+            if (!type_fonction->type_sortie->est_rien()) {
+                auto nom_ret = enchaine("__ret", inst->numero);
+                os << broyeuse.nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                table_valeurs.insere(inst, nom_ret);
+            }
+
+            os << genere_code_pour_atome(inst_appel->appele, os, false);
+
+            auto virgule = "(";
+
+            POUR (arguments) {
+                os << virgule;
+                os << it;
+                virgule = ", ";
+            }
+
+            if (inst_appel->args.taille() == 0) {
+                os << virgule;
+            }
+
+            os << ");\n";
+
+            termine_trace_appel(inst_appel, os);
+
+            break;
+        }
+        case Instruction::Genre::BRANCHE:
+        {
+            auto inst_branche = inst->comme_branche();
+            os << "  goto label" << inst_branche->label->id << ";\n";
+            break;
+        }
+        case Instruction::Genre::BRANCHE_CONDITION:
+        {
+            auto inst_branche = inst->comme_branche_cond();
+            auto condition = genere_code_pour_atome(inst_branche->condition, os, false);
+            os << "  if (" << condition;
+            os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
+            os << "else goto label" << inst_branche->label_si_faux->id << ";\n";
+            break;
+        }
+        case Instruction::Genre::CHARGE_MEMOIRE:
+        {
+            auto inst_charge = inst->comme_charge();
+            auto charge = inst_charge->chargee;
+            auto valeur = kuri::chaine_statique();
+
+            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur = table_valeurs.valeur_ou(charge, "");
+            }
+            else {
+                valeur = table_globales.valeur_ou(charge, "");
+            }
+
+            assert(valeur != "");
+
+            if (valeur.pointeur()[0] == '&') {
+                /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
+                 * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
+                 * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
+                 * membre de la structure qui est le tableau, et sert également à proprement
+                 * générer le code pour les indexages. */
+                if (est_pointeur_vers_tableau_fixe(charge->type->comme_pointeur()->type_pointe)) {
+                    table_valeurs.insere(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
+                }
+                else {
+                    table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                }
+            }
+            else {
+                table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
+            }
+
+            break;
+        }
+        case Instruction::Genre::STOCKE_MEMOIRE:
+        {
+            auto inst_stocke = inst->comme_stocke_mem();
+            auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
+            auto ou = inst_stocke->ou;
+            auto valeur_ou = kuri::chaine_statique();
+
+            if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur_ou = table_valeurs.valeur_ou(ou, "");
+            }
+            else {
+                valeur_ou = table_globales.valeur_ou(ou, "");
+            }
+
+            if (valeur_ou.pointeur()[0] == '&') {
+                valeur_ou = valeur_ou.sous_chaine(1);
+            }
+            else {
+                valeur_ou = enchaine("(*", valeur_ou, ")");
+            }
+
+            os << "  " << valeur_ou << " = " << valeur << ";\n";
+
+            break;
+        }
+        case Instruction::Genre::LABEL:
+        {
+            auto inst_label = inst->comme_label();
+            if (inst_label->id != 0) {
+                os << "\n";
+            }
+            os << "label" << inst_label->id << ":;\n";
+            break;
+        }
+        case Instruction::Genre::OPERATION_UNAIRE:
+        {
+            auto inst_un = inst->comme_op_unaire();
+            auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
+
+            os << "  " << broyeuse.nom_broye_type(inst_un->type) << " val" << inst->numero
+               << " = ";
+
+            switch (inst_un->op) {
+                case OperateurUnaire::Genre::Positif:
+                {
+                    break;
+                }
+                case OperateurUnaire::Genre::Invalide:
+                {
+                    break;
+                }
+                case OperateurUnaire::Genre::Complement:
+                {
+                    os << '-';
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Binaire:
+                {
+                    os << '~';
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Logique:
+                {
+                    os << '!';
+                    break;
+                }
+                case OperateurUnaire::Genre::Prise_Adresse:
+                {
+                    os << '&';
+                    break;
+                }
+            }
+
+            os << valeur;
+            os << ";\n";
+
+            table_valeurs.insere(inst, enchaine("val", inst->numero));
+            break;
+        }
+        case Instruction::Genre::OPERATION_BINAIRE:
+        {
+            auto inst_bin = inst->comme_op_binaire();
+            auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
+            auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
+
+            os << "  " << broyeuse.nom_broye_type(inst_bin->type) << " val" << inst->numero
+               << " = ";
+
+            os << valeur_gauche;
+
+            switch (inst_bin->op) {
+                case OperateurBinaire::Genre::Addition:
+                case OperateurBinaire::Genre::Addition_Reel:
+                {
+                    os << " + ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Soustraction:
+                case OperateurBinaire::Genre::Soustraction_Reel:
+                {
+                    os << " - ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Multiplication:
+                case OperateurBinaire::Genre::Multiplication_Reel:
+                {
+                    os << " * ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Division_Naturel:
+                case OperateurBinaire::Genre::Division_Relatif:
+                case OperateurBinaire::Genre::Division_Reel:
+                {
+                    os << " / ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Reste_Naturel:
+                case OperateurBinaire::Genre::Reste_Relatif:
+                {
+                    os << " % ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Egal:
+                case OperateurBinaire::Genre::Comp_Egal_Reel:
+                {
+                    os << " == ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inegal:
+                case OperateurBinaire::Genre::Comp_Inegal_Reel:
+                {
+                    os << " != ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inf:
+                case OperateurBinaire::Genre::Comp_Inf_Nat:
+                case OperateurBinaire::Genre::Comp_Inf_Reel:
+                {
+                    os << " < ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inf_Egal:
+                case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
+                case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
+                {
+                    os << " <= ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Sup:
+                case OperateurBinaire::Genre::Comp_Sup_Nat:
+                case OperateurBinaire::Genre::Comp_Sup_Reel:
+                {
+                    os << " > ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Sup_Egal:
+                case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
+                case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
+                {
+                    os << " >= ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Et_Binaire:
+                {
+                    os << " & ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Ou_Binaire:
+                {
+                    os << " | ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Ou_Exclusif:
+                {
+                    os << " ^ ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Dec_Gauche:
+                {
+                    os << " << ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Dec_Droite_Arithm:
+                case OperateurBinaire::Genre::Dec_Droite_Logique:
+                {
+                    os << " >> ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Invalide:
+                case OperateurBinaire::Genre::Indexage:
+                {
+                    os << " invalide ";
+                    break;
+                }
+            }
+
+            os << valeur_droite;
+            os << ";\n";
+
+            table_valeurs.insere(inst, enchaine("val", inst->numero));
+
+            break;
+        }
+        case Instruction::Genre::RETOUR:
+        {
+            auto inst_retour = inst->comme_retour();
+            if (inst_retour->valeur != nullptr) {
+                auto atome = inst_retour->valeur;
+                auto valeur_retour = genere_code_pour_atome(atome, os, false);
+                os << "  return";
+                os << ' ';
+                os << valeur_retour;
+            }
+            else {
+                os << "  return";
+            }
+            os << ";\n";
+            break;
+        }
+        case Instruction::Genre::ACCEDE_INDEX:
+        {
+            auto inst_acces = inst->comme_acces_index();
+            auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
+            auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
+
+            if (est_type_tableau_fixe(inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+                valeur_accede = enchaine(valeur_accede, ".d");
+            }
+
+            auto valeur = enchaine(valeur_accede, "[", valeur_index, "]");
+            table_valeurs.insere(inst, valeur);
+            break;
+        }
+        case Instruction::Genre::ACCEDE_MEMBRE:
+        {
+            auto inst_acces = inst->comme_acces_membre();
+
+            auto accede = inst_acces->accede;
+            auto valeur_accede = kuri::chaine_statique();
+
+            if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur_accede = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
+            }
+            else {
+                valeur_accede = broyeuse.broye_nom_simple(table_globales.valeur_ou(accede, ""));
+            }
+
+            assert(valeur_accede != "");
+
+            auto type_pointeur = inst_acces->accede->type->comme_pointeur();
+
+            auto type_pointe = type_pointeur->type_pointe;
+            if (type_pointe->est_opaque()) {
+                type_pointe = type_pointe->comme_opaque()->type_opacifie;
+            }
+
+            auto type_compose = static_cast<TypeCompose *>(type_pointe);
+            auto index_membre = static_cast<int>(
+                static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
+
+            if (valeur_accede.pointeur()[0] == '&') {
+                valeur_accede = enchaine(valeur_accede, ".");
+            }
+            else {
+                valeur_accede = enchaine("&", valeur_accede, "->");
+            }
+
+            auto const &membre = type_compose->membres[index_membre];
+
+            /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
+            if (membre.nom == ID::chaine_vide) {
+                valeur_accede = enchaine(valeur_accede, "membre_invisible");
+            }
+            else if (type_compose->est_tuple()) {
+                valeur_accede = enchaine(valeur_accede, "_", index_membre);
+            }
+            else {
+                valeur_accede = enchaine(valeur_accede, broyeuse.broye_nom_simple(membre.nom));
+            }
+
+            table_valeurs.insere(inst_acces, valeur_accede);
+            break;
+        }
+        case Instruction::Genre::TRANSTYPE:
+        {
+            auto inst_transtype = inst->comme_transtype();
+            auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
+            valeur = enchaine(
+                "((", broyeuse.nom_broye_type(inst_transtype->type), ")(", valeur, "))");
+            table_valeurs.insere(inst, valeur);
+            break;
+        }
+    }
+}
+
+void GeneratriceCodeC::declare_globale(Enchaineuse &os,
+                                       const AtomeGlobale *valeur_globale,
+                                       bool pour_entete)
+{
+    declare_visibilite_globale(os, valeur_globale, pour_entete);
+
+    auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+    os << broyeuse.nom_broye_type(type) << ' ';
+
+    if (valeur_globale->ident) {
+        auto nom_globale = broyeuse.broye_nom_simple(valeur_globale->ident);
+        os << nom_globale;
+        table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+    }
+    else {
+        auto nom_globale = enchaine("globale", valeur_globale);
+        os << nom_globale;
+        table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+    }
+}
+
+void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
+{
+    if (atome_fonc->enligne) {
+        os << "static __attribute__((always_inline)) inline ";
+    }
+
+    auto type_fonction = atome_fonc->type->comme_fonction();
+    os << broyeuse.nom_broye_type(type_fonction->type_sortie) << " ";
+    os << atome_fonc->nom;
+
+    auto virgule = "(";
+
+    for (auto param : atome_fonc->params_entrees) {
+        os << virgule;
+
+        auto type_pointeur = param->type->comme_pointeur();
+        auto type_param = type_pointeur->type_pointe;
+        os << broyeuse.nom_broye_type(type_param) << ' ';
+
+        // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
+        // (void fonction(...)), n'imprime pas de nom
+        if (type_param->est_variadique() &&
+            type_param->comme_variadique()->type_pointe == nullptr) {
+            continue;
+        }
+
+        os << broyeuse.broye_nom_simple(param->ident);
+
+        virgule = ", ";
+    }
+
+    if (atome_fonc->params_entrees.taille() == 0) {
+        os << virgule;
+    }
+
+    os << ")";
+}
+
+void GeneratriceCodeC::genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                                          const kuri::tableau<AtomeFonction *> &fonctions,
+                                          Enchaineuse &os)
+{
+    // prédéclare les globales pour éviter les problèmes de références cycliques
+    POUR (globales) {
+        declare_globale(os, it, true);
+        os << ";\n";
+    }
+
+    // prédéclare ensuite les fonction pour éviter les problèmes de
+    // dépendances cycliques, mais aussi pour prendre en compte les cas où
+    // les globales utilises des fonctions dans leurs initialisations
+    POUR (fonctions) {
+        declare_fonction(os, it);
+        os << ";\n\n";
+    }
+
+    // Définie ensuite les fonctions enlignées.
+    POUR (fonctions) {
+        /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
+        if (it->instructions.taille() == 0 || !it->enligne) {
+            continue;
+        }
+
+        genere_code_fonction(it, os);
+    }
+}
+
+void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enchaineuse &os)
+{
+    declare_fonction(os, atome_fonc);
+
+    // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+
+    for (auto param : atome_fonc->params_entrees) {
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    os << "\n{\n";
+
+    initialise_trace_appel(atome_fonc, os);
+
+    m_fonction_courante = atome_fonc;
+
+    auto numero_inst = atome_fonc->params_entrees.taille();
+
+    /* crée une variable local pour la valeur de sortie */
+    auto type_fonction = atome_fonc->type->comme_fonction();
+    if (!type_fonction->type_sortie->est_rien()) {
+        auto param = atome_fonc->param_sortie;
+        auto type_pointeur = param->type->comme_pointeur();
+        os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
+        os << broyeuse.broye_nom_simple(param->ident);
+        os << ";\n";
+
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    /* Génère le code pour les accès de membres des retours mutliples. */
+    if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+        for (auto &param : atome_fonc->decl->params_sorties) {
+            genere_code_pour_instruction(
+                param->comme_declaration_variable()->atome->comme_instruction(), os);
+        }
+    }
+
+    for (auto inst : atome_fonc->instructions) {
+        inst->numero = numero_inst++;
+        genere_code_pour_instruction(inst, os);
+    }
+
+    m_fonction_courante = nullptr;
+
+    os << "}\n\n";
+}
+
+void GeneratriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os)
+{
+    auto fichier = coulisse.ajoute_fichier_c();
+    std::ofstream of;
+    of.open(
+        std::string(fichier.chemin_fichier.pointeur(), size_t(fichier.chemin_fichier.taille())));
+    os.imprime_dans_flux(of);
+    of.close();
+    os.reinitialise();
+}
+
+void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
+                                   const kuri::tableau<AtomeFonction *> &fonctions,
+                                   CoulisseC &coulisse,
+                                   Enchaineuse &os)
+{
+    os.reinitialise();
+    os << "#include \"compilation_kuri.h\"\n";
+
+    // définis ensuite les globales
+    POUR (globales) {
+        if (it->est_externe) {
+            /* Inutile de regénérer le code. */
+            continue;
+        }
+        auto valeur_globale = it;
+        auto valeur_initialisateur = kuri::chaine_statique();
+
+        if (valeur_globale->initialisateur) {
+            valeur_initialisateur = genere_code_pour_atome(
+                valeur_globale->initialisateur, os, true);
+        }
+
+        declare_globale(os, valeur_globale, false);
+
+        if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
+            os << " = " << valeur_initialisateur;
+        }
+
+        os << ";\n";
+    }
+
+    vide_enchaineuse_dans_fichier(coulisse, os);
+    os << "#include \"compilation_kuri.h\"\n";
+
+    /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
+     * fichiers. */
+    constexpr auto nombre_instructions_max_par_fichier = 50000;
+    int nombre_instructions = 0;
+
+    // définis enfin les fonction
+    POUR (fonctions) {
+        /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
+        if (it->instructions.taille() == 0 || it->enligne) {
+            continue;
+        }
+
+        genere_code_fonction(it, os);
+        nombre_instructions += it->instructions.taille();
+
+        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
+        if (nombre_instructions > nombre_instructions_max_par_fichier) {
+            vide_enchaineuse_dans_fichier(coulisse, os);
+            os << "#include \"compilation_kuri.h\"\n";
+            nombre_instructions = 0;
+        }
+    }
+
+    if (nombre_instructions != 0) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
+    }
+}
+
+void GeneratriceCodeC::genere_code(ProgrammeRepreInter const &repr_inter_programme,
+                                   CoulisseC &coulisse)
+{
+    Enchaineuse enchaineuse;
+    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
+    genere_code_debut_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
     POUR (repr_inter_programme.types) {
         convertisseuse_type_c.genere_code_pour_type(it, enchaineuse);
     }
 
-    generatrice.genere_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+    genere_code_entete(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
-    enchaineuse.imprime_dans_flux(fichier_sortie);
+    std::ofstream of;
+    of.open("/tmp/compilation_kuri.h");
+    enchaineuse.imprime_dans_flux(of);
+    of.close();
+
+    genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
+}
+
+static void genere_code_C_depuis_RI(EspaceDeTravail &espace,
+                                    ProgrammeRepreInter const &repr_inter_programme,
+                                    CoulisseC &coulisse,
+                                    Broyeuse &broyeuse)
+{
+
+    auto generatrice = GeneratriceCodeC(espace, broyeuse);
+    generatrice.genere_code(repr_inter_programme, coulisse);
 }
 
 static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibliotheques,
@@ -1744,18 +1837,18 @@ static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
 {
     constructrice_ri.genere_ri_pour_initialisation_globales(
         &espace, fonction, repr_inter_programme.globales);
-    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne sont
-     * peut-être pas encore dans la liste. */
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
+     * sont peut-être pas encore dans la liste. */
     repr_inter_programme.ajourne_globales_pour_fonction(fonction);
 }
 
 static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      ConstructriceRI &constructrice_ri,
                                                      EspaceDeTravail &espace,
+                                                     CoulisseC &coulisse,
                                                      Programme *programme,
                                                      kuri::tableau<Bibliotheque *> &bibliotheques,
-                                                     Broyeuse &broyeuse,
-                                                     std::ostream &fichier_sortie)
+                                                     Broyeuse &broyeuse)
 {
     auto fonction_principale = espace.fonction_principale;
     if (fonction_principale == nullptr) {
@@ -1775,17 +1868,17 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     return true;
 }
 
 static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    ConstructriceRI &constructrice_ri,
                                                    EspaceDeTravail &espace,
+                                                   CoulisseC &coulisse,
                                                    Programme *programme,
                                                    kuri::tableau<Bibliotheque *> &bibliotheques,
-                                                   Broyeuse &broyeuse,
-                                                   std::ostream &fichier_sortie)
+                                                   Broyeuse &broyeuse)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = representation_intermediaire_programme(*programme);
@@ -1817,35 +1910,25 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
 
-    genere_code_C_depuis_RI(compilatrice, espace, repr_inter_programme, broyeuse, fichier_sortie);
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     return true;
 }
 
 static bool genere_code_C(Compilatrice &compilatrice,
                           ConstructriceRI &constructrice_ri,
                           EspaceDeTravail &espace,
+                          CoulisseC &coulisse,
                           Programme *programme,
                           kuri::tableau<Bibliotheque *> &bibliotheques,
-                          Broyeuse &broyeuse,
-                          std::ostream &fichier_sortie)
+                          Broyeuse &broyeuse)
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        return genere_code_C_depuis_fonction_principale(compilatrice,
-                                                        constructrice_ri,
-                                                        espace,
-                                                        programme,
-                                                        bibliotheques,
-                                                        broyeuse,
-                                                        fichier_sortie);
+        return genere_code_C_depuis_fonction_principale(
+            compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
     }
 
-    return genere_code_C_depuis_fonctions_racines(compilatrice,
-                                                  constructrice_ri,
-                                                  espace,
-                                                  programme,
-                                                  bibliotheques,
-                                                  broyeuse,
-                                                  fichier_sortie);
+    return genere_code_C_depuis_fonctions_racines(
+        compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
 }
 
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
@@ -1881,10 +1964,11 @@ static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation 
 }
 
 static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
-                                                  OptionsDeCompilation const &ops)
+                                                  OptionsDeCompilation const &ops,
+                                                  CoulisseC::FichierC const &fichier)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c /tmp/compilation_kuri.c ";
+    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c " << fichier.chemin_fichier << " ";
 
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         enchaineuse << " -fPIC ";
@@ -1925,7 +2009,7 @@ static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
         enchaineuse << "-m32 ";
     }
 
-    enchaineuse << " -o " << nom_sortie_fichier_objet(ops);
+    enchaineuse << " -o " << fichier.chemin_fichier_objet;
 
     return enchaineuse.chaine();
 }
@@ -1938,34 +2022,58 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 {
     m_bibliotheques.efface();
 
-    std::ofstream of;
-    of.open("/tmp/compilation_kuri.c");
-
     std::cout << "Génération du code..." << std::endl;
     auto debut_generation_code = dls::chrono::compte_seconde();
     if (!genere_code_C(
-            compilatrice, constructrice_ri, espace, programme, m_bibliotheques, broyeuse, of)) {
+            compilatrice, constructrice_ri, espace, *this, programme, m_bibliotheques, broyeuse)) {
         return false;
     }
     temps_generation_code = debut_generation_code.temps();
 
-    of.close();
-
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
-    auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
+    kuri::tablet<pid_t, 16> enfants;
 
-    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+    POUR (m_fichiers) {
+        auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
-    auto err = system(dls::chaine(commande).c_str());
+        auto child_pid = fork();
+        if (child_pid == 0) {
+            auto err = system(dls::chaine(commande).c_str());
+            exit(err == 0 ? 0 : 1);
+        }
+
+        enfants.ajoute(child_pid);
+    }
+
+    auto possede_erreur = false;
+    POUR (enfants) {
+        int etat;
+        if (waitpid(it, &etat, 0) != it) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (!WIFEXITED(etat)) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (WEXITSTATUS(etat) != 0) {
+            possede_erreur = true;
+            continue;
+        }
+    }
+
+    if (possede_erreur) {
+        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+        return false;
+    }
 
     temps_fichier_objet = debut_fichier_objet.temps();
 
-    if (err != 0) {
-        espace.rapporte_erreur_sans_site("Ne peut pas créer le fichier objet !");
-        return false;
-    }
 #endif
 
     return true;
@@ -2007,7 +2115,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         }
     }
 
-    enchaineuse << " /tmp/compilation_kuri.o ";
+    POUR (m_fichiers) {
+        enchaineuse << " " << it.chemin_fichier_objet << " ";
+    }
 
     if (espace.options.architecture == ArchitectureCible::X86) {
         enchaineuse << " /tmp/r16_tables_x86.o ";
@@ -2054,7 +2164,8 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
     }
     /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
-     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe). */
+     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe).
+     */
     enchaineuse << " -Wl,-Bdynamic";
 
     if (espace.options.architecture == ArchitectureCible::X86) {
@@ -2077,4 +2188,15 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
     temps_executable = debut_executable.temps();
     return true;
 #endif
+}
+
+CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
+{
+    auto nom_base_fichier = enchaine("/tmp/compilation_kuri", m_fichiers.taille());
+    auto nom_fichier = enchaine(nom_base_fichier, ".c");
+    auto nom_fichier_objet = enchaine(nom_base_fichier, ".o");
+
+    FichierC resultat = {nom_fichier, nom_fichier_objet};
+    m_fichiers.ajoute(resultat);
+    return m_fichiers.derniere();
 }
