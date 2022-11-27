@@ -141,7 +141,10 @@ using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFi
 struct Module {
     /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
     IdentifiantCode *nom_ = nullptr;
+
     kuri::chaine chemin_{""};
+    kuri::chaine chemin_bibliotheque_32bits{};
+    kuri::chaine chemin_bibliotheque_64bits{};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
@@ -152,12 +155,9 @@ struct Module {
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier qu'il reste des fichiers à
      * parser. */
     bool fichiers_sont_sales = true;
-
-    kuri::chaine chemin_bibliotheque_32bits{};
-    kuri::chaine chemin_bibliotheque_64bits{};
+    bool execution_directive_requise = false;
 
     NoeudDirectivePreExecutable *directive_pre_executable = nullptr;
-    bool execution_directive_requise = false;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
