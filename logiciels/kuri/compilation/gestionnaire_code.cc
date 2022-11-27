@@ -1081,6 +1081,11 @@ static bool declaration_est_invalide(NoeudExpression *decl)
 static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_module)
 {
     POUR_TABLEAU_PAGE (sys_module.modules) {
+        /* Il est possible d'avoir un module vide. */
+        if (it.fichiers.est_vide()) {
+            continue;
+        }
+
         if (it.bloc == nullptr) {
             return false;
         }
