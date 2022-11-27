@@ -265,7 +265,8 @@ void Tacheronne::gere_tache()
 
                     if (!fichier->fut_charge) {
                         auto debut_chargement = dls::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(dls::chaine(fichier->chemin()));
+                        auto texte = charge_contenu_fichier(
+                            dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
                         temps_chargement += debut_chargement.temps();
 
                         auto debut_tampon = dls::chrono::compte_seconde();
