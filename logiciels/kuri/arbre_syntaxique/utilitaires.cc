@@ -877,7 +877,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
-                if (est_type_entier(decl_ref->type) || decl_ref->type->est_entier_constant()) {
+                if (est_type_entier(decl_ref->type) || decl_ref->type->est_entier_constant() ||
+                    decl_ref->type->est_enum() || decl_ref->type->est_erreur()) {
                     expr_ref->substitution = assem->cree_litterale_entier(
                         expr_ref->lexeme,
                         decl_ref->type,
