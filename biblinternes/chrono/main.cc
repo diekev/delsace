@@ -30,20 +30,18 @@
 
 #include <iostream>
 
-#include <unistd.h>
-
 /* ************************************************************************** */
 
 class Dormeur {
 public:
 	void dors_trois_secondes()
 	{
-		sleep(3);
+		dls::chrono::dors_millisecondes(3000);
 	}
 
 	void dors_une_seconde()
 	{
-		sleep(1);
+		dls::chrono::dors_millisecondes(1000);
 	}
 };
 

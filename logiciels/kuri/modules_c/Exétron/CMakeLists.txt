@@ -31,7 +31,7 @@ set(SOURCES
 )
 
 set(BIBLIOTHEQUES
-    tbb
+    ${BIBLIOTHEQUES_TBB}
 )
 
 compile_module_c(${NOM_PROJET} exétron exétron.h Exétron "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")

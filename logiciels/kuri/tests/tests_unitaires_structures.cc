@@ -7,7 +7,7 @@
 #include "../structures/ensemble.hh"
 #include "../structures/file.hh"
 
-static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse, uint iteration)
+static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse, uint32_t iteration)
 {
     auto gna = GNA(iteration);
     const auto nombre_d_elements = gna.uniforme(0, 1024);
@@ -67,12 +67,12 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
 
 void test_ensemble(dls::test_unitaire::Controleuse &controleuse)
 {
-    for (uint i = 0; i < 1000; ++i) {
+    for (uint32_t i = 0; i < 1000; ++i) {
         iteration_test_ensemble(controleuse, i);
     }
 }
 
-static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, uint iteration)
+static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, uint32_t iteration)
 {
     auto gna = GNA(iteration);
     const auto nombre_d_elements = gna.uniforme(0, 1024);
@@ -105,7 +105,7 @@ static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, ui
 
 void test_file(dls::test_unitaire::Controleuse &controleuse)
 {
-    for (uint i = 0; i < 1000; ++i) {
+    for (uint32_t i = 0; i < 1000; ++i) {
         iteration_test_file(controleuse, i);
     }
 }

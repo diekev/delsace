@@ -2692,7 +2692,7 @@ void NoeudBloc::ajoute_expression(NoeudExpression *expr)
 
 InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 {
-    auto cree_info_type_entier = [this](uint taille_en_octet, bool est_signe) {
+    auto cree_info_type_entier = [this](uint32_t taille_en_octet, bool est_signe) {
         auto info_type = allocatrice_infos_types.infos_types_entiers.ajoute_element();
         info_type->genre = GenreInfoType::ENTIER;
         info_type->taille_en_octet = taille_en_octet;

@@ -33,8 +33,8 @@ enum class GenreInfoType : int {
 
 struct InfoType {
     GenreInfoType genre{};
-    uint taille_en_octet = 0;
-    uint index_dans_table_des_types = 0;
+    uint32_t taille_en_octet = 0;
+    uint32_t index_dans_table_des_types = 0;
 };
 
 struct InfoTypeEntier : public InfoType {

@@ -7,6 +7,7 @@
 #include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/unicode.hh"
 
+#include <array>
 #include <cmath>
 
 #include "empreinte_parfaite.hh"
@@ -467,7 +468,7 @@ void Lexeuse::performe_lexage()
                     // 0x20 == ' '
                     if ((m_drapeaux & INCLUS_CARACTERES_BLANC) == 0) {
                         while (m_debut <= m_fin - 4 &&
-                               *reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
+                               *reinterpret_cast<uint32_t const *>(m_debut) == 0x20202020) {
                             m_debut += 4;
                             m_position_ligne += 4;
                         }
