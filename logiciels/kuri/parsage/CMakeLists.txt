@@ -28,7 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_statistiques
-        kuri_structures
+	kuri_structures
         ${BILIOTHEQUE_CXX_FILESYSTEM}
 	langage
 	bib_outils

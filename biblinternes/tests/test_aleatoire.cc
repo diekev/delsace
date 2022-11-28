@@ -128,7 +128,7 @@ int Testeuse::performe_tests(std::ostream &os)
 				}
 			}
 #endif
-        }
+		}
 
 		os << '\n';
 	}
