@@ -478,7 +478,8 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
     fichier_tmp.close();
 
     std::stringstream ss;
-    ss << "gperf -m100 ";
+    ss << CHEMIN_GPERF << " ";
+    ss << "-m100 ";
     ss << empreinte_parfaire_txt << " ";
     ss << "--output-file=";
     ss << empreinte_parfaite_tmp_hh;
