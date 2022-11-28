@@ -11,6 +11,8 @@
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
 
+#include "plateforme/windows.h"
+
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme,
                                                             IndiceTypeOp type_operandes)
 {

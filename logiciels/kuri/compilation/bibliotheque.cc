@@ -285,6 +285,7 @@ Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(EspaceDeTravail &espa
     return bibliotheque;
 }
 
+#ifndef _MSC_VER
 static bool est_fichier_elf(unsigned char tampon[4])
 {
     /* .ELF */
@@ -504,6 +505,14 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
                                                pos_premiere_espace - pos_premier_slash);
     return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
 }
+#else
+static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &/*espace*/,
+                                                         NoeudExpression */*site*/,
+                                                         kuri::chaine const &chemin_dynamique)
+{
+    return chemin_dynamique;
+}
+#endif
 
 struct ResultatRechercheBibliotheque {
     kuri::chaine_statique chemin_de_base = "";

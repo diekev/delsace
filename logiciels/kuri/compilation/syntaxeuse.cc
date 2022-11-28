@@ -3,6 +3,7 @@
 
 #include "syntaxeuse.hh"
 
+#include <array>
 #include <filesystem>
 
 #include "biblinternes/outils/assert.hh"
@@ -17,6 +18,8 @@
 #include "espace_de_travail.hh"
 #include "ipa.hh"
 #include "typage.hh"
+
+#include "plateforme/windows.h"
 
 enum {
     OPERATEUR_EST_SURCHARGEABLE = (1 << 0),

@@ -9,10 +9,7 @@
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
-/* MSVC définis pour ses extensions "interface" comme "struct". */
-#ifdef _MSC_VER
-#  undef interface
-#endif
+#include "plateforme/windows.h"
 
 struct IdentifiantCode {
     kuri::chaine_statique nom{};

@@ -124,6 +124,8 @@ enum class TypeBase : char {
     TOTAL,
 };
 
+#include "plateforme/windows.h"
+
 #define ENUMERE_TYPE(O)                                                                           \
     O(pointeur, POINTEUR, TypePointeur)                                                           \
     O(structure, STRUCTURE, TypeStructure)                                                        \

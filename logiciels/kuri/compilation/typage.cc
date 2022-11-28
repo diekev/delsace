@@ -18,6 +18,8 @@
 
 #include "structures/pile.hh"
 
+#include "plateforme/windows.h"
+
 /* ************************************************************************** */
 
 struct DonneesTypeCommun {

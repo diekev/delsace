@@ -13,6 +13,8 @@
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
+#include "plateforme/windows.h"
+
 /*
   À FAIRE(gestion) : pour chaque type :
 - création d'une déclaration de type (ajout d'un noeud syntaxique: NoeudDéclarationType, d'où

@@ -13,6 +13,8 @@
  * synchronisées avec elles.
  */
 
+#include "plateforme/windows.h"
+
 enum class GenreInfoType : int {
     ENTIER,
     REEL,

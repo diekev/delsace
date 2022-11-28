@@ -45,6 +45,7 @@ option(AVEC_ASAN "Utilise asan lors de la compilation en mode débogage" OFF)
 
 # WINDOWS
 add_compile_definitions(_USE_MATH_DEFINES)
+add_compile_options(/bigobj)
 
 if(CMAKE_BUILD_TYPE MATCHES "DebugLinux")
 	add_compile_options(-g)

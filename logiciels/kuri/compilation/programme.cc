@@ -17,6 +17,8 @@
 #include "espace_de_travail.hh"
 #include "typage.hh"
 
+#include "plateforme/windows.h"
+
 Programme *Programme::cree(EspaceDeTravail *espace)
 {
     Programme *resultat = memoire::loge<Programme>("Programme");
