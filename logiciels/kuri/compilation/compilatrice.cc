@@ -254,24 +254,26 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 /* ************************************************************************** */
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
-                                                   const kuri::chaine &nom,
+                                                   kuri::chaine_statique nom,
                                                    Module *module,
                                                    NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(nom) + ".kuri";
+    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(kuri::chaine(nom));
+
+    if (chemin.trouve(".kuri") == dls::chaine::npos) {
+        chemin += ".kuri";
+    }
 
     if (!std::filesystem::exists(chemin.c_str())) {
-        erreur::lance_erreur("Impossible de trouver le fichier correspondant au module",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
+        espace->rapporte_erreur(site, "Impossible de trouver le fichier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return;
     }
 
     if (!std::filesystem::is_regular_file(chemin.c_str())) {
-        erreur::lance_erreur("Le nom du fichier ne pointe pas vers un fichier régulier",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
+        espace->rapporte_erreur(site, "Le chemin ne pointe pas vers un fichier régulier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return;
     }
 
     /* trouve le chemin absolu du fichier */
@@ -472,17 +474,11 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     gestionnaire_code->requiers_lexage(espace, fichier);
 }
 
-void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                              kuri::chaine_statique c,
+                                              const NoeudExpression *site)
 {
-    auto vue = dls::chaine(c.pointeur(), c.taille());
-    auto chemin = std::filesystem::current_path() / vue.c_str();
-
-    if (!std::filesystem::exists(chemin)) {
-        espace->rapporte_erreur_sans_site(enchaine("Le fichier ", chemin, " n'existe pas !"));
-        return;
-    }
-
-    ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module_racine_compilation, {});
+    ajoute_fichier_a_la_compilation(espace, c, module_racine_compilation, site);
 }
 
 Message const *Compilatrice::attend_message()

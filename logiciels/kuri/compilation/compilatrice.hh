@@ -225,7 +225,7 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
-                                         kuri::chaine const &chemin,
+                                         kuri::chaine_statique chemin,
                                          Module *module,
                                          NoeudExpression const *site);
 
@@ -267,7 +267,9 @@ struct Compilatrice {
     void ajourne_options_compilation(OptionsDeCompilation *options);
     void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
     void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
-    void ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+    void ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                    kuri::chaine_statique c,
+                                    const NoeudExpression *site);
     const Message *attend_message();
     EspaceDeTravail *espace_defaut_compilation();
     kuri::tableau_statique<kuri::Lexeme> lexe_fichier(EspaceDeTravail *espace,
