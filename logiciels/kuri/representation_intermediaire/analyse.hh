@@ -3,12 +3,38 @@
 
 #pragma once
 
+#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
+#include "structures/tablet.hh"
 
+struct Atome;
 struct AtomeFonction;
 struct ConstructriceRI;
 struct EspaceDeTravail;
 struct Instruction;
+
+struct Graphe {
+  private:
+    struct Connexion {
+        Atome *utilise;
+        Atome *utilisateur;
+        int index_bloc;
+    };
+
+    kuri::tableau<Connexion> connexions{};
+    mutable kuri::table_hachage<Atome *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+
+  public:
+    /* a est utilisé par b */
+    void ajoute_connexion(Atome *a, Atome *b, int index_bloc);
+
+    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc);
+
+    bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const;
+
+    template <typename Fonction>
+    void visite_utilisateurs(Instruction *inst, Fonction rappel) const;
+};
 
 void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions);
 

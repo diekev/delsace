@@ -893,68 +893,58 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     return true;
 }
 
-/* ****************************************************************************************** */
+/** ******************************************************************************************
+ * \name Graphe
+ * \{
+ */
 
-struct Graphe {
-  private:
-    struct Connexion {
-        Atome *utilise;
-        Atome *utilisateur;
-        int index_bloc;
-    };
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+{
+    connexions.ajoute({a, b, index_bloc});
 
-    kuri::tableau<Connexion> connexions{};
-    mutable kuri::table_hachage<Atome *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+    if (connexions_pour_inst.possede(a)) {
+        auto &idx = connexions_pour_inst.trouve_ref(a);
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+    }
+    else {
+        kuri::tablet<int, 4> idx;
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+        connexions_pour_inst.insere(a, idx);
+    }
+}
 
-  public:
-    /* a est utilisé par b */
-    void ajoute_connexion(Atome *a, Atome *b, int index_bloc)
-    {
-        connexions.ajoute({a, b, index_bloc});
+void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
+{
+    POUR (instructions) {
+        visite_operandes_instruction(
+            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
+    }
+}
 
-        if (connexions_pour_inst.possede(a)) {
-            auto &idx = connexions_pour_inst.trouve_ref(a);
-            idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        }
-        else {
-            kuri::tablet<int, 4> idx;
-            idx.ajoute(static_cast<int>(connexions.taille() - 1));
-            connexions_pour_inst.insere(a, idx);
+bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        if (index_bloc != connexion.index_bloc) {
+            return false;
         }
     }
 
-    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc)
-    {
-        POUR (instructions) {
-            visite_operandes_instruction(it, [&](Atome *atome_courant) {
-                ajoute_connexion(atome_courant, it, index_bloc);
-            });
-        }
-    }
+    return true;
+}
 
-    bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
-    {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        POUR (idx) {
-            auto &connexion = connexions[it];
-            if (index_bloc != connexion.index_bloc) {
-                return false;
-            }
-        }
-
-        return true;
+template <typename Fonction>
+void Graphe::visite_utilisateurs(Instruction *inst, Fonction rappel) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        rappel(connexion.utilisateur);
     }
+}
 
-    template <typename Fonction>
-    void visite_utilisateurs(Instruction *inst, Fonction rappel) const
-    {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        POUR (idx) {
-            auto &connexion = connexions[it];
-            rappel(connexion.utilisateur);
-        }
-    }
-};
+/** \} */
 
 static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
 {
