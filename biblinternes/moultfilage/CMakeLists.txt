@@ -27,7 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
         ${BIBLIOTHEQUES_TBB}
-	pthread
+        $<$<CXX_COMPILER_ID:GNU>:pthread>
 	bib_structures
 )
 

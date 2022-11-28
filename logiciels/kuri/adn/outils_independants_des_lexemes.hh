@@ -33,4 +33,4 @@ void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statiq
 /**
  * Retourne un chemin dans le dossier temporaire du système pour le nom de fichier donné.
  */
-std::filesystem::path chemin_temporaire(std::string const &nom_fichier);
+std::filesystem::path chemin_temporaire(std::filesystem::path const &nom_fichier);

@@ -90,6 +90,9 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
         return false;  // file problem
     }
 
+    f1.seekg(0, std::ifstream::end);
+    f2.seekg(0, std::ifstream::end);
+
     if (f1.tellg() != f2.tellg()) {
         return false;  // size mismatch
     }
@@ -147,7 +150,7 @@ void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statiq
 }
 #endif
 
-std::filesystem::path chemin_temporaire(const std::string &nom_fichier)
+std::filesystem::path chemin_temporaire(const std::filesystem::path &nom_fichier)
 {
     return std::filesystem::temp_directory_path() / nom_fichier;
 }

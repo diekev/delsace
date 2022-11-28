@@ -7,6 +7,7 @@
 #include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/unicode.hh"
 
+#include <array>
 #include <cmath>
 
 #include "empreinte_parfaite.hh"

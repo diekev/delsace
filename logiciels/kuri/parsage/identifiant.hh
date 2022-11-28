@@ -9,6 +9,11 @@
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
+/* MSVC définis pour ses extensions "interface" comme "struct". */
+#ifdef _MSC_VER
+#  undef interface
+#endif
+
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
     kuri::chaine_statique nom_broye{};
