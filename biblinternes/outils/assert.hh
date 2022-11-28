@@ -28,7 +28,7 @@
 #	define assert_rappel(condition, rappel) \
         do { \
             if (!(condition)) { \
-                std::cerr << __FILE__ << ':' << __LINE__ << ": " << __ASSERT_FUNCTION << '\n'; \
+                std::cerr << __FILE__ << ':' << __LINE__ << ": " << __func__ << '\n'; \
                 std::cerr << "ÉCHEC DE L'ASSERTION : " << #condition << '\n'; \
                 rappel(); \
                 abort(); \

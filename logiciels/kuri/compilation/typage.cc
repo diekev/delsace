@@ -1599,7 +1599,8 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
     return resultat;
 }
 
-static inline uint marge_pour_alignement(const uint alignement, const uint taille_octet)
+static inline uint32_t marge_pour_alignement(const uint32_t alignement,
+                                             const uint32_t taille_octet)
 {
     return (alignement - (taille_octet % alignement)) % alignement;
 }

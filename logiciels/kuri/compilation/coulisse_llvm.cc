@@ -1581,8 +1581,8 @@ void issitialise_llvm()
  * d'optimisation.
  */
 static void ajoute_passes(llvm::legacy::FunctionPassManager &manager_fonctions,
-                          uint niveau_optimisation,
-                          uint niveau_taille)
+                          uint32_t niveau_optimisation,
+                          uint32_t niveau_taille)
 {
     llvm::PassManagerBuilder builder;
     builder.OptLevel = niveau_optimisation;

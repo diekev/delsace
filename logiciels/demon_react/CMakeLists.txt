@@ -31,7 +31,7 @@ set(INCLUSIONS
 set(NOM_PROJET demon_react)
 
 set(BIBLIOTHEQUES
-	stdc++fs
+        ${BILIOTHEQUE_CXX_FILESYSTEM}
 	bib_outils
   systeme_fichier
   pthread

@@ -893,68 +893,64 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     return true;
 }
 
-/* ****************************************************************************************** */
+/** ******************************************************************************************
+ * \name Graphe
+ * \{
+ */
 
-struct Graphe {
-  private:
-    struct Connexion {
-        Atome *utilise;
-        Atome *utilisateur;
-        int index_bloc;
-    };
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+{
+    connexions.ajoute({a, b, index_bloc});
 
-    kuri::tableau<Connexion> connexions{};
-    mutable kuri::table_hachage<Atome *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+    if (connexions_pour_inst.possede(a)) {
+        auto &idx = connexions_pour_inst.trouve_ref(a);
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+    }
+    else {
+        kuri::tablet<int, 4> idx;
+        idx.ajoute(static_cast<int>(connexions.taille() - 1));
+        connexions_pour_inst.insere(a, idx);
+    }
+}
 
-  public:
-    /* a est utilisé par b */
-    void ajoute_connexion(Atome *a, Atome *b, int index_bloc)
-    {
-        connexions.ajoute({a, b, index_bloc});
+void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
+{
+    POUR (instructions) {
+        visite_operandes_instruction(
+            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
+    }
+}
 
-        if (connexions_pour_inst.possede(a)) {
-            auto &idx = connexions_pour_inst.trouve_ref(a);
-            idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        }
-        else {
-            kuri::tablet<int, 4> idx;
-            idx.ajoute(static_cast<int>(connexions.taille() - 1));
-            connexions_pour_inst.insere(a, idx);
+bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        if (index_bloc != connexion.index_bloc) {
+            return false;
         }
     }
 
-    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc)
-    {
-        POUR (instructions) {
-            visite_operandes_instruction(it, [&](Atome *atome_courant) {
-                ajoute_connexion(atome_courant, it, index_bloc);
-            });
-        }
-    }
+    return true;
+}
 
-    bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
-    {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        POUR (idx) {
-            auto &connexion = connexions[it];
-            if (index_bloc != connexion.index_bloc) {
-                return false;
-            }
-        }
+void Graphe::reinitialise()
+{
+    connexions_pour_inst.reinitialise();
+    connexions.efface();
+}
 
-        return true;
+template <typename Fonction>
+void Graphe::visite_utilisateurs(Instruction *inst, Fonction rappel) const
+{
+    auto idx = connexions_pour_inst.valeur_ou(inst, {});
+    POUR (idx) {
+        auto &connexion = connexions[it];
+        rappel(connexion.utilisateur);
     }
+}
 
-    template <typename Fonction>
-    void visite_utilisateurs(Instruction *inst, Fonction rappel) const
-    {
-        auto idx = connexions_pour_inst.valeur_ou(inst, {});
-        POUR (idx) {
-            auto &connexion = connexions[it];
-            rappel(connexion.utilisateur);
-        }
-    }
-};
+/** \} */
 
 static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
 {
@@ -1193,20 +1189,20 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(const FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(Graphe &graphe,
+                                             const FonctionEtBlocs &fonction_et_blocs)
 {
     auto const fonction = fonction_et_blocs.fonction;
 
-    Graphe g;
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
-        g.construit(it->instructions, index_bloc++);
+        graphe.construit(it->instructions, index_bloc++);
     }
 
     index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         rapproche_allocations_des_stockages(it);
-        supprime_allocations_temporaires(g, it, index_bloc++);
+        supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
 
 #ifdef IMPRIME_STATS
@@ -1244,9 +1240,10 @@ static void supprime_allocations_temporaires(const FonctionEtBlocs &fonction_et_
  * À FAIRE(analyse_ri) :
  * - membre actifs des unions
  */
-void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
+void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
-    FonctionEtBlocs fonction_et_blocs;
+    reinitialise();
+
     if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
         return;
     }
@@ -1265,7 +1262,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 
     supprime_blocs_vides(fonction_et_blocs);
 
-    supprime_allocations_temporaires(fonction_et_blocs);
+    supprime_allocations_temporaires(graphe, fonction_et_blocs);
 
     valide_fonction(espace, *atome);
 
@@ -1274,4 +1271,10 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
         return;
     }
 #endif
+}
+
+void ContexteAnalyseRI::reinitialise()
+{
+    graphe.reinitialise();
+    fonction_et_blocs.reinitialise();
 }
