@@ -27,7 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_structures
-        langage
+	langage
         ${BILIOTHEQUE_CXX_FILESYSTEM}
 )
 
