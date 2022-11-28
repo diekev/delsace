@@ -483,7 +483,8 @@ void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &global
 bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
                                      EspaceDeTravail &espace,
                                      Programme *programme,
-                                     ConstructriceRI &constructrice_ri)
+                                     ConstructriceRI &constructrice_ri,
+                                     Broyeuse &)
 {
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;

@@ -13,7 +13,7 @@
 énum ArchitectureCible {
     @code ArchitectureCible
 
-	X86
+    X86
     X64
 }
 
@@ -27,12 +27,12 @@
 
 énum NiveauOptimisation {
     AUCUN
-	O0
-	O1
-	O2
-	Os
-	Oz
-	O3
+    O0
+    O1
+    O2
+    Os
+    Oz
+    O3
 }
 
 énum CompilationPour {
@@ -46,14 +46,19 @@ struct OptionsDeCompilation {
 
     chaine_statique nom_sortie = "a.out"
 
-	TypeCoulisse coulisse = .C
-	RésultatCompilation résultat = .EXÉCUTABLE
-	ArchitectureCible architecture = .X64
-	NiveauOptimisation niveau_optimisation = .AUCUN
+    TypeCoulisse coulisse = .C
+    RésultatCompilation résultat = .EXÉCUTABLE
+    ArchitectureCible architecture = .X64
+    NiveauOptimisation niveau_optimisation = .AUCUN
     CompilationPour compilation_pour = .PRODUCTION
 
     bool émets_métriques = vrai
     bool continue_si_erreur = faux
     bool erreur_si_avertissement = faux
     bool utilise_asan = faux
+    /* Ajoute des protections pour détecter les dépassements de pile lors de
+     * l'exécution. */
+    bool protège_pile = vrai
+    /* Détermine si les traces d'appels doivent être utilisée dans le programme. */
+    bool utilise_trace_appel = vrai
 }

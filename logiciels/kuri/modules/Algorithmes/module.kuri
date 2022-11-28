@@ -159,7 +159,7 @@ accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc (T)(V)) -> V
     retourne résultat
 }
 
-accumule :: fonc (tableau: []$T, valeur_initiale: $T) -> T
+accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 {
     résultat := valeur_initiale
 

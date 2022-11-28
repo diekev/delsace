@@ -20,6 +20,7 @@
 #include "tacheronne.hh"
 #include "typage.hh"
 
+struct Broyeuse;
 struct ContexteLexage;
 struct EspaceDeTravail;
 struct NoeudCodeEnteteFonction;
@@ -69,6 +70,7 @@ struct Compilatrice {
     erreur::Genre m_code_erreur{};
     bool active_tests = false;
     bool profile_metaprogrammes = false;
+    bool debogue_execution = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     template <typename T>
@@ -129,6 +131,8 @@ struct Compilatrice {
     /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
      * disponible. */
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+
+    Broyeuse *broyeuse = nullptr;
 
     /* ********************************************************************** */
 
@@ -205,9 +209,6 @@ struct Compilatrice {
     Fichier *fichier(kuri::chaine_statique chemin) const;
 
     AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
-    AtomeFonction *cree_fonction(Lexeme const *lexeme,
-                                 kuri::chaine const &nom_fonction,
-                                 kuri::tableau<Atome *, int> &&params);
     AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);

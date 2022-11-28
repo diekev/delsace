@@ -30,6 +30,12 @@ bool Fichier::importe_module(IdentifiantCode *nom_module) const
     return importe;
 }
 
+void Module::ajoute_fichier(Fichier *fichier)
+{
+    fichiers.ajoute(fichier);
+    fichiers_sont_sales = true;
+}
+
 Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
     auto chemin_normalise = kuri::chaine(chemin);
@@ -39,6 +45,10 @@ Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_
     }
 
     POUR_TABLEAU_PAGE (modules) {
+        if (it.nom() != nom) {
+            continue;
+        }
+
         if (it.chemin() == chemin_normalise) {
             return &it;
         }
@@ -87,6 +97,8 @@ FichierNeuf SystemeModule::cree_fichier(Module *module,
     df->chemin_ = chemin;
     df->id_ = fichiers.taille() - 1;
     df->module = module;
+
+    module->ajoute_fichier(df);
 
     table_fichiers.insere(df->chemin(), df);
 
@@ -171,9 +183,8 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     auto const numero_ligne = site.index_ligne + 1;
     auto const index_colonne = site.index_colonne;
     auto const texte_ligne = fichier->tampon()[index_ligne];
-    auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTEE ?
-                      kuri::chaine(".chaine_ajoutées") :
-                      fichier->chemin();
+    auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTEE ? ".chaine_ajoutées" :
+                                                                     fichier->chemin();
 
     enchaineuse << chemin << ':' << numero_ligne + fichier->decalage_fichier;
 

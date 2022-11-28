@@ -17,7 +17,8 @@
 bool CoulisseMV::cree_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
-                                    ConstructriceRI &constructrice_ri)
+                                    ConstructriceRI &constructrice_ri,
+                                    Broyeuse &)
 {
     auto repr_inter = representation_intermediaire_programme(*programme);
     auto metaprogramme = programme->pour_metaprogramme();

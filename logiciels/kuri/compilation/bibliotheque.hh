@@ -22,7 +22,13 @@ enum class EtatRechercheSymbole : unsigned char {
     NON_RECHERCHE,
     TROUVE,
     INTROUVE,
-    SURECRIS,
+};
+
+enum class RaisonRechercheSymbole : unsigned char {
+    /* Le symbole doit être chargé pour être utilisée dans la machine virtuelle. */
+    EXECUTION_METAPROGRAMME,
+    /* Le symbole doit être chargé pour la liaison du programme final. */
+    LIAISON_PROGRAMME_FINAL,
 };
 
 struct Symbole {
@@ -32,18 +38,23 @@ struct Symbole {
     kuri::chaine nom = "";
     EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
 
-    type_fonction ptr_fonction = nullptr;
+    /* L'adresse pour la liaison du programme final. */
+    type_fonction adresse_liaison = nullptr;
+    /* L'adresse pour l'exécution d'un métaprogramme. Elle peut-être différente de #adresse_liaison
+     * si nous le remplaçons par l'une de nos fonctions. */
+    type_fonction adresse_execution = nullptr;
 
-    bool charge(EspaceDeTravail *espace, NoeudExpression const *site);
+    bool charge(EspaceDeTravail *espace,
+                NoeudExpression const *site,
+                RaisonRechercheSymbole raison);
 
-    void surecris_pointeur(type_fonction pointeur)
-    {
-        ptr_fonction = pointeur;
-        /* puisque nous remplaçons certaines fonctions de la bibliothèque C pour les
-         * métaprogrammes, il nous faut se souvenir de ceci afin que lorsque nous
-         * aurons un lieur, le lieur charge le bon symbole de la bibliothèque */
-        etat_recherche = EtatRechercheSymbole::SURECRIS;
-    }
+    /* Renseigne une adresse spécifique à utilisée pour l'exécution de métaprogrammes. */
+    void adresse_pour_execution(type_fonction pointeur);
+
+    /* Retourne l'adresse à utilisée pour l'exécution de métaprogramme : soit l'adresse chargée
+     * depuis la bibliothèque, soit l'adresse mise en place par #adresse_pour_execution(adresse) si
+     * elle existe. */
+    type_fonction adresse_pour_execution();
 };
 
 enum class EtatRechercheBibliotheque : unsigned char {

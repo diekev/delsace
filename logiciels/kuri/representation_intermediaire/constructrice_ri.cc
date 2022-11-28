@@ -1787,8 +1787,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     decl->corps->drapeaux |= RI_FUT_GENEREE;
     fonction_courante->ri_generee = true;
 
-    analyse_ri(*espace(), atome_fonc);
-
     if (decl->possede_drapeau(DEBOGUE)) {
         imprime_fonction(atome_fonc, std::cerr);
     }

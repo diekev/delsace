@@ -42,14 +42,14 @@ find_library(ALEMBIC_LIBRARY
 # handle the QUIETLY and REQUIRED arguments and set ALEMBIC_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(ALEMBIC DEFAULT_MSG
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Alembic DEFAULT_MSG
     ALEMBIC_LIBRARY ALEMBIC_INCLUDE_DIR)
 
-if(ALEMBIC_FOUND)
+if(Alembic_FOUND)
     set(BIBLIOTHEQUES_ALEMBIC ${ALEMBIC_LIBRARY})
     set(INCLUSIONS_ALEMBIC ${ALEMBIC_INCLUDE_DIR} ${ALEMBIC_INCLUDE_DIR}/../)
 else()
-    set(ALEMBIC_FOUND FALSE)
+    set(Alembic_FOUND FALSE)
 endif()
 
 mark_as_advanced(

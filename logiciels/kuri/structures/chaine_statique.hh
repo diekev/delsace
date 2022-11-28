@@ -55,6 +55,11 @@ struct chaine_statique {
     {
         return taille() != 0;
     }
+
+    chaine_statique sous_chaine(int index) const
+    {
+        return chaine_statique(pointeur() + index, taille() - index);
+    }
 };
 
 bool operator<(chaine_statique const &c1, chaine_statique const &c2);

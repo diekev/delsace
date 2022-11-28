@@ -300,7 +300,7 @@ void UniteCompilation::rapporte_erreur() const
     }
     else if (m_attente.est<AttenteSurType>()) {
         auto site = noeud;
-        if (site->est_corps_fonction()) {
+        if (site && site->est_corps_fonction()) {
             auto corps = site->comme_corps_fonction();
             site = corps->arbre_aplatis[index_courant];
         }

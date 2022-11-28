@@ -11,7 +11,8 @@ struct CoulisseMV final : public Coulisse {
     bool cree_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
                             Programme *programme,
-                            ConstructriceRI &constructrice_ri) override;
+                            ConstructriceRI &constructrice_ri,
+                            Broyeuse &) override;
 
     bool cree_executable(Compilatrice &compilatrice,
                          EspaceDeTravail &espace,

@@ -53,7 +53,7 @@ long Monomorphisations::memoire_utilisee() const
 {
     long memoire = 0;
     memoire += monomorphisations->taille() *
-            (taille_de(NoeudExpression *) + taille_de(tableau_items));
+               (taille_de(NoeudExpression *) + taille_de(tableau_items));
 
     POUR (*monomorphisations.verrou_lecture()) {
         memoire += it.premier.taille() * (taille_de(ItemMonomorphisation));

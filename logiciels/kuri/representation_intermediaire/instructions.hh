@@ -342,7 +342,7 @@ struct AccedeIndexConstant : public AtomeConstante {
 };
 
 struct AtomeFonction : public Atome {
-    kuri::chaine nom{};
+    kuri::chaine_statique nom{};
 
     kuri::tableau<Atome *, int> params_entrees{};
     Atome *param_sortie = nullptr;
@@ -370,13 +370,13 @@ struct AtomeFonction : public Atome {
 
     DonneesFonctionExterne donnees_externe{};
 
-    AtomeFonction(Lexeme const *lexeme_, kuri::chaine const &nom_) : nom(nom_), lexeme(lexeme_)
+    AtomeFonction(Lexeme const *lexeme_, kuri::chaine_statique nom_) : nom(nom_), lexeme(lexeme_)
     {
         genre_atome = Atome::Genre::FONCTION;
     }
 
     AtomeFonction(Lexeme const *lexeme_,
-                  kuri::chaine const &nom_,
+                  kuri::chaine_statique nom_,
                   kuri::tableau<Atome *, int> &&params_)
         : AtomeFonction(lexeme_, nom_)
     {

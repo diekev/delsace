@@ -15,6 +15,7 @@
 
 #include "structures/date.hh"
 
+#include "broyage.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
@@ -121,13 +122,13 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         *espace_de_travail_defaut, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
 
     auto malloc_ = libc->cree_symbole("malloc");
-    malloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+    malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
 
     auto realloc_ = libc->cree_symbole("realloc");
-    realloc_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+    realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
 
     auto free_ = libc->cree_symbole("free");
-    free_->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(notre_free));
+    free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
 
     /* La bibliothèque r16. */
     auto bibr16 = gestionnaire_bibliotheques->cree_bibliotheque(
@@ -137,13 +138,13 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         "r16");
 
     bibr16->cree_symbole("DLS_vers_r32")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r32));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
     bibr16->cree_symbole("DLS_depuis_r32")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
     bibr16->cree_symbole("DLS_vers_r64")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(vers_r64));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
     bibr16->cree_symbole("DLS_depuis_r64")
-        ->surecris_pointeur(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
 
     /* La bibliothèque pthread. */
     gestionnaire_bibliotheques->cree_bibliotheque(
@@ -151,6 +152,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
         nullptr,
         table_idents->identifiant_pour_chaine("libpthread"),
         "pthread");
+
+    broyeuse = memoire::loge<Broyeuse>("Broyeuse");
 }
 
 Compilatrice::~Compilatrice()
@@ -158,6 +161,8 @@ Compilatrice::~Compilatrice()
     POUR ((*espaces_de_travail.verrou_ecriture())) {
         memoire::deloge("EspaceDeTravail", it);
     }
+
+    memoire::deloge("Broyeuse", broyeuse);
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace,
@@ -334,6 +339,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     memoire_fonctions += fonctions.memoire_utilisee();
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
         memoire_fonctions += it.params_entrees.taille_memoire();
+        memoire_fonctions += it.instructions.taille_memoire();
         memoire_fonctions += it.chunk.capacite;
         memoire_fonctions += it.chunk.locales.taille_memoire();
         memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
@@ -633,16 +639,8 @@ Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
-    return atome_fonc;
-}
-
-AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme,
-                                           const kuri::chaine &nom_fonction,
-                                           kuri::tableau<Atome *, int> &&params)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
+    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */;
+    auto atome_fonc = fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
     return atome_fonc;
 }
 
@@ -691,7 +689,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(constructrice.espace()), std::move(params));
+        decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
     atome_fonc->type = normalise_type(typeuse, decl->type);
     atome_fonc->est_externe = decl->est_externe;
     atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);

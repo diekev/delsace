@@ -67,7 +67,6 @@ struct Profileuse {
 };
 
 struct MachineVirtuelle {
-  private:
     enum class ResultatInterpretation : int {
         OK,
         ERREUR,
@@ -76,6 +75,7 @@ struct MachineVirtuelle {
         PASSE_AU_SUIVANT,
     };
 
+  private:
     Compilatrice &compilatrice;
 
     tableau_page<DonneesExecution> donnees_execution{};

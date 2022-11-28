@@ -45,6 +45,7 @@ ForEachMacros:
   - POUR
   - POUR_TABLEAU_PAGE
   - DIFFERE
+  - POUR_NOMME
 
 ReflowComments: true
 

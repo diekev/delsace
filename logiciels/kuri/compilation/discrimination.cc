@@ -247,7 +247,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
     decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
 
     bloc_insertion->expressions->pousse_front(decl_expr);
-    bloc_insertion->membres->ajoute(decl_expr);
+    bloc_insertion->ajoute_membre(decl_expr);
 
     paire_discr->variable_capturee = decl_expr;
 

@@ -48,6 +48,8 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     m_fonctions.ajoute(fonction);
     m_fonctions_utilisees.insere(fonction);
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
+    elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
+    elements_sont_sales[FONCTIONS][POUR_RI] = true;
 }
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
@@ -58,6 +60,8 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     m_globales.ajoute(globale);
     m_globales_utilisees.insere(globale);
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
+    elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
+    elements_sont_sales[GLOBALES][POUR_RI] = true;
 }
 
 void Programme::ajoute_type(Type *type)
@@ -67,34 +71,45 @@ void Programme::ajoute_type(Type *type)
     }
     m_types.ajoute(type);
     m_types_utilises.insere(type);
+    elements_sont_sales[TYPES][POUR_TYPAGE] = true;
+    elements_sont_sales[TYPES][POUR_RI] = true;
 }
 
 bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) const
 {
-    POUR (m_fonctions) {
-        if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            diagnostique.declaration_a_valider = it;
-            return false;
-        }
+    if (elements_sont_sales[FONCTIONS][POUR_TYPAGE]) {
+        POUR (m_fonctions) {
+            if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                diagnostique.declaration_a_valider = it;
+                return false;
+            }
 
-        if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            diagnostique.declaration_a_valider = it;
-            return false;
+            if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                diagnostique.declaration_a_valider = it;
+                return false;
+            }
         }
+        elements_sont_sales[FONCTIONS][POUR_TYPAGE] = false;
     }
 
-    POUR (m_globales) {
-        if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            diagnostique.declaration_a_valider = it;
-            return false;
+    if (elements_sont_sales[GLOBALES][POUR_TYPAGE]) {
+        POUR (m_globales) {
+            if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                diagnostique.declaration_a_valider = it;
+                return false;
+            }
         }
+        elements_sont_sales[GLOBALES][POUR_TYPAGE] = false;
     }
 
-    POUR (m_types) {
-        if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
-            diagnostique.type_a_valider = it;
-            return false;
+    if (elements_sont_sales[TYPES][POUR_TYPAGE]) {
+        POUR (m_types) {
+            if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                diagnostique.type_a_valider = it;
+                return false;
+            }
         }
+        elements_sont_sales[TYPES][POUR_TYPAGE] = false;
     }
 
     diagnostique.toutes_les_declarations_a_typer_le_sont = true;
@@ -109,39 +124,48 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     using dls::outils::est_element;
 
-    POUR (m_fonctions) {
-        if (!it->possede_drapeau(RI_FUT_GENEREE) && !est_element(it->ident,
-                                                                 ID::init_execution_kuri,
-                                                                 ID::fini_execution_kuri,
-                                                                 ID::init_globales_kuri)) {
-            assert_rappel(it->unite, [&]() {
-                std::cerr << "Aucune unité pour de compilation pour :\n";
-                erreur::imprime_site(*m_espace, it);
-            });
-            diagnostique.ri_declaration_a_generer = it;
-            return false;
+    if (elements_sont_sales[FONCTIONS][POUR_RI]) {
+        POUR (m_fonctions) {
+            if (!it->possede_drapeau(RI_FUT_GENEREE) && !est_element(it->ident,
+                                                                     ID::init_execution_kuri,
+                                                                     ID::fini_execution_kuri,
+                                                                     ID::init_globales_kuri)) {
+                assert_rappel(it->unite, [&]() {
+                    std::cerr << "Aucune unité pour de compilation pour :\n";
+                    erreur::imprime_site(*m_espace, it);
+                });
+                diagnostique.ri_declaration_a_generer = it;
+                return false;
+            }
         }
+        elements_sont_sales[FONCTIONS][POUR_RI] = false;
     }
 
-    POUR (m_globales) {
-        if (!it->possede_drapeau(RI_FUT_GENEREE)) {
-            diagnostique.ri_declaration_a_generer = it;
-            return false;
+    if (elements_sont_sales[GLOBALES][POUR_RI]) {
+        POUR (m_globales) {
+            if (!it->possede_drapeau(RI_FUT_GENEREE)) {
+                diagnostique.ri_declaration_a_generer = it;
+                return false;
+            }
         }
+        elements_sont_sales[GLOBALES][POUR_RI] = false;
     }
 
-    POUR (m_types) {
-        /* Ne vérifions pas ici si la fonction_init est non-nulle car les types variadiques
-         * externes n'en ont pas. */
-        if ((it->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
-            diagnostique.fonction_initialisation_type_a_creer = it;
-            return false;
-        }
+    if (elements_sont_sales[TYPES][POUR_RI]) {
+        POUR (m_types) {
+            /* Ne vérifions pas ici si la fonction_init est non-nulle car les types variadiques
+             * externes n'en ont pas. */
+            if ((it->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
+                diagnostique.fonction_initialisation_type_a_creer = it;
+                return false;
+            }
 
-        if (it->fonction_init && !it->fonction_init->possede_drapeau(RI_FUT_GENEREE)) {
-            diagnostique.ri_type_a_generer = it;
-            return false;
+            if (it->fonction_init && !it->fonction_init->possede_drapeau(RI_FUT_GENEREE)) {
+                diagnostique.ri_type_a_generer = it;
+                return false;
+            }
         }
+        elements_sont_sales[TYPES][POUR_RI] = false;
     }
 
     diagnostique.toutes_les_ri_sont_generees = true;

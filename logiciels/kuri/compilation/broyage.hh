@@ -3,17 +3,46 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
+#include "structures/enchaineuse.hh"
 
 struct IdentifiantCode;
 struct NoeudDeclarationEnteteFonction;
 struct Type;
 
-kuri::chaine broye_nom_simple(kuri::chaine_statique const &nom);
+/**
+ * Une Broyeuse s'occupe de transformer une chaine de caractère en une chaine unique.
+ * Cette structure n'est pas sure pour le moultfilage: chaque fil doit avoir sa propre
+ * broyeuse.
+ */
+class Broyeuse {
+    /* Stockage pour toutes les chaines. */
+    Enchaineuse stockage_chaines{};
 
-kuri::chaine const &nom_broye_type(Type *type);
+    /* Stockage temporaire pour éviter d'allouer trop de chaines.
+     * Une fois le broyage terminé, la chaine temporaire est ajoutée au #stockage_chaine.
+     */
+    Enchaineuse stockage_temp{};
 
-kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
-                                kuri::chaine const &nom_module);
+  public:
+    /* Retourne le nom broyé de la chaine donnée. */
+    kuri::chaine_statique broye_nom_simple(kuri::chaine_statique const &nom);
 
-kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident);
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans le type. */
+    kuri::chaine_statique nom_broye_type(Type *type);
+
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans la fonction. */
+    kuri::chaine_statique broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
+                                             IdentifiantCode *nom_module);
+
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans l'identifiant. */
+    kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident);
+
+  private:
+    /* Déplace la chaine du stockage temporaire dans le stockage final, et
+     * retourne une chaine statique pour celle-ci. */
+    kuri::chaine_statique chaine_finale_pour_stockage_temp();
+};

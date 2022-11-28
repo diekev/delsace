@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/vue_chaine.hh"
 #include "structures/chaine.hh"
 #include "structures/chaine_statique.hh"
 
@@ -49,23 +51,56 @@ struct Enchaineuse {
     void permute(Enchaineuse &autre);
 
     void reinitialise();
+
+    /**
+     * Retourne une chaine_statique provenant du premier tampon de l'enchaineuse.
+     * Aucune vérification n'est faite pour savoir si le tampon contient une chaine
+     * complète ; les appelants doivent savoir si la chaine est suffisament petite
+     * pour tenir dans un seul tampon.
+     *
+     * Ceci peut être utilisé en conjonction avec #reinitialise() pour lors de la
+     * génération de plusieurs petites chaines.
+     */
+    kuri::chaine_statique chaine_statique() const;
+
+    /**
+     * Ajoute la chaine en un seul morceau dans l'enchaineuse, et retourne une
+     * nouvelle chaine pour les données ajoutées.
+     */
+    kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
 };
 
+unsigned nombre_vers_chaine(char *tampon, unsigned long valeur);
+
 template <typename T>
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, T const &valeur)
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 {
+    if constexpr (std::is_integral_v<T>) {
+        char tampon[32];
+        auto const n = nombre_vers_chaine(tampon, static_cast<unsigned long>(valeur));
+        enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        return enchaineuse;
+    }
+
     dls::flux_chaine flux;
     flux << valeur;
 
-    for (auto c : flux.chn()) {
-        enchaineuse.pousse_caractere(c);
-    }
+    auto const chn = flux.chn();
+    enchaineuse.ajoute(chn.c_str(), static_cast<long>(chn.size()));
+    return enchaineuse;
+}
 
+template <typename T>
+inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, T *valeur)
+{
+    char tampon[32];
+    auto const n = nombre_vers_chaine(tampon, reinterpret_cast<unsigned long>(valeur));
+    enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
     return enchaineuse;
 }
 
 template <>
-inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, char const &valeur)
+inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, char valeur)
 {
     enchaineuse.pousse_caractere(valeur);
     return enchaineuse;
@@ -81,6 +116,10 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char (&c)[N])
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
+
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn);
+
+Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 

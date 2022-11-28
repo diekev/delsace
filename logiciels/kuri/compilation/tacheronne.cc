@@ -12,26 +12,8 @@
 #include "programme.hh"
 #include "syntaxeuse.hh"
 
+#include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/optimisations.hh"
-
-const char *chaine_genre_tache(GenreTache genre)
-{
-#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
-    case GenreTache::ACTION:                                                                      \
-        return CHAINE;
-    switch (genre) {
-        ENUMERE_GENRES_TACHE(ENUMERE_GENRE_TACHE)
-    }
-#undef ENUMERE_GENRE_TACHE
-
-    return "erreur";
-}
-
-std::ostream &operator<<(std::ostream &os, GenreTache genre)
-{
-    os << chaine_genre_tache(genre);
-    return os;
-}
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 {
@@ -46,37 +28,6 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 
 #undef ENUMERE_CAPACITE
     return os;
-}
-
-Tache Tache::dors(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::DORS;
-    t.espace = espace_;
-    return t;
-}
-
-Tache Tache::compilation_terminee()
-{
-    Tache t;
-    t.genre = GenreTache::COMPILATION_TERMINEE;
-    return t;
-}
-
-Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::GENERATION_CODE_MACHINE;
-    t.espace = espace_;
-    return t;
-}
-
-Tache Tache::liaison_objet(EspaceDeTravail *espace_)
-{
-    Tache t;
-    t.genre = GenreTache::LIAISON_PROGRAMME;
-    t.espace = espace_;
-    return t;
 }
 
 static int file_pour_raison_d_etre(RaisonDEtre raison_d_etre)
@@ -259,7 +210,7 @@ void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)
-    : compilatrice(comp),
+    : compilatrice(comp), analyseuse_ri(memoire::loge<ContexteAnalyseRI>("ContexteAnalyseRI")),
       assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud)),
       id(compilatrice.ordonnanceuse->enregistre_tacheronne({}))
 {
@@ -268,6 +219,7 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 Tacheronne::~Tacheronne()
 {
     memoire::deloge("AssembleuseArbre", assembleuse);
+    memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
 void Tacheronne::gere_tache()
@@ -315,7 +267,8 @@ void Tacheronne::gere_tache()
 
                     if (!fichier->fut_charge) {
                         auto debut_chargement = dls::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(dls::chaine(fichier->chemin()));
+                        auto texte = charge_contenu_fichier(
+                            dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
                         temps_chargement += debut_chargement.temps();
 
                         auto debut_tampon = dls::chrono::compte_seconde();
@@ -426,8 +379,11 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
-                if (coulisse->cree_fichier_objet(
-                        compilatrice, *tache.unite->espace, programme, constructrice_ri)) {
+                if (coulisse->cree_fichier_objet(compilatrice,
+                                                 *tache.unite->espace,
+                                                 programme,
+                                                 constructrice_ri,
+                                                 broyeuse)) {
                     compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);
                 }
                 temps_generation_code += coulisse->temps_generation_code;
@@ -513,6 +469,10 @@ void Tacheronne::gere_tache()
                 compilatrice.gestionnaire_code->fonction_initialisation_type_creee(unite);
                 break;
             }
+            case GenreTache::NOMBRE_ELEMENTS:
+            {
+                break;
+            }
         }
     }
 
@@ -532,6 +492,8 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     }
     /* Pour les imports et chargements. */
     temps_validation -= contexte.temps_chargement;
+
+    CHRONO_TYPAGE(stats_typage.finalisation, FINALISATION__FINALISATION);
     compilatrice.gestionnaire_code->typage_termine(unite);
 }
 
@@ -610,6 +572,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
     else {
         constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
+    }
+
+    if (noeud->est_corps_fonction()) {
+        auto entete = noeud->comme_corps_fonction()->entete;
+        analyseuse_ri->analyse_ri(*unite->espace, static_cast<AtomeFonction *>(entete->atome));
     }
 
     noeud->drapeaux |= RI_FUT_GENEREE;

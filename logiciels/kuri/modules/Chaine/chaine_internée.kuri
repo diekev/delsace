@@ -310,8 +310,8 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 
     nouvelle_taille := table.capacité * 2
 
-    si nouvelle_taille < Table($TypeClé, $TypeValeur).TAILLE_MIN {
-        nouvelle_taille = Table($TypeClé, $TypeValeur).TAILLE_MIN
+    si nouvelle_taille < Table(TypeClé, TypeValeur).TAILLE_MIN {
+        nouvelle_taille = Table(TypeClé, TypeValeur).TAILLE_MIN
     }
 
     alloue(table, nouvelle_taille)

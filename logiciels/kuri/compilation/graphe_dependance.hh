@@ -71,7 +71,7 @@ struct NoeudDependance {
     TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
 
   public:
-    bool fut_visite = false;
+    int index_visite = 0;
 
     /* pour certains algorithmes de travail sur le graphe */
     char drapeaux = 0;
@@ -141,6 +141,13 @@ void imprime_dependances(const DonneesDependance &dependances,
                          std::ostream &flux);
 
 struct GrapheDependance {
+  private:
+    /* Index de la visite. Chaque traversée du graphe peut avoir un index de visite différent
+     * (#prepare_visite() doit être utilisé pour indiquer une nouvelle visite). Les noeuds sont
+     * considérés comme visités si leur index de visite est celui de celle-ci. */
+    int index_visite = 0;
+
+  public:
     tableau_page<NoeudDependance> noeuds{};
 
     // CRÉE (:FONCTION { nom = $nom })
@@ -173,6 +180,8 @@ struct GrapheDependance {
 
     void reduction_transitive();
 
+    void prepare_visite();
+
     void rassemble_fonctions_utilisees(NoeudDependance *racine,
                                        kuri::tableau<AtomeFonction *> &fonctions,
                                        kuri::ensemble<AtomeFonction *> &utilises);
@@ -180,7 +189,7 @@ struct GrapheDependance {
     template <typename Rappel>
     void traverse(NoeudDependance *racine, Rappel rappel)
     {
-        racine->fut_visite = true;
+        racine->index_visite = index_visite;
 
         for (auto const &relation : racine->relations().plage()) {
             auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
@@ -191,7 +200,7 @@ struct GrapheDependance {
                 continue;
             }
 
-            if (relation.noeud_fin->fut_visite) {
+            if (relation.noeud_fin->index_visite == index_visite) {
                 continue;
             }
 

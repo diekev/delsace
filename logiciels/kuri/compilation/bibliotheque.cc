@@ -33,12 +33,27 @@ static bool fichier_existe(kuri::chaine const &chemin)
     return false;
 }
 
-bool Symbole::charge(EspaceDeTravail *espace, NoeudExpression const *site)
+bool Symbole::charge(EspaceDeTravail *espace,
+                     NoeudExpression const *site,
+                     RaisonRechercheSymbole raison)
 {
-    // À FAIRE(bibliothèque) : surécris n'est que pour les l'exécution dans la MV
-    if (etat_recherche == EtatRechercheSymbole::TROUVE ||
-        etat_recherche == EtatRechercheSymbole::SURECRIS) {
-        return true;
+    switch (raison) {
+        case RaisonRechercheSymbole::EXECUTION_METAPROGRAMME:
+        {
+            /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de le charger.
+             */
+            if (adresse_execution || etat_recherche == EtatRechercheSymbole::TROUVE) {
+                return true;
+            }
+            break;
+        }
+        case RaisonRechercheSymbole::LIAISON_PROGRAMME_FINAL:
+        {
+            if (etat_recherche == EtatRechercheSymbole::TROUVE) {
+                return true;
+            }
+            break;
+        }
     }
 
     if (bibliotheque->etat_recherche != EtatRechercheBibliotheque::TROUVEE) {
@@ -49,7 +64,7 @@ bool Symbole::charge(EspaceDeTravail *espace, NoeudExpression const *site)
 
     try {
         auto ptr_symbole = bibliotheque->bib(dls::chaine(nom.pointeur(), nom.taille()));
-        this->ptr_fonction = reinterpret_cast<Symbole::type_fonction>(ptr_symbole.ptr());
+        this->adresse_liaison = reinterpret_cast<Symbole::type_fonction>(ptr_symbole.ptr());
         etat_recherche = EtatRechercheSymbole::TROUVE;
     }
     catch (...) {
@@ -64,6 +79,19 @@ bool Symbole::charge(EspaceDeTravail *espace, NoeudExpression const *site)
     }
 
     return true;
+}
+
+void Symbole::adresse_pour_execution(type_fonction pointeur)
+{
+    adresse_execution = pointeur;
+}
+
+Symbole::type_fonction Symbole::adresse_pour_execution()
+{
+    if (adresse_execution) {
+        return adresse_execution;
+    }
+    return adresse_liaison;
 }
 
 Symbole *Bibliotheque::cree_symbole(kuri::chaine_statique nom_symbole)
