@@ -199,7 +199,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
 
     if (nom_fichier_sortie.filename() == "ipa.hh") {
         std::ofstream fichier_sortie(nom_fichier_tmp);

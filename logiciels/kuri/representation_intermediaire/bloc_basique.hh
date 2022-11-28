@@ -44,6 +44,8 @@ struct Bloc {
 
     void fusionne_enfant(Bloc *enfant);
 
+    void reinitialise();
+
   private:
     void enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc);
 
@@ -62,8 +64,11 @@ void construit_liste_variables_utilisees(Bloc *bloc);
 struct FonctionEtBlocs {
     AtomeFonction *fonction = nullptr;
     kuri::tableau<Bloc *, int> blocs{};
+    kuri::tableau<Bloc *, int> blocs_libres{};
 
     ~FonctionEtBlocs();
 
     bool convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc);
+
+    void reinitialise();
 };

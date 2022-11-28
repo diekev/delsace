@@ -33,7 +33,7 @@
 #include "rmsd.hh"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 /* vector functions using c arrays */
 

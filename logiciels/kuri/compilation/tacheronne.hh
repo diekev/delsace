@@ -19,6 +19,7 @@
 #include "../representation_intermediaire/machine_virtuelle.hh"
 
 struct Compilatrice;
+struct ContexteAnalyseRI;
 struct MetaProgramme;
 struct Tacheronne;
 
@@ -117,6 +118,7 @@ struct Tacheronne {
     Compilatrice &compilatrice;
 
     ConstructriceRI constructrice_ri{compilatrice};
+    ContexteAnalyseRI *analyseuse_ri = nullptr;
     MachineVirtuelle mv{compilatrice};
 
     AllocatriceNoeud allocatrice_noeud{};
