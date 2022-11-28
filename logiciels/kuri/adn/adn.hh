@@ -99,7 +99,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);
 
 FluxSortieKuri &operator<<(FluxSortieKuri &flux, IdentifiantADN const &ident);
 
-struct Proteine;
+class Proteine;
 struct TypeNominal;
 struct TypePointeur;
 struct TypeTableau;

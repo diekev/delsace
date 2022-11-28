@@ -232,6 +232,14 @@ struct table_hachage {
         nombre_elements = 0;
     }
 
+    void reinitialise()
+    {
+        nombre_elements = 0;
+        POUR (occupes) {
+            it = false;
+        }
+    }
+
   private:
     int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
     {

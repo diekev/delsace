@@ -12,6 +12,7 @@
 #include "programme.hh"
 #include "syntaxeuse.hh"
 
+#include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/optimisations.hh"
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
@@ -209,7 +210,7 @@ void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)
-    : compilatrice(comp),
+    : compilatrice(comp), analyseuse_ri(memoire::loge<ContexteAnalyseRI>("ContexteAnalyseRI")),
       assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud)),
       id(compilatrice.ordonnanceuse->enregistre_tacheronne({}))
 {
@@ -218,6 +219,7 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 Tacheronne::~Tacheronne()
 {
     memoire::deloge("AssembleuseArbre", assembleuse);
+    memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
 void Tacheronne::gere_tache()
@@ -570,6 +572,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
     else {
         constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
+    }
+
+    if (noeud->est_corps_fonction()) {
+        auto entete = noeud->comme_corps_fonction()->entete;
+        analyseuse_ri->analyse_ri(*unite->espace, static_cast<AtomeFonction *>(entete->atome));
     }
 
     noeud->drapeaux |= RI_FUT_GENEREE;

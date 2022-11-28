@@ -3,6 +3,7 @@
 
 #include "syntaxeuse.hh"
 
+#include <array>
 #include <filesystem>
 
 #include "biblinternes/outils/assert.hh"

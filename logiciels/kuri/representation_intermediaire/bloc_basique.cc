@@ -231,6 +231,17 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     enfant->instructions.efface();
 }
 
+void Bloc::reinitialise()
+{
+    label = nullptr;
+    est_atteignable = false;
+    instructions.efface();
+    parents.efface();
+    enfants.efface();
+    variables_declarees.efface();
+    variables_utilisees.efface();
+}
+
 void Bloc::enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
@@ -333,14 +344,23 @@ static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, Instructi
     return nullptr;
 }
 
-static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
+static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
+                                  kuri::tableau<Bloc *, int> &blocs_libres,
+                                  InstructionLabel *label)
 {
     auto bloc = trouve_bloc_pour_label(blocs, label);
     if (bloc) {
         return bloc;
     }
 
-    bloc = memoire::loge<Bloc>("Bloc");
+    if (!blocs_libres.est_vide()) {
+        bloc = blocs_libres.derniere();
+        blocs_libres.supprime_dernier();
+    }
+    else {
+        bloc = memoire::loge<Bloc>("Bloc");
+    }
+
     bloc->label = label;
     blocs.ajoute(bloc);
     return bloc;
@@ -361,12 +381,6 @@ FonctionEtBlocs::~FonctionEtBlocs()
 
 bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc)
 {
-    detruit_blocs(blocs);
-
-    /* blocs_pour_labels est pour rassembler tous les blocs créés et trouver un bloc selon un label
-     * pour la création des blocs. */
-    kuri::tableau<Bloc *, int> blocs_pour_labels;
-
     fonction = atome_fonc;
 
     auto numero_instruction = atome_fonc->params_entrees.taille();
@@ -375,29 +389,27 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            cree_bloc_pour_label(blocs_pour_labels, it->comme_label());
+            cree_bloc_pour_label(blocs, blocs_libres, it->comme_label());
         }
     }
 
     Bloc *bloc_courant = nullptr;
     POUR (atome_fonc->instructions) {
         if (it->est_label()) {
-            bloc_courant = trouve_bloc_pour_label(blocs_pour_labels, it->comme_label());
+            bloc_courant = trouve_bloc_pour_label(blocs, it->comme_label());
 
             if (!bloc_courant) {
                 espace.rapporte_erreur(it->site, "Erreur interne, aucun bloc pour le label");
                 return false;
             }
 
-            blocs.ajoute(bloc_courant);
             continue;
         }
 
         bloc_courant->instructions.ajoute(it);
 
         if (it->est_branche()) {
-            auto bloc_cible = trouve_bloc_pour_label(blocs_pour_labels,
-                                                     it->comme_branche()->label);
+            auto bloc_cible = trouve_bloc_pour_label(blocs, it->comme_branche()->label);
 
             if (!bloc_cible) {
                 espace.rapporte_erreur(
@@ -413,8 +425,8 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
             auto label_si_vrai = it->comme_branche_cond()->label_si_vrai;
             auto label_si_faux = it->comme_branche_cond()->label_si_faux;
 
-            auto bloc_si_vrai = trouve_bloc_pour_label(blocs_pour_labels, label_si_vrai);
-            auto bloc_si_faux = trouve_bloc_pour_label(blocs_pour_labels, label_si_faux);
+            auto bloc_si_vrai = trouve_bloc_pour_label(blocs, label_si_vrai);
+            auto bloc_si_faux = trouve_bloc_pour_label(blocs, label_si_faux);
 
             if (!bloc_si_vrai) {
                 espace.rapporte_erreur(
@@ -434,4 +446,16 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
     }
 
     return true;
+}
+
+void FonctionEtBlocs::reinitialise()
+{
+    fonction = nullptr;
+
+    POUR (blocs) {
+        it->reinitialise();
+        blocs_libres.ajoute(it);
+    }
+
+    blocs.efface();
 }
