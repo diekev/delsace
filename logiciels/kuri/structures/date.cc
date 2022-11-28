@@ -6,10 +6,10 @@
 #include <time.h>
 
 #ifdef _MSC_VER
-#include <windows.h>
-#include <profileapi.h>
+#    include <profileapi.h>
+#    include <windows.h>
 
-#define CLOCK_REALTIME_COARSE 0
+#    define CLOCK_REALTIME_COARSE 0
 
 // https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
 LARGE_INTEGER
@@ -33,16 +33,15 @@ getFILETIMEoffset()
     return (t);
 }
 
-int
-clock_gettime(int /*X*/, struct timespec *tv)
+int clock_gettime(int /*X*/, struct timespec *tv)
 {
-    LARGE_INTEGER           t;
-    FILETIME            f;
-    double                  microseconds;
-    static LARGE_INTEGER    offset;
-    static double           frequencyToMicroseconds;
-    static int              initialized = 0;
-    static BOOL             usePerformanceCounter = 0;
+    LARGE_INTEGER t;
+    FILETIME f;
+    double microseconds;
+    static LARGE_INTEGER offset;
+    static double frequencyToMicroseconds;
+    static int initialized = 0;
+    static BOOL usePerformanceCounter = 0;
 
     if (!initialized) {
         LARGE_INTEGER performanceFrequency;
@@ -51,12 +50,14 @@ clock_gettime(int /*X*/, struct timespec *tv)
         if (usePerformanceCounter) {
             QueryPerformanceCounter(&offset);
             frequencyToMicroseconds = (double)performanceFrequency.QuadPart / 1000000.;
-        } else {
+        }
+        else {
             offset = getFILETIMEoffset();
             frequencyToMicroseconds = 10.;
         }
     }
-    if (usePerformanceCounter) QueryPerformanceCounter(&t);
+    if (usePerformanceCounter)
+        QueryPerformanceCounter(&t);
     else {
         GetSystemTimeAsFileTime(&f);
         t.QuadPart = f.dwHighDateTime;
