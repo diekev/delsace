@@ -34,8 +34,24 @@ struct Graphe {
 
     template <typename Fonction>
     void visite_utilisateurs(Instruction *inst, Fonction rappel) const;
+
+    void reinitialise();
+};
+
+/* Structure pour contenir les différentes structures utilisées pour analyser la RI afin de
+ * récupérer la mémoire entre différents appels.
+ * Cette structure n'est pas sûre vis-à-vis du moultfilage.
+ */
+struct ContexteAnalyseRI {
+  private:
+    Graphe graphe{};
+
+  public:
+    void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome);
+
+  private:
+    /* Réinitialise les différentes structures. */
+    void reinitialise();
 };
 
 void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions);
-
-void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome);

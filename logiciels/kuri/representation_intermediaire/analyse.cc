@@ -934,6 +934,12 @@ bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc)
     return true;
 }
 
+void Graphe::reinitialise()
+{
+    connexions_pour_inst.efface();
+    connexions.efface();
+}
+
 template <typename Fonction>
 void Graphe::visite_utilisateurs(Instruction *inst, Fonction rappel) const
 {
@@ -1183,20 +1189,20 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(const FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(Graphe &graphe,
+                                             const FonctionEtBlocs &fonction_et_blocs)
 {
     auto const fonction = fonction_et_blocs.fonction;
 
-    Graphe g;
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
-        g.construit(it->instructions, index_bloc++);
+        graphe.construit(it->instructions, index_bloc++);
     }
 
     index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         rapproche_allocations_des_stockages(it);
-        supprime_allocations_temporaires(g, it, index_bloc++);
+        supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
 
 #ifdef IMPRIME_STATS
@@ -1234,8 +1240,10 @@ static void supprime_allocations_temporaires(const FonctionEtBlocs &fonction_et_
  * À FAIRE(analyse_ri) :
  * - membre actifs des unions
  */
-void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
+void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 {
+    reinitialise();
+
     FonctionEtBlocs fonction_et_blocs;
     if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
         return;
@@ -1255,7 +1263,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 
     supprime_blocs_vides(fonction_et_blocs);
 
-    supprime_allocations_temporaires(fonction_et_blocs);
+    supprime_allocations_temporaires(graphe, fonction_et_blocs);
 
     valide_fonction(espace, *atome);
 
@@ -1264,4 +1272,9 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
         return;
     }
 #endif
+}
+
+void ContexteAnalyseRI::reinitialise()
+{
+    graphe.reinitialise();
 }
