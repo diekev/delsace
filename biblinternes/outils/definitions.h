@@ -44,8 +44,13 @@
 #define PRAGMA_IMPL(x) _Pragma(#x)
 #define A_FAIRE(x) PRAGMA_IMPL(message("À FAIRE : " CHAINE(x)))
 
-#define PROBABLE(x) (__builtin_expect((x), 1))
-#define IMPROBABLE(x) (__builtin_expect((x), 0))
+#ifndef _MSC_VER
+#  define PROBABLE(x) (__builtin_expect((x), 1))
+#  define IMPROBABLE(x) (__builtin_expect((x), 0))
+#else
+#  define PROBABLE(x) (x)
+#  define IMPROBABLE(x) (x)
+#endif
 
 #define REMBOURRE(x) \
 	_Pragma("clang diagnostic push") \

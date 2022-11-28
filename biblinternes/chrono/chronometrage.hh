@@ -40,7 +40,9 @@ namespace __privee {
  */
 static inline void empeche_optimisation()
 {
+#ifndef _MSC_VER
 	asm volatile("");
+#endif
 }
 
 /**
@@ -49,12 +51,16 @@ static inline void empeche_optimisation()
 template <typename Fonction>
 static inline void empeche_optimisation(Fonction &&fonction)
 {
+#ifndef _MSC_VER
 	asm volatile("" : "+r" (fonction));
+#endif
 }
 
 inline void clobber()
 {
+#ifndef _MSC_VER
 	asm volatile("" : : : "memory");
+#endif
 }
 
 }  /* namespace __privee */
@@ -133,7 +139,7 @@ double chronometre_boucle_epoque(
 	 * lors de l'exécution de la fonction.
 	 */
 
-	auto temps_iterations_min = std::numeric_limits<double>::max();
+    auto temps_iterations_min = std::numeric_limits<double>::max();
 	auto e = epoques;
 
 	while (e-- > 0) {
@@ -153,7 +159,7 @@ double chronometre_boucle_epoque(
 		}
 	}
 
-	auto temps_fonction_min = std::numeric_limits<double>::max();
+    auto temps_fonction_min = std::numeric_limits<double>::max();
 	e = epoques;
 
 	while (e-- > 0) {

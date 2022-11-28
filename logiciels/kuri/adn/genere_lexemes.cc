@@ -36,7 +36,7 @@ struct Lexeme {
 struct ListeLexemes {
     kuri::tableau<Lexeme> lexemes{};
 
-    void ajoute_mot_cle(kuri::chaine_statique chaine, uint drapeaux = 0)
+    void ajoute_mot_cle(kuri::chaine_statique chaine, uint32_t drapeaux = 0)
     {
         auto lexeme = Lexeme{};
         lexeme.chaine = chaine;

@@ -43,12 +43,15 @@ add_compile_options(-fconcepts)
 
 option(AVEC_ASAN "Utilise asan lors de la compilation en mode débogage" OFF)
 
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
+# WINDOWS
+add_compile_definitions(_USE_MATH_DEFINES)
+
+if(CMAKE_BUILD_TYPE MATCHES "DebugLinux")
 	add_compile_options(-g)
-	add_compile_options(-Og)
+	# add_compile_options(-Og)
         add_compile_options(-Wall)
-        add_compile_options(-Wextra)
-        add_compile_options(-Werror)
+       # add_compile_options(-Wextra)
+        # add_compile_options(-Werror)
         # Standard
         add_compile_options(-Wpedantic)
         add_compile_options(-Weffc++)
@@ -159,7 +162,7 @@ macro(desactive_drapeaux_compilation cible)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wdeprecated)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wextra)
+	# list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wextra)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wmissing-include-dirs)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-delete-non-virtual-dtor)
 	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)

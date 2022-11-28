@@ -28,14 +28,12 @@ option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
-find_program(gperf NAMES gperf REQUIRED)
+find_program(gperf NAMES gperf HINTS C:/Users/forns/Downloads/bin REQUIRED)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
 	add_definitions(-DAVEC_LLVM)
 endif()
-
-find_program(GPERF NAME gperf)
 
 # À FAIRE : trouve ceux-ci de manière programmatique
 add_definitions(-DCOMPILATEUR_C_COULISSE_C="${CMAKE_C_COMPILER}")

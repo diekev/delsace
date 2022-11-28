@@ -24,7 +24,9 @@
 
 #include "test_unitaire.hh"
 
+#ifndef _MSC_VER
 #include <execinfo.h>
+#endif
 
 namespace dls {
 namespace test_unitaire {
@@ -110,6 +112,7 @@ void Controleuse::pousse_erreur(const dls::chaine &erreur)
 	ss << "Proposition : " << m_proposition << "\n\n";
 	ss << erreur << '\n';
 
+#ifndef _MSC_VER
 	void *tampon[TAILLE_TRACAGE];
 	auto taille_tracage = backtrace(tampon, TAILLE_TRACAGE);
 
@@ -122,6 +125,7 @@ void Controleuse::pousse_erreur(const dls::chaine &erreur)
 	ss << '\n';
 
 	free(symboles);
+#endif
 
 	auto chaine = ss.str();
 

@@ -123,7 +123,11 @@ Pipe::Pipe(const dls::chaine &filename, const dls::chaine &modes)
 
 void Pipe::open(const dls::chaine &filename, const dls::chaine &modes)
 {
-	m_file = Ptr(popen(filename.c_str(), modes.c_str()), FileDeleter());
+#ifdef _MSC_VER
+    m_file = Ptr(_popen(filename.c_str(), modes.c_str()), FileDeleter());
+#else
+    m_file = Ptr(popen(filename.c_str(), modes.c_str()), FileDeleter());
+#endif
 }
 
 dls::chaine Pipe::output()
@@ -138,6 +142,19 @@ dls::chaine Pipe::output()
 	}
 
 	return output;
+}
+
+void Pipe::FileDeleter::operator()(FILE *f) const
+{
+    if (f == nullptr) {
+        return;
+    }
+
+#ifdef _MSC_VER
+    _pclose(f);
+#else
+    pclose(f);
+#endif
 }
 
 }  /* namespace systeme_fichier */

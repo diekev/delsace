@@ -35,8 +35,8 @@ set(SOURCES
 	synchronise.cc
 
 	boucle.hh
-	sse_mathfun.hh
-	sse_r32.hh
+        # sse_mathfun.hh
+        # sse_r32.hh
 	synchronise.hh
 	synchrone.hh
 )
@@ -49,26 +49,26 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
 ################################################################################
 
-set(NOM_PROJET moultfilage)
+#set(NOM_PROJET moultfilage)
 
-add_executable(${NOM_PROJET}
-	flow_graph.cc
-	image_graph.cc
-	lanceur.cc
-	sse_test.cc
-	task.cc
+#add_executable(${NOM_PROJET}
+#	flow_graph.cc
+#	image_graph.cc
+#	lanceur.cc
+#	sse_test.cc
+#	task.cc
 
-	flow_graph.hh
-	future.hh
-	image_graph.hh
-	sse_test.hh
-	task.hh
-)
+#	flow_graph.hh
+#	future.hh
+#	image_graph.hh
+#	sse_test.hh
+#	task.hh
+#)
 
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+#target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+#target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
-install(
-    TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
-)
+#install(
+#    TARGETS ${NOM_PROJET} RUNTIME DESTINATION .
+#)

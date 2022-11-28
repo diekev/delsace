@@ -27,6 +27,12 @@
 #include <memory>
 #include "biblinternes/structures/chaine.hh"
 
+#ifdef _MSC_VER
+#  define ATTR(x)
+#else
+#  define ATTR(x) __attribute__ (x)
+#endif
+
 namespace dls {
 namespace systeme_fichier {
 
@@ -58,8 +64,8 @@ public:
 	int getc();
 	int putc(int c);
 
-	int print(const char *fmt, ...) __attribute__ ((format(printf, 2, 3)));
-	int scan(const char *fmt, ...) __attribute__ ((format(scanf, 2, 3)));
+    int print(const char *fmt, ...) ATTR ((format(printf, 2, 3)));
+    int scan(const char *fmt, ...) ATTR ((format(scanf, 2, 3)));
 
 	size_t read(void *ptr, size_t element_size, size_t number);
 	size_t write(const void *ptr, size_t element_size, size_t number);
@@ -79,12 +85,7 @@ class Pipe {
 	Ptr m_file;
 
 	struct FileDeleter {
-		void operator()(FILE *f) const
-		{
-			if (f != nullptr) {
-				pclose(f);
-			}
-		}
+        void operator()(FILE *f) const;
 	};
 
 public:

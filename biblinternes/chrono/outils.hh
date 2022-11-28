@@ -26,8 +26,17 @@
 
 #include <assert.h>
 #include <functional>
-#include <sys/time.h>
-#include <unistd.h>
+
+#ifdef _MSC_VER
+#  define NOMINMAX
+#  include <windows.h>
+#  include <profileapi.h>
+#  include <chrono>
+#  include <thread>
+#else
+#  include <sys/time.h>
+#  include <unistd.h>
+#endif
 
 namespace dls::chrono {
 
@@ -45,10 +54,17 @@ private:
 	 */
 	[[nodiscard]] inline double maintenant() const noexcept
 	{
+#ifdef _MSC_VER
+        LARGE_INTEGER fq, t;
+        QueryPerformanceFrequency(&fq);
+        QueryPerformanceCounter(&t);
+        return static_cast<double>(1000000 * t.QuadPart) / static_cast<double>(fq.QuadPart);
+#else
 		struct timeval now;
 		gettimeofday(&now, nullptr);
 
 		return static_cast<double>(now.tv_sec) * 1000000.0 + static_cast<double>(now.tv_usec);
+#endif
 	}
 
 	/**
@@ -165,13 +181,21 @@ using metre_heure = metre<3600000000>;
 inline void dors_millisecondes(int millisecondes)
 {
 	assert(millisecondes >= 0);
-	usleep(static_cast<unsigned>(millisecondes * 1000));
+#ifdef _MSC_VER
+    std::this_thread::sleep_for(std::chrono::microseconds(millisecondes * 1000));
+#else
+    usleep(static_cast<unsigned>(millisecondes * 1000));
+#endif
 }
 
 inline void dors_microsecondes(int microsecondes)
 {
 	assert(microsecondes >= 0);
+#ifdef _MSC_VER
+    std::this_thread::sleep_for(std::chrono::microseconds(microsecondes));
+#else
 	usleep(static_cast<unsigned>(microsecondes));
+#endif
 }
 
 }  /* namespace dls::chrono */

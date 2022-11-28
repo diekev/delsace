@@ -32,8 +32,8 @@
 namespace dls {
 namespace test_aleatoire {
 
-using t_fonction_initialisation = std::function<void(u_char *, size_t)>;
-using t_fonction_entree_test = std::function<int(const u_char *, size_t)>;
+using t_fonction_initialisation = std::function<void(unsigned char *, size_t)>;
+using t_fonction_entree_test = std::function<int(const unsigned char *, size_t)>;
 
 /**
  * Classe aidant à performer des tests aléatoires.

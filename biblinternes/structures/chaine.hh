@@ -72,7 +72,11 @@ public:
 		: m_chaine(str)
 	{}
 
-	template <typename __iter_horsin, typename = std::_RequireInputIter<__iter_horsin>>
+    template <typename __iter_horsin
+          #ifndef _MSC_VER
+              , typename = std::_RequireInputIter<__iter_horsin>
+    #endif
+              >
 	chaine(__iter_horsin __deb, __iter_horsin __fin)
 		: m_chaine(__deb, __fin)
 	{}
