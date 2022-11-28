@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <string>
 #include <filesystem>
+#include <string>
 
 namespace kuri {
 struct chaine;
@@ -24,7 +24,13 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique param_gabarit);
 
 #ifdef _MSC_VER
-void remplace_si_different(std::filesystem::path const &chemin_source, kuri::chaine_statique nom_dest);
+void remplace_si_different(std::filesystem::path const &chemin_source,
+                           kuri::chaine_statique nom_dest);
 #else
 void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
 #endif
+
+/**
+ * Retourne un chemin dans le dossier temporaire du système pour le nom de fichier donné.
+ */
+std::filesystem::path chemin_temporaire(std::string const &nom_fichier);

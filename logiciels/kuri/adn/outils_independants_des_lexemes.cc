@@ -103,14 +103,15 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
 }
 
 #ifdef _MSC_VER
-#include <codecvt>
+#    include <codecvt>
 
-void remplace_si_different(std::filesystem::path const &chemin_source, kuri::chaine_statique nom_dest)
+void remplace_si_different(std::filesystem::path const &chemin_source,
+                           kuri::chaine_statique nom_dest)
 {
     std::wstring w_string = chemin_source.c_str();
     using convert_type = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_type, wchar_t> converter;
-    std::string c_string = converter.to_bytes( w_string );
+    std::string c_string = converter.to_bytes(w_string);
     kuri::chaine_statique nom_source = c_string.c_str();
 
     if (nom_source == nom_dest) {
@@ -145,3 +146,8 @@ void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statiq
     std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
 }
 #endif
+
+std::filesystem::path chemin_temporaire(const std::string &nom_fichier)
+{
+    return std::filesystem::temp_directory_path() / nom_fichier;
+}

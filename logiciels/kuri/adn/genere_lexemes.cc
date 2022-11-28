@@ -457,10 +457,10 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 }
 )";
 
-    auto empreinte_parfaite_txt = std::filesystem::temp_directory_path() / "empreinte_parfaite.txt";
-    auto empreinte_parfaite_tmp_hh = std::filesystem::temp_directory_path() / "empreinte_parfaite_tmp.hh";
+    auto empreinte_parfaire_txt = chemin_temporaire("empreinte_parfaite.txt");
+    auto empreinte_parfaite_tmp_hh = chemin_temporaire("empreinte_parfaite_tmp.hh");
 
-    std::ofstream fichier_tmp(empreinte_parfaite_txt);
+    std::ofstream fichier_tmp(empreinte_parfaire_txt);
 
     fichier_tmp << debut_fichier;
     fichier_tmp << "%%\n";
@@ -478,8 +478,9 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
     fichier_tmp.close();
 
     std::stringstream ss;
-    ss << "C:/Users/forns/Downloads/bin/gperf.exe -m100 ";
-    ss << empreinte_parfaite_txt << " ";
+    ss << CHEMIN_GPERF << " ";
+    ss << "-m100 ";
+    ss << empreinte_parfaire_txt << " ";
     ss << "--output-file=";
     ss << empreinte_parfaite_tmp_hh;
 
@@ -494,7 +495,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
     std::ifstream fichier_tmp_entree(empreinte_parfaite_tmp_hh);
 
     if (!fichier_tmp_entree.is_open()) {
-        std::cerr << "Impossible d'ouvrir le fichier /tmp/empreinte_parfaite.hh\n";
+        std::cerr << "Impossible d'ouvrir le fichier " << empreinte_parfaite_tmp_hh << '\n';
         return 1;
     }
 
@@ -547,7 +548,7 @@ int main(int argc, const char **argv)
     construit_lexemes(lexemes);
     construit_nom_enums(lexemes);
 
-    auto nom_fichier_tmp = std::filesystem::temp_directory_path() / nom_fichier_sortie.filename();
+    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
 
     if (nom_fichier_sortie.filename() == "lexemes.cc") {
         {
