@@ -7,6 +7,8 @@
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
 
+#include "bloc_basique.hh"
+
 struct Atome;
 struct AtomeFonction;
 struct ConstructriceRI;
@@ -45,6 +47,7 @@ struct Graphe {
 struct ContexteAnalyseRI {
   private:
     Graphe graphe{};
+    FonctionEtBlocs fonction_et_blocs{};
 
   public:
     void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome);

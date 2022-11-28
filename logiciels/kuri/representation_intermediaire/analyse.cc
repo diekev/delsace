@@ -1244,7 +1244,6 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 {
     reinitialise();
 
-    FonctionEtBlocs fonction_et_blocs;
     if (!fonction_et_blocs.convertis_en_blocs(espace, atome)) {
         return;
     }
@@ -1277,4 +1276,5 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 void ContexteAnalyseRI::reinitialise()
 {
     graphe.reinitialise();
+    fonction_et_blocs.reinitialise();
 }
