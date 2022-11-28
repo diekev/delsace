@@ -6,7 +6,7 @@
 /* MSVC définis pour ses extensions "interface" comme "struct". */
 
 #ifdef _MSC_VER
-#  undef interface
-#  undef OPAQUE
-#  undef DIFFERENCE
+#    undef interface
+#    undef OPAQUE
+#    undef DIFFERENCE
 #endif
