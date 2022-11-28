@@ -313,7 +313,8 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
     os << '\n';
     prodeclare_struct(os, "IdentifiantCode");
     os << '\n';
-    /* Une entête Windows définie le macro DIFFERENCE, ce qui nous fait collisionne avec notre énumération. */
+    /* Une entête Windows définie le macro DIFFERENCE, ce qui nous fait collisionne avec notre
+     * énumération. */
     os << "#ifdef _MSC_VER\n";
     os << "#  undef DIFFERENCE\n";
     os << "#endif\n";
