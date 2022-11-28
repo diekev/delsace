@@ -936,7 +936,7 @@ bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc)
 
 void Graphe::reinitialise()
 {
-    connexions_pour_inst.efface();
+    connexions_pour_inst.reinitialise();
     connexions.efface();
 }
 
