@@ -7,7 +7,7 @@
 #include <set>
 
 #ifndef _MSC_VER
-#include <sys/wait.h>
+#    include <sys/wait.h>
 #endif
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -2046,7 +2046,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
 
-#  ifndef _MSC_VER
+#    ifndef _MSC_VER
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
@@ -2080,7 +2080,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
             continue;
         }
     }
-#  else
+#    else
     auto possede_erreur = false;
     POUR (m_fichiers) {
         auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
@@ -2092,7 +2092,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
             break;
         }
     }
-#  endif
+#    endif
 
     if (possede_erreur) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");

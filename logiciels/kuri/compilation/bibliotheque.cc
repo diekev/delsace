@@ -506,8 +506,8 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
     return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
 }
 #else
-static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &/*espace*/,
-                                                         NoeudExpression */*site*/,
+static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail & /*espace*/,
+                                                         NoeudExpression * /*site*/,
                                                          kuri::chaine const &chemin_dynamique)
 {
     return chemin_dynamique;
