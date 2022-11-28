@@ -36,12 +36,12 @@ class Dormeur {
 public:
 	void dors_trois_secondes()
 	{
-        dls::chrono::dors_millisecondes(3000);
+		dls::chrono::dors_millisecondes(3000);
 	}
 
 	void dors_une_seconde()
 	{
-        dls::chrono::dors_millisecondes(1000);
+		dls::chrono::dors_millisecondes(1000);
 	}
 };
 
