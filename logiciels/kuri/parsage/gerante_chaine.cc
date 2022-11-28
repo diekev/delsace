@@ -27,7 +27,8 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
 {
     assert(adresse >= 0);
 
-    /* MSVC convertis l'adresse implicitement vers un nombre naturel, ce qui cause une erreur de compilation. Convertissons explicitement. */
+    /* MSVC convertis l'adresse implicitement vers un nombre naturel, ce qui cause une erreur de
+     * compilation. Convertissons explicitement. */
     auto adresse_naturelle = size_t(adresse);
     auto taille = (adresse_naturelle >> 32) & 0xffffffff;
     adresse_naturelle = (adresse_naturelle & 0xfffffff);
