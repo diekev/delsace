@@ -27,6 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	memoire
+        ${BIBLIOTHEQUES_TBB}
 )
 
 add_library(${NOM_CIBLE} STATIC

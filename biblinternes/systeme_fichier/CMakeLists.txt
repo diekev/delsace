@@ -23,11 +23,12 @@ set(NOM_BIBLIOTHEQUE systeme_fichier)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
 	bib_structures
-	stdc++fs
+        # stdc++fs
 )
 
 set(HEADERS

@@ -26,7 +26,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	tbb
+        ${BIBLIOTHEQUES_TBB}
 	pthread
 	bib_structures
 )

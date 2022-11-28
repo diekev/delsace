@@ -27,8 +27,12 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+
+#ifdef _MSC_VER
+#else
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 #include "../chrono/outils.hh"
 
@@ -53,10 +57,10 @@ int Testeuse::performe_tests(std::ostream &os)
 	auto chemin = dls::chaine("/tmp/test_");
 
 	std::random_device device{};
-	std::uniform_int_distribution<u_char> rng{0, 255};
+    std::uniform_int_distribution<uint16_t> rng{0, 255};
 	std::uniform_int_distribution<size_t> rng_taille{32 * 1024, 64 * 1024};
 
-	u_char tampon[64 * 1024];
+    uint8_t tampon[64 * 1024];
 
 	for (const auto &foncs : this->fonctions) {
 		os << "Début test : " << foncs.nom << '\n';
@@ -74,6 +78,8 @@ int Testeuse::performe_tests(std::ostream &os)
 				}
 			}
 
+#ifdef _MSC_VER
+#else
 			auto pid = fork();
 
 			if (pid == 0) {
@@ -121,7 +127,8 @@ int Testeuse::performe_tests(std::ostream &os)
 					}
 				}
 			}
-		}
+#endif
+        }
 
 		os << '\n';
 	}

@@ -457,7 +457,10 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 }
 )";
 
-    std::ofstream fichier_tmp("/tmp/empreinte_parfaite.txt");
+    auto empreinte_parfaite_txt = std::filesystem::temp_directory_path() / "empreinte_parfaite.txt";
+    auto empreinte_parfaite_tmp_hh = std::filesystem::temp_directory_path() / "empreinte_parfaite_tmp.hh";
+
+    std::ofstream fichier_tmp(empreinte_parfaite_txt);
 
     fichier_tmp << debut_fichier;
     fichier_tmp << "%%\n";
@@ -474,16 +477,21 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 
     fichier_tmp.close();
 
-    const auto commande =
-        "gperf -m100 /tmp/empreinte_parfaite.txt --output-file=/tmp/empreinte_parfaite_tmp.hh";
+    std::stringstream ss;
+    ss << "C:/Users/forns/Downloads/bin/gperf.exe -m100 ";
+    ss << empreinte_parfaite_txt << " ";
+    ss << "--output-file=";
+    ss << empreinte_parfaite_tmp_hh;
 
-    if (system(commande) != 0) {
+    const auto commande = ss.str();
+
+    if (system(commande.c_str()) != 0) {
         std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte "
                      "parfaite depuis GPerf\n";
         return 1;
     }
 
-    std::ifstream fichier_tmp_entree("/tmp/empreinte_parfaite_tmp.hh");
+    std::ifstream fichier_tmp_entree(empreinte_parfaite_tmp_hh);
 
     if (!fichier_tmp_entree.is_open()) {
         std::cerr << "Impossible d'ouvrir le fichier /tmp/empreinte_parfaite.hh\n";
@@ -539,7 +547,7 @@ int main(int argc, const char **argv)
     construit_lexemes(lexemes);
     construit_nom_enums(lexemes);
 
-    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+    auto nom_fichier_tmp = std::filesystem::temp_directory_path() / nom_fichier_sortie.filename();
 
     if (nom_fichier_sortie.filename() == "lexemes.cc") {
         {

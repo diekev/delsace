@@ -29,7 +29,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	kuri_statistiques
 	kuri_structures
-	stdc++fs
+        # stdc++fs
 	langage
 	bib_outils
 	bib_moultfilage

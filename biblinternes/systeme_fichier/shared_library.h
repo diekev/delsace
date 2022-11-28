@@ -130,7 +130,7 @@ bool operator!=(const dso_function<R(Args...)> &func, std::nullptr_t)
 
 class shared_library {
 	void *m_handle = nullptr;
-	dls::chaine m_chemin{};
+    std::filesystem::path m_chemin{};
 
 public:
 	shared_library() = default;
@@ -163,6 +163,7 @@ public:
 	std::filesystem::path chemin() const;
 };
 
+#ifndef _MSC_VER
 /**
  * Find the first occurrence of the desired symbol using the default library
  * search order.
@@ -186,6 +187,7 @@ dso_symbol symbol_next(const dls::chaine &name);
  * current library.
  */
 dso_symbol symbol_next(const dls::chaine &name, std::error_code &ec);
+#endif
 
 }  /* namespace systeme_fichier */
 }  /* namespace dls */
