@@ -1643,7 +1643,7 @@ int main(int argc, char **argv)
         }
     }
 
-    auto nom_fichier_tmp = "/tmp" / nom_fichier_sortie.filename();
+    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
 
     if (nom_fichier_sortie.filename() == "noeud_expression.cc") {
         std::ofstream fichier_sortie(nom_fichier_tmp);
@@ -1660,7 +1660,7 @@ int main(int argc, char **argv)
             std::ofstream fichier_sortie(nom_fichier_tmp);
             auto flux = FluxSortieCPP(fichier_sortie);
             generatrice.genere_fichier_source_noeud_code(flux);
-            remplace_si_different("/tmp/noeud_code.cc", argv[1]);
+            remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
         }
         {
             // Génère le fichier de message pour le module Compilatrice
