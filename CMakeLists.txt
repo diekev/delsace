@@ -508,6 +508,10 @@ endif()
 
 # ------------------------------------------------------------------------------
 
+# Si nous compilons avec g++ nous devons lier la bibliothèque stdc++fs pour pouvoir
+# utiliser filesystem.
+set(BILIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
+
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
 add_subdirectory(logiciels)

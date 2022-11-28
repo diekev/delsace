@@ -213,7 +213,7 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
         if (morceau == "unsigned") {
             if (pile_morceaux.est_vide()) {
                 if (i >= morceaux.taille() - 1) {
-                    pile_morceaux.empile("uint");
+                    pile_morceaux.empile("uint32_t");
                 }
                 else {
                     auto morceau_suiv = morceaux[i + 1];
@@ -2173,7 +2173,7 @@ static auto analyse_configuration(const char *chemin)
     return config;
 }
 
-void imprime_ligne(std::string tampon, uint ligne, uint colonne, uint decalage)
+void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_t decalage)
 {
     int ligne_courante = 1;
     size_t position_ligne = 0;
@@ -2326,9 +2326,9 @@ int main(int argc, char **argv)
             size_t taille = 0;
             auto tampon = clang_getFileContents(unit, file, &taille);
 
-            uint ligne = 0;
-            uint colonne = 0;
-            uint decalage = 0;
+            uint32_t ligne = 0;
+            uint32_t colonne = 0;
+            uint32_t decalage = 0;
             clang_getExpansionLocation(loc, &file, &ligne, &colonne, &decalage);
             imprime_ligne(std::string(tampon, taille), ligne, colonne, decalage);
             clang_disposeDiagnostic(diag);

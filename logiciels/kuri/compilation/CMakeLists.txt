@@ -58,8 +58,8 @@ set(BIBLIOTHEQUES
 	kuri_parsage
 	kuri_representation_intermediaire
 	kuri_statistiques
-	kuri_structures
-        # stdc++fs
+        kuri_structures
+        ${BILIOTHEQUE_CXX_FILESYSTEM}
 	langage
 	bib_outils
 	bib_moultfilage

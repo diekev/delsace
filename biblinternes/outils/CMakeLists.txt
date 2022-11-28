@@ -27,8 +27,8 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_structures
-	langage
-        # stdc++fs
+        langage
+        ${BILIOTHEQUE_CXX_FILESYSTEM}
 )
 
 set(ENTETES

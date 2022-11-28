@@ -28,8 +28,8 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_statistiques
-	kuri_structures
-        # stdc++fs
+        kuri_structures
+        ${BILIOTHEQUE_CXX_FILESYSTEM}
 	langage
 	bib_outils
 	bib_moultfilage

@@ -33,8 +33,8 @@ set(NOM_PROJET kuri)
 set(BIBLIOTHEQUES
 	kuri_compilation
 	kuri_parsage
-	kuri_representation_intermediaire
-        # stdc++fs
+        kuri_representation_intermediaire
+        ${BILIOTHEQUE_CXX_FILESYSTEM}
 	bib_outils
 	systeme_fichier
 )
@@ -109,8 +109,8 @@ if(AVEC_LLVM)
 		${CLANG_INCLUDE_DIR}
 	)
 
-	set(BIBLIOTHEQUES
-                # stdc++fs
+        set(BIBLIOTHEQUES
+                ${BILIOTHEQUE_CXX_FILESYSTEM}
 		bib_outils
 		bib_json
 		kuri_structures
