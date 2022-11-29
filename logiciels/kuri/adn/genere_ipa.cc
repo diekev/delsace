@@ -3,7 +3,6 @@
 
 /* Fichier de génération du code pour l'IPA de la Compilatrice. */
 
-#include <filesystem>
 #include <fstream>
 
 #include "biblinternes/moultfilage/synchrone.hh"
@@ -14,6 +13,7 @@
 #include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/tableau.hh"
 
 #include "adn.hh"
@@ -171,7 +171,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    auto nom_fichier_sortie = std::filesystem::path(argv[1]);
+    auto nom_fichier_sortie = kuri::chemin_systeme(argv[1]);
 
     const auto chemin_adn_ipa = argv[3];
 
@@ -199,30 +199,31 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
+    auto nom_fichier_tmp = kuri::chemin_systeme::chemin_temporaire(
+        nom_fichier_sortie.nom_fichier());
 
-    if (nom_fichier_sortie.filename() == "ipa.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    if (nom_fichier_sortie.nom_fichier() == "ipa.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         genere_code_cpp(syntaxeuse.proteines, flux, true);
     }
-    else if (nom_fichier_sortie.filename() == "ipa.cc") {
+    else if (nom_fichier_sortie.nom_fichier() == "ipa.cc") {
         {
-            std::ofstream fichier_sortie(nom_fichier_tmp);
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
             genere_code_cpp(syntaxeuse.proteines, flux, false);
         }
         {
             // Génère le fichier de lexèmes pour le module Compilatrice
             // Apparemment, ce n'est pas possible de le faire via CMake
-            nom_fichier_sortie.replace_filename("../modules/Compilatrice/ipa.kuri");
-            std::ofstream fichier_sortie(nom_fichier_sortie);
+            nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/ipa.kuri");
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
             genere_code_kuri(syntaxeuse.proteines, flux);
         }
     }
 
-    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
+    remplace_si_different(nom_fichier_tmp, argv[1]);
 
     return 0;
 }

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <string>
 
 namespace kuri {
@@ -24,8 +23,3 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique param_gabarit);
 
 void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
-
-/**
- * Retourne un chemin dans le dossier temporaire du système pour le nom de fichier donné.
- */
-std::filesystem::path chemin_temporaire(std::string const &nom_fichier);

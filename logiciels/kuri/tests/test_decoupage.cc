@@ -122,7 +122,7 @@ Lexeuse lexeuse(str, str + len);
     auto donnees_fichier = Fichier();
     donnees_fichier.charge_tampon(lng::tampon_source(texte));
 
-    auto compilatrice = Compilatrice("");
+    auto compilatrice = Compilatrice("", {});
 
     Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
     lexeuse.performe_lexage();

@@ -13,6 +13,7 @@
 
 #include "parsage/lexeuse.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/date.hh"
 
 #include "broyage.hh"
@@ -100,9 +101,9 @@ void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
+Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagere(this), gestionnaire_code(this),
-      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)),
+      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs)
 {
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
@@ -169,23 +170,22 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                      const kuri::chaine &nom,
                                      NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(nom.pointeur(), nom.taille());
+    auto chemin = kuri::chemin_systeme(nom);
 
-    if (!std::filesystem::exists(chemin.c_str())) {
+    if (!kuri::chemin_systeme::existe(chemin)) {
         /* essaie dans la racine kuri */
-        chemin = dls::chaine(racine_kuri.pointeur(), racine_kuri.taille()) + "/modules/" + chemin;
+        chemin = kuri::chemin_systeme(racine_kuri) / "modules" / chemin;
 
-        if (!std::filesystem::exists(chemin.c_str())) {
-            erreur::lance_erreur("Impossible de trouver le dossier correspondant au module",
-                                 *espace,
-                                 site,
-                                 erreur::Genre::MODULE_INCONNU);
+        if (!kuri::chemin_systeme::existe(chemin)) {
+            espace
+                ->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
+                .ajoute_message("Le chemin testé fut : ", chemin);
 
             return nullptr;
         }
     }
 
-    if (!std::filesystem::is_directory(chemin.c_str())) {
+    if (!kuri::chemin_systeme::est_dossier(chemin)) {
         erreur::lance_erreur("Le nom du module ne pointe pas vers un dossier",
                              *espace,
                              site,
@@ -195,13 +195,12 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     }
 
     /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
-    auto chemin_absolu = std::filesystem::canonical(std::filesystem::absolute(chemin.c_str()));
-    auto nom_dossier = chemin_absolu.filename();
+    auto chemin_absolu = kuri::chemin_systeme::canonique_absolu(chemin);
+    auto nom_dossier = chemin_absolu.nom_fichier();
 
     // @concurrence critique
     auto module = this->trouve_ou_cree_module(
-        table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()),
-        chemin_absolu.c_str());
+        table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier), chemin_absolu);
 
     if (module->importe) {
         return module;
@@ -211,19 +210,11 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     messagere->ajoute_message_module_ouvert(espace, module);
 
-    for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
-        auto chemin_entree = entree.path();
+    auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
 
-        if (!std::filesystem::is_regular_file(chemin_entree)) {
-            continue;
-        }
-
-        if (chemin_entree.extension() != ".kuri") {
-            continue;
-        }
-
+    POUR (fichiers) {
         auto resultat = this->trouve_ou_cree_fichier(
-            module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
+            module, it.nom_fichier_sans_extension(), it, importe_kuri);
 
         if (resultat.est<FichierNeuf>()) {
             gestionnaire_code->requiers_chargement(espace,
@@ -253,31 +244,42 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
 /* ************************************************************************** */
 
+static std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
+                                                                   kuri::chaine_statique chemin,
+                                                                   NoeudExpression const *site)
+{
+    if (!kuri::chemin_systeme::existe(chemin)) {
+        espace->rapporte_erreur(site, "Impossible de trouver le fichier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return {};
+    }
+
+    if (!kuri::chemin_systeme::est_fichier_regulier(chemin)) {
+        espace->rapporte_erreur(site, "Le chemin ne pointe pas vers un fichier régulier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return {};
+    }
+
+    return kuri::chemin_systeme::absolu(chemin);
+}
+
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
-                                                   const kuri::chaine &nom,
+                                                   kuri::chaine_statique nom,
                                                    Module *module,
                                                    NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(nom) + ".kuri";
+    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(kuri::chaine(nom));
 
-    if (!std::filesystem::exists(chemin.c_str())) {
-        erreur::lance_erreur("Impossible de trouver le fichier correspondant au module",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
+    if (chemin.trouve(".kuri") == dls::chaine::npos) {
+        chemin += ".kuri";
     }
 
-    if (!std::filesystem::is_regular_file(chemin.c_str())) {
-        erreur::lance_erreur("Le nom du fichier ne pointe pas vers un fichier régulier",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
+    auto opt_chemin = determine_chemin_absolu(espace, chemin.c_str(), site);
+    if (!opt_chemin.has_value()) {
+        return;
     }
 
-    /* trouve le chemin absolu du fichier */
-    auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
-
-    auto resultat = this->trouve_ou_cree_fichier(module, nom, chemin_absolu.c_str(), importe_kuri);
+    auto resultat = this->trouve_ou_cree_fichier(module, nom, opt_chemin.value(), importe_kuri);
 
     if (resultat.est<FichierNeuf>()) {
         gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
@@ -472,17 +474,11 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     gestionnaire_code->requiers_lexage(espace, fichier);
 }
 
-void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                              kuri::chaine_statique c,
+                                              const NoeudExpression *site)
 {
-    auto vue = dls::chaine(c.pointeur(), c.taille());
-    auto chemin = std::filesystem::current_path() / vue.c_str();
-
-    if (!std::filesystem::exists(chemin)) {
-        espace->rapporte_erreur_sans_site(enchaine("Le fichier ", chemin, " n'existe pas !"));
-        return;
-    }
-
-    ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module_racine_compilation, {});
+    ajoute_fichier_a_la_compilation(espace, c, module_racine_compilation, site);
 }
 
 Message const *Compilatrice::attend_message()
@@ -513,28 +509,17 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
                                                                 kuri::chaine_statique chemin_donne,
                                                                 NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
-
-    if (!std::filesystem::exists(chemin.c_str())) {
-        erreur::lance_erreur("Impossible de trouver le fichier correspondant au chemin",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
+    auto opt_chemin = determine_chemin_absolu(espace, chemin_donne, site);
+    if (!opt_chemin.has_value()) {
+        return converti_tableau_lexemes({});
     }
 
-    if (!std::filesystem::is_regular_file(chemin.c_str())) {
-        erreur::lance_erreur("Le nom du fichier ne pointe pas vers un fichier régulier",
-                             *espace,
-                             site,
-                             erreur::Genre::MODULE_INCONNU);
-    }
-
-    auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+    auto chemin_absolu = opt_chemin.value();
 
     auto module = this->module(ID::chaine_vide);
 
     auto resultat = this->trouve_ou_cree_fichier(
-        module, chemin_absolu.stem().c_str(), chemin_absolu.c_str(), importe_kuri);
+        module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu, importe_kuri);
 
     if (resultat.est<FichierExistant>()) {
         auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
@@ -542,7 +527,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
     }
 
     auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
-    auto tampon = charge_contenu_fichier(chemin);
+    auto tampon = charge_contenu_fichier({chemin_absolu.pointeur(), chemin_absolu.taille()});
     donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
     auto lexeuse = Lexeuse(

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include <ostream>
 
 #include "structures/tableau.hh"
