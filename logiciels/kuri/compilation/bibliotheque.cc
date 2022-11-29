@@ -15,23 +15,13 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "structures/chemin_systeme.hh"
+
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 
 /* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
 #include "biblinternes/outils/garde_portee.h"
-
-static bool fichier_existe(kuri::chaine const &chemin)
-{
-    const auto std_string = std::string(chemin.pointeur(), static_cast<size_t>(chemin.taille()));
-    const auto std_path = std::filesystem::path(std_string);
-
-    if (std::filesystem::exists(std_path)) {
-        return true;
-    }
-
-    return false;
-}
 
 bool Symbole::charge(EspaceDeTravail *espace,
                      NoeudExpression const *site,
@@ -537,7 +527,7 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                 }
 
                 auto chemin_test = enchaine(it, noms[i][j]);
-                if (!fichier_existe(chemin_test)) {
+                if (!kuri::chemin_systeme::existe(chemin_test)) {
                     continue;
                 }
 

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -22,6 +21,8 @@
 #include "statistiques/statistiques.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+
+#include "structures/chemin_systeme.hh"
 
 #define AVEC_THREADS
 
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 
     auto const chemin_fichier = argv[1];
 
-    if (!std::filesystem::exists(chemin_fichier)) {
+    if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
         return 1;
     }
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
     auto debut_compilation = dls::chrono::compte_seconde();
     auto debut_nettoyage = dls::chrono::compte_seconde(false);
 
-    precompile_objet_r16(chemin_racine_kuri);
+    precompile_objet_r16(kuri::chaine_statique(chemin_racine_kuri));
 
     auto stats = Statistiques();
     auto compilatrice = Compilatrice(chemin_racine_kuri);
@@ -149,29 +150,24 @@ int main(int argc, char *argv[])
 
     {
         /* enregistre le dossier d'origine */
-        auto dossier_origine = std::filesystem::current_path();
+        auto dossier_origine = kuri::chemin_systeme::chemin_courant();
 
-        auto chemin = std::filesystem::path(chemin_fichier);
+        auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
 
-        if (chemin.is_relative()) {
-            chemin = std::filesystem::absolute(chemin);
-        }
-
-        auto nom_fichier = chemin.stem();
+        auto nom_fichier = chemin.nom_fichier_sans_extension();
 
         /* Charge d'abord le module basique. */
         auto espace_defaut = compilatrice.espace_de_travail_defaut;
 
-        auto dossier = chemin.parent_path();
-        std::filesystem::current_path(dossier);
+        auto dossier = chemin.chemin_parent();
+        kuri::chemin_systeme::change_chemin_courant(dossier);
 
         os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
            << std::endl;
 
-        auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier.c_str());
+        auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier);
         compilatrice.module_racine_compilation = module;
-        compilatrice.ajoute_fichier_a_la_compilation(
-            espace_defaut, nom_fichier.c_str(), module, {});
+        compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
 
 #ifdef AVEC_THREADS
         auto nombre_tacheronnes = std::thread::hardware_concurrency();
@@ -226,7 +222,7 @@ int main(int argc, char *argv[])
         }
 
         /* restore le dossier d'origine */
-        std::filesystem::current_path(dossier_origine);
+        kuri::chemin_systeme::change_chemin_courant(dossier_origine);
 
         if (!compilatrice.possede_erreur() && nom_fichier_utilises) {
             std::ofstream fichier_fichiers_utilises(nom_fichier_utilises);

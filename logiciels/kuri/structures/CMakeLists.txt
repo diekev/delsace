@@ -29,11 +29,13 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
     memoire
     bib_outils
+    ${BILIOTHEQUE_CXX_FILESYSTEM}
 )
 
 set(SOURCES
     chaine.cc
     chaine_statique.cc
+    chemin_systeme.cc
     date.cc
     enchaineuse.cc
     ensemble.cc
@@ -48,6 +50,7 @@ set(SOURCES
 
     chaine.hh
     chaine_statique.hh
+    chemin_systeme.hh
     date.hh
     enchaineuse.hh
     ensemble.hh

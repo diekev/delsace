@@ -3,12 +3,12 @@
 
 /* Fichier de génération du code pour les lexèmes. */
 
-#include <filesystem>
 #include <fstream>
 
 #include "biblinternes/outils/definitions.h"
 
 #include "structures/chaine.hh"
+#include "structures/chemin_systeme.hh"
 #include "structures/tableau.hh"
 
 #include "outils_independants_des_lexemes.hh"
@@ -457,10 +457,12 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 }
 )";
 
-    auto empreinte_parfaire_txt = chemin_temporaire("empreinte_parfaite.txt");
-    auto empreinte_parfaite_tmp_hh = chemin_temporaire("empreinte_parfaite_tmp.hh");
+    auto empreinte_parfaire_txt = kuri::chemin_systeme::chemin_temporaire(
+        "empreinte_parfaite.txt");
+    auto empreinte_parfaite_tmp_hh = kuri::chemin_systeme::chemin_temporaire(
+        "empreinte_parfaite_tmp.hh");
 
-    std::ofstream fichier_tmp(empreinte_parfaire_txt);
+    std::ofstream fichier_tmp(vers_std_path(empreinte_parfaire_txt));
 
     fichier_tmp << debut_fichier;
     fichier_tmp << "%%\n";
@@ -492,7 +494,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
         return 1;
     }
 
-    std::ifstream fichier_tmp_entree(empreinte_parfaite_tmp_hh);
+    std::ifstream fichier_tmp_entree(vers_std_path(empreinte_parfaite_tmp_hh));
 
     if (!fichier_tmp_entree.is_open()) {
         std::cerr << "Impossible d'ouvrir le fichier " << empreinte_parfaite_tmp_hh << '\n';
@@ -542,33 +544,34 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    auto nom_fichier_sortie = std::filesystem::path(argv[1]);
+    auto nom_fichier_sortie = kuri::chemin_systeme(argv[1]);
 
     auto lexemes = ListeLexemes{};
     construit_lexemes(lexemes);
     construit_nom_enums(lexemes);
 
-    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
+    auto nom_fichier_tmp = kuri::chemin_systeme::chemin_temporaire(
+        nom_fichier_sortie.nom_fichier());
 
-    if (nom_fichier_sortie.filename() == "lexemes.cc") {
+    if (nom_fichier_sortie.nom_fichier() == "lexemes.cc") {
         {
-            std::ofstream fichier_sortie(nom_fichier_tmp);
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             genere_fichier_source(lexemes, fichier_sortie);
         }
         {
             // Génère le fichier de lexèmes pour le module Compilatrice
             // Apparemment, ce n'est pas possible de le faire via CMake
-            nom_fichier_sortie.replace_filename("../modules/Compilatrice/lexèmes.kuri");
-            std::ofstream fichier_sortie(nom_fichier_sortie);
+            nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/lexèmes.kuri");
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             genere_fichier_kuri(lexemes, fichier_sortie);
         }
     }
-    else if (nom_fichier_sortie.filename() == "lexemes.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "lexemes.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         genere_fichier_entete(lexemes, fichier_sortie);
     }
-    else if (nom_fichier_sortie.filename() == "empreinte_parfaite.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "empreinte_parfaite.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         if (genere_empreinte_parfaite(lexemes, fichier_sortie) != 0) {
             return 1;
         }
@@ -578,7 +581,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
+    remplace_si_different(nom_fichier_tmp, argv[1]);
 
     return 0;
 }

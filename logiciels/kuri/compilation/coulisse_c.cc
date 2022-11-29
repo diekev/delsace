@@ -11,6 +11,7 @@
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
 #include "parsage/identifiant.hh"
@@ -2089,11 +2090,6 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     return true;
 }
 
-static std::filesystem::path vers_std_path(kuri::chaine_statique chaine)
-{
-    return {std::string(chaine.pointeur(), static_cast<size_t>(chaine.taille()))};
-}
-
 bool CoulisseC::cree_executable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
@@ -2101,9 +2097,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
-    compile_objet_r16(
-        std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()),
-        espace.options.architecture);
+    compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture);
 
     auto debut_executable = dls::chrono::compte_seconde();
 
@@ -2136,15 +2130,16 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " /tmp/r16_tables_x64.o ";
     }
 
-    auto chemins_utilises = std::set<std::filesystem::path>();
+    auto chemins_utilises = std::set<kuri::chemin_systeme>();
 
     POUR (m_bibliotheques) {
         if (it->nom == "r16") {
             continue;
         }
 
-        auto chemin_parent = vers_std_path(it->chemin_de_base(espace.options)).parent_path();
-        if (chemin_parent.empty()) {
+        auto chemin_parent =
+            kuri::chemin_systeme(it->chemin_de_base(espace.options)).chemin_parent();
+        if (chemin_parent.taille() == 0) {
             continue;
         }
 
@@ -2156,7 +2151,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
-        enchaineuse << " -L" << chemin_parent.c_str();
+        enchaineuse << " -L" << chemin_parent;
         chemins_utilises.insert(chemin_parent);
     }
 
