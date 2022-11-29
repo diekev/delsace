@@ -149,8 +149,3 @@ void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statiq
     std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
 }
 #endif
-
-std::filesystem::path chemin_temporaire(const std::filesystem::path &nom_fichier)
-{
-    return std::filesystem::temp_directory_path() / nom_fichier;
-}

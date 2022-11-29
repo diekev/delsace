@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 
 #include "biblinternes/chrono/outils.hh"
@@ -15,6 +14,7 @@
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/ensemble.hh"
 #include "structures/table_hachage.hh"
 
@@ -1596,7 +1596,7 @@ int main(int argc, char **argv)
     }
 
     const auto chemin_adn = argv[3];
-    auto nom_fichier_sortie = std::filesystem::path(argv[1]);
+    auto nom_fichier_sortie = kuri::chemin_systeme(argv[1]);
 
     auto texte = charge_contenu_fichier(chemin_adn);
 
@@ -1643,57 +1643,58 @@ int main(int argc, char **argv)
         }
     }
 
-    auto nom_fichier_tmp = chemin_temporaire(nom_fichier_sortie.filename());
+    auto nom_fichier_tmp = kuri::chemin_systeme::chemin_temporaire(
+        nom_fichier_sortie.nom_fichier());
 
-    if (nom_fichier_sortie.filename() == "noeud_expression.cc") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    if (nom_fichier_sortie.nom_fichier() == "noeud_expression.cc") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_arbre_syntaxique(flux);
     }
-    else if (nom_fichier_sortie.filename() == "noeud_expression.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "noeud_expression.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_arbre_syntaxique(flux);
     }
-    else if (nom_fichier_sortie.filename() == "noeud_code.cc") {
+    else if (nom_fichier_sortie.nom_fichier() == "noeud_code.cc") {
         {
-            std::ofstream fichier_sortie(nom_fichier_tmp);
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
             generatrice.genere_fichier_source_noeud_code(flux);
-            remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
+            remplace_si_different(nom_fichier_tmp, argv[1]);
         }
         {
             // Génère le fichier de message pour le module Compilatrice
             // Apparemment, ce n'est pas possible de le faire via CMake
-            nom_fichier_sortie.replace_filename("../modules/Compilatrice/code.kuri");
-            std::ofstream fichier_sortie(nom_fichier_sortie);
+            nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/code.kuri");
+            std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
             GeneratriceCodeKuri generatrice_kuri;
             generatrice_kuri.genere_fichier_kuri_noeud_code(flux, syntaxeuse.proteines);
         }
     }
-    else if (nom_fichier_sortie.filename() == "noeud_code.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "noeud_code.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_noeud_code(flux);
     }
-    else if (nom_fichier_sortie.filename() == "assembleuse.cc") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "assembleuse.cc") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_assembleuse(flux);
     }
-    else if (nom_fichier_sortie.filename() == "assembleuse.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "assembleuse.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_assembleuse(flux);
     }
-    else if (nom_fichier_sortie.filename() == "allocatrice.cc") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "allocatrice.cc") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_source_allocatrice(flux);
     }
-    else if (nom_fichier_sortie.filename() == "allocatrice.hh") {
-        std::ofstream fichier_sortie(nom_fichier_tmp);
+    else if (nom_fichier_sortie.nom_fichier() == "allocatrice.hh") {
+        std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
         generatrice.genere_fichier_entete_allocatrice(flux);
     }
@@ -1702,7 +1703,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    remplace_si_different(nom_fichier_tmp.c_str(), argv[1]);
+    remplace_si_different(nom_fichier_tmp, argv[1]);
 
     return 0;
 }

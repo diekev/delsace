@@ -34,6 +34,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
 #include "compilatrice.hh"
@@ -1680,10 +1681,10 @@ static bool valide_llvm_ir(llvm::Module &module)
 
 static bool cree_executable(EspaceDeTravail const &espace,
                             const kuri::chaine &dest,
-                            const std::filesystem::path &racine_kuri)
+                            const kuri::chemin_systeme &racine_kuri)
 {
     /* Compile le fichier objet qui appelera 'fonction principale'. */
-    if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
+    if (!kuri::chemin_systeme::existe("/tmp/execution_kuri.o")) {
         auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
 
         Enchaineuse ss;
@@ -1699,7 +1700,7 @@ static bool cree_executable(EspaceDeTravail const &espace,
         }
     }
 
-    if (!std::filesystem::exists("/tmp/kuri.o")) {
+    if (!kuri::chemin_systeme::existe("/tmp/kuri.o")) {
         std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
         return false;
     }
@@ -1819,9 +1820,8 @@ bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
                                    Programme * /*programme*/)
 {
     auto debut_executable = dls::chrono::compte_seconde();
-    if (!::cree_executable(espace,
-                           nom_sortie_resultat_final(espace.options),
-                           vers_std_string(compilatrice.racine_kuri))) {
+    if (!::cree_executable(
+            espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
         espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;
     }

@@ -3,11 +3,13 @@
 
 #pragma once
 
-#include <filesystem>
+namespace kuri {
+struct chemin_systeme;
+}
 
 enum class ArchitectureCible : int;
 
-void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri);
+void precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 
-void compile_objet_r16(std::filesystem::path const &chemin_racine_kuri,
+void compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
                        ArchitectureCible architecture_cible);

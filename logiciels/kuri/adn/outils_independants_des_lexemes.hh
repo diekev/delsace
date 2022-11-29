@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <string>
 
 namespace kuri {
@@ -29,8 +28,3 @@ void remplace_si_different(std::filesystem::path const &chemin_source,
 #else
 void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
 #endif
-
-/**
- * Retourne un chemin dans le dossier temporaire du système pour le nom de fichier donné.
- */
-std::filesystem::path chemin_temporaire(std::filesystem::path const &nom_fichier);
