@@ -29,7 +29,8 @@ option(AVEC_GVDB "Active la génération du module GVDB" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
-find_program(CHEMIN_GPERF NAMES gperf HINTS C:/Users/forns/Downloads/bin REQUIRED)
+find_program(CHEMIN_GPERF NAMES gperf PATH_SUFFIXES GPerf GPerf/bin REQUIRED)
+set(CHEMIN_GPERF "C:/Users/forns/Downloads/gperf.exe")
 add_definitions(-DCHEMIN_GPERF="${CHEMIN_GPERF}")
 
 if(AVEC_LLVM)
