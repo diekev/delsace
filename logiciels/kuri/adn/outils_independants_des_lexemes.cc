@@ -105,36 +105,6 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
                       std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
-#ifdef _MSC_VER
-#    include <codecvt>
-
-void remplace_si_different(std::filesystem::path const &chemin_source,
-                           kuri::chaine_statique nom_dest)
-{
-    std::wstring w_string = chemin_source.c_str();
-    using convert_type = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_type, wchar_t> converter;
-    std::string c_string = converter.to_bytes(w_string);
-    kuri::chaine_statique nom_source = c_string.c_str();
-
-    if (nom_source == nom_dest) {
-        return;
-    }
-
-    if (fichier_sont_egaux(nom_source, nom_dest)) {
-        return;
-    }
-
-    std::filesystem::remove(vers_std_string(nom_dest));
-
-    try {
-        std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
-    }
-    catch (std::filesystem::filesystem_error const &e) {
-        std::cerr << e.what() << '\n';
-    }
-}
-#else
 void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
 {
     if (nom_source == nom_dest) {
@@ -145,7 +115,11 @@ void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statiq
         return;
     }
 
-    std::filesystem::remove(vers_std_string(nom_dest));
-    std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    try {
+        std::filesystem::remove(vers_std_string(nom_dest));
+        std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    }
+    catch (std::filesystem::filesystem_error const &e) {
+        std::cerr << e.what() << '\n';
+    }
 }
-#endif

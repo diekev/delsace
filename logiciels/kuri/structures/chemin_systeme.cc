@@ -41,7 +41,7 @@ chaine_statique chemin_systeme::nom_fichier() const
     auto pos = trouve_depuis_la_fin(debut, fin, '/');
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, fin);
-    return {donnees.pointeur() + distance + 1, taille - 1};
+    return {donnees.pointeur() + distance + 1, long(taille - 1)};
 }
 
 chaine_statique chemin_systeme::nom_fichier_sans_extension() const
@@ -63,7 +63,7 @@ chaine_statique chemin_systeme::extension() const
     auto pos = trouve_depuis_la_fin(debut, fin, '.');
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, donnees.end());
-    return {donnees.pointeur() + distance, taille};
+    return {donnees.pointeur() + distance, long(taille)};
 }
 
 chaine_statique chemin_systeme::chemin_parent() const
@@ -72,7 +72,7 @@ chaine_statique chemin_systeme::chemin_parent() const
     auto fin = donnees.end();
     auto pos = trouve_depuis_la_fin(debut, fin, '/');
     auto distance = std::distance(debut, pos);
-    return {donnees.pointeur(), distance};
+    return {donnees.pointeur(), long(distance)};
 }
 
 chemin_systeme chemin_systeme::remplace_extension(chaine_statique extension) const

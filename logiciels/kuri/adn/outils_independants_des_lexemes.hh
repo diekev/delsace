@@ -22,9 +22,4 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique espace,
                               kuri::chaine_statique param_gabarit);
 
-#ifdef _MSC_VER
-void remplace_si_different(std::filesystem::path const &chemin_source,
-                           kuri::chaine_statique nom_dest);
-#else
 void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
-#endif

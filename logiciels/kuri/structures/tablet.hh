@@ -131,15 +131,15 @@ struct iteratrice_crue {
         return std::distance(autre.ptr(), this->ptr());
     }
 
-    T &operator*()
+    T &operator*() const
     {
         return *m_ptr;
     }
 
-    const T &operator*() const
-    {
-        return *m_ptr;
-    }
+//    const T &operator*() const
+//    {
+//        return *m_ptr;
+//    }
 
     T *operator->()
     {
@@ -444,7 +444,7 @@ class tablet {
         return this->begin();
     }
 
-    const_iterator debut() const
+    const_iterator cdebut() const
     {
         return this->cbegin();
     }
@@ -454,7 +454,7 @@ class tablet {
         return this->rbegin();
     }
 
-    const_reverse_iterator debut_inverse() const
+    const_reverse_iterator cdebut_inverse() const
     {
         return this->crbegin();
     }
@@ -464,7 +464,7 @@ class tablet {
         return this->end();
     }
 
-    const_iterator fin() const
+    const_iterator cfin() const
     {
         return this->cend();
     }
@@ -474,7 +474,7 @@ class tablet {
         return this->rend();
     }
 
-    const_reverse_iterator fin_inverse() const
+    const_reverse_iterator cfin_inverse() const
     {
         return this->crend();
     }

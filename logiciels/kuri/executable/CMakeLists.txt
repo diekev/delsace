@@ -84,17 +84,17 @@ install(
 
 ################################################################################
 
-add_executable(demon_kuri
-	demon.cc
-)
+#add_executable(demon_kuri
+#	demon.cc
+#)
 
-target_include_directories(demon_kuri PUBLIC "${INCLUSIONS}")
+#target_include_directories(demon_kuri PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(demon_kuri "${BIBLIOTHEQUES}")
+#target_link_libraries(demon_kuri "${BIBLIOTHEQUES}")
 
-install(
-	TARGETS demon_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION}
-)
+#install(
+#	TARGETS demon_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION}
+#)
 
 ################################################################################
 

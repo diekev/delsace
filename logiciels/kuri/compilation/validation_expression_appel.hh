@@ -205,6 +205,37 @@ struct CandidateAppariement {
     kuri::tableau<TransformationType, int> transformations{};
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
 
+    CandidateAppariement() = default;
+    CandidateAppariement(const CandidateAppariement &autre)
+    {
+        *this = autre;
+    }
+    CandidateAppariement(CandidateAppariement &&) = default;
+
+    CandidateAppariement &operator=(CandidateAppariement const &autre)
+    {
+        poids_args = autre.poids_args;
+        note = autre.note;
+        type = autre.type;
+        noeud_decl = autre.noeud_decl;
+        exprs = autre.exprs;
+        transformations = autre.transformations;
+        items_monomorphisation = autre.items_monomorphisation;
+        return *this;
+    }
+
+    CandidateAppariement &operator=(CandidateAppariement &&autre)
+    {
+        std::swap(poids_args, autre.poids_args);
+        std::swap(note, autre.note);
+        std::swap(type, autre.type);
+        std::swap(noeud_decl, autre.noeud_decl);
+        exprs.permute(autre.exprs);
+        transformations.permute(autre.transformations);
+        items_monomorphisation.permute(autre.items_monomorphisation);
+        return *this;
+    }
+
     static CandidateAppariement *nul()
     {
         return nullptr;

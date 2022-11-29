@@ -6,8 +6,9 @@
 #include <time.h>
 
 #ifdef _MSC_VER
-#    include <profileapi.h>
 #    include <windows.h>
+
+#    include <profileapi.h>
 
 #    define CLOCK_REALTIME_COARSE 0
 
