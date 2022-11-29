@@ -24,6 +24,10 @@
 
 #include "structures/chemin_systeme.hh"
 
+#ifdef _MSC_VER
+#    include <windows.h>
+#endif
+
 #define AVEC_THREADS
 
 void lance_tacheronne(Tacheronne *tacheronne)
@@ -75,6 +79,10 @@ int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
 
+#ifdef _MSC_VER
+    SetConsoleOutputCP(CP_UTF8);
+#endif
+
     if (argc < 2) {
         std::cerr << "Utilisation : " << argv[0] << " FICHIER [--tests]\n";
         return 1;
@@ -101,7 +109,9 @@ int main(int argc, char *argv[])
     auto debut_compilation = dls::chrono::compte_seconde();
     auto debut_nettoyage = dls::chrono::compte_seconde(false);
 
-    precompile_objet_r16(kuri::chaine_statique(chemin_racine_kuri));
+    if (!precompile_objet_r16(kuri::chaine_statique(chemin_racine_kuri))) {
+        return 1;
+    }
 
     auto stats = Statistiques();
     auto compilatrice = Compilatrice(chemin_racine_kuri);
