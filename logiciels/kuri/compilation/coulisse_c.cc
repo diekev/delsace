@@ -1576,21 +1576,19 @@ void GeneratriceCodeC::genere_code_entete(const kuri::tableau<AtomeGlobale *> &g
                                           const kuri::tableau<AtomeFonction *> &fonctions,
                                           Enchaineuse &os)
 {
-    // prédéclare les globales pour éviter les problèmes de références cycliques
+    /* Déclarons les globales. */
     POUR (globales) {
         declare_globale(os, it, true);
         os << ";\n";
     }
 
-    // prédéclare ensuite les fonction pour éviter les problèmes de
-    // dépendances cycliques, mais aussi pour prendre en compte les cas où
-    // les globales utilises des fonctions dans leurs initialisations
+    /* Déclarons ensuite les fonctions. */
     POUR (fonctions) {
         declare_fonction(os, it);
         os << ";\n\n";
     }
 
-    // Définie ensuite les fonctions enlignées.
+    /* Définissons ensuite les fonctions devant être enlignées. */
     POUR (fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
         if (it->instructions.taille() == 0 || !it->enligne) {
@@ -1619,7 +1617,7 @@ void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enc
 
     auto numero_inst = atome_fonc->params_entrees.taille();
 
-    /* crée une variable local pour la valeur de sortie */
+    /* Créons une variable locale pour la valeur de sortie. */
     auto type_fonction = atome_fonc->type->comme_fonction();
     if (!type_fonction->type_sortie->est_rien()) {
         auto param = atome_fonc->param_sortie;
@@ -1631,7 +1629,7 @@ void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enc
         table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
     }
 
-    /* Génère le code pour les accès de membres des retours mutliples. */
+    /* Générons le code pour les accès de membres des retours mutliples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             genere_code_pour_instruction(
