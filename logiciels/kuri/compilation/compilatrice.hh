@@ -20,7 +20,7 @@
 #include "tacheronne.hh"
 #include "typage.hh"
 
-struct Broyeuse;
+class Broyeuse;
 struct ContexteLexage;
 struct EspaceDeTravail;
 struct NoeudCodeEnteteFonction;
