@@ -23,11 +23,6 @@ set(CMAKE_BUILD_TYPE_INIT "Release")
 set(CMAKE_CXX_STANDARD 20)
 
 option(AVEC_ASAN "Utilise asan lors de la compilation en mode débogage" OFF)
-
-# WINDOWS
-add_compile_definitions(_USE_MATH_DEFINES)
-add_compile_options(/bigobj)
-
 option(AVEC_CRESUS "Compiler Crésus" ON)
 option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" ON)
 option(AVEC_DEPLOIE "Compiler l'outil de déploiement d'application web Déploie" ON)
@@ -329,7 +324,11 @@ set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
 
 # ------------------------------------------------------------------------------
 
-include(platform_unix)
+if(UNIX AND NOT APPLE)
+    include(platform_unix)
+elseif(WIN32)
+    include(platform_win32)
+endif()
 
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
