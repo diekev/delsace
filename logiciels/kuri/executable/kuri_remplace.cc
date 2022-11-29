@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -15,6 +14,8 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "options.hh"
+
+#include "structures/chemin_systeme.hh"
 
 /* petit outil pour remplacer des mot-clés dans les scripts préexistants afin de
  * faciliter l'évolution du langage
@@ -102,18 +103,16 @@ static Configuration analyse_configuration(const char *chemin)
     return config;
 }
 
-static void reecris_fichier(std::filesystem::path &chemin, Configuration const &config)
+static void reecris_fichier(kuri::chemin_systeme &chemin, Configuration const &config)
 {
     std::cerr << "Réécriture du fichier " << chemin << "\n";
 
     {
-        if (chemin.is_relative()) {
-            chemin = std::filesystem::absolute(chemin);
-        }
+        chemin = kuri::chemin_systeme::absolu(chemin);
 
-        auto compilatrice = Compilatrice("");
+        auto compilatrice = Compilatrice("", {});
         auto donnees_fichier = Fichier();
-        auto tampon = charge_contenu_fichier(chemin.c_str());
+        auto tampon = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
         donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr),
@@ -121,7 +120,7 @@ static void reecris_fichier(std::filesystem::path &chemin, Configuration const &
                                INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
         lexeuse.performe_lexage();
 
-        auto os = std::ofstream(chemin);
+        auto os = std::ofstream(vers_std_path(chemin));
 
         for (auto const &lexeme : donnees_fichier.lexemes) {
             if (!est_mot_cle(lexeme.genre)) {
@@ -180,38 +179,36 @@ int main(int argc, char **argv)
     }
 
     for (auto const &chemin_dossier : config.dossiers) {
-        auto chemin = std::filesystem::path(chemin_dossier.c_str());
+        auto chemin = kuri::chemin_systeme(chemin_dossier.c_str());
 
-        if (!std::filesystem::exists(chemin)) {
+        if (!kuri::chemin_systeme::existe(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
             continue;
         }
 
-        if (!std::filesystem::is_directory(chemin)) {
+        if (!kuri::chemin_systeme::est_dossier(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe pas vers un dossier !\n";
             continue;
         }
 
-        for (auto donnees : std::filesystem::recursive_directory_iterator(chemin)) {
-            chemin = donnees.path();
-
-            if (chemin.extension() != ".kuri") {
+        for (auto donnees : kuri::chemin_systeme::fichiers_du_dossier_recursif(chemin)) {
+            if (donnees.extension() != ".kuri") {
                 continue;
             }
 
-            reecris_fichier(chemin, config);
+            reecris_fichier(donnees, config);
         }
     }
 
     for (auto const &chemin_fichier : config.fichiers) {
-        auto chemin = std::filesystem::path(chemin_fichier.c_str());
+        auto chemin = kuri::chemin_systeme(chemin_fichier.c_str());
 
-        if (!std::filesystem::exists(chemin)) {
+        if (!kuri::chemin_systeme::existe(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
             continue;
         }
 
-        if (!std::filesystem::is_regular_file(chemin)) {
+        if (!kuri::chemin_systeme::est_fichier_regulier(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier !\n";
             continue;
         }

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 #include <sys/inotify.h>
 #include <thread>
@@ -11,6 +10,8 @@
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
+#include "structures/chemin_systeme.hh"
+
 template <typename... Ts>
 static kuri::chaine imprime_commande_systeme(Ts &&...ts)
 {
@@ -18,16 +19,6 @@ static kuri::chaine imprime_commande_systeme(Ts &&...ts)
     ((enchaineuse << ts) << ...);
     enchaineuse << '\0';
     return enchaineuse.chaine();
-}
-
-static kuri::chaine chaine_depuis_path(const std::filesystem::path &chemin)
-{
-    return kuri::chaine(chemin.c_str());
-}
-
-static std::filesystem::path path_depuis_chaine(const kuri::chaine &c)
-{
-    return {std::string(c.pointeur(), static_cast<size_t>(c.taille()))};
 }
 
 static bool execute_commande_systeme(kuri::chaine_statique commande)
@@ -68,16 +59,16 @@ static void lance_application(DonneesCommandeKuri *donnees)
     }
 }
 
-static bool valide_fichier_kuri(std::filesystem::path chemin, bool verbeux)
+static bool valide_fichier_kuri(kuri::chemin_systeme const &chemin, bool verbeux)
 {
-    if (!std::filesystem::exists(chemin)) {
+    if (!kuri::chemin_systeme::existe(chemin)) {
         if (verbeux) {
             std::cerr << "Erreur : fichier " << chemin << " inexistant !\n";
         }
         return false;
     }
 
-    if (!std::filesystem::is_regular_file(chemin)) {
+    if (!kuri::chemin_systeme::est_fichier_regulier(chemin)) {
         if (verbeux) {
             std::cerr << "Erreur : le chemin ne pointe pas vers un fichier régulier !\n";
         }
@@ -134,7 +125,7 @@ class Guetteuse {
     kuri::table_hachage<kuri::chaine, int> table_desc_fichiers{"Descripteurs fichiers"};
 
   public:
-    void ajoute(int fd, const std::filesystem::path &chemin)
+    void ajoute(int fd, const kuri::chemin_systeme &chemin)
     {
         if (possede(fd)) {
             return;
@@ -142,13 +133,13 @@ class Guetteuse {
 
         // std::cerr << "Ajout du fichier " << chemin << '\n';
 
-        table_chemin_fichiers.insere(fd, chaine_depuis_path(chemin));
-        table_desc_fichiers.insere(chaine_depuis_path(chemin), fd);
+        table_chemin_fichiers.insere(fd, kuri::chaine(chemin));
+        table_desc_fichiers.insere(kuri::chaine(chemin), fd);
     }
 
-    bool possede(const std::filesystem::path &chemin)
+    bool possede(const kuri::chemin_systeme &chemin)
     {
-        return table_desc_fichiers.possede(chaine_depuis_path(chemin));
+        return table_desc_fichiers.possede(kuri::chaine(chemin));
     }
 
     bool possede(int fd)
@@ -157,31 +148,25 @@ class Guetteuse {
     }
 };
 
+static void ajoute_a_guetteuse(int fd, Guetteuse &guetteuse, kuri::chemin_systeme const &chemin)
+{
+    const auto fd_guetteuse = inotify_add_watch(fd, vers_std_path(chemin).c_str(), IN_MODIFY);
+
+    if (fd_guetteuse == -1) {
+        perror("inotify_add_watch");
+    }
+    else {
+        guetteuse.ajoute(fd_guetteuse, chemin);
+    }
+}
+
 static void initialise_liste_fichiers(int fd, Guetteuse &guetteuse)
 {
-    auto chemin = std::filesystem::current_path();
+    auto chemin = kuri::chemin_systeme::chemin_courant();
+    auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin);
 
-    for (auto entry : std::filesystem::directory_iterator(chemin)) {
-        const auto &chemin_entry = entry.path();
-
-        if (!std::filesystem::is_regular_file(chemin_entry)) {
-            continue;
-        }
-
-        const auto &extension = chemin_entry.extension();
-
-        if (extension != ".kuri") {
-            continue;
-        }
-
-        const auto fd_guetteuse = inotify_add_watch(fd, chemin_entry.c_str(), IN_MODIFY);
-
-        if (fd_guetteuse == -1) {
-            perror("inotify_add_watch");
-        }
-        else {
-            guetteuse.ajoute(fd_guetteuse, chemin_entry);
-        }
+    POUR (fichiers) {
+        ajoute_a_guetteuse(fd, guetteuse, it);
     }
 }
 
@@ -193,17 +178,17 @@ static void rafraichis_liste_fichiers_utilises(int fd,
         continue;
     }
 
-    if (!std::filesystem::exists(path_depuis_chaine(chemin_fichier))) {
+    if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         std::cerr << "Erreur : le fichier de fichiers utilisés n'existe pas !\n";
         exit(1);
         return;
     }
 
-    std::ifstream ffu(path_depuis_chaine(chemin_fichier));
+    std::ifstream ffu(vers_std_path(chemin_fichier));
 
     std::string ligne;
     while (std::getline(ffu, ligne)) {
-        auto chemin = std::filesystem::path(ligne);
+        auto chemin = kuri::chemin_systeme(ligne.c_str());
 
         if (!valide_fichier_kuri(chemin, false)) {
             continue;
@@ -213,14 +198,7 @@ static void rafraichis_liste_fichiers_utilises(int fd,
             continue;
         }
 
-        const auto fd_guetteuse = inotify_add_watch(fd, chemin.c_str(), IN_MODIFY);
-
-        if (fd_guetteuse == -1) {
-            // perror("inotify_add_watch");
-        }
-        else {
-            guetteuse.ajoute(fd_guetteuse, chemin);
-        }
+        ajoute_a_guetteuse(fd, guetteuse, chemin);
     }
 }
 
@@ -231,7 +209,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (!valide_fichier_kuri(argv[1], true)) {
+    if (!valide_fichier_kuri(kuri::chaine_statique(argv[1]), true)) {
         return 1;
     }
 

@@ -1,64 +1,46 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2020 Kévin Dietrich.
-# All rights reserved.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# The Original Code is Copyright (C) 2020-2022 Kévin Dietrich.
 
 set(NOM_CIBLE kuri_representation_intermediaire)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-	${INCLUSIONS_LIBFFI}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+    ${INCLUSIONS_LIBFFI}
 )
 
 set(BIBLIOTHEQUES
-	kuri_arbre_syntaxique
-	kuri_ipa_compilatrice
-	kuri_compilation
-	kuri_statistiques
-	bib_outils
-	systeme_fichier
-	${BIBLIOTHEQUES_LIBFFI}
-	dl
+    kuri_arbre_syntaxique
+    kuri_ipa_compilatrice
+    kuri_compilation
+    kuri_statistiques
+    bib_outils
+    systeme_fichier
+    ${BIBLIOTHEQUES_LIBFFI}
+    ${BIBLIOTHEQUE_DL}
 )
 
 set(SOURCES
-	analyse.cc
-  bloc_basique.cc
-	code_binaire.cc
+    analyse.cc
+    bloc_basique.cc
+    code_binaire.cc
     constructrice_ri.cc
-	impression.cc
-	instructions.cc
-  log.cc
-	machine_virtuelle.cc
-	optimisations.cc
+    impression.cc
+    instructions.cc
+    log.cc
+    machine_virtuelle.cc
+    optimisations.cc
 
-  analyse.hh
-  bloc_basique.hh
-	code_binaire.hh
+    analyse.hh
+    bloc_basique.hh
+    code_binaire.hh
     constructrice_ri.hh
-	impression.hh
-	instructions.hh
-  log.hh
-	machine_virtuelle.hh
-	optimisations.hh
+    impression.hh
+    instructions.hh
+    log.hh
+    machine_virtuelle.hh
+    optimisations.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

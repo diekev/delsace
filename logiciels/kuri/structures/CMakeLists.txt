@@ -22,44 +22,47 @@
 set(NOM_CIBLE kuri_structures)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES
-	memoire
-        bib_outils
+    memoire
+    bib_outils
+    ${BILIOTHEQUE_CXX_FILESYSTEM}
 )
 
 set(SOURCES
     chaine.cc
-	chaine_statique.cc
-  date.cc
-	enchaineuse.cc
+    chaine_statique.cc
+    chemin_systeme.cc
+    date.cc
+    enchaineuse.cc
     ensemble.cc
     ensemblon.cc
     file.cc
     intervalle.cc
     pile.cc
-	table_hachage.cc
-  tablet.cc
-	tableau.cc
-	tableau_compresse.cc
+    table_hachage.cc
+    tablet.cc
+    tableau.cc
+    tableau_compresse.cc
 
     chaine.hh
-	chaine_statique.hh
-  date.hh
-	enchaineuse.hh
+    chaine_statique.hh
+    chemin_systeme.hh
+    date.hh
+    enchaineuse.hh
     ensemble.hh
     ensemblon.hh
     file.hh
     file_fixe.hh
     intervalle.hh
     pile.hh
-	table_hachage.hh
-  tablet.hh
-	tableau.hh
-	tableau_compresse.hh
+    table_hachage.hh
+    tablet.hh
+    tableau.hh
+    tableau_compresse.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
