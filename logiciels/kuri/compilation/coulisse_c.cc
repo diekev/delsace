@@ -1974,8 +1974,7 @@ static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation 
     return "";
 }
 
-static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
-                                                  OptionsDeCompilation const &ops,
+static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &ops,
                                                   CoulisseC::FichierC const &fichier)
 {
     Enchaineuse enchaineuse;
@@ -2047,7 +2046,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
-        auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
+        auto commande = genere_commande_fichier_objet(espace.options, it);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
