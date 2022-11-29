@@ -1,23 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
-# All rights reserved.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# The Original Code is Copyright (C) 2018-2022 Kévin Dietrich.
 
 # ------------------------------------------------------------------------------
 
@@ -33,8 +15,8 @@ find_program(CHEMIN_GPERF NAMES gperf REQUIRED)
 add_definitions(-DCHEMIN_GPERF="${CHEMIN_GPERF}")
 
 if(AVEC_LLVM)
-	find_package(LLVM REQUIRED)
-	add_definitions(-DAVEC_LLVM)
+    find_package(LLVM REQUIRED)
+    add_definitions(-DAVEC_LLVM)
 endif()
 
 # À FAIRE : trouve ceux-ci de manière programmatique
@@ -51,31 +33,31 @@ enable_testing()
 # Macro pour compiler un fichier d'entête C en un fichier .kuri pour pouvoir appeler les fonctions
 # y définis dans les programmes Kuri.
 macro(compile_interface_c __nom_projet__ __nom_bibliotheque__ __fichier_entete__ __nom_module__ __nom_fichier_genere__)
-  # Attend que Parcer est compilé.
-  add_dependencies(${__nom_projet__} parcer)
+    # Attend que Parcer est compilé.
+    add_dependencies(${__nom_projet__} parcer)
 
-  # Niveau d'indirection pour générer un fichier .kuri et l'installer puisque CMake ne connait pas
-  # ce genre de fichier
-  set(FICHIER_MODULE "")
+    # Niveau d'indirection pour générer un fichier .kuri et l'installer puisque CMake ne connait pas
+    # ce genre de fichier
+    set(FICHIER_MODULE "")
 
-  set(FICHIER_DESTINATION "/tmp/${__nom_fichier_genere__}.kuri")
-  set(FICHIER_ENTETE "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier_entete__}")
+    set(FICHIER_DESTINATION "/tmp/${__nom_fichier_genere__}.kuri")
+    set(FICHIER_ENTETE "${CMAKE_CURRENT_SOURCE_DIR}/${__fichier_entete__}")
 
-  add_custom_command(
-      OUTPUT ${FICHIER_DESTINATION}
-      COMMAND parcer "${FICHIER_ENTETE}" -b "${__nom_bibliotheque__}" -o "${FICHIER_DESTINATION}"
-      DEPENDS parcer "${FICHIER_ENTETE}"
-      COMMENT "Génération de l'interface Kuri pour ${FICHIER_ENTETE}"
-  )
+    add_custom_command(
+        OUTPUT ${FICHIER_DESTINATION}
+        COMMAND parcer "${FICHIER_ENTETE}" -b "${__nom_bibliotheque__}" -o "${FICHIER_DESTINATION}"
+        DEPENDS parcer "${FICHIER_ENTETE}"
+        COMMENT "Génération de l'interface Kuri pour ${FICHIER_ENTETE}"
+    )
 
-  list(APPEND FICHIER_MODULE ${FICHIER_DESTINATION})
+list(APPEND FICHIER_MODULE ${FICHIER_DESTINATION})
 
-  # Attend que FICHIER_MODULE est disponible
-  add_custom_target(SOURCE_KURI_MODULE_${__nom_projet__} ALL DEPENDS "${FICHIER_MODULE}")
+# Attend que FICHIER_MODULE est disponible
+add_custom_target(SOURCE_KURI_MODULE_${__nom_projet__} ALL DEPENDS "${FICHIER_MODULE}")
 
-  install(
-      FILES "${FICHIER_MODULE}"
-      DESTINATION ${RACINE_INSTALLATION}/modules/${__nom_module__}/)
+install(
+    FILES "${FICHIER_MODULE}"
+    DESTINATION ${RACINE_INSTALLATION}/modules/${__nom_module__}/)
 endmacro(compile_interface_c)
 
 macro(definis_bibliotheque __statique_ou_partagee__ __nom__ __nom_cible__ __sources__ __inclusions__ __bibliotheques__)
@@ -131,7 +113,7 @@ if(AVEC_MODULES_C)
     add_subdirectory(modules_c/Krypto)
 
     if(AVEC_ALEMBIC)
-       add_subdirectory(modules_c/Alembic)
+        add_subdirectory(modules_c/Alembic)
     endif()
 
     if(AVEC_IMAGE)
@@ -149,8 +131,8 @@ endif()
 
 
 install(
-	DIRECTORY modules
-	DESTINATION ${RACINE_INSTALLATION}
+    DIRECTORY modules
+    DESTINATION ${RACINE_INSTALLATION}
 )
 
 ##############################################################
@@ -269,5 +251,5 @@ endforeach(FICHIER_TEST)
 include(bugs/test_bugs.txt)
 
 if(CHEMIN_DELSACE_PRIVE)
-  include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)
+    include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)
 endif()

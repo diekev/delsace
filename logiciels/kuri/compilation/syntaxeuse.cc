@@ -4,7 +4,6 @@
 #include "syntaxeuse.hh"
 
 #include <array>
-#include <filesystem>
 
 #include "biblinternes/outils/assert.hh"
 
@@ -601,7 +600,7 @@ void Syntaxeuse::analyse_une_chose()
             }
         }
         else if (noeud->est_execute()) {
-            if (noeud->ident != ID::test || m_compilatrice.active_tests) {
+            if (noeud->ident != ID::test || m_compilatrice.arguments.active_tests) {
                 requiers_typage(noeud);
             }
         }

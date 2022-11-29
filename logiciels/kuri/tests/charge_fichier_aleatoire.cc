@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
 #if 1
     {
-        auto compilatrice = Compilatrice("");
+        auto compilatrice = Compilatrice("", {});
         auto fichier = Fichier();
         auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
         fichier.charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));

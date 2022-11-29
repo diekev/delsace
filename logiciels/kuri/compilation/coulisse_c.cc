@@ -11,6 +11,7 @@
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
 #include "parsage/identifiant.hh"
@@ -1575,21 +1576,19 @@ void GeneratriceCodeC::genere_code_entete(const kuri::tableau<AtomeGlobale *> &g
                                           const kuri::tableau<AtomeFonction *> &fonctions,
                                           Enchaineuse &os)
 {
-    // prédéclare les globales pour éviter les problèmes de références cycliques
+    /* Déclarons les globales. */
     POUR (globales) {
         declare_globale(os, it, true);
         os << ";\n";
     }
 
-    // prédéclare ensuite les fonction pour éviter les problèmes de
-    // dépendances cycliques, mais aussi pour prendre en compte les cas où
-    // les globales utilises des fonctions dans leurs initialisations
+    /* Déclarons ensuite les fonctions. */
     POUR (fonctions) {
         declare_fonction(os, it);
         os << ";\n\n";
     }
 
-    // Définie ensuite les fonctions enlignées.
+    /* Définissons ensuite les fonctions devant être enlignées. */
     POUR (fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
         if (it->instructions.taille() == 0 || !it->enligne) {
@@ -1618,7 +1617,7 @@ void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enc
 
     auto numero_inst = atome_fonc->params_entrees.taille();
 
-    /* crée une variable local pour la valeur de sortie */
+    /* Créons une variable locale pour la valeur de sortie. */
     auto type_fonction = atome_fonc->type->comme_fonction();
     if (!type_fonction->type_sortie->est_rien()) {
         auto param = atome_fonc->param_sortie;
@@ -1630,7 +1629,7 @@ void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enc
         table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
     }
 
-    /* Génère le code pour les accès de membres des retours mutliples. */
+    /* Générons le code pour les accès de membres des retours mutliples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             genere_code_pour_instruction(
@@ -1973,8 +1972,7 @@ static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation 
     return "";
 }
 
-static kuri::chaine genere_commande_fichier_objet(Compilatrice &compilatrice,
-                                                  OptionsDeCompilation const &ops,
+static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &ops,
                                                   CoulisseC::FichierC const &fichier)
 {
     Enchaineuse enchaineuse;
@@ -2046,7 +2044,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
-        auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
+        auto commande = genere_commande_fichier_objet(espace.options, it);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
@@ -2089,11 +2087,6 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     return true;
 }
 
-static std::filesystem::path vers_std_path(kuri::chaine_statique chaine)
-{
-    return {std::string(chaine.pointeur(), static_cast<size_t>(chaine.taille()))};
-}
-
 bool CoulisseC::cree_executable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
@@ -2101,9 +2094,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
-    compile_objet_r16(
-        std::filesystem::path(compilatrice.racine_kuri.begin(), compilatrice.racine_kuri.end()),
-        espace.options.architecture);
+    if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
+        return false;
+    }
 
     auto debut_executable = dls::chrono::compte_seconde();
 
@@ -2136,15 +2129,16 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " /tmp/r16_tables_x64.o ";
     }
 
-    auto chemins_utilises = std::set<std::filesystem::path>();
+    auto chemins_utilises = std::set<kuri::chemin_systeme>();
 
     POUR (m_bibliotheques) {
         if (it->nom == "r16") {
             continue;
         }
 
-        auto chemin_parent = vers_std_path(it->chemin_de_base(espace.options)).parent_path();
-        if (chemin_parent.empty()) {
+        auto chemin_parent =
+            kuri::chemin_systeme(it->chemin_de_base(espace.options)).chemin_parent();
+        if (chemin_parent.taille() == 0) {
             continue;
         }
 
@@ -2156,7 +2150,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
-        enchaineuse << " -L" << chemin_parent.c_str();
+        enchaineuse << " -L" << chemin_parent;
         chemins_utilises.insert(chemin_parent);
     }
 

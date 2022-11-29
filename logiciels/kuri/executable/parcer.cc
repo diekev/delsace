@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -31,6 +30,7 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "structures/chaine.hh"
+#include "structures/chemin_systeme.hh"
 #include "structures/ensemble.hh"
 #include "structures/pile.hh"
 #include "structures/tableau.hh"
@@ -1049,9 +1049,9 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
 }
 
 struct Convertisseuse {
-    std::filesystem::path fichier_source{};
-    std::filesystem::path fichier_entete{};
-    std::filesystem::path dossier_source{};
+    kuri::chemin_systeme fichier_source{};
+    kuri::chemin_systeme fichier_entete{};
+    kuri::chemin_systeme dossier_source{};
 
     int profondeur = 0;
     /* pour les structures, unions, et énumérations anonymes */
@@ -1098,7 +1098,7 @@ struct Convertisseuse {
                         << pour_bibliotheque << "\"\n\n";
         }
 
-        dossier_source = fichier_entete.parent_path();
+        dossier_source = fichier_entete.chemin_parent();
 
         CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
         // imprime_asa(cursor, 0, std::cout);
@@ -1138,10 +1138,10 @@ struct Convertisseuse {
                     clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
                     auto nom_fichier = clang_getFileName(file);
-                    auto nom_fichier_c = std::filesystem::path(clang_getCString(nom_fichier));
+                    auto nom_fichier_c = kuri::chemin_systeme(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
 
-                    if (nom_fichier_c.parent_path() != dossier_source) {
+                    if (nom_fichier_c.chemin_parent() != dossier_source) {
                         continue;
                     }
 
@@ -2201,7 +2201,7 @@ void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_
 
 static std::optional<Configuration> valide_configuration(Configuration config)
 {
-    if (!std::filesystem::exists(config.fichier.c_str())) {
+    if (!kuri::chemin_systeme::existe(config.fichier.c_str())) {
         std::cerr << "Le fichier \"" << config.fichier << "\" n'existe pas !\n";
         return {};
     }
@@ -2298,14 +2298,14 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    auto fichier_source = std::filesystem::path(config.fichier.c_str());
+    auto fichier_source = kuri::chemin_systeme(config.fichier.c_str());
     auto fichier_entete = fichier_source;
-    fichier_entete = fichier_entete.replace_extension(".hh");
+    fichier_entete = fichier_entete.remplace_extension(".hh");
 
-    if (!std::filesystem::exists(fichier_entete)) {
-        fichier_entete = fichier_entete.replace_extension(".h");
+    if (!kuri::chemin_systeme::existe(fichier_entete)) {
+        fichier_entete = fichier_entete.remplace_extension(".h");
 
-        if (!std::filesystem::exists(fichier_entete)) {
+        if (!kuri::chemin_systeme::existe(fichier_entete)) {
             fichier_entete = "";
         }
     }
