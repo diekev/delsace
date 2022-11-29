@@ -18,6 +18,8 @@
 
 #include "operateurs.hh"
 
+#include "plateforme/windows.h"
+
 struct AtomeConstante;
 struct GrapheDependance;
 struct IdentifiantCode;
@@ -123,8 +125,6 @@ enum class TypeBase : char {
 
     TOTAL,
 };
-
-#include "plateforme/windows.h"
 
 #define ENUMERE_TYPE(O)                                                                           \
     O(pointeur, POINTEUR, TypePointeur)                                                           \
