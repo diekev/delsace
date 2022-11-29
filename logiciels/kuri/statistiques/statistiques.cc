@@ -31,7 +31,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     auto const temps_coulisse = stats.temps_generation_code + stats.temps_fichier_objet +
                                 stats.temps_executable;
 
-    auto const temps_aggrege = temps_scene + temps_coulisse + stats.temps_nettoyage;
+    auto const temps_aggrege = temps_scene + temps_coulisse;
 
     auto calc_pourcentage = [&](const double &x, const double &total) {
         if (total == 0.0) {
@@ -162,9 +162,6 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
          formatte_nombre(stats.temps_executable * 1000.0),
          "ms",
          formatte_nombre(calc_pourcentage(stats.temps_executable, temps_coulisse))});
-
-    tableau.ajoute_ligne(
-        {"Temps Nettoyage", formatte_nombre(stats.temps_nettoyage * 1000.0), "ms"});
 
     imprime_tableau(tableau);
 
