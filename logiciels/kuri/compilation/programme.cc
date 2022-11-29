@@ -239,7 +239,7 @@ kuri::ensemble<Module *> Programme::modules_utilises() const
 
 void Programme::ajourne_pour_nouvelles_options_espace()
 {
-    /* Recréer la coulisse. */
+    /* Recrée la coulisse. */
     Coulisse::detruit(m_coulisse);
     m_coulisse = Coulisse::cree_pour_options(espace()->options);
 

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
-#include <filesystem>
 #include <iostream>
 
 #include "biblinternes/outils/gna.hh"
@@ -15,6 +14,8 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "options.hh"
+
+#include "structures/chemin_systeme.hh"
 
 using type_scalaire = double;
 using type_matrice_ep = matrice_colonne_eparse<double>;
@@ -106,21 +107,16 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    if (!std::filesystem::exists(chemin_fichier)) {
+    if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
         return 1;
     }
 
     {
-        auto chemin = std::filesystem::path(chemin_fichier);
-
-        if (chemin.is_relative()) {
-            chemin = std::filesystem::absolute(chemin);
-        }
-
-        auto compilatrice = Compilatrice("");
+        auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
+        auto compilatrice = Compilatrice("", {});
         auto donnees_fichier = Fichier();
-        auto tampon = charge_contenu_fichier(chemin.c_str());
+        auto tampon = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
         donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
 
         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);

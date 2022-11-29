@@ -1,23 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
+# SPDX-License-Identifier: GPL-2.0-or-later
 # The Original Code is Copyright (C) 2018 Kévin Dietrich.
-# All rights reserved.
-#
-# ***** END GPL LICENSE BLOCK *****
 
 # ------------------------------------------------------------------------------
 
@@ -30,6 +12,7 @@ project(delsace)
 # ------------------------------------------------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/platform")
 
 # ------------------------------------------------------------------------------
 
@@ -39,182 +22,7 @@ set(CMAKE_BUILD_TYPE_INIT "Release")
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_compile_options(-fconcepts)
-
 option(AVEC_ASAN "Utilise asan lors de la compilation en mode débogage" OFF)
-
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-	add_compile_options(-g)
-	add_compile_options(-Og)
-        add_compile_options(-Wall)
-        add_compile_options(-Wextra)
-        add_compile_options(-Werror)
-        # Standard
-        add_compile_options(-Wpedantic)
-        add_compile_options(-Weffc++)
-        # Déclaration de paramètres
-        add_compile_options(-Wshadow)
-        add_compile_options(-Wno-unused-parameter)
-        add_compile_options(-Wunused)
-        # Transtypage
-        add_compile_options(-Wold-style-cast)
-        add_compile_options(-Wcast-align)
-        add_compile_options(-Wconversion)
-        add_compile_options(-Wsign-conversion)
-        add_compile_options(-Wdouble-promotion)
-        add_compile_options(-Wuseless-cast)
-        # Orientation objet
-        add_compile_options(-Wnon-virtual-dtor)
-        add_compile_options(-Woverloaded-virtual)
-        add_compile_options(-Wno-delete-non-virtual-dtor)
-        # Désactive certaines erreurs
-        add_compile_options(-Wno-error=unused-function)
-        add_compile_options(-Wno-error=class-memaccess)
-        add_compile_options(-Wno-error=unused-result)
-        add_compile_options(-Wno-error=clobbered)
-        add_compile_options(-Wno-error=unused-local-typedefs)
-        # Format
-        add_compile_options(-Wformat=2)
-        add_compile_options(-Wno-format-nonliteral)
-        add_compile_options(-Wno-format-y2k)
-        add_compile_options(-Wmissing-format-attribute)
-        add_compile_options(-Wformat-extra-args)
-        # Pointeurs
-        add_compile_options(-Wnonnull)
-        add_compile_options(-Wnull-dereference)
-        # Conditions
-        add_compile_options(-Wduplicated-cond)
-        #add_compile_options(-Wduplicated-branches)
-        add_compile_options(-Wno-error=duplicated-branches)
-        # Operations
-        add_compile_options(-Wlogical-op)
-        # Autres
-        #add_compile_options(-Wlifetime) non-supporté
-        add_compile_options(-Wno-ignored-qualifiers)
-        add_compile_options(-Wno-unknown-pragmas)
-        add_compile_options(-Wno-missing-field-initializers)
-        add_compile_options(-Wno-sign-compare)
-        add_compile_options(-Wno-type-limits)
-        add_compile_options(-fno-common)
-        add_compile_options(-Wundef)
-        add_compile_options(-Wno-div-by-zero)
-        add_compile_options(-Wstrict-aliasing=2)
-        add_compile_options(-Wsizeof-pointer-memaccess)
-        add_compile_options(-fstrict-overflow)
-        add_compile_options(-Wstrict-overflow=2)
-        add_compile_options(-Wwrite-strings)
-        add_compile_options(-fno-omit-frame-pointer)
-        add_compile_options(-fstack-protector-all)
-        add_compile_options(--param=ssp-buffer-size=4)
-        add_compile_options(-Wno-maybe-uninitialized)
-        add_compile_options(-Wmissing-include-dirs)
-        add_compile_options(-Wdate-time)
-        add_compile_options(-Wuninitialized)
-        add_compile_options(-Winit-self)
-        add_compile_options(-Wtype-limits)
-        add_compile_options(-fno-nonansi-builtins)
-        add_compile_options(-Warray-bounds)
-        add_compile_options(-fdiagnostics-color=always)
-        add_compile_options(-fuse-ld=gold)
-        add_compile_options(-Wno-error=deprecated-copy)
-        add_compile_options(-Wno-error=invalid-offsetof)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
-
-        if (AVEC_ASAN)
-            add_compile_options(-fsanitize=address)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-        endif()
-
-elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
-	add_compile_options(-g)
-	add_compile_options(-pg)
-	add_compile_options(-O2)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-        add_definitions(-DCMAKE_BUILD_TYPE_PROFILE)
-elseif(CMAKE_BUILD_TYPE MATCHES "Coverage")
-	add_compile_options(--coverage)
-	add_compile_options(-ftest-coverage)
-	add_compile_options(-fprofile-arcs)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lgcov --coverage")
-elseif(CMAKE_BUILD_TYPE MATCHES "Release")
-	add_compile_options(-O3)
-elseif(CMAKE_BUILD_TYPE MATCHES "TSan")
-	add_compile_options(-g)
-	add_compile_options(-fsanitize=thread)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=thread -fuse-ld=gold")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=thread -fuse-ld=gold")
-endif()
-
-add_compile_options(-march=native)
-
-# Pour supprimer des drapeaux de compilation un peu trop stricts pour certaines
-# bibliothèques externes.
-macro(desactive_drapeaux_compilation cible)
-	get_target_property(EXTLIB_COMPILE_FLAGS ${cible} COMPILE_OPTIONS)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wall)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wdeprecated)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wextra)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wmissing-include-dirs)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-delete-non-virtual-dtor)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=deprecated-copy)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wnon-virtual-dtor)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Woverloaded-virtual)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wpedantic)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wshadow)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wshadow)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fno-nonansi-builtins)
-	set_target_properties(${cible} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
-endmacro()
-
-# Pour supprimer des drapeaux de compilation un peu trop stricts, ou réserver à
-# C++, pour certaines bibliothèques externes écrites en C.
-macro(desactive_drapeaux_compilation_c cible)
-	get_target_property(EXTLIB_COMPILE_FLAGS ${cible} COMPILE_OPTIONS)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wdouble-promotion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Werror)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wimplicit-int)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-delete-non-virtual-dtor)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=deprecated-copy)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=discarded-qualifiers)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=shadow)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=unused-variable)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wnon-virtual-dtor)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Woverloaded-virtual)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wpedantic)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wshadow)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wunused-variable)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fno-nonansi-builtins)
-	set_target_properties(${cible} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
-endmacro()
-
-macro(desactive_drapeaux_compilation_pour_nvcc cible)
-        get_target_property(EXTLIB_COMPILE_FLAGS ${cible} COMPILE_OPTIONS)
-        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -O3)
-        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -march=native)
-        list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
-        set_target_properties(${cible} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
-endmacro()
-
-# ------------------------------------------------------------------------------
-
 option(AVEC_CRESUS "Compiler Crésus" ON)
 option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" ON)
 option(AVEC_DEPLOIE "Compiler l'outil de déploiement d'application web Déploie" ON)
@@ -234,6 +42,8 @@ option(AVEC_TESTS "Compiler les tests des bibliothèques internes" ON)
 option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
 
 option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
+
+# ------------------------------------------------------------------------------
 
 # Évite de polluer les options pour l'instant.
 set(REQUIERS_QT OFF)
@@ -286,65 +96,65 @@ set(REQUIERS_BIB_VISION OFF)
 set(REQUIERS_BIB_XML OFF)
 
 if(SEULEMENT_KURI)
-	set(AVEC_KURI ON)
+    set(AVEC_KURI ON)
 
-	set(AVEC_CRESUS OFF)
-	set(AVEC_DANJO OFF)
-	set(AVEC_DEPLOIE OFF)
-	set(AVEC_HIKAGE OFF)
-	set(AVEC_HIMITSU OFF)
-	set(AVEC_IMAGO OFF)
-	set(AVEC_INFOGRAPHIE OFF)
-	set(AVEC_KANBA OFF)
-	set(AVEC_KUMO OFF)
-	set(AVEC_KYANBASU OFF)
-	set(AVEC_MESURE OFF)
-	set(AVEC_JORJALA OFF)
-	set(REQUIERS_QT OFF)
-	set(AVEC_SILVATHEQUE OFF)
-	set(AVEC_TESTS OFF)
-	set(AVEC_VULKAN OFF)
+    set(AVEC_CRESUS OFF)
+    set(AVEC_DANJO OFF)
+    set(AVEC_DEPLOIE OFF)
+    set(AVEC_HIKAGE OFF)
+    set(AVEC_HIMITSU OFF)
+    set(AVEC_IMAGO OFF)
+    set(AVEC_INFOGRAPHIE OFF)
+    set(AVEC_KANBA OFF)
+    set(AVEC_KUMO OFF)
+    set(AVEC_KYANBASU OFF)
+    set(AVEC_MESURE OFF)
+    set(AVEC_JORJALA OFF)
+    set(REQUIERS_QT OFF)
+    set(AVEC_SILVATHEQUE OFF)
+    set(AVEC_TESTS OFF)
+    set(AVEC_VULKAN OFF)
 
-	# désactivation des bibliothèques internes non-requises
-	set(REQUIERS_BIB_BRUIT OFF)
-	set(REQUIERS_BIB_CHISEI OFF)
-	set(REQUIERS_BIB_COMPILER OFF)
-	set(REQUIERS_BIB_COMPRESSION OFF)
-	set(REQUIERS_BIB_EGO OFF)
-	set(REQUIERS_BIB_EXERCISES OFF)
-	set(REQUIERS_BIB_FINANCE OFF)
-	set(REQUIERS_BIB_FLUID_RETIMER OFF)
-	set(REQUIERS_BIB_FLUX OFF)
-	set(REQUIERS_BIB_GRAPHE OFF)
-	set(REQUIERS_BIB_IMAGE OFF)
-	set(REQUIERS_BIB_LINGUA OFF)
-	set(REQUIERS_BIB_MATH OFF)
-	set(REQUIERS_BIB_OBJETS OFF)
-	set(REQUIERS_BIB_OPENCV OFF)
-	set(REQUIERS_BIB_OPENGL OFF)
-	set(REQUIERS_BIB_PATRONS_CONCEPTION OFF)
-	set(REQUIERS_BIB_PHYS OFF)
-	set(REQUIERS_BIB_REFERENCE OFF)
-	set(REQUIERS_BIB_RUNTIME_POLYMORPHY OFF)
-	set(REQUIERS_BIB_TEXTURE OFF)
-	set(REQUIERS_BIB_TREES OFF)
-	set(REQUIERS_BIB_TYPES OFF)
-	set(REQUIERS_BIB_UNICODE OFF)
-	set(REQUIERS_BIB_VISION OFF)
-	set(REQUIERS_BIB_XML OFF)
+    # désactivation des bibliothèques internes non-requises
+    set(REQUIERS_BIB_BRUIT OFF)
+    set(REQUIERS_BIB_CHISEI OFF)
+    set(REQUIERS_BIB_COMPILER OFF)
+    set(REQUIERS_BIB_COMPRESSION OFF)
+    set(REQUIERS_BIB_EGO OFF)
+    set(REQUIERS_BIB_EXERCISES OFF)
+    set(REQUIERS_BIB_FINANCE OFF)
+    set(REQUIERS_BIB_FLUID_RETIMER OFF)
+    set(REQUIERS_BIB_FLUX OFF)
+    set(REQUIERS_BIB_GRAPHE OFF)
+    set(REQUIERS_BIB_IMAGE OFF)
+    set(REQUIERS_BIB_LINGUA OFF)
+    set(REQUIERS_BIB_MATH OFF)
+    set(REQUIERS_BIB_OBJETS OFF)
+    set(REQUIERS_BIB_OPENCV OFF)
+    set(REQUIERS_BIB_OPENGL OFF)
+    set(REQUIERS_BIB_PATRONS_CONCEPTION OFF)
+    set(REQUIERS_BIB_PHYS OFF)
+    set(REQUIERS_BIB_REFERENCE OFF)
+    set(REQUIERS_BIB_RUNTIME_POLYMORPHY OFF)
+    set(REQUIERS_BIB_TEXTURE OFF)
+    set(REQUIERS_BIB_TREES OFF)
+    set(REQUIERS_BIB_TYPES OFF)
+    set(REQUIERS_BIB_UNICODE OFF)
+    set(REQUIERS_BIB_VISION OFF)
+    set(REQUIERS_BIB_XML OFF)
 endif(SEULEMENT_KURI)
 
 macro(ajoute_sousdossier __test__ __nom__)
-	if (${__test__})
-		add_subdirectory(${__nom__})
-	endif()
+    if (${__test__})
+        add_subdirectory(${__nom__})
+    endif()
 endmacro()
 
 # À FAIRE : permet la déclaration de plusiers dépendances
 macro(active_dependances __test__ __dep__)
-	if (${__test__})
-		set(${__dep__} ON)
-	endif()
+    if (${__test__})
+        set(${__dep__} ON)
+    endif()
 endmacro()
 
 active_dependances(AVEC_KANBA AVEC_DANJO)
@@ -411,84 +221,84 @@ active_dependances(AVEC_TESTS REQUIERS_BIB_TYPES)
 # ------------------------------------------------------------------------------
 
 if(AVEC_KANBA)
-	find_package(PTex REQUIRED)
+    find_package(PTex REQUIRED)
 
-	set(REQUIERS_BIB_BRUIT ON)
-	set(REQUIERS_BIB_EGO ON)
-	set(REQUIERS_BIB_IMAGE ON)
-	set(REQUIERS_BIB_MATH ON)
-	set(REQUIERS_BIB_PHYS ON)
-	set(REQUIERS_BIB_OBJETS ON)
-	set(REQUIERS_BIB_OPENGL ON)
-	set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
-	set(REQUIERS_BIB_TESTS ON)
-	set(REQUIERS_BIB_TEXTURE ON)
-	set(REQUIERS_BIB_VISION ON)
+    set(REQUIERS_BIB_BRUIT ON)
+    set(REQUIERS_BIB_EGO ON)
+    set(REQUIERS_BIB_IMAGE ON)
+    set(REQUIERS_BIB_MATH ON)
+    set(REQUIERS_BIB_PHYS ON)
+    set(REQUIERS_BIB_OBJETS ON)
+    set(REQUIERS_BIB_OPENGL ON)
+    set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
+    set(REQUIERS_BIB_TESTS ON)
+    set(REQUIERS_BIB_TEXTURE ON)
+    set(REQUIERS_BIB_VISION ON)
 endif()
 
 if(AVEC_JORJALA)
-	find_package(Alembic)
-	find_package(Bullet)
-	find_package(OpenColorIO)
-	find_package(OpenEXR)
-	add_definitions(-DAVEC_OPENEXR)
-	find_package(OpenSubDiv)
-	find_package(OpenVDB)
+    find_package(Alembic)
+    find_package(Bullet)
+    find_package(OpenColorIO)
+    find_package(OpenEXR)
+    add_definitions(-DAVEC_OPENEXR)
+    find_package(OpenSubDiv)
+    find_package(OpenVDB)
 
-	set(REQUIERS_BIB_BRUIT ON)
-	set(REQUIERS_BIB_EGO ON)
-	set(REQUIERS_BIB_IMAGE ON)
-	set(REQUIERS_BIB_LANGAGE ON)
-	set(REQUIERS_BIB_MATH ON)
-	set(REQUIERS_BIB_MOULTFILAGE ON)
-	set(REQUIERS_BIB_OBJETS ON)
-	set(REQUIERS_BIB_OPENCV ON)
-	set(REQUIERS_BIB_OPENGL ON)
-	set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
-	set(REQUIERS_BIB_PHYS ON)
-	set(REQUIERS_BIB_SYSTEME_FICHIER ON)
-	set(REQUIERS_BIB_TEXTURE ON)
-	set(REQUIERS_BIB_VISION ON)
-	set(REQUIERS_BIB_XML ON)
+    set(REQUIERS_BIB_BRUIT ON)
+    set(REQUIERS_BIB_EGO ON)
+    set(REQUIERS_BIB_IMAGE ON)
+    set(REQUIERS_BIB_LANGAGE ON)
+    set(REQUIERS_BIB_MATH ON)
+    set(REQUIERS_BIB_MOULTFILAGE ON)
+    set(REQUIERS_BIB_OBJETS ON)
+    set(REQUIERS_BIB_OPENCV ON)
+    set(REQUIERS_BIB_OPENGL ON)
+    set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
+    set(REQUIERS_BIB_PHYS ON)
+    set(REQUIERS_BIB_SYSTEME_FICHIER ON)
+    set(REQUIERS_BIB_TEXTURE ON)
+    set(REQUIERS_BIB_VISION ON)
+    set(REQUIERS_BIB_XML ON)
 endif(AVEC_JORJALA)
 
 if(AVEC_DEPLOIE)
-	find_package(Curl REQUIRED)
+    find_package(Curl REQUIRED)
 endif(AVEC_DEPLOIE)
 
 if(REQUIERS_QT)
-	find_package(Qt5Core REQUIRED)
-	set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
-	set(BIBLIOTHEQUES_QT5_CORE Qt5::Core)
+    find_package(Qt5Core REQUIRED)
+    set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
+    set(BIBLIOTHEQUES_QT5_CORE Qt5::Core)
 
-	find_package(Qt5Gui REQUIRED)
-	set(INCLUSIONS_QT5_GUI ${Qt5Gui_INCLUDE_DIRS})
-	set(BIBLIOTHEQUES_QT5_GUI Qt5::Gui)
+    find_package(Qt5Gui REQUIRED)
+    set(INCLUSIONS_QT5_GUI ${Qt5Gui_INCLUDE_DIRS})
+    set(BIBLIOTHEQUES_QT5_GUI Qt5::Gui)
 
-	find_package(Qt5OpenGL REQUIRED)
-	set(INCLUSIONS_QT5_OPENGL ${Qt5OpenGL_INCLUDE_DIRS})
-	set(BIBLIOTHEQUES_QT5_OPENGL Qt5::OpenGL)
+    find_package(Qt5OpenGL REQUIRED)
+    set(INCLUSIONS_QT5_OPENGL ${Qt5OpenGL_INCLUDE_DIRS})
+    set(BIBLIOTHEQUES_QT5_OPENGL Qt5::OpenGL)
 
-	find_package(Qt5Widgets REQUIRED)
-	set(INCLUSIONS_QT5_WIDGETS ${Qt5Widgets_INCLUDE_DIRS})
-	set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
+    find_package(Qt5Widgets REQUIRED)
+    set(INCLUSIONS_QT5_WIDGETS ${Qt5Widgets_INCLUDE_DIRS})
+    set(BIBLIOTHEQUES_QT5_WIDGETS Qt5::Widgets)
 
-	find_package(Qt5Sql REQUIRED)
-	set(INCLUSIONS_QT5_SQL ${Qt5Sql_INCLUDE_DIRS})
-	set(BIBLIOTHEQUES_QT5_SQL Qt5::Sql)
+    find_package(Qt5Sql REQUIRED)
+    set(INCLUSIONS_QT5_SQL ${Qt5Sql_INCLUDE_DIRS})
+    set(BIBLIOTHEQUES_QT5_SQL Qt5::Sql)
 
-	set(INCLUSIONS_QT "${INCLUSIONS_QT5_CORE}" "${INCLUSIONS_QT5_GUI}" "${INCLUSIONS_QT5_OPENGL}" "${INCLUSIONS_QT5_WIDGETS}" "${INCLUSIONS_QT5_SQL}")
-	set(BIBLIOTHEQUES_QT "${BIBLIOTHEQUES_QT5_CORE}" "${BIBLIOTHEQUES_QT5_GUI}" "${BIBLIOTHEQUES_QT5_OPENGL}" "${BIBLIOTHEQUES_QT5_WIDGETS}" "${BIBLIOTHEQUES_QT5_SQL}")
+    set(INCLUSIONS_QT "${INCLUSIONS_QT5_CORE}" "${INCLUSIONS_QT5_GUI}" "${INCLUSIONS_QT5_OPENGL}" "${INCLUSIONS_QT5_WIDGETS}" "${INCLUSIONS_QT5_SQL}")
+    set(BIBLIOTHEQUES_QT "${BIBLIOTHEQUES_QT5_CORE}" "${BIBLIOTHEQUES_QT5_GUI}" "${BIBLIOTHEQUES_QT5_OPENGL}" "${BIBLIOTHEQUES_QT5_WIDGETS}" "${BIBLIOTHEQUES_QT5_SQL}")
 endif()
 
 # À FAIRE : find_package
 if(REQUIERS_OPENGL)
-	set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
+    set(BIBLIOTHEQUES_OPENGL GLEW GLU GL glut)
 endif()
 
 # À FAIRE : find_package
 if(REQUIERS_TBB)
-	set(BIBLIOTHEQUES_TBB tbb)
+    set(BIBLIOTHEQUES_TBB tbb)
 endif()
 
 add_definitions(-DAVEC_JPEG)
@@ -496,11 +306,11 @@ set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 
 # À FAIRE : find_package
 if(REQUIERS_BOOST)
-	set(INCLUSIONS_BOOST /opt/lib/boost/include)
+    set(INCLUSIONS_BOOST /opt/lib/boost/include)
 endif()
 
 if(AVEC_KURI)
-	find_package(LibFFI REQUIRED)
+    find_package(LibFFI REQUIRED)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -509,10 +319,17 @@ endif()
 # utiliser filesystem.
 set(BILIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
 
+# dl n'est disponible que sur linux
+set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
+
+# ------------------------------------------------------------------------------
+
+include(platform_unix)
+
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
 add_subdirectory(logiciels)
 
 if(AVEC_TESTS)
-	add_subdirectory(tests)
+    add_subdirectory(tests)
 endif(AVEC_TESTS)

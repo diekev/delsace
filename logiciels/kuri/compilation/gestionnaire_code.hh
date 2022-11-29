@@ -12,9 +12,9 @@
 #include "graphe_dependance.hh"
 #include "unite_compilation.hh"
 
-class Compilatrice;
-class GrapheDependance;
-class OrdonnanceuseTache;
+struct Compilatrice;
+struct GrapheDependance;
+struct OrdonnanceuseTache;
 struct Programme;
 
 struct DonnneesResolutionDependances {
