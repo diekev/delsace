@@ -509,6 +509,9 @@ endif()
 # utiliser filesystem.
 set(BILIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
 
+# dl n'est disponible que sur linux
+set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
+
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)
 add_subdirectory(logiciels)

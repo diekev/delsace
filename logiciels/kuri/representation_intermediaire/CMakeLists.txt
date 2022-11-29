@@ -36,7 +36,7 @@ set(BIBLIOTHEQUES
 	bib_outils
 	systeme_fichier
 	${BIBLIOTHEQUES_LIBFFI}
-	dl
+        ${BIBLIOTHEQUE_DL}
 )
 
 set(SOURCES
