@@ -114,7 +114,7 @@ int main(int argc, const char **argv)
 
     {
         auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
-        auto compilatrice = Compilatrice("");
+        auto compilatrice = Compilatrice("", {});
         auto donnees_fichier = Fichier();
         auto tampon = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
         donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));

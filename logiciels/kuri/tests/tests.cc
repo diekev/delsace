@@ -106,7 +106,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     auto chemin_courant = kuri::chemin_systeme::chemin_courant();
     kuri::chemin_systeme::change_chemin_courant("/opt/bin/kuri/fichiers_tests/fichiers/");
 
-    auto compilatrice = Compilatrice(getenv("RACINE_KURI"));
+    auto compilatrice = Compilatrice(getenv("RACINE_KURI"), {});
 
     auto espace = compilatrice.espace_defaut_compilation();
 
@@ -200,7 +200,7 @@ int main()
         auto chemin = kuri::chemin_systeme("fichiers_tests/") / it.source;
 
         if (kuri::chemin_systeme::existe(chemin)) {
-            auto compilatrice = Compilatrice("");
+            auto compilatrice = Compilatrice("", {});
             auto contenu_fichier = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
             auto tampon = lng::tampon_source(std::move(contenu_fichier));
 

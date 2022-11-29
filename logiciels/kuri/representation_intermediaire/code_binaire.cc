@@ -873,7 +873,7 @@ ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *meta
     : espace(espace_), donnees_executions(&espace_->compilatrice().donnees_constantes_executions),
       metaprogramme(metaprogramme_)
 {
-    verifie_adresses = espace->compilatrice().debogue_execution;
+    verifie_adresses = espace->compilatrice().arguments.debogue_execution;
 }
 
 bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctions)

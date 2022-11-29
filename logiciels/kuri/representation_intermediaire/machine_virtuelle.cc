@@ -900,7 +900,7 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme,
     m_metaprogramme = nullptr;
 
     de->instructions_executees += compte_executees;
-    if (compilatrice.profile_metaprogrammes) {
+    if (compilatrice.arguments.profile_metaprogrammes) {
         profileuse.ajoute_echantillon(metaprogramme, compte_executees);
     }
 }
@@ -1728,8 +1728,8 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.temps_metaprogrammes += temps_execution_metaprogammes;
     stats.instructions_executees += instructions_executees;
 
-    if (compilatrice.profile_metaprogrammes) {
-        profileuse.cree_rapports(compilatrice.format_rapport_profilage);
+    if (compilatrice.arguments.profile_metaprogrammes) {
+        profileuse.cree_rapports(compilatrice.arguments.format_rapport_profilage);
     }
 }
 

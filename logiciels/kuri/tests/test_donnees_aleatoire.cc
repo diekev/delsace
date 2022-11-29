@@ -32,7 +32,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
             texte.ajoute(donnees_char[i]);
         }
 
-        auto compilatrice = Compilatrice("");
+        auto compilatrice = Compilatrice("", {});
         auto espace = compilatrice.espace_defaut_compilation();
         auto fichier = Fichier();
         fichier.charge_tampon(lng::tampon_source(std::move(texte)));
@@ -438,7 +438,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
     }
 
     try {
-        auto compilatrice = Compilatrice("");
+        auto compilatrice = Compilatrice("", {});
         auto tacheronne = Tacheronne(compilatrice);
         auto espace = compilatrice.espace_defaut_compilation();
 

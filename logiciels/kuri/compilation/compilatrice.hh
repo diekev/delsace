@@ -20,6 +20,8 @@
 #include "tacheronne.hh"
 #include "typage.hh"
 
+#include "structures/chemin_systeme.hh"
+
 class Broyeuse;
 struct ContexteLexage;
 struct EspaceDeTravail;
@@ -50,6 +52,17 @@ struct GestionnaireChainesAjoutees {
     void imprime_dans(std::ostream &os);
 };
 
+/* Options passées sur la ligne de commande. */
+struct ArgumentsCompilatrice {
+    bool active_tests = false;
+    bool profile_metaprogrammes = false;
+    bool debogue_execution = false;
+    FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+
+    /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */
+    kuri::chemin_systeme chemin_fichier_utilises{};
+};
+
 struct Compilatrice {
     dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
@@ -68,10 +81,8 @@ struct Compilatrice {
     bool importe_kuri = true;
     bool m_possede_erreur = false;
     erreur::Genre m_code_erreur{};
-    bool active_tests = false;
-    bool profile_metaprogrammes = false;
-    bool debogue_execution = false;
-    FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+
+    ArgumentsCompilatrice arguments{};
 
     template <typename T>
     using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
@@ -136,7 +147,7 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    Compilatrice(kuri::chaine chemin_racine_kuri);
+    Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_);
 
     /* ********************************************************************** */
 

@@ -101,9 +101,9 @@ void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
 
 /* ************************************************************************** */
 
-Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri)
+Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagere(this), gestionnaire_code(this),
-      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)),
+      gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs)
 {
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());

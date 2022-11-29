@@ -180,7 +180,6 @@ struct Statistiques {
     double temps_generation_code = 0.0;
     double temps_fichier_objet = 0.0;
     double temps_executable = 0.0;
-    double temps_nettoyage = 0.0;
     double temps_ri = 0.0;
     double temps_metaprogrammes = 0.0;
     double temps_scene = 0.0;
