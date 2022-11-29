@@ -47,7 +47,8 @@ static kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_b
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
 static kuri::chaine commande_pour_fichier_objet(kuri::chaine_statique nom_entree,
-                                                kuri::chaine_statique nom_sortie)
+                                                kuri::chaine_statique nom_sortie,
+                                                ArchitectureCible architecture_cible)
 {
     Enchaineuse enchaineuse;
     // enchaineuse << chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
@@ -56,32 +57,12 @@ static kuri::chaine commande_pour_fichier_objet(kuri::chaine_statique nom_entree
 #ifdef _MSC_VER
     enchaineuse << " /c " << nom_sortie << " " << nom_entree;
 #else
-    enchaineuse << " -c  -fPIC ";
-    enchaineuse << chemin_fichier;
-    enchaineuse << " -o ";
-    enchaineuse << chemin_objet;
-#endif
+    enchaineuse << " -c -fPIC ";
 
-    /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
-    enchaineuse << '\0';
+    if (architecture_cible == ArchitectureCible::X86) {
+        enchaineuse << " -m32 ";
+    }
 
-    return enchaineuse.chaine();
-}
-
-/* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
- * dynamique. */
-static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique nom_entree,
-                                                         kuri::chaine_statique nom_sortie)
-{
-    Enchaineuse enchaineuse;
-    //  enchaineuse << chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
-    enchaineuse << "cl";
-
-#ifdef _MSC_VER
-    enchaineuse << " /DLL "
-                << "/OUT:" << nom_sortie << " " << nom_entree;
-#else
-    enchaineuse << " -shared -fPIC ";
     enchaineuse << nom_entree;
     enchaineuse << " -o ";
     enchaineuse << nom_sortie;
@@ -93,94 +74,96 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
     return enchaineuse.chaine();
 }
 
-/* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des
- * algorithmes pour supprimer les tables */
-bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
+/* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
+ * dynamique. */
+static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique nom_entree,
+                                                         kuri::chaine_statique nom_sortie,
+                                                         ArchitectureCible architecture_cible)
 {
-    // objet pour la liaison statique de la bibliothèque
-    {
-        const auto fichier_objet = nom_fichier_objet_pour("r16_tables_x64");
-        const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+    Enchaineuse enchaineuse;
+    //  enchaineuse << chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
+    enchaineuse << "cl";
 
-        if (!kuri::chemin_systeme::existe(chemin_objet)) {
-            const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-            const auto commande = commande_pour_fichier_objet(chemin_fichier, chemin_objet);
+#ifdef _MSC_VER
+    enchaineuse << " /DLL "
+                << "/OUT:" << nom_sortie << " " << nom_entree;
+#else
+    enchaineuse << " -shared -fPIC ";
 
-            std::cout << "Compilation des tables de conversion R16...\n";
-            std::cout << "Exécution de la commande " << commande << std::endl;
-            const auto err = system(commande.pointeur());
-            if (err != 0) {
-                std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-                return false;
-            }
-
-            std::cout << "Compilation du fichier statique réussie !" << std::endl;
-        }
+    if (architecture_cible == ArchitectureCible::X86) {
+        enchaineuse << " -m32 ";
     }
 
-    // objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
-    {
-        /* A FAIRE : chemin bibliothèque pour Windows. */
-        const auto fichier_objet = nom_bibliothèque_dynamique_pour("lib/x86_64-linux-gnu/libr16");
-        const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+    enchaineuse << nom_entree;
+    enchaineuse << " -o ";
+    enchaineuse << nom_sortie;
+#endif
 
-        if (!kuri::chemin_systeme::existe(chemin_objet)) {
-            const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-            /* assure l'existence des dossiers parents */
-            kuri::chemin_systeme::cree_dossiers(chemin_objet.chemin_parent());
+    /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
+    enchaineuse << '\0';
 
-            const auto commande = commande_pour_bibliotheque_dynamique(chemin_fichier,
-                                                                       chemin_objet);
+    return enchaineuse.chaine();
+}
 
-            std::cout << "Compilation des tables de conversion R16...\n";
-            std::cout << "Exécution de la commande " << commande << std::endl;
-            const auto err = system(commande.pointeur());
-            if (err != 0) {
-                std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-                return false;
-            }
+static bool execute_commande(kuri::chaine const &commande)
+{
+    std::cout << "Compilation des tables de conversion R16...\n";
+    std::cout << "Exécution de la commande " << commande << std::endl;
 
-            std::cout << "Compilation du fichier dynamique réussie !" << std::endl;
-        }
+    const auto err = system(commande.pointeur());
+    if (err != 0) {
+        std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+        return false;
     }
 
     return true;
 }
 
-bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
-                       ArchitectureCible architecture_cible)
+/* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des
+ * algorithmes pour supprimer les tables */
+bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 {
-    if (architecture_cible == ArchitectureCible::X64) {
-        // nous devrions déjà l'avoir
+    /* Objet pour la liaison statique de la bibliothèque. */
+    if (!compile_objet_r16(chemin_racine_kuri, ArchitectureCible::X64)) {
+        return false;
+    }
+
+    /* Objet pour la liaison statique de la bibliothèque. */
+
+    /* A FAIRE : généralise les chemins. */
+    const auto fichier_objet = nom_bibliothèque_dynamique_pour("lib/x86_64-linux-gnu/libr16");
+    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+
+    if (kuri::chemin_systeme::existe(chemin_objet)) {
         return true;
     }
 
-    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire("r16_tables_x86.o");
+    const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+    /* assure l'existence des dossiers parents */
+    kuri::chemin_systeme::cree_dossiers(chemin_objet.chemin_parent());
+
+    const auto commande = commande_pour_bibliotheque_dynamique(
+        chemin_fichier, chemin_objet, ArchitectureCible::X64);
+
+    return execute_commande(commande);
+}
+
+bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
+                       ArchitectureCible architecture_cible)
+{
+    const kuri::chaine_statique noms_de_base_fichiers[2] = {"r16_tables_x86", "r16_tables_x64"};
+    const auto fichier_objet = nom_fichier_objet_pour(
+        noms_de_base_fichiers[int(architecture_cible)]);
+    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+
     if (kuri::chemin_systeme::existe(chemin_objet)) {
         return true;
     }
 
     const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " -c -m32 ";
-    enchaineuse << chemin_fichier;
-    enchaineuse << " -o ";
-    enchaineuse << chemin_objet;
-    enchaineuse << '\0';
+    const auto commande = commande_pour_fichier_objet(
+        chemin_fichier, chemin_objet, architecture_cible);
 
-    const auto commande = enchaineuse.chaine();
-
-    std::cout << "Compilation des tables de conversion R16...\n";
-    std::cout << "Exécution de la commande " << commande << std::endl;
-
-    const auto err = system(commande.pointeur());
-
-    if (err != 0) {
-        std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-        return false;
-    }
-
-    std::cout << "Compilation du fichier statique réussie !" << std::endl;
-    return true;
+    return execute_commande(commande);
 }
