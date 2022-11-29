@@ -2097,7 +2097,9 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
 #else
-    compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture);
+    if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
+        return false;
+    }
 
     auto debut_executable = dls::chrono::compte_seconde();
 

@@ -9,7 +9,7 @@ struct chemin_systeme;
 
 enum class ArchitectureCible : int;
 
-void precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
+bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 
-void compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
+bool compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
                        ArchitectureCible architecture_cible);

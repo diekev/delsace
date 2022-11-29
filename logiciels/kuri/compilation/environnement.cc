@@ -10,7 +10,7 @@
 
 /* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des
  * algorithmes pour supprimer les tables */
-void precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
+bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 {
     // objet pour la liaison statique de la bibliothèque
     {
@@ -35,7 +35,7 @@ void precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 
             if (err != 0) {
                 std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-                return;
+                return false;
             }
 
             std::cout << "Compilation du fichier statique réussie !" << std::endl;
@@ -68,25 +68,27 @@ void precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 
             if (err != 0) {
                 std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-                return;
+                return false;
             }
 
             std::cout << "Compilation du fichier dynamique réussie !" << std::endl;
         }
     }
+
+    return true;
 }
 
-void compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
+bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
                        ArchitectureCible architecture_cible)
 {
     if (architecture_cible == ArchitectureCible::X64) {
         // nous devrions déjà l'avoir
-        return;
+        return true;
     }
 
     const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire("r16_tables_x86.o");
     if (kuri::chemin_systeme::existe(chemin_objet)) {
-        return;
+        return true;
     }
 
     const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
@@ -107,8 +109,9 @@ void compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     if (err != 0) {
         std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-        return;
+        return false;
     }
 
     std::cout << "Compilation du fichier statique réussie !" << std::endl;
+    return true;
 }
