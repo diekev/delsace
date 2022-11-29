@@ -5,6 +5,9 @@
 
 /* MSVC définis pour ses extensions "interface" comme "struct". */
 
+/* Une entête Windows définie le macro DIFFERENCE, ce qui nous fait collisionne avec notre
+ * énumération. */
+
 #ifdef _MSC_VER
 #    undef interface
 #    undef OPAQUE
