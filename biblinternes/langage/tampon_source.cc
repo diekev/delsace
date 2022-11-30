@@ -115,7 +115,7 @@ long tampon_source::nombre_lignes() const noexcept
 
 long tampon_source::taille_donnees() const noexcept
 {
-	return m_tampon.taille() * taille_de(char);
+    return m_tampon.taille() * taille_de(char) + nombre_lignes() * taille_de(dls::vue_chaine_compacte);
 }
 
 tampon_source tampon_source::sous_tampon(size_t debut, size_t fin) const

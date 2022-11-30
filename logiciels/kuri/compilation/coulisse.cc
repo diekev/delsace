@@ -9,7 +9,9 @@
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
 #include "coulisse_mv.hh"
+#include "environnement.hh"
 
+#include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
 Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
@@ -68,40 +70,35 @@ void Coulisse::detruit(Coulisse *coulisse)
     }
 }
 
+static kuri::chaine_statique nom_fichier_sortie(OptionsDeCompilation const &ops)
+{
+    if (ops.nom_sortie == "") {
+        return "a";
+    }
+
+    return ops.nom_sortie;
+}
+
 kuri::chaine nom_sortie_fichier_objet(OptionsDeCompilation const &ops)
 {
     if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
-        if (ops.nom_sortie == "") {
-            return "a.o";
-        }
-
-        return enchaine(ops.nom_sortie, ".o");
+        return nom_fichier_objet_pour(nom_fichier_sortie(ops));
     }
 
-    return "/tmp/compilation_kuri.o";
+    return kuri::chaine(chemin_fichier_objet_temporaire_pour("compilation_kuri"));
 }
 
 kuri::chaine nom_sortie_resultat_final(OptionsDeCompilation const &ops)
 {
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        if (ops.nom_sortie == "") {
-            return "a.so";
-        }
-
-        return enchaine(ops.nom_sortie, ".so");
+        return nom_bibliothèque_dynamique_pour(nom_fichier_sortie(ops));
     }
 
     if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_STATIQUE) {
-        if (ops.nom_sortie == "") {
-            return "a.a";
-        }
-
-        return enchaine(ops.nom_sortie, ".a");
+        return nom_bibliothèque_statique_pour(nom_fichier_sortie(ops));
     }
 
-    if (ops.nom_sortie == "") {
-        return "a.out";
-    }
-
-    return ops.nom_sortie;
+    /* Pour un exécutable nous utilisons le nom donné via les options, en laissant les plateformes
+     * gérer le cas où le nom n'est pas renseigné. */
+    return nom_executable_pour(ops.nom_sortie);
 }

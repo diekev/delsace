@@ -38,6 +38,7 @@
 #include "structures/table_hachage.hh"
 
 #include "compilatrice.hh"
+#include "environnement.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
@@ -1632,13 +1633,51 @@ static void initialise_optimisation(NiveauOptimisation optimisation, Generatrice
     }
 }
 
+/* Chemin du fichier objet généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_objet_llvm()
+{
+    return chemin_fichier_objet_temporaire_pour("kuri");
+}
+
+/* Chemin du fichier objet "execution_kuri" généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_objet_execution_llvm()
+{
+    return chemin_fichier_objet_temporaire_pour("execution_kuri");
+}
+
+/* Chemin du fichier de code binaire LLVM généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_bc_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.bc");
+}
+
+/* Chemin du fichier de code LLVM généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_ll_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.ll");
+}
+
+/* Chemin du fichier ".s" généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_s_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.s");
+}
+
+static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
+{
+    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
+}
+
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
 {
 #if 1
-    auto chemin_sortie = "/tmp/kuri.o";
+    auto chemin_sortie = chemin_fichier_objet_llvm();
     std::error_code ec;
 
-    llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(
+        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
+        ec,
+        llvm::sys::fs::F_None);
 
     if (ec) {
         std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
@@ -1656,13 +1695,26 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
     pass.run(module);
     dest.flush();
 #else
+    auto const fichier_ll = chemin_fichier_ll_llvm();
+    auto const fichier_bc = chemin_fichier_bc_llvm();
+    auto const fichier_s = chemin_fichier_s_llvm();
+
     // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
     std::error_code ec;
-    llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
     module.print(dest, nullptr);
 
-    system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
-    system("llc /tmp/kuri.bc -o /tmp/kuri.s");
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
+    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    if (system(commande.pointeur()) != 0) {
+        return false;
+    }
+
+    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
+    commande = enchaine("llvm-as ", fichier_bc, " -o ", fichier_s, "\0");
+    if (system(commande.pointeur()) != 0) {
+        return false;
+    }
 #endif
     return true;
 }
@@ -1670,12 +1722,17 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 #ifndef NDEBUG
 static bool valide_llvm_ir(llvm::Module &module)
 {
+    auto const fichier_ll = chemin_fichier_ll_llvm();
+    auto const fichier_bc = chemin_fichier_bc_llvm();
+
     std::error_code ec;
-    llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
     module.print(dest, nullptr);
 
-    auto err = system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
-    return err == 0;
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
+     * est correcte. */
+    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    return system(commande.pointeur()) == 0;
 }
 #endif
 
@@ -1684,23 +1741,26 @@ static bool cree_executable(EspaceDeTravail const &espace,
                             const kuri::chemin_systeme &racine_kuri)
 {
     /* Compile le fichier objet qui appelera 'fonction principale'. */
-    if (!kuri::chemin_systeme::existe("/tmp/execution_kuri.o")) {
+    auto chemin_execution = chemin_fichier_objet_execution_llvm();
+    if (!kuri::chemin_systeme::existe(chemin_execution)) {
         auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
 
         Enchaineuse ss;
-        ss << "as -o /tmp/execution_kuri.o ";
+        ss << "as -o " << chemin_execution;
         ss << chemin_execution_S;
         ss << '\0';
 
         const auto err = system(ss.chaine().pointeur());
 
         if (err != 0) {
-            std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
+            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
             return false;
         }
     }
 
-    if (!kuri::chemin_systeme::existe("/tmp/kuri.o")) {
+    auto chemin_objet = chemin_fichier_objet_llvm();
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
         std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
         return false;
     }
@@ -1709,16 +1769,7 @@ static bool cree_executable(EspaceDeTravail const &espace,
 #if 1
     ss << "gcc ";
     ss << racine_kuri / "fichiers/point_d_entree.c";
-    ss << " /tmp/kuri.o ";
-
-    if (espace.options.architecture == ArchitectureCible::X86) {
-        ss << " /tmp/r16_tables_x86.o ";
-    }
-    else {
-        ss << " /tmp/r16_tables_x64.o ";
-    }
-
-    ss << "-o " << dest;
+    ss << chemin_fichier_objet_r16(espace.options.architecture) << " ";
 
 #else
     ss << "ld ";
@@ -1727,10 +1778,11 @@ static bool cree_executable(EspaceDeTravail const &espace,
     ss << "-m elf_x86_64 ";
     ss << "--hash-style=gnu ";
     ss << "-lc ";
-    ss << "/tmp/execution_kuri.o ";
-    ss << "/tmp/kuri.o ";
-    ss << "-o " << dest;
+    ss << chemin_execution << " ";
 #endif
+
+    ss << " " << chemin_objet << " ";
+    ss << "-o " << dest;
     ss << '\0';
 
     auto commande = ss.chaine();

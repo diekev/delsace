@@ -593,7 +593,7 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
         return;
     }
 
-    /* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
+    /* N'optimise pas cette fonction car le manque de retour supprime tout le code. */
     if (entete == compilatrice.interface_kuri->decl_creation_contexte) {
         return;
     }
@@ -673,7 +673,9 @@ void Tacheronne::execute_metaprogrammes()
             }
         }
 
-        /* attend d'avoir générer le résultat des opérations avant de marquer comme exécuté */
+        /* Maintenant que nous avons le résultat des opérations, nous pouvons indiquer que le
+         * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
+         * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
         it->fut_execute = true;
 
         mv.deloge_donnees_execution(it->donnees_execution);

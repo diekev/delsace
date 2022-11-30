@@ -172,7 +172,7 @@ enum {
 
 struct ResultatTest {
     dls::chaine fichier_origine{};
-    dls::chaine chemin_fichier{};
+    kuri::chemin_systeme chemin_fichier{};
     int raison_echec{};
     erreur::Genre erreur_attendue{};
     erreur::Genre erreur_recue{};
@@ -180,13 +180,14 @@ struct ResultatTest {
 
 static auto ecris_fichier_tmp(dls::chaine const &source, int index)
 {
-    auto chemin_fichier_tmp = "/tmp/echec_test" + dls::vers_chaine(index) + ".kuri";
+    auto nom_fichier = enchaine("echec_test", index, ".kuri");
+    auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 
     std::ofstream of;
-    of.open(chemin_fichier_tmp.c_str());
+    of.open(vers_std_path(chemin_fichier));
     of.write(source.c_str(), source.taille());
 
-    return chemin_fichier_tmp;
+    return chemin_fichier;
 }
 
 int main()

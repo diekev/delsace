@@ -122,7 +122,7 @@ struct OperateurBinaire {
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
 
 /* Structure stockant les opérateurs binaires pour un Type.
- * Le Type n'est pas stocker ici, mais chaque Type possède une telle table.
+ * Le Type n'est pas stocké ici, mais chaque Type possède une telle table.
  * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
  * de l'opérande à gauche. */
 struct TableOperateurs {

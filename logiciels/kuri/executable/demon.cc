@@ -172,7 +172,7 @@ static void initialise_liste_fichiers(int fd, Guetteuse &guetteuse)
 
 static void rafraichis_liste_fichiers_utilises(int fd,
                                                Guetteuse &guetteuse,
-                                               kuri::chaine const &chemin_fichier)
+                                               kuri::chemin_systeme const &chemin_fichier)
 {
     while (!compilation_terminee) {
         continue;
@@ -214,7 +214,10 @@ int main(int argc, char **argv)
     }
 
     auto fichier_racine_compilation = kuri::chaine_statique(argv[1]);
-    auto nom_fichier_fichier_utilises = enchaine("/tmp/", &fichier_racine_compilation);
+    /* Utilise un pointeur pour rendre le fichier unique. */
+    auto nom_base_fichier_fichiers_utilises = enchaine(&fichier_racine_compilation);
+    auto nom_fichier_fichier_utilises = kuri::chemin_systeme::chemin_temporaire(
+        nom_base_fichier_fichiers_utilises);
 
     auto donnees_commande_kuri = DonneesCommandeKuri{fichier_racine_compilation,
                                                      nom_fichier_fichier_utilises};
