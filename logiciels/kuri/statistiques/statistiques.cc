@@ -168,7 +168,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     return;
 }
 
-static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> &stats)
+static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> const &stats)
 {
     std::sort(stats.entrees.begin(),
               stats.entrees.end(),
@@ -191,7 +191,7 @@ static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> &stats)
     imprime_tableau(tableau);
 }
 
-static void imprime_stats_fichier(EntreesStats<EntreeFichier> &stats)
+static void imprime_stats_fichier(EntreesStats<EntreeFichier> const &stats)
 {
     std::sort(stats.entrees.begin(),
               stats.entrees.end(),
@@ -222,7 +222,7 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> &stats)
     imprime_tableau(tableau);
 }
 
-static void imprime_stats_tableaux(EntreesStats<EntreeTaille> &stats)
+static void imprime_stats_tableaux(EntreesStats<EntreeTaille> const &stats)
 {
     std::sort(stats.entrees.begin(),
               stats.entrees.end(),
@@ -238,7 +238,7 @@ static void imprime_stats_tableaux(EntreesStats<EntreeTaille> &stats)
     imprime_tableau(tableau);
 }
 
-void imprime_stats_detaillee(Statistiques &stats)
+void imprime_stats_detaillee(Statistiques const &stats)
 {
     std::cout << "Arbre Syntaxique :\n";
     imprime_stats_tableau(stats.stats_arbre);
@@ -256,7 +256,7 @@ void imprime_stats_detaillee(Statistiques &stats)
     imprime_stats_tableaux(stats.stats_tableaux);
 }
 
-static void imprime_stats_temps(EntreesStats<EntreeTemps> &stats)
+static void imprime_stats_temps(EntreesStats<EntreeTemps> const &stats)
 {
     std::sort(stats.entrees.begin(),
               stats.entrees.end(),
