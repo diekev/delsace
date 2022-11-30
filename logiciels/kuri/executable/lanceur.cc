@@ -383,15 +383,13 @@ int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
 
-    auto const opt_arguments = parse_arguments(argc, argv);
-    if (!opt_arguments.has_value()) {
+    auto const opt_racine_kuri = determine_racine_execution_kuri();
+    if (!opt_racine_kuri.has_value()) {
         return 1;
     }
 
-    auto const arguments = opt_arguments.value();
-
-    auto const opt_racine_kuri = determine_racine_execution_kuri();
-    if (!opt_racine_kuri.has_value()) {
+    auto const opt_arguments = parse_arguments(argc, argv);
+    if (!opt_arguments.has_value()) {
         return 1;
     }
 
@@ -403,7 +401,7 @@ int main(int argc, char *argv[])
 
     std::ostream &os = std::cout;
 
-    auto compilatrice = Compilatrice(opt_racine_kuri.value(), arguments);
+    auto compilatrice = Compilatrice(opt_racine_kuri.value(), opt_arguments.value());
 
     if (!compile_fichier(compilatrice, chemin_fichier, os)) {
         return 1;
