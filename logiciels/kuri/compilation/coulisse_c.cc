@@ -2081,7 +2081,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 #    else
     auto possede_erreur = false;
     POUR (m_fichiers) {
-        auto commande = genere_commande_fichier_objet(compilatrice, espace.options, it);
+        auto commande = genere_commande_fichier_objet(espace.options, it);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto err = system(dls::chaine(commande).c_str());
