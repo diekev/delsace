@@ -1661,7 +1661,9 @@ int main(int argc, char **argv)
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
             generatrice.genere_fichier_source_noeud_code(flux);
-            remplace_si_different(nom_fichier_tmp, argv[1]);
+            if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+                return 1;
+            }
         }
         {
             // Génère le fichier de message pour le module Compilatrice
@@ -1703,7 +1705,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    remplace_si_different(nom_fichier_tmp, argv[1]);
+    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+        return 1;
+    }
 
     return 0;
 }

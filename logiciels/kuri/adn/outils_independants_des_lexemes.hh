@@ -22,4 +22,4 @@ void prodeclare_struct_espace(std::ostream &os,
                               kuri::chaine_statique espace,
                               kuri::chaine_statique param_gabarit);
 
-void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
+bool remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest);
