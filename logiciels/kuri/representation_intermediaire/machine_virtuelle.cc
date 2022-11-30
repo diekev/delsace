@@ -1878,10 +1878,10 @@ static void cree_rapport_format_brendan_gregg(const InformationProfilage &inform
 void Profileuse::cree_rapport(const InformationProfilage &informations,
                               FormatRapportProfilage format)
 {
-    auto nom_fichier = "/tmp/métaprogramme" +
-                       std::to_string(reinterpret_cast<long>(informations.metaprogramme)) + ".txt";
+    auto nom_base_fichier = enchaine("métaprogramme", informations.metaprogramme, ".txt");
+    auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_base_fichier);
 
-    std::ofstream os(nom_fichier);
+    std::ofstream os(vers_std_path(chemin_fichier));
 
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
