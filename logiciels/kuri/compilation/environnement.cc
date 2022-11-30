@@ -8,16 +8,56 @@
 
 #include "options.hh"
 
-/* Retourne le nom suffixé de l'extension native pour un fichier objet. */
-static kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base)
+kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base)
 {
     return enchaine(nom_base, ".o");
 }
 
-/* Retourne le nom suffixé de l'extension native pour une bibliothèque dynamique. */
-static kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base)
+kuri::chemin_systeme chemin_fichier_objet_temporaire_pour(kuri::chaine_statique nom_base)
+{
+    return kuri::chemin_systeme::chemin_temporaire(nom_fichier_objet_pour(nom_base));
+}
+
+kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base)
 {
     return enchaine(nom_base, ".so");
+}
+
+kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base)
+{
+    return kuri::chemin_systeme::chemin_temporaire(nom_bibliothèque_dynamique_pour(nom_base));
+}
+
+kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base)
+{
+    return enchaine(nom_base, ".a");
+}
+
+kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base)
+{
+    return kuri::chemin_systeme::chemin_temporaire(nom_bibliothèque_statique_pour(nom_base));
+}
+
+kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base)
+{
+    if (nom_base == "") {
+        /* Utilise "a.out" par convention. */
+        return "a.out";
+    }
+    return nom_base;
+}
+
+kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom_base)
+{
+    return kuri::chemin_systeme::chemin_temporaire(nom_executable_pour(nom_base));
+}
+
+kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible)
+{
+    const kuri::chaine_statique noms_de_base_fichiers[2] = {"r16_tables_x86", "r16_tables_x64"};
+    const auto fichier_objet = nom_fichier_objet_pour(
+        noms_de_base_fichiers[int(architecture_cible)]);
+    return kuri::chemin_systeme::chemin_temporaire(fichier_objet);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
@@ -113,10 +153,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
                        ArchitectureCible architecture_cible)
 {
-    const kuri::chaine_statique noms_de_base_fichiers[2] = {"r16_tables_x86", "r16_tables_x64"};
-    const auto fichier_objet = nom_fichier_objet_pour(
-        noms_de_base_fichiers[int(architecture_cible)]);
-    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+    const auto chemin_objet = chemin_fichier_objet_r16(architecture_cible);
 
     if (kuri::chemin_systeme::existe(chemin_objet)) {
         return true;
