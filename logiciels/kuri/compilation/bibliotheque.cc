@@ -20,6 +20,7 @@
 #include "structures/chemin_systeme.hh"
 
 #include "compilatrice.hh"
+#include "environnement.hh"
 #include "espace_de_travail.hh"
 
 /* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
@@ -266,6 +267,40 @@ kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation 
     auto const plateforme = plateforme_pour_options(options);
     auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
     return noms[type_informations(chemins_dynamiques, options)];
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
+{
+    kuri::tablet<kuri::chemin_systeme, 16> resultat;
+
+    /* Pour les tables r16. */
+    resultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
+
+    if (architecture == ArchitectureCible::X64) {
+        resultat.ajoute("/lib/x86_64-linux-gnu/");
+        resultat.ajoute("/usr/lib/x86_64-linux-gnu/");
+    }
+    else {
+        resultat.ajoute("/lib/i386-linux-gnu/");
+        resultat.ajoute("/usr/lib/i386-linux-gnu/");
+    }
+
+    return resultat;
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_i386{};
+
+static void initialise_chemins_systeme()
+{
+    chemins_syteme_x86_64 = chemins_systeme_pour(ArchitectureCible::X64);
+    chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
+}
+
+GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_)
+    : compilatrice(compilatrice_)
+{
+    initialise_chemins_systeme();
 }
 
 bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
@@ -650,10 +685,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
         dossiers.ajoute(module->chemin_bibliotheque_32bits);
     }
 
-    dossiers.ajoute("/lib/i386-linux-gnu/");
-    dossiers.ajoute("/usr/lib/i386-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
+    POUR (chemins_syteme_i386) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 
@@ -667,10 +702,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
         dossiers.ajoute(module->chemin_bibliotheque_64bits);
     }
 
-    dossiers.ajoute("/lib/x86_64-linux-gnu/");
-    dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
+    POUR (chemins_syteme_x86_64) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 

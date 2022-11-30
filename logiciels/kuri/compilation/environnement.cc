@@ -62,6 +62,12 @@ kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible a
     return suffixes[static_cast<int>(architecture_cible)];
 }
 
+kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible)
+{
+    const auto suffixe = suffixe_chemin_module_pour_bibliotheque(architecture_cible);
+    return kuri::chemin_systeme::chemin_temporaire(suffixe);
+}
+
 kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible)
 {
     const kuri::chaine_statique noms_de_base_fichiers[2] = {"r16_tables_x86", "r16_tables_x64"};
@@ -143,9 +149,8 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     /* Objet pour la liaison statique de la bibliothèque. */
 
     const auto fichier_objet = nom_bibliothèque_dynamique_pour("libr16");
-    const auto fichier_prefixe = suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X64) /
-                                 fichier_objet;
-    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_prefixe);
+    const auto chemin_objet = chemin_de_base_pour_bibliothèque_r16(ArchitectureCible::X64) /
+                              fichier_objet;
 
     if (kuri::chemin_systeme::existe(chemin_objet)) {
         return true;

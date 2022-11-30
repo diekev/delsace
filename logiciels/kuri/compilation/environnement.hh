@@ -49,6 +49,9 @@ kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom
  * pour générer le chemin "Module/lib/x86_64-linux-gnu". */
 kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible architecture_cible);
 
+/* Retourne le chemin où la bibliothèque r16 sera installée pour l'architecture donnée. */
+kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible);
+
 /* Retourne le chemin vers le fichier objet des tables r16 pour l'architecture donné. */
 kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible);
 

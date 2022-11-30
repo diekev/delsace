@@ -131,9 +131,7 @@ struct GestionnaireBibliotheques {
     Compilatrice &compilatrice;
     tableau_page<Bibliotheque> bibliotheques{};
 
-    GestionnaireBibliotheques(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
-    {
-    }
+    GestionnaireBibliotheques(Compilatrice &compilatrice_);
 
     /**
      * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
