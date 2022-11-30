@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include "structures/chaine.hh"
+#include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
@@ -142,9 +143,9 @@ struct Module {
     /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
     IdentifiantCode *nom_ = nullptr;
 
-    kuri::chaine chemin_{""};
-    kuri::chaine chemin_bibliotheque_32bits{};
-    kuri::chaine chemin_bibliotheque_64bits{};
+    kuri::chemin_systeme chemin_{""};
+    kuri::chemin_systeme chemin_bibliotheque_32bits{};
+    kuri::chemin_systeme chemin_bibliotheque_64bits{};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
@@ -161,8 +162,6 @@ struct Module {
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
-        chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
-        chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
     EMPECHE_COPIE(Module);
