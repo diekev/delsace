@@ -322,6 +322,9 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
 {
     kuri::tablet<kuri::chemin_systeme, 16> resultat;
 
+    /* Pour les tables r16. */
+    resultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
+
 #ifdef _MSC_VER
     kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
     // pour les tables r16...
@@ -334,16 +337,12 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
     // A FAIRE : version 32-bit
 #else
     if (architecture == ArchitectureCible::X64) {
-        // pour les tables r16...
-        resultat.ajoute("/tmp/lib/x86_64-linux-gnu/");
         resultat.ajoute("/lib/x86_64-linux-gnu/");
         resultat.ajoute("/usr/lib/x86_64-linux-gnu/");
     }
     else {
         resultat.ajoute("/lib/i386-linux-gnu/");
         resultat.ajoute("/usr/lib/i386-linux-gnu/");
-        // pour les tables r16...
-        resultat.ajoute("/tmp/lib/i386-linux-gnu/");
     }
 #endif
 
