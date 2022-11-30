@@ -299,6 +299,86 @@ static bool compile_fichier(Compilatrice &compilatrice,
     return true;
 }
 
+/* Détermine si la racine d'exécution est valide : que les dossiers que nous y espérons se trouver
+ * s'y trouvent. Si un dossier est manquant, son chemin sera retourné. En cas de racine valide la
+ * valeur optionnelle sera elle invalide. */
+static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
+    kuri::chaine_statique racine)
+{
+    /* Certains dossiers qui doivent être dans une installation valide de Kuri. */
+    const kuri::chaine_statique dossiers[] = {"fichiers", "modules", "modules/Kuri"};
+
+    POUR (dossiers) {
+        auto const chemin_dossier = kuri::chemin_systeme(racine) / it;
+        /* Si le dossier n'existe pas, le test échouera. */
+        if (!kuri::chemin_systeme::est_dossier(chemin_dossier)) {
+            return chemin_dossier;
+        }
+    }
+
+    return {};
+}
+
+/* Détermine le chemin racine d'exécution de Kuri. Ceci est nécessaire puisque les modules de la
+ * bibliothèque standarde sont stockés à coté de l'exécutable.
+ *
+ * Pour les développeurs, il est possible de définir la variable d'environnement « RACINE_KURI »
+ * pour pointer vers la racine d'installation de Kuri, afin que le dossier de travail puisse être
+ * différent de celui de l'installation.
+ *
+ * https://stackoverflow.com/questions/65548404/finding-path-of-execution-of-c-program
+ */
+static std::optional<kuri::chaine> determine_racine_execution_kuri()
+{
+    /* Tente de déterminer la racine depuis le système. */
+    char tampon[1024];
+    ssize_t len = readlink("/proc/self/exe", tampon, 1024);
+    if (len < 0) {
+        std::cerr
+            << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
+     * parent. */
+    auto chemin_executable = kuri::chaine(&tampon[0], long(len));
+    auto racine = kuri::chemin_systeme(chemin_executable).chemin_parent();
+
+    /* Vérifie que nous avons tous les dossiers. Si oui, nous sommes sans doute à la bonne adresse.
+     */
+    auto dossier_manquant = dossier_manquant_racine_execution(racine);
+    if (!dossier_manquant) {
+        return racine;
+    }
+
+    /* Essayons alors la variable d'environnement. */
+    auto racine_env = getenv("RACINE_KURI");
+    if (racine_env == nullptr) {
+        std::cerr
+            << "Impossible de déterminer la racine d'exécution de Kuri depuis l'environnement !\n";
+        std::cerr << "Veuillez vous assurer que RACINE_KURI fait partie de l'environnement "
+                     "d'exécution et pointe vers une installation valide de Kuri.\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    racine = kuri::chemin_systeme(racine_env);
+    dossier_manquant = dossier_manquant_racine_execution(racine);
+
+    if (dossier_manquant.has_value()) {
+        std::cerr << "Racine d'exécution de Kuri invalide !\n";
+        std::cerr << "Le dossier \"" << dossier_manquant.value() << "\" n'existe pas !\n";
+        std::cerr << "Veuillez vérifier que votre installation est correcte.\n";
+        std::cerr << "NOTE : le chemin racine utilisé provient de la variable d'environnement « "
+                     "RACINE_KURI ».\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    return racine;
+}
+
 int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
@@ -310,11 +390,8 @@ int main(int argc, char *argv[])
 
     auto const arguments = opt_arguments.value();
 
-    auto const &chemin_racine_kuri = getenv("RACINE_KURI");
-    if (chemin_racine_kuri == nullptr) {
-        std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
-        std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement "
-                     "'RACINE_KURI' soit définie !\n";
+    auto const opt_racine_kuri = determine_racine_execution_kuri();
+    if (!opt_racine_kuri.has_value()) {
         return 1;
     }
 
@@ -326,7 +403,7 @@ int main(int argc, char *argv[])
 
     std::ostream &os = std::cout;
 
-    auto compilatrice = Compilatrice(chemin_racine_kuri, arguments);
+    auto compilatrice = Compilatrice(opt_racine_kuri.value(), arguments);
 
     if (!compile_fichier(compilatrice, chemin_fichier, os)) {
         return 1;
