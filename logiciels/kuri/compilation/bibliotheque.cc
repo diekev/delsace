@@ -213,7 +213,8 @@ static int plateforme_pour_options(OptionsDeCompilation const &options)
     return PLATEFORME_64_BIT;
 }
 
-static int type_informations(kuri::chaine const *chemins, const OptionsDeCompilation &options)
+static int type_informations(kuri::chemin_systeme const *chemins,
+                             const OptionsDeCompilation &options)
 {
     if (options.compilation_pour == CompilationPour::DEBOGAGE) {
         if (options.utilise_asan && chemins[POUR_DEBOGAGE_ASAN]) {
@@ -234,7 +235,7 @@ static int type_informations(kuri::chaine const *chemins, const OptionsDeCompila
     return POUR_PRODUCTION;
 }
 
-static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chaine const *chemins,
+static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chemin_systeme const *chemins,
                                                              const OptionsDeCompilation &options)
 {
     return chemins[type_informations(chemins, options)];
@@ -492,9 +493,8 @@ static kuri::chaine_statique explication_errno_ouverture_fichier()
  * Si nous pointons vers un script LD, nous parsons le script pour déterminer le chemin exacte.
  * Voir https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html pour la référence
  * des options des scripts LD. */
-static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace,
-                                                         NoeudExpression *site,
-                                                         kuri::chaine const &chemin_dynamique)
+static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
+    EspaceDeTravail &espace, NoeudExpression *site, kuri::chemin_systeme const &chemin_dynamique)
 {
     /* Ouvre le fichier pour voir si nous avons un fichier elf, qui doit commencer par .ELF (ou
      * 0x7f 0x45 0x4c 0x46). */
@@ -582,7 +582,7 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
 
 struct ResultatRechercheBibliotheque {
     kuri::chaine_statique chemin_de_base = "";
-    kuri::chaine chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 };
 
 static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
@@ -611,7 +611,7 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                     continue;
                 }
 
-                auto chemin_test = enchaine(it, noms[i][j]);
+                auto chemin_test = kuri::chemin_systeme(it) / noms[i][j];
                 if (!kuri::chemin_systeme::existe(chemin_test)) {
                     continue;
                 }

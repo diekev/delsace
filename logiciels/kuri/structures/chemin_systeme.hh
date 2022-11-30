@@ -84,6 +84,11 @@ struct chemin_systeme {
         return donnees;
     }
 
+    operator bool() const
+    {
+        return !est_vide();
+    }
+
     /* Fonctions statiques. */
 
     /**
@@ -146,5 +151,9 @@ struct chemin_systeme {
 chemin_systeme operator/(chemin_systeme const &chemin, chaine_statique chn);
 
 std::filesystem::path vers_std_path(chaine_statique chn);
+
+bool operator<(chemin_systeme const &chemin_a, chemin_systeme const &chemin_b);
+
+std::ostream &operator<<(std::ostream &os, chemin_systeme const &chemin);
 
 }  // namespace kuri
