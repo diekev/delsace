@@ -581,7 +581,9 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    remplace_si_different(nom_fichier_tmp, argv[1]);
+    if (!remplace_si_different(nom_fichier_tmp, argv[1])) {
+        return 1;
+    }
 
     return 0;
 }
