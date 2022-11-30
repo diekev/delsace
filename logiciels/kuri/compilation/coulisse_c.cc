@@ -686,6 +686,9 @@ struct GeneratriceCodeC {
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
 
+    /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
+    kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
+
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -939,7 +942,9 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                                 resultat << virgule;
                                 resultat << genere_code_pour_atome(
                                     pointeur_tableau[i], os, pour_globale);
-                                virgule = ", ";
+                                /* Retourne à la ligne car GCC à du mal avec des chaines trop
+                                 * grandes. */
+                                virgule = ",\n";
                             }
 
                             if (taille_tableau == 0) {
@@ -947,6 +952,12 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                             }
                             else {
                                 resultat << " } }";
+                            }
+
+                            if (resultat.nombre_tampons() > 1) {
+                                auto chaine_resultat = resultat.chaine();
+                                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                                return chaines_trop_larges_pour_stockage_chn.derniere();
                             }
 
                             return stockage_chn.ajoute_chaine_statique(resultat.chaine_statique());
