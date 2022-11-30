@@ -9,6 +9,7 @@
 #include "parsage/identifiant.hh"
 
 #include "structures/chaine.hh"
+#include "structures/chemin_systeme.hh"
 #include "structures/tableau_compresse.hh"
 
 struct Bibliotheque;
@@ -100,9 +101,9 @@ struct Bibliotheque {
 
     EtatRechercheBibliotheque etat_recherche = EtatRechercheBibliotheque::NON_RECHERCHEE;
 
-    kuri::chaine chemins_de_base[NUM_TYPES_PLATEFORME] = {};
-    kuri::chaine chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
-                        [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
+    kuri::chemin_systeme chemins_de_base[NUM_TYPES_PLATEFORME] = {};
+    kuri::chemin_systeme chemins[NUM_TYPES_PLATEFORME][NUM_TYPES_BIBLIOTHEQUE]
+                                [NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
     kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHEQUE] = {};
 
@@ -130,9 +131,7 @@ struct GestionnaireBibliotheques {
     Compilatrice &compilatrice;
     tableau_page<Bibliotheque> bibliotheques{};
 
-    GestionnaireBibliotheques(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
-    {
-    }
+    GestionnaireBibliotheques(Compilatrice &compilatrice_);
 
     /**
      * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
