@@ -112,7 +112,8 @@ static kuri::chaine commande_pour_fichier_objet(kuri::chaine_statique nom_entree
     enchaineuse << "cl";
 
 #ifdef _MSC_VER
-    enchaineuse << " /c " << nom_sortie << " " << nom_entree;
+    /* NOTE : le nom de sortie doit être collé à "/Fo" */
+    enchaineuse << " /c " << nom_entree << " /Fo" << nom_sortie;
 #else
     enchaineuse << " -c -fPIC ";
 
@@ -142,8 +143,7 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
     enchaineuse << "cl";
 
 #ifdef _MSC_VER
-    enchaineuse << " /DLL "
-                << "/OUT:" << nom_sortie << " " << nom_entree;
+    enchaineuse << " /D_USRDLL /D_WINDLL " << nom_entree << " /link /DLL /OUT:" << nom_sortie;
 #else
     enchaineuse << " -shared -fPIC ";
 
