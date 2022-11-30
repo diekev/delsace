@@ -971,11 +971,13 @@ static bool est_appel_initialisation(Instruction const *inst0, Instruction const
     /* Ne vérifions pas que l'appelée est une initialisation de type, ce pourrait être déguisé via
      * un pointeur de fonction. */
     auto appel = inst0->comme_appel();
+    if (appel->args.taille() != 1) {
+        return false;
+    }
 
-    POUR (appel->args) {
-        if (it == inst1) {
-            return true;
-        }
+    auto arg = appel->args[0];
+    if (arg == inst1) {
+        return true;
     }
 
     return false;
