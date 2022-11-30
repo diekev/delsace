@@ -1669,6 +1669,30 @@ void GeneratriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchai
     os.reinitialise();
 }
 
+/* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
+ * traces d'appel. Ceci afin d'éviter de générer des fichiers trop grand après expansion des macros
+ * et accélérer un peu la compilation. */
+static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
+{
+    auto resultat = fonction.instructions.taille();
+
+#ifdef AJOUTE_TRACE_APPEL
+    if (fonction.sanstrace) {
+        return resultat;
+    }
+
+    resultat += 1;
+
+    POUR (fonction.instructions) {
+        if (it->est_appel()) {
+            resultat += 2;
+        }
+    }
+#endif
+
+    return resultat;
+}
+
 void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
                                    const kuri::tableau<AtomeFonction *> &fonctions,
                                    CoulisseC &coulisse,
@@ -1716,7 +1740,7 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         }
 
         genere_code_fonction(it, os);
-        nombre_instructions += it->instructions.taille();
+        nombre_instructions += nombre_effectif_d_instructions(*it);
 
         /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
         if (nombre_instructions > nombre_instructions_max_par_fichier) {
