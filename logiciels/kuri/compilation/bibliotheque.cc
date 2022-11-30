@@ -327,13 +327,12 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
 
 #ifdef _MSC_VER
     kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
-    // pour les tables r16...
-    auto chemin_r16 = kuri::chemin_systeme::chemin_temporaire(
-        suffixe_chemin_module_pour_bibliotheque(architecture));
-    resultat.ajoute(chemin_r16);
-    chemins_connus.insere(chemin_r16);
-    ajoute_chemins_depuis_env("LIB", resultat, chemins_connus);
-    ajoute_chemins_depuis_env("LIBPATH", resultat, chemins_connus);
+    chemins_connus.insere(resultat[0]);
+
+    if (architecture == ArchitectureCible::X64) {
+        ajoute_chemins_depuis_env("LIB", resultat, chemins_connus);
+        ajoute_chemins_depuis_env("LIBPATH", resultat, chemins_connus);
+    }
     // A FAIRE : version 32-bit
 #else
     if (architecture == ArchitectureCible::X64) {
