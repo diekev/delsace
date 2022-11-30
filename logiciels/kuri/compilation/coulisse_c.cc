@@ -686,6 +686,9 @@ struct GeneratriceCodeC {
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
 
+    /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
+    kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
+
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -939,7 +942,9 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                                 resultat << virgule;
                                 resultat << genere_code_pour_atome(
                                     pointeur_tableau[i], os, pour_globale);
-                                virgule = ", ";
+                                /* Retourne à la ligne car GCC à du mal avec des chaines trop
+                                 * grandes. */
+                                virgule = ",\n";
                             }
 
                             if (taille_tableau == 0) {
@@ -947,6 +952,12 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                             }
                             else {
                                 resultat << " } }";
+                            }
+
+                            if (resultat.nombre_tampons() > 1) {
+                                auto chaine_resultat = resultat.chaine();
+                                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                                return chaines_trop_larges_pour_stockage_chn.derniere();
                             }
 
                             return stockage_chn.ajoute_chaine_statique(resultat.chaine_statique());
@@ -1658,6 +1669,30 @@ void GeneratriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchai
     os.reinitialise();
 }
 
+/* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
+ * traces d'appel. Ceci afin d'éviter de générer des fichiers trop grand après expansion des macros
+ * et accélérer un peu la compilation. */
+static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
+{
+    auto resultat = fonction.instructions.taille();
+
+#ifdef AJOUTE_TRACE_APPEL
+    if (fonction.sanstrace) {
+        return resultat;
+    }
+
+    resultat += 1;
+
+    POUR (fonction.instructions) {
+        if (it->est_appel()) {
+            resultat += 2;
+        }
+    }
+#endif
+
+    return resultat;
+}
+
 void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
                                    const kuri::tableau<AtomeFonction *> &fonctions,
                                    CoulisseC &coulisse,
@@ -1705,7 +1740,7 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         }
 
         genere_code_fonction(it, os);
-        nombre_instructions += it->instructions.taille();
+        nombre_instructions += nombre_effectif_d_instructions(*it);
 
         /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
         if (nombre_instructions > nombre_instructions_max_par_fichier) {
@@ -2019,6 +2054,9 @@ static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &op
 
     enchaineuse << " -o " << fichier.chemin_fichier_objet;
 
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
+    enchaineuse << '\0';
+
     return enchaineuse.chaine();
 }
 
@@ -2049,7 +2087,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
         auto child_pid = fork();
         if (child_pid == 0) {
-            auto err = system(dls::chaine(commande).c_str());
+            auto err = system(commande.pointeur());
             exit(err == 0 ? 0 : 1);
         }
 
@@ -2172,11 +2210,14 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
 
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
+    enchaineuse << '\0';
+
     auto commande = enchaineuse.chaine();
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
-    auto err = system(dls::chaine(commande).c_str());
+    auto err = system(commande.pointeur());
 
     if (err != 0) {
         espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
