@@ -162,8 +162,6 @@ struct Module {
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
-        chemin_bibliotheque_32bits = enchaine(chemin(), "/lib/i386-linux-gnu/");
-        chemin_bibliotheque_64bits = enchaine(chemin(), "/lib/x86_64-linux-gnu/");
     }
 
     EMPECHE_COPIE(Module);
