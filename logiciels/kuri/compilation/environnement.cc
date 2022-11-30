@@ -55,7 +55,11 @@ kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine
 
 kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base)
 {
+#ifdef _MSC_VER
+    return enchaine(nom_base, ".lib");
+#else
     return enchaine(nom_base, ".a");
+#endif
 }
 
 kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base)
@@ -65,11 +69,24 @@ kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_
 
 kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base)
 {
+#ifdef _MSC_VER
+    if (nom_base == "") {
+        /* Utilise "a.exe", en référence au "a.out" de Unix.
+         * À FAIRE : utilise du nom du fichier principal. */
+        return "a.exe";
+    }
+
+    auto chemin = kuri::chemin_systeme(nom_base);
+    /* Garantis que le nom de fichier possède l'extension ".exe". */
+    chemin = chemin.remplace_extension(".exe");
+    return kuri::chaine(chemin);
+#else
     if (nom_base == "") {
         /* Utilise "a.out" par convention. */
         return "a.out";
     }
     return nom_base;
+#endif
 }
 
 kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom_base)
