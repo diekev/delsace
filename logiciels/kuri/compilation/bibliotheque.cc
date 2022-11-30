@@ -20,6 +20,7 @@
 #include "structures/chemin_systeme.hh"
 
 #include "compilatrice.hh"
+#include "environnement.hh"
 #include "espace_de_travail.hh"
 
 /* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
@@ -213,7 +214,8 @@ static int plateforme_pour_options(OptionsDeCompilation const &options)
     return PLATEFORME_64_BIT;
 }
 
-static int type_informations(kuri::chaine const *chemins, const OptionsDeCompilation &options)
+static int type_informations(kuri::chemin_systeme const *chemins,
+                             const OptionsDeCompilation &options)
 {
     if (options.compilation_pour == CompilationPour::DEBOGAGE) {
         if (options.utilise_asan && chemins[POUR_DEBOGAGE_ASAN]) {
@@ -234,7 +236,7 @@ static int type_informations(kuri::chaine const *chemins, const OptionsDeCompila
     return POUR_PRODUCTION;
 }
 
-static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chaine const *chemins,
+static kuri::chaine_statique selectionne_chemin_pour_options(kuri::chemin_systeme const *chemins,
                                                              const OptionsDeCompilation &options)
 {
     return chemins[type_informations(chemins, options)];
@@ -265,6 +267,40 @@ kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation 
     auto const plateforme = plateforme_pour_options(options);
     auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
     return noms[type_informations(chemins_dynamiques, options)];
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
+{
+    kuri::tablet<kuri::chemin_systeme, 16> resultat;
+
+    /* Pour les tables r16. */
+    resultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
+
+    if (architecture == ArchitectureCible::X64) {
+        resultat.ajoute("/lib/x86_64-linux-gnu/");
+        resultat.ajoute("/usr/lib/x86_64-linux-gnu/");
+    }
+    else {
+        resultat.ajoute("/lib/i386-linux-gnu/");
+        resultat.ajoute("/usr/lib/i386-linux-gnu/");
+    }
+
+    return resultat;
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_i386{};
+
+static void initialise_chemins_systeme()
+{
+    chemins_syteme_x86_64 = chemins_systeme_pour(ArchitectureCible::X64);
+    chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
+}
+
+GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_)
+    : compilatrice(compilatrice_)
+{
+    initialise_chemins_systeme();
 }
 
 bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
@@ -492,9 +528,8 @@ static kuri::chaine_statique explication_errno_ouverture_fichier()
  * Si nous pointons vers un script LD, nous parsons le script pour déterminer le chemin exacte.
  * Voir https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html pour la référence
  * des options des scripts LD. */
-static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace,
-                                                         NoeudExpression *site,
-                                                         kuri::chaine const &chemin_dynamique)
+static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
+    EspaceDeTravail &espace, NoeudExpression *site, kuri::chemin_systeme const &chemin_dynamique)
 {
     /* Ouvre le fichier pour voir si nous avons un fichier elf, qui doit commencer par .ELF (ou
      * 0x7f 0x45 0x4c 0x46). */
@@ -582,7 +617,7 @@ static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail &espace
 
 struct ResultatRechercheBibliotheque {
     kuri::chaine_statique chemin_de_base = "";
-    kuri::chaine chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
+    kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHEQUE][NUM_TYPES_INFORMATION_BIBLIOTHEQUE];
 };
 
 static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
@@ -611,7 +646,7 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                     continue;
                 }
 
-                auto chemin_test = enchaine(it, noms[i][j]);
+                auto chemin_test = kuri::chemin_systeme(it) / noms[i][j];
                 if (!kuri::chemin_systeme::existe(chemin_test)) {
                     continue;
                 }
@@ -650,10 +685,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
         dossiers.ajoute(module->chemin_bibliotheque_32bits);
     }
 
-    dossiers.ajoute("/lib/i386-linux-gnu/");
-    dossiers.ajoute("/usr/lib/i386-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
+    POUR (chemins_syteme_i386) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 
@@ -667,10 +702,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
         dossiers.ajoute(module->chemin_bibliotheque_64bits);
     }
 
-    dossiers.ajoute("/lib/x86_64-linux-gnu/");
-    dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
+    POUR (chemins_syteme_x86_64) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 
