@@ -2054,6 +2054,9 @@ static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &op
 
     enchaineuse << " -o " << fichier.chemin_fichier_objet;
 
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
+    enchaineuse << '\0';
+
     return enchaineuse.chaine();
 }
 
@@ -2084,7 +2087,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
         auto child_pid = fork();
         if (child_pid == 0) {
-            auto err = system(dls::chaine(commande).c_str());
+            auto err = system(commande.pointeur());
             exit(err == 0 ? 0 : 1);
         }
 
@@ -2207,11 +2210,14 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
 
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
+    enchaineuse << '\0';
+
     auto commande = enchaineuse.chaine();
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
-    auto err = system(dls::chaine(commande).c_str());
+    auto err = system(commande.pointeur());
 
     if (err != 0) {
         espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
