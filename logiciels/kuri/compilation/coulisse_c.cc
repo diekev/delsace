@@ -2131,8 +2131,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
             continue;
         }
 
-        auto chemin_parent =
-            kuri::chemin_systeme(it->chemin_de_base(espace.options)).chemin_parent();
+        auto chemin_parent = it->chemin_de_base(espace.options);
         if (chemin_parent.taille() == 0) {
             continue;
         }

@@ -16,6 +16,7 @@
 #include "structures/date.hh"
 
 #include "broyage.hh"
+#include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
@@ -474,7 +475,17 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
 Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,
                                             kuri::chaine_statique chemin)
 {
-    return sys_module->trouve_ou_cree_module(nom_module, chemin);
+    auto module = sys_module->trouve_ou_cree_module(nom_module, chemin);
+
+    /* Initialise les chemins des bibliothèques internes au module. */
+    if (module->chemin_bibliotheque_32bits.taille() == 0) {
+        module->chemin_bibliotheque_32bits = kuri::chaine(
+            module->chemin() / suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X86));
+        module->chemin_bibliotheque_64bits = kuri::chemin_systeme(
+            module->chemin() / suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X64));
+    }
+
+    return module;
 }
 
 Module *Compilatrice::module(const IdentifiantCode *nom_module) const
