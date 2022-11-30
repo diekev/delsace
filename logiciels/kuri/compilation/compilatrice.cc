@@ -479,10 +479,12 @@ Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,
 
     /* Initialise les chemins des bibliothèques internes au module. */
     if (module->chemin_bibliotheque_32bits.taille() == 0) {
-        module->chemin_bibliotheque_32bits = kuri::chaine(
-            module->chemin() / suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X86));
-        module->chemin_bibliotheque_64bits = kuri::chemin_systeme(
-            module->chemin() / suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X64));
+        module->chemin_bibliotheque_32bits = module->chemin() /
+                                             suffixe_chemin_module_pour_bibliotheque(
+                                                 ArchitectureCible::X86);
+        module->chemin_bibliotheque_64bits = module->chemin() /
+                                             suffixe_chemin_module_pour_bibliotheque(
+                                                 ArchitectureCible::X64);
     }
 
     return module;
