@@ -134,6 +134,12 @@ struct GestionnaireBibliotheques {
     {
     }
 
+    /**
+     * Charge les bibliothèques requises pour l'exécution des métaprogrammes.
+     * Retourne vrai si les bibliothèques ont pû être chargés.
+     */
+    static bool initialise_bibliotheques_pour_execution(Compilatrice &compilatrice);
+
     Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
     Bibliotheque *trouve_ou_cree_bibliotheque(EspaceDeTravail &espace, IdentifiantCode *ident);

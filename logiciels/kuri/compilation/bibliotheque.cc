@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "biblinternes/nombre_decimaux/r16_c.h"
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/lexeuse.hh"
@@ -22,6 +24,50 @@
 
 /* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
 #include "biblinternes/outils/garde_portee.h"
+
+/* ************************************************************************** */
+
+/* Redéfini certaines fonctions afin de pouvoir controler leurs comportements.
+ * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
+ * la mémoire de notre coté, ou encore vérifier qu'il n'y a pas de fuite de
+ * mémoire dans les métaprogrammes.
+ */
+static void *notre_malloc(size_t n)
+{
+    return malloc(n);
+}
+
+static void *notre_realloc(void *ptr, size_t taille)
+{
+    return realloc(ptr, taille);
+}
+
+static void notre_free(void *ptr)
+{
+    free(ptr);
+}
+
+static float vers_r32(uint16_t f)
+{
+    return DLS_vers_r32(f);
+}
+
+static uint16_t depuis_r32(float f)
+{
+    return DLS_depuis_r32(f);
+}
+
+static double vers_r64(uint16_t f)
+{
+    return DLS_vers_r64(f);
+}
+
+static uint16_t depuis_r64(double f)
+{
+    return DLS_depuis_r64(f);
+}
+
+/* ************************************************************************** */
 
 bool Symbole::charge(EspaceDeTravail *espace,
                      NoeudExpression const *site,
@@ -219,6 +265,45 @@ kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation 
     auto const plateforme = plateforme_pour_options(options);
     auto chemins_dynamiques = chemins[plateforme][DYNAMIQUE];
     return noms[type_informations(chemins_dynamiques, options)];
+}
+
+bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
+{
+    auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
+    auto gestionnaire = compilatrice.gestionnaire_bibliotheques.verrou_ecriture();
+    auto espace = compilatrice.espace_defaut_compilation();
+
+    /* La bibliothèque C. */
+    auto libc = gestionnaire->cree_bibliotheque(
+        *espace, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
+
+    auto malloc_ = libc->cree_symbole("malloc");
+    malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+
+    auto realloc_ = libc->cree_symbole("realloc");
+    realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+
+    auto free_ = libc->cree_symbole("free");
+    free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
+
+    /* La bibliothèque r16. */
+    auto bibr16 = gestionnaire->cree_bibliotheque(
+        *espace, nullptr, table_idents->identifiant_pour_chaine("libr16"), "r16");
+
+    bibr16->cree_symbole("DLS_vers_r32")
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
+    bibr16->cree_symbole("DLS_depuis_r32")
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
+    bibr16->cree_symbole("DLS_vers_r64")
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
+    bibr16->cree_symbole("DLS_depuis_r64")
+        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
+
+    /* La bibliothèque pthread. */
+    gestionnaire->cree_bibliotheque(
+        *espace, nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
+
+    return !compilatrice.possede_erreur();
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *ident)
