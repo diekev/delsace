@@ -725,7 +725,7 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                 }
 
                 chemin_trouve[i][j] = true;
-                resultat.chemins[i][j] = kuri::chaine(chemin_test);
+                resultat.chemins[i][j] = chemin_test;
             }
         }
         /* Les bibliothèques doivent être dans le même dossier. */
