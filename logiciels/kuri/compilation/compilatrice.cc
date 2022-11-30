@@ -6,7 +6,6 @@
 #include <stdarg.h>
 
 #include "biblinternes/flux/outils.h"
-#include "biblinternes/nombre_decimaux/r16_c.h"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "statistiques/statistiques.hh"
@@ -22,48 +21,6 @@
 #include "ipa.hh"
 #include "portee.hh"
 #include "programme.hh"
-
-/* ************************************************************************** */
-
-/* Redéfini certaines fonctions afin de pouvoir controler leurs comportements.
- * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
- * la mémoire de notre coté, ou encore vérifier qu'il n'y a pas de fuite de
- * mémoire dans les métaprogrammes.
- */
-static void *notre_malloc(size_t n)
-{
-    return malloc(n);
-}
-
-static void *notre_realloc(void *ptr, size_t taille)
-{
-    return realloc(ptr, taille);
-}
-
-static void notre_free(void *ptr)
-{
-    free(ptr);
-}
-
-static float vers_r32(uint16_t f)
-{
-    return DLS_vers_r32(f);
-}
-
-static uint16_t depuis_r32(float f)
-{
-    return DLS_depuis_r32(f);
-}
-
-static double vers_r64(uint16_t f)
-{
-    return DLS_vers_r64(f);
-}
-
-static uint16_t depuis_r64(double f)
-{
-    return DLS_depuis_r64(f);
-}
 
 /* ************************************************************************** */
 
@@ -115,44 +72,6 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
     /* Charge le module Kuri. */
     module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
-
-    auto table_idents = table_identifiants.verrou_ecriture();
-
-    /* La bibliothèque C. */
-    auto libc = gestionnaire_bibliotheques->cree_bibliotheque(
-        *espace_de_travail_defaut, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
-
-    auto malloc_ = libc->cree_symbole("malloc");
-    malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
-
-    auto realloc_ = libc->cree_symbole("realloc");
-    realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
-
-    auto free_ = libc->cree_symbole("free");
-    free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
-
-    /* La bibliothèque r16. */
-    auto bibr16 = gestionnaire_bibliotheques->cree_bibliotheque(
-        *espace_de_travail_defaut,
-        nullptr,
-        table_idents->identifiant_pour_chaine("libr16"),
-        "r16");
-
-    bibr16->cree_symbole("DLS_vers_r32")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
-    bibr16->cree_symbole("DLS_depuis_r32")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
-    bibr16->cree_symbole("DLS_vers_r64")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
-    bibr16->cree_symbole("DLS_depuis_r64")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
-
-    /* La bibliothèque pthread. */
-    gestionnaire_bibliotheques->cree_bibliotheque(
-        *espace_de_travail_defaut,
-        nullptr,
-        table_idents->identifiant_pour_chaine("libpthread"),
-        "pthread");
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
 }
