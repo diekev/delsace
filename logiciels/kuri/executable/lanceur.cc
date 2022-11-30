@@ -194,7 +194,13 @@ static bool compile_fichier(Compilatrice &compilatrice,
 {
     auto debut_compilation = dls::chrono::compte_seconde();
 
+    /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
     if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {
+        return false;
+    }
+
+    /* Initialise les bibliothèques après avoir généré les objets r16. */
+    if (!GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(compilatrice)) {
         return false;
     }
 
