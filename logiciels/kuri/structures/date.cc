@@ -13,13 +13,9 @@
 #    define CLOCK_REALTIME_COARSE 0
 
 // https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
-LARGE_INTEGER
-getFILETIMEoffset()
+static LARGE_INTEGER getFILETIMEoffset()
 {
     SYSTEMTIME s;
-    FILETIME f;
-    LARGE_INTEGER t;
-
     s.wYear = 1970;
     s.wMonth = 1;
     s.wDay = 1;
@@ -27,14 +23,18 @@ getFILETIMEoffset()
     s.wMinute = 0;
     s.wSecond = 0;
     s.wMilliseconds = 0;
+
+    FILETIME f;
     SystemTimeToFileTime(&s, &f);
+
+    LARGE_INTEGER t;
     t.QuadPart = f.dwHighDateTime;
     t.QuadPart <<= 32;
     t.QuadPart |= f.dwLowDateTime;
     return (t);
 }
 
-int clock_gettime(int /*X*/, struct timespec *tv)
+static int clock_gettime(int /*X*/, struct timespec *tv)
 {
     LARGE_INTEGER t;
     FILETIME f;
