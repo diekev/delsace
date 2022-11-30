@@ -44,7 +44,8 @@ kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base)
 #ifdef _MSC_VER
     return enchaine(nom_base, ".dll");
 #else
-    return enchaine(nom_base, ".so");
+    /* Pour Linux, nous préfixons avec "lib". */
+    return enchaine("lib", nom_base, ".so");
 #endif
 }
 
@@ -58,7 +59,8 @@ kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base)
 #ifdef _MSC_VER
     return enchaine(nom_base, ".lib");
 #else
-    return enchaine(nom_base, ".a");
+    /* Pour Linux, nous préfixons avec "lib". */
+    return enchaine("lib", nom_base, ".a");
 #endif
 }
 
@@ -92,6 +94,23 @@ kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base)
 kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom_base)
 {
     return kuri::chemin_systeme::chemin_temporaire(nom_executable_pour(nom_base));
+}
+
+kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible architecture_cible)
+{
+#ifdef _MSC_VER
+    const kuri::chaine_statique suffixes[2] = {
+        "lib/i386-windows",
+        "lib/x86_64-windows",
+    };
+#else
+    const kuri::chaine_statique suffixes[2] = {
+        "lib/i386-linux-gnu",
+        "lib/x86_64-linux-gnu",
+    };
+#endif
+
+    return suffixes[static_cast<int>(architecture_cible)];
 }
 
 kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible)
@@ -187,9 +206,10 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 
     /* Objet pour la liaison statique de la bibliothèque. */
 
-    /* A FAIRE : généralise les chemins. */
-    const auto fichier_objet = nom_bibliothèque_dynamique_pour("lib/x86_64-linux-gnu/libr16");
-    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_objet);
+    const auto fichier_objet = nom_bibliothèque_dynamique_pour("r16");
+    const auto fichier_prefixe = suffixe_chemin_module_pour_bibliotheque(ArchitectureCible::X64) /
+                                 fichier_objet;
+    const auto chemin_objet = kuri::chemin_systeme::chemin_temporaire(fichier_prefixe);
 
     if (kuri::chemin_systeme::existe(chemin_objet)) {
         return true;

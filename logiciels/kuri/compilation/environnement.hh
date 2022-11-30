@@ -39,6 +39,16 @@ kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base);
  * donné. */
 kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom_base);
 
+/* Retourne le suffixe utilisé pour les chemins des bibliothèques des modules.
+ *
+ * La feuille du suffixe est de la forme "machine"-"système d'exploitation", où "machine" est soit
+ * x86_64 ou i386, et "système d'exploitation" est l'identifiant du système, par exemple
+ * "linux-gnu" pour GNU/Linux.
+ *
+ * Par exemple, pour un module "Module", le suffixe sur Linux 64-bit sera "lib/x86_64-linux-gnu",
+ * pour générer le chemin "Module/lib/x86_64-linux-gnu". */
+kuri::chemin_systeme suffixe_chemin_module_pour_bibliotheque(ArchitectureCible architecture_cible);
+
 /* Retourne le chemin vers le fichier objet des tables r16 pour l'architecture donné. */
 kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible);
 

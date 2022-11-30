@@ -20,6 +20,7 @@
 #include "structures/chemin_systeme.hh"
 
 #include "compilatrice.hh"
+#include "environnement.hh"
 #include "espace_de_travail.hh"
 
 /* garde_portee.h doit être inclus après les lexèmes car DIFFERE y est définis comme un macro. */
@@ -322,6 +323,11 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
 
 #ifdef _MSC_VER
     kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
+    // pour les tables r16...
+    auto chemin_r16 = kuri::chemin_systeme::chemin_temporaire(
+        suffixe_chemin_module_pour_bibliotheque(architecture));
+    resultat.ajoute(chemin_r16);
+    chemins_connus.insere(chemin_r16);
     ajoute_chemins_depuis_env("LIB", resultat, chemins_connus);
     ajoute_chemins_depuis_env("LIBPATH", resultat, chemins_connus);
     // A FAIRE : version 32-bit
@@ -713,13 +719,13 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
                     continue;
                 }
 
-                auto chemin_test = enchaine(it, noms[i][j]);
+                auto chemin_test = kuri::chemin_systeme(it) / noms[i][j];
                 if (!kuri::chemin_systeme::existe(chemin_test)) {
                     continue;
                 }
 
                 chemin_trouve[i][j] = true;
-                resultat.chemins[i][j] = chemin_test;
+                resultat.chemins[i][j] = kuri::chaine(chemin_test);
             }
         }
         /* Les bibliothèques doivent être dans le même dossier. */
@@ -841,8 +847,8 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     bibliotheque->noms[POUR_DEBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
 
     for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; i++) {
-        noms[STATIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".a");
-        noms[DYNAMIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".so");
+        noms[STATIQUE][i] = nom_bibliothèque_statique_pour(bibliotheque->noms[i]);
+        noms[DYNAMIQUE][i] = nom_bibliothèque_dynamique_pour(bibliotheque->noms[i]);
     }
 
     const int plateformes[2] = {
