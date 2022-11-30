@@ -87,31 +87,46 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
     std::ifstream f1(vers_std_string(nom_source));
     std::ifstream f2(vers_std_string(nom_dest));
     if (f1.fail() || f2.fail()) {
-        return false;  // file problem
+        /* Impossible d'ouvrir l'un ou l'autre fichier. */
+        return false;
     }
+
+    /* Plaçons-nous sur la fin des fichiers pour calculer leurs tailles. */
+    f1.seekg(0, std::ifstream::end);
+    f2.seekg(0, std::ifstream::end);
 
     if (f1.tellg() != f2.tellg()) {
-        return false;  // size mismatch
+        /* Les tailles sont différentes. */
+        return false;
     }
 
-    // seek back to beginning and use std::equal to compare contents
+    /* Plaçons nous sur le début des fichiers pour pouvoir charger leurs contenus. */
     f1.seekg(0, std::ifstream::beg);
     f2.seekg(0, std::ifstream::beg);
+
     return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
                       std::istreambuf_iterator<char>(),
                       std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
-void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
+bool remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
 {
     if (nom_source == nom_dest) {
-        return;
+        return true;
     }
 
     if (fichier_sont_egaux(nom_source, nom_dest)) {
-        return;
+        return true;
     }
 
-    std::filesystem::remove(vers_std_string(nom_dest));
-    std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    try {
+        std::filesystem::remove(vers_std_string(nom_dest));
+        std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    }
+    catch (std::filesystem::filesystem_error const &e) {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;
 }
