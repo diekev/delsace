@@ -109,16 +109,24 @@ static bool fichier_sont_egaux(kuri::chaine_statique nom_source, kuri::chaine_st
                       std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
-void remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
+bool remplace_si_different(kuri::chaine_statique nom_source, kuri::chaine_statique nom_dest)
 {
     if (nom_source == nom_dest) {
-        return;
+        return true;
     }
 
     if (fichier_sont_egaux(nom_source, nom_dest)) {
-        return;
+        return true;
     }
 
-    std::filesystem::remove(vers_std_string(nom_dest));
-    std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    try {
+        std::filesystem::remove(vers_std_string(nom_dest));
+        std::filesystem::copy(vers_std_string(nom_source), vers_std_string(nom_dest));
+    }
+    catch (std::filesystem::filesystem_error const &e) {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;
 }
