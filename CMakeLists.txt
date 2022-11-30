@@ -50,11 +50,11 @@ set(REQUIERS_QT OFF)
 set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_OPENGL ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_BOOST ON)
-set(REQUIERS_DOCOPT ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_DOCOPT OFF) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
 set(REQUIERS_VORO OFF)
-set(REQUIERS_IPROF ON)
+set(REQUIERS_IPROF OFF)
 
 # Options pour les bibliothèques internes
 set(REQUIERS_BIB_BRUIT OFF)
