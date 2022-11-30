@@ -470,6 +470,17 @@ InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_,
     return inst;
 }
 
+void ConstructriceRI::cree_appel_fonction_init_type(NoeudExpression *site_,
+                                                    Type *type,
+                                                    Atome *argument)
+{
+    auto fonc_init = type->fonction_init;
+    auto atome_fonc_init = m_compilatrice.trouve_ou_insere_fonction(*this, fonc_init);
+    auto params = kuri::tableau<Atome *, int>(1);
+    params[0] = argument;
+    cree_appel(site_, atome_fonc_init, std::move(params));
+}
+
 InstructionOpUnaire *ConstructriceRI::cree_op_unaire(NoeudExpression *site_,
                                                      Type *type,
                                                      OperateurUnaire::Genre op,
@@ -1639,12 +1650,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     }
                     else {
                         auto type_membre = type_struct->membres[index_membre].type;
-                        auto fonc_init = type_membre->fonction_init;
-                        auto atome_fonc_init = m_compilatrice.trouve_ou_insere_fonction(*this,
-                                                                                        fonc_init);
-                        auto params = kuri::tableau<Atome *, int>(1);
-                        params[0] = ptr;
-                        cree_appel(expr, atome_fonc_init, std::move(params));
+                        cree_appel_fonction_init_type(expr, type_membre, ptr);
                     }
 
                     index_membre += 1;
@@ -3742,13 +3748,8 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
         else {
             for (auto &var : it.variables.plage()) {
                 auto pointeur = alloc_pointeur(var);
-
                 auto type_var = var->type;
-                auto fonc_init = type_var->fonction_init;
-                auto atome_fonc_init = m_compilatrice.trouve_ou_insere_fonction(*this, fonc_init);
-                auto params = kuri::tableau<Atome *, int>(1);
-                params[0] = pointeur;
-                cree_appel(var, atome_fonc_init, std::move(params));
+                cree_appel_fonction_init_type(var, type_var, pointeur);
 
                 static_cast<NoeudDeclarationSymbole *>(
                     var->comme_reference_declaration()->declaration_referee)
