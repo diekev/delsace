@@ -1733,8 +1733,8 @@ void GeneratriceCodeC::genere_code(ProgrammeRepreInter const &repr_inter_program
 
     genere_code_entete(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
-    std::ofstream of;
-    of.open("/tmp/compilation_kuri.h");
+    auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
+    std::ofstream of(vers_std_path(chemin_fichier_entete));
     enchaineuse.imprime_dans_flux(of);
     of.close();
 
@@ -1984,7 +1984,7 @@ static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &op
 
     // À FAIRE : comment lier les tables pour un fichier objet ?
     //	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
-    //		enchaineuse << "/tmp/tables_r16.o ";
+    //		enchaineuse << chemin_fichier_objet_r16(ops.architecture) << " ";
     //	}
 
     if (ops.compilation_pour == CompilationPour::PRODUCTION) {
@@ -2122,12 +2122,7 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
         enchaineuse << " " << it.chemin_fichier_objet << " ";
     }
 
-    if (espace.options.architecture == ArchitectureCible::X86) {
-        enchaineuse << " /tmp/r16_tables_x86.o ";
-    }
-    else {
-        enchaineuse << " /tmp/r16_tables_x64.o ";
-    }
+    enchaineuse << chemin_fichier_objet_r16(espace.options.architecture) << " ";
 
     auto chemins_utilises = std::set<kuri::chemin_systeme>();
 
@@ -2196,9 +2191,11 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
 CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
 {
-    auto nom_base_fichier = enchaine("/tmp/compilation_kuri", m_fichiers.taille());
+    auto nom_base_fichier = kuri::chemin_systeme::chemin_temporaire(
+        enchaine("compilation_kuri", m_fichiers.taille()));
+
     auto nom_fichier = enchaine(nom_base_fichier, ".c");
-    auto nom_fichier_objet = enchaine(nom_base_fichier, ".o");
+    auto nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);
 
     FichierC resultat = {nom_fichier, nom_fichier_objet};
     m_fichiers.ajoute(resultat);
