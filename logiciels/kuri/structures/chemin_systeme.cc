@@ -14,7 +14,7 @@ namespace kuri {
 static std::string vers_utf8(const std::wstring &wstr)
 {
     auto const count = WideCharToMultiByte(
-        CP_UTF8, 0, wstr.c_str(), wstr.length(), nullptr, 0, nullptr, nullptr);
+        CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
     std::string str(count, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, nullptr, nullptr);
     return str;
@@ -22,9 +22,10 @@ static std::string vers_utf8(const std::wstring &wstr)
 
 static std::wstring vers_utf16(const std::string &str)
 {
-    auto const count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), nullptr, 0);
+    auto const count = MultiByteToWideChar(
+        CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), nullptr, 0);
     std::wstring wstr(count, 0);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), &wstr[0], count);
     return wstr;
 }
 #endif
@@ -35,10 +36,11 @@ std::filesystem::path vers_std_path(chaine_statique chn)
 #ifdef _MSC_VER
     /* Convertis vers UTF-16. */
     auto std_wstring = vers_utf16(std_string);
-    return std::filesystem::path(std_wstring);
+    auto std_path = std::filesystem::path(std_wstring);
 #else
-    return std::filesystem::path(std_string);
+    auto std_path = std::filesystem::path(std_string);
 #endif
+    return std_path.make_preferred();
 }
 
 static chaine chaine_depuis_std_path(std::filesystem::path const &std_path)
@@ -57,6 +59,16 @@ static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)
     return chemin_systeme(chaine_depuis_std_path(chemin));
 }
 
+/* Retourne le caractère utilisé par préférence pour le système. */
+static char separateur_prefere()
+{
+#ifdef _MSC_VER
+    return '\\';
+#else
+    return '/';
+#endif
+}
+
 static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char motif)
 {
     while (fin != debut) {
@@ -70,11 +82,32 @@ static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char
     return fin;
 }
 
+chemin_systeme::chemin_systeme(const char *str)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(str);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
+chemin_systeme::chemin_systeme(chaine_statique chemin)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(chemin);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
+chemin_systeme::chemin_systeme(chaine chemin)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(chemin);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
 chaine_statique chemin_systeme::nom_fichier() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, '/');
+    auto pos = trouve_depuis_la_fin(debut, fin, separateur_prefere());
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, fin);
     return {donnees.pointeur() + distance + 1, long(taille - 1)};
@@ -106,7 +139,7 @@ chaine_statique chemin_systeme::chemin_parent() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, '/');
+    auto pos = trouve_depuis_la_fin(debut, fin, separateur_prefere());
     auto distance = std::distance(debut, pos);
     return {donnees.pointeur(), long(distance)};
 }
