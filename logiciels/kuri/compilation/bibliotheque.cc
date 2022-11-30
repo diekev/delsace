@@ -267,6 +267,97 @@ kuri::chaine_statique Bibliotheque::nom_pour_liaison(const OptionsDeCompilation 
     return noms[type_informations(chemins_dynamiques, options)];
 }
 
+static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_statique chn,
+                                                                 char separateur)
+{
+    kuri::tablet<kuri::chaine_statique, 16> resultat;
+
+    auto taille = 0;
+    auto pointeur = chn.pointeur();
+    auto debut = chn.pointeur();
+
+    for (auto i = 0; i < chn.taille(); i++) {
+        if (pointeur[i] == separateur) {
+            auto sous_chaine = kuri::chaine_statique(debut, taille);
+            taille = 0;
+            debut = &pointeur[i + 1];
+            resultat.ajoute(sous_chaine);
+            continue;
+        }
+
+        taille += 1;
+    }
+
+    if (taille != 0) {
+        auto sous_chaine = kuri::chaine_statique(debut, taille);
+        resultat.ajoute(sous_chaine);
+    }
+
+    return resultat;
+}
+
+static void ajoute_chemins_depuis_env(const char *variable,
+                                      kuri::tablet<kuri::chemin_systeme, 16> &chemins,
+                                      kuri::ensemblon<kuri::chaine_statique, 16> &chemins_connus)
+{
+    auto valeurs = getenv(variable);
+    if (!valeurs) {
+        return;
+    }
+
+    auto chaines = divise_chaine_par(valeurs, ';');
+    POUR (chaines) {
+        if (chemins_connus.possede(it)) {
+            continue;
+        }
+
+        chemins.ajoute(it);
+        chemins_connus.insere(it);
+    }
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
+{
+    kuri::tablet<kuri::chemin_systeme, 16> resultat;
+
+#ifdef _MSC_VER
+    kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
+    ajoute_chemins_depuis_env("LIB", resultat, chemins_connus);
+    ajoute_chemins_depuis_env("LIBPATH", resultat, chemins_connus);
+    // A FAIRE : version 32-bit
+#else
+    if (architecture == ArchitectureCible::X64) {
+        // pour les tables r16...
+        resultat.ajoute("/tmp/lib/x86_64-linux-gnu/");
+        resultat.ajoute("/lib/x86_64-linux-gnu/");
+        resultat.ajoute("/usr/lib/x86_64-linux-gnu/");
+    }
+    else {
+        resultat.ajoute("/lib/i386-linux-gnu/");
+        resultat.ajoute("/usr/lib/i386-linux-gnu/");
+        // pour les tables r16...
+        resultat.ajoute("/tmp/lib/i386-linux-gnu/");
+    }
+#endif
+
+    return resultat;
+}
+
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_x86_64{};
+static kuri::tablet<kuri::chemin_systeme, 16> chemins_syteme_i386{};
+
+static void initialise_chemins_systeme()
+{
+    chemins_syteme_x86_64 = chemins_systeme_pour(ArchitectureCible::X64);
+    chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
+}
+
+GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_)
+    : compilatrice(compilatrice_)
+{
+    initialise_chemins_systeme();
+}
+
 bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilatrice &compilatrice)
 {
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
@@ -299,9 +390,11 @@ bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilat
     bibr16->cree_symbole("DLS_depuis_r64")
         ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
 
+#ifndef _MSC_VER
     /* La bibliothèque pthread. */
     gestionnaire->cree_bibliotheque(
         *espace, nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
+#endif
 
     return !compilatrice.possede_erreur();
 }
@@ -659,10 +752,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
         dossiers.ajoute(module->chemin_bibliotheque_32bits);
     }
 
-    dossiers.ajoute("/lib/i386-linux-gnu/");
-    dossiers.ajoute("/usr/lib/i386-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/i386-linux-gnu/");
+    POUR (chemins_syteme_i386) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 
@@ -676,10 +769,10 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
         dossiers.ajoute(module->chemin_bibliotheque_64bits);
     }
 
-    dossiers.ajoute("/lib/x86_64-linux-gnu/");
-    dossiers.ajoute("/usr/lib/x86_64-linux-gnu/");
-    // pour les tables r16...
-    dossiers.ajoute("/tmp/lib/x86_64-linux-gnu/");
+    POUR (chemins_syteme_x86_64) {
+        dossiers.ajoute(it);
+    }
+
     return dossiers;
 }
 
