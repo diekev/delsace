@@ -342,7 +342,7 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
 
     /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
      * parent. */
-    auto chemin_executable = kuri::chaine(&tampon[0], long(len));
+    auto chemin_executable = kuri::chaine(&tampon[0], len);
     auto racine = kuri::chemin_systeme(chemin_executable).chemin_parent();
 
     /* Vérifie que nous avons tous les dossiers. Si oui, nous sommes sans doute à la bonne adresse.
