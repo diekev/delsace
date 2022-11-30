@@ -439,7 +439,7 @@ class tablet {
         return this->begin();
     }
 
-    const_iterator cdebut() const
+    const_iterator debut() const
     {
         return this->cbegin();
     }
@@ -449,7 +449,7 @@ class tablet {
         return this->rbegin();
     }
 
-    const_reverse_iterator cdebut_inverse() const
+    const_reverse_iterator debut_inverse() const
     {
         return this->crbegin();
     }
@@ -459,7 +459,7 @@ class tablet {
         return this->end();
     }
 
-    const_iterator cfin() const
+    const_iterator fin() const
     {
         return this->cend();
     }
@@ -469,7 +469,7 @@ class tablet {
         return this->rend();
     }
 
-    const_reverse_iterator cfin_inverse() const
+    const_reverse_iterator fin_inverse() const
     {
         return this->crend();
     }
