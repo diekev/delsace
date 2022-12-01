@@ -113,7 +113,8 @@ struct EntreeTemps {
 template <TypeEntreesStats T>
 struct EntreesStats {
     kuri::chaine nom{};
-    kuri::tableau<T, int> entrees{};
+    /* Mutable pour pouvoir le trier avant l'impression. */
+    mutable kuri::tableau<T, int> entrees{};
     T totaux{};
 
     explicit EntreesStats(kuri::chaine const &nom_) : nom(nom_)
@@ -300,7 +301,7 @@ struct StatistiquesTypage {
 
 void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
 
-void imprime_stats_detaillee(Statistiques &stats);
+void imprime_stats_detaillee(Statistiques const &stats);
 
 #undef EXTRAIT_CHAINE_ENUM
 #undef EXTRAIT_IDENT_ENUM

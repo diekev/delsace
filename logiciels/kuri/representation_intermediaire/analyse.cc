@@ -962,23 +962,48 @@ static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1
     return stockage->ou == inst1;
 }
 
-static bool est_appel_initialisation(Instruction const *inst0, Instruction const *inst1)
+static bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_transtype()) {
+        return false;
+    }
+
+    auto const transtype = inst0->comme_transtype();
+    return transtype->valeur == inst1;
+}
+
+/* Puisque les init_de peuvent être partagées, et alors requierent un transtypage, cette fonction
+ * retourne le décalage + 1 à utiliser si la fonction est une fonction d'initialisation.
+ * Retourne :
+ *    0 si la fonction n'est pas une initialisation potentielle
+ *    1 si initialisation potentielle (décalage effectif de 0)
+ *    2 si initialisation potentielle avec un transtypage (décalage effectif de 1)
+ */
+static int est_appel_initialisation(Instruction const *inst0, Instruction const *inst1)
 {
     if (!inst0->est_appel()) {
-        return false;
+        return 0;
     }
 
     /* Ne vérifions pas que l'appelée est une initialisation de type, ce pourrait être déguisé via
      * un pointeur de fonction. */
     auto appel = inst0->comme_appel();
+    if (appel->args.taille() != 1) {
+        return 0;
+    }
 
-    POUR (appel->args) {
-        if (it == inst1) {
-            return true;
+    auto arg = appel->args[0];
+    if (arg == inst1) {
+        return 1;
+    }
+
+    if (arg->est_instruction()) {
+        if (est_transtypage_de(arg->comme_instruction(), inst1)) {
+            return 2;
         }
     }
 
-    return false;
+    return 0;
 }
 
 static bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
@@ -1114,8 +1139,9 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
                                                     int debut_recherche)
 {
     for (int i = debut_recherche; i < bloc->instructions.taille() - 1; i++) {
-        if (est_appel_initialisation(bloc->instructions[i], alloc)) {
-            return i;
+        auto decalage = est_appel_initialisation(bloc->instructions[i], alloc);
+        if (decalage != 0) {
+            return i - (decalage - 1);
         }
 
         if (est_stockage_vers(bloc->instructions[i], alloc)) {
@@ -1167,8 +1193,7 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
                 std::cerr << *fonction.decl << '\n';
 
                 if (fonction.decl->est_initialisation_type) {
-                    auto type_param =
-                        fonction.decl->params[0]->type->comme_pointeur()->type_pointe;
+                    auto type_param = fonction.decl->type_initialisé();
                     std::cerr << "La fonction est pour l'initialisation du type "
                               << chaine_type(type_param) << '\n';
                 }

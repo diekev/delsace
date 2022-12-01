@@ -207,6 +207,8 @@ struct ConstructriceRI {
                                                 const kuri::tableau<AtomeGlobale *> &globales);
 
   private:
+    void cree_appel_fonction_init_type(NoeudExpression *site_, Type *type, Atome *argument);
+
     AtomeFonction *genere_fonction_init_globales_et_appel(
         const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
