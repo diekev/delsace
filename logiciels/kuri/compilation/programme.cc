@@ -617,11 +617,20 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
         resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
     }
 
-    /* Extrait les atomes pour les fonctions d'initalisation des types. */
+    /* Extrait les atomes pour les fonctions d'initalisation des types. Puisque ces fonctions
+     * peuvent être partagées nous devons les dédupliquer. */
+    auto init_types_connues = kuri::ensemble<NoeudDeclarationEnteteFonction *>();
     POUR (programme.types()) {
-        if (it->fonction_init) {
-            resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->fonction_init->atome));
+        if (!it->fonction_init) {
+            continue;
         }
+
+        if (init_types_connues.possede(it->fonction_init)) {
+            continue;
+        }
+
+        resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->fonction_init->atome));
+        init_types_connues.insere(it->fonction_init);
     }
 
     /* Extrait les atomes pour les globales. */
