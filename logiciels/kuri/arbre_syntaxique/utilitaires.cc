@@ -2677,6 +2677,15 @@ void NoeudBloc::ajoute_expression(NoeudExpression *expr)
 // -----------------------------------------------------------------------------
 // Implémentation des fonctions supplémentaires de la ConvertisseuseNoeudCode
 
+static void copie_annotations(kuri::tableau<Annotation, int> const &source,
+                              kuri::tableau<const Annotation *> &dest)
+{
+    dest.reserve(source.taille());
+    for (auto &annotation : source) {
+        dest.ajoute(&annotation);
+    }
+}
+
 InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 {
     auto cree_info_type_entier = [this](uint32_t taille_en_octet, bool est_signe) {
@@ -2867,12 +2876,15 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->drapeaux = it.drapeaux;
 
                 if (it.decl) {
-                    for (auto &annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute(&annotation);
-                    }
+                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
                 }
 
                 info_type->membres.ajoute(info_type_membre);
+            }
+
+            if (type_struct->decl) {
+                auto decl_struct = type_struct->decl;
+                copie_annotations(decl_struct->annotations, info_type->annotations);
             }
 
             info_type->structs_employees.reserve(type_struct->types_employes.taille());
@@ -2907,12 +2919,15 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 info_type_membre->drapeaux = it.drapeaux;
 
                 if (it.decl) {
-                    for (auto &annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute(&annotation);
-                    }
+                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
                 }
 
                 info_type->membres.ajoute(info_type_membre);
+            }
+
+            if (type_union->decl) {
+                auto decl_struct = type_union->decl;
+                copie_annotations(decl_struct->annotations, info_type->annotations);
             }
 
             type->info_type = info_type;
