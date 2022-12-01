@@ -28,6 +28,29 @@
 
 /* ************************************************************************** */
 
+/* Retourne la déclaration de la fontion si l'expression d'appel est un appel vers une telle
+ * fontion. */
+static NoeudDeclarationEnteteFonction *est_appel_fonction_initialisation(
+    NoeudExpression *expression)
+{
+    if (expression->est_entete_fonction()) {
+        auto entete = expression->comme_entete_fonction();
+        if (entete->est_initialisation_type) {
+            return entete;
+        }
+        return nullptr;
+    }
+
+    if (expression->est_reference_declaration()) {
+        return est_appel_fonction_initialisation(
+            expression->comme_reference_declaration()->declaration_referee);
+    }
+
+    return nullptr;
+}
+
+/* ************************************************************************** */
+
 #define IDENT_CODE(x) m_compilatrice.table_identifiants->identifiant_pour_chaine((x))
 
 ConstructriceRI::ConstructriceRI(Compilatrice &compilatrice) : m_compilatrice(compilatrice)
@@ -477,6 +500,15 @@ void ConstructriceRI::cree_appel_fonction_init_type(NoeudExpression *site_,
     auto fonc_init = type->fonction_init;
     auto atome_fonc_init = m_compilatrice.trouve_ou_insere_fonction(*this, fonc_init);
     auto params = kuri::tableau<Atome *, int>(1);
+
+    /* Les fonctions d'initialisation sont partagées entre certains types donc nous devons
+     * transtyper vers le type approprié. */
+    if (type->est_pointeur() || type->est_fonction()) {
+        auto &typeuse = m_compilatrice.typeuse;
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(typeuse[TypeBase::PTR_RIEN]);
+        argument = cree_transtype(site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
+    }
+
     params[0] = argument;
     cree_appel(site_, atome_fonc_init, std::move(params));
 }
@@ -861,6 +893,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto ancien_pour_appel = m_noeud_pour_appel;
             m_noeud_pour_appel = expr_appel;
+
+            /* Nous pouvons avoir des initialisations de type ici qui furent créés lors de la
+             * création de fonctions d'initialisations d'autres types. */
+            auto fonction_init = est_appel_fonction_initialisation(expr_appel->expression);
+            if (fonction_init) {
+                auto argument = expr_appel->parametres_resolus[0];
+                genere_ri_pour_expression_droite(argument, nullptr);
+                auto valeur = depile_valeur();
+                auto type = fonction_init->type_initialisé();
+                cree_appel_fonction_init_type(expr_appel, type, valeur);
+                m_noeud_pour_appel = ancien_pour_appel;
+                return;
+            }
 
             POUR (expr_appel->parametres_resolus) {
                 genere_ri_pour_expression_droite(it, nullptr);

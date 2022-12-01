@@ -204,6 +204,9 @@ static bool compile_fichier(Compilatrice &compilatrice,
         return false;
     }
 
+    /* Crée les tâches pour les données requise de la typeuse. */
+    Typeuse::crée_tâches_précompilation(compilatrice);
+
     /* enregistre le dossier d'origine */
     auto dossier_origine = kuri::chemin_systeme::chemin_courant();
 
