@@ -2536,6 +2536,12 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
     return nom_broye_;
 }
 
+Type *NoeudDeclarationEnteteFonction::type_initialisé() const
+{
+    assert(est_initialisation_type);
+    return params[0]->type->comme_pointeur()->type_pointe;
+}
+
 int NoeudBloc::nombre_de_membres() const
 {
     return membres->taille();

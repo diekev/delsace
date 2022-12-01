@@ -1169,8 +1169,7 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
                 std::cerr << *fonction.decl << '\n';
 
                 if (fonction.decl->est_initialisation_type) {
-                    auto type_param =
-                        fonction.decl->params[0]->type->comme_pointeur()->type_pointe;
+                    auto type_param = fonction.decl->type_initialisé();
                     std::cerr << "La fonction est pour l'initialisation du type "
                               << chaine_type(type_param) << '\n';
                 }
