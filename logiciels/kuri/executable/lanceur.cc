@@ -204,6 +204,9 @@ static bool compile_fichier(Compilatrice &compilatrice,
         return false;
     }
 
+    /* Crée les tâches pour les données requise de la typeuse. */
+    Typeuse::crée_tâches_précompilation(compilatrice);
+
     /* enregistre le dossier d'origine */
     auto dossier_origine = kuri::chemin_systeme::chemin_courant();
 
@@ -342,14 +345,14 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
 
     /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
      * parent. */
-    auto chemin_executable = kuri::chaine(&tampon[0], long(len));
-    auto racine = kuri::chemin_systeme(chemin_executable).chemin_parent();
+    auto chemin_executable = kuri::chaine(&tampon[0], len);
+    auto racine = kuri::chemin_systeme(kuri::chemin_systeme(chemin_executable).chemin_parent());
 
     /* Vérifie que nous avons tous les dossiers. Si oui, nous sommes sans doute à la bonne adresse.
      */
     auto dossier_manquant = dossier_manquant_racine_execution(racine);
     if (!dossier_manquant) {
-        return racine;
+        return kuri::chaine(racine);
     }
 
     /* Essayons alors la variable d'environnement. */
@@ -376,7 +379,7 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
         return {};
     }
 
-    return racine;
+    return kuri::chaine(racine);
 }
 
 int main(int argc, char *argv[])
