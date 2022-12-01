@@ -2868,8 +2868,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
                 if (it.decl) {
                     for (auto &annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute(
-                            reinterpret_cast<AnnotationMembre *>(&annotation));
+                        info_type_membre->annotations.ajoute(&annotation);
                     }
                 }
 
@@ -2909,8 +2908,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
                 if (it.decl) {
                     for (auto &annotation : it.decl->annotations) {
-                        info_type_membre->annotations.ajoute(
-                            reinterpret_cast<AnnotationMembre *>(&annotation));
+                        info_type_membre->annotations.ajoute(&annotation);
                     }
                 }
 
