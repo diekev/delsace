@@ -241,6 +241,12 @@ struct Type {
 
     inline TypeCompose *comme_compose();
     inline const TypeCompose *comme_compose() const;
+
+    void assigne_fonction_init(NoeudDeclarationEnteteFonction *fonction)
+    {
+        fonction_init = fonction;
+        drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
+    }
 };
 
 struct TypePointeur : public Type {
@@ -675,6 +681,19 @@ struct Typeuse {
 
     kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
 
+    /* Sauvegarde des fonctions d'initialisation des types pour les partager entre types.
+     * Ces fonctions sont créées avant que tout autre travail de compilation soit effectué, et
+     * donc nous n'avons pas besoin de synchroniser la lecture ou l'écriture de ces données. */
+    NoeudDeclarationEnteteFonction *init_type_n8 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_n16 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_n32 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_n64 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_z8 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_z16 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_z32 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_z64 = nullptr;
+    NoeudDeclarationEnteteFonction *init_type_pointeur = nullptr;
+
     // -------------------------
 
     Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o);
@@ -683,6 +702,10 @@ struct Typeuse {
     Typeuse &operator=(Typeuse const &) = delete;
 
     ~Typeuse();
+
+    /* Ajoute des tâches avant le début de la compilation afin de préparer des données pour
+     * celle-ci. */
+    static void crée_tâches_précompilation(Compilatrice &compilatrice);
 
     Type *type_pour_lexeme(GenreLexeme lexeme);
 

@@ -2555,6 +2555,12 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
     return nom_broye_;
 }
 
+Type *NoeudDeclarationEnteteFonction::type_initialisé() const
+{
+    assert(est_initialisation_type);
+    return params[0]->type->comme_pointeur()->type_pointe;
+}
+
 int NoeudBloc::nombre_de_membres() const
 {
     return membres->taille();
@@ -3503,6 +3509,15 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
         entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_SANSTRACE);
 
         type->fonction_init = entete;
+
+        if (type->est_union()) {
+            /* Assigne également la fonction au type structure car c'est lui qui est utilisé lors
+             * de la génération de RI. */
+            auto type_structure = type->comme_union()->type_structure;
+            if (type_structure) {
+                type_structure->fonction_init = entete;
+            }
+        }
     }
 
     return type->fonction_init;
@@ -3706,13 +3721,79 @@ static void cree_initialisation_defaut_pour_type(Type *type,
     }
 }
 
+/* Assigne la fonction d'initialisation de type au type énum en se basant sur son type de données.
+ */
+static void assigne_fonction_init_enum(Typeuse &typeuse, TypeEnum *type)
+{
+#define ASSIGNE_SI(ident_maj, ident_min)                                                          \
+    if (type_données == typeuse[TypeBase::ident_maj]) {                                           \
+        type->assigne_fonction_init(typeuse.init_type_##ident_min);                               \
+        return;                                                                                   \
+    }
+
+    auto type_données = type->type_donnees;
+
+    ASSIGNE_SI(N8, n8);
+    ASSIGNE_SI(N16, n16);
+    ASSIGNE_SI(N32, n32);
+    ASSIGNE_SI(N64, n64);
+
+    ASSIGNE_SI(Z8, z8);
+    ASSIGNE_SI(Z16, z16);
+    ASSIGNE_SI(Z32, z32);
+    ASSIGNE_SI(Z64, z64);
+
+#undef ASSIGNE_SI
+}
+
+/* Sauvegarde dans la typeuse la fonction d'intialisation du type si celle-ci est à sauvegarder. */
+static void sauvegarde_fonction_init(Typeuse &typeuse,
+                                     Type *type,
+                                     NoeudDeclarationEnteteFonction *entete)
+{
+#define ASSIGNE_SI(ident_maj, ident_min)                                                          \
+    if (type == typeuse[TypeBase::ident_maj]) {                                                   \
+        typeuse.init_type_##ident_min = entete;                                                   \
+        return;                                                                                   \
+    }
+
+    ASSIGNE_SI(N8, n8);
+    ASSIGNE_SI(N16, n16);
+    ASSIGNE_SI(N32, n32);
+    ASSIGNE_SI(N64, n64);
+    ASSIGNE_SI(Z8, z8);
+    ASSIGNE_SI(Z16, z16);
+    ASSIGNE_SI(Z32, z32);
+    ASSIGNE_SI(Z64, z64);
+    ASSIGNE_SI(PTR_RIEN, pointeur);
+
+#undef ASSIGNE_SI
+}
+
 void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse)
 {
     auto &typeuse = espace->compilatrice().typeuse;
+
+    if (type->est_enum()) {
+        assigne_fonction_init_enum(typeuse, type->comme_enum());
+        return;
+    }
+
+    /* Qu'init_type_pointeur soit nul n'est possible qu'au début de la compilation lors de la
+     * création des tâches préliminaire à la compilation. Si nous avons un pointeur ici, c'est un
+     * pointeur faisant partie des TypeBase, pour les autres, l'assignation de la fonction se fait
+     * lors de la création du type pointeur. */
+    if (type->est_pointeur() && typeuse.init_type_pointeur) {
+        type->assigne_fonction_init(typeuse.init_type_pointeur);
+        return;
+    }
+
     auto entete = cree_entete_pour_initialisation_type(
         type, espace->compilatrice(), assembleuse, typeuse);
+
+    sauvegarde_fonction_init(typeuse, type, entete);
 
     auto corps = entete->corps;
     corps->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
@@ -3884,8 +3965,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
     }
 
     simplifie_arbre(espace, assembleuse, typeuse, entete);
-
-    type->drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
+    type->assigne_fonction_init(entete);
     corps->drapeaux |= DECLARATION_FUT_VALIDEE;
 }
 
