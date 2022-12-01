@@ -1291,10 +1291,20 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
 {
     assert((unite->type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0);
+
+    auto fonction = unite->type->fonction_init;
+    if (fonction->unite) {
+        /* Pour les pointeurs, énums, et fonctions, la fonction est partagée, nous ne devrions pas
+         * générer la RI plusieurs fois. L'unité de compilation est utilisée pour indiquée que la
+         * RI est en cours de génération. */
+        return;
+    }
+
     unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
     auto espace = unite->espace;
     TACHE_AJOUTEE(GENERATION_RI);
-    unite->noeud = unite->type->fonction_init;
+    unite->noeud = fonction;
+    fonction->unite = unite;
     unites_en_attente.ajoute(unite);
 }
 

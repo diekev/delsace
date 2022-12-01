@@ -11,6 +11,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+#include "compilatrice.hh"
 #include "graphe_dependance.hh"
 #include "operateurs.hh"
 
@@ -531,6 +532,26 @@ Typeuse::~Typeuse()
 #undef DELOGE_TYPES
 }
 
+void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
+{
+    auto gestionnaire = compilatrice.gestionnaire_code.verrou_ecriture();
+    auto espace = compilatrice.espace_de_travail_defaut;
+    auto &typeuse = compilatrice.typeuse;
+
+    /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
+     * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
+     * autres pointeurs et les fonctions. */
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::N8]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::N16]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::N32]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::N64]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::Z8]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::Z16]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::Z32]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::Z64]);
+    gestionnaire->requiers_initialisation_type(espace, typeuse[TypeBase::PTR_RIEN]);
+}
+
 Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 {
     switch (lexeme) {
@@ -635,6 +656,13 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     }
 
     type->type_pointeur = resultat;
+
+    /* Tous les pointeurs sont des adresses, il est donc inutile de créer des fonctions spécifiques
+     * pour chacun d'entre eux.
+     * Lors de la création de la typeuse, les fonction sauvegardées sont nulles. */
+    if (init_type_pointeur) {
+        resultat->assigne_fonction_init(init_type_pointeur);
+    }
 
     return resultat;
 }
@@ -805,6 +833,10 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     if (type_sortie) {
         graphe->connecte_type_type(type, type_sortie);
     }
+
+    /* Les rappels de fonctions sont des pointeurs, donc nous utilisons la même fonction
+     * d'initialisation que pour les pointeurs. */
+    type->assigne_fonction_init(init_type_pointeur);
 
     return type;
 }
