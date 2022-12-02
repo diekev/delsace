@@ -47,6 +47,22 @@ InfoTypeTableau :: struct #interface {
 	taille_fixe : z32
 }
 
+possède_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> bool
+{
+	retourne trouve_annotation(annotations, nom) != nul
+}
+
+trouve_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> *AnnotationCode
+{
+	pour annotations {
+		si it.nom == nom {
+			retourne it
+		}
+	}
+
+	retourne nul
+}
+
 InfoTypeMembreStructure :: struct #interface {
 	Drapeaux :: énum_drapeau {
 		EST_CONSTANT
@@ -62,24 +78,12 @@ InfoTypeMembreStructure :: struct #interface {
 
 possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
 {
-	pour info.annotations {
-		si it.nom == nom {
-			retourne vrai
-		}
-	}
-
-	retourne faux
+	retourne possède_annotation(info.annotations, nom)
 }
 
 trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
 {
-	pour info.annotations {
-		si it.nom == nom {
-			retourne it
-		}
-	}
-
-	retourne nul
+	retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeStructure :: struct #interface {
@@ -88,6 +92,17 @@ InfoTypeStructure :: struct #interface {
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 	structs_employées : []*InfoTypeStructure
+  	annotations: []*AnnotationCode
+}
+
+possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
+{
+	retourne possède_annotation(info.annotations, nom)
+}
+
+trouve_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> *AnnotationCode
+{
+	retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeUnion :: struct #interface {
@@ -98,6 +113,17 @@ InfoTypeUnion :: struct #interface {
 	type_le_plus_grand : *InfoType
 	décalage_index : z64
 	est_sûre : bool
+  	annotations: []*AnnotationCode
+}
+
+possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
+{
+	retourne possède_annotation(info.annotations, nom)
+}
+
+trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *AnnotationCode
+{
+	retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeFonction :: struct #interface {

@@ -3835,16 +3835,20 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     }
 
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
-        if (it->est_assignation_variable()) {
-            auto expr_assign = it->comme_assignation_variable();
-            auto variable = expr_assign->variable;
+        if (!it->est_assignation_variable()) {
+            continue;
+        }
 
-            for (auto &membre : type_compose->membres) {
-                if (membre.nom == variable->ident) {
-                    membre.expression_valeur_defaut = expr_assign->expression;
-                    break;
-                }
+        auto expr_assign = it->comme_assignation_variable();
+        auto variable = expr_assign->variable;
+
+        for (auto &membre : type_compose->membres) {
+            if (membre.nom != variable->ident) {
+                continue;
             }
+
+            membre.expression_valeur_defaut = expr_assign->expression;
+            break;
         }
     }
 
