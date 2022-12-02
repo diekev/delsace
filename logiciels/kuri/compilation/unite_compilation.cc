@@ -278,6 +278,29 @@ UniteCompilation *UniteCompilation::unite_attendue() const
     return nullptr;
 }
 
+static void imprime_operateurs_pour(Erreur &e,
+                                    Type &type,
+                                    NoeudExpression const &operateur_attendu)
+{
+    auto &operateurs = type.operateurs.operateurs(operateur_attendu.lexeme->genre);
+
+    if (operateurs.taille() == 0) {
+        e.ajoute_message("\nNOTE : le type ", chaine_type(&type), " n'a aucun opérateur\n");
+    }
+    else {
+        e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
+        POUR (operateurs.plage()) {
+            e.ajoute_message("    ",
+                             chaine_type(it->type1),
+                             " ",
+                             operateur_attendu.lexeme->chaine,
+                             " ",
+                             chaine_type(it->type2),
+                             "\n");
+        }
+    }
+}
+
 void UniteCompilation::rapporte_erreur() const
 {
     if (m_attente.est<AttenteSurSymbole>()) {
@@ -372,6 +395,9 @@ void UniteCompilation::rapporte_erreur() const
                     e.ajoute_message('\n');
                 }
             }
+
+            imprime_operateurs_pour(e, *type1, *operateur_attendu);
+            imprime_operateurs_pour(e, *type2, *operateur_attendu);
 
             e.ajoute_conseil("Si vous voulez performer une opération sur des types "
                              "non-communs, vous pouvez définir vos propres opérateurs avec "
