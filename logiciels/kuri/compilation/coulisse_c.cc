@@ -109,6 +109,7 @@ struct ConvertisseuseTypeC {
             case GenreType::ENUM:
             {
                 auto type_enum = static_cast<TypeEnum *>(type);
+                cree_typedef(type_enum->type_donnees, enchaineuse);
                 auto nom_broye_type_donnees = broyeuse.nom_broye_type(type_enum->type_donnees);
                 type_c.typedef_ = nom_broye_type_donnees;
                 break;
@@ -116,6 +117,7 @@ struct ConvertisseuseTypeC {
             case GenreType::OPAQUE:
             {
                 auto type_opaque = type->comme_opaque();
+                cree_typedef(type_opaque->type_opacifie, enchaineuse);
                 auto nom_broye_type_opacifie = broyeuse.nom_broye_type(type_opaque->type_opacifie);
                 type_c.typedef_ = nom_broye_type_opacifie;
                 break;
@@ -186,6 +188,7 @@ struct ConvertisseuseTypeC {
             case GenreType::REFERENCE:
             {
                 auto type_pointe = type->comme_reference()->type_pointe;
+                cree_typedef(type_pointe, enchaineuse);
                 auto &type_c_pointe = type_c_pour(type_pointe);
                 type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
                 break;
@@ -195,6 +198,7 @@ struct ConvertisseuseTypeC {
                 auto type_pointe = type->comme_pointeur()->type_pointe;
 
                 if (type_pointe) {
+                    cree_typedef(type_pointe, enchaineuse);
                     auto &type_c_pointe = type_c_pour(type_pointe);
                     type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
                 }
@@ -232,6 +236,10 @@ struct ConvertisseuseTypeC {
             case GenreType::UNION:
             {
                 auto type_union = type->comme_union();
+                POUR (type_union->membres) {
+                    cree_typedef(it.type, enchaineuse);
+                }
+
                 auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
 
                 if (type_union->est_anonyme) {
@@ -287,12 +295,19 @@ struct ConvertisseuseTypeC {
                     return;
                 }
 
+                cree_typedef(type_pointe, enchaineuse);
                 type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
                 break;
             }
             case GenreType::FONCTION:
             {
                 auto type_fonc = type->comme_fonction();
+
+                POUR (type_fonc->types_entrees) {
+                    cree_typedef(it, enchaineuse);
+                }
+
+                cree_typedef(type_fonc->type_sortie, enchaineuse);
 
                 auto nouveau_nom_broye = Enchaineuse();
                 nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
@@ -399,11 +414,14 @@ struct ConvertisseuseTypeC {
             }
 
             type_c.code_machine_fut_genere = true;
-            cree_typedef(type, enchaineuse);
             POUR (type_struct->membres) {
                 if (it.type->est_pointeur()) {
-                    cree_typedef(it.type->comme_pointeur()->type_pointe, enchaineuse);
-                    cree_typedef(it.type, enchaineuse);
+                    continue;
+                }
+                /* Une fonction peut retourner via un tuple la structure dont nous essayons de
+                 * générer le type. Évitons de générer le code du tuple avant la génération du code
+                 * de cette structure. */
+                if (it.type->est_fonction()) {
                     continue;
                 }
                 genere_code_pour_type(it.type, enchaineuse);
@@ -427,7 +445,6 @@ struct ConvertisseuseTypeC {
             }
 
             type_c.code_machine_fut_genere = true;
-            cree_typedef(type, enchaineuse);
             POUR (type_tuple->membres) {
                 genere_code_pour_type(it.type, enchaineuse);
             }
@@ -508,7 +525,6 @@ struct ConvertisseuseTypeC {
         }
 
         type_c.code_machine_fut_genere = true;
-        cree_typedef(type, enchaineuse);
     }
 
     void genere_declaration_structure(Enchaineuse &enchaineuse,
@@ -1761,6 +1777,10 @@ void GeneratriceCodeC::genere_code(ProgrammeRepreInter const &repr_inter_program
     Enchaineuse enchaineuse;
     ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
     genere_code_debut_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
+
+    POUR (repr_inter_programme.types) {
+        convertisseuse_type_c.cree_typedef(it, enchaineuse);
+    }
 
     POUR (repr_inter_programme.types) {
         convertisseuse_type_c.genere_code_pour_type(it, enchaineuse);
