@@ -57,43 +57,73 @@ bool UniteCompilation::est_bloquee() const
     return toutes_les_unites_attendues_sont_bloquees;
 }
 
+/* Représente la condition pour laquelle l'attente est bloquée. */
+struct ConditionBlocageAttente {
+    PhaseCompilation phase{};
+};
+
+static std::optional<ConditionBlocageAttente> condition_blocage(Attente const &attente)
+{
+    if (attente.est<AttenteSurType>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurSymbole>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurDeclaration>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurOperateur>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
+        return {};
+    }
+
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurMessage>()) {
+        return {};
+    }
+
+    return {};
+}
+
 bool UniteCompilation::attente_est_bloquee() const
 {
-    if (m_attente.est<AttenteSurType>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurSymbole>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurOperateur>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
+    auto const condition_potentielle = condition_blocage(m_attente);
+    if (!condition_potentielle.has_value()) {
+        /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
         return false;
     }
 
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
+    auto const condition = condition_potentielle.value();
+    auto const phase_espace = espace->phase_courante();
+    auto const id_phase_espace = espace->id_phase_courante();
 
-    if (m_attente.est<AttenteSurMessage>()) {
+    if (id_phase_espace != id_phase_cycle) {
+        /* L'espace a changé de phase, nos cycles sont invalidés. */
+        id_phase_cycle = id_phase_espace;
+        cycle = 0;
         return false;
     }
 
-    return false;
+    if (phase_espace < condition.phase) {
+        /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
+        cycle = 0;
+        return false;
+    }
+
+    /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être satisfaits.
+     */
+    return cycle > CYCLES_MAXIMUM;
 }
 
 kuri::chaine UniteCompilation::commentaire() const

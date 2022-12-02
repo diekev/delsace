@@ -42,7 +42,9 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 struct UniteCompilation {
     int index_courant = 0;
     int index_precedent = 0;
-    int cycle = 0;
+    /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
+     * l'attente est résolue. */
+    mutable int cycle = 0;
     bool tag = false;
     bool annule = false;
 
@@ -50,6 +52,9 @@ struct UniteCompilation {
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
     Attente m_attente = {};
+
+    /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
+    mutable int id_phase_cycle = 0;
 
   public:
     EspaceDeTravail *espace = nullptr;
