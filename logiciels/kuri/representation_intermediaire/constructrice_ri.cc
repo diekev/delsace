@@ -3158,13 +3158,20 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
 
             auto tableau_membre = cree_tableau_global(type_membre, std::move(valeurs_membres));
 
-            auto valeurs = kuri::tableau<AtomeConstante *>(8);
+            auto valeurs = kuri::tableau<AtomeConstante *>(9);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::UNION, type);
             valeurs[3] = cree_chaine(type_union->nom_hierarchique());
             valeurs[4] = tableau_membre;
             valeurs[5] = info_type_plus_grand;
             valeurs[6] = cree_z64(type_union->decalage_index);
             valeurs[7] = cree_constante_booleenne(!type_union->est_nonsure);
+            if (type_union->decl) {
+                valeurs[8] = cree_tableau_annotations_pour_info_membre(
+                    type_union->decl->annotations);
+            }
+            else {
+                valeurs[8] = cree_tableau_annotations_pour_info_membre({});
+            }
 
             globale->initialisateur = cree_constante_structure(type_info_union,
                                                                std::move(valeurs));
@@ -3232,11 +3239,18 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type, NoeudExpression *sit
                 type_pointeur_info_struct, std::move(valeurs_structs_employees));
 
             /* { membres basiques, nom, membres } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(6);
+            auto valeurs = kuri::tableau<AtomeConstante *>(7);
             remplis_membres_de_bases_info_type(valeurs, IDInfoType::STRUCTURE, type);
             valeurs[3] = cree_chaine(type_struct->nom_hierarchique());
             valeurs[4] = tableau_membre;
             valeurs[5] = tableau_structs_employees;
+            if (type_struct->decl) {
+                valeurs[6] = cree_tableau_annotations_pour_info_membre(
+                    type_struct->decl->annotations);
+            }
+            else {
+                valeurs[6] = cree_tableau_annotations_pour_info_membre({});
+            }
 
             globale->initialisateur = cree_constante_structure(type_info_struct,
                                                                std::move(valeurs));

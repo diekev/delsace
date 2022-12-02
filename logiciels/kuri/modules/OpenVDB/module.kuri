@@ -1,3 +1,5 @@
 libOpenVDB :: #bibliothèque "openvdb"
+libtbb :: #bibliothèque "tbb"
 
 #dépendance_bibliothèque libmodule_c_openvdb libOpenVDB
+#dépendance_bibliothèque libmodule_c_openvdb libtbb
