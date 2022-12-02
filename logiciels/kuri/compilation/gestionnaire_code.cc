@@ -547,6 +547,9 @@ static bool epends_dependances_types(GrapheDependance &graphe,
             if (relation->est_type()) {
                 dependances_ependues.types_utilises.insere(relation->type());
             }
+            else if (relation->est_fonction()) {
+                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
+            }
         });
 
         return kuri::DecisionIteration::Continue;
