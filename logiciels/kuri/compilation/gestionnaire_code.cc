@@ -533,66 +533,41 @@ static bool epends_dependances_types(GrapheDependance &graphe,
 
     auto &dependances_ependues = donnees_resolution.dependances_ependues;
 
-    /* Indique une nouvelle visite du graphe. */
-    graphe.prepare_visite();
+    /* Rassemble les noeuds de dépendances des dépendances courantes. */
+    auto &noeuds_dependances = donnees_resolution.noeuds_dependances;
 
-    /* Traverse le graphe pour chaque dépendance sur un type. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         if (programme->possede(type)) {
             return kuri::DecisionIteration::Continue;
         }
-
         auto noeud_dependance = graphe.cree_noeud_type(type);
-        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
-            if (relation->est_type()) {
-                dependances_ependues.types_utilises.insere(relation->type());
-            }
-            else if (relation->est_fonction()) {
-                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
-            }
-        });
-
+        noeuds_dependances.ajoute(noeud_dependance);
         return kuri::DecisionIteration::Continue;
     });
-
-    /* Indique une nouvelle visite du graphe. */
-    graphe.prepare_visite();
 
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (programme->possede(fonction)) {
             return kuri::DecisionIteration::Continue;
         }
-
-        dependances_ependues.types_utilises.insere(fonction->type);
-
         auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
-        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
-            if (relation->est_fonction()) {
-                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
-            }
-            else if (relation->est_globale()) {
-                dependances_ependues.globales_utilisees.insere(relation->globale());
-            }
-            else if (relation->est_type()) {
-                dependances_ependues.types_utilises.insere(relation->type());
-            }
-        });
+        noeuds_dependances.ajoute(noeud_dependance);
+        return kuri::DecisionIteration::Continue;
+    });
 
+    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
+        if (programme->possede(globale)) {
+            return kuri::DecisionIteration::Continue;
+        }
+        auto noeud_dependance = graphe.cree_noeud_globale(globale);
+        noeuds_dependances.ajoute(noeud_dependance);
         return kuri::DecisionIteration::Continue;
     });
 
     /* Indique une nouvelle visite du graphe. */
     graphe.prepare_visite();
 
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        if (programme->possede(globale)) {
-            return kuri::DecisionIteration::Continue;
-        }
-
-        dependances_ependues.types_utilises.insere(globale->type);
-
-        auto noeud_dependance = graphe.cree_noeud_globale(globale);
-        graphe.traverse(noeud_dependance, [&](NoeudDependance const *relation) {
+    for (auto noeud : noeuds_dependances) {
+        graphe.traverse(noeud, [&](NoeudDependance const *relation) {
             if (relation->est_fonction()) {
                 dependances_ependues.fonctions_utilisees.insere(relation->fonction());
             }
@@ -603,9 +578,7 @@ static bool epends_dependances_types(GrapheDependance &graphe,
                 dependances_ependues.types_utilises.insere(relation->type());
             }
         });
-
-        return kuri::DecisionIteration::Continue;
-    });
+    }
 
     dependances.fusionne(dependances_ependues);
     return true;
