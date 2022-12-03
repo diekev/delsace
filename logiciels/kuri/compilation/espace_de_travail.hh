@@ -38,6 +38,10 @@ struct EspaceDeTravail {
     std::atomic<int> nombre_de_taches[size_t(GenreTache::NOMBRE_ELEMENTS)] = {};
 
     PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
+    /* Identifiant de la phase de compilation. À chaque fois que nous régressons la phase de
+     * compilation, cet identifiant est modifié pour indiquer que la nouvelle phase de compilation
+     * est différente de la dernière fois que nous avons eu cette phase. */
+    int id_phase = 0;
 
   public:
     kuri::chaine nom{};
@@ -92,6 +96,11 @@ struct EspaceDeTravail {
     PhaseCompilation phase_courante() const
     {
         return phase;
+    }
+
+    int id_phase_courante() const
+    {
+        return id_phase;
     }
 
     SiteSource site_source_pour(NoeudExpression const *noeud) const;

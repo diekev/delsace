@@ -57,43 +57,73 @@ bool UniteCompilation::est_bloquee() const
     return toutes_les_unites_attendues_sont_bloquees;
 }
 
+/* Représente la condition pour laquelle l'attente est bloquée. */
+struct ConditionBlocageAttente {
+    PhaseCompilation phase{};
+};
+
+static std::optional<ConditionBlocageAttente> condition_blocage(Attente const &attente)
+{
+    if (attente.est<AttenteSurType>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurSymbole>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurDeclaration>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurOperateur>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
+        return {};
+    }
+
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        return {{PhaseCompilation::PARSAGE_TERMINE}};
+    }
+
+    if (attente.est<AttenteSurMessage>()) {
+        return {};
+    }
+
+    return {};
+}
+
 bool UniteCompilation::attente_est_bloquee() const
 {
-    if (m_attente.est<AttenteSurType>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurSymbole>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurOperateur>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
-
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        /* À FAIRE : vérifie que le métaprogramme est en cours d'exécution ? */
+    auto const condition_potentielle = condition_blocage(m_attente);
+    if (!condition_potentielle.has_value()) {
+        /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
         return false;
     }
 
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        auto p = espace->phase_courante();
-        return p >= PhaseCompilation::PARSAGE_TERMINE && cycle > CYCLES_MAXIMUM;
-    }
+    auto const condition = condition_potentielle.value();
+    auto const phase_espace = espace->phase_courante();
+    auto const id_phase_espace = espace->id_phase_courante();
 
-    if (m_attente.est<AttenteSurMessage>()) {
+    if (id_phase_espace != id_phase_cycle) {
+        /* L'espace a changé de phase, nos cycles sont invalidés. */
+        id_phase_cycle = id_phase_espace;
+        cycle = 0;
         return false;
     }
 
-    return false;
+    if (phase_espace < condition.phase) {
+        /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
+        cycle = 0;
+        return false;
+    }
+
+    /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être satisfaits.
+     */
+    return cycle > CYCLES_MAXIMUM;
 }
 
 kuri::chaine UniteCompilation::commentaire() const
@@ -278,6 +308,29 @@ UniteCompilation *UniteCompilation::unite_attendue() const
     return nullptr;
 }
 
+static void imprime_operateurs_pour(Erreur &e,
+                                    Type &type,
+                                    NoeudExpression const &operateur_attendu)
+{
+    auto &operateurs = type.operateurs.operateurs(operateur_attendu.lexeme->genre);
+
+    if (operateurs.taille() == 0) {
+        e.ajoute_message("\nNOTE : le type ", chaine_type(&type), " n'a aucun opérateur\n");
+    }
+    else {
+        e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
+        POUR (operateurs.plage()) {
+            e.ajoute_message("    ",
+                             chaine_type(it->type1),
+                             " ",
+                             operateur_attendu.lexeme->chaine,
+                             " ",
+                             chaine_type(it->type2),
+                             "\n");
+        }
+    }
+}
+
 void UniteCompilation::rapporte_erreur() const
 {
     if (m_attente.est<AttenteSurSymbole>()) {
@@ -372,6 +425,9 @@ void UniteCompilation::rapporte_erreur() const
                     e.ajoute_message('\n');
                 }
             }
+
+            imprime_operateurs_pour(e, *type1, *operateur_attendu);
+            imprime_operateurs_pour(e, *type2, *operateur_attendu);
 
             e.ajoute_conseil("Si vous voulez performer une opération sur des types "
                              "non-communs, vous pouvez définir vos propres opérateurs avec "
