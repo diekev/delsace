@@ -10,6 +10,7 @@
 
 #include "structures/tableau.hh"
 
+struct Enchaineuse;
 struct IdentifiantCode;
 struct Type;
 
@@ -69,5 +70,6 @@ struct Monomorphisations {
 
     int nombre_items_max() const;
 
-    void imprime(std::ostream &os);
+    void imprime(std::ostream &os) const;
+    void imprime(Enchaineuse &os, int indentations = 0) const;
 };
