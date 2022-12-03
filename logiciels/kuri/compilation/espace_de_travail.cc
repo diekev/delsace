@@ -185,6 +185,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
     }
 
     if (nouvelle_phase != phase) {
+        id_phase += 1;
         change_de_phase(messagere, nouvelle_phase);
     }
 }
@@ -228,7 +229,7 @@ Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &mes
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
     if (nom == nom_espace) {                                                                      \
-        std::cerr << __func__ << " : " << nouvelle_phase << '\n';                                 \
+        std::cerr << __func__ << " : " << nouvelle_phase << ", id " << id_phase << '\n';          \
     }
 
     if (phase == PhaseCompilation::COMPILATION_TERMINEE) {
