@@ -782,7 +782,11 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                     auto valeur = genere_code_pour_atome(
                         transtype_const->valeur, os, pour_globale);
                     return enchaine(
-                        "(", broyeuse.nom_broye_type(transtype_const->type), ")(", valeur, ")");
+                        "(",
+                        broyeuse.nom_broye_type(const_cast<Type *>(transtype_const->type)),
+                        ")(",
+                        valeur,
+                        ")");
                 }
                 case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
                 {
@@ -890,7 +894,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                         }
                         case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                         {
-                            auto type = static_cast<TypeCompose *>(atome->type);
+                            auto type = static_cast<TypeCompose const *>(atome->type);
                             auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
                             auto resultat = Enchaineuse();
 
@@ -942,8 +946,8 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                             }
 
                             auto nom = enchaine("val", atome, index_chaine++);
-                            os << "  " << broyeuse.nom_broye_type(atome->type) << " " << nom
-                               << " = " << resultat.chaine() << ";\n";
+                            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(atome->type))
+                               << " " << nom << " = " << resultat.chaine() << ";\n";
                             return nom;
                         }
                         case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
@@ -1172,7 +1176,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
             auto type_fonction = inst_appel->appele->type->comme_fonction();
             if (!type_fonction->type_sortie->est_rien()) {
                 auto nom_ret = enchaine("__ret", inst->numero);
-                os << broyeuse.nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
+                os << broyeuse.nom_broye_type(const_cast<Type *>(inst_appel->type)) << ' '
+                   << nom_ret << " = ";
                 table_valeurs.insere(inst, nom_ret);
             }
 
@@ -1284,8 +1289,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
             auto inst_un = inst->comme_op_unaire();
             auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
 
-            os << "  " << broyeuse.nom_broye_type(inst_un->type) << " val" << inst->numero
-               << " = ";
+            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(inst_un->type)) << " val"
+               << inst->numero << " = ";
 
             switch (inst_un->op) {
                 case OperateurUnaire::Genre::Positif:
@@ -1330,8 +1335,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
             auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
             auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
 
-            os << "  " << broyeuse.nom_broye_type(inst_bin->type) << " val" << inst->numero
-               << " = ";
+            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(inst_bin->type)) << " val"
+               << inst->numero << " = ";
 
             os << valeur_gauche;
 
@@ -1532,8 +1537,11 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
         {
             auto inst_transtype = inst->comme_transtype();
             auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
-            valeur = enchaine(
-                "((", broyeuse.nom_broye_type(inst_transtype->type), ")(", valeur, "))");
+            valeur = enchaine("((",
+                              broyeuse.nom_broye_type(const_cast<Type *>(inst_transtype->type)),
+                              ")(",
+                              valeur,
+                              "))");
             table_valeurs.insere(inst, valeur);
             break;
         }

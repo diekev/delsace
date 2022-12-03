@@ -181,7 +181,7 @@ auto vers_std_string(dls::vue_chaine_compacte const &chn)
     return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
 
-static bool est_plus_petit(Type *type1, Type *type2)
+static bool est_plus_petit(Type const *type1, Type const *type2)
 {
     return type1->taille_octet < type2->taille_octet;
 }
@@ -319,7 +319,7 @@ struct GeneratriceCodeLLVM {
         "Table labels LLVM"};
     kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
         "Table valeurs globales LLVM"};
-    kuri::table_hachage<Type *, llvm::Type *> table_types{"Table types LLVM"};
+    kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
     kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{
         "Table chaines LLVM"};
     EspaceDeTravail &m_espace;
@@ -335,9 +335,9 @@ struct GeneratriceCodeLLVM {
     GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
     GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
 
-    llvm::Type *converti_type_llvm(Type *type);
+    llvm::Type *converti_type_llvm(Type const *type);
 
-    llvm::FunctionType *converti_type_fonction(TypeFonction *type, bool est_externe);
+    llvm::FunctionType *converti_type_fonction(TypeFonction const *type, bool est_externe);
 
     llvm::Value *genere_code_pour_atome(Atome *atome, bool pour_globale);
 
@@ -353,7 +353,7 @@ GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
 {
 }
 
-llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
+llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 {
     auto type_llvm = table_types.valeur_ou(type, nullptr);
 
@@ -612,7 +612,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto type_enum = static_cast<TypeEnum *>(type);
+            auto type_enum = static_cast<TypeEnum const *>(type);
             type_llvm = converti_type_llvm(type_enum->type_donnees);
             break;
         }
@@ -628,7 +628,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
     return type_llvm;
 }
 
-llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *type,
+llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction const *type,
                                                                 bool est_externe)
 {
     std::vector<llvm::Type *> parametres;
@@ -817,7 +817,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         }
                         case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                         {
-                            auto type = static_cast<TypeCompose *>(atome->type);
+                            auto type = static_cast<TypeCompose const *>(atome->type);
                             auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
 
                             auto tableau_membre = std::vector<llvm::Constant *>();

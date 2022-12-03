@@ -49,7 +49,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type);
 struct TransformationType {
     TypeTransformation type{};
     NoeudDeclarationEnteteFonction const *fonction{};
-    Type *type_cible = nullptr;
+    Type const *type_cible = nullptr;
     long index_membre = 0;
 
     TransformationType() = default;
@@ -58,12 +58,12 @@ struct TransformationType {
     {
     }
 
-    TransformationType(TypeTransformation type_, Type *type_cible_, long index_membre_)
+    TransformationType(TypeTransformation type_, Type const *type_cible_, long index_membre_)
         : type(type_), type_cible(type_cible_), index_membre(index_membre_)
     {
     }
 
-    TransformationType(TypeTransformation type_, Type *type_cible_)
+    TransformationType(TypeTransformation type_, Type const *type_cible_)
         : type(type_), type_cible(type_cible_)
     {
     }
@@ -73,7 +73,7 @@ struct TransformationType {
     {
     }
 
-    TransformationType(NoeudDeclarationEnteteFonction const *fonction_, Type *type_cible_)
+    TransformationType(NoeudDeclarationEnteteFonction const *fonction_, Type const *type_cible_)
         : type(TypeTransformation::FONCTION), fonction(fonction_), type_cible(type_cible_)
     {
     }
@@ -109,12 +109,12 @@ std::ostream &operator<<(std::ostream &os, TransformationType type);
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
 ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type *type_de,
-                                              Type *type_vers);
+                                              Type const *type_de,
+                                              Type const *type_vers);
 
 ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
-                                                               Type *type_de,
-                                                               Type *type_vers);
+                                                               Type const *type_de,
+                                                               Type const *type_vers);
 
 /* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
  * poids d'appariement d'un opérateur ou d'une fonction. */
@@ -127,11 +127,11 @@ using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
 ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type *type_arg,
-                                                  Type *type_enf);
+                                                  Type const *type_arg,
+                                                  Type const *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
 ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type *type_arg,
-                                                  Type *type_enf,
-                                                  NoeudExpression *enfant);
+                                                  Type const *type_arg,
+                                                  Type const *type_enf,
+                                                  NoeudExpression const *enfant);

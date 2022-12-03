@@ -184,8 +184,8 @@ struct Type {
 
     kuri::chaine_statique nom_broye{};
 
-    InfoType *info_type = nullptr;
-    AtomeConstante *atome_info_type = nullptr;
+    mutable InfoType *info_type = nullptr;
+    mutable AtomeConstante *atome_info_type = nullptr;
     NoeudDependance *noeud_dependance = nullptr;
 
     NoeudDeclarationEnteteFonction *fonction_init = nullptr;
@@ -764,7 +764,7 @@ struct Typeuse {
 
 kuri::chaine chaine_type(Type const *type);
 
-Type *type_dereference_pour(Type *type);
+Type *type_dereference_pour(Type const *type);
 
 inline bool est_type_entier(Type const *type)
 {

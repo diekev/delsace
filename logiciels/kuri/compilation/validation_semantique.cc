@@ -4581,7 +4581,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
     }
 
     if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
-        expression->type = transformation.type_cible;
+        expression->type = const_cast<Type *>(transformation.type_cible);
         return;
     }
 
@@ -4629,7 +4629,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
     }
 
     auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
-    noeud_comme->type = type_cible;
+    noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->expression = expression;
     noeud_comme->transformation = tfm;
     noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
