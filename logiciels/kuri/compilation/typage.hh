@@ -552,8 +552,6 @@ inline const TypeCompose *Type::comme_compose() const
 
 /* ************************************************************************** */
 
-void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_statique> &noms);
-
 /**
  * Arbre Trie pour stocker les types de fonctions selon les types d'entrée et de sortie.
  *

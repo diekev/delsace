@@ -1470,41 +1470,6 @@ Type *type_dereference_pour(Type const *type)
     return nullptr;
 }
 
-void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_statique> &noms)
-{
-    if (type->genre == GenreType::FONCTION) {
-        auto type_fonction = type->comme_fonction();
-
-        POUR (type_fonction->types_entrees) {
-            if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                rassemble_noms_type_polymorphique(it, noms);
-            }
-        }
-
-        if (type_fonction->type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            rassemble_noms_type_polymorphique(type_fonction->type_sortie, noms);
-        }
-
-        return;
-    }
-
-    if (type->genre == GenreType::TUPLE) {
-        auto type_tuple = type->comme_tuple();
-
-        POUR (type_tuple->membres) {
-            if (it.drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                rassemble_noms_type_polymorphique(it.type, noms);
-            }
-        }
-    }
-
-    while (type->genre != GenreType::POLYMORPHIQUE) {
-        type = type_dereference_pour(type);
-    }
-
-    noms.ajoute(type->comme_polymorphique()->ident->nom);
-}
-
 bool est_type_booleen_implicite(Type *type)
 {
     return dls::outils::est_element(type->genre,
