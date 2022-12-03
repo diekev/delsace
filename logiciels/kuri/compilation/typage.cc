@@ -715,7 +715,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
-    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    membres.ajoute(
+        {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
     membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0});
 
     auto type = types_tableaux_fixes_->ajoute_element(type_pointe, taille, std::move(membres));
@@ -1440,7 +1441,7 @@ kuri::chaine chaine_type(const Type *type)
     return enchaineuse.chaine();
 }
 
-Type *type_dereference_pour(Type *type)
+Type *type_dereference_pour(Type const *type)
 {
     if (type->genre == GenreType::POINTEUR) {
         return type->comme_pointeur()->type_pointe;

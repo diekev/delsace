@@ -224,7 +224,7 @@ struct Compilatrice {
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
 
-    AtomeGlobale *cree_globale(Type *type,
+    AtomeGlobale *cree_globale(const Type *type,
                                AtomeConstante *valeur,
                                bool initialisateur,
                                bool est_constante);

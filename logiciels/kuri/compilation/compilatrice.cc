@@ -619,13 +619,15 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     return atome_fonc;
 }
 
-AtomeGlobale *Compilatrice::cree_globale(Type *type,
+AtomeGlobale *Compilatrice::cree_globale(Type const *type,
                                          AtomeConstante *initialisateur,
                                          bool est_externe,
                                          bool est_constante)
 {
-    return globales.ajoute_element(
-        typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
+    return globales.ajoute_element(typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
+                                   initialisateur,
+                                   est_externe,
+                                   est_constante);
 }
 
 AtomeGlobale *Compilatrice::trouve_globale(NoeudDeclaration *decl)

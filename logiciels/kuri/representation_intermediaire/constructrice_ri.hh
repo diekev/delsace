@@ -100,38 +100,39 @@ struct ConstructriceRI {
     }
 
     InstructionAllocation *cree_allocation(NoeudExpression *site_,
-                                           Type *type,
+                                           Type const *type,
                                            IdentifiantCode *ident,
                                            bool cree_seulement = false);
 
     void rassemble_statistiques(Statistiques &stats);
 
     AtomeConstante *cree_constante_booleenne(bool valeur);
-    AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
-    AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
-    AtomeConstante *cree_constante_type(Type *pointeur_type);
-    AtomeConstante *cree_constante_taille_de(Type *pointeur_type);
+    AtomeConstante *cree_constante_caractere(Type const *type, unsigned long long valeur);
+    AtomeConstante *cree_constante_entiere(Type const *type, unsigned long long valeur);
+    AtomeConstante *cree_constante_type(Type const *pointeur_type);
+    AtomeConstante *cree_constante_taille_de(Type const *pointeur_type);
     AtomeConstante *cree_z32(unsigned long long valeur);
     AtomeConstante *cree_z64(unsigned long long valeur);
-    AtomeConstante *cree_constante_nulle(Type *type);
-    AtomeConstante *cree_constante_reelle(Type *type, double valeur);
-    AtomeConstante *cree_constante_structure(Type *type,
+    AtomeConstante *cree_constante_nulle(Type const *type);
+    AtomeConstante *cree_constante_reelle(Type const *type, double valeur);
+    AtomeConstante *cree_constante_structure(Type const *type,
                                              kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *cree_constante_tableau_fixe(Type *type,
+    AtomeConstante *cree_constante_tableau_fixe(Type const *type,
                                                 kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *cree_constante_tableau_donnees_constantes(
-        Type *type, kuri::tableau<char> &&donnees_constantes);
-    AtomeConstante *cree_constante_tableau_donnees_constantes(Type *type,
+        Type const *type, kuri::tableau<char> &&donnees_constantes);
+    AtomeConstante *cree_constante_tableau_donnees_constantes(Type const *type,
                                                               char *pointeur,
                                                               long taille);
-    AtomeGlobale *cree_globale(Type *type,
+    AtomeGlobale *cree_globale(Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
                                bool est_constante);
-    AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstante *cree_tableau_global(Type const *type,
+                                        kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
     AtomeConstante *cree_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
-                                                       TypeTableauFixe *type_tableau_fixe);
+                                                       TypeTableauFixe const *type_tableau_fixe);
 
     InstructionBranche *cree_branche(NoeudExpression *site_,
                                      InstructionLabel *label,
@@ -158,11 +159,11 @@ struct ConstructriceRI {
                                  kuri::tableau<Atome *, int> &&args);
 
     InstructionOpUnaire *cree_op_unaire(NoeudExpression *site_,
-                                        Type *type,
+                                        Type const *type,
                                         OperateurUnaire::Genre op,
                                         Atome *valeur);
     InstructionOpBinaire *cree_op_binaire(NoeudExpression *site_,
-                                          Type *type,
+                                          Type const *type,
                                           OperateurBinaire::Genre op,
                                           Atome *valeur_gauche,
                                           Atome *valeur_droite);
@@ -179,15 +180,15 @@ struct ConstructriceRI {
     Instruction *cree_reference_membre_et_charge(NoeudExpression *site_, Atome *accede, int index);
 
     InstructionTranstype *cree_transtype(NoeudExpression *site_,
-                                         Type *type,
+                                         Type const *type,
                                          Atome *valeur,
                                          TypeTranstypage op);
 
-    TranstypeConstant *cree_transtype_constant(Type *type, AtomeConstante *valeur);
-    OpUnaireConstant *cree_op_unaire_constant(Type *type,
+    TranstypeConstant *cree_transtype_constant(Type const *type, AtomeConstante *valeur);
+    OpUnaireConstant *cree_op_unaire_constant(Type const *type,
                                               OperateurUnaire::Genre op,
                                               AtomeConstante *valeur);
-    OpBinaireConstant *cree_op_binaire_constant(Type *type,
+    OpBinaireConstant *cree_op_binaire_constant(Type const *type,
                                                 OperateurBinaire::Genre op,
                                                 AtomeConstante *valeur_gauche,
                                                 AtomeConstante *valeur_droite);
@@ -196,7 +197,7 @@ struct ConstructriceRI {
                                                     AtomeConstante *valeur_droite);
     AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
-    AtomeConstante *cree_info_type(Type *type, NoeudExpression *site);
+    AtomeConstante *cree_info_type(Type const *type, NoeudExpression *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
     void genere_ri_pour_initialisation_globales(EspaceDeTravail *espace,
@@ -207,7 +208,7 @@ struct ConstructriceRI {
                                                 const kuri::tableau<AtomeGlobale *> &globales);
 
   private:
-    void cree_appel_fonction_init_type(NoeudExpression *site_, Type *type, Atome *argument);
+    void cree_appel_fonction_init_type(NoeudExpression *site_, Type const *type, Atome *argument);
 
     AtomeFonction *genere_fonction_init_globales_et_appel(
         const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
@@ -222,7 +223,7 @@ struct ConstructriceRI {
     void genere_ri_pour_tente(NoeudInstructionTente *noeud);
     void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
     void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
-    AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
+    AtomeConstante *genere_initialisation_defaut_pour_type(Type const *type);
     void genere_ri_pour_condition(NoeudExpression *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
@@ -241,11 +242,11 @@ struct ConstructriceRI {
 
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             unsigned int index,
-                                            Type *pour_type);
-    AtomeConstante *cree_info_type_defaut(unsigned index, Type *pour_type);
-    AtomeConstante *cree_info_type_entier(Type *pour_type, bool est_relatif);
-    AtomeConstante *cree_info_type_avec_transtype(Type *type, NoeudExpression *site);
-    AtomeConstante *cree_globale_info_type(Type *type_info_type,
+                                            Type const *pour_type);
+    AtomeConstante *cree_info_type_defaut(unsigned index, Type const *pour_type);
+    AtomeConstante *cree_info_type_entier(Type const *pour_type, bool est_relatif);
+    AtomeConstante *cree_info_type_avec_transtype(Type const *type, NoeudExpression *site);
+    AtomeConstante *cree_globale_info_type(Type const *type_info_type,
                                            kuri::tableau<AtomeConstante *> &&valeurs);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
