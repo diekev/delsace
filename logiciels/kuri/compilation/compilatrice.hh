@@ -34,6 +34,10 @@ enum class FormatRapportProfilage : int {
     ECHANTILLONS_TOTAL_POUR_FONCTION,
 };
 
+namespace kuri {
+struct Lexeme;
+}
+
 struct GestionnaireChainesAjoutees {
   private:
     kuri::tableau<kuri::chaine, int> m_chaines{};
@@ -144,6 +148,12 @@ struct Compilatrice {
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
     Broyeuse *broyeuse = nullptr;
+
+    /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
+    kuri::tableau<kuri::tableau<NoeudCodeEnteteFonction *>> m_tableaux_code_fonctions{};
+
+    /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
+    kuri::tableau<kuri::tableau<kuri::Lexeme>> m_tableaux_lexemes{};
 
     /* ********************************************************************** */
 

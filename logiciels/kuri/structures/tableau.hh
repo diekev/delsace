@@ -6,6 +6,8 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
 
+#include "tableau_statique.hh"
+
 namespace kuri {
 
 template <typename T, typename TypeIndex = long>
@@ -301,32 +303,10 @@ struct tableau {
         }
         this->taille_ -= taille_a_effacer;
     }
-};
 
-/* Type pour passer des tableaux aux métaprogrammes. Ce type n'a pas de destructeurs, ou de
- * constructeurs, afin de ne pas tenter de libérer ou corrompre la mémoire. */
-template <typename T>
-struct tableau_statique {
-  private:
-    T *pointeur = nullptr;
-    long taille = 0;
-    long capacite = 0;
-
-    tableau_statique() = default;
-
-  public:
-    static tableau_statique<T> cree(long capacite)
+    operator tableau_statique<T>() const
     {
-        tableau_statique<T> resultat;
-        memoire::reloge_tableau("tableau_statique", resultat.pointeur, 0, capacite);
-        resultat.capacite = capacite;
-        return resultat;
-    }
-
-    void ajoute(T valeur)
-    {
-        assert(capacite >= taille + 1);
-        pointeur[taille++] = valeur;
+        return {pointeur, taille()};
     }
 };
 
