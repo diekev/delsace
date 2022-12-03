@@ -181,11 +181,6 @@ auto vers_std_string(dls::vue_chaine_compacte const &chn)
     return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
 
-static bool est_plus_petit(Type const *type1, Type const *type2)
-{
-    return type1->taille_octet < type2->taille_octet;
-}
-
 static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 {
     using Genre = OperateurBinaire::Genre;
@@ -309,6 +304,45 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
     }
 
     return static_cast<llvm::CmpInst::Predicate>(0);
+}
+
+static auto convertis_type_transtypage(TypeTranstypage const transtypage,
+                                       Type const *type_de,
+                                       Type const *type_vers)
+{
+    using CastOps = llvm::Instruction::CastOps;
+    switch (transtypage) {
+        case TypeTranstypage::AUGMENTE_NATUREL:
+            return CastOps::ZExt;
+        case TypeTranstypage::AUGMENTE_RELATIF:
+            return CastOps::SExt;
+        case TypeTranstypage::AUGMENTE_REEL:
+            return CastOps::FPExt;
+        case TypeTranstypage::DIMINUE_NATUREL:
+        case TypeTranstypage::DIMINUE_RELATIF:
+            return CastOps::Trunc;
+        case TypeTranstypage::DIMINUE_REEL:
+            return CastOps::FPTrunc;
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+            return CastOps::PtrToInt;
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+            return CastOps::IntToPtr;
+        case TypeTranstypage::REEL_VERS_ENTIER:
+            if (type_vers->est_entier_naturel()) {
+                return CastOps::FPToUI;
+            }
+            return CastOps::FPToSI;
+        case TypeTranstypage::ENTIER_VERS_REEL:
+            if (type_de->est_entier_naturel()) {
+                return CastOps::UIToFP;
+            }
+            return CastOps::SIToFP;
+        case TypeTranstypage::DEFAUT:
+        case TypeTranstypage::BITS:
+            return CastOps::BitCast;
+    }
+
+    return static_cast<CastOps>(0);
 }
 
 /* ************************************************************************** */
@@ -1248,73 +1282,19 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         }
         case Instruction::Genre::TRANSTYPE:
         {
-            using CastOps = llvm::Instruction::CastOps;
-
-            auto inst_transtype = inst->comme_transtype();
-            auto valeur = genere_code_pour_atome(inst_transtype->valeur, false);
-            auto type_de = inst_transtype->valeur->type;
-            auto type_vers = inst_transtype->type;
-            auto type_llvm = converti_type_llvm(type_vers);
-            auto resultat = static_cast<llvm::Value *>(nullptr);
-
-            if (est_type_entier(type_de) || type_de->genre == GenreType::ENTIER_CONSTANT) {
-                if (type_vers->genre == GenreType::POINTEUR) {
-                    resultat = m_builder.CreateCast(CastOps::IntToPtr, valeur, type_llvm);
-                }
-                else if (type_vers->genre == GenreType::REEL) {
-                    if (type_de->genre == GenreType::ENTIER_NATUREL) {
-                        resultat = m_builder.CreateCast(CastOps::UIToFP, valeur, type_llvm);
-                    }
-
-                    resultat = m_builder.CreateCast(CastOps::SIToFP, valeur, type_llvm);
-                }
-                else if (est_type_entier(type_vers)) {
-                    if (est_plus_petit(type_vers, type_de)) {
-                        resultat = m_builder.CreateCast(CastOps::Trunc, valeur, type_llvm);
-                    }
-                    else if (type_vers->taille_octet == type_de->taille_octet) {
-                        resultat = valeur;
-                    }
-                    else if (type_vers->genre == GenreType::ENTIER_NATUREL) {
-                        resultat = m_builder.CreateCast(CastOps::ZExt, valeur, type_llvm);
-                    }
-                    else {
-                        resultat = m_builder.CreateCast(CastOps::SExt, valeur, type_llvm);
-                    }
-                }
-                else if (type_vers->est_enum()) {
-                    resultat = m_builder.CreateCast(CastOps::BitCast, valeur, type_llvm);
-                }
-            }
-            else if (type_de->genre == GenreType::REEL) {
-                if (type_vers->genre == GenreType::ENTIER_NATUREL) {
-                    resultat = m_builder.CreateCast(CastOps::FPToUI, valeur, type_llvm);
-                }
-                else if (type_vers->genre == GenreType::ENTIER_RELATIF) {
-                    resultat = m_builder.CreateCast(CastOps::FPToSI, valeur, type_llvm);
-                }
-                else if (type_vers->genre == GenreType::REEL) {
-                    if (est_plus_petit(type_vers, type_de)) {
-                        resultat = m_builder.CreateCast(CastOps::FPTrunc, valeur, type_llvm);
-                    }
-                    else {
-                        resultat = m_builder.CreateCast(CastOps::FPExt, valeur, type_llvm);
-                    }
-                }
-            }
-            else if (type_de->genre == GenreType::POINTEUR && est_type_entier(type_vers)) {
-                resultat = m_builder.CreateCast(CastOps::PtrToInt, valeur, type_llvm);
-            }
-            else {
-                resultat = m_builder.CreateCast(CastOps::BitCast, valeur, type_llvm);
-            }
-
+            auto const inst_transtype = inst->comme_transtype();
+            auto const valeur = genere_code_pour_atome(inst_transtype->valeur, false);
+            auto const type_de = inst_transtype->valeur->type;
+            auto const type_vers = inst_transtype->type;
+            auto const type_llvm = converti_type_llvm(type_vers);
+            auto const cast_op = convertis_type_transtypage(
+                inst_transtype->op, type_de, type_vers);
+            auto const resultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
             table_valeurs.insere(inst, resultat);
             assert_rappel(!adresse_est_nulle(resultat), [&]() {
                 erreur::imprime_site(m_espace, inst_transtype->site);
                 imprime_atome(inst_transtype->valeur, std::cerr);
             });
-
             break;
         }
     }
