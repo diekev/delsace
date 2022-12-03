@@ -415,10 +415,10 @@ EspaceDeTravail *Compilatrice::espace_defaut_compilation()
     return espace_de_travail_defaut;
 }
 
-static kuri::tableau_statique<kuri::Lexeme> converti_tableau_lexemes(
+static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(
     kuri::tableau<Lexeme, int> const &lexemes)
 {
-    auto resultat = kuri::tableau_statique<kuri::Lexeme>::cree(lexemes.taille());
+    auto resultat = kuri::tableau<kuri::Lexeme>(lexemes.taille());
     POUR (lexemes) {
         resultat.ajoute({static_cast<int>(it.genre), it.chaine});
     }
@@ -431,7 +431,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
 {
     auto opt_chemin = determine_chemin_absolu(espace, chemin_donne, site);
     if (!opt_chemin.has_value()) {
-        return converti_tableau_lexemes({});
+        return {nullptr, 0};
     }
 
     auto chemin_absolu = opt_chemin.value();
@@ -443,7 +443,9 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
 
     if (resultat.est<FichierExistant>()) {
         auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
-        return converti_tableau_lexemes(donnees_fichier->lexemes);
+        auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
+        m_tableaux_lexemes.ajoute(tableau);
+        return m_tableaux_lexemes.derniere();
     }
 
     auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
@@ -454,14 +456,17 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
         contexte_lexage(espace), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    return converti_tableau_lexemes(donnees_fichier->lexemes);
+    auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
+    m_tableaux_lexemes.ajoute(tableau);
+    return m_tableaux_lexemes.derniere();
 }
 
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
     EspaceDeTravail *espace)
 {
     auto entetes = gestionnaire_code->fonctions_parsees();
-    auto resultat = kuri::tableau_statique<NoeudCodeEnteteFonction *>::cree(entetes.taille());
+    auto resultat = kuri::tableau<NoeudCodeEnteteFonction *>();
+    resultat.reserve(entetes.taille());
     POUR (entetes) {
         if (it->est_operateur || it->est_coroutine || it->est_polymorphe) {
             continue;
@@ -469,7 +474,8 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
         auto code_entete = convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, it);
         resultat.ajoute(code_entete->comme_entete_fonction());
     }
-    return resultat;
+    m_tableaux_code_fonctions.ajoute(resultat);
+    return m_tableaux_code_fonctions.derniere();
 }
 
 Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,
@@ -619,13 +625,15 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     return atome_fonc;
 }
 
-AtomeGlobale *Compilatrice::cree_globale(Type *type,
+AtomeGlobale *Compilatrice::cree_globale(Type const *type,
                                          AtomeConstante *initialisateur,
                                          bool est_externe,
                                          bool est_constante)
 {
-    return globales.ajoute_element(
-        typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
+    return globales.ajoute_element(typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
+                                   initialisateur,
+                                   est_externe,
+                                   est_constante);
 }
 
 AtomeGlobale *Compilatrice::trouve_globale(NoeudDeclaration *decl)

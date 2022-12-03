@@ -571,8 +571,8 @@ static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
     auto type_utilises = cree_ensemble(repr_inter.types);
 
     VisiteuseType visiteuse{};
-    auto ajoute_type_si_necessaire = [&](Type *type_racine) {
-        visiteuse.visite_type(type_racine, [&](Type *type) {
+    auto ajoute_type_si_necessaire = [&](Type const *type_racine) {
+        visiteuse.visite_type(const_cast<Type *>(type_racine), [&](Type *type) {
             if (type_utilises.possede(type)) {
                 return;
             }
