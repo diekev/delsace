@@ -80,7 +80,20 @@ int Monomorphisations::nombre_items_max() const
     return n;
 }
 
-void Monomorphisations::imprime(std::ostream &os)
+void Monomorphisations::imprime(std::ostream &os) const
+{
+    Enchaineuse enchaineuse;
+    imprime(enchaineuse);
+    os << enchaineuse.chaine();
+}
+
+static kuri::chaine_statique chaine_indentations(int indentations)
+{
+    static std::string chaine = std::string(1024, '\t');
+    return {chaine.c_str(), static_cast<long>(indentations)};
+}
+
+void Monomorphisations::imprime(Enchaineuse &os, int indentations) const
 {
     auto monomorphisations_ = monomorphisations.verrou_lecture();
     if (monomorphisations_->taille() == 0) {
@@ -88,12 +101,23 @@ void Monomorphisations::imprime(std::ostream &os)
         return;
     }
 
-    os << "Les monomophisations sont :\n";
-    POUR (*monomorphisations_) {
-        os << "-- :\n";
+    auto nombre_monomorphisations = monomorphisations_->taille();
 
+    if (nombre_monomorphisations) {
+        os << chaine_indentations(indentations) << "Une monomorphisation connue :\n";
+    }
+    else {
+        os << chaine_indentations(indentations) << "Les monomorphisations connues sont :\n";
+    }
+
+    POUR (*monomorphisations_) {
         for (auto i = 0; i < it.premier.taille(); ++i) {
-            os << "  -- " << it.premier[i] << '\n';
+            os << chaine_indentations(indentations + 1) << it.premier[i] << '\n';
+        }
+
+        nombre_monomorphisations--;
+        if (nombre_monomorphisations) {
+            os << chaine_indentations(indentations + 1) << "-------------------\n";
         }
     }
 }

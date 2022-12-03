@@ -34,6 +34,10 @@ enum class FormatRapportProfilage : int {
     ECHANTILLONS_TOTAL_POUR_FONCTION,
 };
 
+namespace kuri {
+struct Lexeme;
+}
+
 struct GestionnaireChainesAjoutees {
   private:
     kuri::tableau<kuri::chaine, int> m_chaines{};
@@ -145,6 +149,12 @@ struct Compilatrice {
 
     Broyeuse *broyeuse = nullptr;
 
+    /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
+    kuri::tableau<kuri::tableau<NoeudCodeEnteteFonction *>> m_tableaux_code_fonctions{};
+
+    /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
+    kuri::tableau<kuri::tableau<kuri::Lexeme>> m_tableaux_lexemes{};
+
     /* ********************************************************************** */
 
     Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_);
@@ -224,7 +234,7 @@ struct Compilatrice {
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
 
-    AtomeGlobale *cree_globale(Type *type,
+    AtomeGlobale *cree_globale(const Type *type,
                                AtomeConstante *valeur,
                                bool initialisateur,
                                bool est_constante);

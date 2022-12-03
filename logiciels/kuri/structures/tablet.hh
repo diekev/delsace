@@ -506,6 +506,11 @@ class tablet {
         m_taille -= 1;
     }
 
+    operator tableau_statique<T>() const
+    {
+        return {m_memoire, taille()};
+    }
+
   private:
     void garantie_capacite(long cap)
     {

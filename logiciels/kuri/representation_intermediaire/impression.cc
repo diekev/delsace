@@ -229,7 +229,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                     }
                     case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                     {
-                        auto type = static_cast<TypeCompose *>(atome->type);
+                        auto type = static_cast<TypeCompose const *>(atome->type);
                         auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
 
                         auto virgule = "{ ";

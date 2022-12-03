@@ -27,7 +27,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type)
     return os;
 }
 
-static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
+static bool est_type_de_base(TypeStructure const *type_de, TypeStructure const *type_vers)
 {
     POUR (type_de->types_employes) {
         if (it == type_vers) {
@@ -44,7 +44,7 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
     return false;
 }
 
-static bool est_type_de_base(Type *type_de, Type *type_vers)
+static bool est_type_de_base(Type const *type_de, Type const *type_vers)
 {
     if (type_de->est_structure() && type_vers->est_structure()) {
         return est_type_de_base(type_de->comme_structure(), type_vers->comme_structure());
@@ -70,13 +70,13 @@ using AucunMembre = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 
 using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, AucunMembre>;
 
-static bool est_type_pointeur_nul(Type *type)
+static bool est_type_pointeur_nul(Type const *type)
 {
     return type->est_pointeur() && type->comme_pointeur()->type_pointe == nullptr;
 }
 
-static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose *type,
-                                                                          Type *type_a_tester)
+static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
+    TypeCompose const *type, Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
     int index_membre = -1;
@@ -149,8 +149,8 @@ static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCo
  */
 template <bool POUR_TRANSTYPAGE>
 ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type *type_de,
-                                              Type *type_vers)
+                                              Type const *type_de,
+                                              Type const *type_vers)
 {
     if (type_de == type_vers) {
         return TypeTransformation::INUTILE;
@@ -206,7 +206,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         }
 
         if (type_de->genre == GenreType::ENUM) {
-            if (type_vers == static_cast<TypeEnum *>(type_de)->type_donnees) {
+            if (type_vers == static_cast<TypeEnum const *>(type_de)->type_donnees) {
                 // on pourrait se passer de la conversion, ou normaliser le type
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
@@ -220,7 +220,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         }
 
         if (type_vers->genre == GenreType::ENUM &&
-            static_cast<TypeEnum *>(type_vers)->type_donnees == type_de) {
+            static_cast<TypeEnum const *>(type_vers)->type_donnees == type_de) {
             // on pourrait se passer de la conversion, ou normaliser le type
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
@@ -587,22 +587,22 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
 }
 
 ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type *type_de,
-                                              Type *type_vers)
+                                              Type const *type_de,
+                                              Type const *type_vers)
 {
     return cherche_transformation<false>(compilatrice, type_de, type_vers);
 }
 
 ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
-                                                               Type *type_de,
-                                                               Type *type_vers)
+                                                               Type const *type_de,
+                                                               Type const *type_vers)
 {
     return cherche_transformation<true>(compilatrice, type_de, type_vers);
 }
 
 ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type *type_arg,
-                                                  Type *type_enf)
+                                                  Type const *type_arg,
+                                                  Type const *type_enf)
 {
     auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
 
@@ -632,9 +632,9 @@ ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
 }
 
 ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type *type_arg,
-                                                  Type *type_enf,
-                                                  NoeudExpression *enfant)
+                                                  Type const *type_arg,
+                                                  Type const *type_enf,
+                                                  NoeudExpression const *enfant)
 {
     auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
 

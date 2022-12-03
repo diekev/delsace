@@ -198,7 +198,7 @@ struct PatchLabel {
 
 struct Locale {
     IdentifiantCode *ident = nullptr;
-    Type *type = nullptr;
+    Type const *type = nullptr;
     int adresse = 0;
 };
 
@@ -245,15 +245,15 @@ struct Chunk {
 
     void agrandis_si_necessaire(long taille);
 
-    int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
+    int emets_allocation(NoeudExpression *site, Type const *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,
                            NoeudExpression *site,
-                           Type *type,
+                           Type const *type,
                            bool ajoute_verification);
-    void emets_charge(NoeudExpression *site, Type *type, bool ajoute_verification);
+    void emets_charge(NoeudExpression *site, Type const *type, bool ajoute_verification);
     void emets_charge_variable(NoeudExpression *site,
                                int pointeur,
-                               Type *type,
+                               Type const *type,
                                bool ajoute_verification);
     void emets_reference_globale(NoeudExpression *site, int pointeur);
     void emets_reference_variable(NoeudExpression *site, int pointeur);
@@ -272,7 +272,7 @@ struct Chunk {
                               unsigned taille_arguments,
                               InstructionAppel *inst_appel,
                               bool ajoute_verification);
-    void emets_acces_index(NoeudExpression *site, Type *type);
+    void emets_acces_index(NoeudExpression *site, Type const *type);
 
     void emets_branche(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index);
     void emets_branche_condition(NoeudExpression *site,
@@ -282,11 +282,13 @@ struct Chunk {
 
     void emets_label(NoeudExpression *site, int index);
 
-    void emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type);
+    void emets_operation_unaire(NoeudExpression *site,
+                                OperateurUnaire::Genre op,
+                                Type const *type);
     void emets_operation_binaire(NoeudExpression *site,
                                  OperateurBinaire::Genre op,
-                                 Type *type_gauche,
-                                 Type *type_droite);
+                                 Type const *type_gauche,
+                                 Type const *type_droite);
 };
 
 void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
@@ -294,7 +296,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
-    Type *type = nullptr;
+    Type const *type = nullptr;
     int adresse = 0;
     void *adresse_pour_execution = nullptr;
 };
@@ -358,4 +360,4 @@ class ConvertisseuseRI {
     ContexteGenerationCodeBinaire contexte() const;
 };
 
-ffi_type *converti_type_ffi(Type *type);
+ffi_type *converti_type_ffi(Type const *type);
