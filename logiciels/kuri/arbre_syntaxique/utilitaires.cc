@@ -3906,7 +3906,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                     transtype->transformation = TransformationType{
                         TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                         typeuse.type_pointeur_pour(type_le_plus_grand)};
-                    transtype->type = transtype->transformation.type_cible;
+                    transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
                     auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
                     deref->expression = transtype;

@@ -178,9 +178,9 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
          * RI. À FAIRE: généralise pour toutes les variables. */
         if (transformation.type_cible) {
             auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
-                transformation.type_cible, false, false);
+                const_cast<Type *>(transformation.type_cible), false, false);
             ajoute_type(type_pointeur);
-            ajoute_type(transformation.type_cible);
+            ajoute_type(const_cast<Type *>(transformation.type_cible));
         }
     };
 
@@ -895,7 +895,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
     auto espace = unite_attendante->espace;
 
     if (attente.est<AttenteSurType>()) {
-        Type *type = attente.type();
+        Type *type = const_cast<Type *>(attente.type());
         auto decl = decl_pour_type(type);
         if (decl && decl->unite == nullptr) {
             requiers_typage(espace, decl);

@@ -68,11 +68,11 @@ void Chunk::agrandis_si_necessaire(long taille)
     }
 }
 
-int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident)
+int Chunk::emets_allocation(NoeudExpression *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
     if (type->genre == GenreType::ENTIER_CONSTANT) {
-        type->taille_octet = 4;
+        const_cast<Type *>(type)->taille_octet = 4;
     }
     assert(type->taille_octet);
     emets(OP_ALLOUE);
@@ -87,7 +87,7 @@ int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *
 
 void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
                               NoeudExpression *site,
-                              Type *type,
+                              Type const *type,
                               bool ajoute_verification)
 {
 #ifndef CMAKE_BUILD_TYPE_PROFILE
@@ -120,7 +120,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge(NoeudExpression *site, Type *type, bool ajoute_verification)
+void Chunk::emets_charge(NoeudExpression *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
 
@@ -137,7 +137,7 @@ void Chunk::emets_charge(NoeudExpression *site, Type *type, bool ajoute_verifica
 
 void Chunk::emets_charge_variable(NoeudExpression *site,
                                   int pointeur,
-                                  Type *type,
+                                  Type const *type,
                                   bool ajoute_verification)
 {
     assert(type->taille_octet);
@@ -223,7 +223,7 @@ void Chunk::emets_appel_pointeur(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_acces_index(NoeudExpression *site, Type *type)
+void Chunk::emets_acces_index(NoeudExpression *site, Type const *type)
 {
     assert(type->taille_octet);
     emets(OP_ACCEDE_INDEX);
@@ -278,7 +278,9 @@ void Chunk::emets_label(NoeudExpression *site, int index)
     emets(index);
 }
 
-void Chunk::emets_operation_unaire(NoeudExpression *site, OperateurUnaire::Genre op, Type *type)
+void Chunk::emets_operation_unaire(NoeudExpression *site,
+                                   OperateurUnaire::Genre op,
+                                   Type const *type)
 {
     if (op == OperateurUnaire::Genre::Complement) {
         if (type->genre == GenreType::REEL) {
@@ -450,8 +452,8 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 
 void Chunk::emets_operation_binaire(NoeudExpression *site,
                                     OperateurBinaire::Genre op,
-                                    Type *type_gauche,
-                                    Type *type_droite)
+                                    Type const *type_gauche,
+                                    Type const *type_droite)
 {
     auto op_comp = converti_op_binaire(op);
     emets(op_comp);
@@ -712,7 +714,7 @@ void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os
     }
 }
 
-ffi_type *converti_type_ffi(Type *type)
+ffi_type *converti_type_ffi(Type const *type)
 {
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
@@ -850,7 +852,7 @@ ffi_type *converti_type_ffi(Type *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            return converti_type_ffi(static_cast<TypeEnum *>(type)->type_donnees);
+            return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_donnees);
         }
         case GenreType::TYPE_DE_DONNEES:
         {
@@ -1297,7 +1299,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
     }
 }
 
-static Type *type_entier_sous_jacent(Typeuse &typeuse, Type *type)
+static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
 {
     if (type->est_entier_constant()) {
         return typeuse[TypeBase::Z32];
@@ -1474,7 +1476,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
                         }
                     }
                     else {
-                        auto type_compose = static_cast<TypeCompose *>(type);
+                        auto type_compose = static_cast<TypeCompose const *>(type);
 
                         auto index_membre = 0;
                         for (auto i = 0; i < type_compose->membres.taille(); ++i) {
@@ -1665,7 +1667,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 }
                 case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
                 {
-                    auto type = static_cast<TypeCompose *>(constante->type);
+                    auto type = static_cast<TypeCompose const *>(constante->type);
                     auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
 
                     auto index_membre = 0;

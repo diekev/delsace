@@ -37,7 +37,7 @@ struct FichierAParser {
     Fichier *fichier;
 };
 
-using AttenteSurType = AttenteSur<Type *>;
+using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurInterfaceKuri = AttenteSur<IdentifiantCode *>;
 using AttenteSurMetaProgramme = AttenteSur<MetaProgramme *>;
 using AttenteSurDeclaration = AttenteSur<NoeudDeclaration *>;
@@ -98,7 +98,7 @@ struct Attente {
         return AttenteSurParsage{FichierAParser{fichier}};
     }
 
-    static Attente sur_type(Type *type)
+    static Attente sur_type(Type const *type)
     {
         assert(type);
         return AttenteSurType{type};
@@ -169,7 +169,7 @@ struct Attente {
 
     /* Accès. */
 
-    Type *type() const
+    Type const *type() const
     {
         assert(est<AttenteSurType>());
         return std::get<AttenteSurType>(attente).valeur;

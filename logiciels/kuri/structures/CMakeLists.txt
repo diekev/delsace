@@ -47,6 +47,7 @@ set(SOURCES
     tablet.cc
     tableau.cc
     tableau_compresse.cc
+    tableau_statique.cc
 
     chaine.hh
     chaine_statique.hh
@@ -63,6 +64,7 @@ set(SOURCES
     tablet.hh
     tableau.hh
     tableau_compresse.hh
+    tableau_statique.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
