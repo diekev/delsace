@@ -641,6 +641,18 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
 
     if (type->type_pointeur) {
+        auto resultat = type->type_pointeur;
+        /* À FAIRE : meilleure structure pour stocker les opérateurs de bases.
+         * L'optimisation de l'ajout d'opérateur peut nous faire échouer la compilation si le type
+         * fut d'abord créé dans la RI, mais que nous avons besoin des opérateurs pour la
+         * validation sémantique plus tard. */
+        if ((resultat->drapeaux & TYPE_POSSEDE_OPERATEURS_DE_BASE) == 0) {
+            if (ajoute_operateurs) {
+                operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
+            }
+            resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
+        }
+
         return type->type_pointeur;
     }
 
