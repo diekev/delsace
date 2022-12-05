@@ -37,7 +37,7 @@ struct tableau_statique {
         return pointeur + taille();
     }
 
-    T const &operator[](long i)
+    T const &operator[](long i) const
     {
         return pointeur[i];
     }
