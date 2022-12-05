@@ -11,6 +11,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "transformation_type.hh"
 #include "validation_semantique.hh"  // pour ResultatValidation
@@ -54,7 +55,7 @@ enum {
     MULTIPLE_EXPANSIONS_VARIADIQUES,
     EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
     ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
-    IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE,
+    MONOMORPHISATION,
 };
 
 enum {
@@ -87,7 +88,7 @@ struct ErreurAppariement {
     NoeudExpression const *site_erreur = nullptr;
     NoeudDeclaration *noeud_decl = nullptr;
 
-    const IdentifiantCode *ident_poly_manquant = nullptr;
+    ErreurMonomorphisation erreur_monomorphisation = {};
 
     struct NombreArguments {
         long int nombre_obtenu = 0;
@@ -119,11 +120,11 @@ struct ErreurAppariement {
         return erreur;
     }
 
-    static ErreurAppariement definition_type_polymorphique_impossible(NoeudExpression const *site,
-                                                                      const IdentifiantCode *ident)
+    static ErreurAppariement monomorphisation(NoeudExpression *site,
+                                              ErreurMonomorphisation erreur_monomorphisation)
     {
-        auto erreur = cree_erreur(IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE, site);
-        erreur.ident_poly_manquant = ident;
+        auto erreur = cree_erreur(MONOMORPHISATION, site);
+        erreur.erreur_monomorphisation = erreur_monomorphisation;
         return erreur;
     }
 
