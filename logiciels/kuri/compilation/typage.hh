@@ -483,7 +483,6 @@ struct TypePolymorphique : public Type {
 
     bool est_structure_poly = false;
     NoeudStruct *structure = nullptr;
-    kuri::tableau<Type *, int> types_constants_structure{};
 };
 
 struct TypeOpaque : public Type {
