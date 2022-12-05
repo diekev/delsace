@@ -69,6 +69,7 @@ set(SOURCES
     log.hh
     messagere.hh
     metaprogramme.hh
+    monomorpheuse.hh
     monomorphisations.hh
     operateurs.hh
     programme.hh
@@ -101,6 +102,7 @@ set(SOURCES
     log.cc
     messagere.cc
     metaprogramme.cc
+    monomorpheuse.cc
     monomorphisations.cc
     operateurs.cc
     programme.cc

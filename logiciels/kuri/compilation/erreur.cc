@@ -17,6 +17,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "monomorpheuse.hh"
 #include "validation_semantique.hh"
 
 namespace erreur {
@@ -258,11 +259,6 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     e.ajoute_message("\t\t", ident->nom, '\n');
                 }
             }
-            else if (dc.raison == IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE) {
-                e.ajoute_message("\tImpossible de définir le type polymorphique ",
-                                 dc.ident_poly_manquant->nom,
-                                 '\n');
-            }
             else if (dc.raison == METYPAGE_ARG) {
                 e.ajoute_message("\tLe type de l'argument '",
                                  chaine_expression(espace, dc.site_erreur),
@@ -272,6 +268,9 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                 e.ajoute_message(
                     "\tObtenu   : ", chaine_type(dc.type_arguments.type_obtenu), '\n');
                 e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
+            }
+            else if (dc.raison == MONOMORPHISATION) {
+                e.ajoute_message(dc.erreur_monomorphisation.message());
             }
         }
     }

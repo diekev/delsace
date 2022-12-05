@@ -13,417 +13,12 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
 #include "validation_semantique.hh"
 
 using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
-
-struct Monomorpheuse {
-    kuri::tablet<ItemMonomorphisation, 6> items{};
-
-    using paire_type = dls::paire<Type *, Type *>;
-    kuri::tablet<paire_type, 6> paires_types{};
-
-    // mise en cache des types structures polymorphiques et de leurs monomorphisations passées
-    kuri::tablet<paire_type, 6> table_structures{};
-
-    ErreurAppariement erreur{};
-
-    EspaceDeTravail &m_espace;
-
-    Monomorpheuse(EspaceDeTravail &espace, NoeudBloc *bloc_constantes) : m_espace(espace)
-    {
-        bloc_constantes->membres.avec_verrou_lecture(
-            [&](const kuri::tableau<NoeudDeclaration *, int> &membres) {
-                POUR (membres) {
-                    ajoute_item(it->ident);
-                }
-            });
-    }
-
-    void ajoute_item(IdentifiantCode *ident)
-    {
-        auto item = item_pour_ident(ident);
-        if (item) {
-            return;
-        }
-        /* Par défaut, nous considérons que l'item est pour un type, et non une valeur, car le code
-         * fut d'abord écris pour les types. Il faudra sans doute revoir le système. */
-        items.ajoute({ident, nullptr, {}, true});
-    }
-
-    bool ajoute_contrainte(IdentifiantCode *ident,
-                           Type *type_contrainte,
-                           Type *type_donne,
-                           NoeudExpression *expr)
-    {
-        auto item = item_pour_ident(ident);
-        if (!item) {
-            return false;
-        }
-
-        /* Cas pour un type de données ($T: type_de_données). */
-        if (type_contrainte->est_type_de_donnees()) {
-            if (!type_donne->est_type_de_donnees()) {
-                return false;
-            }
-
-            auto type = type_donne->comme_type_de_donnees()->type_connu;
-            if (!type) {
-                return false;
-            }
-
-            item->type = type_donne;
-            item->est_type = true;
-            return true;
-        }
-
-        /* Cas pour une constante typée ($N: z32). */
-        item->est_type = false;
-
-        if (type_contrainte->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            if (!ajoute_paire_types(type_contrainte, type_donne)) {
-                return false;
-            }
-
-            /* À FAIRE: apparie_type doit pouvoir gérer les fonctions. */
-            item->type = type_donne;
-        }
-        else {
-            if (!(type_contrainte == type_donne ||
-                  (type_donne->est_entier_constant() && est_type_entier(type_contrainte)))) {
-                return false;
-            }
-
-            item->type = type_contrainte;
-        }
-
-        auto valeur = evalue_expression(m_espace.compilatrice(), expr->bloc_parent, expr);
-        if (valeur.est_errone) {
-            m_espace.rapporte_erreur(expr, "La valeur n'est pas constante");
-            return false;
-        }
-
-        item->valeur = valeur.valeur;
-        return true;
-    }
-
-    ItemMonomorphisation *item_pour_ident(IdentifiantCode const *ident)
-    {
-        POUR (items) {
-            if (it.ident != ident) {
-                continue;
-            }
-
-            return &it;
-        }
-
-        return nullptr;
-    }
-
-    bool ajoute_paire_types(Type *type_poly, Type *type_cible)
-    {
-        // enlève les références
-        if (type_poly->est_reference()) {
-            type_poly = type_poly->comme_reference()->type_pointe;
-        }
-
-        if (type_cible->est_reference()) {
-            type_cible = type_cible->comme_reference()->type_pointe;
-        }
-
-        // si nous avons des fonctions, ajoute ici les paires pour chaque type polymorphique
-        if (type_poly->est_fonction() && type_cible->est_fonction()) {
-            auto type_poly_fonction = type_poly->comme_fonction();
-            auto type_cible_fonction = type_cible->comme_fonction();
-
-            if (type_poly_fonction->types_entrees.taille() !=
-                type_cible_fonction->types_entrees.taille()) {
-                return false;
-            }
-
-            for (auto i = 0; i < type_poly_fonction->types_entrees.taille(); ++i) {
-                if (type_poly_fonction->types_entrees[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    if (!ajoute_paire_types(type_poly_fonction->types_entrees[i],
-                                            type_cible_fonction->types_entrees[i])) {
-                        return false;
-                    }
-                }
-            }
-
-            if (type_poly_fonction->type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                if (!ajoute_paire_types(type_poly_fonction->type_sortie,
-                                        type_cible_fonction->type_sortie)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        if (type_poly->est_opaque() && type_cible->est_opaque()) {
-            paires_types.ajoute({type_poly->comme_opaque()->type_opacifie,
-                                 type_cible->comme_opaque()->type_opacifie});
-            return true;
-        }
-
-        // À FAIRE(poly) : comment détecter ces cas ? x: fonc()() = nul
-        if (type_poly->est_fonction() && type_cible->est_pointeur() &&
-            type_cible->comme_pointeur()->type_pointe == nullptr) {
-            return true;
-        }
-
-        /* type_cible peut-être variadique si nous avons une expansion variadique. */
-        if (type_poly->est_variadique() && !type_cible->est_variadique()) {
-            type_poly = type_poly->comme_variadique()->type_pointe;
-        }
-
-        // vérifie si nous avons des structures polymorphiques, sinon ajoute les types à la liste
-        return apparie_structure(type_poly, type_cible);
-    }
-
-    bool apparie_structure(Type *type_polymorphique, Type *type_cible)
-    {
-        auto type_courant = type_cible;
-        auto type_courant_poly = type_polymorphique;
-
-        while (true) {
-            if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
-                auto type = type_courant_poly->comme_polymorphique();
-
-                // le type peut-être celui d'une structure (Polymorphe(T = $T)
-                if (type->est_structure_poly) {
-                    if (!type_courant->est_structure() && !type_courant->est_union()) {
-                        return false;
-                    }
-
-                    auto decl_struct = decl_pour_type(type_courant)->comme_structure();
-
-                    // À FAIRE : que faire ici?
-                    if (!decl_struct->est_monomorphisation) {
-                        return false;
-                    }
-
-                    if (decl_struct->polymorphe_de_base != type->structure) {
-                        return false;
-                    }
-
-                    auto type_compose = type_courant->comme_compose();
-
-                    for (auto i = 0; i < type->types_constants_structure.taille(); ++i) {
-                        auto type1 = type->types_constants_structure[i]->comme_polymorphique();
-                        auto type2 = Type::nul();
-
-                        POUR (type_compose->membres) {
-                            if (it.nom == type1->ident) {
-                                type2 = it.type->comme_type_de_donnees();
-                                break;
-                            }
-                        }
-
-                        if (type2) {
-                            paires_types.ajoute({type1, type2});
-                        }
-                    }
-
-                    table_structures.ajoute(
-                        {type_polymorphique,
-                         m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
-                    return true;
-                }
-
-                break;
-            }
-
-            if (type_courant->genre != type_courant_poly->genre) {
-                return false;
-            }
-
-            // À FAIRE(tableau fixe)
-            type_courant = type_dereference_pour(type_courant);
-            type_courant_poly = type_dereference_pour(type_courant_poly);
-        }
-
-        paires_types.ajoute({type_polymorphique,
-                             m_espace.compilatrice().typeuse.type_type_de_donnees(type_cible)});
-        return true;
-    }
-
-    bool resoud_polymorphes(Typeuse &typeuse)
-    {
-        POUR (paires_types) {
-            IdentifiantCode *ident = nullptr;
-            auto type_polymorphique = it.premier;
-            auto type_cible = it.second;
-            if (type_cible->est_type_de_donnees()) {
-                type_cible = type_cible->comme_type_de_donnees()->type_connu;
-            }
-            auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
-
-            if (!type) {
-                erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
-                                                                                     ident);
-                return false;
-            }
-
-            auto item = item_pour_ident(ident);
-            if (!item) {
-                return false;
-            }
-            /* Nous voulons un type ici, et nous avons l'identifiant d'une valeur : il y a conflit.
-             */
-            if (!item->est_type) {
-                return false;
-            }
-            if (item->type == nullptr) {
-                item->type = m_espace.compilatrice().typeuse.type_type_de_donnees(type);
-            }
-        }
-
-        POUR (items) {
-            if (it.type == nullptr) {
-                erreur = ErreurAppariement::definition_type_polymorphique_impossible(nullptr,
-                                                                                     it.ident);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    Type *apparie_type(Typeuse &typeuse,
-                       Type *type_polymorphique,
-                       Type *type_cible,
-                       IdentifiantCode *&ident)
-    {
-        auto type_courant = type_cible;
-        auto type_courant_poly = type_polymorphique;
-
-        while (true) {
-            if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
-                ident = type_courant_poly->comme_polymorphique()->ident;
-                break;
-            }
-
-            if (type_courant->genre != type_courant_poly->genre) {
-                return nullptr;
-            }
-
-            // À FAIRE(tableau fixe)
-            type_courant = type_dereference_pour(type_courant);
-            type_courant_poly = type_dereference_pour(type_courant_poly);
-        }
-
-        if (type_courant && type_courant->est_entier_constant()) {
-            return typeuse[TypeBase::Z32];
-        }
-
-        return type_courant;
-    }
-
-    Type *resoud_type_final(Typeuse &typeuse, Type *type_polymorphique)
-    {
-        auto resultat = Type::nul();
-
-        POUR (table_structures) {
-            if (it.premier == type_polymorphique) {
-                return it.second->comme_type_de_donnees()->type_connu;
-            }
-        }
-
-        if (type_polymorphique->genre == GenreType::POINTEUR) {
-            auto type_pointe = type_polymorphique->comme_pointeur()->type_pointe;
-            auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
-            resultat = typeuse.type_pointeur_pour(type_pointe_pour_type);
-        }
-        else if (type_polymorphique->genre == GenreType::REFERENCE) {
-            auto type_pointe = type_polymorphique->comme_reference()->type_pointe;
-            auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
-            resultat = typeuse.type_reference_pour(type_pointe_pour_type);
-        }
-        else if (type_polymorphique->genre == GenreType::TABLEAU_DYNAMIQUE) {
-            auto type_pointe = type_polymorphique->comme_tableau_dynamique()->type_pointe;
-            auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
-            resultat = typeuse.type_tableau_dynamique(type_pointe_pour_type);
-        }
-        else if (type_polymorphique->genre == GenreType::TABLEAU_FIXE) {
-            auto type_tableau_fixe = type_polymorphique->comme_tableau_fixe();
-            auto type_pointe = type_tableau_fixe->type_pointe;
-            auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
-            resultat = typeuse.type_tableau_fixe(type_pointe_pour_type, type_tableau_fixe->taille);
-        }
-        else if (type_polymorphique->genre == GenreType::VARIADIQUE) {
-            auto type_pointe = type_polymorphique->comme_variadique()->type_pointe;
-            auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
-            resultat = typeuse.type_variadique(type_pointe_pour_type);
-        }
-        else if (type_polymorphique->genre == GenreType::POLYMORPHIQUE) {
-            auto type = type_polymorphique->comme_polymorphique();
-
-            POUR (items) {
-                if (it.ident == type->ident) {
-                    resultat = const_cast<Type *>(it.type);
-                    if (resultat->est_type_de_donnees()) {
-                        resultat = resultat->comme_type_de_donnees()->type_connu;
-                    }
-                    break;
-                }
-            }
-        }
-        else if (type_polymorphique->genre == GenreType::FONCTION) {
-            auto type_fonction = type_polymorphique->comme_fonction();
-
-            auto types_entrees = kuri::tablet<Type *, 6>();
-            types_entrees.reserve(type_fonction->types_entrees.taille());
-
-            POUR (type_fonction->types_entrees) {
-                if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                    auto type_param = resoud_type_final(typeuse, it);
-                    types_entrees.ajoute(type_param);
-                }
-                else {
-                    types_entrees.ajoute(it);
-                }
-            }
-
-            auto type_sortie = type_fonction->type_sortie;
-
-            if (type_sortie->est_tuple()) {
-                auto membres = kuri::tablet<TypeCompose::Membre, 6>();
-
-                auto tuple = type_sortie->comme_tuple();
-
-                POUR (tuple->membres) {
-                    if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                        membres.ajoute({nullptr, resoud_type_final(typeuse, it.type)});
-                    }
-                    else {
-                        membres.ajoute({nullptr, it.type});
-                    }
-                }
-            }
-            else if (type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                type_sortie = resoud_type_final(typeuse, type_sortie);
-            }
-
-            resultat = typeuse.type_fonction(types_entrees, type_sortie);
-        }
-        else if (type_polymorphique->est_opaque()) {
-            auto type_opaque = type_polymorphique->comme_opaque();
-            auto type_opacifie = resoud_type_final(typeuse, type_opaque->type_opacifie);
-            resultat = typeuse.monomorphe_opaque(type_opaque->decl, type_opacifie);
-        }
-        else {
-            assert_rappel(false, [&]() {
-                std::cerr << "Type inattendu dans la résolution de type polymorphique : "
-                          << chaine_type(type_polymorphique) << "\n";
-            });
-        }
-
-        return resultat;
-    }
-};
 
 struct ApparieuseParams {
   private:
@@ -1005,7 +600,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
         return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
-    auto monomorpheuse = Monomorpheuse(espace, decl->bloc_constantes);
+    auto monomorpheuse = Monomorpheuse(espace, decl);
 
     // À FAIRE : vérifie que toutes les constantes ont été renseignées.
     // À FAIRE : gère proprement la validation du type de la constante
@@ -1082,27 +677,14 @@ static ResultatAppariement apparie_appel_fonction(
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
     if (decl->est_polymorphe) {
-        for (auto i = 0l; i < slots.taille(); ++i) {
-            auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
-            auto param = parametres_entree[index_arg];
-            auto arg = param->valeur;
-            auto slot = slots[i];
-
-            if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-                if (!monomorpheuse->ajoute_contrainte(param->ident, arg->type, slot->type, slot)) {
-                    return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
-                }
-            }
-
-            if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                if (!monomorpheuse->ajoute_paire_types(arg->type, slot->type)) {
-                    return ErreurAppariement::metypage_argument(slot, arg->type, slot->type);
-                }
-            }
+        auto résultat_monomorphisation = détermine_monomorphisation(*monomorpheuse, decl, slots);
+        if (std::holds_alternative<Attente>(résultat_monomorphisation)) {
+            return ErreurAppariement::dependance_non_satisfaite(
+                expr, std::get<Attente>(résultat_monomorphisation));
         }
-
-        if (!monomorpheuse->resoud_polymorphes(espace.compilatrice().typeuse)) {
-            return monomorpheuse->erreur;
+        if (std::holds_alternative<ErreurMonomorphisation>(résultat_monomorphisation)) {
+            return ErreurAppariement::monomorphisation(
+                expr, std::get<ErreurMonomorphisation>(résultat_monomorphisation));
         }
     }
 
@@ -1120,8 +702,13 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_du_parametre = monomorpheuse->resoud_type_final(espace.compilatrice().typeuse,
-                                                                 type_du_parametre);
+            auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
+            if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
+                return ErreurAppariement::monomorphisation(
+                    expr, std::get<ErreurMonomorphisation>(résultat_type));
+            }
+
+            type_du_parametre = std::get<Type *>(résultat_type);
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
@@ -1159,12 +746,24 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     if (fonction_variadique_interne) {
-        auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
+        auto dernier_parametre = decl->parametre_entree(decl->params.taille() - 1);
+        auto dernier_type_parametre = dernier_parametre->type;
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
 
         if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_donnees_argument_variadique = monomorpheuse->resoud_type_final(
-                espace.compilatrice().typeuse, type_donnees_argument_variadique);
+            auto résultat_type = monomorpheuse->résoud_type_final(
+                dernier_parametre->expression_type);
+            if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
+                return ErreurAppariement::monomorphisation(
+                    expr, std::get<ErreurMonomorphisation>(résultat_type));
+            }
+
+            type_donnees_argument_variadique = std::get<Type *>(résultat_type);
+
+            /* La résolution de type retourne un type variadique, mais nous voulons le type pointé.
+             */
+            type_donnees_argument_variadique = type_dereference_pour(
+                type_donnees_argument_variadique);
         }
 
         /* Il y a des collisions entre les fonctions variadiques et les fonctions non-variadiques
@@ -1218,7 +817,8 @@ static ResultatAppariement apparie_appel_fonction(
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     if (decl->est_polymorphe) {
-        copie_tablet_tableau(monomorpheuse->items, items_monomorphisation);
+        copie_tablet_tableau(monomorpheuse->résultat_pour_monomorphisation(),
+                             items_monomorphisation);
     }
 
     return CandidateAppariement::appel_fonction(poids_args,
@@ -1241,7 +841,7 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     if (decl->est_polymorphe) {
-        Monomorpheuse monomorpheuse(espace, decl->bloc_constantes);
+        Monomorpheuse monomorpheuse(espace, decl);
         return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
     }
 
@@ -1356,16 +956,6 @@ static ResultatAppariement apparie_appel_structure(
 
             type_poly->est_structure_poly = true;
             type_poly->structure = decl_struct;
-
-            POUR (arguments) {
-                if (it.expr->type->est_type_de_donnees()) {
-                    auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
-
-                    if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                        type_poly->types_constants_structure.ajoute(type_connu);
-                    }
-                }
-            }
 
             return CandidateAppariement::type_polymorphique(
                 1.0,
@@ -1789,14 +1379,6 @@ static NoeudStruct *monomorphise_au_besoin(
     }
     else {
         structure->type = espace.compilatrice().typeuse.reserve_type_structure(structure);
-    }
-
-    /* Ajout dans le bloc pour que la monomorphisation puisse la trouver.
-     * En effet, la monomorphisation se base sur les membres du type. */
-    POUR (items_monomorphisation) {
-        auto decl_constante = trouve_dans_bloc_seul(structure->bloc_constantes, it.ident)
-                                  ->comme_declaration_variable();
-        structure->bloc->ajoute_membre(decl_constante);
     }
 
     contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, structure);
