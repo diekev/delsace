@@ -62,7 +62,8 @@ struct Monomorphisations {
   public:
     void ajoute(tableau_items const &items, NoeudExpression *noeud);
 
-    NoeudExpression *trouve_monomorphisation(tableau_items const &items) const;
+    NoeudExpression *trouve_monomorphisation(
+        kuri::tableau_statique<ItemMonomorphisation> items) const;
 
     long memoire_utilisee() const;
 
