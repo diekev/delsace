@@ -19,6 +19,7 @@ struct ItemMonomorphisation {
     const Type *type = nullptr;
     ValeurExpression valeur{};
     bool est_type = false;
+    NoeudExpression *expression_type = nullptr;
 
     bool operator==(ItemMonomorphisation const &autre) const
     {
