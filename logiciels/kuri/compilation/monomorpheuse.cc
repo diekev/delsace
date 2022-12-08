@@ -263,10 +263,10 @@ void Monomorpheuse::erreur_référence_inconnue(const NoeudExpression *site)
 
 void Monomorpheuse::erreur_monomorphisation_inconnue(
     const NoeudExpression *site,
-    const kuri::tablet<ItemMonomorphisation, 6> &items,
+    const kuri::tablet<ItemMonomorphisation, 6> &items_,
     const Monomorphisations *monomorphisations)
 {
-    ajoute_erreur(site, DonnéesErreurMonomorphisationManquante{items, monomorphisations});
+    ajoute_erreur(site, DonnéesErreurMonomorphisationManquante{items_, monomorphisations});
 }
 
 void Monomorpheuse::erreur_sémantique(const NoeudExpression *site, kuri::chaine_statique message)
@@ -834,7 +834,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
 
         auto item_structure = ident_param ? trouve_item_pour_ident(items_structure, ident_param) :
                                             &items_structure[i];
-        assert(items_structure);
+        assert(item_structure);
 
         /* Copie tout sauf l'identifiant qui peut être différent. */
         item_structure->est_type = item_résultat->est_type;

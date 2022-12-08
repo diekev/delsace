@@ -7,9 +7,14 @@ namespace kuri {
 struct chaine;
 struct chaine_statique;
 struct chemin_systeme;
+
+template <typename T>
+struct tableau_statique;
 }  // namespace kuri
 
 enum class ArchitectureCible : int;
+struct Bibliotheque;
+struct OptionsDeCompilation;
 
 /* Retourne le nom suffixé de l'extension native pour un fichier objet. */
 kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base);
@@ -54,6 +59,19 @@ kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible arc
 
 /* Retourne le chemin vers le fichier objet des tables r16 pour l'architecture donné. */
 kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible);
+
+/* Retourne une commande pour appeler le compilateur C afin de compiler un fichier objet depuis le
+ * fichier donné en entrée.
+ */
+kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
+                                         kuri::chaine_statique fichier_entrée,
+                                         kuri::chaine_statique fichier_sortie);
+
+/* Retourne une commande pour appeler le lieur C afin de lier les fichiers donnés en entrée.
+ */
+kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
+                                   kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
+                                   kuri::tableau_statique<Bibliotheque *> bibliotheques);
 
 bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 

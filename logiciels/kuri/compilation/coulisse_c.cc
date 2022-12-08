@@ -2003,91 +2003,6 @@ static bool genere_code_C(Compilatrice &compilatrice,
         compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
 }
 
-static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
-{
-    switch (niveau) {
-        case NiveauOptimisation::AUCUN:
-        case NiveauOptimisation::O0:
-        {
-            return "-O0 ";
-        }
-        case NiveauOptimisation::O1:
-        {
-            return "-O1 ";
-        }
-        case NiveauOptimisation::O2:
-        {
-            return "-O2 ";
-        }
-        case NiveauOptimisation::Os:
-        {
-            return "-Os ";
-        }
-        /* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-         * plus proche. */
-        case NiveauOptimisation::Oz:
-        case NiveauOptimisation::O3:
-        {
-            return "-O3 ";
-        }
-    }
-
-    return "";
-}
-
-static kuri::chaine genere_commande_fichier_objet(OptionsDeCompilation const &ops,
-                                                  CoulisseC::FichierC const &fichier)
-{
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_C_COULISSE_C << " -c " << fichier.chemin_fichier << " ";
-
-    if (ops.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << " -fPIC ";
-    }
-
-    // À FAIRE : comment lier les tables pour un fichier objet ?
-    //	if (ops.objet_genere == ResultatCompilation::FICHIER_OBJET) {
-    //		enchaineuse << chemin_fichier_objet_r16(ops.architecture) << " ";
-    //	}
-
-    if (ops.compilation_pour == CompilationPour::PRODUCTION) {
-        enchaineuse << chaine_pour_niveau_optimisation(ops.niveau_optimisation);
-    }
-    else if (ops.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g -Og ";
-
-        if (ops.utilise_asan) {
-            enchaineuse << " -fsanitize=address ";
-        }
-    }
-    else if (ops.compilation_pour == CompilationPour::PROFILAGE) {
-        enchaineuse << " -pg ";
-    }
-
-    /* désactivation des erreurs concernant le manque de "const" quand
-     * on passe des variables générés temporairement par la coulisse à
-     * des fonctions qui dont les paramètres ne sont pas constants */
-    enchaineuse << "-Wno-discarded-qualifiers ";
-    /* désactivation des avertissements de passage d'une variable au
-     * lieu d'une chaine littérale à printf et al. */
-    enchaineuse << "-Wno-format-security ";
-
-    if (!ops.protege_pile) {
-        enchaineuse << "-fno-stack-protector ";
-    }
-
-    if (ops.architecture == ArchitectureCible::X86) {
-        enchaineuse << "-m32 ";
-    }
-
-    enchaineuse << " -o " << fichier.chemin_fichier_objet;
-
-    /* Terminateur nul afin de pouvoir passer la commande à #system. */
-    enchaineuse << '\0';
-
-    return enchaineuse.chaine();
-}
-
 bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
                                    EspaceDeTravail &espace,
                                    Programme *programme,
@@ -2110,7 +2025,8 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
-        auto commande = genere_commande_fichier_objet(espace.options, it);
+        auto commande = commande_pour_fichier_objet(
+            espace.options, it.chemin_fichier, it.chemin_fichier_objet);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
@@ -2166,82 +2082,12 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     auto debut_executable = dls::chrono::compte_seconde();
 
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
-
-    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << " -shared -fPIC ";
-    }
-
-    if (espace.options.compilation_pour == CompilationPour::PROFILAGE) {
-        enchaineuse << " -pg ";
-    }
-    else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g ";
-
-        if (espace.options.utilise_asan) {
-            enchaineuse << " -fsanitize=address ";
-        }
-    }
-
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
-        enchaineuse << " " << it.chemin_fichier_objet << " ";
+        fichiers_objet.ajoute(it.chemin_fichier_objet);
     }
 
-    enchaineuse << chemin_fichier_objet_r16(espace.options.architecture) << " ";
-
-    auto chemins_utilises = std::set<kuri::chemin_systeme>();
-
-    POUR (m_bibliotheques) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
-        auto chemin_parent = it->chemin_de_base(espace.options);
-        if (chemin_parent.taille() == 0) {
-            continue;
-        }
-
-        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
-            continue;
-        }
-
-        if (it->chemin_dynamique(espace.options)) {
-            enchaineuse << " -Wl,-rpath=" << chemin_parent;
-        }
-
-        enchaineuse << " -L" << chemin_parent;
-        chemins_utilises.insert(chemin_parent);
-    }
-
-    /* À FAIRE(bibliothèques) : permet la liaison statique.
-     * Les deux formes de commandes suivant résultent en des erreurs de liaison :
-     * -Wl,-Bshared -llib1 -lib2 -Wl,-Bstatic -lc -llib3
-     * (et une version où la liaison de chaque bibliothèque est spécifiée)
-     * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
-     */
-    POUR (m_bibliotheques) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
-        enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
-    }
-    /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
-     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe).
-     */
-    enchaineuse << " -Wl,-Bdynamic";
-
-    if (espace.options.architecture == ArchitectureCible::X86) {
-        enchaineuse << " -m32 ";
-    }
-
-    enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
-
-    /* Terminateur nul afin de pouvoir passer la commande à #system. */
-    enchaineuse << '\0';
-
-    auto commande = enchaineuse.chaine();
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliotheques);
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
