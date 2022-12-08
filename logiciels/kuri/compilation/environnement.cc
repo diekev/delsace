@@ -163,7 +163,16 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     const auto commande = commande_pour_bibliotheque_dynamique(
         chemin_fichier, chemin_objet, ArchitectureCible::X64);
 
-    return execute_commande(commande);
+    if (!execute_commande(commande)) {
+        return false;
+    }
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        return false;
+    }
+
+    return true;
 }
 
 bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
@@ -180,5 +189,14 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     const auto commande = commande_pour_fichier_objet(
         chemin_fichier, chemin_objet, architecture_cible);
 
-    return execute_commande(commande);
+    if (!execute_commande(commande)) {
+        return false;
+    }
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        return false;
+    }
+
+    return true;
 }
