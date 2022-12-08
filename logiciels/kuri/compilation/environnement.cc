@@ -3,9 +3,13 @@
 
 #include "environnement.hh"
 
+#include <set>
+
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
+#include "bibliotheque.hh"
+#include "coulisse.hh"  // Pour nom_sortie_resultat_final.
 #include "options.hh"
 
 kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base)
@@ -76,27 +80,239 @@ kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cib
     return kuri::chemin_systeme::chemin_temporaire(fichier_objet);
 }
 
-/* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
-static kuri::chaine commande_pour_fichier_objet(kuri::chaine_statique nom_entree,
-                                                kuri::chaine_statique nom_sortie,
-                                                ArchitectureCible architecture_cible)
+static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
 {
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C;
-    enchaineuse << " -c -fPIC ";
-
-    if (architecture_cible == ArchitectureCible::X86) {
-        enchaineuse << " -m32 ";
+    switch (niveau) {
+        case NiveauOptimisation::AUCUN:
+        case NiveauOptimisation::O0:
+        {
+            return "-O0 ";
+        }
+        case NiveauOptimisation::O1:
+        {
+            return "-O1 ";
+        }
+        case NiveauOptimisation::O2:
+        {
+            return "-O2 ";
+        }
+        case NiveauOptimisation::Os:
+        {
+            return "-Os ";
+        }
+        /* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+         * plus proche. */
+        case NiveauOptimisation::Oz:
+        case NiveauOptimisation::O3:
+        {
+            return "-O3 ";
+        }
     }
 
-    enchaineuse << nom_entree;
-    enchaineuse << " -o ";
-    enchaineuse << nom_sortie;
+    return "";
+}
 
-    /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
+using TableauOptions = kuri::tablet<kuri::chaine_statique, 16>;
+
+static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
+                                               OptionsDeCompilation const &options)
+{
+    switch (options.compilation_pour) {
+        case CompilationPour::PRODUCTION:
+        {
+            résultat.ajoute(chaine_pour_niveau_optimisation(options.niveau_optimisation));
+            break;
+        }
+        case CompilationPour::DEBOGAGE:
+        {
+            résultat.ajoute("-g");
+            résultat.ajoute("-Og");
+
+            if (options.utilise_asan) {
+                résultat.ajoute("-fsanitize=address");
+            }
+
+            break;
+        }
+        case CompilationPour::PROFILAGE:
+        {
+            résultat.ajoute("-pg");
+            break;
+        }
+    }
+}
+
+static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &options)
+{
+    TableauOptions résultat;
+
+    résultat.ajoute("-c");
+
+    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        /* Un fichier objet pour une bibliothèque dynamique doit compiler du code indépendant de la
+         * position. */
+        résultat.ajoute("-fPIC");
+    }
+
+    ajoute_options_pour_niveau_options(résultat, options);
+
+    /* Désactivation des erreurs concernant le manque de "const" quand
+     * on passe des variables générés temporairement par la coulisse à
+     * des fonctions qui dont les paramètres ne sont pas constants. */
+    résultat.ajoute("-Wno-discarded-qualifiers");
+    /* Désactivation des avertissements de passage d'une variable au
+     * lieu d'une chaine littérale à printf et al. */
+    résultat.ajoute("-Wno-format-security");
+
+    if (!options.protege_pile) {
+        résultat.ajoute("-fno-stack-protector");
+    }
+
+    if (options.architecture == ArchitectureCible::X86) {
+        résultat.ajoute("-m32");
+    }
+
+    return résultat;
+}
+
+static TableauOptions options_pour_liaison(OptionsDeCompilation const &options)
+{
+    TableauOptions résultat;
+
+    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        résultat.ajoute("-shared");
+        résultat.ajoute("-fPIC");
+    }
+
+    ajoute_options_pour_niveau_options(résultat, options);
+
+    /* Désactivation des erreurs concernant le manque de "const" quand
+     * on passe des variables générés temporairement par la coulisse à
+     * des fonctions qui dont les paramètres ne sont pas constants. */
+    résultat.ajoute("-Wno-discarded-qualifiers");
+    /* Désactivation des avertissements de passage d'une variable au
+     * lieu d'une chaine littérale à printf et al. */
+    résultat.ajoute("-Wno-format-security");
+
+    if (!options.protege_pile) {
+        résultat.ajoute("-fno-stack-protector");
+    }
+
+    if (options.architecture == ArchitectureCible::X86) {
+        résultat.ajoute("-m32");
+    }
+
+    return résultat;
+}
+
+static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const &options,
+                                                     kuri::chaine_statique compilateur,
+                                                     kuri::chaine_statique fichier_entrée,
+                                                     kuri::chaine_statique fichier_sortie)
+{
+    auto options_compilateur = options_pour_fichier_objet(options);
+
+    Enchaineuse enchaineuse;
+    enchaineuse << compilateur << " ";
+
+    POUR (options_compilateur) {
+        enchaineuse << it << " ";
+    }
+
+    enchaineuse << fichier_entrée << " -o " << fichier_sortie;
+
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
 
     return enchaineuse.chaine();
+}
+
+kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
+                                         kuri::chaine_statique fichier_entrée,
+                                         kuri::chaine_statique fichier_sortie)
+{
+    return commande_pour_fichier_objet_impl(
+        options, COMPILATEUR_C_COULISSE_C, fichier_entrée, fichier_sortie);
+}
+
+kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
+                                   kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
+                                   kuri::tableau_statique<Bibliotheque *> bibliotheques)
+{
+    auto options_compilateur = options_pour_liaison(options);
+
+    Enchaineuse enchaineuse;
+    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
+
+    POUR (options_compilateur) {
+        enchaineuse << it << " ";
+    }
+
+    POUR (fichiers_entrée) {
+        enchaineuse << it << " ";
+    }
+
+    /* Ajoute le fichier objet pour les r16. */
+    enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
+
+    auto chemins_utilises = std::set<kuri::chemin_systeme>();
+
+    POUR (bibliotheques) {
+        if (it->nom == "r16") {
+            continue;
+        }
+
+        auto chemin_parent = it->chemin_de_base(options);
+        if (chemin_parent.taille() == 0) {
+            continue;
+        }
+
+        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
+            continue;
+        }
+
+        if (it->chemin_dynamique(options)) {
+            enchaineuse << " -Wl,-rpath=" << chemin_parent;
+        }
+
+        enchaineuse << " -L" << chemin_parent;
+        chemins_utilises.insert(chemin_parent);
+    }
+
+    /* À FAIRE(bibliothèques) : permet la liaison statique.
+     * Les deux formes de commandes suivant résultent en des erreurs de liaison :
+     * -Wl,-Bshared -llib1 -lib2 -Wl,-Bstatic -lc -llib3
+     * (et une version où la liaison de chaque bibliothèque est spécifiée)
+     * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
+     */
+    POUR (bibliotheques) {
+        if (it->nom == "r16") {
+            continue;
+        }
+
+        enchaineuse << " -l" << it->nom_pour_liaison(options);
+    }
+
+    /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
+     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe).
+     */
+    enchaineuse << " -Wl,-Bdynamic";
+
+    enchaineuse << " -o " << nom_sortie_resultat_final(options);
+
+    /* Terminateur nul afin de pouvoir passer la commande à #system. */
+    enchaineuse << '\0';
+
+    return enchaineuse.chaine();
+}
+
+/* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
+static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &options,
+                                                    kuri::chaine_statique nom_entree,
+                                                    kuri::chaine_statique nom_sortie)
+{
+    return commande_pour_fichier_objet_impl(
+        options, COMPILATEUR_CXX_COULISSE_C, nom_entree, nom_sortie);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
@@ -163,7 +379,16 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     const auto commande = commande_pour_bibliotheque_dynamique(
         chemin_fichier, chemin_objet, ArchitectureCible::X64);
 
-    return execute_commande(commande);
+    if (!execute_commande(commande)) {
+        return false;
+    }
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        return false;
+    }
+
+    return true;
 }
 
 bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
@@ -177,8 +402,21 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
-    const auto commande = commande_pour_fichier_objet(
-        chemin_fichier, chemin_objet, architecture_cible);
+    OptionsDeCompilation options;
+    options.architecture = architecture_cible;
+    /* À FAIRE : pour -fPIC... */
+    options.resultat = ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE;
 
-    return execute_commande(commande);
+    const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
+
+    if (!execute_commande(commande)) {
+        return false;
+    }
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier compilé « " << chemin_objet << " » n'existe pas !\n";
+        return false;
+    }
+
+    return true;
 }
