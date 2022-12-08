@@ -256,7 +256,6 @@ struct ConstructriceRI {
 
     AtomeConstante *cree_chaine(kuri::chaine_statique chaine);
 
-    void imprime_instruction(Instruction const *inst, std::ostream &os) const;
     Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
 
     void empile_valeur(Atome *valeur);

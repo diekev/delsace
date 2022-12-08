@@ -427,9 +427,12 @@ void UniteCompilation::rapporte_erreur() const
             }
 
             imprime_operateurs_pour(e, *type1, *operateur_attendu);
-            imprime_operateurs_pour(e, *type2, *operateur_attendu);
 
-            e.ajoute_conseil("Si vous voulez performer une opération sur des types "
+            if (type1 != type2) {
+                imprime_operateurs_pour(e, *type2, *operateur_attendu);
+            }
+
+            e.ajoute_conseil("\nSi vous voulez performer une opération sur des types "
                              "non-communs, vous pouvez définir vos propres opérateurs avec "
                              "la syntaxe suivante :\n\n");
             e.ajoute_message("opérateur ",
