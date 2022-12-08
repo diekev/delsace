@@ -22,6 +22,7 @@ struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
+struct AtomeValeurConstante;
 struct Compilatrice;
 struct DonneesConstantesExecutions;
 struct DonneesExecution;
@@ -347,6 +348,8 @@ class ConvertisseuseRI {
                                               bool pour_operande);
 
     void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
+    void genere_code_binaire_pour_valeur_constante(AtomeValeurConstante *valeur_constante,
+                                                   Chunk &chunk);
 
     void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
                                                          int decalage,
