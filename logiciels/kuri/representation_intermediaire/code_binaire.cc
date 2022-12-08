@@ -68,7 +68,7 @@ void Chunk::agrandis_si_necessaire(long taille)
     }
 }
 
-int Chunk::emets_allocation(NoeudExpression *site, Type const *type, IdentifiantCode *ident)
+int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
     if (type->genre == GenreType::ENTIER_CONSTANT) {
@@ -86,7 +86,7 @@ int Chunk::emets_allocation(NoeudExpression *site, Type const *type, Identifiant
 }
 
 void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
-                              NoeudExpression *site,
+                              NoeudExpression const *site,
                               Type const *type,
                               bool ajoute_verification)
 {
@@ -120,7 +120,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge(NoeudExpression *site, Type const *type, bool ajoute_verification)
+void Chunk::emets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
 
@@ -135,7 +135,7 @@ void Chunk::emets_charge(NoeudExpression *site, Type const *type, bool ajoute_ve
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge_variable(NoeudExpression *site,
+void Chunk::emets_charge_variable(NoeudExpression const *site,
                                   int pointeur,
                                   Type const *type,
                                   bool ajoute_verification)
@@ -145,31 +145,31 @@ void Chunk::emets_charge_variable(NoeudExpression *site,
     emets_charge(site, type, ajoute_verification);
 }
 
-void Chunk::emets_reference_globale(NoeudExpression *site, int pointeur)
+void Chunk::emets_reference_globale(NoeudExpression const *site, int pointeur)
 {
     emets(OP_REFERENCE_GLOBALE);
     emets(site);
     emets(pointeur);
 }
 
-void Chunk::emets_reference_variable(NoeudExpression *site, int pointeur)
+void Chunk::emets_reference_variable(NoeudExpression const *site, int pointeur)
 {
     emets(OP_REFERENCE_VARIABLE);
     emets(site);
     emets(pointeur);
 }
 
-void Chunk::emets_reference_membre(NoeudExpression *site, unsigned decalage)
+void Chunk::emets_reference_membre(NoeudExpression const *site, unsigned decalage)
 {
     emets(OP_REFERENCE_MEMBRE);
     emets(site);
     emets(decalage);
 }
 
-void Chunk::emets_appel(NoeudExpression *site,
-                        AtomeFonction *fonction,
+void Chunk::emets_appel(NoeudExpression const *site,
+                        AtomeFonction const *fonction,
                         unsigned taille_arguments,
-                        InstructionAppel *inst_appel,
+                        InstructionAppel const *inst_appel,
                         bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -186,10 +186,10 @@ void Chunk::emets_appel(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_appel_externe(NoeudExpression *site,
-                                AtomeFonction *fonction,
+void Chunk::emets_appel_externe(NoeudExpression const *site,
+                                AtomeFonction const *fonction,
                                 unsigned taille_arguments,
-                                InstructionAppel *inst_appel,
+                                InstructionAppel const *inst_appel,
                                 bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -206,9 +206,9 @@ void Chunk::emets_appel_externe(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_appel_pointeur(NoeudExpression *site,
+void Chunk::emets_appel_pointeur(NoeudExpression const *site,
                                  unsigned taille_arguments,
-                                 InstructionAppel *inst_appel,
+                                 InstructionAppel const *inst_appel,
                                  bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -223,7 +223,7 @@ void Chunk::emets_appel_pointeur(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_acces_index(NoeudExpression *site, Type const *type)
+void Chunk::emets_acces_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
     emets(OP_ACCEDE_INDEX);
@@ -231,7 +231,7 @@ void Chunk::emets_acces_index(NoeudExpression *site, Type const *type)
     emets(type->taille_octet);
 }
 
-void Chunk::emets_branche(NoeudExpression *site,
+void Chunk::emets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
@@ -245,7 +245,7 @@ void Chunk::emets_branche(NoeudExpression *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_branche_condition(NoeudExpression *site,
+void Chunk::emets_branche_condition(NoeudExpression const *site,
                                     kuri::tableau<PatchLabel> &patchs_labels,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
@@ -266,7 +266,7 @@ void Chunk::emets_branche_condition(NoeudExpression *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_label(NoeudExpression *site, int index)
+void Chunk::emets_label(NoeudExpression const *site, int index)
 {
     if (decalages_labels.taille() <= index) {
         decalages_labels.redimensionne(index + 1);
@@ -278,7 +278,7 @@ void Chunk::emets_label(NoeudExpression *site, int index)
     emets(index);
 }
 
-void Chunk::emets_operation_unaire(NoeudExpression *site,
+void Chunk::emets_operation_unaire(NoeudExpression const *site,
                                    OperateurUnaire::Genre op,
                                    Type const *type)
 {
@@ -450,7 +450,7 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
-void Chunk::emets_operation_binaire(NoeudExpression *site,
+void Chunk::emets_operation_binaire(NoeudExpression const *site,
                                     OperateurBinaire::Genre op,
                                     Type const *type_gauche,
                                     Type const *type_droite)
@@ -1025,7 +1025,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     return true;
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
+void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
 {
@@ -1329,7 +1329,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
     switch (constante->genre) {
         case AtomeConstante::Genre::VALEUR:
         {
-            auto valeur_constante = static_cast<AtomeValeurConstante *>(constante);
+            auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
             genere_code_binaire_pour_valeur_constante(valeur_constante, chunk);
             break;
         }
@@ -1340,20 +1340,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
-            auto transtype = static_cast<TranstypeConstant *>(constante);
+            auto transtype = static_cast<TranstypeConstant const *>(constante);
             genere_code_binaire_pour_constante(transtype->valeur, chunk);
             break;
         }
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
-            auto op_unaire = static_cast<OpUnaireConstant *>(constante);
+            auto op_unaire = static_cast<OpUnaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_unaire->operande, chunk);
             chunk.emets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
             break;
         }
         case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
         {
-            auto op_binaire = static_cast<OpBinaireConstant *>(constante);
+            auto op_binaire = static_cast<OpBinaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
             genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
             chunk.emets_operation_binaire(nullptr,
@@ -1364,7 +1364,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
-            auto index_constant = static_cast<AccedeIndexConstant *>(constante);
+            auto index_constant = static_cast<AccedeIndexConstant const *>(constante);
             auto type_pointeur = index_constant->type->comme_pointeur();
             genere_code_binaire_pour_constante(index_constant->index, chunk);
             genere_code_binaire_pour_constante(index_constant->accede, chunk);
@@ -1375,7 +1375,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
-    AtomeValeurConstante *valeur_constante, Chunk &chunk)
+    AtomeValeurConstante const *valeur_constante, Chunk &chunk)
 {
     switch (valeur_constante->valeur.genre) {
         case AtomeValeurConstante::Valeur::Genre::NULLE:
