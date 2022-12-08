@@ -2082,82 +2082,12 @@ bool CoulisseC::cree_executable(Compilatrice &compilatrice,
 
     auto debut_executable = dls::chrono::compte_seconde();
 
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
-
-    if (espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
-        enchaineuse << " -shared -fPIC ";
-    }
-
-    if (espace.options.compilation_pour == CompilationPour::PROFILAGE) {
-        enchaineuse << " -pg ";
-    }
-    else if (espace.options.compilation_pour == CompilationPour::DEBOGAGE) {
-        enchaineuse << " -g ";
-
-        if (espace.options.utilise_asan) {
-            enchaineuse << " -fsanitize=address ";
-        }
-    }
-
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
-        enchaineuse << " " << it.chemin_fichier_objet << " ";
+        fichiers_objet.ajoute(it.chemin_fichier_objet);
     }
 
-    enchaineuse << chemin_fichier_objet_r16(espace.options.architecture) << " ";
-
-    auto chemins_utilises = std::set<kuri::chemin_systeme>();
-
-    POUR (m_bibliotheques) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
-        auto chemin_parent = it->chemin_de_base(espace.options);
-        if (chemin_parent.taille() == 0) {
-            continue;
-        }
-
-        if (chemins_utilises.find(chemin_parent) != chemins_utilises.end()) {
-            continue;
-        }
-
-        if (it->chemin_dynamique(espace.options)) {
-            enchaineuse << " -Wl,-rpath=" << chemin_parent;
-        }
-
-        enchaineuse << " -L" << chemin_parent;
-        chemins_utilises.insert(chemin_parent);
-    }
-
-    /* À FAIRE(bibliothèques) : permet la liaison statique.
-     * Les deux formes de commandes suivant résultent en des erreurs de liaison :
-     * -Wl,-Bshared -llib1 -lib2 -Wl,-Bstatic -lc -llib3
-     * (et une version où la liaison de chaque bibliothèque est spécifiée)
-     * -Wl,-Bshared -llib1 -Wl,-Bshared -lib2 -Wl,-Bstatic -lc -Wl,-Bstatic -llib3
-     */
-    POUR (m_bibliotheques) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
-        enchaineuse << " -l" << it->nom_pour_liaison(espace.options);
-    }
-    /* Ajout d'une liaison dynamique pour dire à ld de chercher les symboles des bibliothèques
-     * propres à GCC dans des bibliothèques dynamiques (car aucune version statique n'existe).
-     */
-    enchaineuse << " -Wl,-Bdynamic";
-
-    if (espace.options.architecture == ArchitectureCible::X86) {
-        enchaineuse << " -m32 ";
-    }
-
-    enchaineuse << " -o " << nom_sortie_resultat_final(espace.options);
-
-    /* Terminateur nul afin de pouvoir passer la commande à #system. */
-    enchaineuse << '\0';
-
-    auto commande = enchaineuse.chaine();
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliotheques);
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
