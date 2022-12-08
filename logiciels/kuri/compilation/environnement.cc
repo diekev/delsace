@@ -205,14 +205,15 @@ static TableauOptions options_pour_liaison(OptionsDeCompilation const &options)
     return résultat;
 }
 
-kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
-                                         kuri::chaine_statique fichier_entrée,
-                                         kuri::chaine_statique fichier_sortie)
+static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const &options,
+                                                     kuri::chaine_statique compilateur,
+                                                     kuri::chaine_statique fichier_entrée,
+                                                     kuri::chaine_statique fichier_sortie)
 {
     auto options_compilateur = options_pour_fichier_objet(options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_C_COULISSE_C << " ";
+    enchaineuse << compilateur << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
@@ -224,6 +225,14 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
     enchaineuse << '\0';
 
     return enchaineuse.chaine();
+}
+
+kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
+                                         kuri::chaine_statique fichier_entrée,
+                                         kuri::chaine_statique fichier_sortie)
+{
+    return commande_pour_fichier_objet_impl(
+        options, COMPILATEUR_C_COULISSE_C, fichier_entrée, fichier_sortie);
 }
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
@@ -298,26 +307,12 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
-static kuri::chaine commande_pour_fichier_objet(kuri::chaine_statique nom_entree,
-                                                kuri::chaine_statique nom_sortie,
-                                                ArchitectureCible architecture_cible)
+static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &options,
+                                                    kuri::chaine_statique nom_entree,
+                                                    kuri::chaine_statique nom_sortie)
 {
-    Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C;
-    enchaineuse << " -c -fPIC ";
-
-    if (architecture_cible == ArchitectureCible::X86) {
-        enchaineuse << " -m32 ";
-    }
-
-    enchaineuse << nom_entree;
-    enchaineuse << " -o ";
-    enchaineuse << nom_sortie;
-
-    /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
-    enchaineuse << '\0';
-
-    return enchaineuse.chaine();
+    return commande_pour_fichier_objet_impl(
+        options, COMPILATEUR_CXX_COULISSE_C, nom_entree, nom_sortie);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
@@ -407,8 +402,12 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 
-    const auto commande = commande_pour_fichier_objet(
-        chemin_fichier, chemin_objet, architecture_cible);
+    OptionsDeCompilation options;
+    options.architecture = architecture_cible;
+    /* À FAIRE : pour -fPIC... */
+    options.resultat = ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE;
+
+    const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
 
     if (!execute_commande(commande)) {
         return false;
