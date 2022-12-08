@@ -1039,10 +1039,6 @@ TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membr
 
     type->marque_polymorphique();
 
-    if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-        calcule_taille_type_compose(type, false, 0);
-    }
-
     type->drapeaux |= (TYPE_FUT_VALIDE);
 
     return type;

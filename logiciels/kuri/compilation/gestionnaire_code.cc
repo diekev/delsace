@@ -467,6 +467,32 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
             gestionnaire.requiers_initialisation_type(espace, type);
         }
 
+        if (type->est_fonction()) {
+            auto type_fonction = type->comme_fonction();
+            auto type_retour = type_fonction->type_sortie;
+            /* Les types fonctions peuvent retourner une référence à la structure que nous essayons
+             * de valider :
+             *
+             * MaStructure :: struct {
+             *  un_rappel: fonc ()(bool, MaStructure)
+             * }
+             *
+             * Donc nous ne pouvons pas effectuer le calcul de la taille des tuples lors de leurs
+             * création durant la validation sémantique, car leurs tailles dépenderait de la taille
+             * finale de la structure dont la taille dépend sur le type fonction qui essaye de
+             * retouner la structure par valeur dans son tuple. Ceci causant une dépendance
+             * cyclique.
+             *
+             * Puisque les types fonctions ont une taille équivalente à un pointeur (leurs types de
+             * sortie n'ont aucune influence sur leurs taille), nous calculons au fur et à mesure
+             * du besoin des types la taille de leurs tuples.
+             */
+            if (type_retour->est_tuple() && type_retour->taille_octet == 0 &&
+                (type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+                calcule_taille_type_compose(type_retour->comme_tuple(), false, 0);
+            }
+        }
+
         return kuri::DecisionIteration::Continue;
     });
 }
