@@ -545,7 +545,7 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 
     POUR (instructions) {
         if (surligne_inutilisees && it->nombre_utilisations == 0) {
-            std::cerr << "\033[0;31m";
+            os << "\033[0;31m";
         }
 
         if (inclus_nombre_utilisations) {
@@ -578,7 +578,7 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
         os << '\n';
 
         if (surligne_inutilisees && it->nombre_utilisations == 0) {
-            std::cerr << "\033[0m";
+            os << "\033[0m";
         }
     }
 
