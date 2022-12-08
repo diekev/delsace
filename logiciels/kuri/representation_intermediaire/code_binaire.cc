@@ -1531,7 +1531,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                 }
 
                 if (tableau_valeur[index_membre] != nullptr) {
-                    // À FAIRE(tableau fixe)
+                    // À FAIRE(tableau fixe) : initialisation défaut
                     genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk, true);
                 }
 
