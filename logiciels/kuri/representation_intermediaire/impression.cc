@@ -11,6 +11,59 @@
 
 #include "instructions.hh"
 
+static kuri::chaine_statique chaine_pour_type_transtypage(TypeTranstypage const type)
+{
+    switch (type) {
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            return "augmente_naturel";
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            return "augmente_relatif";
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        {
+            return "augmente_réel";
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            return "diminue_naturel";
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            return "diminue_relatif";
+        }
+        case TypeTranstypage::DIMINUE_REEL:
+        {
+            return "diminue_réel";
+        }
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        {
+            return "pointeur_vers_entier";
+        }
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        {
+            return "entier_vers_pointeur";
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER:
+        {
+            return "réel_vers_entier";
+        }
+        case TypeTranstypage::ENTIER_VERS_REEL:
+        {
+            return "entier_vers_réel";
+        }
+        case TypeTranstypage::BITS:
+        case TypeTranstypage::DEFAUT:
+        {
+            return "transtype_bits";
+        }
+    }
+
+    return "erreur";
+}
+
 void imprime_information_atome(Atome const *atome, std::ostream &os)
 {
     switch (atome->genre_atome) {
@@ -460,7 +513,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::TRANSTYPE:
         {
             auto inst_transtype = inst->comme_transtype();
-            os << "  transtype (" << static_cast<int>(inst_transtype->op) << ") ";
+            os << "  " << chaine_pour_type_transtypage(inst_transtype->op) << " ";
             imprime_atome_ex(inst_transtype->valeur, os, true);
             os << " vers " << chaine_type(inst_transtype->type);
             break;
