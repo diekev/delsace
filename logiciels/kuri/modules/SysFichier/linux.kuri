@@ -701,3 +701,23 @@ système_supprime :: fonc(chm : CheminFichier) -> z32
     diffère détruit_chaine_c(ptr_chemin)
     retourne remove(ptr_chemin)
 }
+
+système_chemin_exécutable :: fonc () -> CheminFichier
+{
+    résultat : CheminFichier
+
+    TAILLE_TAMPON_READLINK :: 1024
+    tampon: [TAILLE_TAMPON_READLINK]z8
+
+    lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
+    si lus < 0 {
+        retourne résultat
+    }
+
+    chn := loge_chaine(lus)
+    copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus)
+    
+    résultat.chn = chn
+
+    retourne résultat
+}
