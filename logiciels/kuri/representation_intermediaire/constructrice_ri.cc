@@ -2731,7 +2731,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type con
             auto type_opaque = type->comme_opaque();
             auto valeur = genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
 
-            // À FAIRE(tableau fixe)
+            // À FAIRE(tableau fixe) : initialisation défaut
             if (valeur) {
                 valeur->type = type_opaque;
             }
