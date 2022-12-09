@@ -95,6 +95,8 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
     pile_secondaire : Pile(chaine)
     diffère détruit(pile_secondaire)
 
+    pile.renverse()
+
     tantque !pile.est_vide() {
         morceau_courant := pile.dépile()
 
@@ -104,14 +106,16 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 
         si morceau_courant == ".." {
             // À FAIRE : si la pile est vide, retourne un chemin invalide
-            saufsi pile.est_vide() {
-                _ := pile.dépile()
+            saufsi pile_secondaire.est_vide() {
+                _ := pile_secondaire.dépile()
             }
             continue
         }
 
         pile_secondaire.empile(morceau_courant)
     }
+
+    pile_secondaire.renverse()
 
     résultat : chaine
 
@@ -315,6 +319,16 @@ nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
     }
 
     retourne pile.dépile()
+}
+
+chemin_parent :: fonc (chm: CheminFichier) -> CheminFichier
+{
+    pile := divise_et_empile_chemin(chm)
+    diffère détruit(pile)
+
+    pile.empile("..")
+
+    retourne chemin_normalisé(pile, chm.chn.commence_par(séparateur_chemin()))
 }
 
 /* Retourne le nom du premier dossier après le dossier de base.
