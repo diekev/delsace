@@ -16,6 +16,8 @@ mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
 
 realpath :: fonc (path: ChaineC, resolved_path: ChaineC) -> ChaineC #externe libc
 
+readlink :: fonc (pathname: ChaineC, tampon: *z8, taille_tampon: n64) -> z64 #externe libc
+
 /* PATH_MAX, limits.h */
 TAILLE_MAX_CHEMIN :: 4096
 
