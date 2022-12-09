@@ -429,11 +429,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return CodeRetourValidation::Erreur;
                     }
 
-                    // À FAIRE(état validation)
-                    if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                        return Attente::sur_type(type_sortie);
-                    }
-
                     membres.ajoute({nullptr, type_sortie});
                 }
 
@@ -2105,11 +2100,6 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
             if (resoud_type_final(type_declare->expression_type, type_sortie) ==
                 CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
-            }
-
-            // À FAIRE(état validation) : nous ne devrions pas revalider les paramètres
-            if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_sortie);
             }
 
             membres.ajoute({nullptr, type_sortie});

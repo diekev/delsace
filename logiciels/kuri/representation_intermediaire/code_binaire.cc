@@ -68,7 +68,7 @@ void Chunk::agrandis_si_necessaire(long taille)
     }
 }
 
-int Chunk::emets_allocation(NoeudExpression *site, Type const *type, IdentifiantCode *ident)
+int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
     if (type->genre == GenreType::ENTIER_CONSTANT) {
@@ -86,7 +86,7 @@ int Chunk::emets_allocation(NoeudExpression *site, Type const *type, Identifiant
 }
 
 void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
-                              NoeudExpression *site,
+                              NoeudExpression const *site,
                               Type const *type,
                               bool ajoute_verification)
 {
@@ -120,7 +120,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge(NoeudExpression *site, Type const *type, bool ajoute_verification)
+void Chunk::emets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
 
@@ -135,7 +135,7 @@ void Chunk::emets_charge(NoeudExpression *site, Type const *type, bool ajoute_ve
     emets(type->taille_octet);
 }
 
-void Chunk::emets_charge_variable(NoeudExpression *site,
+void Chunk::emets_charge_variable(NoeudExpression const *site,
                                   int pointeur,
                                   Type const *type,
                                   bool ajoute_verification)
@@ -145,31 +145,31 @@ void Chunk::emets_charge_variable(NoeudExpression *site,
     emets_charge(site, type, ajoute_verification);
 }
 
-void Chunk::emets_reference_globale(NoeudExpression *site, int pointeur)
+void Chunk::emets_reference_globale(NoeudExpression const *site, int pointeur)
 {
     emets(OP_REFERENCE_GLOBALE);
     emets(site);
     emets(pointeur);
 }
 
-void Chunk::emets_reference_variable(NoeudExpression *site, int pointeur)
+void Chunk::emets_reference_variable(NoeudExpression const *site, int pointeur)
 {
     emets(OP_REFERENCE_VARIABLE);
     emets(site);
     emets(pointeur);
 }
 
-void Chunk::emets_reference_membre(NoeudExpression *site, unsigned decalage)
+void Chunk::emets_reference_membre(NoeudExpression const *site, unsigned decalage)
 {
     emets(OP_REFERENCE_MEMBRE);
     emets(site);
     emets(decalage);
 }
 
-void Chunk::emets_appel(NoeudExpression *site,
-                        AtomeFonction *fonction,
+void Chunk::emets_appel(NoeudExpression const *site,
+                        AtomeFonction const *fonction,
                         unsigned taille_arguments,
-                        InstructionAppel *inst_appel,
+                        InstructionAppel const *inst_appel,
                         bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -186,10 +186,10 @@ void Chunk::emets_appel(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_appel_externe(NoeudExpression *site,
-                                AtomeFonction *fonction,
+void Chunk::emets_appel_externe(NoeudExpression const *site,
+                                AtomeFonction const *fonction,
                                 unsigned taille_arguments,
-                                InstructionAppel *inst_appel,
+                                InstructionAppel const *inst_appel,
                                 bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -206,9 +206,9 @@ void Chunk::emets_appel_externe(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_appel_pointeur(NoeudExpression *site,
+void Chunk::emets_appel_pointeur(NoeudExpression const *site,
                                  unsigned taille_arguments,
-                                 InstructionAppel *inst_appel,
+                                 InstructionAppel const *inst_appel,
                                  bool ajoute_verification)
 {
     if (ajoute_verification) {
@@ -223,7 +223,7 @@ void Chunk::emets_appel_pointeur(NoeudExpression *site,
     emets(inst_appel);
 }
 
-void Chunk::emets_acces_index(NoeudExpression *site, Type const *type)
+void Chunk::emets_acces_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
     emets(OP_ACCEDE_INDEX);
@@ -231,7 +231,7 @@ void Chunk::emets_acces_index(NoeudExpression *site, Type const *type)
     emets(type->taille_octet);
 }
 
-void Chunk::emets_branche(NoeudExpression *site,
+void Chunk::emets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
@@ -245,7 +245,7 @@ void Chunk::emets_branche(NoeudExpression *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_branche_condition(NoeudExpression *site,
+void Chunk::emets_branche_condition(NoeudExpression const *site,
                                     kuri::tableau<PatchLabel> &patchs_labels,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
@@ -266,7 +266,7 @@ void Chunk::emets_branche_condition(NoeudExpression *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_label(NoeudExpression *site, int index)
+void Chunk::emets_label(NoeudExpression const *site, int index)
 {
     if (decalages_labels.taille() <= index) {
         decalages_labels.redimensionne(index + 1);
@@ -278,7 +278,7 @@ void Chunk::emets_label(NoeudExpression *site, int index)
     emets(index);
 }
 
-void Chunk::emets_operation_unaire(NoeudExpression *site,
+void Chunk::emets_operation_unaire(NoeudExpression const *site,
                                    OperateurUnaire::Genre op,
                                    Type const *type)
 {
@@ -450,7 +450,7 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
-void Chunk::emets_operation_binaire(NoeudExpression *site,
+void Chunk::emets_operation_binaire(NoeudExpression const *site,
                                     OperateurBinaire::Genre op,
                                     Type const *type_gauche,
                                     Type const *type_droite)
@@ -1025,7 +1025,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     return true;
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruction,
+void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
 {
@@ -1329,176 +1329,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
     switch (constante->genre) {
         case AtomeConstante::Genre::VALEUR:
         {
-            auto valeur_constante = static_cast<AtomeValeurConstante *>(constante);
-
-            switch (valeur_constante->valeur.genre) {
-                case AtomeValeurConstante::Valeur::Genre::NULLE:
-                {
-                    chunk.emets_constante(0l);
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TYPE:
-                {
-                    // utilisation du pointeur directement au lieu de l'index car la table de type
-                    // n'est pas implémentée, et il y a des concurrences critiques entre les
-                    // métaprogrammes
-                    chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                {
-                    chunk.emets_constante(valeur_constante->valeur.type->taille_octet);
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                {
-                    auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-                    auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
-                                                        constante->type);
-
-                    if (type->genre == GenreType::ENTIER_NATUREL) {
-                        if (type->taille_octet == 1) {
-                            chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 2) {
-                            chunk.emets_constante(static_cast<unsigned short>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 4) {
-                            chunk.emets_constante(static_cast<unsigned int>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 8) {
-                            chunk.emets_constante(static_cast<unsigned long>(valeur_entiere));
-                        }
-                    }
-                    else if (type->genre == GenreType::ENTIER_RELATIF) {
-                        if (type->taille_octet == 1) {
-                            chunk.emets_constante(static_cast<char>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 2) {
-                            chunk.emets_constante(static_cast<short>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 4) {
-                            chunk.emets_constante(static_cast<int>(valeur_entiere));
-                        }
-                        else if (type->taille_octet == 8) {
-                            chunk.emets_constante(static_cast<long>(valeur_entiere));
-                        }
-                    }
-                    else if (type->est_reel()) {
-                        if (type->taille_octet == 4) {
-                            chunk.emets_constante(static_cast<float>(valeur_entiere));
-                        }
-                        else {
-                            chunk.emets_constante(static_cast<double>(valeur_entiere));
-                        }
-                    }
-
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::REELLE:
-                {
-                    auto valeur_reele = valeur_constante->valeur.valeur_reelle;
-                    auto type = constante->type;
-
-                    if (type->taille_octet == 4) {
-                        chunk.emets_constante(static_cast<float>(valeur_reele));
-                    }
-                    else {
-                        chunk.emets_constante(valeur_reele);
-                    }
-
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                {
-                    AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
-                    const long taille = valeur_constante->valeur.valeur_tableau.taille;
-
-                    for (auto i = 0; i < taille; i++) {
-                        genere_code_binaire_pour_constante(pointeur[i], chunk);
-                    }
-
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                {
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                {
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                {
-                    auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
-                    chunk.emets_constante(valeur_bool);
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                {
-                    auto valeur_caractere = valeur_constante->valeur.valeur_entiere;
-                    chunk.emets_constante(static_cast<char>(valeur_caractere));
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                {
-                    auto type = constante->type;
-                    auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
-
-                    if (type->genre == GenreType::CHAINE) {
-                        if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
-                            // valeur nulle pour les chaines initilisées à zéro
-                            chunk.emets(OP_CHAINE_CONSTANTE);
-                            chunk.emets(nullptr); /* site */
-                            chunk.emets(nullptr);
-                            chunk.emets(0l);
-                        }
-                        else {
-                            auto acces_index = static_cast<AccedeIndexConstant *>(
-                                tableau_valeur[0]);
-                            auto globale_tableau = static_cast<AtomeGlobale *>(
-                                acces_index->accede);
-
-                            auto tableau = static_cast<AtomeValeurConstante *>(
-                                globale_tableau->initialisateur);
-
-                            auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
-                            auto taille_chaine = tableau->valeur.valeur_tdc.taille;
-
-                            chunk.emets(OP_CHAINE_CONSTANTE);
-                            chunk.emets(nullptr); /* site */
-                            chunk.emets(pointeur_chaine);
-                            chunk.emets(taille_chaine);
-
-                            // reférence globale, tableau
-                            // accède index
-                            // --> pointeur de la chaine
-                        }
-                    }
-                    else {
-                        auto type_compose = static_cast<TypeCompose const *>(type);
-
-                        auto index_membre = 0;
-                        for (auto i = 0; i < type_compose->membres.taille(); ++i) {
-                            if ((type_compose->membres[i].drapeaux &
-                                 TypeCompose::Membre::EST_CONSTANT) != 0) {
-                                continue;
-                            }
-
-                            if (tableau_valeur[index_membre] != nullptr) {
-                                // À FAIRE(tableau fixe)
-                                genere_code_binaire_pour_atome(
-                                    tableau_valeur[index_membre], chunk, true);
-                            }
-
-                            index_membre += 1;
-                        }
-                    }
-
-                    break;
-                }
-            }
-
+            auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+            genere_code_binaire_pour_valeur_constante(valeur_constante, chunk);
             break;
         }
         case AtomeConstante::Genre::GLOBALE:
@@ -1508,20 +1340,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
-            auto transtype = static_cast<TranstypeConstant *>(constante);
+            auto transtype = static_cast<TranstypeConstant const *>(constante);
             genere_code_binaire_pour_constante(transtype->valeur, chunk);
             break;
         }
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
-            auto op_unaire = static_cast<OpUnaireConstant *>(constante);
+            auto op_unaire = static_cast<OpUnaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_unaire->operande, chunk);
             chunk.emets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
             break;
         }
         case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
         {
-            auto op_binaire = static_cast<OpBinaireConstant *>(constante);
+            auto op_binaire = static_cast<OpBinaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
             genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
             chunk.emets_operation_binaire(nullptr,
@@ -1532,11 +1364,180 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
-            auto index_constant = static_cast<AccedeIndexConstant *>(constante);
+            auto index_constant = static_cast<AccedeIndexConstant const *>(constante);
             auto type_pointeur = index_constant->type->comme_pointeur();
             genere_code_binaire_pour_constante(index_constant->index, chunk);
             genere_code_binaire_pour_constante(index_constant->accede, chunk);
             chunk.emets_acces_index(nullptr, type_pointeur->type_pointe);
+            break;
+        }
+    }
+}
+
+void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
+    AtomeValeurConstante const *valeur_constante, Chunk &chunk)
+{
+    switch (valeur_constante->valeur.genre) {
+        case AtomeValeurConstante::Valeur::Genre::NULLE:
+        {
+            chunk.emets_constante(0l);
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::TYPE:
+        {
+            // utilisation du pointeur directement au lieu de l'index car la table de type
+            // n'est pas implémentée, et il y a des concurrences critiques entre les
+            // métaprogrammes
+            chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+        {
+            chunk.emets_constante(valeur_constante->valeur.type->taille_octet);
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+        {
+            auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
+            auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                valeur_constante->type);
+
+            if (type->genre == GenreType::ENTIER_NATUREL) {
+                if (type->taille_octet == 1) {
+                    chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
+                }
+                else if (type->taille_octet == 2) {
+                    chunk.emets_constante(static_cast<unsigned short>(valeur_entiere));
+                }
+                else if (type->taille_octet == 4) {
+                    chunk.emets_constante(static_cast<unsigned int>(valeur_entiere));
+                }
+                else if (type->taille_octet == 8) {
+                    chunk.emets_constante(static_cast<unsigned long>(valeur_entiere));
+                }
+            }
+            else if (type->genre == GenreType::ENTIER_RELATIF) {
+                if (type->taille_octet == 1) {
+                    chunk.emets_constante(static_cast<char>(valeur_entiere));
+                }
+                else if (type->taille_octet == 2) {
+                    chunk.emets_constante(static_cast<short>(valeur_entiere));
+                }
+                else if (type->taille_octet == 4) {
+                    chunk.emets_constante(static_cast<int>(valeur_entiere));
+                }
+                else if (type->taille_octet == 8) {
+                    chunk.emets_constante(static_cast<long>(valeur_entiere));
+                }
+            }
+            else if (type->est_reel()) {
+                if (type->taille_octet == 4) {
+                    chunk.emets_constante(static_cast<float>(valeur_entiere));
+                }
+                else {
+                    chunk.emets_constante(static_cast<double>(valeur_entiere));
+                }
+            }
+
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::REELLE:
+        {
+            auto valeur_reele = valeur_constante->valeur.valeur_reelle;
+            auto type = valeur_constante->type;
+
+            if (type->taille_octet == 4) {
+                chunk.emets_constante(static_cast<float>(valeur_reele));
+            }
+            else {
+                chunk.emets_constante(valeur_reele);
+            }
+
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+        {
+            AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
+            const long taille = valeur_constante->valeur.valeur_tableau.taille;
+
+            for (auto i = 0; i < taille; i++) {
+                genere_code_binaire_pour_constante(pointeur[i], chunk);
+            }
+
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+        {
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+        {
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+        {
+            auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
+            chunk.emets_constante(valeur_bool);
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+        {
+            auto valeur_caractere = valeur_constante->valeur.valeur_entiere;
+            chunk.emets_constante(static_cast<char>(valeur_caractere));
+            break;
+        }
+        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+        {
+            auto type = valeur_constante->type;
+            auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
+
+            if (type->genre == GenreType::CHAINE) {
+                if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
+                    // valeur nulle pour les chaines initilisées à zéro
+                    chunk.emets(OP_CHAINE_CONSTANTE);
+                    chunk.emets(nullptr); /* site */
+                    chunk.emets(nullptr);
+                    chunk.emets(0l);
+                }
+                else {
+                    auto acces_index = static_cast<AccedeIndexConstant *>(tableau_valeur[0]);
+                    auto globale_tableau = static_cast<AtomeGlobale *>(acces_index->accede);
+
+                    auto tableau = static_cast<AtomeValeurConstante *>(
+                        globale_tableau->initialisateur);
+
+                    auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
+                    auto taille_chaine = tableau->valeur.valeur_tdc.taille;
+
+                    chunk.emets(OP_CHAINE_CONSTANTE);
+                    chunk.emets(nullptr); /* site */
+                    chunk.emets(pointeur_chaine);
+                    chunk.emets(taille_chaine);
+
+                    // reférence globale, tableau
+                    // accède index
+                    // --> pointeur de la chaine
+                }
+
+                return;
+            }
+
+            auto type_compose = static_cast<TypeCompose const *>(type);
+
+            auto index_membre = 0;
+            for (auto i = 0; i < type_compose->membres.taille(); ++i) {
+                if ((type_compose->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+                    continue;
+                }
+
+                if (tableau_valeur[index_membre] != nullptr) {
+                    // À FAIRE(tableau fixe) : initialisation défaut
+                    genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk, true);
+                }
+
+                index_membre += 1;
+            }
+
             break;
         }
     }

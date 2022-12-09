@@ -22,6 +22,7 @@ struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
+struct AtomeValeurConstante;
 struct Compilatrice;
 struct DonneesConstantesExecutions;
 struct DonneesExecution;
@@ -245,47 +246,49 @@ struct Chunk {
 
     void agrandis_si_necessaire(long taille);
 
-    int emets_allocation(NoeudExpression *site, Type const *type, IdentifiantCode *ident);
+    int emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,
-                           NoeudExpression *site,
+                           NoeudExpression const *site,
                            Type const *type,
                            bool ajoute_verification);
-    void emets_charge(NoeudExpression *site, Type const *type, bool ajoute_verification);
-    void emets_charge_variable(NoeudExpression *site,
+    void emets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
+    void emets_charge_variable(NoeudExpression const *site,
                                int pointeur,
                                Type const *type,
                                bool ajoute_verification);
-    void emets_reference_globale(NoeudExpression *site, int pointeur);
-    void emets_reference_variable(NoeudExpression *site, int pointeur);
-    void emets_reference_membre(NoeudExpression *site, unsigned decalage);
-    void emets_appel(NoeudExpression *site,
-                     AtomeFonction *fonction,
+    void emets_reference_globale(NoeudExpression const *site, int pointeur);
+    void emets_reference_variable(NoeudExpression const *site, int pointeur);
+    void emets_reference_membre(NoeudExpression const *site, unsigned decalage);
+    void emets_appel(NoeudExpression const *site,
+                     AtomeFonction const *fonction,
                      unsigned taille_arguments,
-                     InstructionAppel *inst_appel,
+                     InstructionAppel const *inst_appel,
                      bool ajoute_verification);
-    void emets_appel_externe(NoeudExpression *site,
-                             AtomeFonction *fonction,
+    void emets_appel_externe(NoeudExpression const *site,
+                             AtomeFonction const *fonction,
                              unsigned taille_arguments,
-                             InstructionAppel *inst_appel,
+                             InstructionAppel const *inst_appel,
                              bool ajoute_verification);
-    void emets_appel_pointeur(NoeudExpression *site,
+    void emets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
-                              InstructionAppel *inst_appel,
+                              InstructionAppel const *inst_appel,
                               bool ajoute_verification);
-    void emets_acces_index(NoeudExpression *site, Type const *type);
+    void emets_acces_index(NoeudExpression const *site, Type const *type);
 
-    void emets_branche(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index);
-    void emets_branche_condition(NoeudExpression *site,
+    void emets_branche(NoeudExpression const *site,
+                       kuri::tableau<PatchLabel> &patchs_labels,
+                       int index);
+    void emets_branche_condition(NoeudExpression const *site,
                                  kuri::tableau<PatchLabel> &patchs_labels,
                                  int index_label_si_vrai,
                                  int index_label_si_faux);
 
-    void emets_label(NoeudExpression *site, int index);
+    void emets_label(NoeudExpression const *site, int index);
 
-    void emets_operation_unaire(NoeudExpression *site,
+    void emets_operation_unaire(NoeudExpression const *site,
                                 OperateurUnaire::Genre op,
                                 Type const *type);
-    void emets_operation_binaire(NoeudExpression *site,
+    void emets_operation_binaire(NoeudExpression const *site,
                                  OperateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
@@ -342,11 +345,13 @@ class ConvertisseuseRI {
     bool genere_code_pour_fonction(AtomeFonction *fonction);
 
   private:
-    void genere_code_binaire_pour_instruction(Instruction *instruction,
+    void genere_code_binaire_pour_instruction(Instruction const *instruction,
                                               Chunk &chunk,
                                               bool pour_operande);
 
     void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
+    void genere_code_binaire_pour_valeur_constante(AtomeValeurConstante const *valeur_constante,
+                                                   Chunk &chunk);
 
     void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
                                                          int decalage,
