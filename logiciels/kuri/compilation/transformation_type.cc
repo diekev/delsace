@@ -487,6 +487,15 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         return TypeTransformation::IMPOSSIBLE;
     }
 
+    if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::FONCTION) {
+        auto type_pointe_vers = type_vers->comme_pointeur()->type_pointe;
+
+        /* x : *z8 = y (*rien) */
+        if (type_pointe_vers->genre == GenreType::RIEN) {
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+        }
+    }
+
     if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::POINTEUR) {
         auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
         auto type_pointe_vers = type_vers->comme_pointeur()->type_pointe;
