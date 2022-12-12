@@ -238,20 +238,3 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn)
 
     return enchaineuse;
 }
-
-unsigned nombre_vers_chaine(char *tampon, unsigned long valeur)
-{
-    auto const n = dls::num::nombre_chiffre_base_10_pro(valeur);
-
-    auto pos = n - 1;
-
-    while (valeur >= 10) {
-        auto const q = valeur / 10;
-        auto const r = valeur % 10;
-        tampon[pos--] = static_cast<char>('0' + r);
-        valeur = q;
-    }
-
-    tampon[0] = static_cast<char>('0' + valeur);
-    return n;
-}

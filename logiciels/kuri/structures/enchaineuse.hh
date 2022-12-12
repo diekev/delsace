@@ -70,14 +70,72 @@ struct Enchaineuse {
     kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
 };
 
-unsigned nombre_vers_chaine(char *tampon, unsigned long valeur);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbool-compare"
+template <typename T>
+unsigned nombre_chiffre_base_10_pro(T v)
+{
+    unsigned resultat = 1;
+
+    for (;;) {
+        if (PROBABLE(v < 10)) {
+            return resultat;
+        }
+
+        if (PROBABLE(v < 100)) {
+            return resultat + 1;
+        }
+
+        if (PROBABLE(v < 1000)) {
+            return resultat + 2;
+        }
+
+        if (PROBABLE(v < 10000)) {
+            return resultat + 3;
+        }
+
+        resultat += 4;
+        v /= 10000;
+    }
+}
+
+template <typename T>
+unsigned nombre_vers_chaine(char *tampon, T valeur)
+{
+    auto const n = nombre_chiffre_base_10_pro(valeur);
+
+    auto pos = n - 1;
+
+    while (valeur >= 10) {
+        auto const q = valeur / 10;
+        auto const r = valeur % 10;
+        tampon[pos--] = static_cast<char>('0' + r);
+        valeur = q;
+    }
+
+    tampon[0] = static_cast<char>('0' + valeur);
+    return n;
+}
+#pragma GCC diagnostic pop
 
 template <typename T>
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 {
+    if constexpr (std::is_same_v<bool, T>) {
+        enchaineuse.ajoute((valeur) ? "1" : "0");
+        return enchaineuse;
+    }
+
+    if constexpr (std::is_signed_v<T>) {
+        if (valeur < 0) {
+            enchaineuse.pousse_caractere('-');
+            valeur = -valeur;
+        }
+    }
+
     if constexpr (std::is_integral_v<T>) {
         char tampon[32];
-        auto const n = nombre_vers_chaine(tampon, static_cast<unsigned long>(valeur));
+        auto const n = nombre_vers_chaine(tampon, valeur);
         enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
         return enchaineuse;
     }
