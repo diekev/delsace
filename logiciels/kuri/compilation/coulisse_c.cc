@@ -854,7 +854,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                                     return enchaine(static_cast<unsigned int>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<unsigned short>(valeur_entiere));
+                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 4) {
                                     return enchaine(static_cast<unsigned int>(valeur_entiere));
@@ -868,7 +868,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                                     return enchaine(static_cast<int>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<short>(valeur_entiere));
+                                    return enchaine(static_cast<int>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 4 || type->taille_octet == 0) {
                                     return enchaine(static_cast<int>(valeur_entiere));
