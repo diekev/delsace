@@ -537,7 +537,7 @@ static ResultatAppariement apparie_appel_pointeur(
         poids_args *= poids_pour_enfant;
 
         if (poids_args == 0.0) {
-            return ErreurAppariement::metypage_argument(slot, type_enf, type_prm);
+            return ErreurAppariement::metypage_argument(slot, type_prm, type_enf);
         }
 
         transformations[static_cast<int>(i)] = poids_xform.transformation;
