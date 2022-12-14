@@ -154,7 +154,7 @@ kuri::chaine UniteCompilation::commentaire() const
             resultat << " #corps_texte pour ";
 
             if (metaprogramme_attendu->corps_texte_pour_fonction) {
-                resultat << metaprogramme->corps_texte_pour_fonction->ident->nom;
+                resultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
             }
             else if (metaprogramme_attendu->corps_texte_pour_structure) {
                 resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
