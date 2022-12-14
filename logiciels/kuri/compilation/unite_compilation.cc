@@ -26,6 +26,88 @@ const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
     return "ceci ne devrait pas arriver";
 }
 
+static UniteCompilation *unité_pour_attente(Attente const &attente)
+{
+    if (attente.est<AttenteSurType>()) {
+        auto type_attendu = attente.type();
+
+        if (!type_attendu) {
+            return nullptr;
+        }
+
+        assert(attente.est_valide());
+        auto decl = decl_pour_type(type_attendu);
+        if (!decl) {
+            /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
+             * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
+            return nullptr;
+        }
+
+        return decl->unite;
+    }
+
+    if (attente.est<AttenteSurSymbole>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurDeclaration>()) {
+        return attente.declaration()->unite;
+    }
+
+    if (attente.est<AttenteSurOperateur>()) {
+        return attente.operateur()->unite;
+    }
+
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = attente.metaprogramme();
+        // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
+        // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
+        return metaprogramme_attendu->fonction->unite;
+    }
+
+    if (attente.est<AttenteSurRI>()) {
+        auto ri_attendue = *attente.ri();
+        if (!ri_attendue || !ri_attendue->est_fonction()) {
+            return nullptr;
+        }
+        auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+        if (!fonction->decl) {
+            return nullptr;
+        }
+        return fonction->decl->unite;
+    }
+
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurMessage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurChargement>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurLexage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurParsage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurNoeudCode>()) {
+        return nullptr;
+    }
+
+    assert_rappel(!attente.est_valide(), [&]() {
+        std::cerr << "L'attente est pour " << commentaire() << '\n';
+        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
+    });
+    return nullptr;
+}
+
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 {
     return os << chaine_rainson_d_etre(raison_d_etre);
@@ -33,16 +115,15 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 
 bool UniteCompilation::est_bloquee() const
 {
-    auto toutes_les_unites_attendues_sont_bloquees = attente_est_bloquee();
-
-    if (!toutes_les_unites_attendues_sont_bloquees) {
+    auto attente_bloquée = première_attente_bloquée();
+    if (!attente_bloquée) {
         return false;
     }
 
     auto visitees = kuri::ensemblon<UniteCompilation const *, 16>();
     visitees.insere(this);
 
-    auto attendue = unite_attendue();
+    auto attendue = unité_pour_attente(*attente_bloquée);
     while (attendue) {
         if (visitees.possede(attendue)) {
             /* La dépendance cyclique sera rapportée via le message d'erreur qui appelera
@@ -50,11 +131,16 @@ bool UniteCompilation::est_bloquee() const
             return true;
         }
         visitees.insere(attendue);
-        toutes_les_unites_attendues_sont_bloquees &= attendue->attente_est_bloquee();
-        attendue = attendue->unite_attendue();
+
+        attente_bloquée = attendue->première_attente_bloquée();
+        if (!attente_bloquée) {
+            return false;
+        }
+
+        attendue = unité_pour_attente(*attente_bloquée);
     }
 
-    return toutes_les_unites_attendues_sont_bloquees;
+    return true;
 }
 
 /* Représente la condition pour laquelle l'attente est bloquée. */
@@ -96,34 +182,55 @@ static std::optional<ConditionBlocageAttente> condition_blocage(Attente const &a
     return {};
 }
 
-bool UniteCompilation::attente_est_bloquee() const
+Attente const *UniteCompilation::première_attente_bloquée() const
 {
-    auto const condition_potentielle = condition_blocage(m_attente);
-    if (!condition_potentielle.has_value()) {
-        /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
-        return false;
+    POUR (m_attentes) {
+        auto const condition_potentielle = condition_blocage(it);
+        if (!condition_potentielle.has_value()) {
+            /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
+            continue;
+        }
+
+        auto const condition = condition_potentielle.value();
+        auto const phase_espace = espace->phase_courante();
+        auto const id_phase_espace = espace->id_phase_courante();
+
+        if (id_phase_espace != id_phase_cycle) {
+            /* L'espace a changé de phase, nos cycles sont invalidés. */
+            id_phase_cycle = id_phase_espace;
+            cycle = 0;
+            continue;
+        }
+
+        if (phase_espace < condition.phase) {
+            /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
+            cycle = 0;
+            continue;
+        }
+
+        /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être
+         * satisfaits.
+         */
+        if (cycle > CYCLES_MAXIMUM) {
+            return &it;
+        }
     }
 
-    auto const condition = condition_potentielle.value();
-    auto const phase_espace = espace->phase_courante();
-    auto const id_phase_espace = espace->id_phase_courante();
+    return nullptr;
+}
 
-    if (id_phase_espace != id_phase_cycle) {
-        /* L'espace a changé de phase, nos cycles sont invalidés. */
-        id_phase_cycle = id_phase_espace;
-        cycle = 0;
-        return false;
+Attente const *UniteCompilation::première_attente_bloquée_ou_non() const
+{
+    auto attente = première_attente_bloquée();
+    if (attente) {
+        return attente;
     }
 
-    if (phase_espace < condition.phase) {
-        /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
-        cycle = 0;
-        return false;
+    if (m_attentes.taille()) {
+        return &m_attentes[0];
     }
 
-    /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être satisfaits.
-     */
-    return cycle > CYCLES_MAXIMUM;
+    return nullptr;
 }
 
 static kuri::chaine commentaire_pour_attente(Attente const &attente)
@@ -227,98 +334,6 @@ static kuri::chaine commentaire_pour_attente(Attente const &attente)
     return "ERREUR COMPILATRICE";
 }
 
-kuri::chaine UniteCompilation::commentaire() const
-{
-    return commentaire_pour_attente(m_attente);
-}
-
-static UniteCompilation *unité_pour_attente(Attente const &attente)
-{
-    if (attente.est<AttenteSurType>()) {
-        auto type_attendu = attente.type();
-
-        if (!type_attendu) {
-            return nullptr;
-        }
-
-        assert(attente.est_valide());
-        auto decl = decl_pour_type(type_attendu);
-        if (!decl) {
-            /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
-             * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
-            return nullptr;
-        }
-
-        return decl->unite;
-    }
-
-    if (attente.est<AttenteSurSymbole>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurDeclaration>()) {
-        return attente.declaration()->unite;
-    }
-
-    if (attente.est<AttenteSurOperateur>()) {
-        return attente.operateur()->unite;
-    }
-
-    if (attente.est<AttenteSurMetaProgramme>()) {
-        auto metaprogramme_attendu = attente.metaprogramme();
-        // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
-        // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
-        return metaprogramme_attendu->fonction->unite;
-    }
-
-    if (attente.est<AttenteSurRI>()) {
-        auto ri_attendue = *attente.ri();
-        if (!ri_attendue || !ri_attendue->est_fonction()) {
-            return nullptr;
-        }
-        auto fonction = static_cast<AtomeFonction *>(ri_attendue);
-        if (!fonction->decl) {
-            return nullptr;
-        }
-        return fonction->decl->unite;
-    }
-
-    if (attente.est<AttenteSurInterfaceKuri>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurMessage>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurChargement>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurLexage>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurParsage>()) {
-        return nullptr;
-    }
-
-    if (attente.est<AttenteSurNoeudCode>()) {
-        return nullptr;
-    }
-
-    assert_rappel(!attente.est_valide(), [&]() {
-        std::cerr << "L'attente est pour " << commentaire() << '\n';
-        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
-    });
-    return nullptr;
-}
-
-UniteCompilation *UniteCompilation::unite_attendue() const
-{
-    return unité_pour_attente(m_attente);
-}
-
 static void imprime_operateurs_pour(Erreur &e,
                                     Type &type,
                                     NoeudExpression const &operateur_attendu)
@@ -362,7 +377,7 @@ static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente co
         // À FAIRE : ne devrait pas arriver
         if (unite_decl) {
             erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-                .ajoute_message(chaine_attentes_recursives(unite))
+                .ajoute_message(unite->chaine_attentes_recursives())
                 .ajoute_message("\n");
         }
     }
@@ -382,7 +397,7 @@ static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente co
             .ajoute_message(chaine_type(attente.type()))
             .ajoute_message("\n")
             .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-            .ajoute_message(chaine_attentes_recursives(unite))
+            .ajoute_message(unite->chaine_attentes_recursives())
             .ajoute_message("\n");
     }
     else if (attente.est<AttenteSurInterfaceKuri>()) {
@@ -489,33 +504,32 @@ static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente co
                               "Je ne peux pas continuer la compilation car une unité est "
                               "bloqué dans un cycle")
             .ajoute_message("\nNote : l'unité est dans l'état : ")
-            .ajoute_message(chaine_attentes_recursives(unite))
+            .ajoute_message(unite->chaine_attentes_recursives())
             .ajoute_message("\n");
     }
 }
 
 void UniteCompilation::rapporte_erreur() const
 {
-    émets_erreur_pour_attente(this, m_attente);
+    auto attente = première_attente_bloquée();
+    émets_erreur_pour_attente(this, *attente);
 }
 
-kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
+kuri::chaine UniteCompilation::chaine_attentes_recursives() const
 {
-    if (!unite) {
-        return "    L'unité est nulle !\n";
-    }
-
     Enchaineuse fc;
 
-    auto attendue = unite->unite_attendue();
-    auto commentaire = unite->commentaire();
+    auto attente = première_attente_bloquée();
+    assert(atttente);
+    auto attendue = unité_pour_attente(*attente);
+    auto commentaire = commentaire_pour_attente(*attente);
 
     if (!attendue) {
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
     kuri::ensemble<UniteCompilation const *> unite_visite;
-    unite_visite.insere(unite);
+    unite_visite.insere(this);
 
     while (attendue) {
         if (attendue->est_prete()) {
@@ -528,13 +542,14 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
             break;
         }
 
+        attente = attendue->première_attente_bloquée_ou_non();
         fc << "    " << commentaire << " attend sur ";
-        commentaire = attendue->commentaire();
+        commentaire = commentaire_pour_attente(*attente);
         fc << commentaire << '\n';
 
         unite_visite.insere(attendue);
 
-        attendue = attendue->unite_attendue();
+        attendue = unité_pour_attente(*attente);
     }
 
     return fc.chaine();
@@ -653,7 +668,21 @@ void UniteCompilation::marque_prete_si_attente_resolue()
         return;
     }
 
-    if (attente_est_résolue(espace, m_attente)) {
+    auto toutes_les_attentes_sont_résolues = true;
+    POUR (m_attentes) {
+        if (!it.est_valide()) {
+            continue;
+        }
+
+        if (!attente_est_résolue(espace, it)) {
+            toutes_les_attentes_sont_résolues = false;
+            continue;
+        }
+
+        it = {};
+    }
+
+    if (toutes_les_attentes_sont_résolues) {
         marque_prete();
     }
 }

@@ -788,7 +788,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     unite->type = type;
 
     if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        unite->mute_attente(Attente::sur_type(type));
+        unite->ajoute_attente(Attente::sur_type(type));
     }
 
     type->drapeaux |= UNITE_POUR_INITIALISATION_FUT_CREE;
@@ -880,7 +880,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
              * assurer que personne n'essayera de performer le typage du corps recipient avant que
              * les sources du fichiers ne soient générées, lexées, et parsées. */
             auto fichier = m_compilatrice->cree_fichier_pour_metaprogramme(metaprogramme);
-            recipiente->corps->unite->mute_attente(Attente::sur_parsage(fichier));
+            recipiente->corps->unite->ajoute_attente(Attente::sur_parsage(fichier));
         }
         else if (metaprogramme->corps_texte_pour_structure) {
             /* Les fichiers pour les #corps_texte des structures sont créés lors de la validation
@@ -940,7 +940,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
         }
     }
 
-    unite_attendante->mute_attente(attente);
+    unite_attendante->ajoute_attente(attente);
     unites_en_attente.ajoute(unite_attendante);
 }
 
@@ -1158,8 +1158,8 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     if (message) {
         requiers_noeud_code(espace, noeud);
         auto unite_message = cree_unite_pour_message(espace, message);
-        unite_message->mute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
-        unite->mute_attente(Attente::sur_message(message));
+        unite_message->ajoute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
+        unite->ajoute_attente(Attente::sur_message(message));
     }
 
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
@@ -1215,9 +1215,11 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 void GestionnaireCode::message_recu(Message const *message)
 {
     POUR (unites_en_attente) {
-        if (it->attend_sur_message(message)) {
-            it->marque_prete();
+        auto attente = it->attend_sur_message(message);
+        if (!attente) {
+            continue;
         }
+        *attente = {};
     }
 }
 
@@ -1281,12 +1283,14 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
     auto noeud = unite->noeud;
 
     POUR (unites_en_attente) {
-        if (it->attend_sur_noeud_code(&noeud->noeud_code)) {
-            assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
-            auto message = it->message;
-            static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
-            it->marque_prete();
+        auto attente = it->attend_sur_noeud_code(&noeud->noeud_code);
+        if (!attente) {
+            continue;
         }
+        assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
+        auto message = it->message;
+        static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
+        *attente = {};
     }
 }
 
@@ -1591,7 +1595,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     espace->unite_pour_code_machine = unite_code_machine;
 
     if (message) {
-        unite_code_machine->mute_attente(Attente::sur_message(message));
+        unite_code_machine->ajoute_attente(Attente::sur_message(message));
     }
 }
 
@@ -1616,10 +1620,7 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
             continue;
         }
 
-        if (it->attend_sur_un_message()) {
-            it->marque_prete();
-        }
-
+        it->supprime_attentes_sur_messages();
         nouvelles_unites.ajoute(it);
     }
 
