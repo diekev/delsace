@@ -241,7 +241,7 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
             return nullptr;
         }
 
-        assert(m_attente.est_valide());
+        assert(attente.est_valide());
         auto decl = decl_pour_type(type_attendu);
         if (!decl) {
             /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
@@ -307,7 +307,7 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
         return nullptr;
     }
 
-    assert_rappel(!m_attente.est_valide(), [&]() {
+    assert_rappel(!attente.est_valide(), [&]() {
         std::cerr << "L'attente est pour " << commentaire() << '\n';
         std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
     });
@@ -342,18 +342,18 @@ static void imprime_operateurs_pour(Erreur &e,
     }
 }
 
-static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente const &m_attente)
+static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente const &attente)
 {
     auto espace = unite->espace;
     auto noeud = unite->noeud;
     auto index_courant = unite->index_courant;
 
-    if (m_attente.est<AttenteSurSymbole>()) {
-        espace->rapporte_erreur(m_attente.symbole(),
+    if (attente.est<AttenteSurSymbole>()) {
+        espace->rapporte_erreur(attente.symbole(),
                                 "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
     }
-    else if (m_attente.est<AttenteSurDeclaration>()) {
-        auto decl = m_attente.declaration();
+    else if (attente.est<AttenteSurDeclaration>()) {
+        auto decl = attente.declaration();
         auto unite_decl = decl->unite;
         auto erreur = espace->rapporte_erreur(
             decl,
@@ -366,7 +366,7 @@ static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente co
                 .ajoute_message("\n");
         }
     }
-    else if (m_attente.est<AttenteSurType>()) {
+    else if (attente.est<AttenteSurType>()) {
         auto site = noeud;
         if (site && site->est_corps_fonction()) {
             auto corps = site->comme_corps_fonction();
@@ -379,22 +379,22 @@ static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente co
                               "pas à déterminer un type pour l'expression",
                               erreur::Genre::TYPE_INCONNU)
             .ajoute_message("Note : le type attendu est ")
-            .ajoute_message(chaine_type(m_attente.type()))
+            .ajoute_message(chaine_type(attente.type()))
             .ajoute_message("\n")
             .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
             .ajoute_message(chaine_attentes_recursives(unite))
             .ajoute_message("\n");
     }
-    else if (m_attente.est<AttenteSurInterfaceKuri>()) {
+    else if (attente.est<AttenteSurInterfaceKuri>()) {
         espace
             ->rapporte_erreur(noeud,
                               "Trop de cycles : arrêt de la compilation car une "
                               "déclaration attend sur une interface de Kuri")
             .ajoute_message(
-                "Note : l'interface attendue est ", m_attente.interface_kuri()->nom, "\n");
+                "Note : l'interface attendue est ", attente.interface_kuri()->nom, "\n");
     }
-    else if (m_attente.est<AttenteSurOperateur>()) {
-        auto operateur_attendu = m_attente.operateur();
+    else if (attente.est<AttenteSurOperateur>()) {
+        auto operateur_attendu = attente.operateur();
         if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
             auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
             auto type1 = expression_operation->operande_gauche->type;
