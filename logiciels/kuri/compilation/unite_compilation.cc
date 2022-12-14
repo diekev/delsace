@@ -26,6 +26,88 @@ const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
     return "ceci ne devrait pas arriver";
 }
 
+static UniteCompilation *unité_pour_attente(Attente const &attente)
+{
+    if (attente.est<AttenteSurType>()) {
+        auto type_attendu = attente.type();
+
+        if (!type_attendu) {
+            return nullptr;
+        }
+
+        assert(attente.est_valide());
+        auto decl = decl_pour_type(type_attendu);
+        if (!decl) {
+            /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
+             * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
+            return nullptr;
+        }
+
+        return decl->unite;
+    }
+
+    if (attente.est<AttenteSurSymbole>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurDeclaration>()) {
+        return attente.declaration()->unite;
+    }
+
+    if (attente.est<AttenteSurOperateur>()) {
+        return attente.operateur()->unite;
+    }
+
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = attente.metaprogramme();
+        // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
+        // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
+        return metaprogramme_attendu->fonction->unite;
+    }
+
+    if (attente.est<AttenteSurRI>()) {
+        auto ri_attendue = *attente.ri();
+        if (!ri_attendue || !ri_attendue->est_fonction()) {
+            return nullptr;
+        }
+        auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+        if (!fonction->decl) {
+            return nullptr;
+        }
+        return fonction->decl->unite;
+    }
+
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurMessage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurChargement>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurLexage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurParsage>()) {
+        return nullptr;
+    }
+
+    if (attente.est<AttenteSurNoeudCode>()) {
+        return nullptr;
+    }
+
+    assert_rappel(!attente.est_valide(), [&]() {
+        std::cerr << "L'attente est pour " << commentaire() << '\n';
+        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
+    });
+    return nullptr;
+}
+
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 {
     return os << chaine_rainson_d_etre(raison_d_etre);
@@ -33,16 +115,15 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 
 bool UniteCompilation::est_bloquee() const
 {
-    auto toutes_les_unites_attendues_sont_bloquees = attente_est_bloquee();
-
-    if (!toutes_les_unites_attendues_sont_bloquees) {
+    auto attente_bloquée = première_attente_bloquée();
+    if (!attente_bloquée) {
         return false;
     }
 
     auto visitees = kuri::ensemblon<UniteCompilation const *, 16>();
     visitees.insere(this);
 
-    auto attendue = unite_attendue();
+    auto attendue = unité_pour_attente(*attente_bloquée);
     while (attendue) {
         if (visitees.possede(attendue)) {
             /* La dépendance cyclique sera rapportée via le message d'erreur qui appelera
@@ -50,11 +131,16 @@ bool UniteCompilation::est_bloquee() const
             return true;
         }
         visitees.insere(attendue);
-        toutes_les_unites_attendues_sont_bloquees &= attendue->attente_est_bloquee();
-        attendue = attendue->unite_attendue();
+
+        attente_bloquée = attendue->première_attente_bloquée();
+        if (!attente_bloquée) {
+            return false;
+        }
+
+        attendue = unité_pour_attente(*attente_bloquée);
     }
 
-    return toutes_les_unites_attendues_sont_bloquees;
+    return true;
 }
 
 /* Représente la condition pour laquelle l'attente est bloquée. */
@@ -96,57 +182,78 @@ static std::optional<ConditionBlocageAttente> condition_blocage(Attente const &a
     return {};
 }
 
-bool UniteCompilation::attente_est_bloquee() const
+Attente const *UniteCompilation::première_attente_bloquée() const
 {
-    auto const condition_potentielle = condition_blocage(m_attente);
-    if (!condition_potentielle.has_value()) {
-        /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
-        return false;
+    POUR (m_attentes) {
+        auto const condition_potentielle = condition_blocage(it);
+        if (!condition_potentielle.has_value()) {
+            /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
+            continue;
+        }
+
+        auto const condition = condition_potentielle.value();
+        auto const phase_espace = espace->phase_courante();
+        auto const id_phase_espace = espace->id_phase_courante();
+
+        if (id_phase_espace != id_phase_cycle) {
+            /* L'espace a changé de phase, nos cycles sont invalidés. */
+            id_phase_cycle = id_phase_espace;
+            cycle = 0;
+            continue;
+        }
+
+        if (phase_espace < condition.phase) {
+            /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
+            cycle = 0;
+            continue;
+        }
+
+        /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être
+         * satisfaits.
+         */
+        if (cycle > CYCLES_MAXIMUM) {
+            return &it;
+        }
     }
 
-    auto const condition = condition_potentielle.value();
-    auto const phase_espace = espace->phase_courante();
-    auto const id_phase_espace = espace->id_phase_courante();
-
-    if (id_phase_espace != id_phase_cycle) {
-        /* L'espace a changé de phase, nos cycles sont invalidés. */
-        id_phase_cycle = id_phase_espace;
-        cycle = 0;
-        return false;
-    }
-
-    if (phase_espace < condition.phase) {
-        /* L'espace n'a pas dépassé la phase limite, nos cycles sont invalides. */
-        cycle = 0;
-        return false;
-    }
-
-    /* L'espace est sur la phase ou après. Nous avons jusqu'à CYCLES_MAXIMUM pour être satisfaits.
-     */
-    return cycle > CYCLES_MAXIMUM;
+    return nullptr;
 }
 
-kuri::chaine UniteCompilation::commentaire() const
+Attente const *UniteCompilation::première_attente_bloquée_ou_non() const
 {
-    if (m_attente.est<AttenteSurType>()) {
-        auto type_attendu = m_attente.type();
+    auto attente = première_attente_bloquée();
+    if (attente) {
+        return attente;
+    }
+
+    if (m_attentes.taille()) {
+        return &m_attentes[0];
+    }
+
+    return nullptr;
+}
+
+static kuri::chaine commentaire_pour_attente(Attente const &attente)
+{
+    if (attente.est<AttenteSurType>()) {
+        auto type_attendu = attente.type();
         return enchaine("(type) ", chaine_type(type_attendu));
     }
 
-    if (m_attente.est<AttenteSurSymbole>()) {
-        return enchaine("(symbole) ", m_attente.symbole()->ident->nom);
+    if (attente.est<AttenteSurSymbole>()) {
+        return enchaine("(symbole) ", attente.symbole()->ident->nom);
     }
 
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        return enchaine("(decl) ", m_attente.declaration()->ident->nom);
+    if (attente.est<AttenteSurDeclaration>()) {
+        return enchaine("(decl) ", attente.declaration()->ident->nom);
     }
 
-    if (m_attente.est<AttenteSurOperateur>()) {
-        return enchaine("opérateur ", m_attente.operateur()->lexeme->chaine);
+    if (attente.est<AttenteSurOperateur>()) {
+        return enchaine("opérateur ", attente.operateur()->lexeme->chaine);
     }
 
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        auto metaprogramme_attendu = m_attente.metaprogramme();
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = attente.metaprogramme();
         auto resultat = Enchaineuse();
         resultat << "métaprogramme";
 
@@ -154,7 +261,7 @@ kuri::chaine UniteCompilation::commentaire() const
             resultat << " #corps_texte pour ";
 
             if (metaprogramme_attendu->corps_texte_pour_fonction) {
-                resultat << metaprogramme->corps_texte_pour_fonction->ident->nom;
+                resultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
             }
             else if (metaprogramme_attendu->corps_texte_pour_structure) {
                 resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
@@ -170,8 +277,8 @@ kuri::chaine UniteCompilation::commentaire() const
         return resultat.chaine();
     }
 
-    if (m_attente.est<AttenteSurRI>()) {
-        auto ri_attendue = *m_attente.ri();
+    if (attente.est<AttenteSurRI>()) {
+        auto ri_attendue = *attente.ri();
         if (ri_attendue == nullptr) {
             return "RI, mais la RI ne fut pas générée !";
         }
@@ -200,112 +307,31 @@ kuri::chaine UniteCompilation::commentaire() const
         return enchaine("RI de quelque chose inconnue");
     }
 
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        return enchaine("(interface kuri) ", m_attente.interface_kuri()->nom);
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        return enchaine("(interface kuri) ", attente.interface_kuri()->nom);
     }
 
-    if (m_attente.est<AttenteSurMessage>()) {
+    if (attente.est<AttenteSurMessage>()) {
         return "message";
     }
 
-    if (m_attente.est<AttenteSurLexage>()) {
+    if (attente.est<AttenteSurLexage>()) {
         return "lexage fichier";
     }
 
-    if (m_attente.est<AttenteSurParsage>()) {
+    if (attente.est<AttenteSurParsage>()) {
         return "parsage fichier";
     }
 
-    if (m_attente.est<AttenteSurChargement>()) {
+    if (attente.est<AttenteSurChargement>()) {
         return "chargement fichier";
     }
 
-    if (m_attente.est<AttenteSurNoeudCode>()) {
+    if (attente.est<AttenteSurNoeudCode>()) {
         return "noeud code";
     }
 
     return "ERREUR COMPILATRICE";
-}
-
-UniteCompilation *UniteCompilation::unite_attendue() const
-{
-    if (m_attente.est<AttenteSurType>()) {
-        auto type_attendu = m_attente.type();
-
-        if (!type_attendu) {
-            return nullptr;
-        }
-
-        assert(m_attente.est_valide());
-        auto decl = decl_pour_type(type_attendu);
-        if (!decl) {
-            /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
-             * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
-            return nullptr;
-        }
-
-        return decl->unite;
-    }
-
-    if (m_attente.est<AttenteSurSymbole>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        return m_attente.declaration()->unite;
-    }
-
-    if (m_attente.est<AttenteSurOperateur>()) {
-        return m_attente.operateur()->unite;
-    }
-
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        auto metaprogramme_attendu = m_attente.metaprogramme();
-        // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
-        // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
-        return metaprogramme_attendu->fonction->unite;
-    }
-
-    if (m_attente.est<AttenteSurRI>()) {
-        auto ri_attendue = *m_attente.ri();
-        if (ri_attendue && ri_attendue->est_fonction()) {
-            auto fonction = static_cast<AtomeFonction *>(ri_attendue);
-            if (fonction->decl) {
-                return fonction->decl->unite;
-            }
-        }
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurMessage>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurChargement>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurLexage>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurParsage>()) {
-        return nullptr;
-    }
-
-    if (m_attente.est<AttenteSurNoeudCode>()) {
-        return nullptr;
-    }
-
-    assert_rappel(!m_attente.est_valide(), [&]() {
-        std::cerr << "L'attente est pour " << commentaire() << '\n';
-        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
-    });
-    return nullptr;
 }
 
 static void imprime_operateurs_pour(Erreur &e,
@@ -331,14 +357,18 @@ static void imprime_operateurs_pour(Erreur &e,
     }
 }
 
-void UniteCompilation::rapporte_erreur() const
+static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente const &attente)
 {
-    if (m_attente.est<AttenteSurSymbole>()) {
-        espace->rapporte_erreur(m_attente.symbole(),
+    auto espace = unite->espace;
+    auto noeud = unite->noeud;
+    auto index_courant = unite->index_courant;
+
+    if (attente.est<AttenteSurSymbole>()) {
+        espace->rapporte_erreur(attente.symbole(),
                                 "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
     }
-    else if (m_attente.est<AttenteSurDeclaration>()) {
-        auto decl = m_attente.declaration();
+    else if (attente.est<AttenteSurDeclaration>()) {
+        auto decl = attente.declaration();
         auto unite_decl = decl->unite;
         auto erreur = espace->rapporte_erreur(
             decl,
@@ -347,11 +377,11 @@ void UniteCompilation::rapporte_erreur() const
         // À FAIRE : ne devrait pas arriver
         if (unite_decl) {
             erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-                .ajoute_message(chaine_attentes_recursives(this))
+                .ajoute_message(unite->chaine_attentes_recursives())
                 .ajoute_message("\n");
         }
     }
-    else if (m_attente.est<AttenteSurType>()) {
+    else if (attente.est<AttenteSurType>()) {
         auto site = noeud;
         if (site && site->est_corps_fonction()) {
             auto corps = site->comme_corps_fonction();
@@ -364,22 +394,22 @@ void UniteCompilation::rapporte_erreur() const
                               "pas à déterminer un type pour l'expression",
                               erreur::Genre::TYPE_INCONNU)
             .ajoute_message("Note : le type attendu est ")
-            .ajoute_message(chaine_type(m_attente.type()))
+            .ajoute_message(chaine_type(attente.type()))
             .ajoute_message("\n")
             .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-            .ajoute_message(chaine_attentes_recursives(this))
+            .ajoute_message(unite->chaine_attentes_recursives())
             .ajoute_message("\n");
     }
-    else if (m_attente.est<AttenteSurInterfaceKuri>()) {
+    else if (attente.est<AttenteSurInterfaceKuri>()) {
         espace
             ->rapporte_erreur(noeud,
                               "Trop de cycles : arrêt de la compilation car une "
                               "déclaration attend sur une interface de Kuri")
             .ajoute_message(
-                "Note : l'interface attendue est ", m_attente.interface_kuri()->nom, "\n");
+                "Note : l'interface attendue est ", attente.interface_kuri()->nom, "\n");
     }
-    else if (m_attente.est<AttenteSurOperateur>()) {
-        auto operateur_attendu = m_attente.operateur();
+    else if (attente.est<AttenteSurOperateur>()) {
+        auto operateur_attendu = attente.operateur();
         if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
             auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
             auto type1 = expression_operation->operande_gauche->type;
@@ -474,28 +504,32 @@ void UniteCompilation::rapporte_erreur() const
                               "Je ne peux pas continuer la compilation car une unité est "
                               "bloqué dans un cycle")
             .ajoute_message("\nNote : l'unité est dans l'état : ")
-            .ajoute_message(chaine_attentes_recursives(this))
+            .ajoute_message(unite->chaine_attentes_recursives())
             .ajoute_message("\n");
     }
 }
 
-kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
+void UniteCompilation::rapporte_erreur() const
 {
-    if (!unite) {
-        return "    L'unité est nulle !\n";
-    }
+    auto attente = première_attente_bloquée();
+    émets_erreur_pour_attente(this, *attente);
+}
 
+kuri::chaine UniteCompilation::chaine_attentes_recursives() const
+{
     Enchaineuse fc;
 
-    auto attendue = unite->unite_attendue();
-    auto commentaire = unite->commentaire();
+    auto attente = première_attente_bloquée();
+    assert(atttente);
+    auto attendue = unité_pour_attente(*attente);
+    auto commentaire = commentaire_pour_attente(*attente);
 
     if (!attendue) {
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
     kuri::ensemble<UniteCompilation const *> unite_visite;
-    unite_visite.insere(unite);
+    unite_visite.insere(this);
 
     while (attendue) {
         if (attendue->est_prete()) {
@@ -508,57 +542,48 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
             break;
         }
 
+        attente = attendue->première_attente_bloquée_ou_non();
         fc << "    " << commentaire << " attend sur ";
-        commentaire = attendue->commentaire();
+        commentaire = commentaire_pour_attente(*attente);
         fc << commentaire << '\n';
 
         unite_visite.insere(attendue);
 
-        attendue = attendue->unite_attendue();
+        attendue = unité_pour_attente(*attente);
     }
 
     return fc.chaine();
 }
 
-void UniteCompilation::marque_prete_si_attente_resolue()
+static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
 {
-    if (est_prete()) {
-        return;
+    if (attente.est<AttenteSurType>()) {
+        return (attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0;
     }
 
-    if (m_attente.est<AttenteSurType>()) {
-        if ((m_attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0) {
-            marque_prete();
-        }
-        return;
-    }
-
-    if (m_attente.est<AttenteSurSymbole>()) {
+    if (attente.est<AttenteSurSymbole>()) {
         auto p = espace->phase_courante();
         // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
         // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
         // définis depuis le dernier ajournement, dans GestionnaireCode::cree_taches).
-        if (p < PhaseCompilation::PARSAGE_TERMINE) {
-            marque_prete();
-        }
-        return;
+        return p < PhaseCompilation::PARSAGE_TERMINE;
     }
 
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        auto declaration_attendue = m_attente.declaration();
-        if (declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            if (declaration_attendue ==
-                espace->compilatrice().interface_kuri->decl_creation_contexte) {
-                /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
-                 * nous faut le code. */
-                mute_attente(
-                    Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome));
-            }
-            else {
-                marque_prete();
-            }
+    if (attente.est<AttenteSurDeclaration>()) {
+        auto declaration_attendue = attente.declaration();
+        if (!declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            return false;
         }
-        return;
+
+        if (declaration_attendue ==
+            espace->compilatrice().interface_kuri->decl_creation_contexte) {
+            /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
+             * nous faut le code. */
+            attente = Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome);
+            return false;
+        }
+
+        return true;
     }
 
     /* À FAIRE(gestion) : détermine comment détecter la disponibilité d'un opérateur.
@@ -571,91 +596,93 @@ void UniteCompilation::marque_prete_si_attente_resolue()
      * opérateurs et créer un tel noeud pour tous les types, qui devra ensuite passer par la
      * validation de code.
      */
-    if (m_attente.est<AttenteSurOperateur>()) {
+    if (attente.est<AttenteSurOperateur>()) {
         auto p = espace->phase_courante();
-        if (p < PhaseCompilation::PARSAGE_TERMINE) {
-            marque_prete();
-        }
-        return;
+        return p < PhaseCompilation::PARSAGE_TERMINE;
     }
 
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        auto metaprogramme_attendu = m_attente.metaprogramme();
-        if (metaprogramme_attendu->fut_execute) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = attente.metaprogramme();
+        return metaprogramme_attendu->fut_execute;
     }
 
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        auto interface_attendue = m_attente.interface_kuri();
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        auto interface_attendue = attente.interface_kuri();
         auto &compilatrice = espace->compilatrice();
 
         if (ident_est_pour_fonction_interface(interface_attendue)) {
             auto decl = compilatrice.interface_kuri->declaration_pour_ident(interface_attendue);
             if (!decl || !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-                return;
+                return false;
             }
 
             if (decl->ident == ID::cree_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
                  * nous faut le code. */
-                mute_attente(Attente::sur_ri(&decl->atome));
-            }
-            else {
-                marque_prete();
+                attente = Attente::sur_ri(&decl->atome);
+                return false;
             }
 
-            return;
+            return true;
         }
 
         assert(ident_est_pour_type_interface(interface_attendue));
-
-        if (est_type_interface_disponible(compilatrice.typeuse, interface_attendue)) {
-            marque_prete();
-        }
-
-        return;
+        return est_type_interface_disponible(compilatrice.typeuse, interface_attendue);
     }
 
-    if (m_attente.est<AttenteSurMessage>()) {
-        return;
+    if (attente.est<AttenteSurMessage>()) {
+        return false;
     }
 
-    if (m_attente.est<AttenteSurChargement>()) {
-        auto fichier_attendu = m_attente.fichier_a_charger();
-        if (fichier_attendu->fut_charge) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurChargement>()) {
+        auto fichier_attendu = attente.fichier_a_charger();
+        return fichier_attendu->fut_charge;
     }
 
-    if (m_attente.est<AttenteSurLexage>()) {
-        auto fichier_attendu = m_attente.fichier_a_lexer();
-        if (fichier_attendu->fut_lexe) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurLexage>()) {
+        auto fichier_attendu = attente.fichier_a_lexer();
+        return fichier_attendu->fut_lexe;
     }
 
-    if (m_attente.est<AttenteSurParsage>()) {
-        auto fichier_attendu = m_attente.fichier_a_parser();
-        if (fichier_attendu->fut_parse) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurParsage>()) {
+        auto fichier_attendu = attente.fichier_a_parser();
+        return fichier_attendu->fut_parse;
     }
 
-    if (m_attente.est<AttenteSurRI>()) {
-        auto ri_attendue = m_attente.ri();
-        if (*ri_attendue && (*ri_attendue)->ri_generee) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurRI>()) {
+        auto ri_attendue = attente.ri();
+        return (*ri_attendue && (*ri_attendue)->ri_generee);
     }
 
-    if (m_attente.est<AttenteSurNoeudCode>()) {
+    if (attente.est<AttenteSurNoeudCode>()) {
         /* Géré dans le GestionnaireCode. */
+        return false;
+    }
+
+    return true;
+}
+
+void UniteCompilation::marque_prete_si_attente_resolue()
+{
+    if (est_prete()) {
         return;
+    }
+
+    auto toutes_les_attentes_sont_résolues = true;
+    POUR (m_attentes) {
+        if (!it.est_valide()) {
+            continue;
+        }
+
+        if (!attente_est_résolue(espace, it)) {
+            toutes_les_attentes_sont_résolues = false;
+            continue;
+        }
+
+        it = {};
+    }
+
+    if (toutes_les_attentes_sont_résolues) {
+        marque_prete();
     }
 }

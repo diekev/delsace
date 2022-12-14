@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "structures/chaine.hh"
+#include "structures/tableau.hh"
 
 #include "attente.hh"
 
@@ -51,7 +52,7 @@ struct UniteCompilation {
   private:
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
-    Attente m_attente = {};
+    kuri::tableau<Attente> m_attentes{};
 
     /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
     mutable int id_phase_cycle = 0;
@@ -69,9 +70,9 @@ struct UniteCompilation {
     {
     }
 
-    void mute_attente(Attente attente)
+    void ajoute_attente(Attente attente)
     {
-        m_attente = attente;
+        m_attentes.ajoute(attente);
         m_prete = false;
         cycle = 0;
         assert(attente.est_valide());
@@ -80,7 +81,7 @@ struct UniteCompilation {
     void marque_prete()
     {
         m_prete = true;
-        m_attente = {};
+        m_attentes.efface();
         cycle = 0;
     }
 
@@ -99,24 +100,43 @@ struct UniteCompilation {
         return m_raison_d_etre;
     }
 
-    inline bool attend_sur_message(Message const *message_)
+    inline Attente *attend_sur_message(Message const *message_)
     {
-        return m_attente.est<AttenteSurMessage>() && m_attente.message() == message_;
+        POUR (m_attentes) {
+            if (it.est<AttenteSurMessage>() && it.message() == message_) {
+                return &it;
+            }
+        }
+        return nullptr;
     }
 
-    inline bool attend_sur_un_message() const
+    inline void supprime_attentes_sur_messages()
     {
-        return m_attente.est<AttenteSurMessage>();
+        POUR (m_attentes) {
+            if (it.est<AttenteSurMessage>()) {
+                it = {};
+            }
+        }
     }
 
-    inline bool attend_sur_noeud_code(NoeudCode **code)
+    inline Attente *attend_sur_noeud_code(NoeudCode **code)
     {
-        return m_attente.est<AttenteSurNoeudCode>() && m_attente.noeud_code() == code;
+        POUR (m_attentes) {
+            if (it.est<AttenteSurNoeudCode>() && it.noeud_code() == code) {
+                return &it;
+            }
+        }
+        return nullptr;
     }
 
     inline bool attend_sur_declaration(NoeudDeclaration *decl)
     {
-        return m_attente.est<AttenteSurDeclaration>() && m_attente.declaration() == decl;
+        POUR (m_attentes) {
+            if (it.est<AttenteSurDeclaration>() && it.declaration() == decl) {
+                return false;
+            }
+        }
+        return true;
     }
 
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
@@ -131,16 +151,16 @@ struct UniteCompilation {
 
     bool est_bloquee() const;
 
-    kuri::chaine commentaire() const;
-
-    UniteCompilation *unite_attendue() const;
-
     void rapporte_erreur() const;
 
     void marque_prete_si_attente_resolue();
 
-  private:
-    bool attente_est_bloquee() const;
-};
+    kuri::chaine chaine_attentes_recursives() const;
 
-kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite);
+  private:
+    /* Retourne la première Attente qui semble ne pas pouvoir être résolue, ou nul si elles sont
+     * toutes résolvables. */
+    Attente const *première_attente_bloquée() const;
+
+    Attente const *première_attente_bloquée_ou_non() const;
+};

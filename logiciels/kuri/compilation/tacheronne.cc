@@ -337,13 +337,6 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
                 auto unite = tache.unite;
-
-                if (unite->est_bloquee()) {
-                    mv.stop = true;
-                    unite->rapporte_erreur();
-                    break;
-                }
-
                 auto debut_validation = dls::chrono::compte_seconde();
                 gere_unite_pour_typage(unite);
                 temps_validation += debut_validation.temps();
