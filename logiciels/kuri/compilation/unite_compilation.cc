@@ -520,45 +520,35 @@ kuri::chaine chaine_attentes_recursives(UniteCompilation const *unite)
     return fc.chaine();
 }
 
-void UniteCompilation::marque_prete_si_attente_resolue()
+static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
 {
-    if (est_prete()) {
-        return;
+    if (attente.est<AttenteSurType>()) {
+        return (attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0;
     }
 
-    if (m_attente.est<AttenteSurType>()) {
-        if ((m_attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0) {
-            marque_prete();
-        }
-        return;
-    }
-
-    if (m_attente.est<AttenteSurSymbole>()) {
+    if (attente.est<AttenteSurSymbole>()) {
         auto p = espace->phase_courante();
         // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
         // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
         // définis depuis le dernier ajournement, dans GestionnaireCode::cree_taches).
-        if (p < PhaseCompilation::PARSAGE_TERMINE) {
-            marque_prete();
-        }
-        return;
+        return p < PhaseCompilation::PARSAGE_TERMINE;
     }
 
-    if (m_attente.est<AttenteSurDeclaration>()) {
-        auto declaration_attendue = m_attente.declaration();
-        if (declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            if (declaration_attendue ==
-                espace->compilatrice().interface_kuri->decl_creation_contexte) {
-                /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
-                 * nous faut le code. */
-                mute_attente(
-                    Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome));
-            }
-            else {
-                marque_prete();
-            }
+    if (attente.est<AttenteSurDeclaration>()) {
+        auto declaration_attendue = attente.declaration();
+        if (!declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            return false;
         }
-        return;
+
+        if (declaration_attendue ==
+            espace->compilatrice().interface_kuri->decl_creation_contexte) {
+            /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
+             * nous faut le code. */
+            attente = Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome);
+            return false;
+        }
+
+        return true;
     }
 
     /* À FAIRE(gestion) : détermine comment détecter la disponibilité d'un opérateur.
@@ -571,91 +561,79 @@ void UniteCompilation::marque_prete_si_attente_resolue()
      * opérateurs et créer un tel noeud pour tous les types, qui devra ensuite passer par la
      * validation de code.
      */
-    if (m_attente.est<AttenteSurOperateur>()) {
+    if (attente.est<AttenteSurOperateur>()) {
         auto p = espace->phase_courante();
-        if (p < PhaseCompilation::PARSAGE_TERMINE) {
-            marque_prete();
-        }
-        return;
+        return p < PhaseCompilation::PARSAGE_TERMINE;
     }
 
-    if (m_attente.est<AttenteSurMetaProgramme>()) {
-        auto metaprogramme_attendu = m_attente.metaprogramme();
-        if (metaprogramme_attendu->fut_execute) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurMetaProgramme>()) {
+        auto metaprogramme_attendu = attente.metaprogramme();
+        return metaprogramme_attendu->fut_execute;
     }
 
-    if (m_attente.est<AttenteSurInterfaceKuri>()) {
-        auto interface_attendue = m_attente.interface_kuri();
+    if (attente.est<AttenteSurInterfaceKuri>()) {
+        auto interface_attendue = attente.interface_kuri();
         auto &compilatrice = espace->compilatrice();
 
         if (ident_est_pour_fonction_interface(interface_attendue)) {
             auto decl = compilatrice.interface_kuri->declaration_pour_ident(interface_attendue);
             if (!decl || !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-                return;
+                return false;
             }
 
             if (decl->ident == ID::cree_contexte) {
                 /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
                  * nous faut le code. */
-                mute_attente(Attente::sur_ri(&decl->atome));
-            }
-            else {
-                marque_prete();
+                attente = Attente::sur_ri(&decl->atome);
+                return false;
             }
 
-            return;
+            return true;
         }
 
         assert(ident_est_pour_type_interface(interface_attendue));
-
-        if (est_type_interface_disponible(compilatrice.typeuse, interface_attendue)) {
-            marque_prete();
-        }
-
-        return;
+        return est_type_interface_disponible(compilatrice.typeuse, interface_attendue);
     }
 
-    if (m_attente.est<AttenteSurMessage>()) {
-        return;
+    if (attente.est<AttenteSurMessage>()) {
+        return false;
     }
 
-    if (m_attente.est<AttenteSurChargement>()) {
-        auto fichier_attendu = m_attente.fichier_a_charger();
-        if (fichier_attendu->fut_charge) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurChargement>()) {
+        auto fichier_attendu = attente.fichier_a_charger();
+        return fichier_attendu->fut_charge;
     }
 
-    if (m_attente.est<AttenteSurLexage>()) {
-        auto fichier_attendu = m_attente.fichier_a_lexer();
-        if (fichier_attendu->fut_lexe) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurLexage>()) {
+        auto fichier_attendu = attente.fichier_a_lexer();
+        return fichier_attendu->fut_lexe;
     }
 
-    if (m_attente.est<AttenteSurParsage>()) {
-        auto fichier_attendu = m_attente.fichier_a_parser();
-        if (fichier_attendu->fut_parse) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurParsage>()) {
+        auto fichier_attendu = attente.fichier_a_parser();
+        return fichier_attendu->fut_parse;
     }
 
-    if (m_attente.est<AttenteSurRI>()) {
-        auto ri_attendue = m_attente.ri();
-        if (*ri_attendue && (*ri_attendue)->ri_generee) {
-            marque_prete();
-        }
-        return;
+    if (attente.est<AttenteSurRI>()) {
+        auto ri_attendue = attente.ri();
+        return (*ri_attendue && (*ri_attendue)->ri_generee);
     }
 
-    if (m_attente.est<AttenteSurNoeudCode>()) {
+    if (attente.est<AttenteSurNoeudCode>()) {
         /* Géré dans le GestionnaireCode. */
+        return false;
+    }
+
+    return true;
+}
+
+void UniteCompilation::marque_prete_si_attente_resolue()
+{
+    if (est_prete()) {
         return;
+    }
+
+    if (attente_est_résolue(espace, m_attente)) {
+        marque_prete();
     }
 }
