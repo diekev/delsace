@@ -1896,13 +1896,14 @@ bool est_type_polymorphique(Type *type)
     return false;
 }
 
-std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau)
+void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
+                                            int drapeau,
+                                            kuri::tablet<Attente, 16> &attentes)
 {
-    auto visites = kuri::ensemblon<Type *, 16>();
+    auto visités = kuri::ensemblon<Type *, 16>();
     auto pile = kuri::pile<Type *>();
 
-    pour_chaque_element(types_utilises, [&pile](auto &type) {
+    pour_chaque_element(types, [&pile](auto &type) {
         pile.empile(type);
         return kuri::DecisionIteration::Continue;
     });
@@ -1915,14 +1916,14 @@ std::optional<Attente> attente_sur_type_si_drapeau_manquant(
             continue;
         }
 
-        if (visites.possede(type_courant)) {
+        if (visités.possede(type_courant)) {
             continue;
         }
 
-        visites.insere(type_courant);
+        visités.insere(type_courant);
 
         if ((type_courant->drapeaux & drapeau) == 0) {
-            return Attente::sur_type(type_courant);
+            attentes.ajoute(Attente::sur_type(type_courant));
         }
 
         switch (type_courant->genre) {
@@ -1992,6 +1993,17 @@ std::optional<Attente> attente_sur_type_si_drapeau_manquant(
                 break;
             }
         }
+    }
+}
+
+std::optional<Attente> attente_sur_type_si_drapeau_manquant(
+    kuri::ensemblon<Type *, 16> const &types, int drapeau)
+{
+    kuri::tablet<Attente, 16> attentes;
+    attentes_sur_types_si_drapeau_manquant(types, drapeau, attentes);
+
+    if (attentes.taille()) {
+        return attentes[0];
     }
 
     return {};
