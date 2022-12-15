@@ -777,5 +777,9 @@ NoeudDeclaration *decl_pour_type(const Type *type);
 
 bool est_type_polymorphique(Type *type);
 
+void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
+                                            int drapeau,
+                                            kuri::tablet<Attente, 16> &attentes);
+
 std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types_utilises, int drapeau);
+    kuri::ensemblon<Type *, 16> const &types, int drapeau);
