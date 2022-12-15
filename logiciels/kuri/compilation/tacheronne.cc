@@ -515,46 +515,28 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
     auto entete_possible = entete_fonction(noeud);
     if (entete_possible && !entete_possible->est_initialisation_type) {
+        /* À FAIRE : déplace ceci dans le GestionnaireCode afin de ne pas retravailler sur des
+         * entêtes que nous avons déjà vu. */
+        auto debut = dls::chrono::compte_milliseconde();
         auto types_utilises = kuri::ensemblon<Type *, 16>();
-        visite_noeud(noeud, PreferenceVisiteNoeud::ORIGINAL, [&](NoeudExpression const *racine) {
-            auto type = racine->type;
-            if (type && !est_type_polymorphique(type)) {
-                types_utilises.insere(type);
+
+        auto noeud_dep = entete_possible->noeud_dependance;
+
+        POUR (noeud_dep->relations().plage()) {
+            if (!it.noeud_fin->est_type()) {
+                continue;
             }
 
-            if (racine->est_entete_fonction()) {
-                auto entete = racine->comme_entete_fonction();
+            auto type_dependu = it.noeud_fin->type();
+            types_utilises.insere(type_dependu);
+        }
 
-                if (entete->bloc_constantes) {
-                    POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
-                        if (it->type && !est_type_polymorphique(it->type)) {
-                            types_utilises.insere(it->type);
-                        }
-                    }
-                }
+        auto attentes_possibles = kuri::tablet<Attente, 16>();
+        attentes_sur_types_si_drapeau_manquant(
+            types_utilises, INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
 
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
-            }
-
-            if (noeud->est_declaration_variable()) {
-                auto declaration = noeud->comme_declaration_variable();
-
-                POUR (declaration->donnees_decl.plage()) {
-                    for (auto &var : it.variables.plage()) {
-                        if (!est_type_polymorphique(var->type)) {
-                            types_utilises.insere(var->type);
-                        }
-                    }
-                }
-            }
-
-            return DecisionVisiteNoeud::CONTINUE;
-        });
-
-        auto attente_possible = attente_sur_type_si_drapeau_manquant(
-            types_utilises, INITIALISATION_TYPE_FUT_CREEE);
-        if (attente_possible) {
-            compilatrice.gestionnaire_code->mets_en_attente(unite, attente_possible.value());
+        if (!attentes_possibles.est_vide()) {
+            compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
             return false;
         }
     }
