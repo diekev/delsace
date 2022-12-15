@@ -5,6 +5,8 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "statistiques/statistiques.hh"
+
 #include "structures/file.hh"
 #include "structures/tableau.hh"
 
@@ -69,6 +71,8 @@ class GestionnaireCode {
     /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
      * typage_termine. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
     kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions_parsees{};
+
+    mutable StatistiquesGestion stats{};
 
   public:
     GestionnaireCode() = default;
@@ -167,6 +171,8 @@ class GestionnaireCode {
     void interception_message_terminee(EspaceDeTravail *espace);
 
     void ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace);
+
+    void imprime_stats() const;
 
   private:
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
