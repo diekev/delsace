@@ -124,6 +124,8 @@ class GestionnaireCode {
 
     /* Attente sur quelque chose. */
     void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
+    void mets_en_attente(UniteCompilation *unite_attendante,
+                         kuri::tableau_statique<Attente> attentes);
 
     /* Fin d'une tâche. */
     void chargement_fichier_termine(UniteCompilation *unite);
@@ -192,4 +194,6 @@ class GestionnaireCode {
                                                           Programme *programme);
 
     void flush_metaprogrammes_en_attente_de_cree_contexte();
+
+    void ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente);
 };
