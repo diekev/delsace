@@ -913,13 +913,8 @@ void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Prog
     TACHE_AJOUTEE(LIAISON_PROGRAMME);
 }
 
-void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
+void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente)
 {
-    assert(attente.est_valide());
-    assert(unite_attendante->est_prete());
-
-    auto espace = unite_attendante->espace;
-
     if (attente.est<AttenteSurType>()) {
         Type *type = const_cast<Type *>(attente.type());
         auto decl = decl_pour_type(type);
@@ -939,8 +934,31 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
             requiers_typage(espace, decl);
         }
     }
+}
 
+void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
+{
+    assert(attente.est_valide());
+    assert(unite_attendante->est_prete());
+    auto espace = unite_attendante->espace;
+    ajoute_requêtes_pour_attente(espace, attente);
     unite_attendante->ajoute_attente(attente);
+    unites_en_attente.ajoute(unite_attendante);
+}
+
+void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
+                                       kuri::tableau_statique<Attente> attentes)
+{
+    assert(attentes.taille() != 0);
+    assert(unite_attendante->est_prete());
+
+    auto espace = unite_attendante->espace;
+
+    POUR (attentes) {
+        ajoute_requêtes_pour_attente(espace, it);
+        unite_attendante->ajoute_attente(it);
+    }
+
     unites_en_attente.ajoute(unite_attendante);
 }
 
