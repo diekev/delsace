@@ -299,6 +299,25 @@ struct StatistiquesTypage {
     void imprime_stats();
 };
 
+#define ENTREES_POUR_GESTIONNAIRE_CODE(OP)                                                        \
+    OP(GESTION__DÉTERMINE_DÉPENDANCES, "détermine dépendances")                                   \
+    OP(GESTION__RASSEMBLE_DÉPENDANCES, "rassemble dépendances")                                   \
+    OP(GESTION__AJOUTE_DÉPENDANCES, "ajoute dépendances")                                         \
+    OP(GESTION__GARANTIE_TYPAGE_DÉPENDANCES, "garantie typage dépendances")                       \
+    OP(GESTION__AJOUTE_RACINES, "ajoute racine")                                                  \
+    OP(GESTION__TYPAGE_TERMINÉ, "typage terminé")                                                 \
+    OP(GESTION__DOIT_DÉTERMINER_DÉPENDANCES, "doit déterminer dépendances")                       \
+    OP(GESTION__VÉRIFIE_ENTÊTE_VALIDÉES, "vérifie entête validées")
+
+DEFINIS_ENUM(GESTIONNAIRE_CODE)
+
+/* Stats pour le GestionnaireCode */
+struct StatistiquesGestion {
+    EntreesStats<EntreeTemps> stats{"Gestionnaire Code", INIT_NOMS_ENTREES(GESTIONNAIRE_CODE)};
+
+    void imprime_stats();
+};
+
 void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_compilation);
 
 void imprime_stats_detaillee(Statistiques const &stats);
@@ -320,3 +339,4 @@ void imprime_stats_detaillee(Statistiques const &stats);
 #undef ENTREES_POUR_ENUMERATION
 #undef ENTREES_POUR_STRUCTURE
 #undef ENTREES_POUR_ASSIGNATION
+#undef ENTREES_POUR_GESTIONNAIRE_CODE

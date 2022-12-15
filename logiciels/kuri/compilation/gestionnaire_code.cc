@@ -23,6 +23,21 @@ dérivront les structures et les énums) (TACHE_CREATION_DECLARATION_TYPE)
 compilation
  */
 
+#undef STATS_DÉTAILLÉES_GESTION
+
+#ifdef STATISTIQUES_DETAILLEES
+#    define STATS_DÉTAILLÉES_GESTION
+#endif
+
+#ifdef STATS_DÉTAILLÉES_GESTION
+#    define DÉBUTE_STAT(stat) auto chrono_##stat = dls::chrono::compte_milliseconde()
+#    define TERMINE_STAT(stat)                                                                    \
+        stats.stats.fusionne_entree(GESTION__##stat, {"", chrono_##stat.temps()})
+#else
+#    define DÉBUTE_STAT(stat)
+#    define TERMINE_STAT(stat)
+#endif
+
 #define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTache::genre, m_compilatrice->messagere)
 #define TACHE_TERMINEE(genre, envoyer_changement_de_phase)                                        \
     espace->tache_terminee(                                                                       \
@@ -645,18 +660,25 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                                              EspaceDeTravail *espace,
                                              GrapheDependance &graphe)
 {
+    DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dependances.reinitialise();
+
+    DÉBUTE_STAT(RASSEMBLE_DÉPENDANCES);
     rassemble_dependances(noeud, m_compilatrice, dependances.dependances);
+    TERMINE_STAT(RASSEMBLE_DÉPENDANCES);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
+        DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
         NoeudDependance *noeud_dependance = garantie_noeud_dependance(espace, noeud, graphe);
         graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
+        TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
+        DÉBUTE_STAT(AJOUTE_RACINES);
         auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
             if (it->espace() != espace) {
@@ -669,6 +691,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
                 requiers_typage(espace, entete->corps);
             }
         }
+        TERMINE_STAT(AJOUTE_RACINES);
     }
 
     /* Ajoute les dépendances au programme si nécessaire. */
@@ -689,8 +712,11 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Crée les unités de typage si nécessaire. */
     if (dependances_ajoutees) {
+        DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
         garantie_typage_des_dependances(*this, dependances.dependances, espace);
+        TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
+    TERMINE_STAT(DÉTERMINE_DÉPENDANCES);
 }
 
 UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
@@ -1151,6 +1177,7 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_modu
 
 void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
+    DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unite->noeud);
     assert_rappel(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
@@ -1162,7 +1189,10 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
     auto noeud = unite->noeud;
-    if (doit_determiner_les_dependances(unite->noeud)) {
+    DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
+    auto const détermine_dépendances = doit_determiner_les_dependances(unite->noeud);
+    TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
+    if (détermine_dépendances) {
         determine_dependances(unite->noeud, unite->espace, *graphe);
     }
 
@@ -1182,8 +1212,10 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
         unite->ajoute_attente(Attente::sur_message(message));
     }
 
+    DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
         *m_compilatrice->sys_module.verrou_ecriture());
+    TERMINE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
 
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
@@ -1192,6 +1224,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     if (noeud->est_entete_fonction()) {
         m_fonctions_parsees.ajoute(noeud->comme_entete_fonction());
     }
+    TERMINE_STAT(TYPAGE_TERMINÉ);
 }
 
 static inline bool est_corps_de(NoeudExpression const *noeud,
@@ -1651,4 +1684,9 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
 {
     auto programme = espace->programme;
     programme->ajourne_pour_nouvelles_options_espace();
+}
+
+void GestionnaireCode::imprime_stats() const
+{
+    stats.imprime_stats();
 }
