@@ -127,6 +127,7 @@ static void imprime_stats(Compilatrice const &compilatrice,
     }
 
     imprime_stats(stats, debut_compilation);
+    compilatrice.gestionnaire_code->imprime_stats();
 #ifdef STATISTIQUES_DETAILLEES
     imprime_stats_detaillee(stats);
 #endif

@@ -287,3 +287,8 @@ void StatistiquesTypage::imprime_stats()
     imprime_stats_temps(assignations);
     imprime_stats_temps(finalisation);
 }
+
+void StatistiquesGestion::imprime_stats()
+{
+    imprime_stats_temps(stats);
+}
