@@ -88,11 +88,13 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
     return noeud->possede_drapeau(EST_GLOBALE);
 }
 
-static bool ajoute_dependances_au_programme(DonneesDependance const &dependances,
+static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
+                                            DonnneesResolutionDependances &données_dependances,
                                             EspaceDeTravail *espace,
                                             Programme &programme)
 {
     auto possede_erreur = false;
+    auto &dependances = données_dependances.dependances;
 
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
@@ -125,6 +127,32 @@ static bool ajoute_dependances_au_programme(DonneesDependance const &dependances
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         programme.ajoute_type(type);
         return kuri::DecisionIteration::Continue;
+    });
+
+    auto dependances_manquantes = programme.dépendances_manquantes();
+    programme.dépendances_manquantes().efface();
+
+    graphe.prepare_visite();
+
+    dependances_manquantes.pour_chaque_element([&](NoeudDeclaration *decl) {
+        auto noeud_dep = graphe.garantie_noeud_dépendance(espace, decl);
+
+        graphe.traverse(noeud_dep, [&](NoeudDependance const *relation) {
+            if (relation->est_fonction()) {
+                programme.ajoute_fonction(relation->fonction());
+                données_dependances.dependances_ependues.fonctions_utilisees.insere(
+                    relation->fonction());
+            }
+            else if (relation->est_globale()) {
+                programme.ajoute_globale(relation->globale());
+                données_dependances.dependances_ependues.globales_utilisees.insere(
+                    relation->globale());
+            }
+            else if (relation->est_type()) {
+                programme.ajoute_type(relation->type());
+                données_dependances.dependances_ependues.types_utilises.insere(relation->type());
+            }
+        });
     });
 
     return true;
@@ -418,7 +446,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (!fonction->corps->unite && !fonction->est_externe) {
+        if (!fonction->corps->unite && !fonction->est_externe &&
+            !fonction->est_initialisation_type) {
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
         return kuri::DecisionIteration::Continue;
@@ -522,72 +551,6 @@ static bool programme_possede_toutes_les_dependances(
     return programme_possede_tout;
 }
 
-/* Traverse le graphe de dépendances pour chaque type présents dans les dépendances courantes, et
- * ajoutes les dépedances de ces types aux dépendances.
- * Le but de cette fonction est de s'assurer que toutes les dépendances des types sont ajoutées aux
- * programmes. */
-static bool epends_dependances_types(GrapheDependance &graphe,
-                                     DonnneesResolutionDependances &donnees_resolution,
-                                     Programme *programme)
-{
-    auto &dependances = donnees_resolution.dependances;
-    if (programme_possede_toutes_les_dependances(donnees_resolution, programme)) {
-        return false;
-    }
-
-    auto &dependances_ependues = donnees_resolution.dependances_ependues;
-
-    /* Rassemble les noeuds de dépendances des dépendances courantes. */
-    auto &noeuds_dependances = donnees_resolution.noeuds_dependances;
-
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        if (programme->possede(type)) {
-            return kuri::DecisionIteration::Continue;
-        }
-        auto noeud_dependance = graphe.cree_noeud_type(type);
-        noeuds_dependances.ajoute(noeud_dependance);
-        return kuri::DecisionIteration::Continue;
-    });
-
-    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (programme->possede(fonction)) {
-            return kuri::DecisionIteration::Continue;
-        }
-        auto noeud_dependance = graphe.cree_noeud_fonction(fonction);
-        noeuds_dependances.ajoute(noeud_dependance);
-        return kuri::DecisionIteration::Continue;
-    });
-
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        if (programme->possede(globale)) {
-            return kuri::DecisionIteration::Continue;
-        }
-        auto noeud_dependance = graphe.cree_noeud_globale(globale);
-        noeuds_dependances.ajoute(noeud_dependance);
-        return kuri::DecisionIteration::Continue;
-    });
-
-    /* Indique une nouvelle visite du graphe. */
-    graphe.prepare_visite();
-
-    for (auto noeud : noeuds_dependances) {
-        graphe.traverse(noeud, [&](NoeudDependance const *relation) {
-            if (relation->est_fonction()) {
-                dependances_ependues.fonctions_utilisees.insere(relation->fonction());
-            }
-            else if (relation->est_globale()) {
-                dependances_ependues.globales_utilisees.insere(relation->globale());
-            }
-            else if (relation->est_type()) {
-                dependances_ependues.types_utilises.insere(relation->type());
-            }
-        });
-    }
-
-    dependances.fusionne(dependances_ependues);
-    return true;
-}
-
 /* Détermine si nous devons ajouter les dépendances du noeud au programme. */
 static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Programme *programme)
 {
@@ -657,15 +620,11 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajoute les dépendances au programme si nécessaire. */
     auto dependances_ajoutees = false;
-    auto dependances_ependues = false;
     POUR (programmes_en_cours) {
         if (!doit_ajouter_les_dependances_au_programme(noeud, it)) {
             continue;
         }
-        if (!dependances_ependues) {
-            dependances_ependues = epends_dependances_types(graphe, dependances, it);
-        }
-        if (!ajoute_dependances_au_programme(dependances.dependances, espace, *it)) {
+        if (!ajoute_dependances_au_programme(graphe, dependances, espace, *it)) {
             break;
         }
         dependances_ajoutees = true;
@@ -674,10 +633,12 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     /* Crée les unités de typage si nécessaire. */
     if (dependances_ajoutees) {
         DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
+        dependances.dependances.fusionne(dependances.dependances_ependues);
         garantie_typage_des_dependances(*this, dependances.dependances, espace);
         TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
     TERMINE_STAT(DÉTERMINE_DÉPENDANCES);
+    noeud->drapeaux |= DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES;
 }
 
 UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
@@ -1316,6 +1277,16 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
          * RI est en cours de génération. */
         return;
     }
+
+    POUR (programmes_en_cours) {
+        if (it->possede(unite->type)) {
+            it->ajoute_fonction(fonction);
+        }
+    }
+
+    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
+    determine_dependances(fonction, unite->espace, *graphe);
+    determine_dependances(fonction->corps, unite->espace, *graphe);
 
     unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
     auto espace = unite->espace;

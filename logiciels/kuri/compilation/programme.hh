@@ -81,6 +81,9 @@ struct Programme {
     kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions{};
     kuri::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
 
+    /* Fonctions dont les dépendances sont potentiellement manquantes. */
+    kuri::ensemble<NoeudDeclaration *> m_dépendances_manquantes{};
+
     kuri::tableau<NoeudDeclarationVariable *> m_globales{};
     kuri::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
 
@@ -212,6 +215,8 @@ struct Programme {
     kuri::ensemble<Module *> modules_utilises() const;
 
     void ajourne_pour_nouvelles_options_espace();
+
+    kuri::ensemble<NoeudDeclaration *> &dépendances_manquantes();
 
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;

@@ -50,6 +50,9 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
+    if (fonction->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(fonction);
+    }
 }
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
@@ -62,6 +65,9 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
+    if (globale->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(globale);
+    }
 }
 
 void Programme::ajoute_type(Type *type)
@@ -73,6 +79,15 @@ void Programme::ajoute_type(Type *type)
     m_types_utilises.insere(type);
     elements_sont_sales[TYPES][POUR_TYPAGE] = true;
     elements_sont_sales[TYPES][POUR_RI] = true;
+
+    if (type->fonction_init) {
+        ajoute_fonction(type->fonction_init);
+    }
+
+    auto decl = decl_pour_type(type);
+    if (decl && decl->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(decl);
+    }
 }
 
 bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) const
@@ -257,6 +272,11 @@ void Programme::ajourne_pour_nouvelles_options_espace()
 
         index += 1;
     }
+}
+
+kuri::ensemble<NoeudDeclaration *> &Programme::dépendances_manquantes()
+{
+    return m_dépendances_manquantes;
 }
 
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const
@@ -624,22 +644,6 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
             erreur::imprime_site(*programme.espace(), it);
         });
         resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
-    }
-
-    /* Extrait les atomes pour les fonctions d'initalisation des types. Puisque ces fonctions
-     * peuvent être partagées nous devons les dédupliquer. */
-    auto init_types_connues = kuri::ensemble<NoeudDeclarationEnteteFonction *>();
-    POUR (programme.types()) {
-        if (!it->fonction_init) {
-            continue;
-        }
-
-        if (init_types_connues.possede(it->fonction_init)) {
-            continue;
-        }
-
-        resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->fonction_init->atome));
-        init_types_connues.insere(it->fonction_init);
     }
 
     /* Extrait les atomes pour les globales. */
