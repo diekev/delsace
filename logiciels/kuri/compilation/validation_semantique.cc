@@ -3479,8 +3479,6 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
  */
 ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
-    auto &graphe = m_compilatrice.graphe_dependance;
-
     /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
      * nous ferait modifier l'original). */
     if (decl->type == nullptr) {
@@ -3492,6 +3490,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
     }
 
+    auto &graphe = m_compilatrice.graphe_dependance;
     auto noeud_dependance = graphe->cree_noeud_type(decl->type);
     decl->noeud_dependance = noeud_dependance;
 
@@ -3720,10 +3719,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
         decl->type->drapeaux |= TYPE_FUT_VALIDE;
 
-        POUR (type_compose->membres) {
-            graphe->connecte_type_type(type_compose, it.type);
-        }
-
         return CodeRetourValidation::OK;
     }
 
@@ -3867,14 +3862,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-    POUR (type_struct->types_employes) {
-        graphe->connecte_type_type(type_struct, it);
-    }
-
-    POUR (type_compose->membres) {
-        graphe->connecte_type_type(type_compose, it.type);
-    }
 
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
