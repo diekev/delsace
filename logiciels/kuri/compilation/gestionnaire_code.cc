@@ -210,8 +210,14 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
         racine,
         PreferenceVisiteNoeud::SUBSTITUTION,
         [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
-            // Note: les fonctions polymorphiques n'ont pas de types.
-            if (noeud->type) {
+            /* N'ajoutons pas de dépendances sur les déclarations de types nichées. */
+            if ((noeud->est_structure() || noeud->est_enum()) && noeud != racine) {
+                return DecisionVisiteNoeud::IGNORE_ENFANTS;
+            }
+
+            /* Ne faisons pas dépendre les types d'eux-mêmes. */
+            /* Note: les fonctions polymorphiques n'ont pas de types. */
+            if (!(noeud->est_structure() || noeud->est_enum()) && noeud->type) {
                 if (noeud->type->est_type_de_donnees()) {
                     auto type_de_donnees = noeud->type->comme_type_de_donnees();
                     if (type_de_donnees->type_connu) {
