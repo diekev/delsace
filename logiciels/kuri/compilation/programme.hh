@@ -90,6 +90,7 @@ struct Programme {
     /* Tous les fichiers utilisés dans le programme. */
     kuri::tableau<Fichier *> m_fichiers{};
     kuri::ensemble<Fichier *> m_fichiers_utilises{};
+    mutable bool m_fichiers_sont_sales = true;
 
     EspaceDeTravail *m_espace = nullptr;
 
