@@ -405,47 +405,6 @@ static void rassemble_dependances(NoeudExpression *racine,
     rassembleuse.rassemble_dependances();
 }
 
-/* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur vers
- * celui-ci. Retourne nul si le noeud n'est pas supposé avoir un noeud de dépendance. */
-static NoeudDependance *garantie_noeud_dependance(EspaceDeTravail *espace,
-                                                  NoeudExpression *noeud,
-                                                  GrapheDependance &graphe)
-{
-    /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et les
-     * constantes. */
-    if (noeud->est_declaration_variable()) {
-        assert_rappel(noeud->possede_drapeau(EST_GLOBALE), [&]() {
-            erreur::imprime_site(*espace, noeud);
-            std::cerr << *noeud;
-        });
-        return graphe.cree_noeud_globale(noeud->comme_declaration_variable());
-    }
-
-    if (noeud->est_entete_fonction()) {
-        return graphe.cree_noeud_fonction(noeud->comme_entete_fonction());
-    }
-
-    if (noeud->est_corps_fonction()) {
-        auto corps = noeud->comme_corps_fonction();
-        return graphe.cree_noeud_fonction(corps->entete);
-    }
-
-    if (noeud->est_execute()) {
-        auto execute = noeud->comme_execute();
-        assert(execute->metaprogramme);
-        auto metaprogramme = execute->metaprogramme;
-        assert(metaprogramme->fonction);
-        return graphe.cree_noeud_fonction(metaprogramme->fonction);
-    }
-
-    if (noeud->est_declaration_type()) {
-        return graphe.cree_noeud_type(noeud->type);
-    }
-
-    assert(!"Noeud non géré pour les dépendances !\n");
-    return nullptr;
-}
-
 /* Requiers le typage de toutes les dépendances. */
 static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                             DonneesDependance const &dependances,
@@ -669,7 +628,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        NoeudDependance *noeud_dependance = garantie_noeud_dependance(espace, noeud, graphe);
+        NoeudDependance *noeud_dependance = graphe.garantie_noeud_dépendance(espace, noeud);
         graphe.ajoute_dependances(*noeud_dependance, dependances.dependances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
