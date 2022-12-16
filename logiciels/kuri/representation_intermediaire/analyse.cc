@@ -1190,13 +1190,8 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
             auto inst = atome_courant->comme_instruction();
 
             if (inst->etat == EST_A_SUPPRIMER) {
+                std::cerr << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n';
                 std::cerr << *fonction.decl << '\n';
-
-                if (fonction.decl->est_initialisation_type) {
-                    auto type_param = fonction.decl->type_initialisé();
-                    std::cerr << "La fonction est pour l'initialisation du type "
-                              << chaine_type(type_param) << '\n';
-                }
 
                 std::cerr << "L'instruction supprimée est ";
                 imprime_instruction(inst, std::cerr);

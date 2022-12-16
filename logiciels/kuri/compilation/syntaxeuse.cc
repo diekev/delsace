@@ -2767,6 +2767,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     if (noeud_decl->est_externe) {
         analyse_membres = !ignore_point_virgule_implicite();
+        if (!analyse_membres) {
+            noeud_decl->type->drapeaux |= TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
+        }
     }
 
     if (analyse_membres) {

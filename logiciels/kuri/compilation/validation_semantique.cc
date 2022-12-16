@@ -3503,7 +3503,9 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux |= TYPE_FUT_VALIDE;
+        /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
+        decl->type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                 INITIALISATION_TYPE_FUT_CREEE);
         return CodeRetourValidation::OK;
     }
 

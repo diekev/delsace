@@ -96,13 +96,8 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 
         auto fonction = contexte.fonction;
         if (fonction) {
+            std::cerr << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n';
             std::cerr << *fonction << '\n';
-
-            if (fonction->est_initialisation_type) {
-                auto type_param = fonction->type_initialisé();
-                std::cerr << "La fonction est pour l'initialisation du type "
-                          << chaine_type(type_param) << '\n';
-            }
         }
 
         erreur::imprime_site(*contexte.espace, site);
