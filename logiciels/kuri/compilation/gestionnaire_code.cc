@@ -443,9 +443,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
             }
         }
 
-        if ((type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
-            gestionnaire.requiers_initialisation_type(espace, type);
-        }
+        gestionnaire.requiers_initialisation_type(espace, type);
 
         if (type->est_fonction()) {
             auto type_fonction = type->comme_fonction();
@@ -771,7 +769,7 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *esp
 
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
 {
-    if ((type->drapeaux & UNITE_POUR_INITIALISATION_FUT_CREE) != 0) {
+    if (!type->requiers_création_fonction_initialisation()) {
         return;
     }
 
@@ -914,10 +912,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
         }
         /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
          * RI. */
-        if ((type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0 &&
-            !est_type_polymorphique(type)) {
-            requiers_initialisation_type(espace, type);
-        }
+        requiers_initialisation_type(espace, type);
     }
     else if (attente.est<AttenteSurDeclaration>()) {
         NoeudDeclaration *decl = attente.declaration();

@@ -789,8 +789,9 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     }
     else {
         /* Pour les types variadiques externes, nous ne pouvons générer de fonction
-         * d'initialisations, donc marque le type comme ayant eu sa fonction générée. */
-        type->drapeaux |= (INITIALISATION_TYPE_FUT_CREEE | UNITE_POUR_INITIALISATION_FUT_CREE);
+         * d'initialisations.
+         * INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant.  */
+        type->drapeaux |= (TYPE_NE_REQUIERS_PAS_D_INITIALISATION | INITIALISATION_TYPE_FUT_CREEE);
     }
 
     return type;
@@ -1878,7 +1879,7 @@ NoeudDeclaration *decl_pour_type(const Type *type)
     return nullptr;
 }
 
-bool est_type_polymorphique(Type *type)
+bool est_type_polymorphique(Type const *type)
 {
     if (type->est_polymorphique()) {
         return true;

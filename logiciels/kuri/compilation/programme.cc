@@ -153,9 +153,11 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     if (elements_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types) {
-            /* Ne vérifions pas ici si la fonction_init est non-nulle car les types variadiques
-             * externes n'en ont pas. */
-            if ((it->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
+            if (!it->requiers_fonction_initialisation()) {
+                continue;
+            }
+
+            if (it->requiers_création_fonction_initialisation()) {
                 diagnostique.fonction_initialisation_type_a_creer = it;
                 return false;
             }
