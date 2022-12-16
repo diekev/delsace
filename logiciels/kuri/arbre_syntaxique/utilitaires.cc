@@ -3460,6 +3460,33 @@ void imprime_details_fonction(EspaceDeTravail *espace,
     }
 }
 
+kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
+{
+    if (noeud->est_entete_fonction()) {
+        auto entete = noeud->comme_entete_fonction();
+
+        if (entete->est_initialisation_type) {
+            return enchaine("init_de(", chaine_type(entete->type_initialisé()), ")");
+        }
+
+        if (entete->est_operateur) {
+            return enchaine("opérateur", entete->lexeme->chaine);
+        }
+
+        if (entete->ident) {
+            return entete->ident->nom;
+        }
+
+        return "fonction anonyme";
+    }
+
+    if (noeud->ident) {
+        return noeud->ident->nom;
+    }
+
+    return "anonyme";
+}
+
 /* Fonctions d'initialisation des types. */
 
 static Lexeme lexeme_sentinel = {};

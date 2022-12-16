@@ -1802,17 +1802,7 @@ void Profileuse::cree_rapports(FormatRapportProfilage format)
 static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
 {
     if (fonction->decl) {
-        auto decl = fonction->decl;
-        if (decl->est_initialisation_type) {
-            auto type_param = decl->type_initialisé();
-            os << "init_de(" << chaine_type(type_param) << ')';
-        }
-        else if (decl->ident) {
-            os << decl->ident->nom;
-        }
-        else {
-            os << fonction->nom;
-        }
+        os << nom_humainement_lisible(fonction->decl);
     }
     else {
         os << fonction->nom;
