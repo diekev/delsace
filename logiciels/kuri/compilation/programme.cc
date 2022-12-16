@@ -50,6 +50,9 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
+    if (fonction->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(fonction);
+    }
 }
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
@@ -62,9 +65,12 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
+    if (globale->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(globale);
+    }
 }
 
-void Programme::ajoute_type(Type *type)
+void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud)
 {
     if (possede(type)) {
         return;
@@ -73,6 +79,31 @@ void Programme::ajoute_type(Type *type)
     m_types_utilises.insere(type);
     elements_sont_sales[TYPES][POUR_TYPAGE] = true;
     elements_sont_sales[TYPES][POUR_RI] = true;
+
+    if (type->fonction_init) {
+        ajoute_fonction(type->fonction_init);
+    }
+
+#if 1
+    static_cast<void>(raison);
+    static_cast<void>(noeud);
+#else
+    if (!m_pour_metaprogramme) {
+        if (raison == RaisonAjoutType::DÉPENDANCE_DIRECTE) {
+            std::cerr << "Dépendence   directe de " << nom_humainement_lisible(noeud) << " : "
+                      << chaine_type(type) << '\n';
+        }
+        else {
+            std::cerr << "Dépendence indirecte de " << nom_humainement_lisible(noeud) << " : "
+                      << chaine_type(type) << '\n';
+        }
+    }
+#endif
+
+    auto decl = decl_pour_type(type);
+    if (decl && decl->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+        m_dépendances_manquantes.insere(decl);
+    }
 }
 
 bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) const
@@ -153,9 +184,11 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     if (elements_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types) {
-            /* Ne vérifions pas ici si la fonction_init est non-nulle car les types variadiques
-             * externes n'en ont pas. */
-            if ((it->drapeaux & INITIALISATION_TYPE_FUT_CREEE) == 0) {
+            if (!it->requiers_fonction_initialisation()) {
+                continue;
+            }
+
+            if (it->requiers_création_fonction_initialisation()) {
                 diagnostique.fonction_initialisation_type_a_creer = it;
                 return false;
             }
@@ -629,22 +662,6 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
         resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
     }
 
-    /* Extrait les atomes pour les fonctions d'initalisation des types. Puisque ces fonctions
-     * peuvent être partagées nous devons les dédupliquer. */
-    auto init_types_connues = kuri::ensemble<NoeudDeclarationEnteteFonction *>();
-    POUR (programme.types()) {
-        if (!it->fonction_init) {
-            continue;
-        }
-
-        if (init_types_connues.possede(it->fonction_init)) {
-            continue;
-        }
-
-        resultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->fonction_init->atome));
-        init_types_connues.insere(it->fonction_init);
-    }
-
     /* Extrait les atomes pour les globales. */
     POUR (programme.globales()) {
         assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&]() {
@@ -678,7 +695,7 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
         }
         if (diagnositic.declaration_a_valider) {
             std::cerr << "-- validation non performée pour déclaration "
-                      << diagnositic.declaration_a_valider->lexeme->chaine << '\n';
+                      << nom_humainement_lisible(diagnositic.declaration_a_valider) << '\n';
         }
         return;
     }
