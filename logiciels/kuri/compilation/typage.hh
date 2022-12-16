@@ -159,8 +159,11 @@ enum class GenreType : int {
 const char *chaine_genre_type(GenreType genre);
 std::ostream &operator<<(std::ostream &os, GenreType genre);
 
+bool est_type_polymorphique(Type const *type);
+
 enum {
-    /* DISPONIBLE = 1, */
+    /* Pour les types variadiques externes, et les structures externes opaques (sans bloc). */
+    TYPE_NE_REQUIERS_PAS_D_INITIALISATION = 1,
     TYPE_EST_POLYMORPHIQUE = 2,
     TYPE_FUT_VALIDE = 4,
     INITIALISATION_TYPE_FUT_CREEE = 8,
@@ -245,6 +248,36 @@ struct Type {
     {
         fonction_init = fonction;
         drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
+    }
+
+    /* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
+     * ou non.
+     */
+    bool requiers_fonction_initialisation() const
+    {
+        return (drapeaux & TYPE_NE_REQUIERS_PAS_D_INITIALISATION) == 0;
+    }
+
+    /* Retourne vrai si une fonction d'initialisation doit être créée pour ce type, s'il en besoin
+     * et qu'elle n'a pas encore été créée.
+     */
+    bool requiers_création_fonction_initialisation() const
+    {
+        if (!requiers_fonction_initialisation()) {
+            return false;
+        }
+
+        /* #fonction_init peut être non-nulle si seulement l'entête est créée. Le drapeaux n'est
+         * mis en place que lorsque la fonction et son corps furent créés. */
+        if ((drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0) {
+            return false;
+        }
+
+        if (est_type_polymorphique(this)) {
+            return false;
+        }
+
+        return true;
     }
 };
 
@@ -774,8 +807,6 @@ Type *normalise_type(Typeuse &typeuse, Type *type);
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
 
 NoeudDeclaration *decl_pour_type(const Type *type);
-
-bool est_type_polymorphique(Type *type);
 
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,

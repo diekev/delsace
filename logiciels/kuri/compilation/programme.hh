@@ -17,6 +17,7 @@ struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
+struct NoeudExpression;
 struct Statistiques;
 struct Type;
 
@@ -73,6 +74,11 @@ struct DiagnostiqueEtatCompilation {
 
 void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnositic);
 
+enum RaisonAjoutType {
+    DÉPENDANCE_DIRECTE,
+    DÉPENDACE_INDIRECTE,
+};
+
 /* Représentation d'un programme. Ceci peut être le programme final tel que généré par la
  * compilation ou bien un métaprogramme. Il contient toutes les globales et tous les types utilisés
  * par les fonctions qui le composent. */
@@ -80,6 +86,9 @@ struct Programme {
   protected:
     kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions{};
     kuri::ensemble<NoeudDeclarationEnteteFonction *> m_fonctions_utilisees{};
+
+    /* Fonctions dont les dépendances sont potentiellement manquantes. */
+    kuri::ensemble<NoeudDeclaration *> m_dépendances_manquantes{};
 
     kuri::tableau<NoeudDeclarationVariable *> m_globales{};
     kuri::ensemble<NoeudDeclarationVariable *> m_globales_utilisees{};
@@ -140,7 +149,7 @@ struct Programme {
 
     void ajoute_globale(NoeudDeclarationVariable *globale);
 
-    void ajoute_type(Type *type);
+    void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
 
     bool possede(NoeudDeclarationEnteteFonction *fonction) const
     {
@@ -212,6 +221,8 @@ struct Programme {
     kuri::ensemble<Module *> modules_utilises() const;
 
     void ajourne_pour_nouvelles_options_espace();
+
+    kuri::ensemble<NoeudDeclaration *> &dépendances_manquantes();
 
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;

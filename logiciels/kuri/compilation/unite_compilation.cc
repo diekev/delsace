@@ -101,10 +101,6 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
         return nullptr;
     }
 
-    assert_rappel(!attente.est_valide(), [&]() {
-        std::cerr << "L'attente est pour " << commentaire() << '\n';
-        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
-    });
     return nullptr;
 }
 
@@ -520,7 +516,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
     Enchaineuse fc;
 
     auto attente = première_attente_bloquée();
-    assert(atttente);
+    assert(attente);
     auto attendue = unité_pour_attente(*attente);
     auto commentaire = commentaire_pour_attente(*attente);
 
