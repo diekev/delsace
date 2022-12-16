@@ -101,10 +101,6 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
         return nullptr;
     }
 
-    assert_rappel(!attente.est_valide(), [&]() {
-        std::cerr << "L'attente est pour " << commentaire() << '\n';
-        std::cerr << "La raison d'être de l'unité est " << raison_d_etre() << '\n';
-    });
     return nullptr;
 }
 
