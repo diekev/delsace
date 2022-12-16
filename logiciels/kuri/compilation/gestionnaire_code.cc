@@ -91,7 +91,8 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
 static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
                                             DonnneesResolutionDependances &données_dependances,
                                             EspaceDeTravail *espace,
-                                            Programme &programme)
+                                            Programme &programme,
+                                            NoeudExpression *noeud)
 {
     auto possede_erreur = false;
     auto &dependances = données_dependances.dependances;
@@ -125,7 +126,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
 
     /* Ajoute les types. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        programme.ajoute_type(type);
+        programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DecisionIteration::Continue;
     });
 
@@ -149,7 +150,8 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
                     relation->globale());
             }
             else if (relation->est_type()) {
-                programme.ajoute_type(relation->type());
+                programme.ajoute_type(
+                    relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
                 données_dependances.dependances_ependues.types_utilises.insere(relation->type());
             }
         });
@@ -624,7 +626,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
         if (!doit_ajouter_les_dependances_au_programme(noeud, it)) {
             continue;
         }
-        if (!ajoute_dependances_au_programme(graphe, dependances, espace, *it)) {
+        if (!ajoute_dependances_au_programme(graphe, dependances, espace, *it, noeud)) {
             break;
         }
         dependances_ajoutees = true;

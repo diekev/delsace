@@ -70,7 +70,7 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     }
 }
 
-void Programme::ajoute_type(Type *type)
+void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud)
 {
     if (possede(type)) {
         return;
@@ -83,6 +83,22 @@ void Programme::ajoute_type(Type *type)
     if (type->fonction_init) {
         ajoute_fonction(type->fonction_init);
     }
+
+#if 1
+    static_cast<void>(raison);
+    static_cast<void>(noeud);
+#else
+    if (!m_pour_metaprogramme) {
+        if (raison == RaisonAjoutType::DÉPENDANCE_DIRECTE) {
+            std::cerr << "Dépendence   directe de " << nom_humainement_lisible(noeud) << " : "
+                      << chaine_type(type) << '\n';
+        }
+        else {
+            std::cerr << "Dépendence indirecte de " << nom_humainement_lisible(noeud) << " : "
+                      << chaine_type(type) << '\n';
+        }
+    }
+#endif
 
     auto decl = decl_pour_type(type);
     if (decl && decl->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
