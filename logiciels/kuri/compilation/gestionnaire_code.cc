@@ -1645,5 +1645,7 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
 
 void GestionnaireCode::imprime_stats() const
 {
+#ifdef STATS_DÉTAILLÉES_GESTION
     stats.imprime_stats();
+#endif
 }
