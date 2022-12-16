@@ -17,6 +17,10 @@ struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Typeuse;
 
+namespace kuri {
+struct chaine;
+}
+
 enum DrapeauxNoeud : unsigned int {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                          // decl var
@@ -49,6 +53,7 @@ enum DrapeauxNoeud : unsigned int {
     METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
     GAUCHE_EXPRESSION_APPEL = (1 << 28),
     NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 29),
+    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 30),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
@@ -155,6 +160,10 @@ void aplatis_arbre(NoeudExpression *declaration);
 void imprime_details_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entete,
                               std::ostream &os);
+
+/* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
+ * d'initialisation du type z32, retourne "init_de(z32)". */
+kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
 
 void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,

@@ -15,6 +15,7 @@ struct AtomeFonction;
 struct EspaceDeTravail;
 struct GrapheDependance;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationSymbole;
 struct NoeudDeclarationVariable;
 struct NoeudDependance;
 struct NoeudExpression;
@@ -216,3 +217,7 @@ struct GrapheDependance {
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
+
+/* Impression des dépendances directes. */
+void imprime_dépendances(NoeudDeclarationSymbole const *symbole);
+void imprime_dépendances(Type const *type);
