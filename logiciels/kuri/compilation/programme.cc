@@ -679,7 +679,7 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
         }
         if (diagnositic.declaration_a_valider) {
             std::cerr << "-- validation non performée pour déclaration "
-                      << diagnositic.declaration_a_valider->lexeme->chaine << '\n';
+                      << nom_humainement_lisible(diagnositic.declaration_a_valider) << '\n';
         }
         return;
     }
