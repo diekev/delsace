@@ -263,6 +263,10 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &di
     diagnostique.tous_les_fichiers_sont_lexes = true;
     diagnostique.tous_les_fichiers_sont_parses = true;
 
+    if (!m_fichiers_sont_sales) {
+        return;
+    }
+
     POUR (m_fichiers) {
         if (!it->fut_charge) {
             diagnostique.tous_les_fichiers_sont_charges = false;
@@ -276,6 +280,8 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &di
             diagnostique.tous_les_fichiers_sont_parses = false;
         }
     }
+
+    m_fichiers_sont_sales = false;
 }
 
 void Programme::ajoute_fichier(Fichier *fichier)
@@ -286,6 +292,7 @@ void Programme::ajoute_fichier(Fichier *fichier)
 
     m_fichiers.ajoute(fichier);
     m_fichiers_utilises.insere(fichier);
+    m_fichiers_sont_sales = true;
 }
 
 void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
