@@ -186,6 +186,10 @@ struct GrapheDependance {
                                        kuri::tableau<AtomeFonction *> &fonctions,
                                        kuri::ensemble<AtomeFonction *> &utilises);
 
+    /* Crée un noeud de dépendance pour le noeud spécifié en paramètre, et retourne un pointeur
+     * vers celui-ci. Retourne nul si le noeud n'est pas supposé avoir un noeud de dépendance. */
+    NoeudDependance *garantie_noeud_dépendance(EspaceDeTravail *espace, NoeudExpression *noeud);
+
     template <typename Rappel>
     void traverse(NoeudDependance *racine, Rappel rappel)
     {
