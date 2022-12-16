@@ -520,7 +520,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
     Enchaineuse fc;
 
     auto attente = première_attente_bloquée();
-    assert(atttente);
+    assert(attente);
     auto attendue = unité_pour_attente(*attente);
     auto commentaire = commentaire_pour_attente(*attente);
 
