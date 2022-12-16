@@ -1784,8 +1784,8 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             if (it.nom == membre->ident) {
                 expression_membre->type = it.type;
                 membre_trouve = true;
-                membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
-                membre_est_implicite = it.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
+                membre_est_constant = it.drapeaux & TypeCompose::Membre::EST_CONSTANT;
+                membre_est_implicite = it.drapeaux & TypeCompose::Membre::EST_IMPLICITE;
                 decl_membre = it.decl;
                 break;
             }
