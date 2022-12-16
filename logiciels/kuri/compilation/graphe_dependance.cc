@@ -9,6 +9,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "erreur.h"
+#include "metaprogramme.hh"
 #include "typage.hh"
 
 const char *chaine_type_relation(TypeRelation type)
@@ -310,6 +311,44 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
         fonctions.ajoute(atome_fonction);
         utilises.insere(atome_fonction);
     });
+}
+
+NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *espace,
+                                                             NoeudExpression *noeud)
+{
+    /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et
+     * les constantes. */
+    if (noeud->est_declaration_variable()) {
+        assert_rappel(noeud->possede_drapeau(EST_GLOBALE), [&]() {
+            erreur::imprime_site(*espace, noeud);
+            std::cerr << *noeud;
+        });
+        return cree_noeud_globale(noeud->comme_declaration_variable());
+    }
+
+    if (noeud->est_entete_fonction()) {
+        return cree_noeud_fonction(noeud->comme_entete_fonction());
+    }
+
+    if (noeud->est_corps_fonction()) {
+        auto corps = noeud->comme_corps_fonction();
+        return cree_noeud_fonction(corps->entete);
+    }
+
+    if (noeud->est_execute()) {
+        auto execute = noeud->comme_execute();
+        assert(execute->metaprogramme);
+        auto metaprogramme = execute->metaprogramme;
+        assert(metaprogramme->fonction);
+        return cree_noeud_fonction(metaprogramme->fonction);
+    }
+
+    if (noeud->est_declaration_type()) {
+        return cree_noeud_type(noeud->type);
+    }
+
+    assert(!"Noeud non géré pour les dépendances !\n");
+    return nullptr;
 }
 
 void imprime_dependances(const DonneesDependance &dependances,
