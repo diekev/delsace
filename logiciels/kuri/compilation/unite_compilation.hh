@@ -70,6 +70,8 @@ struct UniteCompilation {
     {
     }
 
+    COPIE_CONSTRUCT(UniteCompilation);
+
     void ajoute_attente(Attente attente)
     {
         m_attentes.ajoute(attente);

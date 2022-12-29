@@ -383,14 +383,12 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStr
         auto param_poly = trouve_dans_bloc(structure->bloc_constantes, it->ident);
 
         if (param_poly->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
-            if (param_poly->type->est_type_de_donnees()) {
-                ajoute_candidat(param_poly->ident, param_poly->type);
+            if (it->type->est_type_de_donnees()) {
+                ajoute_candidat(it->ident, it->type);
             }
             else {
                 ajoute_candidat_valeur(
-                    param_poly->ident,
-                    param_poly->type,
-                    param_poly->comme_declaration_variable()->valeur_expression);
+                    it->ident, it->type, it->comme_declaration_variable()->valeur_expression);
             }
         }
         else if (param_poly->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {

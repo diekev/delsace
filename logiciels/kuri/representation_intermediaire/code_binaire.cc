@@ -96,7 +96,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 
         auto fonction = contexte.fonction;
         if (fonction) {
-            std::cerr << "La fonction est " << nom_humainement_lisible(fonction.decl) << '\n';
+            std::cerr << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
             std::cerr << *fonction << '\n';
         }
 
