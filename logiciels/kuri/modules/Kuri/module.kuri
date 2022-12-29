@@ -722,9 +722,10 @@ tableau_insère_index :: fonc (tabl: *[]$T, valeur: T, où: z64) -> rien
     tmp := mémoire(tabl)
 
     reloge_tableau(tmp, tmp.taille + 1)
+    tmp.taille += 1
 
-    pour i dans où ... tmp.taille - 2 {
-        tmp[i + 1] = tmp[i]
+    pour > où + 1 ... tmp.taille - 1 {
+        tmp[it] = tmp[it - 1]
     }
 
     tmp[où] = valeur

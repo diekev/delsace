@@ -517,7 +517,6 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     if (entete_possible && !entete_possible->est_initialisation_type) {
         /* À FAIRE : déplace ceci dans le GestionnaireCode afin de ne pas retravailler sur des
          * entêtes que nous avons déjà vu. */
-        auto debut = dls::chrono::compte_milliseconde();
         auto types_utilises = kuri::ensemblon<Type *, 16>();
 
         auto noeud_dep = entete_possible->noeud_dependance;
