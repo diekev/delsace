@@ -1,4 +1,650 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
+#include "parsage/identifiant.hh"
+
+#include "representation_intermediaire/instructions.hh"
+
+#include "structures/enchaineuse.hh"
+
 #include "attente.hh"
+#include "compilatrice.hh"
+#include "espace_de_travail.hh"
+#include "message.hh"
+#include "metaprogramme.hh"
+#include "typage.hh"
+#include "unite_compilation.hh"
+
+struct UniteCompilation;
+
+#define NOM_RAPPEL_POUR_UNITÉ(__nom__) unite_pour_attente_##__nom__
+#define RAPPEL_POUR_UNITÉ(__nom__)                                                                \
+    static UniteCompilation *NOM_RAPPEL_POUR_UNITÉ(__nom__)(Attente const &attente)
+
+#define NOM_RAPPEL_POUR_COMMENTAIRE(__nom__) commentaire_pour_##__nom__
+#define RAPPEL_POUR_COMMENTAIRE(__nom__)                                                          \
+    kuri::chaine NOM_RAPPEL_POUR_COMMENTAIRE(__nom__)(Attente const &attente)
+
+#define NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__) est_résolue_sur_##__nom__
+#define RAPPEL_POUR_EST_RÉSOLUE(__nom__)                                                          \
+    bool NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__)(EspaceDeTravail * espace, Attente & attente)
+
+#define NOM_RAPPEL_POUR_ERREUR(__nom__) émets_erreur_pour_attente_sur_##__nom__
+#define RAPPEL_POUR_ERREUR(__nom__)                                                               \
+    void NOM_RAPPEL_POUR_ERREUR(__nom__)(UniteCompilation const *unite, Attente const &attente)
+
+/** -----------------------------------------------------------------
+ * \{ */
+
+static ConditionBlocageAttente condition_blocage_défaut(Attente const & /*attente*/)
+{
+    return {PhaseCompilation::PARSAGE_TERMINE};
+}
+
+static void émets_erreur_pour_attente_défaut(UniteCompilation const *unite, Attente const &attente)
+{
+    auto espace = unite->espace;
+    auto noeud = unite->noeud;
+    espace
+        ->rapporte_erreur(noeud,
+                          "Je ne peux pas continuer la compilation car une unité est "
+                          "bloqué dans un cycle")
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unite->chaine_attentes_recursives())
+        .ajoute_message("\n");
+}
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurType
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(type)
+{
+    auto type_attendu = attente.type();
+
+    if (!type_attendu) {
+        return nullptr;
+    }
+
+    assert(attente.est_valide());
+    auto decl = decl_pour_type(type_attendu);
+    if (!decl) {
+        /* « decl » peut être nulle si nous attendons sur la fonction d'initialisation d'un
+         * type n'étant pas encore typé/parsé (par exemple les types de l'interface Kuri). */
+        return nullptr;
+    }
+
+    return decl->unite;
+}
+
+RAPPEL_POUR_COMMENTAIRE(type)
+{
+    auto type_attendu = attente.type();
+    return enchaine("(type) ", chaine_type(type_attendu));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(type)
+{
+    return (attente.type()->drapeaux & TYPE_FUT_VALIDE) != 0;
+}
+
+RAPPEL_POUR_ERREUR(type)
+{
+    auto espace = unite->espace;
+    auto noeud = unite->noeud;
+    auto site = noeud;
+    if (site && site->est_corps_fonction()) {
+        auto corps = site->comme_corps_fonction();
+        auto index_courant = unite->index_courant;
+        site = corps->arbre_aplatis[index_courant];
+    }
+
+    espace
+        ->rapporte_erreur(site,
+                          "Je ne peux pas continuer la compilation car je n'arrive "
+                          "pas à déterminer un type pour l'expression",
+                          erreur::Genre::TYPE_INCONNU)
+        .ajoute_message("Note : le type attendu est ")
+        .ajoute_message(chaine_type(attente.type()))
+        .ajoute_message("\n")
+        .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        .ajoute_message(unite->chaine_attentes_recursives())
+        .ajoute_message("\n");
+}
+
+InfoTypeAttente info_type_attente_sur_type = {NOM_RAPPEL_POUR_UNITÉ(type),
+                                              condition_blocage_défaut,
+                                              NOM_RAPPEL_POUR_COMMENTAIRE(type),
+                                              NOM_RAPPEL_POUR_EST_RÉSOLUE(type),
+                                              NOM_RAPPEL_POUR_ERREUR(type)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurDeclaration
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(déclaration)
+{
+    return attente.declaration()->unite;
+}
+
+RAPPEL_POUR_COMMENTAIRE(declaration)
+{
+    return enchaine("(decl) ", attente.declaration()->ident->nom);
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(déclaration)
+{
+    auto declaration_attendue = attente.declaration();
+    if (!declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+        return false;
+    }
+
+    if (declaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
+        /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
+         * nous faut le code. */
+        attente = Attente::sur_ri(&declaration_attendue->comme_entete_fonction()->atome);
+        return false;
+    }
+
+    return true;
+}
+
+RAPPEL_POUR_ERREUR(déclaration)
+{
+    auto espace = unite->espace;
+    auto decl = attente.declaration();
+    auto unite_decl = decl->unite;
+    auto erreur = espace->rapporte_erreur(
+        decl, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
+
+    // À FAIRE : ne devrait pas arriver
+    if (unite_decl) {
+        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+            .ajoute_message(unite->chaine_attentes_recursives())
+            .ajoute_message("\n");
+    }
+}
+
+InfoTypeAttente info_type_attente_sur_déclaration = {NOM_RAPPEL_POUR_UNITÉ(déclaration),
+                                                     condition_blocage_défaut,
+                                                     NOM_RAPPEL_POUR_COMMENTAIRE(declaration),
+                                                     NOM_RAPPEL_POUR_EST_RÉSOLUE(déclaration),
+                                                     NOM_RAPPEL_POUR_ERREUR(déclaration)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurOperateur
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(opérateur)
+{
+    return attente.operateur()->unite;
+}
+
+RAPPEL_POUR_COMMENTAIRE(opérateur)
+{
+    return enchaine("opérateur ", attente.operateur()->lexeme->chaine);
+}
+
+/* À FAIRE(gestion) : détermine comment détecter la disponibilité d'un opérateur.
+ *
+ * Il y a deux cas spéciaux, en dehors de la définition par l'utilisateur d'un opérateur :
+ * - les énumérations, et
+ * - les types de bases (hors tableaux, etc.).
+ *
+ * Il faudra sans doute ajouter un noeud syntaxique pour contenir les données des
+ * opérateurs et créer un tel noeud pour tous les types, qui devra ensuite passer par la
+ * validation de code.
+ */
+RAPPEL_POUR_EST_RÉSOLUE(opérateur)
+{
+    auto p = espace->phase_courante();
+    return p < PhaseCompilation::PARSAGE_TERMINE;
+}
+
+static void imprime_operateurs_pour(Erreur &e,
+                                    Type &type,
+                                    NoeudExpression const &operateur_attendu)
+{
+    auto &operateurs = type.operateurs.operateurs(operateur_attendu.lexeme->genre);
+
+    if (operateurs.taille() == 0) {
+        e.ajoute_message("\nNOTE : le type ", chaine_type(&type), " n'a aucun opérateur\n");
+    }
+    else {
+        e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
+        POUR (operateurs.plage()) {
+            e.ajoute_message("    ",
+                             chaine_type(it->type1),
+                             " ",
+                             operateur_attendu.lexeme->chaine,
+                             " ",
+                             chaine_type(it->type2),
+                             "\n");
+        }
+    }
+}
+
+RAPPEL_POUR_ERREUR(opérateur)
+{
+    auto espace = unite->espace;
+    auto operateur_attendu = attente.operateur();
+    if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
+        auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
+        auto type1 = expression_operation->operande_gauche->type;
+        auto type2 = expression_operation->operande_droite->type;
+
+        auto candidats = kuri::tablet<OperateurCandidat, 10>();
+        auto resultat = cherche_candidats_operateurs(
+            *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
+
+        Erreur e = espace->rapporte_erreur(operateur_attendu,
+                                           "Je ne peux pas continuer la compilation car je "
+                                           "n'arrive pas à déterminer quel opérateur appeler.",
+                                           erreur::Genre::TYPE_INCONNU);
+
+        if (!resultat.has_value()) {
+            POUR (candidats) {
+                auto op = it.op;
+                if (!op || !op->decl) {
+                    continue;
+                }
+
+                e.ajoute_message("Candidat :\n");
+                e.ajoute_site(it.op->decl);
+
+                if (it.transformation_type1.type == TypeTransformation::IMPOSSIBLE) {
+                    e.ajoute_message(
+                        "Impossible de convertir implicitement le type à gauche (qui est ",
+                        chaine_type(type1),
+                        ") vers ",
+                        chaine_type(it.op->type1),
+                        '\n');
+                }
+
+                if (it.transformation_type2.type == TypeTransformation::IMPOSSIBLE) {
+                    e.ajoute_message(
+                        "Impossible de convertir implicitement le type à droite (qui est ",
+                        chaine_type(type2),
+                        ") vers ",
+                        chaine_type(it.op->type2),
+                        '\n');
+                }
+
+                e.ajoute_message('\n');
+            }
+        }
+
+        imprime_operateurs_pour(e, *type1, *operateur_attendu);
+
+        if (type1 != type2) {
+            imprime_operateurs_pour(e, *type2, *operateur_attendu);
+        }
+
+        e.ajoute_conseil("\nSi vous voulez performer une opération sur des types "
+                         "non-communs, vous pouvez définir vos propres opérateurs avec "
+                         "la syntaxe suivante :\n\n");
+        e.ajoute_message("opérateur ",
+                         operateur_attendu->lexeme->chaine,
+                         " :: fonc (a: ",
+                         chaine_type(type1),
+                         ", b: ",
+                         chaine_type(type2),
+                         ")");
+        e.ajoute_message(" -> TypeRetour\n");
+        e.ajoute_message("{\n\tretourne ...\n}\n");
+    }
+    else {
+        auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
+        auto type_operande = expression_operation->operande->type;
+        espace
+            ->rapporte_erreur(operateur_attendu,
+                              "Je ne peux pas continuer la compilation car je "
+                              "n'arrive pas à déterminer quel opérateur appeler.",
+                              erreur::Genre::TYPE_INCONNU)
+            .ajoute_message("\nLe type à droite de l'opérateur est ")
+            .ajoute_message(chaine_type(type_operande))
+            .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
+            .ajoute_conseil("Si vous voulez performer une opération sur des types "
+                            "non-communs, vous pouvez définir vos propres opérateurs avec "
+                            "la syntaxe suivante :\n\n")
+            .ajoute_message("opérateur ",
+                            operateur_attendu->lexeme->chaine,
+                            " :: fonc (a: ",
+                            chaine_type(type_operande),
+                            ")")
+            .ajoute_message(" -> TypeRetour\n")
+            .ajoute_message("{\n\tretourne ...\n}\n");
+    }
+}
+
+InfoTypeAttente info_type_attente_sur_opérateur = {NOM_RAPPEL_POUR_UNITÉ(opérateur),
+                                                   condition_blocage_défaut,
+                                                   NOM_RAPPEL_POUR_COMMENTAIRE(opérateur),
+                                                   NOM_RAPPEL_POUR_EST_RÉSOLUE(opérateur),
+                                                   NOM_RAPPEL_POUR_ERREUR(opérateur)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurMetaProgramme
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(métaprogramme)
+{
+    auto metaprogramme_attendu = attente.metaprogramme();
+    // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
+    // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
+    return metaprogramme_attendu->fonction->unite;
+}
+
+RAPPEL_POUR_COMMENTAIRE(métaprogramme)
+{
+    auto metaprogramme_attendu = attente.metaprogramme();
+    auto resultat = Enchaineuse();
+    resultat << "métaprogramme";
+
+    if (metaprogramme_attendu->corps_texte) {
+        resultat << " #corps_texte pour ";
+
+        if (metaprogramme_attendu->corps_texte_pour_fonction) {
+            resultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
+        }
+        else if (metaprogramme_attendu->corps_texte_pour_structure) {
+            resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
+        }
+        else {
+            resultat << " ERREUR COMPILATRICE";
+        }
+    }
+    else {
+        resultat << " " << metaprogramme_attendu;
+    }
+
+    return resultat.chaine();
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
+{
+    auto metaprogramme_attendu = attente.metaprogramme();
+    return metaprogramme_attendu->fut_execute;
+}
+
+/* À FAIRE(condition blocage) : vérifie que le métaprogramme est en cours d'exécution ? */
+InfoTypeAttente info_type_attente_sur_métaprogramme = {NOM_RAPPEL_POUR_UNITÉ(métaprogramme),
+                                                       nullptr,
+                                                       NOM_RAPPEL_POUR_COMMENTAIRE(métaprogramme),
+                                                       NOM_RAPPEL_POUR_EST_RÉSOLUE(métaprogramme),
+                                                       émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurRI
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(ri)
+{
+    auto ri_attendue = *attente.ri();
+    if (!ri_attendue || !ri_attendue->est_fonction()) {
+        return nullptr;
+    }
+    auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+    if (!fonction->decl) {
+        return nullptr;
+    }
+    return fonction->decl->unite;
+}
+
+RAPPEL_POUR_COMMENTAIRE(ri)
+{
+    auto ri_attendue = *attente.ri();
+    if (ri_attendue == nullptr) {
+        return "RI, mais la RI ne fut pas générée !";
+    }
+
+    if (ri_attendue->est_fonction()) {
+        auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+        if (fonction->decl) {
+            auto decl = fonction->decl;
+            if (decl->ident) {
+                return enchaine("RI de ", fonction->decl->ident->nom);
+            }
+            /* Utilisation du lexème, par exemple pour les opérateurs. */
+            return enchaine("RI de ", fonction->decl->lexeme->chaine);
+        }
+        return enchaine("RI d'une fonction inconnue");
+    }
+
+    if (ri_attendue->est_globale()) {
+        auto globale = static_cast<AtomeGlobale *>(ri_attendue);
+        if (globale->ident) {
+            return enchaine("RI de la globale ", globale->ident->nom);
+        }
+        return enchaine("RI d'une globale anonyme");
+    }
+
+    return enchaine("RI de quelque chose inconnue");
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(ri)
+{
+    auto ri_attendue = attente.ri();
+    return (*ri_attendue && (*ri_attendue)->ri_generee);
+}
+
+InfoTypeAttente info_type_attente_sur_ri = {NOM_RAPPEL_POUR_UNITÉ(ri),
+                                            nullptr,
+                                            NOM_RAPPEL_POUR_COMMENTAIRE(ri),
+                                            NOM_RAPPEL_POUR_EST_RÉSOLUE(ri),
+                                            émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurSymbole
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(symbole)
+{
+    return enchaine("(symbole) ", attente.symbole()->ident->nom);
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(symbole)
+{
+    auto p = espace->phase_courante();
+    // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
+    // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
+    // définis depuis le dernier ajournement, dans GestionnaireCode::cree_taches).
+    return p < PhaseCompilation::PARSAGE_TERMINE;
+}
+
+RAPPEL_POUR_ERREUR(symbole)
+{
+    auto espace = unite->espace;
+    espace->rapporte_erreur(attente.symbole(),
+                            "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
+}
+
+InfoTypeAttente info_type_attente_sur_symbole = {nullptr,
+                                                 condition_blocage_défaut,
+                                                 NOM_RAPPEL_POUR_COMMENTAIRE(symbole),
+                                                 NOM_RAPPEL_POUR_EST_RÉSOLUE(symbole),
+                                                 NOM_RAPPEL_POUR_ERREUR(symbole)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurInterfaceKuri
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(interface_kuri)
+{
+    return enchaine("(interface kuri) ", attente.interface_kuri()->nom);
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(interface_kuri)
+{
+    auto interface_attendue = attente.interface_kuri();
+    auto &compilatrice = espace->compilatrice();
+
+    if (ident_est_pour_fonction_interface(interface_attendue)) {
+        auto decl = compilatrice.interface_kuri->declaration_pour_ident(interface_attendue);
+        if (!decl || !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            return false;
+        }
+
+        if (decl->ident == ID::cree_contexte) {
+            /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
+             * nous faut le code. */
+            attente = Attente::sur_ri(&decl->atome);
+            return false;
+        }
+
+        return true;
+    }
+
+    assert(ident_est_pour_type_interface(interface_attendue));
+    return est_type_interface_disponible(compilatrice.typeuse, interface_attendue);
+}
+
+RAPPEL_POUR_ERREUR(interface_kuri)
+{
+    auto espace = unite->espace;
+    auto noeud = unite->noeud;
+    espace
+        ->rapporte_erreur(noeud,
+                          "Trop de cycles : arrêt de la compilation car une "
+                          "déclaration attend sur une interface de Kuri")
+        .ajoute_message("Note : l'interface attendue est ", attente.interface_kuri()->nom, "\n");
+}
+
+InfoTypeAttente info_type_attente_sur_interface_kuri = {
+    nullptr,
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(interface_kuri),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(interface_kuri),
+    NOM_RAPPEL_POUR_ERREUR(interface_kuri)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurMessage
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(message)
+{
+    return "message";
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(message)
+{
+    return false;
+}
+
+InfoTypeAttente info_type_attente_sur_message = {nullptr,
+                                                 nullptr,
+                                                 NOM_RAPPEL_POUR_COMMENTAIRE(message),
+                                                 NOM_RAPPEL_POUR_EST_RÉSOLUE(message),
+                                                 émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurChargement
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(chargement)
+{
+    return "chargement fichier";
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(chargement)
+{
+    auto fichier_attendu = attente.fichier_a_charger();
+    return fichier_attendu->fut_charge;
+}
+
+InfoTypeAttente info_type_attente_sur_chargement = {nullptr,
+                                                    nullptr,
+                                                    NOM_RAPPEL_POUR_COMMENTAIRE(chargement),
+                                                    NOM_RAPPEL_POUR_EST_RÉSOLUE(chargement),
+                                                    émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurLexage
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(lexage)
+{
+    return "lexage fichier";
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(lexage)
+{
+    auto fichier_attendu = attente.fichier_a_lexer();
+    return fichier_attendu->fut_lexe;
+}
+
+InfoTypeAttente info_type_attente_sur_lexage = {nullptr,
+                                                nullptr,
+                                                NOM_RAPPEL_POUR_COMMENTAIRE(lexage),
+                                                NOM_RAPPEL_POUR_EST_RÉSOLUE(lexage),
+                                                émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurParsage
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(parsage)
+{
+    return "parsage fichier";
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(parsage)
+{
+    auto fichier_attendu = attente.fichier_a_parser();
+    return fichier_attendu->fut_parse;
+}
+
+InfoTypeAttente info_type_attente_sur_parsage = {nullptr,
+                                                 nullptr,
+                                                 NOM_RAPPEL_POUR_COMMENTAIRE(parsage),
+                                                 NOM_RAPPEL_POUR_EST_RÉSOLUE(parsage),
+                                                 émets_erreur_pour_attente_défaut};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurNoeudCode
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(noeud_code)
+{
+    return "noeud code";
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(noeud_code)
+{
+    /* Géré dans le GestionnaireCode. */
+    return false;
+}
+
+InfoTypeAttente info_type_attente_sur_noeud_code = {nullptr,
+                                                    nullptr,
+                                                    NOM_RAPPEL_POUR_COMMENTAIRE(noeud_code),
+                                                    NOM_RAPPEL_POUR_EST_RÉSOLUE(noeud_code),
+                                                    émets_erreur_pour_attente_défaut};
+
+/** \} */

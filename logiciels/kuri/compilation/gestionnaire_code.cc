@@ -506,53 +506,6 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     });
 }
 
-/* Retourne vrai si toutes les dépendances font déjà partie du programme. Si tel est le cas, nous
- * n'aurons pas à traverser le graphe de dépendances. */
-static bool programme_possede_toutes_les_dependances(
-    DonnneesResolutionDependances &donnees_resolution, Programme *programme)
-{
-    auto &dependances = donnees_resolution.dependances;
-    auto programme_possede_tout = true;
-    kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
-        if (!programme->possede(type)) {
-            programme_possede_tout = false;
-            return kuri::DecisionIteration::Arrete;
-        }
-
-        return kuri::DecisionIteration::Continue;
-    });
-
-    if (!programme_possede_tout) {
-        return false;
-    }
-
-    programme_possede_tout = true;
-    kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (!programme->possede(fonction)) {
-            programme_possede_tout = false;
-            return kuri::DecisionIteration::Arrete;
-        }
-
-        return kuri::DecisionIteration::Continue;
-    });
-
-    if (!programme_possede_tout) {
-        return false;
-    }
-
-    programme_possede_tout = true;
-    kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        if (!programme->possede(globale)) {
-            programme_possede_tout = false;
-            return kuri::DecisionIteration::Arrete;
-        }
-
-        return kuri::DecisionIteration::Continue;
-    });
-
-    return programme_possede_tout;
-}
-
 /* Détermine si nous devons ajouter les dépendances du noeud au programme. */
 static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Programme *programme)
 {
