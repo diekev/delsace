@@ -7,6 +7,8 @@
 #include <variant>
 
 struct Atome;
+struct Attente;
+struct EspaceDeTravail;
 struct Fichier;
 struct IdentifiantCode;
 struct Message;
@@ -16,6 +18,52 @@ struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionReference;
 struct Type;
+struct UniteCompilation;
+
+namespace kuri {
+struct chaine;
+}
+
+enum class PhaseCompilation : int;
+
+/** -----------------------------------------------------------------
+ * \{ */
+
+/* Représente la condition pour laquelle l'attente est bloquée. */
+struct ConditionBlocageAttente {
+    PhaseCompilation phase{};
+};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * « Table virtuelle » pour les opérations sur les attentes.
+ * \{ */
+
+struct InfoTypeAttente {
+    /* Rappel pour retourner l'unité de compilation de l'objet attendu. Peut retourner nul si
+     * l'objet n'a pas d'unité de compilation (par exemple un symbole indéfini n'a pas d'unité). */
+    UniteCompilation *(*unité_pour_attente)(Attente const &attente);
+
+    /* Rappel pour retourner la condition qui fait que l'attente est bloquée, que la compilation ne
+     * peut continuer. */
+    ConditionBlocageAttente (*condition_blocage)(Attente const &attente);
+
+    /* Rappel pour retourner un commentaire décrivant ce sur quoi l'on attend. */
+    kuri::chaine (*commentaire)(Attente const &attente);
+
+    /* Rappel pour retourner si l'attente est résolue, que la compilation de l'unité peut
+     * reprendre. */
+    bool (*est_résolue)(EspaceDeTravail *espace, Attente &attente);
+
+    /* Rappel pour émettre erreur selon l'attente. */
+    void (*émets_erreur)(UniteCompilation const *unité, Attente const &attente);
+};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * \{ */
 
 template <typename T>
 struct AttenteSur {
@@ -50,6 +98,42 @@ using AttenteSurLexage = AttenteSur<FichierALexer>;
 using AttenteSurParsage = AttenteSur<FichierAParser>;
 using AttenteSurNoeudCode = AttenteSur<NoeudCode **>;
 
+/** \} */
+
+/** -----------------------------------------------------------------
+ * Déclaration d'InfoTypeAttente pour chaque type d'attente.
+ * \{ */
+
+template <typename T>
+struct SélecteurInfoTypeAttente;
+
+#define DÉCLARE_INFO_TYPE_ATTENTE(__nom__, __type__)                                              \
+    extern InfoTypeAttente info_type_attente_sur_##__nom__;                                       \
+    template <>                                                                                   \
+    struct SélecteurInfoTypeAttente<__type__> {                                                   \
+        static constexpr InfoTypeAttente *type = &info_type_attente_sur_##__nom__;                \
+    }
+
+DÉCLARE_INFO_TYPE_ATTENTE(type, AttenteSurType);
+DÉCLARE_INFO_TYPE_ATTENTE(déclaration, AttenteSurDeclaration);
+DÉCLARE_INFO_TYPE_ATTENTE(opérateur, AttenteSurOperateur);
+DÉCLARE_INFO_TYPE_ATTENTE(métaprogramme, AttenteSurMetaProgramme);
+DÉCLARE_INFO_TYPE_ATTENTE(ri, AttenteSurRI);
+DÉCLARE_INFO_TYPE_ATTENTE(symbole, AttenteSurSymbole);
+DÉCLARE_INFO_TYPE_ATTENTE(interface_kuri, AttenteSurInterfaceKuri);
+DÉCLARE_INFO_TYPE_ATTENTE(message, AttenteSurMessage);
+DÉCLARE_INFO_TYPE_ATTENTE(chargement, AttenteSurChargement);
+DÉCLARE_INFO_TYPE_ATTENTE(lexage, AttenteSurLexage);
+DÉCLARE_INFO_TYPE_ATTENTE(parsage, AttenteSurParsage);
+DÉCLARE_INFO_TYPE_ATTENTE(noeud_code, AttenteSurNoeudCode);
+
+#undef DÉCLARE_INFO_TYPE_ATTENTE
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * \{ */
+
 /* Représente une attente, c'est-à-dire ce dont une unité de compilation nécessite pour continuer
  * son chemin dans la compilation. */
 struct Attente {
@@ -70,8 +154,13 @@ struct Attente {
 
     TypeAttente attente{};
 
+  public:
+    InfoTypeAttente *info = nullptr;
+
+  protected:
     template <typename T>
-    Attente(AttenteSur<T> attente_sur) : attente(attente_sur)
+    Attente(AttenteSur<T> attente_sur)
+        : attente(attente_sur), info(SélecteurInfoTypeAttente<AttenteSur<T>>::type)
     {
     }
 
@@ -241,3 +330,5 @@ struct Attente {
         return std::get<AttenteSurNoeudCode>(attente).valeur;
     }
 };
+
+/** \} */
