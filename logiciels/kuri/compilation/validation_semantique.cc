@@ -912,11 +912,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto variable = feuilles->expressions[0];
             inst->ident = variable->ident;
 
-            auto type = enfant2->type;
-            if (type->est_opaque()) {
-                type = type->comme_opaque()->type_opacifie;
-                enfant2->type = type;
+            auto type_variable_itérée = enfant2->type;
+            if (type_variable_itérée->est_opaque()) {
+                type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+                enfant2->type = type_variable_itérée;
             }
+
+            /* Le type de l'itérateur, à savoir le type de « it ». */
+            auto type_itérateur = type_variable_itérée;
 
             auto determine_iterande = [&, this](NoeudExpression *iterand) -> char {
                 /* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
@@ -965,10 +968,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     }
                 }
 
-                if (type->genre == GenreType::TABLEAU_DYNAMIQUE ||
-                    type->genre == GenreType::TABLEAU_FIXE ||
-                    type->genre == GenreType::VARIADIQUE) {
-                    type = type_dereference_pour(type);
+                if (type_variable_itérée->genre == GenreType::TABLEAU_DYNAMIQUE ||
+                    type_variable_itérée->genre == GenreType::TABLEAU_FIXE ||
+                    type_variable_itérée->genre == GenreType::VARIADIQUE) {
+                    type_itérateur = type_dereference_pour(type_variable_itérée);
 
                     if (requiers_index) {
                         return GENERE_BOUCLE_TABLEAU_INDEX;
@@ -977,9 +980,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return GENERE_BOUCLE_TABLEAU;
                     }
                 }
-                else if (type->genre == GenreType::CHAINE) {
-                    type = m_compilatrice.typeuse[TypeBase::Z8];
-                    enfant1->type = type;
+                else if (type_variable_itérée->genre == GenreType::CHAINE) {
+                    type_itérateur = m_compilatrice.typeuse[TypeBase::Z8];
+                    enfant1->type = type_itérateur;
 
                     if (requiers_index) {
                         return GENERE_BOUCLE_TABLEAU_INDEX;
@@ -988,14 +991,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return GENERE_BOUCLE_TABLEAU;
                     }
                 }
-                else if (est_type_entier(type) || type->est_entier_constant()) {
-                    if (type->est_entier_constant()) {
-                        enfant1->type = m_compilatrice.typeuse[TypeBase::Z32];
-                        type = enfant1->type;
+                else if (est_type_entier(type_variable_itérée) ||
+                         type_variable_itérée->est_entier_constant()) {
+                    if (type_variable_itérée->est_entier_constant()) {
+                        type_itérateur = m_compilatrice.typeuse[TypeBase::Z32];
                     }
-                    else {
-                        enfant1->type = type;
-                    }
+
+                    enfant1->type = type_itérateur;
 
                     if (requiers_index) {
                         return GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX;
@@ -1007,15 +1009,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 else {
                     espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
                         .ajoute_message("Note : le type de la variable est ")
-                        .ajoute_message(chaine_type(type))
+                        .ajoute_message(chaine_type(type_variable_itérée))
                         .ajoute_message("\n");
                     return -1;
                 }
             };
 
-            auto aide_generation_code = determine_iterande(enfant2);
+            auto aide_génération_code = determine_iterande(enfant2);
 
-            if (aide_generation_code == -1) {
+            if (aide_génération_code == -1) {
                 return CodeRetourValidation::Erreur;
             }
 
@@ -1024,20 +1026,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
              * Ceci est nécessaire car la simplification du code accède aux opérateurs
              * selon le type de enfant2. */
             if (enfant2->type->est_entier_constant()) {
-                assert(!type->est_entier_constant());
-                enfant2->type = type;
+                assert(!type_itérateur->est_entier_constant());
+                enfant2->type = type_itérateur;
             }
 
             /* il faut attendre de vérifier que le type est itérable avant de prendre cette
              * indication en compte */
             if (inst->prend_reference) {
-                type = m_compilatrice.typeuse.type_reference_pour(type);
+                type_itérateur = m_compilatrice.typeuse.type_reference_pour(type_itérateur);
             }
             else if (inst->prend_pointeur) {
-                type = m_compilatrice.typeuse.type_pointeur_pour(type);
+                type_itérateur = m_compilatrice.typeuse.type_pointeur_pour(type_itérateur);
             }
 
-            noeud->aide_generation_code = aide_generation_code;
+            noeud->aide_generation_code = aide_génération_code;
 
             enfant3->reserve_membres(feuilles->expressions.taille());
 
@@ -1046,8 +1048,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             for (auto i = 0; i < nombre_feuilles; ++i) {
                 auto decl_f = feuilles->expressions[i]->comme_declaration_variable();
 
-                decl_f->type = type;
-                decl_f->valeur->type = type;
+                decl_f->type = type_itérateur;
+                decl_f->valeur->type = type_itérateur;
                 decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
                 enfant3->ajoute_membre(decl_f);
