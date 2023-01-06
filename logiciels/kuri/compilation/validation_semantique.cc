@@ -933,10 +933,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                  * type de retour d'une coroutine n'interfère avec le type d'une
                  * variable (par exemple quand nous retournons une chaine). */
                 if (iterand->est_plage()) {
-                    if (requiers_index) {
-                        return GENERE_BOUCLE_PLAGE_INDEX;
-                    }
-
                     return GENERE_BOUCLE_PLAGE;
                 }
 
@@ -980,46 +976,31 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     type_variable_itérée->genre == GenreType::VARIADIQUE) {
                     type_itérateur = type_dereference_pour(type_variable_itérée);
 
-                    if (requiers_index) {
-                        return GENERE_BOUCLE_TABLEAU_INDEX;
-                    }
-                    else {
-                        return GENERE_BOUCLE_TABLEAU;
-                    }
+                    return GENERE_BOUCLE_TABLEAU;
                 }
-                else if (type_variable_itérée->genre == GenreType::CHAINE) {
+
+                if (type_variable_itérée->genre == GenreType::CHAINE) {
                     type_itérateur = m_compilatrice.typeuse[TypeBase::Z8];
                     enfant1->type = type_itérateur;
 
-                    if (requiers_index) {
-                        return GENERE_BOUCLE_TABLEAU_INDEX;
-                    }
-                    else {
-                        return GENERE_BOUCLE_TABLEAU;
-                    }
+                    return GENERE_BOUCLE_TABLEAU;
                 }
-                else if (est_type_entier(type_variable_itérée) ||
-                         type_variable_itérée->est_entier_constant()) {
+
+                if (est_type_entier(type_variable_itérée) ||
+                    type_variable_itérée->est_entier_constant()) {
                     if (type_variable_itérée->est_entier_constant()) {
                         type_itérateur = m_compilatrice.typeuse[TypeBase::Z32];
                     }
 
                     enfant1->type = type_itérateur;
+                    return GENERE_BOUCLE_PLAGE_IMPLICITE;
+                }
 
-                    if (requiers_index) {
-                        return GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX;
-                    }
-                    else {
-                        return GENERE_BOUCLE_PLAGE_IMPLICITE;
-                    }
-                }
-                else {
-                    espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
-                        .ajoute_message("Note : le type de la variable est ")
-                        .ajoute_message(chaine_type(type_variable_itérée))
-                        .ajoute_message("\n");
-                    return -1;
-                }
+                espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
+                    .ajoute_message("Note : le type de la variable est ")
+                    .ajoute_message(chaine_type(type_variable_itérée))
+                    .ajoute_message("\n");
+                return -1;
             };
 
             auto aide_génération_code = determine_iterande(enfant2);
@@ -1066,7 +1047,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto decl_idx = feuilles->expressions[feuilles->expressions.taille() - 1]
                                     ->comme_declaration_variable();
 
-                if (noeud->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
+                if (noeud->aide_generation_code == GENERE_BOUCLE_PLAGE) {
                     decl_idx->type = m_compilatrice.typeuse[TypeBase::Z32];
                 }
                 else {

@@ -1467,9 +1467,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
     switch (inst->aide_generation_code) {
         case GENERE_BOUCLE_PLAGE:
-        case GENERE_BOUCLE_PLAGE_INDEX:
         case GENERE_BOUCLE_PLAGE_IMPLICITE:
-        case GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX:
         {
             /*
 
@@ -1500,8 +1498,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             NoeudExpression *expr_debut = nullptr;
             NoeudExpression *expr_fin = nullptr;
 
-            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE ||
-                inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
+            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE) {
                 // 0 ... expr - 1
                 expr_debut = assem->cree_litterale_entier(
                     expression_iteree->lexeme, expression_iteree->type, 0);
@@ -1602,7 +1599,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             break;
         }
         case GENERE_BOUCLE_TABLEAU:
-        case GENERE_BOUCLE_TABLEAU_INDEX:
         {
             /*
 
@@ -1705,7 +1701,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             break;
         }
         case GENERE_BOUCLE_COROUTINE:
-        case GENERE_BOUCLE_COROUTINE_INDEX:
         {
             /* À FAIRE(ri) : coroutine */
 #if 0
