@@ -1041,6 +1041,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
                 enfant3->ajoute_membre(decl_f);
+
+                if (i == 0) {
+                    inst->decl_it = decl_f;
+                }
             }
 
             if (requiers_index) {
@@ -1057,6 +1061,18 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_idx->valeur->type = decl_idx->type;
                 decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
                 enfant3->ajoute_membre(decl_idx);
+
+                inst->decl_index_it = decl_idx;
+            }
+
+            if (!inst->decl_index_it) {
+                /* Crée une déclaration pour « index_it » si ni le programme, ni la syntaxeuse n'en
+                 * a défini une. Ceci est requis pour la simplification du code.
+                 * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
+                 * avec des boucles externes, préservant ainsi le comportement des scripts
+                 * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
+                inst->decl_index_it = m_tacheronne.assembleuse->cree_declaration_variable(
+                    inst->lexeme, m_compilatrice.typeuse[TypeBase::Z64], ID::index_it, nullptr);
             }
 
             break;

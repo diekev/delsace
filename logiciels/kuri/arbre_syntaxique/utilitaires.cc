@@ -1408,36 +1408,22 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     simplifie(inst->bloc_sansarret);
     simplifie(inst->bloc_sinon);
 
-    auto feuilles = inst->variable->comme_virgule();
-
-    auto var = feuilles->expressions[0];
-    auto idx = NoeudExpression::nul();
+    auto it = inst->decl_it;
+    auto index_it = inst->decl_index_it;
     auto expression_iteree = inst->expression;
     auto bloc = inst->bloc;
     auto bloc_sans_arret = inst->bloc_sansarret;
     auto bloc_sinon = inst->bloc_sinon;
 
-    auto ident_index_it = ID::index_it;
-    auto type_index_it = typeuse[TypeBase::Z64];
-    if (feuilles->expressions.taille() == 2) {
-        idx = feuilles->expressions[1];
-        ident_index_it = idx->ident;
-        type_index_it = idx->type;
-    }
-
     auto boucle = assem->cree_boucle(inst->lexeme);
-    boucle->ident = var->ident;
+    boucle->ident = it->ident;
     boucle->bloc_parent = inst->bloc_parent;
     boucle->bloc = assem->cree_bloc_seul(inst->lexeme, boucle->bloc_parent);
     boucle->bloc_sansarret = bloc_sans_arret;
     boucle->bloc_sinon = bloc_sinon;
 
-    auto it = var->comme_declaration_variable();
-
-    auto zero = assem->cree_litterale_entier(var->lexeme, type_index_it, 0);
-    auto index_it = idx ? idx->comme_declaration_variable() :
-                          assem->cree_declaration_variable(
-                              var->lexeme, type_index_it, ident_index_it, zero);
+    auto type_index_it = index_it->type;
+    auto zero = assem->cree_litterale_entier(index_it->lexeme, type_index_it, 0);
 
     auto ref_it = it->valeur->comme_reference_declaration();
     auto ref_index = index_it->valeur->comme_reference_declaration();
@@ -1535,8 +1521,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 valeur_un);
 
             auto iterations = assem->cree_declaration_variable(
-                var->lexeme, expression_iteree->type, nullptr, nombre_iterations);
-            auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
+                it->lexeme, expression_iteree->type, nullptr, nombre_iterations);
+            auto ref_iterations = assem->cree_reference_declaration(it->lexeme, iterations);
             bloc_pre->ajoute_expression(iterations);
             bloc_pre->ajoute_membre(iterations);
 
@@ -1552,7 +1538,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (iterations->type->est_entier_naturel()) {
                 /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
                  * expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
+                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_egt;
                 auto condition1 = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
@@ -1570,7 +1556,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             }
             else {
                 /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
+                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_ieg;
                 condition->condition = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
@@ -3687,6 +3673,9 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             pour->bloc = assembleuse->cree_bloc(&lexeme);
             pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
+            pour->decl_it = decl_it;
+            pour->decl_index_it = assembleuse->cree_declaration_variable(
+                &lexeme_sentinel, typeuse[TypeBase::Z64], ID::index_it, nullptr);
 
             auto fonction = cree_entete_pour_initialisation_type(
                 type_pointe, compilatrice, assembleuse, typeuse);
