@@ -14,6 +14,7 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "parsage/outils_lexemes.hh"
+#include "portee.hh"
 #include "statistiques/statistiques.hh"
 
 #include "analyse.hh"
@@ -689,6 +690,34 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
     return accede_index_constants.ajoute_element(type, accede, index);
 }
 
+/* Retourne la boucle controlée effective de la boucle controlée passé en paramètre. Ceci prend en
+ * compte les boucles remplacées par les opérateurs « pour ». */
+static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_controlée)
+{
+    if (boucle_controlée->est_pour()) {
+        auto noeud_pour = boucle_controlée->comme_pour();
+
+        if (noeud_pour->corps_operateur_pour) {
+            /* Nous devons retourner la première boucle parent de #corps_boucle. */
+            POUR (noeud_pour->corps_operateur_pour->arbre_aplatis) {
+                if (!it->est_directive_corps_boucle()) {
+                    continue;
+                }
+
+                auto boucle_parent = bloc_est_dans_boucle(it->bloc_parent, nullptr);
+                assert(boucle_parent);
+                return boucle_controlée_effective(boucle_parent);
+            }
+        }
+    }
+
+    if (boucle_controlée->substitution) {
+        return boucle_controlée->substitution;
+    }
+
+    return boucle_controlée;
+}
+
 void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
     if (noeud->substitution) {
@@ -806,10 +835,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_POUR:
         case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
                 std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Erreur interne : un opérateur « pour » ne fut pas simplifié !\n";
                 erreur::imprime_site(*m_espace, noeud);
             });
             break;
@@ -1521,9 +1559,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = noeud->comme_arrete();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
 
             if (inst->possede_drapeau(EST_IMPLICITE)) {
                 auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
@@ -1540,9 +1576,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_CONTINUE:
         {
             auto inst = noeud->comme_continue();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_continue;
             genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
             cree_branche(noeud, label);
@@ -1551,9 +1585,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
             auto inst = noeud->comme_reprends();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
             genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
             cree_branche(noeud, label);
