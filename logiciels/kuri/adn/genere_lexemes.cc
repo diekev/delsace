@@ -177,6 +177,7 @@ static void construit_lexemes(ListeLexemes &lexemes)
     lexemes.ajoute_ponctuation("/=", "DIVISE_EGAL", EST_ASSIGNATION_COMPOSEE);
     lexemes.ajoute_ponctuation("::", "DECLARATION_CONSTANTE");
     lexemes.ajoute_ponctuation(":=", "DECLARATION_VARIABLE");
+    lexemes.ajoute_ponctuation("`", "ACCENT_GRAVE", EST_OPERATEUR_UNAIRE);
     lexemes.ajoute_ponctuation("<<", "DECALAGE_GAUCHE");
     lexemes.ajoute_ponctuation(
         "<=", "INFERIEUR_EGAL", EST_OPERATEUR_COMPARAISON | EST_OPERATEUR_BOOL);
