@@ -85,6 +85,10 @@ struct FichierAParser {
     Fichier *fichier;
 };
 
+struct OpérateurPour {
+    Type const *type;
+};
+
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurInterfaceKuri = AttenteSur<IdentifiantCode *>;
 using AttenteSurMetaProgramme = AttenteSur<MetaProgramme *>;
@@ -97,6 +101,7 @@ using AttenteSurChargement = AttenteSur<FichierACharger>;
 using AttenteSurLexage = AttenteSur<FichierALexer>;
 using AttenteSurParsage = AttenteSur<FichierAParser>;
 using AttenteSurNoeudCode = AttenteSur<NoeudCode **>;
+using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 
 /** \} */
 
@@ -126,6 +131,7 @@ DÉCLARE_INFO_TYPE_ATTENTE(chargement, AttenteSurChargement);
 DÉCLARE_INFO_TYPE_ATTENTE(lexage, AttenteSurLexage);
 DÉCLARE_INFO_TYPE_ATTENTE(parsage, AttenteSurParsage);
 DÉCLARE_INFO_TYPE_ATTENTE(noeud_code, AttenteSurNoeudCode);
+DÉCLARE_INFO_TYPE_ATTENTE(opérateur_pour, AttenteSurOpérateurPour);
 
 #undef DÉCLARE_INFO_TYPE_ATTENTE
 
@@ -150,7 +156,8 @@ struct Attente {
                                      AttenteSurChargement,
                                      AttenteSurLexage,
                                      AttenteSurParsage,
-                                     AttenteSurNoeudCode>;
+                                     AttenteSurNoeudCode,
+                                     AttenteSurOpérateurPour>;
 
     TypeAttente attente{};
 
@@ -241,6 +248,12 @@ struct Attente {
         return AttenteSurNoeudCode{code};
     }
 
+    static Attente sur_opérateur_pour(Type const *type)
+    {
+        assert(type);
+        return AttenteSurOpérateurPour{OpérateurPour{type}};
+    }
+
     /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
@@ -328,6 +341,12 @@ struct Attente {
     {
         assert(est<AttenteSurNoeudCode>());
         return std::get<AttenteSurNoeudCode>(attente).valeur;
+    }
+
+    Type const *opérateur_pour() const
+    {
+        assert(est<AttenteSurOpérateurPour>());
+        return std::get<AttenteSurOpérateurPour>(attente).valeur.type;
     }
 };
 

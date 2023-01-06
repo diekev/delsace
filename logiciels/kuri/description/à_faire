@@ -60,7 +60,6 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 // Fonctionnalités diverses
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
-- travail sur les itérateurs (via macros comme JAI?)
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))

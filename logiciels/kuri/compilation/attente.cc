@@ -648,3 +648,43 @@ InfoTypeAttente info_type_attente_sur_noeud_code = {nullptr,
                                                     émets_erreur_pour_attente_défaut};
 
 /** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurOpérateurPour
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(opérateur_pour)
+{
+    auto type = attente.opérateur_pour();
+    return enchaine("opérateur 'pour' pour ", chaine_type(type));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(opérateur_pour)
+{
+    auto type = attente.opérateur_pour();
+    return type->opérateur_pour != nullptr;
+}
+
+RAPPEL_POUR_ERREUR(opérateur_pour)
+{
+    auto espace = unite->espace;
+    auto noeud = unite->noeud;
+    auto type = attente.opérateur_pour();
+
+    auto message = enchaine(
+        "Je ne pas continuer la compilation car une unité attend sur la déclaration "
+        "d'un opérateur de boucle « pour » pour le type « ",
+        chaine_type(type),
+        " » mais aucun opérateur de boucle « pour » ne fut déclaré pour le type.");
+
+    espace->rapporte_erreur(noeud, message);
+}
+
+InfoTypeAttente info_type_attente_sur_opérateur_pour = {
+    nullptr,
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(opérateur_pour),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(opérateur_pour),
+    NOM_RAPPEL_POUR_ERREUR(opérateur_pour)};
+
+/** \} */
