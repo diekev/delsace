@@ -38,6 +38,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        {
+            arbre_aplatis.ajoute(racine);
+            break;
+        }
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
         {
             auto ajoute_init = racine->comme_ajoute_init();
@@ -73,6 +78,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
@@ -574,6 +580,7 @@ struct Simplificatrice {
 
   private:
     void simplifie_boucle_pour(NoeudPour *inst);
+    void simplifie_boucle_pour_opérateur(NoeudPour *inst);
     void simplifie_comparaison_chainee(NoeudExpressionBinaire *comp);
     void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
     void simplifie_discr(NoeudDiscr *discr);
@@ -612,6 +619,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             break;
         }
@@ -647,6 +655,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             fonction_courante = entete;
             simplifie(entete->corps);
+            return;
+        }
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        {
+            auto operateur_pour = noeud->comme_operateur_pour();
+            fonction_courante = operateur_pour;
+            simplifie(operateur_pour->corps);
             return;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
@@ -1408,36 +1423,27 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     simplifie(inst->bloc_sansarret);
     simplifie(inst->bloc_sinon);
 
-    auto feuilles = inst->variable->comme_virgule();
+    if (inst->aide_generation_code == BOUCLE_POUR_OPÉRATEUR) {
+        simplifie_boucle_pour_opérateur(inst);
+        return;
+    }
 
-    auto var = feuilles->expressions[0];
-    auto idx = NoeudExpression::nul();
+    auto it = inst->decl_it;
+    auto index_it = inst->decl_index_it;
     auto expression_iteree = inst->expression;
     auto bloc = inst->bloc;
     auto bloc_sans_arret = inst->bloc_sansarret;
     auto bloc_sinon = inst->bloc_sinon;
 
-    auto ident_index_it = ID::index_it;
-    auto type_index_it = typeuse[TypeBase::Z64];
-    if (feuilles->expressions.taille() == 2) {
-        idx = feuilles->expressions[1];
-        ident_index_it = idx->ident;
-        type_index_it = idx->type;
-    }
-
     auto boucle = assem->cree_boucle(inst->lexeme);
-    boucle->ident = var->ident;
+    boucle->ident = it->ident;
     boucle->bloc_parent = inst->bloc_parent;
     boucle->bloc = assem->cree_bloc_seul(inst->lexeme, boucle->bloc_parent);
     boucle->bloc_sansarret = bloc_sans_arret;
     boucle->bloc_sinon = bloc_sinon;
 
-    auto it = var->comme_declaration_variable();
-
-    auto zero = assem->cree_litterale_entier(var->lexeme, type_index_it, 0);
-    auto index_it = idx ? idx->comme_declaration_variable() :
-                          assem->cree_declaration_variable(
-                              var->lexeme, type_index_it, ident_index_it, zero);
+    auto type_index_it = index_it->type;
+    auto zero = assem->cree_litterale_entier(index_it->lexeme, type_index_it, 0);
 
     auto ref_it = it->valeur->comme_reference_declaration();
     auto ref_index = index_it->valeur->comme_reference_declaration();
@@ -1467,9 +1473,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
     switch (inst->aide_generation_code) {
         case GENERE_BOUCLE_PLAGE:
-        case GENERE_BOUCLE_PLAGE_INDEX:
         case GENERE_BOUCLE_PLAGE_IMPLICITE:
-        case GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX:
         {
             /*
 
@@ -1500,8 +1504,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             NoeudExpression *expr_debut = nullptr;
             NoeudExpression *expr_fin = nullptr;
 
-            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE ||
-                inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE_INDEX) {
+            if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_IMPLICITE) {
                 // 0 ... expr - 1
                 expr_debut = assem->cree_litterale_entier(
                     expression_iteree->lexeme, expression_iteree->type, 0);
@@ -1538,8 +1541,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 valeur_un);
 
             auto iterations = assem->cree_declaration_variable(
-                var->lexeme, expression_iteree->type, nullptr, nombre_iterations);
-            auto ref_iterations = assem->cree_reference_declaration(var->lexeme, iterations);
+                it->lexeme, expression_iteree->type, nullptr, nombre_iterations);
+            auto ref_iterations = assem->cree_reference_declaration(it->lexeme, iterations);
             bloc_pre->ajoute_expression(iterations);
             bloc_pre->ajoute_membre(iterations);
 
@@ -1555,7 +1558,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (iterations->type->est_entier_naturel()) {
                 /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
                  * expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
+                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_egt;
                 auto condition1 = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
@@ -1573,7 +1576,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             }
             else {
                 /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(var->lexeme, iterations->type, 0);
+                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
                 auto op_comp = iterations->type->operateur_ieg;
                 condition->condition = assem->cree_expression_binaire(
                     inst->lexeme, op_comp, ref_iterations, zero);
@@ -1602,7 +1605,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             break;
         }
         case GENERE_BOUCLE_TABLEAU:
-        case GENERE_BOUCLE_TABLEAU_INDEX:
         {
             /*
 
@@ -1705,7 +1707,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             break;
         }
         case GENERE_BOUCLE_COROUTINE:
-        case GENERE_BOUCLE_COROUTINE_INDEX:
         {
             /* À FAIRE(ri) : coroutine */
 #if 0
@@ -1784,9 +1785,61 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 #endif
             break;
         }
+        case BOUCLE_POUR_OPÉRATEUR:
+        {
+            assert(false);
+            break;
+        }
     }
 
     inst->substitution = boucle;
+}
+
+void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
+{
+    simplifie(inst->corps_operateur_pour);
+    auto corps_opérateur_pour = inst->corps_operateur_pour;
+
+    auto bloc_substitution = assem->cree_bloc_seul(corps_opérateur_pour->bloc->lexeme,
+                                                   inst->bloc_parent);
+
+    /* Crée une variable temporaire pour l'expression itérée. Si l'expression est par exemple un
+     * appel, il sera toujours évalué, menant potentiellement à une boucle infinie. */
+    auto temporaire = assem->cree_declaration_variable(
+        inst->expression->lexeme, inst->expression->type, nullptr, inst->expression);
+    auto ref_temporaire = assem->cree_reference_declaration(temporaire->lexeme, temporaire);
+    bloc_substitution->ajoute_expression(temporaire);
+
+    /* Ajoute les déclarations des variables d'itération dans le corps du bloc pour que la RI les
+     * trouve avant de générer le code des références. */
+    bloc_substitution->ajoute_expression(inst->decl_it);
+    bloc_substitution->ajoute_expression(inst->decl_index_it);
+    bloc_substitution->ajoute_expression(corps_opérateur_pour->bloc);
+
+    /* Substitutions manuelles. */
+    auto entête = corps_opérateur_pour->entete;
+    auto param = entête->parametre_entree(0);
+
+    POUR (corps_opérateur_pour->arbre_aplatis) {
+        /* Substitue le paramètre par la variable. */
+        if (it->est_reference_declaration()) {
+            auto référence = it->comme_reference_declaration();
+            if (référence->declaration_referee != param) {
+                continue;
+            }
+
+            référence->substitution = ref_temporaire;
+            continue;
+        }
+
+        /* Substitue #corps_boucle par le bloc. */
+        if (it->est_directive_corps_boucle()) {
+            it->substitution = inst->bloc;
+            continue;
+        }
+    }
+
+    inst->substitution = bloc_substitution;
 }
 
 static void rassemble_operations_chainees(NoeudExpression *racine,
@@ -3692,6 +3745,9 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             pour->bloc = assembleuse->cree_bloc(&lexeme);
             pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
+            pour->decl_it = decl_it;
+            pour->decl_index_it = assembleuse->cree_declaration_variable(
+                &lexeme_sentinel, typeuse[TypeBase::Z64], ID::index_it, nullptr);
 
             auto fonction = cree_entete_pour_initialisation_type(
                 type_pointe, compilatrice, assembleuse, typeuse);
@@ -3917,11 +3973,9 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::UNION:
         {
             auto type_union = type->comme_union();
-            auto index_membre = 0;
             // À FAIRE(union) : test proprement cette logique
             POUR (type_union->membres) {
                 if (it.type != type_union->type_le_plus_grand) {
-                    index_membre += 1;
                     continue;
                 }
 

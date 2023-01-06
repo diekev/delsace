@@ -483,7 +483,8 @@ struct GeneratriceCodeCPP {
             if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
                 os << copie_extra_structure;
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
+            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
+                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
                 os << "\t\t\tcopie->bloc_constantes = assem->cree_bloc_seul(nullptr, "
                       "bloc_parent);\n";
                 os << "\t\t\tcopie->bloc_parametres = assem->cree_bloc_seul(nullptr, "
@@ -499,7 +500,8 @@ struct GeneratriceCodeCPP {
 
                 // Les corps des fonctions sont copiées en même temps, et non à travers un appel
                 // séparé
-                if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" &&
+                if ((nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
+                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") &&
                     nom_enfant.nom_cpp() == "corps") {
                     return;
                 }
@@ -592,7 +594,8 @@ struct GeneratriceCodeCPP {
                                               "INSTRUCTION_TANTQUE")) {
                 os << "\t\t\tcopie->bloc->appartiens_a_boucle = copie;\n";
             }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
+            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
+                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
                 os << copie_extra_entete_fonction << "\n";
             }
             else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
@@ -1524,8 +1527,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
             os << "\t\t\t{\n";
 
             // Entêtes et corps alloués ensembles
-            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
-                os << "\t\t\t\tauto entete = m_noeuds_entete_fonction.ajoute_element();\n";
+            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
+                nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
+                if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
+                    os << "\t\t\t\tauto entete = m_noeuds_entete_fonction.ajoute_element();\n";
+                }
+                else {
+                    os << "\t\t\t\tauto entete = m_noeuds_operateur_pour.ajoute_element();\n";
+                }
                 os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_element();\n";
                 os << "\t\t\t\tentete->corps = corps;\n";
                 os << "\t\t\t\tcorps->entete = entete;\n";
