@@ -3912,11 +3912,9 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::UNION:
         {
             auto type_union = type->comme_union();
-            auto index_membre = 0;
             // À FAIRE(union) : test proprement cette logique
             POUR (type_union->membres) {
                 if (it.type != type_union->type_le_plus_grand) {
-                    index_membre += 1;
                     continue;
                 }
 
