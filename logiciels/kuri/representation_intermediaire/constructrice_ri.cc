@@ -689,6 +689,16 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
     return accede_index_constants.ajoute_element(type, accede, index);
 }
 
+/* Retourne la boucle controlée effective de la boucle controlée passé en paramètre. */
+static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_controlée)
+{
+    if (boucle_controlée->substitution) {
+        return boucle_controlée->substitution;
+    }
+
+    return boucle_controlée;
+}
+
 void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
     if (noeud->substitution) {
@@ -1521,9 +1531,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_ARRETE:
         {
             auto inst = noeud->comme_arrete();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
 
             if (inst->possede_drapeau(EST_IMPLICITE)) {
                 auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
@@ -1540,9 +1548,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_CONTINUE:
         {
             auto inst = noeud->comme_continue();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_continue;
             genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
             cree_branche(noeud, label);
@@ -1551,9 +1557,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_REPRENDS:
         {
             auto inst = noeud->comme_reprends();
-            auto boucle_controlee = inst->boucle_controlee->substitution ?
-                                        inst->boucle_controlee->substitution :
-                                        inst->boucle_controlee;
+            auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
             genere_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
             cree_branche(noeud, label);
