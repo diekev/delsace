@@ -25,6 +25,7 @@ struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationVariable;
 struct NoeudDirectiveCuisine;
 struct NoeudDirectiveExecute;
+struct NoeudDeclarationOperateurPour;
 struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionBinaire;
@@ -120,6 +121,7 @@ struct ContexteValidationCode {
 
     ResultatValidation valide_entete_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_entete_operateur(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_entete_operateur_pour(NoeudDeclarationOperateurPour *);
     void valide_parametres_constants_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_parametres_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_types_parametres_fonction(NoeudDeclarationEnteteFonction *);

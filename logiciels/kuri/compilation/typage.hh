@@ -28,6 +28,7 @@ struct OperateurUnaire;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeOpaque;
+struct NoeudDeclarationOperateurPour;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -214,6 +215,9 @@ struct Type {
 
     /* À FAIRE: déplace ceci dans une table? */
     TypePointeur *type_pointeur = nullptr;
+
+    /* Opérateur 'pour'. */
+    NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
 
     POINTEUR_NUL(Type)
 

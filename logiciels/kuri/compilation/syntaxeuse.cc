@@ -60,6 +60,7 @@ static constexpr auto table_drapeaux_lexemes = [] {
             case GenreLexeme::EXCLAMATION:
             case GenreLexeme::CHAPEAU:
             case GenreLexeme::CROCHET_OUVRANT:
+            case GenreLexeme::POUR:
             {
                 t[i] |= OPERATEUR_EST_SURCHARGEABLE;
                 break;
@@ -80,6 +81,7 @@ static constexpr auto table_drapeaux_lexemes = [] {
             case GenreLexeme::ESPERLUETTE:
             case GenreLexeme::TROIS_POINTS:
             case GenreLexeme::EXPANSION_VARIADIQUE:
+            case GenreLexeme::ACCENT_GRAVE:
             {
                 t[i] |= EST_EXPRESSION_UNAIRE;
                 t[i] |= EST_EXPRESSION;
@@ -299,6 +301,7 @@ static constexpr auto table_associativite_lexemes = [] {
             case GenreLexeme::ESP_UNAIRE:
             case GenreLexeme::MOINS_UNAIRE:
             case GenreLexeme::EXPANSION_VARIADIQUE:
+            case GenreLexeme::ACCENT_GRAVE:
             {
                 t[i] = Associativite::DROITE;
                 break;
@@ -425,6 +428,7 @@ static constexpr auto table_precedence_lexemes = [] {
             case GenreLexeme::FOIS_UNAIRE:
             case GenreLexeme::ESP_UNAIRE:
             case GenreLexeme::EXPANSION_VARIADIQUE:
+            case GenreLexeme::ACCENT_GRAVE:
             {
                 t[i] = 16;
                 break;
@@ -713,6 +717,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
         {
             break;
         }
+        case GenreLexeme::ACCENT_GRAVE:
+        {
+            consomme();
+            if (fini()) {
+                return nullptr;
+            }
+
+            lexeme = lexeme_courant();
+            consomme();
+            auto noeud = m_tacheronne.assembleuse->cree_reference_declaration(lexeme);
+            noeud->drapeaux |= IDENTIFIANT_EST_ACCENTUÉ_GRAVE;
+            return noeud;
+        }
         default:
         {
             assert_rappel(false, [&]() {
@@ -980,6 +997,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 }
 
                 return noeud;
+            }
+            else if (directive == ID::corps_boucle) {
+                return m_tacheronne.assembleuse->cree_directive_corps_boucle(lexeme);
             }
             else if (directive == ID::si) {
                 return analyse_instruction_si_statique(lexeme);
@@ -2448,6 +2468,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
     if (!est_operateur_surchargeable(genre_operateur)) {
         rapporte_erreur("L'opérateur n'est pas surchargeable");
+        return nullptr;
     }
 
     consomme();
@@ -2461,7 +2482,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     consomme(GenreLexeme::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
     consomme(GenreLexeme::FONC, "Attendu fonc après ::");
 
-    auto noeud = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
+    auto noeud = (genre_operateur == GenreLexeme::POUR) ?
+                     m_tacheronne.assembleuse->cree_operateur_pour(lexeme) :
+                     m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     noeud->est_operateur = true;
 
     auto lexeme_bloc = lexeme_courant();
@@ -2510,10 +2533,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
                                            GenreLexeme::TILDE,
                                            GenreLexeme::EXCLAMATION,
                                            GenreLexeme::PLUS_UNAIRE,
-                                           GenreLexeme::MOINS_UNAIRE)) {
-            m_unite->espace->rapporte_erreur(
-                noeud,
-                "La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'");
+                                           GenreLexeme::MOINS_UNAIRE,
+                                           GenreLexeme::POUR)) {
+            rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
+                            "pour '+', '-', '~', '!', ou 'pour'");
+            return nullptr;
         }
     }
 
