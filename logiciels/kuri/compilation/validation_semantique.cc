@@ -6,6 +6,7 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/copieuse.hh"
 
 #include "parsage/outils_lexemes.hh"
 
@@ -279,6 +280,16 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        {
+            auto boucle_parent = bloc_est_dans_boucle(noeud->bloc_parent, nullptr);
+            if (!boucle_parent) {
+                espace->rapporte_erreur(
+                    noeud, "Il est impossible d'utiliser #corps_boucle en dehors d'une boucle.");
+                return CodeRetourValidation::Erreur;
+            }
+            break;
+        }
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         {
             auto fini_execution = m_compilatrice.interface_kuri->decl_fini_execution_kuri;
@@ -438,6 +449,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
             decl->type = m_compilatrice.typeuse.type_type_de_donnees(type_fonction);
             return CodeRetourValidation::OK;
+        }
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        {
+            return valide_entete_operateur_pour(noeud->comme_operateur_pour());
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
@@ -928,7 +943,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             /* Le type de l'itérateur, à savoir le type de « it ». */
             auto type_itérateur = type_variable_itérée;
 
-            auto determine_iterande = [&, this](NoeudExpression *iterand) -> char {
+            using RéstultatTypeItérande = std::variant<int, Attente>;
+
+            auto determine_iterande = [&,
+                                       this](NoeudExpression *iterand) -> RéstultatTypeItérande {
                 /* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
                  * type de retour d'une coroutine n'interfère avec le type d'une
                  * variable (par exemple quand nous retournons une chaine). */
@@ -996,18 +1014,22 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     return GENERE_BOUCLE_PLAGE_IMPLICITE;
                 }
 
-                espace->rapporte_erreur(enfant2, "Le type de la variable n'est pas itérable")
-                    .ajoute_message("Note : le type de la variable est ")
-                    .ajoute_message(chaine_type(type_variable_itérée))
-                    .ajoute_message("\n");
-                return -1;
+                if (type_variable_itérée->opérateur_pour == nullptr) {
+                    return Attente::sur_opérateur_pour(type_variable_itérée);
+                }
+
+                auto const opérateur_pour = type_variable_itérée->opérateur_pour;
+                type_itérateur = opérateur_pour->param_sortie->type;
+                return BOUCLE_POUR_OPÉRATEUR;
             };
 
-            auto aide_génération_code = determine_iterande(enfant2);
-
-            if (aide_génération_code == -1) {
-                return CodeRetourValidation::Erreur;
+            auto const résultat_typage_itérande = determine_iterande(enfant2);
+            if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
+                return std::get<Attente>(résultat_typage_itérande);
             }
+
+            auto const aide_génération_code = static_cast<char>(
+                std::get<int>(résultat_typage_itérande));
 
             /* Le type ne doit plus être un entier_constant après determine_itérande,
              * donc nous pouvons directement l'assigner à enfant2->type.
@@ -1016,6 +1038,29 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             if (enfant2->type->est_entier_constant()) {
                 assert(!type_itérateur->est_entier_constant());
                 enfant2->type = type_itérateur;
+            }
+
+            if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR &&
+                (inst->prend_reference || inst->prend_pointeur ||
+                 inst->lexeme_op != GenreLexeme::INFERIEUR)) {
+                if (inst->prend_pointeur) {
+                    espace->rapporte_erreur(
+                        inst,
+                        "Il est impossible de prendre une référence vers la variable itérée d'une "
+                        "boucle sur un type non standard.");
+                }
+                else if (inst->prend_reference) {
+                    espace->rapporte_erreur(
+                        inst,
+                        "Il est impossible de prendre l'adresse de la variable itérée d'une "
+                        "boucle sur un type non standard.");
+                }
+                else {
+                    espace->rapporte_erreur(inst,
+                                            "Il est impossible de spécifier la direction d'une "
+                                            "boucle sur un type non standard.");
+                }
+                return CodeRetourValidation::Erreur;
             }
 
             /* il faut attendre de vérifier que le type est itérable avant de prendre cette
@@ -1073,6 +1118,33 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                  * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
                 inst->decl_index_it = m_tacheronne.assembleuse->cree_declaration_variable(
                     inst->lexeme, m_compilatrice.typeuse[TypeBase::Z64], ID::index_it, nullptr);
+            }
+
+            if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR) {
+                /* Copie le corps du macro.
+                 * À FAIRE : ne copie que le corps. */
+                auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
+                                               type_variable_itérée->opérateur_pour,
+                                               type_variable_itérée->opérateur_pour->bloc_parent);
+
+                /* Fais pointer le corps du macro vers l'entête originale, ceci est nécessaire car
+                 * nous copions aussi l'entête, mais nous ne voulons et ne devons pas la revalider.
+                 */
+                auto entête_copie_macro = copie_macro->comme_operateur_pour();
+                auto corps_copie_macro = entête_copie_macro->corps;
+
+                corps_copie_macro->entete = type_variable_itérée->opérateur_pour;
+                corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
+
+                /* Installe les pointeurs de contexte. */
+                corps_copie_macro->est_macro_boucle_pour = inst;
+                inst->corps_operateur_pour = corps_copie_macro;
+
+                /* Inutile de revenir ici, la validation peut reprendre au noeud suivant. */
+                unite->index_courant += 1;
+
+                /* Attend sur la validation sémantique du macro. */
+                return Attente::sur_declaration(corps_copie_macro);
             }
 
             break;
@@ -1892,6 +1964,10 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
     if (decl->est_operateur) {
+        if (decl->est_operateur_pour()) {
+            return valide_entete_operateur_pour(decl->comme_operateur_pour());
+        }
+
         return valide_entete_operateur(decl);
     }
 
@@ -1982,6 +2058,38 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
     possede_erreur = false;
 #endif
 
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_entete_operateur_pour(
+    NoeudDeclarationOperateurPour *opérateur)
+{
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+
+    {
+        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
+        TENTE(valide_arbre_aplatis(opérateur, opérateur->arbre_aplatis));
+    }
+
+    TENTE(valide_parametres_fonction(opérateur));
+    TENTE(valide_types_parametres_fonction(opérateur));
+
+    if (opérateur->params.taille() == 0) {
+        rapporte_erreur("Un opérateur 'pour' doit avoir au moins un paramètre d'entrée",
+                        opérateur);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_itéré = opérateur->params[0]->type;
+
+    if (type_itéré->opérateur_pour != nullptr) {
+        rapporte_erreur_redefinition_fonction(opérateur, type_itéré->opérateur_pour);
+        return CodeRetourValidation::Erreur;
+    }
+
+    type_itéré->opérateur_pour = opérateur;
+
+    opérateur->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
@@ -2612,6 +2720,55 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
     assert_rappel(bloc_recherche != nullptr, [&]() { erreur::imprime_site(*espace, expr); });
+
+    if (expr->possede_drapeau(IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
+        auto fonction = fonction_courante();
+        if (!fonction) {
+            espace->rapporte_erreur(
+                expr, "Identifiant préfixé d'un accent grave en dehors d'une fonction.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (!fonction->est_operateur_pour()) {
+            espace->rapporte_erreur(
+                expr, "Identifiant préfixé d'un accent grave en dehors d'un opérateur « pour ».");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* L'entête de l'opérateur est partagé entre toutes les copies du corps. Pour accéder au
+         * bon corps, nous devons utiliser la racine de validation qui doit être le corps. */
+        assert(racine_validation()->est_corps_fonction());
+
+        auto const corps_operateur_pour = racine_validation()->comme_corps_fonction();
+        if (!corps_operateur_pour->est_macro_boucle_pour) {
+            espace->rapporte_erreur(expr,
+                                    "Validation d'un identifiant accentué grave alors qu'aucune "
+                                    "boucle « pour » ne requiers l'opérateur");
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto const noeud_pour = corps_operateur_pour->est_macro_boucle_pour;
+
+        /* « it » et « index_it » peuvent être nommés par le programme, donc les variables
+         * correspondantes en dehors du macro peuvent avoir un nom différent. Renseigne directement
+         * les déclaration référées. */
+        if (expr->ident == ID::it) {
+            expr->declaration_referee = noeud_pour->decl_it;
+            expr->type = noeud_pour->decl_it->type;
+            return CodeRetourValidation::OK;
+        }
+
+        if (expr->ident == ID::index_it) {
+            expr->declaration_referee = noeud_pour->decl_index_it;
+            expr->type = noeud_pour->decl_index_it->type;
+            return CodeRetourValidation::OK;
+        }
+
+        /* Les identifiants doivent être soit dans le bloc de la boucle, ou dans un bloc parent de
+         * celui-ci. */
+        bloc_recherche = noeud_pour->bloc;
+    }
+
     auto fichier = m_compilatrice.fichier(expr->lexeme->fichier);
 
 #if 0
@@ -2656,7 +2813,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 #endif
 
     if (decl->lexeme->fichier == expr->lexeme->fichier &&
-        decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
+        decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE) &&
+        !(expr->possede_drapeau(IDENTIFIANT_EST_ACCENTUÉ_GRAVE))) {
         if (decl->lexeme->ligne > expr->lexeme->ligne) {
             rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
             return CodeRetourValidation::Erreur;
@@ -3078,12 +3236,17 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
 
     auto inst_ret = derniere_instruction(decl->bloc);
 
-    if (inst_ret == nullptr) {
+    if (inst_ret == nullptr && !entete->est_operateur_pour()) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
         return CodeRetourValidation::Erreur;
     }
 
-    simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
+    /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
+     * boucle « pour » utilisant ledit corps. */
+    if (!entete->est_operateur_pour()) {
+        simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
+    }
+
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }

@@ -438,6 +438,16 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     NoeudBloc *bloc [code enfant]
     NoeudExpression * [] arbre_aplatis
     bool est_corps_texte [copie]
+
+    /* Si le corps est un opérateur surchargé (macro) pour une boucle « pour »,
+     * ceci pointe vers la boucle en question. */
+    NoeudPour *est_macro_boucle_pour;
+}
+
+struct NoeudDéclarationOpérateurPour : NoeudDéclarationEnteteFonction {
+    @genre DÉCLARATION_OPÉRATEUR_POUR
+    @comme opérateur_pour
+    @code  NoeudCodeOpérateurPour
 }
 
 struct NoeudExpressionAppel : NoeudExpression {
@@ -564,6 +574,10 @@ struct NoeudPour : NoeudExpression {
      * « it/index_it », ou non. */
     NoeudDéclarationVariable *decl_it;
     NoeudDéclarationVariable *decl_index_it;
+
+    /* Le code du corps de l'opérateur surchargé « pour », utilisé lors de la
+     * simplification de l'arbre. */
+    NoeudDéclarationCorpsFonction *corps_opérateur_pour;
 }
 
 struct NoeudBoucle : NoeudExpression {
@@ -702,6 +716,13 @@ struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
     @genre DIRECTIVE_CUISINE
     @comme cuisine
     @code  NoeudCodeDirectiveCuisine
+}
+
+/* Directive #corps_boucle. */
+struct NoeudDirectiveCorpsBoucle : NoeudExpression {
+    @genre DIRECTIVE_CORPS_BOUCLE
+    @comme directive_corps_boucle
+    @code  NoeudCodeDirectiveCorpsBoucle
 }
 
 struct NoeudExpressionVirgule : NoeudExpression {

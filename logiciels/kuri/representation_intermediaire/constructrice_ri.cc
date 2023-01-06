@@ -14,6 +14,7 @@
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "parsage/outils_lexemes.hh"
+#include "portee.hh"
 #include "statistiques/statistiques.hh"
 
 #include "analyse.hh"
@@ -689,9 +690,27 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
     return accede_index_constants.ajoute_element(type, accede, index);
 }
 
-/* Retourne la boucle controlée effective de la boucle controlée passé en paramètre. */
+/* Retourne la boucle controlée effective de la boucle controlée passé en paramètre. Ceci prend en
+ * compte les boucles remplacées par les opérateurs « pour ». */
 static NoeudExpression *boucle_controlée_effective(NoeudExpression *boucle_controlée)
 {
+    if (boucle_controlée->est_pour()) {
+        auto noeud_pour = boucle_controlée->comme_pour();
+
+        if (noeud_pour->corps_operateur_pour) {
+            /* Nous devons retourner la première boucle parent de #corps_boucle. */
+            POUR (noeud_pour->corps_operateur_pour->arbre_aplatis) {
+                if (!it->est_directive_corps_boucle()) {
+                    continue;
+                }
+
+                auto boucle_parent = bloc_est_dans_boucle(it->bloc_parent, nullptr);
+                assert(boucle_parent);
+                return boucle_controlée_effective(boucle_parent);
+            }
+        }
+    }
+
     if (boucle_controlée->substitution) {
         return boucle_controlée->substitution;
     }
@@ -816,10 +835,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_POUR:
         case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
                 std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
+                erreur::imprime_site(*m_espace, noeud);
+            });
+            break;
+        }
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Erreur interne : un opérateur « pour » ne fut pas simplifié !\n";
                 erreur::imprime_site(*m_espace, noeud);
             });
             break;

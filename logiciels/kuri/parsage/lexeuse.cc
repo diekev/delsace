@@ -667,6 +667,12 @@ void Lexeuse::performe_lexage()
                 POUSSE_CARACTERE(GenreLexeme::BARRE)
                 break;
             }
+            case '`':
+            {
+                POUSSE_MOT_SI_NECESSAIRE
+                POUSSE_CARACTERE(GenreLexeme::ACCENT_GRAVE)
+                break;
+            }
         }
     }
 

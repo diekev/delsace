@@ -914,7 +914,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme && !entete->est_polymorphe && entete->est_externe;
+        return !entete->est_metaprogramme && !entete->est_polymorphe && entete->est_externe &&
+               !entete->est_operateur_pour();
     }
 
     if (noeud->est_corps_fonction()) {
@@ -933,7 +934,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme &&
+        return !entete->est_metaprogramme && !entete->est_operateur_pour() &&
                (!entete->est_polymorphe || entete->est_monomorphisation);
     }
 

@@ -38,6 +38,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        {
+            arbre_aplatis.ajoute(racine);
+            break;
+        }
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
         {
             auto ajoute_init = racine->comme_ajoute_init();
@@ -73,6 +78,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
@@ -574,6 +580,7 @@ struct Simplificatrice {
 
   private:
     void simplifie_boucle_pour(NoeudPour *inst);
+    void simplifie_boucle_pour_opérateur(NoeudPour *inst);
     void simplifie_comparaison_chainee(NoeudExpressionBinaire *comp);
     void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
     void simplifie_discr(NoeudDiscr *discr);
@@ -612,6 +619,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             break;
         }
@@ -647,6 +655,13 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             fonction_courante = entete;
             simplifie(entete->corps);
+            return;
+        }
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
+        {
+            auto operateur_pour = noeud->comme_operateur_pour();
+            fonction_courante = operateur_pour;
+            simplifie(operateur_pour->corps);
             return;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
@@ -1408,6 +1423,11 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     simplifie(inst->bloc_sansarret);
     simplifie(inst->bloc_sinon);
 
+    if (inst->aide_generation_code == BOUCLE_POUR_OPÉRATEUR) {
+        simplifie_boucle_pour_opérateur(inst);
+        return;
+    }
+
     auto it = inst->decl_it;
     auto index_it = inst->decl_index_it;
     auto expression_iteree = inst->expression;
@@ -1765,9 +1785,61 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 #endif
             break;
         }
+        case BOUCLE_POUR_OPÉRATEUR:
+        {
+            assert(false);
+            break;
+        }
     }
 
     inst->substitution = boucle;
+}
+
+void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
+{
+    simplifie(inst->corps_operateur_pour);
+    auto corps_opérateur_pour = inst->corps_operateur_pour;
+
+    auto bloc_substitution = assem->cree_bloc_seul(corps_opérateur_pour->bloc->lexeme,
+                                                   inst->bloc_parent);
+
+    /* Crée une variable temporaire pour l'expression itérée. Si l'expression est par exemple un
+     * appel, il sera toujours évalué, menant potentiellement à une boucle infinie. */
+    auto temporaire = assem->cree_declaration_variable(
+        inst->expression->lexeme, inst->expression->type, nullptr, inst->expression);
+    auto ref_temporaire = assem->cree_reference_declaration(temporaire->lexeme, temporaire);
+    bloc_substitution->ajoute_expression(temporaire);
+
+    /* Ajoute les déclarations des variables d'itération dans le corps du bloc pour que la RI les
+     * trouve avant de générer le code des références. */
+    bloc_substitution->ajoute_expression(inst->decl_it);
+    bloc_substitution->ajoute_expression(inst->decl_index_it);
+    bloc_substitution->ajoute_expression(corps_opérateur_pour->bloc);
+
+    /* Substitutions manuelles. */
+    auto entête = corps_opérateur_pour->entete;
+    auto param = entête->parametre_entree(0);
+
+    POUR (corps_opérateur_pour->arbre_aplatis) {
+        /* Substitue le paramètre par la variable. */
+        if (it->est_reference_declaration()) {
+            auto référence = it->comme_reference_declaration();
+            if (référence->declaration_referee != param) {
+                continue;
+            }
+
+            référence->substitution = ref_temporaire;
+            continue;
+        }
+
+        /* Substitue #corps_boucle par le bloc. */
+        if (it->est_directive_corps_boucle()) {
+            it->substitution = inst->bloc;
+            continue;
+        }
+    }
+
+    inst->substitution = bloc_substitution;
 }
 
 static void rassemble_operations_chainees(NoeudExpression *racine,
