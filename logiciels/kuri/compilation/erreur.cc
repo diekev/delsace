@@ -384,10 +384,17 @@ void membre_inconnu(EspaceDeTravail const &espace,
         e.ajoute_message("Aucun membre connu !\n");
     }
     else {
-        e.ajoute_message("Les membres ", message, " sont :\n");
+        if (membres.taille() <= 32) {
+            e.ajoute_message("Les membres ", message, " sont :\n");
 
-        membres.pour_chaque_element(
-            [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
+            membres.pour_chaque_element(
+                [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
+        }
+        else {
+            /* Évitons de spammer la sortie. */
+            e.ajoute_message("Note : la structure possède un nombre de membres trop important "
+                             "pour tous les afficher.\n");
+        }
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
     }
