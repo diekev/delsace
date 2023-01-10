@@ -54,6 +54,8 @@ struct EspaceDeTravail {
     NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
 
     NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+    NoeudDeclarationEnteteFonction *fonction_point_d_entree_dynamique = nullptr;
+    NoeudDeclarationEnteteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Le métaprogramme controlant la compilation dans cette espace. */
     MetaProgramme *metaprogramme = nullptr;

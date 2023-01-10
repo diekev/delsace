@@ -113,6 +113,8 @@ struct Compilatrice {
 
     dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
     NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+    NoeudDeclarationEnteteFonction *fonction_point_d_entree_dynamique = nullptr;
+    NoeudDeclarationEnteteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
     NoeudDeclarationVariable *globale_contexte_programme = nullptr;

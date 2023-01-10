@@ -905,28 +905,9 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("    m_clear = nul,\n")
     enchaineuse.ajoute_au_tampon("    m_free = nul)\n")
 
-    /* Globales nécessaires pour Kuri. */
-    enchaineuse.ajoute_au_tampon("PY__info_trace_appel : InfoFonctionTraceAppel = ---\n")
-    enchaineuse.ajoute_au_tampon("PY__trace_appel : TraceAppel = ---\n")
-    enchaineuse.ajoute_au_tampon("PY__base_allocatrice : BaseAllocatrice = ---\n")
-    enchaineuse.ajoute_au_tampon("PY__stockage_temporaire : StockageTemporaire = ---\n")
-
     /* La fonction d'initialisation du module doit avoir la signature : PyInit_nom_module :: fonc () -> *PyObject */
     enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace\n", module.nom)
     enchaineuse.ajoute_au_tampon("{\n")
-
-    /* Nous devons tout d'abord initialiser le contexte. */
-    code_initialisation_contexte := «
-    init_de(ContexteProgramme)(*__contexte_fil_principal)
-    PY__info_trace_appel = InfoFonctionTraceAppel(nom = "PyInit", fichier = "", adresse = nul)
-    PY__trace_appel = TraceAppel(info_fonction = *PY__info_trace_appel)
-    PY__base_allocatrice = BaseAllocatrice()
-    __initialise_contexte_extra(*__contexte_fil_principal, *PY__trace_appel, *PY__base_allocatrice, *PY__stockage_temporaire)»
-
-    enchaineuse.ajoute_au_tampon(code_initialisation_contexte, "\n")
-
-    enchaineuse.ajoute_au_tampon("    __init_globales_kuri()\n")
-
     enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
 
     pour module.constantes_nombre_entier {

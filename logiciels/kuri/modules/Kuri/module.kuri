@@ -992,6 +992,33 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     retourne résultat
 }
 
+/* ----------------------------------------------------------------------------
+ * Point d'entrée et de sortie pour les bibliothèques partagées.
+ */
+
+/* Globales nécessaires pour Kuri. */
+__info_trace_appel_dynamique : InfoFonctionTraceAppel = ---
+__trace_appel_dynamique : TraceAppel = ---
+__base_allocatrice_dynamique : BaseAllocatrice = ---
+__stockage_temporaire_dynamique : StockageTemporaire = ---
+
+__point_d_entree_dynamique :: fonc () #sanstrace #sansbroyage
+{
+    init_de(ContexteProgramme)(*__contexte_fil_principal)
+    __info_trace_appel_dynamique = InfoFonctionTraceAppel(nom = "__point_d_entree_dynamique", fichier = "", adresse = nul)
+    __trace_appel_dynamique = TraceAppel(info_fonction = *__info_trace_appel_dynamique)
+    __base_allocatrice_dynamique = BaseAllocatrice()
+
+    __initialise_contexte_extra(*__contexte_fil_principal, *__trace_appel_dynamique, *__base_allocatrice_dynamique, *__stockage_temporaire_dynamique)
+    __init_exécution_kuri()
+    __init_globales_kuri()
+}
+
+__point_de_sortie_dynamique :: fonc () #sanstrace #sansbroyage
+{
+    __fini_exécution_kuri()
+}
+
 // -----------------------------------
 
 // Contexte pour les fonctions/modules C.
