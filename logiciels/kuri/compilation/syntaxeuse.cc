@@ -2449,6 +2449,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     if (noeud->ident == ID::__point_d_entree_systeme) {
         m_compilatrice.fonction_point_d_entree = noeud;
     }
+    else if (noeud->ident == ID::__point_d_entree_dynamique) {
+        m_compilatrice.fonction_point_d_entree_dynamique = noeud;
+    }
+    else if (noeud->ident == ID::__point_de_sortie_dynamique) {
+        m_compilatrice.fonction_point_de_sortie_dynamique = noeud;
+    }
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
     if (!noeud->est_declaration_type) {
