@@ -2238,12 +2238,20 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
     return CodeRetourValidation::OK;
 }
 
+static bool est_point_entrée_sortie(const NoeudDeclarationEnteteFonction *decl)
+{
+    return dls::outils::est_element(decl->ident,
+                                    ID::__point_d_entree_systeme,
+                                    ID::__point_d_entree_dynamique,
+                                    ID::__point_de_sortie_dynamique);
+}
+
 ResultatValidation ContexteValidationCode::valide_definition_unique_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
-    if (decl->ident == ID::__point_d_entree_systeme) {
-        /* Le point d'entrée est copié pour chaque espace, donc il est possible qu'il existe
-         * plusieurs fois dans le bloc. */
+    if (est_point_entrée_sortie(decl)) {
+        /* Les points d'entrée et de sortie sont copiés pour chaque espace, donc il est possible
+         * qu'ils existent plusieurs fois dans le bloc. */
         return CodeRetourValidation::OK;
     }
 

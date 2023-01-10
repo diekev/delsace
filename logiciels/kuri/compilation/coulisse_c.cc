@@ -1774,6 +1774,13 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         }
     }
 
+    if (m_espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        os << "static __attribute__((constructor)) void "
+              "initialise_kuri()\n{\n__point_d_entree_dynamique();\n}\n";
+        os << "static __attribute__((destructor)) void "
+              "issitialise_kuri()\n{\n__point_de_sortie_dynamique();\n}\n";
+    }
+
     if (nombre_instructions != 0) {
         vide_enchaineuse_dans_fichier(coulisse, os);
     }

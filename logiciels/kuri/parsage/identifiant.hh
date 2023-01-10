@@ -99,6 +99,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cuisine, "cuisine")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(opaque, "opaque")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__point_d_entree_systeme, "__point_d_entree_systeme")       \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__point_d_entree_dynamique, "__point_d_entree_dynamique")   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__point_de_sortie_dynamique, "__point_de_sortie_dynamique") \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(taille, "taille")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(capacite, "capacité")                                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(anonyme, "anonyme")                                         \
