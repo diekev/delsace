@@ -3,6 +3,8 @@
 importe Fondation
 importe SysFichier
 
+charge "interface_geometrie3d"
+
 libgmp :: #bibliothèque "gmp"
 libmpfr :: #bibliothèque "mpfr"
 libtbb :: #bibliothèque "tbb"

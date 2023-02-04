@@ -5,6 +5,23 @@ importe Chaine
 importe Fondation
 importe Temps
 
+charge "élément"
+charge "attribut"
+charge "comparaison"
+charge "document"
+charge "entités"
+charge "entropisation"
+charge "formattage"
+charge "formulaire"
+charge "lexage"
+charge "liste_éléments_actifs_formattage"
+charge "noeud"
+charge "outils"
+charge "parsage"
+charge "pile_éléments_ouverts"
+charge "point_de_code"
+charge "tags_html"
+
 imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
 {
     pour 1 ... tab {
