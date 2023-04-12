@@ -13,6 +13,13 @@ importe JSON
 importe SysFichier
 importe Temps
 
+charge "état_envoi_courriel"
+charge "adresse"
+charge "code_état"
+charge "commande_smtp"
+charge "gestionnaire_envoi_courriel"
+charge "pop"
+
 /* Module d'envoie de courriel.
  *
  * Exemple d'utilisation :
