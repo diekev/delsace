@@ -26,7 +26,17 @@ importe ServeuseTCP
 importe SysFichier
 importe Temps
 
+charge "code_http"
+charge "cookie"
+charge "entêtes"
+charge "génération_interface"
+charge "message"
+charge "parsage"
+charge "parsage_format_url"
+charge "pilote_client"
+charge "pré_exécutable"
 charge "routage"
+charge "types"
 
 ServeuseHTTP :: struct {
     empl base: ServeuseTCP.ServeuseTCP

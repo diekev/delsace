@@ -1,6 +1,12 @@
 importe Fondation
 importe Structures
 
+charge "chemin"
+charge "exploratrice"
+charge "fichier"
+charge "linux"
+charge "requête"
+
 /*
 
 // pour la gestion des fichiers

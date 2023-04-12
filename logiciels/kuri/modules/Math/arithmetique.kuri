@@ -81,6 +81,11 @@ sinus :: fonc (a: r64) -> r64
     retourne sin(a)
 }
 
+arcsinus :: fonc (a: r32) -> r32
+{
+    retourne asinf(a)
+}
+
 arcsinus_borné :: fonc (a: r32) -> r32 #enligne
 {
     si a <= -1.0 {
@@ -90,6 +95,17 @@ arcsinus_borné :: fonc (a: r32) -> r32 #enligne
         retourne Constantes(r32).PI_2
     }
     retourne asinf(a)
+}
+
+arcsinus_borné :: fonc (a: r64) -> r64 #enligne
+{
+    si a <= -1.0 {
+        retourne -Constantes(r64).PI_2
+    }
+    si a >= 1.0 {
+        retourne Constantes(r64).PI_2
+    }
+    retourne asin(a)
 }
 
 atan2 :: fonc (a: r32, b: r32) -> r32
