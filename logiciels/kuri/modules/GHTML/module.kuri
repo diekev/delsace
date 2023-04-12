@@ -1,6 +1,14 @@
 importe Fondation // pour imprime_valeur
 importe Introspection
 
+charge "assemblage_arbre"
+charge "catalogue_fichier"
+charge "fichier_texte"
+charge "formulaire"
+charge "lexage"
+charge "rendeuse_page"
+charge "syntaxage"
+
 DonnéesGénération :: struct {
     nom_court_page: chaine
     valeur : eini

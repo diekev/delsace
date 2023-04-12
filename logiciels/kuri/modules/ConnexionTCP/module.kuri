@@ -16,6 +16,12 @@ importe POSIX
 importe SysFichier
 importe Temps
 
+charge "contexte"
+charge "contexte_ssl"
+charge "données_boucle_ssl"
+charge "prise"
+charge "prise_ssl"
+
 // --------------------------------------------------
 
 /* 512ko de tampon partagé pour recevoir les données */

@@ -8,6 +8,10 @@ importe Compilatrice
 importe Fondation
 importe SysFichier
 
+charge "compilatrice"
+charge "génération_code"
+charge "interface"
+
 // À FAIRE : gère proprement les chaines, les chaines C ne sont jamais détruites !
 
 ModulePython :: struct {

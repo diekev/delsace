@@ -2,6 +2,8 @@
 
 importe Chaine // pour ChaineC
 
+charge "errno"
+
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.

@@ -2,6 +2,8 @@
 
 importe Fondation
 
+charge "interface_krypto"
+
 // À FAIRE : implémente avec notre langage toutes ces fonctions (il semble qu'il y a un problème de boutisme ou de signe dans le langage)
 // À FAIRE : la bibliothèque BCrypt à l'air brisée ?, il faudra de toute manière utiliser Argon2 qui a l'air d'être une meilleure fonction
 // À FAIRE : type Condensat (voir Alembic)
