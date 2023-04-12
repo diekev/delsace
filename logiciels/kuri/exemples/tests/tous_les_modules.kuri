@@ -15,7 +15,9 @@ génère_script :: fonc ()
             /* Définit sa propre fonction principale... */
             "Documentation",
             /* Superflux. */
-            "Kuri"
+            "Kuri",
+            /* En développement. */
+            "GVDB"
         ]
 
         nom_fichier := chemin.nom_fichier()

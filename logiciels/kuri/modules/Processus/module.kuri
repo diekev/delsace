@@ -6,6 +6,8 @@ importe GlibC // pour fork et al.
 importe POSIX // pour system
 importe SysFichier
 
+charge "test_de_programme"
+
 IDProcessus :: #opaque z32
 
 /* Retourne l'identifiant du processus courant. */
