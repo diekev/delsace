@@ -1,0 +1,5 @@
+charge "allocatrice_gardée"
+charge "allocatrice_liste_libre"
+charge "allocatrice_nulle"
+charge "allocatrice_pile"
+charge "allocatrice_poule"

@@ -130,6 +130,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     messagere->ajoute_message_module_ouvert(espace, module);
 
+#if 1
     auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
 
     POUR (fichiers) {
@@ -141,6 +142,23 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                                    resultat.resultat<FichierNeuf>().fichier);
         }
     }
+#else
+    auto chemin_fichier_module = chemin_absolu / "module.kuri";
+
+    if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
+        espace->rapporte_erreur(site,
+                                enchaine("Aucun fichier « module.kuri » trouvé pour le module « ",
+                                         module->nom()->nom,
+                                         " »."));
+        return nullptr;
+    }
+
+    auto resultat = this->trouve_ou_cree_fichier(
+        module, "module", chemin_fichier_module, importe_kuri);
+    if (resultat.est<FichierNeuf>()) {
+        gestionnaire_code->requiers_chargement(espace, resultat.resultat<FichierNeuf>().fichier);
+    }
+#endif
 
     if (module->nom() == ID::Kuri) {
         auto resultat = this->trouve_ou_cree_fichier(

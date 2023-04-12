@@ -1,6 +1,10 @@
 importe Fondation
 importe Numérique
 
+charge "connexion"
+charge "linux"
+charge "uri"
+
 /*
     Bibliothèque de parsage et formattage d'adresses IP v4 et v6.
 
