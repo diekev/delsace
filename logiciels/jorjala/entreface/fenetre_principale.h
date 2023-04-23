@@ -33,18 +33,21 @@
 #pragma GCC diagnostic pop
 
 class BarreDeProgres;
-struct Jorjala;
+
+namespace JJL {
+class Jorjala;
+}
 
 class FenetrePrincipale : public QMainWindow {
 	Q_OBJECT
 
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
 	BarreDeProgres *m_barre_progres = nullptr;
 	QToolBar *m_barre_outil = nullptr;
 
 public:
-	explicit FenetrePrincipale(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	FenetrePrincipale(FenetrePrincipale const &) = default;
 	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;

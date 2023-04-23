@@ -31,15 +31,23 @@
 #include <QFile>
 #pragma GCC diagnostic pop
 
-#include "coeur/jorjala.hh"
-#include "coeur/sauvegarde.h"
+//#include "coeur/sauvegarde.h"
 
 #include "entreface/fenetre_principale.h"
+
+#include "jorjala.hh"
+#include "table_types.c"
 
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
+    if (!initialise_jorjala("/home/kevin/src/repos/delsace_privé/GreffonsBlender/Jorjala/blender/jorjala.so")) {
+        return 1;
+    }
+
+    JJL::Jorjala jorjala = JJL::crée_instance_jorjala();
+
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("delsace");
 	QCoreApplication::setApplicationName("jorjala");
@@ -49,19 +57,16 @@ int main(int argc, char *argv[])
 	if (file.open(QFile::ReadOnly)) {
 		QString style_sheet = QLatin1String(file.readAll());
 		qApp->setStyleSheet(style_sheet);
-	}
+    }
 
-	Jorjala jorjala;
-	jorjala.initialise();
+    FenetrePrincipale w(jorjala);
+    w.setWindowTitle(QCoreApplication::applicationName());
+    w.showMaximized();
 
-	FenetrePrincipale w(jorjala);
-	w.setWindowTitle(QCoreApplication::applicationName());
-	w.showMaximized();
-
-	if (argc == 2) {
-		auto chemin = argv[1];
-		coeur::ouvre_projet(chemin, jorjala);
-	}
+//	if (argc == 2) {
+//		auto chemin = argv[1];
+//		coeur::ouvre_projet(chemin, jorjala);
+//	}
 
 	return a.exec();
 }

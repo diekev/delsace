@@ -23,8 +23,6 @@
 
 set(NOM_PROJET jorjala)
 
-add_subdirectory(coeur)
-
 if(AVEC_CYCLES)
 	add_subdirectory(cycles)
 
@@ -43,14 +41,15 @@ if(AVEC_CYCLES)
 	desactive_drapeaux_compilation_c(extern_libc_compat)
 endif()
 
-add_subdirectory(commandes)
-add_subdirectory(corps)
+#add_subdirectory(coeur)
+#add_subdirectory(commandes)
+#add_subdirectory(corps)
 add_subdirectory(entreface)
-add_subdirectory(evaluation)
-add_subdirectory(koudou)
-add_subdirectory(operatrices)
+#add_subdirectory(evaluation)
+#add_subdirectory(koudou)
+#add_subdirectory(operatrices)
 add_subdirectory(lanceur)
-add_subdirectory(lcc)
-add_subdirectory(poseidon)
-add_subdirectory(rendu)
-add_subdirectory(wolika)
+#add_subdirectory(lcc)
+#add_subdirectory(poseidon)
+#add_subdirectory(rendu)
+#add_subdirectory(wolika)
