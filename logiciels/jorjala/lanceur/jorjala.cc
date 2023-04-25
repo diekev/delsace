@@ -90,6 +90,11 @@
   gestion_entreface
     jorjala.repondant_commande
 
+  EditriceProprietes
+    noeud->type
+    m_jorjala.repondant_commande
+    m_jorjala.gestionnaire_entreface
+
 */
 
 int main(int argc, char *argv[])

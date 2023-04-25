@@ -248,7 +248,7 @@ add_library(${NOM_CIBLE} STATIC
 #	editrice_arborescence.hh
         editrice_ligne_temps.h
         editrice_noeud.h
-#	editrice_proprietes.h
+        editrice_proprietes.h
 #	editrice_rendu.h
         editrice_vue2d.h
         editrice_vue3d.h
@@ -270,7 +270,7 @@ add_library(${NOM_CIBLE} STATIC
 #	editrice_arborescence.cc
         editrice_ligne_temps.cc
         editrice_noeud.cc
-#	editrice_proprietes.cc
+        editrice_proprietes.cc
 #	editrice_rendu.cc
         editrice_vue2d.cc
         editrice_vue3d.cc

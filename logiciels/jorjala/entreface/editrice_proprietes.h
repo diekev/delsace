@@ -30,6 +30,10 @@ class QGridLayout;
 class QHBoxLayout;
 class QScrollArea;
 
+namespace JJL {
+class Noeud;
+}
+
 class EditriceProprietes : public BaseEditrice {
 	QWidget *m_widget;
 	QWidget *m_conteneur_avertissements;
@@ -38,7 +42,7 @@ class EditriceProprietes : public BaseEditrice {
 	QVBoxLayout *m_disposition_widget;
 
 public:
-	explicit EditriceProprietes(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	EditriceProprietes(EditriceProprietes const &) = default;
 	EditriceProprietes &operator=(EditriceProprietes const &) = default;
@@ -56,5 +60,5 @@ public:
 	void precontrole_change() override;
 
 private:
-	void ajoute_avertissements(dls::tableau<dls::chaine> const &avertissements);
+    void ajoute_avertissements(JJL::Noeud &noeud);
 };

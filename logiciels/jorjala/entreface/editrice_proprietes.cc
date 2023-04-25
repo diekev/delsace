@@ -42,17 +42,21 @@
 
 #include "evaluation/evaluation.hh"
 
-#include "coeur/composite.h"
-#include "coeur/contexte_evaluation.hh"
-#include "coeur/evenement.h"
-#include "coeur/operatrice_graphe_detail.hh"
-#include "coeur/objet.h"
-#include "coeur/jorjala.hh"
-#include "coeur/noeud_image.h"
-#include "coeur/nuanceur.hh"
-#include "coeur/operatrice_image.h"
+//#include "coeur/composite.h"
+//#include "coeur/contexte_evaluation.hh"
+//#include "coeur/evenement.h"
+//#include "coeur/operatrice_graphe_detail.hh"
+//#include "coeur/objet.h"
+//#include "coeur/jorjala.hh"
+//#include "coeur/noeud_image.h"
+//#include "coeur/nuanceur.hh"
+//#include "coeur/operatrice_image.h"
 
-EditriceProprietes::EditriceProprietes(Jorjala &jorjala, QWidget *parent)
+#include "coeur/evenement.h"
+
+#include "jorjala.hh"
+
+EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
     , m_widget(new QWidget())
 	, m_conteneur_avertissements(new QWidget())
@@ -87,7 +91,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	/* n'ajourne pas durant les animation */
 	if (evenement == (type_evenement::temps | type_evenement::modifie)) {
-		if (m_jorjala.animation) {
+        if (m_jorjala.animation_en_cours()) {
 			return;
 		}
 	}
@@ -101,9 +105,12 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	reinitialise_entreface(creation_avert);
 
-	auto graphe = m_jorjala.graphe;
-	auto noeud = graphe->noeud_actif;
+    auto graphe = m_jorjala.graphe();
+    if (graphe == nullptr) {
+        return;
+    }
 
+    auto noeud = graphe.noeud_actif();
 	if (noeud == nullptr) {
 		return;
 	}
@@ -112,84 +119,8 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto chemin_entreface = "";
 	dls::chaine texte_entreface;
 
-	switch (noeud->type) {
-		case type_noeud::COMPOSITE:
-		{
-			/* RÀF */
-			break;
-		}
-		case type_noeud::INVALIDE:
-		{
-			/* RÀF */
-			break;
-		}
-		case type_noeud::NUANCEUR:
-		{
-			/* RÀF */
-			break;
-		}
-		case type_noeud::OBJET:
-		{
-			auto objet = extrait_objet(noeud->donnees);			
-			chemin_entreface = objet->chemin_entreface();
-
-			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
-				dls::tableau<dls::chaine> avertissements;
-				auto chn = dls::chaine();
-				chn = "Le fichier « ";
-				chn += chemin_entreface;
-				chn += " » n'existe pas !";
-				avertissements.ajoute(chn);
-				ajoute_avertissements(avertissements);
-			}
-
-			texte_entreface = dls::contenu_fichier(chemin_entreface);
-
-			manipulable = objet->noeud;
-			break;
-		}
-		case type_noeud::OPERATRICE:
-		{
-			auto operatrice = extrait_opimage(noeud->donnees);
-
-			std::visit([&](auto &&arg)
-			{
-				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, CheminFichier>) {
-					chemin_entreface = arg.chemin;
-					manipulable = operatrice;
-
-					operatrice->ajourne_proprietes();
-
-					if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
-						operatrice->ajoute_avertissement(
-									"Le fichier « ",
-									chemin_entreface,
-									" » n'existe pas !");
-					}
-					texte_entreface = dls::contenu_fichier(chemin_entreface);
-				}
-				else {
-					texte_entreface = arg.texte;
-				}
-			}, operatrice->chemin_entreface());
-
-			/* avertissements */
-			if (operatrice->avertissements().taille() > 0) {
-				ajoute_avertissements(operatrice->avertissements());
-			}
-			else {
-				m_conteneur_avertissements->hide();
-			}
-
-			break;
-		}
-		case type_noeud::RENDU:
-		{
-			/* RÀF */
-			break;
-		}
-	}
+    /* Rafraichis les avertissements. */
+    ajoute_avertissements(noeud);
 
 	/* l'évènement a peut-être été lancé depuis cet éditeur, supprimer
 	 * l'entreface de controles crashera le logiciel car nous sommes dans la
@@ -199,6 +130,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
+#if 0
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
@@ -213,6 +145,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	gestionnaire->ajourne_entreface(manipulable);
 	m_conteneur_disposition->setLayout(disposition);
+#endif
 }
 
 void EditriceProprietes::reinitialise_entreface(bool creation_avert)
@@ -233,24 +166,29 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 	}
 }
 
-void EditriceProprietes::ajoute_avertissements(
-		dls::tableau<dls::chaine> const &avertissements)
+void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 {
+    m_conteneur_avertissements->hide();
+
 	auto disposition_avertissements = new QGridLayout();
 	auto ligne = 0;
 	auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
-	for (auto const &avertissement : avertissements) {
-		auto icone = new QLabel();
-		icone->setPixmap(pixmap);
+    for (auto erreur : noeud.erreurs()) {
+        if (erreur.type() == JJL::TypeErreurNoeud::PARAMÉTRIQUE) {
+            continue;
+        }
 
-		auto texte = new QLabel(avertissement.c_str());
+        auto icone = new QLabel();
+        icone->setPixmap(pixmap);
 
-		disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
-		disposition_avertissements->addWidget(texte, ligne, 1);
+        auto texte = new QLabel(erreur.message().vers_std_string().c_str());
 
-		++ligne;
-	}
+        disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
+        disposition_avertissements->addWidget(texte, ligne, 1);
+
+        ++ligne;
+    }
 
 	m_conteneur_avertissements->setLayout(disposition_avertissements);
 	m_conteneur_avertissements->show();
@@ -258,6 +196,7 @@ void EditriceProprietes::ajoute_avertissements(
 
 void EditriceProprietes::ajourne_manipulable()
 {
+#if 0
 	std::cerr << "Controle changé !\n";
 	auto graphe = m_jorjala.graphe;
 	auto noeud = graphe->noeud_actif;
@@ -332,18 +271,22 @@ void EditriceProprietes::ajourne_manipulable()
 	}
 
 	requiers_evaluation(m_jorjala, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
+#endif
 }
 
 void EditriceProprietes::precontrole_change()
 {
+#if 0
 	std::cerr << "---- Précontrole changé !\n";
 	m_jorjala.empile_etat();
+#endif
 }
 
 void EditriceProprietes::obtiens_liste(
 		dls::chaine const &attache,
 		dls::tableau<dls::chaine> &chaines)
 {
+#if 0
 	auto graphe = m_jorjala.graphe;
 	auto noeud = graphe->noeud_actif;
 
@@ -355,10 +298,12 @@ void EditriceProprietes::obtiens_liste(
 	auto contexte = cree_contexte_evaluation(m_jorjala);
 
 	operatrice->obtiens_liste(contexte, attache, chaines);
+#endif
 }
 
 void EditriceProprietes::onglet_dossier_change(int index)
 {
+#if 0
 	auto graphe = m_jorjala.graphe;
 	auto noeud = graphe->noeud_actif;
 
@@ -384,4 +329,5 @@ void EditriceProprietes::onglet_dossier_change(int index)
 			break;
 		}
 	}
+#endif
 }

@@ -212,7 +212,7 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
             editrice = new EditriceVue2D(m_jorjala);
             break;
         case EDITRICE_VUE3D:
-            editrice = new EditriceVue3D(m_jorjala);
+            // editrice = new EditriceVue3D(m_jorjala);
             break;
         case EDITRICE_ARBORESCENCE:
             // editrice = new EditriceArborescence(m_jorjala);
