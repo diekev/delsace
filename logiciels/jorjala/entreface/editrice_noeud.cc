@@ -43,11 +43,18 @@
 #include "graphe/item_noeud.h"
 #include "graphe/vue_editrice_graphe.h"
 
-#include "coeur/composite.h"
 #include "coeur/evenement.h"
-#include "coeur/jorjala.hh"
 
-EditriceGraphe::EditriceGraphe(Jorjala &jorjala, QWidget *parent)
+#include "jorjala.hh"
+
+static QPointF point_central_rectangle(JJL::Rect const &rect)
+{
+    auto const x = rect.x() + rect.largeur() / 2.0f;
+    auto const y = rect.y() + rect.hauteur() / 2.0f;
+    return QPointF(x, y);
+}
+
+EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
 	, m_scene(new QGraphicsScene(this))
 	, m_vue(new VueEditeurNoeud(jorjala, this, this))
@@ -100,12 +107,14 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		return;
 	}
 
+    auto chemin_courant = m_jorjala.chemin_courant().vers_std_string();
+
 	/* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
 	 * fichiers */
 	{
 		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
 
-		switch (m_jorjala.chemin_courant[1]) {
+        switch (chemin_courant[1]) {
 			case 'c':
 			{
 				m_selecteur_graphe->setCurrentIndex(0);
@@ -135,11 +144,11 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	m_scene->items().clear();
 	assert(m_scene->items().size() == 0);
 
-	auto const graphe = m_jorjala.graphe;
+    auto const graphe = m_jorjala.graphe();
 
 	if (graphe == nullptr) {
 		return;
-	}
+    }
 
 	m_vue->resetTransform();
 
@@ -149,85 +158,85 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	auto const largeur = rect_scene.width();
 	auto const hauteur = rect_scene.height();
 
-	rect_scene = QRectF(graphe->centre_x - static_cast<float>(largeur) * 0.5f,
-						graphe->centre_y - static_cast<float>(hauteur) * 0.5f,
+    rect_scene = QRectF(graphe.centre_x() - static_cast<float>(largeur) * 0.5f,
+                        graphe.centre_y() - static_cast<float>(hauteur) * 0.5f,
 						largeur,
 						hauteur);
 
 	m_scene->setSceneRect(rect_scene);
 
-	m_vue->scale(graphe->zoom, graphe->zoom);
+    m_vue->scale(graphe.zoom(), graphe.zoom());
 
-	for (auto node_ptr : graphe->noeuds()) {
+    for (auto node_ptr : graphe.noeuds()) {
 		auto item = new ItemNoeud(
 					node_ptr,
-					node_ptr == graphe->noeud_actif,
-					graphe->type == type_graphe::DETAIL || graphe->type == type_graphe::CYCLES);
+                    node_ptr == graphe.noeud_actif(),
+                    /*graphe->type == type_graphe::DETAIL || graphe->type == type_graphe::CYCLES*/ false);
 		m_scene->addItem(item);
 
-		for (PriseEntree *prise : node_ptr->entrees) {
-			if (prise->liens.est_vide()) {
-				continue;
-			}
+        for (auto prise : node_ptr.entrées()) {
+            auto connexion = prise.connexion();
+            if (connexion == nullptr) {
+                continue;
+            }
 
-			for (auto lien : prise->liens) {
-				auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
-				auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
-				auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
-				auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
+            auto rectangle_prise = prise.rectangle();
+            auto rectangle_lien = connexion.prise_sortie().rectangle();
 
-				auto ligne = new QGraphicsLineItem();
-				ligne->setPen(QPen(Qt::white, 2.0));
-				ligne->setLine(x1, y1, x2, y2);
+            auto const p1 = point_central_rectangle(rectangle_prise);
+            auto const p2 = point_central_rectangle(rectangle_lien);
 
-				m_scene->addItem(ligne);
-			}
+            auto ligne = new QGraphicsLineItem();
+            ligne->setPen(QPen(Qt::white, 2.0));
+            ligne->setLine(p1.x(), p1.y(), p2.x(), p2.y());
+
+            m_scene->addItem(ligne);
 		}
 	}
 
-	if (graphe->connexion_active) {
-		float x1, y1;
-
-		if (graphe->connexion_active->prise_entree) {
-			auto prise_entree = graphe->connexion_active->prise_entree;
-			x1 = prise_entree->rectangle.x + prise_entree->rectangle.largeur / 2.0f;
-			y1 = prise_entree->rectangle.y + prise_entree->rectangle.hauteur / 2.0f;
-		}
+    if (graphe.connexion_active()) {
+        auto connexion = graphe.connexion_active();
+        QPointF p1;
+        if (connexion.prise_entrée() != nullptr) {
+            auto prise_entree = connexion.prise_entrée();
+            p1 = point_central_rectangle(prise_entree.rectangle());
+        }
 		else {
-			auto prise_sortie = graphe->connexion_active->prise_sortie;
-			x1 = prise_sortie->rectangle.x + prise_sortie->rectangle.largeur / 2.0f;
-			y1 = prise_sortie->rectangle.y + prise_sortie->rectangle.hauteur / 2.0f;
+            auto prise_sortie = connexion.prise_sortie();
+            p1 = point_central_rectangle(prise_sortie.rectangle());
 		}
 
-		auto const x2 = graphe->connexion_active->x;
-		auto const y2 = graphe->connexion_active->y;
+        auto const x2 = connexion.x();
+        auto const y2 = connexion.y();
 
 		auto ligne = new QGraphicsLineItem();
 		ligne->setPen(QPen(Qt::white, 2.0));
-		ligne->setLine(x1, y1, x2, y2);
+        ligne->setLine(p1.x(), p1.y(), x2, y2);
 
 		m_scene->addItem(ligne);
 	}
 
+#if 0
 	if (graphe->info_noeud) {
 		auto point = m_vue->mapFromScene(graphe->info_noeud->x, graphe->info_noeud->y);
 		point = m_vue->mapToGlobal(point);
 		QToolTip::showText(point, graphe->info_noeud->informations.c_str());
 	}
+#endif
 
-	m_barre_chemin->setText(m_jorjala.chemin_courant.c_str());
+    m_barre_chemin->setText(chemin_courant.c_str());
 }
 
 void EditriceGraphe::sors_noeud()
 {
-	m_jorjala.repondant_commande()->repond_clique("sors_noeud", "");
+//	m_jorjala.repondant_commande()->repond_clique("sors_noeud", "");
 }
 
 void EditriceGraphe::change_contexte(int index)
 {
 	INUTILISE(index);
-	auto repondant_commande = m_jorjala.repondant_commande();
-	auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
+//	auto repondant_commande = m_jorjala.repondant_commande();
+//	auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
 
-	repondant_commande->repond_clique("change_contexte", valeur);
+//	repondant_commande->repond_clique("change_contexte", valeur);
 }

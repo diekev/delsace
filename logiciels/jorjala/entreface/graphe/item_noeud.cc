@@ -33,9 +33,9 @@
 #include <QPen>
 #pragma GCC diagnostic pop
 
-#include "coeur/noeud.hh"
-#include "coeur/noeud_image.h"
-#include "coeur/operatrice_image.h"
+#include "biblinternes/structures/tableau.hh"
+
+#include "jorjala.hh"
 
 static auto const COULEUR_DECIMAL       = QColor::fromRgb(128, 128, 128);
 static auto const COULEUR_ENTIER        = QColor::fromRgb(255, 255, 255);
@@ -53,13 +53,26 @@ static auto const COULEUR_POLYMORPHIQUE = QColor::fromHsl(static_cast<int>(249.0
 static auto const COULEUR_CHAINE        = QColor::fromHsl(static_cast<int>(132.0 / 255.0 * 359.0), 190, 79);
 static auto const COULEUR_INVALIDE      = QColor::fromHsl(0, 0, 0);
 
-static QBrush brosse_pour_type(type_prise type)
+static QBrush brosse_pour_type(JJL::TypePrise type)
 {
 	switch (type) {
-		case type_prise::DECIMAL:
+        default:
+        {
+            return QBrush(COULEUR_INVALIDE);
+        }
+        case JJL::TypePrise::NOMBRE_RÉEL:
 		{
 			return QBrush(COULEUR_DECIMAL);
 		}
+        case JJL::TypePrise::CORPS:
+        {
+            return QBrush(COULEUR_CORPS);
+        }
+        case JJL::TypePrise::COMPOSITE:
+        {
+            return QBrush(COULEUR_IMAGE);
+        }
+#if 0
 		case type_prise::ENTIER:
 		{
 			return QBrush(COULEUR_ENTIER);
@@ -88,41 +101,44 @@ static QBrush brosse_pour_type(type_prise type)
 		{
 			return QBrush(COULEUR_COULEUR);
 		}
-		case type_prise::CORPS:
-		{
-			return QBrush(COULEUR_CORPS);
-		}
-		case type_prise::IMAGE:
-		{
-			return QBrush(COULEUR_IMAGE);
-		}
-		case type_prise::OBJET:
-		{
-			return QBrush(COULEUR_OBJET);
-		}
-		case type_prise::TABLEAU:
-		{
-			return QBrush(COULEUR_TABLEAU);
-		}
-		case type_prise::POLYMORPHIQUE:
-		{
-			return QBrush(COULEUR_POLYMORPHIQUE);
-		}
-		case type_prise::CHAINE:
-		{
-			return QBrush(COULEUR_CHAINE);
-		}
-		case type_prise::INVALIDE:
-		{
-			return QBrush(COULEUR_INVALIDE);
-		}
+        case type_prise::OBJET:
+        {
+            return QBrush(COULEUR_OBJET);
+        }
+        case type_prise::TABLEAU:
+        {
+            return QBrush(COULEUR_TABLEAU);
+        }
+        case type_prise::POLYMORPHIQUE:
+        {
+            return QBrush(COULEUR_POLYMORPHIQUE);
+        }
+        case type_prise::CHAINE:
+        {
+            return QBrush(COULEUR_CHAINE);
+        }
+        case type_prise::INVALIDE:
+        {
+            return QBrush(COULEUR_INVALIDE);
+        }
+#endif
 	}
 
 	return QBrush(COULEUR_INVALIDE);
 }
 
+static void ajourne_rectangle(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
+{
+    auto rect = prise->rectangle();
+    rect.x(x);
+    rect.y(y);
+    rect.hauteur(hauteur);
+    rect.largeur(largeur);
+    prise->rectangle(rect);
+}
+
 ItemNoeud::ItemNoeud(
-		Noeud *noeud,
+        JJL::Noeud &noeud,
 		bool selectionne,
 		bool est_noeud_detail,
 		QGraphicsItem *parent)
@@ -131,7 +147,8 @@ ItemNoeud::ItemNoeud(
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
-	switch (noeud->type) {
+#if 0
+    switch (noeud.type) {
 		case type_noeud::COMPOSITE:
 		{
 			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
@@ -153,7 +170,7 @@ ItemNoeud::ItemNoeud(
 		}
 		case type_noeud::OPERATRICE:
 		{
-			operatrice = extrait_opimage(noeud->donnees);
+            operatrice = extrait_opimage(noeud.donnees);
 
 			switch (operatrice->type()) {
 				default:
@@ -175,26 +192,26 @@ ItemNoeud::ItemNoeud(
 			break;
 		}
 	}
+#endif
 
 	if (est_noeud_detail) {
-		dessine_noeud_detail(noeud, operatrice, selectionne);
+        dessine_noeud_detail(noeud, selectionne);
 	}
 	else {
-		dessine_noeud_generique(noeud, operatrice, brosse_couleur, selectionne);
+        dessine_noeud_generique(noeud, brosse_couleur, selectionne);
 	}
 }
 
 void ItemNoeud::dessine_noeud_detail(
-		Noeud *noeud,
-		OperatriceImage *operatrice,
+        JJL::Noeud &noeud,
 		bool selectionne)
 {
-	auto const pos_x = static_cast<double>(noeud->pos_x());
-	auto const pos_y = static_cast<double>(noeud->pos_y());
+    auto const pos_x = static_cast<double>(noeud.pos_x());
+    auto const pos_y = static_cast<double>(noeud.pos_y());
 
 	/* crée le texte en premier pour calculer sa taille */
 	auto const decalage_texte = 8;
-	auto texte = new QGraphicsTextItem(noeud->nom.c_str(), this);
+    auto texte = new QGraphicsTextItem(noeud.nom().vers_std_string().c_str(), this);
 	auto police = QFont();
 	police.setPointSize(16);
 	texte->setFont(police);
@@ -213,8 +230,11 @@ void ItemNoeud::dessine_noeud_detail(
 	auto largeur_entrees = 0.0;
 	auto hauteur_entrees = 0.0;
 
-	for (auto prise : noeud->entrees) {
-		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
+    auto prises_entrées = noeud.entrées();
+    auto prises_sorties = noeud.sorties();
+
+    for (auto prise : prises_entrées) {
+        auto texte_prise = new QGraphicsTextItem(prise.nom().vers_std_string().c_str(), this);
 		texte_prise->setFont(police);
 		textes_entrees.ajoute(texte_prise);
 
@@ -222,15 +242,15 @@ void ItemNoeud::dessine_noeud_detail(
 		hauteur_entrees += texte_prise->boundingRect().height();
 	}
 
-	if (noeud->entrees.taille() != 0) {
+    if (prises_entrées.taille() != 0) {
 		largeur_entrees += largeur_prise;
 	}
 
 	auto largeur_sorties = 0.0;
 	auto hauteur_sorties = 0.0;
 
-	for (auto prise : noeud->sorties) {
-		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
+    for (auto prise : prises_sorties) {
+        auto texte_prise = new QGraphicsTextItem(prise.nom().vers_std_string().c_str(), this);
 		texte_prise->setFont(police);
 		textes_sorties.ajoute(texte_prise);
 
@@ -238,7 +258,7 @@ void ItemNoeud::dessine_noeud_detail(
 		hauteur_sorties += texte_prise->boundingRect().height();
 	}
 
-	if (noeud->sorties.taille() != 0) {
+    if (prises_sorties.taille() != 0) {
 		largeur_sorties += largeur_prise;
 	}
 
@@ -256,41 +276,31 @@ void ItemNoeud::dessine_noeud_detail(
 	auto pos_y_entree = hauteur_texte + decalage_texte;
 
 	for (auto i = 0; i < textes_entrees.taille(); ++i) {
-		auto prise = noeud->entree(i);
-
-		auto item_prise = new QGraphicsRectItem(this);
-		item_prise->setRect(pos_x, pos_y + pos_y_entree, largeur_prise, hauteur_prise);
-		item_prise->setBrush(brosse_pour_type(prise->type));
-		item_prise->setPen(QPen(Qt::white, 0.5));
-
 		textes_entrees[i]->setDefaultTextColor(Qt::white);
 		textes_entrees[i]->setPos(pos_x + largeur_prise + decalage_texte, pos_y + pos_y_entree);
 
-		prise->rectangle.x = static_cast<float>(pos_x);
-		prise->rectangle.y = static_cast<float>(pos_y + pos_y_entree);
-		prise->rectangle.hauteur = hauteur_prise;
-		prise->rectangle.largeur = largeur_prise;
+        auto prise = prises_entrées[i];
+        cree_geometrie_prise(&prise,
+                             static_cast<float>(pos_x),
+                             static_cast<float>(pos_y + pos_y_entree),
+                             hauteur_prise,
+                             largeur_prise);
 
 		pos_y_entree += hauteur_texte;
 	}
 
 	auto pos_y_sortie = hauteur_texte + decalage_texte;
 
-	for (auto i = 0; i < textes_sorties.taille(); ++i) {
-		auto prise = noeud->sortie(i);
-
-		auto item_prise = new QGraphicsRectItem(this);
-		item_prise->setRect(pos_x + largeur_noeud - largeur_prise, pos_y + pos_y_sortie, largeur_prise, hauteur_prise);
-		item_prise->setBrush(brosse_pour_type(prise->type));
-		item_prise->setPen(QPen(Qt::white, 0.5));
-
+    for (auto i = 0; i < textes_sorties.taille(); ++i) {
 		textes_sorties[i]->setDefaultTextColor(Qt::white);
 		textes_sorties[i]->setPos(pos_x + largeur_noeud - decalage_texte - (textes_sorties[i]->boundingRect().width()) - largeur_prise, pos_y + pos_y_sortie);
 
-		prise->rectangle.x = static_cast<float>(pos_x + largeur_noeud - largeur_prise);
-		prise->rectangle.y = static_cast<float>(pos_y + pos_y_sortie);
-		prise->rectangle.hauteur = hauteur_prise;
-		prise->rectangle.largeur = largeur_prise;
+        auto prise = prises_sorties[i];
+        cree_geometrie_prise(&prise,
+                             static_cast<float>(pos_x + largeur_noeud - largeur_prise),
+                             static_cast<float>(pos_y + pos_y_sortie),
+                             hauteur_prise,
+                             largeur_prise);
 
 		pos_y_sortie += hauteur_texte;
 	}
@@ -310,7 +320,6 @@ void ItemNoeud::dessine_noeud_detail(
 
 	finalise_dessin(
 				noeud,
-				operatrice,
 				selectionne,
 				pos_x,
 				pos_y,
@@ -319,17 +328,16 @@ void ItemNoeud::dessine_noeud_detail(
 }
 
 void ItemNoeud::dessine_noeud_generique(
-		Noeud *noeud,
-		OperatriceImage *operatrice,
+        JJL::Noeud &noeud,
 		QBrush const &brosse_couleur,
 		bool selectionne)
 {
-	auto const pos_x = static_cast<double>(noeud->pos_x());
-	auto const pos_y = static_cast<double>(noeud->pos_y());
+    auto const pos_x = static_cast<double>(noeud.pos_x());
+    auto const pos_y = static_cast<double>(noeud.pos_y());
 
 	/* crée le texte en premier pour calculer sa taille */
 	auto const decalage_texte = 8;
-	auto texte = new QGraphicsTextItem(noeud->nom.c_str(), this);
+    auto texte = new QGraphicsTextItem(noeud.nom().vers_std_string().c_str(), this);
 	auto police = QFont();
 	police.setPointSize(16);
 	texte->setFont(police);
@@ -346,8 +354,8 @@ void ItemNoeud::dessine_noeud_generique(
 	auto const hauteur_prise = 32.0;
 	auto const largeur_prise = 32.0;
 
-	auto const nombre_entrees = noeud->entrees.taille();
-	auto const nombre_sorties = noeud->sorties.taille();
+    auto const nombre_entrees = noeud.entrées().taille();
+    auto const nombre_sorties = noeud.sorties().taille();
 
 	auto decalage_icone_y = pos_y;
 	auto decalage_texte_y = pos_y;
@@ -375,23 +383,20 @@ void ItemNoeud::dessine_noeud_generique(
 		auto const pos_debut_entrees = etendue_entree * 0.5 - largeur_prise * 0.5;
 		auto pos_entree = pos_x + pos_debut_entrees;
 
-		for (PriseEntree *prise : noeud->entrees) {
-			auto entree = new QGraphicsRectItem(this);
+        for (auto prise : noeud.entrées()) {
 			auto largeur_lien = largeur_prise;
 
-			if (prise->multiple_connexions) {
-				pos_entree -= largeur_prise * 0.5;
-				largeur_lien *= 2.0;
-			}
+            // À FAIRE : connexions multiples
+//			if (prise->multiple_connexions) {
+//				pos_entree -= largeur_prise * 0.5;
+//				largeur_lien *= 2.0;
+//			}
 
-			entree->setRect(pos_entree, pos_y, largeur_lien, hauteur_prise);
-			entree->setBrush(brosse_pour_type(prise->type));
-			entree->setPen(QPen(Qt::white, 0.5));
-
-			prise->rectangle.x = static_cast<float>(pos_entree);
-			prise->rectangle.y = static_cast<float>(pos_y);
-			prise->rectangle.hauteur = hauteur_prise;
-			prise->rectangle.largeur = static_cast<float>(largeur_lien);
+            cree_geometrie_prise(&prise,
+                                 static_cast<float>(pos_entree),
+                                 static_cast<float>(pos_y),
+                                 hauteur_prise,
+                                 static_cast<float>(largeur_lien));
 
 			pos_entree += etendue_entree;
 		}
@@ -421,25 +426,14 @@ void ItemNoeud::dessine_noeud_generique(
 		auto const pos_debut_sorties = etendue_sortie * 0.5 - largeur_prise * 0.5;
 		auto pos_sortie = pos_x + pos_debut_sorties;
 
-		for (PriseSortie *prise : noeud->sorties) {
-			auto sortie = new QGraphicsRectItem(this);
-
-			sortie->setRect(pos_sortie, decalage_sorties_y, largeur_prise, hauteur_prise);
-			sortie->setBrush(brosse_pour_type(prise->type));
-			sortie->setPen(QPen(Qt::white, 0.5));
-
-			prise->rectangle.x = static_cast<float>(pos_sortie);
-			prise->rectangle.y = static_cast<float>(decalage_sorties_y);
-			prise->rectangle.hauteur = hauteur_prise;
-			prise->rectangle.largeur = largeur_prise;
-
+        for (auto prise : noeud.sorties()) {
+            cree_geometrie_prise(&prise, pos_sortie, decalage_sorties_y, largeur_prise, hauteur_prise);
 			pos_sortie += etendue_sortie;
 		}
 	}
 
 	finalise_dessin(
 				noeud,
-				operatrice,
 				selectionne,
 				pos_x,
 				pos_y,
@@ -448,8 +442,7 @@ void ItemNoeud::dessine_noeud_generique(
 }
 
 void ItemNoeud::finalise_dessin(
-		Noeud *noeud,
-		OperatriceImage *operatrice,
+        JJL::Noeud &noeud,
 		bool selectionne,
 		double pos_x,
 		double pos_y,
@@ -477,7 +470,9 @@ void ItemNoeud::finalise_dessin(
 	/* pinceaux pour le coeur du noeud */
 	QBrush brosse;
 
-	if (!operatrice || operatrice->avertissements().est_vide()) {
+    auto erreurs = noeud.accède_erreurs();
+
+    if (erreurs.taille() == 0) {
 		brosse = QBrush(QColor(45, 45, 45));
 	}
 	else {
@@ -488,6 +483,16 @@ void ItemNoeud::finalise_dessin(
 
 	setRect(pos_x, pos_y, largeur_noeud, hauteur_noeud);
 
-	noeud->largeur(static_cast<int>(largeur_noeud));
-	noeud->hauteur(static_cast<int>(hauteur_noeud));
+    noeud.largeur(static_cast<int>(largeur_noeud));
+    noeud.hauteur(static_cast<int>(hauteur_noeud));
+}
+
+void ItemNoeud::cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
+{
+    auto item_prise = new QGraphicsRectItem(this);
+    item_prise->setRect(x, y, largeur, hauteur);
+    item_prise->setBrush(brosse_pour_type(prise->type()));
+    item_prise->setPen(QPen(Qt::white, 0.5));
+
+    ajourne_rectangle(prise, x, y, hauteur, largeur);
 }

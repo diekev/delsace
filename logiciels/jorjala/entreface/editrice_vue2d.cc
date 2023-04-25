@@ -49,18 +49,18 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
-#include "coeur/jorjala.hh"
+#include "jorjala.hh"
 
-#include "lcc/lcc.hh"
+#include "gestion_entreface.hh"
+
+// #include "lcc/lcc.hh"
 
 #include "opengl/rendu_image.h"
 #include "opengl/rendu_manipulatrice_2d.h"
 
 /* ************************************************************************** */
 
-Visionneuse2D::Visionneuse2D(Jorjala &jorjala, EditriceVue2D *base, QWidget *parent)
+Visionneuse2D::Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent)
 	: QGLWidget(parent)
 	, m_jorjala(jorjala)
 	, m_base(base)
@@ -97,7 +97,7 @@ void Visionneuse2D::paintGL()
 
 	glEnable(GL_BLEND);
 
-	m_contexte.MVP(m_jorjala.camera_2d->matrice);
+    // m_contexte.MVP(m_jorjala.camera_2d->matrice);
 	m_contexte.matrice_objet(m_matrice_image);
 
 	m_rendu_image->dessine(m_contexte);
@@ -130,6 +130,7 @@ void Visionneuse2D::paintGL()
 
 	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
 
+    // À FAIRE : stats programme
 	ss.chn("");
 	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
 	m_rendu_texte->dessine(m_contexte, ss.chn());
@@ -138,17 +139,17 @@ void Visionneuse2D::paintGL()
 	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre commandes  : " << m_jorjala.usine_commandes().taille();
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+//	ss.chn("");
+//	ss << "Nombre commandes  : " << m_jorjala.usine_commandes().taille();
+//	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre noeuds     : " << m_jorjala.usine_operatrices().num_entries();
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+//	ss.chn("");
+//	ss << "Nombre noeuds     : " << m_jorjala.usine_operatrices().num_entries();
+//	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre fonctions  : " << m_jorjala.lcc->fonctions.table.taille();
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+//	ss.chn("");
+//	ss << "Nombre fonctions  : " << m_jorjala.lcc->fonctions.table.taille();
+//	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 	glDisable(GL_BLEND);
 
@@ -159,10 +160,10 @@ void Visionneuse2D::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
 
-	m_jorjala.camera_2d->hauteur = h;
-	m_jorjala.camera_2d->largeur = w;
+//	m_jorjala.camera_2d->hauteur = h;
+//	m_jorjala.camera_2d->largeur = w;
 
-	m_jorjala.camera_2d->ajourne_matrice();
+//	m_jorjala.camera_2d->ajourne_matrice();
 	m_rendu_texte->etablie_dimension_fenetre(w, h);
 
 	m_matrice_image = dls::math::mat4x4f(1.0);
@@ -212,67 +213,30 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 void Visionneuse2D::mousePressEvent(QMouseEvent *event)
 {
 	m_base->rend_actif();
-
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
-	donnees.y = static_cast<float>(event->pos().y());
-	donnees.souris = static_cast<int>(event->buttons());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	m_jorjala.repondant_commande()->appele_commande("vue_2d", donnees);
+    gere_pression_souris(m_jorjala, event, "vue_2d");
 }
 
 void Visionneuse2D::mouseMoveEvent(QMouseEvent *event)
 {
-	m_base->rend_actif();
-
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
-	donnees.y = static_cast<float>(event->pos().y());
-	donnees.souris = static_cast<int>(event->buttons());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	if (event->buttons() == 0) {
-		m_jorjala.repondant_commande()->appele_commande("vue_2d", donnees);
-	}
-	else {
-		m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
-	}
+    m_base->rend_actif();
+    gere_mouvement_souris(m_jorjala, event, "vue_2d");
 }
 
 void Visionneuse2D::mouseReleaseEvent(QMouseEvent *event)
 {
-	m_base->rend_actif();
-
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(this->size().width() - event->pos().x());
-	donnees.y = static_cast<float>(event->pos().y());
-	donnees.souris = static_cast<int>(event->buttons());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    m_base->rend_actif();
+    gere_relachement_souris(m_jorjala, event, "vue_2d");
 }
 
 void Visionneuse2D::wheelEvent(QWheelEvent *event)
 {
-	m_base->rend_actif();
-
-	/* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
-	 * roulement de la molette de la souris, on prétend que le roulement est un
-	 * double clique de la molette. */
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(event->angleDelta().x());
-	donnees.y = static_cast<float>(event->angleDelta().y());
-	donnees.souris = Qt::MiddleButton;
-	donnees.double_clique = true;
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	m_jorjala.repondant_commande()->appele_commande("vue_2d", donnees);
+    m_base->rend_actif();
+    gere_molette_souris(m_jorjala, event, "vue_2d");
 }
 
 /* ************************************************************************** */
 
-EditriceVue2D::EditriceVue2D(Jorjala &jorjala, QWidget *parent)
+EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
 	, m_vue(new Visionneuse2D(jorjala, this))
 {
@@ -281,6 +245,7 @@ EditriceVue2D::EditriceVue2D(Jorjala &jorjala, QWidget *parent)
 
 void EditriceVue2D::ajourne_etat(int evenement)
 {
+#if 0
 	auto chargement = evenement == (type_evenement::image | type_evenement::traite);
 	chargement |= (evenement == (type_evenement::temps | type_evenement::modifie));
 	chargement |= (evenement == (type_evenement::rafraichissement));
@@ -320,4 +285,5 @@ void EditriceVue2D::ajourne_etat(int evenement)
 	}
 
 	m_vue->update();
+#endif
 }

@@ -35,9 +35,9 @@
 #include <QPushButton>
 #pragma GCC diagnostic pop
 
-#include "coeur/jorjala.hh"
+#include "jorjala.hh"
 
-BarreDeProgres::BarreDeProgres(Jorjala &jorjala, QWidget *parent)
+BarreDeProgres::BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent)
 	: QWidget(parent)
 	, m_jorjala(jorjala)
 	, m_barre_progres(new QProgressBar(this))
@@ -73,5 +73,5 @@ void BarreDeProgres::ajourne_message(const char *message, int execution, int tot
 
 void BarreDeProgres::signal_stop()
 {
-	m_jorjala.interrompu = true;
+    m_jorjala.interrompu(true);
 }

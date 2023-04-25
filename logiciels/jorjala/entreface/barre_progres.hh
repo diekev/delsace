@@ -31,12 +31,14 @@ class QHBoxLayout;
 class QProgressBar;
 class QPushButton;
 
-struct Jorjala;
+namespace JJL {
+class Jorjala;
+}
 
 class BarreDeProgres : public QWidget {
 	Q_OBJECT
 
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
 	QProgressBar *m_barre_progres;
 	QLabel *m_label;
@@ -45,7 +47,7 @@ class BarreDeProgres : public QWidget {
 	QHBoxLayout *m_disposition;
 
 public:
-	explicit BarreDeProgres(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	BarreDeProgres(BarreDeProgres const &) = default;
 	BarreDeProgres &operator=(BarreDeProgres const &) = default;

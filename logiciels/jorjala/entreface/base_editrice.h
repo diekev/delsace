@@ -28,7 +28,10 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 
-struct Jorjala;
+namespace JJL {
+class Jorjala;
+}
+
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
@@ -38,14 +41,14 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
 	Q_OBJECT
 
 protected:
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 	QFrame *m_frame;
 	QVBoxLayout *m_layout;
 	QHBoxLayout *m_main_layout;
 	QLineEdit *m_path_edit{};
 
 public:
-	explicit BaseEditrice(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit BaseEditrice(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	BaseEditrice(BaseEditrice const &) = default;
 	BaseEditrice &operator=(BaseEditrice const &) = default;

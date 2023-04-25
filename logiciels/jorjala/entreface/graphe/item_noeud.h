@@ -32,35 +32,37 @@
 #include <QGraphicsRectItem>
 #pragma GCC diagnostic pop
 
+namespace JJL {
 class Noeud;
+class Prise;
+}
 class OperatriceImage;
 
 class ItemNoeud : public QGraphicsRectItem {
 public:
 	explicit ItemNoeud(
-			Noeud *noeud,
+            JJL::Noeud &noeud,
 			bool selectionne,
 			bool est_noeud_detail,
 			QGraphicsItem *parent = nullptr);
 
 	void dessine_noeud_detail(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
+            JJL::Noeud &noeud,
 			bool selectionne);
 
 	void dessine_noeud_generique(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
+            JJL::Noeud &noeud,
 			QBrush const &brosse_couleur,
 			bool selectionne);
 
 private:
 	void finalise_dessin(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
+            JJL::Noeud &noeud,
 			bool selectionne,
 			double pos_x,
 			double pos_y,
 			double largeur_noeud,
 			double hauteur_noeud);
+
+    void cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur);
 };

@@ -39,17 +39,19 @@
 #include <QVariant>
 #pragma GCC diagnostic pop
 
-#include "coeur/composite.h"
-#include "coeur/jorjala.hh"
+#include "gestion_entreface.hh"
 
-BaseEditrice::BaseEditrice(Jorjala &jorjala, QWidget *parent)
+#include "jorjala.hh"
+
+BaseEditrice::BaseEditrice(JJL::Jorjala &jorjala, QWidget *parent)
 	: danjo::ConteneurControles(parent)
 	, m_jorjala(jorjala)
     , m_frame(new QFrame(this))
     , m_layout(new QVBoxLayout())
 	, m_main_layout(new QHBoxLayout(m_frame))
 {
-	this->observe(&m_jorjala);
+    /* Mise en place de l'observation. */
+    ajoute_observatrice(m_jorjala, this);
 
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);
@@ -80,11 +82,7 @@ void BaseEditrice::actif(bool ouinon)
 
 void BaseEditrice::rend_actif()
 {
-	if (m_jorjala.editrice_active) {
-		m_jorjala.editrice_active->actif(false);
-	}
-
-	m_jorjala.editrice_active = this;
+    active_editrice(m_jorjala, this);
 	this->actif(true);
 }
 

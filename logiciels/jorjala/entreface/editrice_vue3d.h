@@ -35,7 +35,6 @@
 #include "base_editrice.h"
 
 class EditriceVue3D;
-struct Jorjala;
 class QComboBox;
 class QToolButton;
 class VisionneurScene;
@@ -43,12 +42,12 @@ class VisionneurScene;
 /* ************************************************************************** */
 
 class VueCanevas3D : public QGLWidget {
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 	VisionneurScene *m_visionneur_scene;
 	EditriceVue3D *m_base;
 
 public:
-	explicit VueCanevas3D(Jorjala &jorjala, EditriceVue3D *base, QWidget *parent = nullptr);
+    explicit VueCanevas3D(JJL::Jorjala &jorjala, EditriceVue3D *base, QWidget *parent = nullptr);
 
 	VueCanevas3D(VueCanevas3D const &) = default;
 	VueCanevas3D &operator=(VueCanevas3D const &) = default;
@@ -86,7 +85,7 @@ class EditriceVue3D : public BaseEditrice {
 	QComboBox *m_selecteur_rendu{};
 
 public:
-	explicit EditriceVue3D(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	EditriceVue3D(EditriceVue3D const &) = default;
 	EditriceVue3D &operator=(EditriceVue3D const &) = default;

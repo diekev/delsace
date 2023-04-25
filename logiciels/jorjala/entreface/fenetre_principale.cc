@@ -44,18 +44,18 @@
 #include "biblinternes/outils/fichier.hh"
 
 //#include "coeur/composite.h"
-//#include "coeur/evenement.h"
+#include "coeur/evenement.h"
 //#include "coeur/jorjala.hh"
 //#include "coeur/tache.h"
 
-//#include "barre_progres.hh"
+#include "barre_progres.hh"
 //#include "editrice_arborescence.hh"
-//#include "editrice_ligne_temps.h"
-//#include "editrice_noeud.h"
+#include "editrice_ligne_temps.h"
+#include "editrice_noeud.h"
 //#include "editrice_proprietes.h"
 //#include "editrice_rendu.h"
-//#include "editrice_vue2d.h"
-//#include "editrice_vue3d.h"
+#include "editrice_vue2d.h"
+#include "editrice_vue3d.h"
 
 // #include "jorjala.hh"
 
@@ -82,7 +82,7 @@ enum {
 FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 	: QMainWindow(parent)
 	, m_jorjala(jorjala)
-    //, m_barre_progres(new BarreDeProgres(m_jorjala, this))
+    , m_barre_progres(new BarreDeProgres(m_jorjala, this))
 {
 //	jorjala.fenetre_principale = this;
 //	jorjala.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
@@ -91,8 +91,8 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 	genere_barre_menu();
 	genere_menu_prereglages();
 
-//	statusBar()->addWidget(m_barre_progres);
-//	m_barre_progres->setVisible(false);
+    statusBar()->addWidget(m_barre_progres);
+    m_barre_progres->setVisible(false);
 
 	auto dock_vue2D = ajoute_dock("Vue 2D", EDITRICE_VUE2D, Qt::LeftDockWidgetArea);
 	ajoute_dock("Vue 3D", EDITRICE_VUE3D, Qt::LeftDockWidgetArea, dock_vue2D);
@@ -193,38 +193,39 @@ void FenetrePrincipale::genere_menu_prereglages()
 
 QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier)
 {
-//	BaseEditrice *editrice = nullptr;
+    BaseEditrice *editrice = nullptr;
 
-//	switch (type) {
-//		case EDITRICE_GRAPHE:
-//			editrice = new EditriceGraphe(m_jorjala);
-//			break;
-//		case EDITRICE_PROPRIETE:
-//			editrice = new EditriceProprietes(m_jorjala);
-//			break;
-//		case EDITRICE_LIGNE_TEMPS:
-//			editrice = new EditriceLigneTemps(m_jorjala);
-//			break;
-//		case EDITRICE_RENDU:
-//			editrice = new EditriceRendu(m_jorjala);
-//			break;
-//		case EDITRICE_VUE2D:
-//			editrice = new EditriceVue2D(m_jorjala);
-//			break;
-//		case EDITRICE_VUE3D:
-//			editrice = new EditriceVue3D(m_jorjala);
-//			break;
-//		case EDITRICE_ARBORESCENCE:
-//			editrice = new EditriceArborescence(m_jorjala);
-//			break;
-//	}
+    switch (type) {
+        case EDITRICE_GRAPHE:
+            editrice = new EditriceGraphe(m_jorjala);
+            break;
+        case EDITRICE_PROPRIETE:
+            // editrice = new EditriceProprietes(m_jorjala);
+            break;
+        case EDITRICE_LIGNE_TEMPS:
+            editrice = new EditriceLigneTemps(m_jorjala);
+            break;
+        case EDITRICE_RENDU:
+            // editrice = new EditriceRendu(m_jorjala);
+            break;
+        case EDITRICE_VUE2D:
+            editrice = new EditriceVue2D(m_jorjala);
+            break;
+        case EDITRICE_VUE3D:
+            editrice = new EditriceVue3D(m_jorjala);
+            break;
+        case EDITRICE_ARBORESCENCE:
+            // editrice = new EditriceArborescence(m_jorjala);
+            break;
+    }
 
 	auto dock = new QDockWidget(nom, this);
 	dock->setAttribute(Qt::WA_DeleteOnClose);
 
-//	editrice->ajourne_etat(type_evenement::rafraichissement);
-
-//	dock->setWidget(editrice);
+    if (editrice) {
+        editrice->ajourne_etat(type_evenement::rafraichissement);
+        dock->setWidget(editrice);
+    }
 	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
 	addDockWidget(static_cast<Qt::DockWidgetArea>(aire), dock);
@@ -248,22 +249,22 @@ void FenetrePrincipale::signale_proces(int quoi)
 
 void FenetrePrincipale::tache_demarree()
 {
-//    m_barre_progres->ajourne_valeur(0);
-//	m_barre_progres->setVisible(true);
+    m_barre_progres->ajourne_valeur(0);
+    m_barre_progres->setVisible(true);
 }
 
 void FenetrePrincipale::ajourne_progres(float progres)
 {
-//	m_barre_progres->ajourne_valeur(static_cast<int>(progres));
+    m_barre_progres->ajourne_valeur(static_cast<int>(progres));
 }
 
 void FenetrePrincipale::tache_terminee()
 {
-//	m_barre_progres->setVisible(false);
+    m_barre_progres->setVisible(false);
 }
 
 void FenetrePrincipale::evaluation_debutee(const char *message, int execution, int total)
 {
-//	m_barre_progres->ajourne_valeur(0);
-//	m_barre_progres->ajourne_message(message, execution, total);
+    m_barre_progres->ajourne_valeur(0);
+    m_barre_progres->ajourne_message(message, execution, total);
 }

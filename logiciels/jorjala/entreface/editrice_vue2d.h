@@ -50,7 +50,7 @@ class RenduManipulatrice2D;
 class Visionneuse2D : public QGLWidget {
 	RenduImage *m_rendu_image = nullptr;
 	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 	EditriceVue2D *m_base;
 	RenduTexte *m_rendu_texte = nullptr;
 
@@ -59,7 +59,7 @@ class Visionneuse2D : public QGLWidget {
 	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
-	explicit Visionneuse2D(Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
+    explicit Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
 	~Visionneuse2D() override;
 
 	Visionneuse2D(Visionneuse2D const &) = default;
@@ -83,7 +83,7 @@ class EditriceVue2D : public BaseEditrice {
 	Visionneuse2D *m_vue;
 
 public:
-	explicit EditriceVue2D(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	EditriceVue2D(EditriceVue2D const &) = default;
 	EditriceVue2D &operator=(EditriceVue2D const &) = default;

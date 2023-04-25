@@ -40,14 +40,15 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/fichier.hh"
 
-#include "coeur/jorjala.hh"
-#include "operatrices/operatrices_cycles.hh"
+#include "jorjala.hh"
+
+// #include "operatrices/operatrices_cycles.hh"
 
 #include "../editrice_noeud.h"
 
 /* ************************************************************************** */
 
-VueEditeurNoeud::VueEditeurNoeud(Jorjala &jorjala,
+VueEditeurNoeud::VueEditeurNoeud(JJL::Jorjala &jorjala,
 		EditriceGraphe *base,
 		QWidget *parent)
 	: QGraphicsView(parent)
@@ -57,25 +58,25 @@ VueEditeurNoeud::VueEditeurNoeud(Jorjala &jorjala,
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-	danjo::DonneesInterface donnees{};
-	donnees.manipulable = nullptr;
-	donnees.conteneur = nullptr;
-	donnees.repondant_bouton = m_jorjala.repondant_commande();
+//	danjo::DonneesInterface donnees{};
+//	donnees.manipulable = nullptr;
+//	donnees.conteneur = nullptr;
+//	donnees.repondant_bouton = m_jorjala.repondant_commande();
 
-	auto gestionnaire = m_jorjala.gestionnaire_entreface;
+//	auto gestionnaire = m_jorjala.gestionnaire_entreface;
 
-	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_composite.jo");
-	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_objet.jo");
-	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_detail.jo");
-	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_rendu.jo");
-	m_menu_graphe_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_objet.jo");
-	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_simulation.jo");
-	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
-	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
-	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
+//	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_composite.jo");
+//	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_objet.jo");
+//	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_detail.jo");
+//	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_rendu.jo");
+//	m_menu_graphe_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_objet.jo");
+//	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_simulation.jo");
+//	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
+//	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
+//	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
 
-	auto texte_menu_cycles = genere_menu_noeuds_cycles();
-	m_menu_ajout_noeud_cycles = gestionnaire->compile_menu_texte(donnees, texte_menu_cycles);
+//	auto texte_menu_cycles = genere_menu_noeuds_cycles();
+//	m_menu_ajout_noeud_cycles = gestionnaire->compile_menu_texte(donnees, texte_menu_cycles);
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()
@@ -96,6 +97,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 {
 	m_base->rend_actif();
 
+#if 0
 	if (event->key() == Qt::Key_Tab) {
 		switch (m_jorjala.graphe->type) {
 			case type_graphe::RACINE_COMPOSITE:
@@ -135,6 +137,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 
 		m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
 	}
+#endif
 }
 
 void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
@@ -148,7 +151,7 @@ void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 	donnees.y = static_cast<float>(event->angleDelta().y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
@@ -165,7 +168,7 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
+    // m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
 }
 
 void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
@@ -184,7 +187,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
@@ -200,7 +203,7 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
@@ -214,7 +217,7 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    // m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
 }
 
 bool VueEditeurNoeud::focusNextPrevChild(bool /*next*/)

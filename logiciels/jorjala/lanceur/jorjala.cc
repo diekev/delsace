@@ -34,11 +34,63 @@
 //#include "coeur/sauvegarde.h"
 
 #include "entreface/fenetre_principale.h"
+#include "entreface/gestion_entreface.hh"
 
 #include "jorjala.hh"
 #include "table_types.c"
 
 #include <iostream>
+
+/*
+
+  À FAIRE :
+
+  FenetrePrincipale :
+    m_jorjala.fichiers_recents
+    m_jorjala.ajoute_fichier_recent
+    m_jorjala.repondant_commande
+    m_jorjala.gestionnaire_entreface->compile_barre_outils_fichier
+
+  EditriceLigneTemps :
+    jorjala.repondant_commande
+    m_jorjala.gestionnaire_entreface->compile_entreface_fichier
+    m_jorjala.ajourne_pour_nouveau_temps
+
+  VueEditeurNoeud :
+    m_jorjala.repondant_commande
+    m_jorjala.gestionnaire_entreface->compile_menu_fichier
+    m_jorjala.gestionnaire_entreface->compile_menu_texte
+
+    genere_menu_noeuds_cycles
+
+  EditriceGraphe
+    m_jorjala.repondant_commande
+    graphe->info_noeud
+
+  ItemNoeud
+    noeud->type
+
+  Visionneuse2D
+    m_jorjala.camera_2d
+    m_jorjala.usine_commandes
+    m_jorjala.usine_operatrices
+    m_jorjala.lcc->fonctions.table.taille
+    m_jorjala.bdd.graphe_composites
+
+  EditriceVue3D
+    jorjala.type_manipulation_3d
+    jorjala.manipulatrice_3d
+    m_jorjala.bdd
+
+  VisionneurScene
+    jorjala.camera_3d
+    cree_contexte_evaluation
+    m_jorjala.bdd.rendu
+
+  gestion_entreface
+    jorjala.repondant_commande
+
+*/
 
 int main(int argc, char *argv[])
 {
@@ -47,6 +99,10 @@ int main(int argc, char *argv[])
     }
 
     JJL::Jorjala jorjala = JJL::crée_instance_jorjala();
+
+    /* Création du système de notification d'évènement. */
+    GestionnaireEntreface gestionnaire;
+    initialise_gestion_entreface(&gestionnaire, jorjala);
 
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("delsace");

@@ -34,7 +34,10 @@ class Camera3D;
 
 }  /* namespace VisionneurScene */
 
-struct Jorjala;
+namespace JJL {
+class Jorjala;
+}
+
 class MoteurRendu;
 class RenduManipulatriceEchelle;
 class RenduManipulatricePosition;
@@ -49,7 +52,7 @@ class VueCanevas3D;
  */
 class VisionneurScene {
 	VueCanevas3D *m_parent;
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
 	vision::Camera3D *m_camera;
 	RenduTexte *m_rendu_texte;
@@ -78,7 +81,7 @@ public:
 	 * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
 	 * pointeur vers l'instance de Kanba du programme en cours.
 	 */
-	VisionneurScene(VueCanevas3D *parent, Jorjala &jorjala);
+    VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala);
 
 	/**
 	 * Empêche la copie d'un visionneur.

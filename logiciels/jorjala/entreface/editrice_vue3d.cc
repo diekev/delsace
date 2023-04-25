@@ -42,17 +42,21 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
-#include "coeur/manipulatrice.h"
-#include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
-#include "coeur/rendu.hh"
+//#include "coeur/manipulatrice.h"
+//#include "coeur/operatrice_image.h"
+//#include "coeur/rendu.hh"
+
+#include "gestion_entreface.hh"
+
+#include "jorjala.hh"
 
 #include "opengl/visionneur_scene.h"
 
 /* ************************************************************************** */
 
-static void charge_manipulatrice(Jorjala &jorjala, int type_manipulation)
+static void charge_manipulatrice(JJL::Jorjala &jorjala, int type_manipulation)
 {
+#if 0
 	jorjala.type_manipulation_3d = type_manipulation;
 
 	auto graphe = jorjala.graphe;
@@ -74,11 +78,12 @@ static void charge_manipulatrice(Jorjala &jorjala, int type_manipulation)
 	}
 
 	jorjala.manipulatrice_3d = operatrice->manipulatrice_3d(jorjala.type_manipulation_3d);
+#endif
 }
 
 /* ************************************************************************** */
 
-VueCanevas3D::VueCanevas3D(Jorjala &jorjala, EditriceVue3D *base, QWidget *parent)
+VueCanevas3D::VueCanevas3D(JJL::Jorjala &jorjala, EditriceVue3D *base, QWidget *parent)
 	: QGLWidget(parent)
 	, m_jorjala(jorjala)
 	, m_visionneur_scene(new VisionneurScene(this, jorjala))
@@ -118,56 +123,24 @@ void VueCanevas3D::resizeGL(int w, int h)
 void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 {
 	m_base->rend_actif();
-
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = static_cast<int>(e->buttons());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
+    gere_pression_souris(m_jorjala, e, "vue_3d");
 }
 
 void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
 {
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = static_cast<int>(e->buttons());
-
-	if (e->buttons() == 0) {
-		m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
-	}
-	else {
-		m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
-	}
+    gere_mouvement_souris(m_jorjala, e, "vue_3d");
 }
 
 void VueCanevas3D::wheelEvent(QWheelEvent *e)
 {
-	m_base->rend_actif();
-
-	/* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
-	 * roulement de la molette de la souris, on prétend que le roulement est un
-	 * double clique de la molette. */
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->angleDelta().x());
-	donnees.y = static_cast<float>(e->angleDelta().y());
-	donnees.souris = Qt::MiddleButton;
-	donnees.double_clique = true;
-
-	m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
+    m_base->rend_actif();
+    gere_molette_souris(m_jorjala, e, "vue_3d");
 }
 
 void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
 {
-	m_base->rend_actif();
-
-	DonneesCommande donnees;
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-
-	m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    m_base->rend_actif();
+    gere_relachement_souris(m_jorjala, e, "vue_3d");
 }
 
 void VueCanevas3D::reconstruit_scene() const
@@ -182,7 +155,7 @@ void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
 
 /* ************************************************************************** */
 
-EditriceVue3D::EditriceVue3D(Jorjala &jorjala, QWidget *parent)
+EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
 	, m_vue(new VueCanevas3D(jorjala, this, this))
 {
@@ -276,9 +249,9 @@ void EditriceVue3D::ajourne_etat(int evenement)
 	auto signaux_blockes = m_selecteur_rendu->blockSignals(true);
 	m_selecteur_rendu->clear();
 
-	for (auto rendu : m_jorjala.bdd.rendus()) {
-		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str()));
-	}
+//	for (auto rendu : m_jorjala.bdd.rendus()) {
+//		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str()));
+//	}
 
 	m_selecteur_rendu->blockSignals(signaux_blockes);
 
@@ -295,7 +268,7 @@ void EditriceVue3D::ajourne_etat(int evenement)
 
 void EditriceVue3D::bascule_manipulation()
 {
-	m_jorjala.manipulation_3d_activee = !m_jorjala.manipulation_3d_activee;
+    // m_jorjala.manipulation_3d_activee = !m_jorjala.manipulation_3d_activee;
 	m_vue->update();
 }
 
@@ -304,7 +277,7 @@ void EditriceVue3D::manipule_rotation()
 	m_bouton_actif->setChecked(false);
 	m_bouton_actif = m_bouton_rotation;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_ROTATION);
+    // charge_manipulatrice(m_jorjala, MANIPULATION_ROTATION);
 	m_vue->update();
 }
 
@@ -313,7 +286,7 @@ void EditriceVue3D::manipule_position()
 	m_bouton_actif->setChecked(false);
 	m_bouton_actif = m_bouton_position;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_POSITION);
+    // charge_manipulatrice(m_jorjala, MANIPULATION_POSITION);
 	m_vue->update();
 }
 
@@ -322,7 +295,7 @@ void EditriceVue3D::manipule_echelle()
 	m_bouton_actif->setChecked(false);
 	m_bouton_actif = m_bouton_echelle;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_ECHELLE);
+    // charge_manipulatrice(m_jorjala, MANIPULATION_ECHELLE);
 	m_vue->update();
 }
 

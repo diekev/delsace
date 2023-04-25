@@ -52,7 +52,7 @@ class EditriceLigneTemps : public BaseEditrice {
 	QDoubleSpinBox *m_fps;
 
 public:
-	explicit EditriceLigneTemps(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	EditriceLigneTemps(EditriceLigneTemps const &) = default;
 	EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;

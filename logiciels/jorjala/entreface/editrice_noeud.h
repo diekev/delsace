@@ -40,7 +40,7 @@ class EditriceGraphe : public BaseEditrice {
 	QComboBox *m_selecteur_graphe;
 
 public:
-	explicit EditriceGraphe(Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
 	EditriceGraphe(EditriceGraphe const &) = default;
 	EditriceGraphe &operator=(EditriceGraphe const &) = default;

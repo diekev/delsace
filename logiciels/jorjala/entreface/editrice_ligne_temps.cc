@@ -43,13 +43,11 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/outils/fichier.hh"
 
-#include "coeur/composite.h"
 #include "coeur/evenement.h"
-#include "coeur/jorjala.hh"
+#include "jorjala.hh"
 
-EditriceLigneTemps::EditriceLigneTemps(Jorjala &jorjala, QWidget *parent)
+EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
 	, m_slider(new QSlider(m_frame))
 	, m_tc_layout(new QHBoxLayout())
@@ -106,16 +104,16 @@ EditriceLigneTemps::EditriceLigneTemps(Jorjala &jorjala, QWidget *parent)
 
 	danjo::Manipulable dummy;
 
-	danjo::DonneesInterface donnees{};
-	donnees.conteneur = nullptr;
-	donnees.manipulable = &dummy;
-	donnees.repondant_bouton = jorjala.repondant_commande();
+//	danjo::DonneesInterface donnees{};
+//	donnees.conteneur = nullptr;
+//	donnees.manipulable = &dummy;
+//	donnees.repondant_bouton = jorjala.repondant_commande();
 
-	auto disp_controles = m_jorjala.gestionnaire_entreface->compile_entreface_fichier(
-				donnees,
-				"entreface/disposition_ligne_temps.jo");
+//	auto disp_controles = m_jorjala.gestionnaire_entreface->compile_entreface_fichier(
+//				donnees,
+//				"entreface/disposition_ligne_temps.jo");
 
-	m_tc_layout->addLayout(disp_controles);
+//	m_tc_layout->addLayout(disp_controles);
 
 	m_tc_layout->addStretch();
 
@@ -160,17 +158,17 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 	disconnect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
 	disconnect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 
-	m_slider->setMinimum(m_jorjala.temps_debut);
-	m_start_frame->setValue(m_jorjala.temps_debut);
+    m_slider->setMinimum(m_jorjala.temps_début());
+    m_start_frame->setValue(m_jorjala.temps_début());
 
-	m_slider->setMaximum(m_jorjala.temps_fin);
-	m_end_frame->setValue(m_jorjala.temps_fin);
+    m_slider->setMaximum(m_jorjala.temps_fin());
+    m_end_frame->setValue(m_jorjala.temps_fin());
 
-	m_cur_frame->setValue(m_jorjala.temps_courant);
+    m_cur_frame->setValue(m_jorjala.temps_courant());
 
-	m_slider->setValue(m_jorjala.temps_courant);
+    m_slider->setValue(m_jorjala.temps_courant());
 
-	m_fps->setValue(m_jorjala.cadence);
+    m_fps->setValue(m_jorjala.cadence());
 
 	connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
 	connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
@@ -181,26 +179,26 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 void EditriceLigneTemps::setStartFrame(int value)
 {
 	this->rend_actif();
-	m_jorjala.temps_debut = value;
+    m_jorjala.temps_début(value);
 }
 
 void EditriceLigneTemps::setEndFrame(int value)
 {
 	this->rend_actif();
-	m_jorjala.temps_fin = value;
+    m_jorjala.temps_fin(value);
 }
 
 void EditriceLigneTemps::setCurrentFrame(int value)
 {
 	this->rend_actif();
-	m_jorjala.temps_courant = value;
-	m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
+    m_jorjala.temps_courant(value);
+//	m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
 
-	m_jorjala.notifie_observatrices(type_evenement::temps | type_evenement::modifie);
+    m_jorjala.notifie_observatrices(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
 }
 
 void EditriceLigneTemps::setFPS(double value)
 {
 	this->rend_actif();
-	m_jorjala.cadence = value;
+    m_jorjala.cadence(value);
 }

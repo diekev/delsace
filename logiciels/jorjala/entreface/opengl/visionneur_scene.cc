@@ -47,10 +47,10 @@
 
 /* ************************************************************************** */
 
-VisionneurScene::VisionneurScene(VueCanevas3D *parent, Jorjala &jorjala)
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
 	: m_parent(parent)
 	, m_jorjala(jorjala)
-	, m_camera(jorjala.camera_3d)
+    //, m_camera(jorjala.camera_3d)
 	, m_rendu_texte(nullptr)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
@@ -91,6 +91,7 @@ void VisionneurScene::peint_opengl()
 	/* dessine la scène dans le tampon */
 	auto stats = StatistiquesRendu{};
 
+#if 0
 	auto contexte_eval = cree_contexte_evaluation(m_jorjala);
 	contexte_eval.rendu_final = false;
 	contexte_eval.camera_rendu = m_camera;
@@ -172,6 +173,7 @@ void VisionneurScene::peint_opengl()
 
 	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
 
+    // À FAIRE : stats rendu
 	ss.chn("");
 	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
 	m_rendu_texte->dessine(m_contexte, ss.chn());
@@ -217,6 +219,7 @@ void VisionneurScene::peint_opengl()
 		ss << "Temps             : " << stats.temps << 's';
 		m_rendu_texte->dessine(m_contexte, ss.chn());
 	}
+#endif
 
 	glDisable(GL_BLEND);
 

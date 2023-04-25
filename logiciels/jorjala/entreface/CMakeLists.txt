@@ -27,17 +27,20 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_QT5_WIDGETS}
 	${INCLUSIONS_QT5_OPENGL}
+        /home/kevin/src/repos/delsace_privé/GreffonsBlender/Jorjala/Programme
 )
 
 set(BIBLIOTHEQUES
 	danjo
 	${BIBLIOTHEQUES_QT5_WIDGETS}
 	${BIBLIOTHEQUES_QT5_OPENGL}
-#	${BIBLIOTHEQUES_OPENGL}
-#	ego
-#	bib_opengl
-#	bib_texture
-#	bib_outils
+        ${BIBLIOTHEQUES_OPENGL}
+        ego
+        bib_opengl
+        bib_texture
+        bib_outils
+        bib_patrons
+        bib_vision
 #	jorjala_coeur
 #	jorjala_evaluation
 )
@@ -47,14 +50,14 @@ add_compile_options(-fPIC)
 qt5_wrap_cpp(
 	moc_headers
 
-#	barre_progres.hh
-#	base_editrice.h
+        barre_progres.hh
+        base_editrice.h
 #	editrice_arborescence.hh
-#	editrice_ligne_temps.h
-#	editrice_noeud.h
+        editrice_ligne_temps.h
+        editrice_noeud.h
 #	editrice_rendu.h
-#	editrice_vue2d.h
-#	editrice_vue3d.h
+        editrice_vue2d.h
+        editrice_vue3d.h
 	fenetre_principale.h
 )
 
@@ -232,45 +235,47 @@ set(FICHIERS_DANJO
 )
 
 add_library(${NOM_CIBLE} STATIC
-#	graphe/item_noeud.h
-#	graphe/vue_editrice_graphe.h
+        graphe/item_noeud.h
+        graphe/vue_editrice_graphe.h
 
-#	opengl/rendu_image.h
-#	opengl/rendu_manipulatrice_2d.h
-#	opengl/rendu_manipulatrice.h
-#	opengl/visionneur_scene.h
+        opengl/rendu_image.h
+        opengl/rendu_manipulatrice_2d.h
+        opengl/rendu_manipulatrice.h
+        opengl/visionneur_scene.h
 
-#	barre_progres.hh
-#	base_editrice.h
+        barre_progres.hh
+        base_editrice.h
 #	editrice_arborescence.hh
-#	editrice_ligne_temps.h
-#	editrice_noeud.h
+        editrice_ligne_temps.h
+        editrice_noeud.h
 #	editrice_proprietes.h
 #	editrice_rendu.h
-#	editrice_vue2d.h
-#	editrice_vue3d.h
+        editrice_vue2d.h
+        editrice_vue3d.h
 	fenetre_principale.h
+        gestion_entreface.hh
 
 	${moc_headers}
 
-#	graphe/item_noeud.cc
-#	graphe/vue_editrice_graphe.cc
+        graphe/item_noeud.cc
+        graphe/vue_editrice_graphe.cc
 
-#	opengl/rendu_image.cc
-#	opengl/rendu_manipulatrice_2d.cc
-#	opengl/rendu_manipulatrice.cc
-#	opengl/visionneur_scene.cc
+        opengl/rendu_image.cc
+        opengl/rendu_manipulatrice_2d.cc
+        opengl/rendu_manipulatrice.cc
+        opengl/visionneur_scene.cc
 
-#	barre_progres.cc
-#	base_editrice.cc
+        barre_progres.cc
+        base_editrice.cc
 #	editrice_arborescence.cc
-#	editrice_ligne_temps.cc
-#	editrice_noeud.cc
+        editrice_ligne_temps.cc
+        editrice_noeud.cc
 #	editrice_proprietes.cc
 #	editrice_rendu.cc
-#	editrice_vue2d.cc
-#	editrice_vue3d.cc
+        editrice_vue2d.cc
+        editrice_vue3d.cc
 	fenetre_principale.cc
+        gestion_entreface.cc
 
 	${FICHIERS_DANJO}
 	${NUANCEURS}

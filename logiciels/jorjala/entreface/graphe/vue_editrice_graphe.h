@@ -34,16 +34,19 @@
 #pragma GCC diagnostic pop
 
 class EditriceGraphe;
-struct Jorjala;
 class QMenu;
 class RepondantCommande;
+
+namespace JJL {
+class Jorjala;
+}
 
 namespace danjo {
 class GestionnaireInterface;
 }  /* namespace danjo */
 
 class VueEditeurNoeud : public QGraphicsView {
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 	EditriceGraphe *m_base;
 
 	QMenu *m_menu_ajout_noeud_composite = nullptr;
@@ -59,7 +62,7 @@ class VueEditeurNoeud : public QGraphicsView {
 
 public:
 	VueEditeurNoeud(
-			Jorjala &jorjala,
+            JJL::Jorjala &jorjala,
 			EditriceGraphe *base,
 			QWidget *parent = nullptr);
 

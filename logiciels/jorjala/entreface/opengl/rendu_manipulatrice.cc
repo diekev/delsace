@@ -274,6 +274,7 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 		return;
 	}
 
+#if 0
 	auto etat = m_pointeur->etat();
 	dls::math::vec4f couleur;
 
@@ -324,6 +325,7 @@ void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
 	programme->active();
 	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
 	programme->desactive();
+#endif
 }
 
 void RenduManipulatricePosition::dessine(ContexteRendu const &contexte)
@@ -374,6 +376,7 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 //		m_tampon_axe_z = cree_tampon_axe(2, pointeur->taille().z);
 //	}
 
+#if 0
 	auto etat = m_pointeur->etat();
 	dls::math::vec4f couleur;
 
@@ -424,6 +427,7 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 	programme->active();
 	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
 	programme->desactive();
+#endif
 }
 
 void RenduManipulatriceEchelle::dessine(ContexteRendu const &contexte)
@@ -549,6 +553,7 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 		return;
 	}
 
+#if 0
 	auto etat = m_pointeur->etat();
 
 	dls::math::vec4f couleur;
@@ -588,6 +593,7 @@ void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)
 	programme->active();
 	programme->uniforme("couleur", couleur.r, couleur.g, couleur.b, couleur.a);
 	programme->desactive();
+#endif
 }
 
 void RenduManipulatriceRotation::dessine(ContexteRendu const &contexte)
