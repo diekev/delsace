@@ -43,8 +43,6 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
 
-//#include "coeur/composite.h"
-#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
 //#include "coeur/tache.h"
 
@@ -215,7 +213,7 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
 	dock->setAttribute(Qt::WA_DeleteOnClose);
 
     if (editrice) {
-        editrice->ajourne_etat(type_evenement::rafraichissement);
+        editrice->ajourne_etat(static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
         dock->setWidget(editrice);
     }
 	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -231,12 +229,12 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
 
 void FenetrePrincipale::image_traitee()
 {
-    // m_jorjala.notifie_observatrices(type_evenement::image | type_evenement::traite);
+    m_jorjala.notifie_observatrices(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
 }
 
 void FenetrePrincipale::signale_proces(int quoi)
 {
-    // m_jorjala.notifie_observatrices(quoi);
+    m_jorjala.notifie_observatrices(static_cast<JJL::TypeEvenement>(quoi));
 }
 
 void FenetrePrincipale::tache_demarree()

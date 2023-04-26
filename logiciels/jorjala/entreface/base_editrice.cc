@@ -31,12 +31,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
-#include <QLabel>
 #include <QHBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QStyle>
-#include <QVariant>
 #pragma GCC diagnostic pop
 
 #include "gestion_entreface.hh"

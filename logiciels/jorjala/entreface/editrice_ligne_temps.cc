@@ -34,12 +34,9 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QDoubleSpinBox>
 #include <QFrame>
-#include <QGridLayout>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QSlider>
 #include <QSpinBox>
-#include <QTimer>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
