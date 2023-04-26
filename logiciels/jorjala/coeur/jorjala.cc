@@ -24,6 +24,119 @@
 
 #include "jorjala.hh"
 
+#if 1
+
+#include "danjo/danjo.h"
+
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+
+#include "commandes/commandes_edition.h"
+#include "commandes/commandes_noeuds.h"
+#include "commandes/commandes_objet.hh"
+#include "commandes/commandes_projet.h"
+#include "commandes/commandes_rendu.h"
+#include "commandes/commandes_temps.h"
+#include "commandes/commandes_vue2d.h"
+#include "commandes/commandes_vue3d.h"
+
+#include "ipa/table_types.c"
+
+namespace detail {
+
+static void notifie_observatrices(void *donnees, JJL::TypeEvenement evenement)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    données_programme->sujette.notifie_observatrices(static_cast<int>(evenement));
+}
+
+static void ajoute_observatrice(void *donnees, void *ptr_observatrice)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    Observatrice *observatrice = static_cast<Observatrice *>(ptr_observatrice);
+    données_programme->sujette.ajoute_observatrice(observatrice);
+}
+
+}
+
+static void enregistre_commandes(UsineCommande &usine_commande)
+{
+    enregistre_commandes_graphes(usine_commande);
+    enregistre_commandes_objet(usine_commande);
+    enregistre_commandes_projet(usine_commande);
+    enregistre_commandes_edition(usine_commande);
+    enregistre_commandes_rendu(usine_commande);
+    enregistre_commandes_temps(usine_commande);
+    enregistre_commandes_vue2d(usine_commande);
+    enregistre_commandes_vue3d(usine_commande);
+}
+
+static void initialise_données_programme(DonnéesProgramme *données_programme, JJL::Jorjala &jorjala)
+{
+    auto gestionnaire_jjl = jorjala.crée_gestionnaire_fenêtre(données_programme);
+    gestionnaire_jjl.mute_rappel_ajout_observatrice(reinterpret_cast<void *>(detail::ajoute_observatrice));
+    gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
+
+    données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface");
+    données_programme->usine_commande = memoire::loge<UsineCommande>("UsineCommande");
+    données_programme->repondant_commande = memoire::loge<RepondantCommande>("RepondantCommande", *données_programme->usine_commande, jorjala);
+
+    enregistre_commandes(*données_programme->usine_commande);
+}
+
+std::optional<JJL::Jorjala> initialise_jorjala()
+{
+    if (!initialise_jorjala("/opt/bin/jorjala/ipa/jorjala.so")) {
+        return {};
+    }
+
+    JJL::Jorjala jorjala = JJL::crée_instance_jorjala();
+    if (jorjala == nullptr) {
+        return {};
+    }
+
+    /* Initialise les données pour communiquer avec l'interface. */
+    auto données_programme = memoire::loge<DonnéesProgramme>("DonnéesProgramme");
+    initialise_données_programme(données_programme, jorjala);
+
+    return jorjala;
+}
+
+DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
+{
+    auto données_programme = jorjala.gestionnaire_fenêtre();
+    return static_cast<DonnéesProgramme *>(données_programme.données());
+}
+
+void ajoute_observatrice(JJL::Jorjala &jorjala, Observatrice *observatrice)
+{
+    auto données = accède_données_programme(jorjala);
+    observatrice->observe(&données->sujette);
+}
+
+RepondantCommande *repondant_commande(JJL::Jorjala &jorjala)
+{
+    auto données = accède_données_programme(jorjala);
+    return données->repondant_commande;
+}
+
+danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala)
+{
+    auto données = accède_données_programme(jorjala);
+    return données->gestionnaire_danjo;
+}
+
+danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala, danjo::Manipulable *manipulable, danjo::ConteneurControles *conteneur)
+{
+    danjo::DonneesInterface résultat{};
+    résultat.conteneur = nullptr;
+    résultat.repondant_bouton = repondant_commande(jorjala);
+    résultat.manipulable = manipulable;
+    return résultat;
+}
+
+#else
+
 #include <algorithm>
 
 #pragma GCC diagnostic push
@@ -324,3 +437,5 @@ void Jorjala::refait()
 
 //	auto etat = pile_refait.depile();
 }
+
+#endif

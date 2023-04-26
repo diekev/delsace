@@ -24,6 +24,7 @@
 
 #include "commandes_vue3d.h"
 
+#if 0
 #include <iostream>
 
 #pragma GCC diagnostic push
@@ -359,11 +360,13 @@ public:
 		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue3d(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("commande_zoom_camera_3d",
 						   description_commande<CommandeZoomCamera3D>(
 							   "vue_3d", Qt::MiddleButton, 0, 0, true));
@@ -383,6 +386,7 @@ void enregistre_commandes_vue3d(UsineCommande &usine)
 	usine.enregistre_type("commande_deplace_manipulatrice_3d",
 						   description_commande<CommandeDeplaceManipulatrice>(
 							   "vue_3d", Qt::LeftButton, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

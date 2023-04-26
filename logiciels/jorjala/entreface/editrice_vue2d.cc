@@ -49,7 +49,7 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 #include "gestion_entreface.hh"
 

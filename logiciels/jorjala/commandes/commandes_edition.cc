@@ -39,13 +39,15 @@
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
+//#include "coeur/composite.h"
+//#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
-#include "coeur/nuanceur.hh"
-#include "coeur/operatrice_image.h"
+//#include "coeur/nuanceur.hh"
+//#include "coeur/operatrice_image.h"
 
-#include "evaluation/evaluation.hh"
+// #include "evaluation/evaluation.hh"
+
+#include "entreface/gestion_entreface.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -57,18 +59,15 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto jorjala = extrait_jorjala(pointeur);
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-		auto graphe = jorjala->graphe;
+        auto gestionnaire = gestionnaire_danjo(jorjala);
+        auto graphe = jorjala.graphe();
 
-		if (graphe->noeud_actif == nullptr) {
+        if (graphe.noeud_actif() == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		danjo::Manipulable resultat;
-		danjo::DonneesInterface donnees_entreface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
 
 		auto ok = gestionnaire->montre_dialogue_fichier(
 					donnees_entreface,
@@ -78,8 +77,6 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto noeud = graphe->noeud_actif;
-		auto operatrice = extrait_opimage(noeud->donnees);
 
 		auto attache = resultat.evalue_chaine("attache_propriete");
 		auto type = resultat.evalue_enum("type_propriete");
@@ -99,9 +96,13 @@ public:
 			prop.valeur = 0.0f;
 		}
 
+#if 0 // À FAIRE
+        auto noeud = graphe.noeud_actif;
+        auto operatrice = extrait_opimage(noeud->donnees);
 		operatrice->ajoute_propriete_extra(attache, prop);
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::propriete | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::PROPRIÉTÉ | JJL::TypeEvenement::AJOUTÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -115,9 +116,11 @@ public:
 	{
 		auto jorjala = extrait_jorjala(pointeur);
 
-		jorjala->bdd.cree_composite("composite");
+#if 0 // À FAIRE
+        jorjala.bdd.cree_composite("composite");
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -131,9 +134,11 @@ public:
 	{
 		auto jorjala = extrait_jorjala(pointeur);
 
-		jorjala->bdd.cree_nuanceur("nuanceur");
+#if 0 // À FAIRE
+        jorjala.bdd.cree_nuanceur("nuanceur");
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -147,10 +152,12 @@ public:
 	{
 		auto jorjala = extrait_jorjala(pointeur);
 
-		auto nuanceur = jorjala->bdd.cree_nuanceur("nuanceur");
+#if 0 // À FAIRE
+        auto nuanceur = jorjala.bdd.cree_nuanceur("nuanceur");
 		nuanceur->marque_est_cycles();
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -161,14 +168,15 @@ public:
 struct CommandeCreeNuanceurOperatrice final : public Commande {
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
+#if 0 // À FAIRE
 		auto jorjala = extrait_jorjala(pointeur);
-		auto graphe = jorjala->graphe;
+        auto graphe = jorjala.graphe();
 
-		if (graphe->noeud_actif == nullptr) {
+        if (graphe.noeud_actif() == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto noeud = graphe->noeud_actif;
+        auto noeud = graphe.noeud_actif();
 
 		if (noeud->type != type_noeud::OPERATRICE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -181,15 +189,10 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 		}
 
 		auto resultat = danjo::Manipulable();
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
+        auto gestionnaire = gestionnaire_danjo(jorjala);
 
-		auto donnees_entreface = danjo::DonneesInterface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
-
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-
-		auto ok = gestionnaire->montre_dialogue_fichier(
+        auto ok = gestionnaire->montre_dialogue_fichier(
 					donnees_entreface,
 					"entreface/dialogue_creation_nuanceur.jo");
 
@@ -198,7 +201,7 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 		}
 
 		auto nom_nuanceur = resultat.evalue_chaine("nom_nuanceur");
-		auto nuanceur = jorjala->bdd.cree_nuanceur(nom_nuanceur);
+        auto nuanceur = jorjala.bdd.cree_nuanceur(nom_nuanceur);
 
 		op->valeur_chaine("nom_nuanceur", nuanceur->noeud.nom);
 
@@ -215,9 +218,10 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 
 		op->parametres_changes();
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
 		requiers_evaluation(*jorjala, PARAMETRE_CHANGE, "réponse commande ajout nuanceur opératrice");
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -231,9 +235,11 @@ public:
 	{
 		auto jorjala = extrait_jorjala(pointeur);
 
-		jorjala->bdd.cree_rendu("rendu");
+#if 0 // À FAIRE
+        jorjala.bdd.cree_rendu("rendu");
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -245,17 +251,23 @@ class CommandeDefait final : public Commande {
 public:
 	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
 	{
+#if 0 // À FAIRE
 		INUTILISE(metadonnee);
 		auto jorjala = extrait_jorjala(pointeur);
-		return !jorjala->pile_defait.est_vide();
+        return !jorjala.pile_defait.est_vide();
+#else
+        return false;
+#endif
 	}
 
 	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
 	{
+#if 0 // À FAIRE
 		INUTILISE(metadonnee);
 		auto jorjala = extrait_jorjala(pointeur);
-		jorjala->defait();
-		jorjala->notifie_observatrices(type_evenement::rafraichissement);
+        jorjala.defait();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -267,19 +279,25 @@ class CommandeRefait final : public Commande {
 public:
 	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
 	{
+#if 0 // À FAIRE
 		INUTILISE(metadonnee);
 		auto jorjala = extrait_jorjala(pointeur);
-		return !jorjala->pile_refait.est_vide();
+        return !jorjala.pile_refait.est_vide();
+#else
+        return false;
+#endif
 	}
 
 	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
 	{
+#if 0 // À FAIRE
 		INUTILISE(metadonnee);
 		auto jorjala = extrait_jorjala(pointeur);
-		jorjala->refait();
-		jorjala->notifie_observatrices(type_evenement::rafraichissement);
+        jorjala.refait();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
+#endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
+        return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
 
@@ -290,23 +308,20 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
 	{
 		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-		auto graphe = jorjala->graphe;
+        auto jorjala = extrait_jorjala(pointeur);
+        auto graphe = jorjala.graphe();
 
-		if (graphe->noeud_actif == nullptr) {
+        if (graphe.noeud_actif() == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto noeud = graphe->noeud_actif;
+        auto noeud = graphe.noeud_actif();
 
 		auto resultat = danjo::Manipulable();
-		resultat.ajoute_propriete("nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud->nom);
+        resultat.ajoute_propriete("nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud.nom().vers_std_string());
 
-		danjo::DonneesInterface donnees_entreface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
+        auto gestionnaire = gestionnaire_danjo(jorjala);
 
 		auto ok = gestionnaire->montre_dialogue_fichier(
 					donnees_entreface,
@@ -316,10 +331,12 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
+#if 0 // À FAIRE
 		auto nom = resultat.evalue_chaine("nouveau_nom");
-		noeud->nom = graphe->rend_nom_unique(nom);
+        noeud->nom = graphe.rend_nom_unique(nom);
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

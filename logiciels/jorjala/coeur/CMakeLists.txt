@@ -27,23 +27,26 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_QT5_CORE}
 	${INCLUSIONS_QT5_WIDGETS}
+        ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
 	bib_outils
 	bib_patrons
 	bib_vision
-	bib_xml
+        # bib_xml
 	bib_structures
 	danjo
 	image
 	memoire
-	jorjala_corps
+        jorjala_commandes
+        # jorjala_corps
 	pthread
 	systeme_fichier
-	wolika
+        # wolika
 	${BIBLIOTHEQUES_TBB}
 	stdc++fs
+        dl
 )
 
 qt5_wrap_cpp(
@@ -60,71 +63,71 @@ target_include_directories(qt_jorjala_coeur PUBLIC "${INCLUSIONS}")
 desactive_drapeaux_compilation(qt_jorjala_coeur)
 
 add_library(${NOM_CIBLE} STATIC
-	arbre_hbe.cc
-	base_de_donnees.cc
-	chef_execution.cc
-	compileuse_lcc.cc
-	composite.cc
-	configuration.cc
-	contexte_evaluation.cc
-	delegue_hbe.cc
-	donnees_aval.cc
-	donnees_simulation.cc
-	editrice.cc
-	evenement.cc
-	gestionnaire_fichier.cc
-	graphe.cc
-	image.cc
-	imprimeuse_graphe.cc
-	jorjala.cc
-	manipulatrice.cc
-	noeud.cc
-	noeud_image.cc
-	nuanceur.cc
-	objet.cc
-	operatrice_corps.cc
-	operatrice_graphe_detail.cc
-	operatrice_image.cc
-	operatrice_pixel.cc
-	operatrice_simulation.cc
-	outils_entreface.cc
-	rendu.cc
-	sauvegarde.cc
-	tache.cc
-	usine_operatrice.cc
+#	arbre_hbe.cc
+#	base_de_donnees.cc
+#	chef_execution.cc
+#	compileuse_lcc.cc
+#	composite.cc
+#	configuration.cc
+#	contexte_evaluation.cc
+#	delegue_hbe.cc
+#	donnees_aval.cc
+#	donnees_simulation.cc
+#	editrice.cc
+#	evenement.cc
+#	gestionnaire_fichier.cc
+#	graphe.cc
+#	image.cc
+#	imprimeuse_graphe.cc
+        jorjala.cc
+#	manipulatrice.cc
+#	noeud.cc
+#	noeud_image.cc
+#	nuanceur.cc
+#	objet.cc
+#	operatrice_corps.cc
+#	operatrice_graphe_detail.cc
+#	operatrice_image.cc
+#	operatrice_pixel.cc
+#	operatrice_simulation.cc
+#	outils_entreface.cc
+#	rendu.cc
+#	sauvegarde.cc
+#	tache.cc
+#	usine_operatrice.cc
 
-	arbre_hbe.hh
-	base_de_donnees.hh
-	chef_execution.hh
-	compileuse_lcc.hh
-	composite.h
-	configuration.h
-	contexte_evaluation.hh
-	delegue_hbe.hh
-	donnees_aval.hh
-	donnees_simulation.hh
-	editrice.hh
-	evenement.h
-	gestionnaire_fichier.hh
-	graphe.hh
-	image.hh
-	imprimeuse_graphe.h
-	jorjala.hh
-	manipulatrice.h
-	noeud.hh
-	noeud_image.h
-	nuanceur.hh
-	objet.h
-	operatrice_corps.h
-	operatrice_graphe_detail.hh
-	operatrice_image.h
-	operatrice_pixel.h
-	operatrice_simulation.hh
-	outils_entreface.hh
-	rendu.hh
-	sauvegarde.h
-	tache.h
-	usine_operatrice.h
+#	arbre_hbe.hh
+#	base_de_donnees.hh
+#	chef_execution.hh
+#	compileuse_lcc.hh
+#	composite.h
+#	configuration.h
+#	contexte_evaluation.hh
+#	delegue_hbe.hh
+#	donnees_aval.hh
+#	donnees_simulation.hh
+#	editrice.hh
+#	evenement.h
+#	gestionnaire_fichier.hh
+#	graphe.hh
+#	image.hh
+#	imprimeuse_graphe.h
+        jorjala.hh
+#	manipulatrice.h
+#	noeud.hh
+#	noeud_image.h
+#	nuanceur.hh
+#	objet.h
+#	operatrice_corps.h
+#	operatrice_graphe_detail.hh
+#	operatrice_image.h
+#	operatrice_pixel.h
+#	operatrice_simulation.hh
+#	outils_entreface.hh
+#	rendu.hh
+#	sauvegarde.h
+#	tache.h
+#	usine_operatrice.h
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

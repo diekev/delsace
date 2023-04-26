@@ -24,6 +24,58 @@
 
 #pragma once
 
+#if 1
+
+#include "biblinternes/patrons_conception/observation.hh"
+
+#include <any>
+#include <optional>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include "ipa/jorjala.hh"
+#pragma GCC pop
+
+namespace danjo {
+class ConteneurControles;
+class GestionnaireInterface;
+class Manipulable;
+struct DonneesInterface;
+}
+
+class BaseEditrice;
+class RepondantCommande;
+class UsineCommande;
+
+struct DonnéesProgramme {
+    Sujette sujette{};
+    BaseEditrice *editrice_active = nullptr;
+    danjo::GestionnaireInterface *gestionnaire_danjo = nullptr;
+    UsineCommande *usine_commande = nullptr;
+    RepondantCommande *repondant_commande = nullptr;
+};
+
+std::optional<JJL::Jorjala> initialise_jorjala();
+
+/* Extrait une valeur de type Jorjala depuis un std::any.
+ * Ceci est utilisé pour les commandes. */
+inline JJL::Jorjala extrait_jorjala(std::any const &any)
+{
+    return std::any_cast<JJL::Jorjala>(any);
+}
+
+DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala);
+
+void ajoute_observatrice(JJL::Jorjala &jorjala, Observatrice *observatrice);
+
+RepondantCommande *repondant_commande(JJL::Jorjala &jorjala);
+
+danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala);
+
+danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala, danjo::Manipulable *manipulable, danjo::ConteneurControles *conteneur = nullptr);
+
+#else
+
 #include <thread>
 
 #include "biblinternes/patrons_conception/observation.hh"
@@ -193,3 +245,5 @@ inline Jorjala *extrait_jorjala(std::any const &any)
 {
 	return std::any_cast<Jorjala *>(any);
 }
+
+#endif

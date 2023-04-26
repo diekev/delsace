@@ -48,7 +48,7 @@
 
 #include "gestion_entreface.hh"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 #include "opengl/visionneur_scene.h"
 

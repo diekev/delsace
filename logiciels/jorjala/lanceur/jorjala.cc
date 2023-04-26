@@ -34,10 +34,8 @@
 //#include "coeur/sauvegarde.h"
 
 #include "entreface/fenetre_principale.h"
-#include "entreface/gestion_entreface.hh"
 
-#include "jorjala.hh"
-#include "table_types.c"
+#include "coeur/jorjala.hh"
 
 #include <iostream>
 
@@ -48,7 +46,6 @@
   FenetrePrincipale :
     m_jorjala.fichiers_recents
     m_jorjala.ajoute_fichier_recent
-    m_jorjala.repondant_commande
     m_jorjala.gestionnaire_entreface->compile_barre_outils_fichier
 
   EditriceLigneTemps :
@@ -87,27 +84,19 @@
     cree_contexte_evaluation
     m_jorjala.bdd.rendu
 
-  gestion_entreface
-    jorjala.repondant_commande
-
   EditriceProprietes
     noeud->type
-    m_jorjala.repondant_commande
-    m_jorjala.gestionnaire_entreface
 
 */
 
 int main(int argc, char *argv[])
 {
-    if (!initialise_jorjala("/home/kevin/src/repos/delsace_privé/GreffonsBlender/Jorjala/blender/jorjala.so")) {
+    std::optional<JJL::Jorjala> jorjala_initialisé = initialise_jorjala();
+    if (!jorjala_initialisé.has_value()) {
         return 1;
     }
 
-    JJL::Jorjala jorjala = JJL::crée_instance_jorjala();
-
-    /* Création du système de notification d'évènement. */
-    GestionnaireEntreface gestionnaire;
-    initialise_gestion_entreface(&gestionnaire, jorjala);
+    JJL::Jorjala jorjala = jorjala_initialisé.value();
 
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("delsace");

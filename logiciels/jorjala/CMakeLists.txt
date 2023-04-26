@@ -23,6 +23,8 @@
 
 set(NOM_PROJET jorjala)
 
+set(INCLUSIONS_JORJALA /opt/bin/jorjala)
+
 if(AVEC_CYCLES)
 	add_subdirectory(cycles)
 
@@ -41,8 +43,8 @@ if(AVEC_CYCLES)
 	desactive_drapeaux_compilation_c(extern_libc_compat)
 endif()
 
-#add_subdirectory(coeur)
-#add_subdirectory(commandes)
+add_subdirectory(coeur)
+add_subdirectory(commandes)
 #add_subdirectory(corps)
 add_subdirectory(entreface)
 #add_subdirectory(evaluation)

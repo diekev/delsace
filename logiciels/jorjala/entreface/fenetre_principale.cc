@@ -45,7 +45,7 @@
 
 //#include "coeur/composite.h"
 #include "coeur/evenement.h"
-//#include "coeur/jorjala.hh"
+#include "coeur/jorjala.hh"
 //#include "coeur/tache.h"
 
 #include "barre_progres.hh"
@@ -56,8 +56,6 @@
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
-
-// #include "jorjala.hh"
 
 static const char *chemins_scripts[] = {
 	"entreface/menu_fichier.jo",
@@ -143,7 +141,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 
 //	danjo::DonneesAction donnees{};
 //	donnees.attache = "ouvrir_fichier_recent";
-//	donnees.repondant_bouton = m_jorjala.repondant_commande();
+//	donnees.repondant_bouton = repondant_commande(m_jorjala);
 
 //	for (auto const &fichier_recent : m_jorjala.fichiers_recents()) {
 //		auto name = QFileInfo(fichier_recent.c_str()).fileName();
@@ -164,16 +162,13 @@ void FenetrePrincipale::closeEvent(QCloseEvent *)
 
 void FenetrePrincipale::genere_barre_menu()
 {
-//	danjo::DonneesInterface donnees{};
-//	donnees.manipulable = nullptr;
-//	donnees.conteneur = nullptr;
-//	donnees.repondant_bouton = m_jorjala.repondant_commande();
+    auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
 
-//	for (auto const &chemin : chemins_scripts) {
-//		auto menu = m_jorjala.gestionnaire_entreface->compile_menu_fichier(donnees, chemin);
-
-//		menuBar()->addMenu(menu);
-//	}
+    for (auto const &chemin : chemins_scripts) {
+        auto menu = gestionnaire->compile_menu_fichier(donnees, chemin);
+        menuBar()->addMenu(menu);
+    }
 
 //	auto menu_fichiers_recents = m_jorjala.gestionnaire_entreface->pointeur_menu("Projets Récents");
 //	connect(menu_fichiers_recents, SIGNAL(aboutToShow()),
@@ -182,13 +177,10 @@ void FenetrePrincipale::genere_barre_menu()
 
 void FenetrePrincipale::genere_menu_prereglages()
 {
-//	danjo::DonneesInterface donnees{};
-//	donnees.manipulable = nullptr;
-//	donnees.conteneur = nullptr;
-//	donnees.repondant_bouton = m_jorjala.repondant_commande();
-
-//	m_barre_outil = m_jorjala.gestionnaire_entreface->compile_barre_outils_fichier(donnees, "entreface/menu_prereglage.jo");
-//	addToolBar(Qt::TopToolBarArea, m_barre_outil);
+    auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees, "entreface/menu_prereglage.jo");
+    addToolBar(Qt::TopToolBarArea, m_barre_outil);
 }
 
 QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier)

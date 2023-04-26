@@ -39,6 +39,7 @@ class CommandeOuvrir final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
+#if 0
 		auto jorjala = extrait_jorjala(pointeur);
 		auto const chemin_projet = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.jorjala");
 
@@ -47,6 +48,7 @@ public:
 		}
 
 		coeur::ouvre_projet(chemin_projet.c_str(), *jorjala);
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -58,8 +60,10 @@ class CommandeOuvrirRecent final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
+#if 0
 		auto jorjala = extrait_jorjala(pointeur);
 		coeur::ouvre_projet(donnees.metadonnee.c_str(), *jorjala);
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -69,18 +73,21 @@ public:
 
 static void sauve_fichier_sous(Jorjala &jorjala)
 {
+#if 0
 	auto const &chemin_projet = jorjala.requiers_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
 
 	jorjala.chemin_projet(chemin_projet);
 	jorjala.projet_ouvert(true);
 
 	coeur::sauvegarde_projet(chemin_projet.c_str(), jorjala);
+#endif
 }
 
 class CommandeSauvegarder final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
+#if 0
 		auto jorjala = extrait_jorjala(pointeur);
 
 		if (jorjala->projet_ouvert()) {
@@ -89,6 +96,7 @@ public:
 		else {
 			sauve_fichier_sous(*jorjala);
 		}
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -100,11 +108,13 @@ class CommandeSauvegarderSous final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
+#if 0
 		auto jorjala = extrait_jorjala(pointeur);
 		sauve_fichier_sous(*jorjala);
+#endif
 
 		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    }
 };
 
 /* ************************************************************************** */
@@ -125,7 +135,7 @@ void enregistre_commandes_projet(UsineCommande &usine)
 
 	usine.enregistre_type("sauvegarder_sous",
 						   description_commande<CommandeSauvegarderSous>(
-							   "projet", 0, 0, 0, false));
+                               "projet", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop

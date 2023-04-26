@@ -24,6 +24,8 @@
 
 #include "commandes_rendu.h"
 
+#if 0
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -257,11 +259,13 @@ public:
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_rendu(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("rendu_image",
 						   description_commande<CommandeRenduImage>(
 							   "rendu", 0, 0, 0, false));
@@ -269,6 +273,7 @@ void enregistre_commandes_rendu(UsineCommande &usine)
 	usine.enregistre_type("rendu_sequence",
 						   description_commande<CommandeRenduSequence>(
 							   "rendu", 0, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

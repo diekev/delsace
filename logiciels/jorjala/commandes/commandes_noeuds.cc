@@ -24,6 +24,7 @@
 
 #include "commandes_noeuds.h"
 
+#if 0
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -1201,11 +1202,13 @@ struct CommandeAjoutPriseNoeud final : public Commande {
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_graphes(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("dessine_graphe_composite",
 						   description_commande<CommandeDessineGrapheComposite>(
 							   "graphe", 0, 0, 0, false));
@@ -1277,6 +1280,7 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 	usine.enregistre_type("ajout_prise_noeud",
 						   description_commande<CommandeAjoutPriseNoeud>(
 							   "graphe", 0, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

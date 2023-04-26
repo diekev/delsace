@@ -41,7 +41,7 @@
 
 #include "gestion_entreface.hh"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 BaseEditrice::BaseEditrice(JJL::Jorjala &jorjala, QWidget *parent)
 	: danjo::ConteneurControles(parent)

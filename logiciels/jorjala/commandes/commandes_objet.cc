@@ -24,6 +24,7 @@
 
 #include "commandes_objet.hh"
 
+#if 0
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
 
@@ -239,11 +240,13 @@ struct CommandeImportObjet final : public Commande {
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_objet(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("ajoute_prereglage",
 						   description_commande<CommandeAjoutePrereglage>(
 							   "objet", 0, 0, 0, false));
@@ -255,4 +258,5 @@ void enregistre_commandes_objet(UsineCommande &usine)
 	usine.enregistre_type("import_objet",
 						   description_commande<CommandeImportObjet>(
 							   "objet", 0, 0, 0, false));
+#endif
 }

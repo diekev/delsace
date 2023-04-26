@@ -45,7 +45,7 @@
 
 #include "coeur/evenement.h"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 static QPointF point_central_rectangle(JJL::Rect const &rect)
 {
@@ -229,14 +229,12 @@ void EditriceGraphe::ajourne_etat(int evenement)
 
 void EditriceGraphe::sors_noeud()
 {
-//	m_jorjala.repondant_commande()->repond_clique("sors_noeud", "");
+    repondant_commande(m_jorjala)->repond_clique("sors_noeud", "");
 }
 
 void EditriceGraphe::change_contexte(int index)
 {
 	INUTILISE(index);
-//	auto repondant_commande = m_jorjala.repondant_commande();
-//	auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
-
-//	repondant_commande->repond_clique("change_contexte", valeur);
+    auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
+    repondant_commande(m_jorjala)->repond_clique("change_contexte", valeur);
 }

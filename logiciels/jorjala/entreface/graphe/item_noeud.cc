@@ -35,7 +35,7 @@
 
 #include "biblinternes/structures/tableau.hh"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 static auto const COULEUR_DECIMAL       = QColor::fromRgb(128, 128, 128);
 static auto const COULEUR_ENTIER        = QColor::fromRgb(255, 255, 255);
@@ -144,10 +144,11 @@ ItemNoeud::ItemNoeud(
 		QGraphicsItem *parent)
 	: QGraphicsRectItem(parent)
 {
-	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
 #if 0
+    auto operatrice = static_cast<OperatriceImage *>(nullptr);
+
     switch (noeud.type) {
 		case type_noeud::COMPOSITE:
 		{
@@ -279,7 +280,7 @@ void ItemNoeud::dessine_noeud_detail(
 		textes_entrees[i]->setDefaultTextColor(Qt::white);
 		textes_entrees[i]->setPos(pos_x + largeur_prise + decalage_texte, pos_y + pos_y_entree);
 
-        auto prise = prises_entrées[i];
+        auto prise = prises_entrées[static_cast<size_t>(i)];
         cree_geometrie_prise(&prise,
                              static_cast<float>(pos_x),
                              static_cast<float>(pos_y + pos_y_entree),
@@ -295,7 +296,7 @@ void ItemNoeud::dessine_noeud_detail(
 		textes_sorties[i]->setDefaultTextColor(Qt::white);
 		textes_sorties[i]->setPos(pos_x + largeur_noeud - decalage_texte - (textes_sorties[i]->boundingRect().width()) - largeur_prise, pos_y + pos_y_sortie);
 
-        auto prise = prises_sorties[i];
+        auto prise = prises_sorties[static_cast<size_t>(i)];
         cree_geometrie_prise(&prise,
                              static_cast<float>(pos_x + largeur_noeud - largeur_prise),
                              static_cast<float>(pos_y + pos_y_sortie),
@@ -427,7 +428,7 @@ void ItemNoeud::dessine_noeud_generique(
 		auto pos_sortie = pos_x + pos_debut_sorties;
 
         for (auto prise : noeud.sorties()) {
-            cree_geometrie_prise(&prise, pos_sortie, decalage_sorties_y, largeur_prise, hauteur_prise);
+            cree_geometrie_prise(&prise, static_cast<float>(pos_sortie), static_cast<float>(decalage_sorties_y), largeur_prise, hauteur_prise);
 			pos_sortie += etendue_sortie;
 		}
 	}
@@ -490,7 +491,7 @@ void ItemNoeud::finalise_dessin(
 void ItemNoeud::cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
 {
     auto item_prise = new QGraphicsRectItem(this);
-    item_prise->setRect(x, y, largeur, hauteur);
+    item_prise->setRect(static_cast<double>(x), static_cast<double>(y), static_cast<double>(largeur), static_cast<double>(hauteur));
     item_prise->setBrush(brosse_pour_type(prise->type()));
     item_prise->setPen(QPen(Qt::white, 0.5));
 

@@ -24,6 +24,7 @@
 
 #include "commandes_vue2d.h"
 
+#if 0
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -158,11 +159,13 @@ struct CommandeOutil2D final : public Commande {
 		INUTILISE(donnees);
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("commande_zoom_camera_2d",
 						   description_commande<CommandeZoomCamera2D>(
 							   "vue_2d", Qt::MiddleButton, 0, 0, true));
@@ -174,6 +177,7 @@ void enregistre_commandes_vue2d(UsineCommande &usine)
 	usine.enregistre_type("commande_outil_2d",
 						   description_commande<CommandeOutil2D>(
 							   "vue_2d", Qt::LeftButton, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

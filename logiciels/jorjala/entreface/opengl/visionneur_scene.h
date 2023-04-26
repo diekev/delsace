@@ -54,7 +54,7 @@ class VisionneurScene {
 	VueCanevas3D *m_parent;
     JJL::Jorjala &m_jorjala;
 
-	vision::Camera3D *m_camera;
+    vision::Camera3D *m_camera = nullptr;
 	RenduTexte *m_rendu_texte;
 	RenduManipulatricePosition *m_rendu_manipulatrice_pos;
 	RenduManipulatriceRotation *m_rendu_manipulatrice_rot;

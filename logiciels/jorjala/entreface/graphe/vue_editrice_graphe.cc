@@ -40,7 +40,7 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/fichier.hh"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 // #include "operatrices/operatrices_cycles.hh"
 
@@ -61,7 +61,7 @@ VueEditeurNoeud::VueEditeurNoeud(JJL::Jorjala &jorjala,
 //	danjo::DonneesInterface donnees{};
 //	donnees.manipulable = nullptr;
 //	donnees.conteneur = nullptr;
-//	donnees.repondant_bouton = m_jorjala.repondant_commande();
+//	donnees.repondant_bouton = repondant_commande(m_jorjala);
 
 //	auto gestionnaire = m_jorjala.gestionnaire_entreface;
 
@@ -135,7 +135,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 		DonneesCommande donnees;
 		donnees.cle = event->key();
 
-		m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+        repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 	}
 #endif
 }
@@ -151,7 +151,7 @@ void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 	donnees.y = static_cast<float>(event->angleDelta().y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
@@ -168,7 +168,7 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
+    // repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
 }
 
 void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
@@ -187,7 +187,7 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
@@ -203,7 +203,7 @@ void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->appele_commande("graphe", donnees);
+    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
@@ -217,7 +217,7 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    // repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
 }
 
 bool VueEditeurNoeud::focusNextPrevChild(bool /*next*/)

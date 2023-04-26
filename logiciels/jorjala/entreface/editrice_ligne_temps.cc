@@ -45,7 +45,7 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
@@ -104,16 +104,14 @@ EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
 
 	danjo::Manipulable dummy;
 
-//	danjo::DonneesInterface donnees{};
-//	donnees.conteneur = nullptr;
-//	donnees.manipulable = &dummy;
-//	donnees.repondant_bouton = jorjala.repondant_commande();
+    auto données = cree_donnees_interface_danjo(m_jorjala, &dummy);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
 
-//	auto disp_controles = m_jorjala.gestionnaire_entreface->compile_entreface_fichier(
-//				donnees,
-//				"entreface/disposition_ligne_temps.jo");
+    auto disp_controles = gestionnaire->compile_entreface_fichier(
+                données,
+                "entreface/disposition_ligne_temps.jo");
 
-//	m_tc_layout->addLayout(disp_controles);
+    m_tc_layout->addLayout(disp_controles);
 
 	m_tc_layout->addStretch();
 
@@ -192,7 +190,7 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 {
 	this->rend_actif();
     m_jorjala.temps_courant(value);
-//	m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
+    m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
 
     m_jorjala.notifie_observatrices(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
 }

@@ -35,7 +35,7 @@
 #include <QPushButton>
 #pragma GCC diagnostic pop
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 BarreDeProgres::BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent)
 	: QWidget(parent)

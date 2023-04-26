@@ -54,7 +54,7 @@
 
 #include "coeur/evenement.h"
 
-#include "jorjala.hh"
+#include "coeur/jorjala.hh"
 
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
 	: BaseEditrice(jorjala, parent)
@@ -115,9 +115,6 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
-	auto chemin_entreface = "";
-	dls::chaine texte_entreface;
 
     /* Rafraichis les avertissements. */
     ajoute_avertissements(noeud);
@@ -130,14 +127,14 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-#if 0
-	danjo::DonneesInterface donnees{};
-	donnees.manipulable = manipulable;
-	donnees.conteneur = this;
-	donnees.repondant_bouton = m_jorjala.repondant_commande();
+#if 0 // À FAIRE
+    auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
+    auto chemin_entreface = "";
+    dls::chaine texte_entreface;
 
-	auto gestionnaire = m_jorjala.gestionnaire_entreface;	
-	auto disposition = gestionnaire->compile_entreface_texte(donnees, texte_entreface, m_jorjala.temps_courant);
+    auto donnees = cree_donnees_interface_danjo(m_jorjala, manipulable, this);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    auto disposition = gestionnaire->compile_entreface_texte(donnees, texte_entreface, m_jorjala.temps_courant());
 
 	if (disposition == nullptr) {
 		return;

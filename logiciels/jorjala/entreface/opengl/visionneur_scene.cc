@@ -88,10 +88,10 @@ void VisionneurScene::initialise()
 
 void VisionneurScene::peint_opengl()
 {
-	/* dessine la scène dans le tampon */
-	auto stats = StatistiquesRendu{};
+    /* dessine la scène dans le tampon */
 
 #if 0
+    auto stats = StatistiquesRendu{};
 	auto contexte_eval = cree_contexte_evaluation(m_jorjala);
 	contexte_eval.rendu_final = false;
 	contexte_eval.camera_rendu = m_camera;

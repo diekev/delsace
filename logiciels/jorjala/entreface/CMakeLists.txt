@@ -26,8 +26,8 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_QT5_WIDGETS}
-	${INCLUSIONS_QT5_OPENGL}
-        /home/kevin/src/repos/delsace_privé/GreffonsBlender/Jorjala/Programme
+        ${INCLUSIONS_QT5_OPENGL}
+        ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES

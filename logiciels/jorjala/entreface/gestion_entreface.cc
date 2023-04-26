@@ -16,53 +16,17 @@
 
 #include "base_editrice.h"
 
-#include "jorjala.hh"
-
-namespace detail {
-
-static void notifie_observatrices(void *donnees, JJL::TypeEvenement evenement)
-{
-    auto gestionnaire = static_cast<GestionnaireEntreface *>(donnees);
-    gestionnaire->sujette.notifie_observatrices(static_cast<int>(evenement));
-}
-
-static void ajoute_observatrice(void *donnees, void *ptr_observatrice)
-{
-    auto gestionnaire = static_cast<GestionnaireEntreface *>(donnees);
-    Observatrice *observatrice = static_cast<Observatrice *>(ptr_observatrice);
-    gestionnaire->sujette.ajoute_observatrice(observatrice);
-}
-
-}
-
-static GestionnaireEntreface *extrait_gestionnaire(JJL::Jorjala &jorjala)
-{
-    auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-    return static_cast<GestionnaireEntreface *>(gestionnaire_jjl.données());
-}
-
-void initialise_gestion_entreface(GestionnaireEntreface *gestionnaire, JJL::Jorjala &jorjala)
-{
-    auto gestionnaire_jjl = jorjala.crée_gestionnaire_fenêtre(gestionnaire);
-    gestionnaire_jjl.mute_rappel_ajout_observatrice(reinterpret_cast<void *>(detail::ajoute_observatrice));
-    gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
-}
-
-void ajoute_observatrice(JJL::Jorjala &jorjala, Observatrice *observatrice)
-{
-    auto gestionnaire = extrait_gestionnaire(jorjala);
-    observatrice->observe(&gestionnaire->sujette);
-}
+#include "coeur/jorjala.hh"
 
 void active_editrice(JJL::Jorjala &jorjala, BaseEditrice *editrice)
 {
-    auto gestionnaire = extrait_gestionnaire(jorjala);
+    auto données = accède_données_programme(jorjala);
 
-    if (gestionnaire->editrice_active) {
-        gestionnaire->editrice_active->actif(false);
+    if (données->editrice_active) {
+        données->editrice_active->actif(false);
     }
 
-    gestionnaire->editrice_active = editrice;
+    données->editrice_active = editrice;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -84,7 +48,7 @@ static DonneesCommande donnees_commande_depuis_event(QMouseEvent *e, const char 
 void gere_pression_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
 {
     auto donnees = donnees_commande_depuis_event(e, id);
-    // m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
+    // repondant_commande(m_jorjala)->appele_commande("vue_3d", donnees);
 }
 
 void gere_mouvement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
@@ -92,17 +56,17 @@ void gere_mouvement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id
     auto donnees = donnees_commande_depuis_event(e, id);
 
     if (e->buttons() == 0) {
-        // m_jorjala.repondant_commande()->appele_commande(id, donnees);
+        // repondant_commande(m_jorjala)->appele_commande(id, donnees);
     }
     else {
-        // m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
+        // repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
     }
 }
 
 void gere_relachement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
 {
     auto donnees = donnees_commande_depuis_event(e, id);
-    // m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    // repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
 }
 
 void gere_molette_souris(JJL::Jorjala &jorjala, QWheelEvent *e, const char *id)
@@ -117,5 +81,5 @@ void gere_molette_souris(JJL::Jorjala &jorjala, QWheelEvent *e, const char *id)
     donnees.double_clique = true;
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // m_jorjala.repondant_commande()->appele_commande(id, donnees);
+    // repondant_commande(m_jorjala)->appele_commande(id, donnees);
 }
