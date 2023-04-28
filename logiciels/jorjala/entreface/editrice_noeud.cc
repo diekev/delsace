@@ -52,13 +52,6 @@
 
 #include "coeur/jorjala.hh"
 
-static QPointF point_central_rectangle(JJL::Rect const &rect)
-{
-    auto const x = rect.x() + rect.largeur() / 2.0f;
-    auto const y = rect.y() + rect.hauteur() / 2.0f;
-    return QPointF(x, y);
-}
-
 EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("graphe", jorjala, parent)
 	, m_scene(new QGraphicsScene(this))
@@ -188,8 +181,8 @@ void EditriceGraphe::ajourne_etat(int evenement)
             auto rectangle_prise = prise.rectangle();
             auto rectangle_lien = connexion.prise_sortie().rectangle();
 
-            auto const p1 = point_central_rectangle(rectangle_prise);
-            auto const p2 = point_central_rectangle(rectangle_lien);
+            auto const p1 = rectangle_prise.position_centrale();
+            auto const p2 = rectangle_lien.position_centrale();
 
             auto ligne = new QGraphicsLineItem();
             ligne->setPen(QPen(Qt::white, 2.0));
@@ -201,14 +194,14 @@ void EditriceGraphe::ajourne_etat(int evenement)
 
     if (graphe.connexion_interactive()) {
         auto connexion = graphe.connexion_interactive();
-        QPointF p1;
+        JJL::Vec2 p1({});
         if (connexion.prise_entrée() != nullptr) {
             auto prise_entree = connexion.prise_entrée();
-            p1 = point_central_rectangle(prise_entree.rectangle());
+            p1 = prise_entree.rectangle().position_centrale();
         }
 		else {
             auto prise_sortie = connexion.prise_sortie();
-            p1 = point_central_rectangle(prise_sortie.rectangle());
+            p1 = prise_sortie.rectangle().position_centrale();
 		}
 
         auto const x2 = connexion.x();
