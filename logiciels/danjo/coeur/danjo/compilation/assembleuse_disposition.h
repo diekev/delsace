@@ -111,6 +111,10 @@ public:
 	 */
 	void ajoute_disposition(id_morceau identifiant);
 
+    void ajoute_étiquette(dls::chaine texte);
+
+    void ajoute_controle_pour_propriété(const DonneesControle &donnees, BasePropriete *prop);
+
 	/**
 	 * Ajoute un contrôle à la disposition se trouvant au sommet de la pile.
 	 */

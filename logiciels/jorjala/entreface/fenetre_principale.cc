@@ -50,7 +50,7 @@
 //#include "editrice_arborescence.hh"
 #include "editrice_ligne_temps.h"
 #include "editrice_noeud.h"
-//#include "editrice_proprietes.h"
+#include "editrice_proprietes.h"
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
@@ -190,7 +190,7 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
             editrice = new EditriceGraphe(m_jorjala);
             break;
         case EDITRICE_PROPRIETE:
-            // editrice = new EditriceProprietes(m_jorjala);
+            editrice = new EditriceProprietes(m_jorjala);
             break;
         case EDITRICE_LIGNE_TEMPS:
             editrice = new EditriceLigneTemps(m_jorjala);

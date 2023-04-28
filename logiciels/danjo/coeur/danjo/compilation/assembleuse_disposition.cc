@@ -274,7 +274,35 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 		m_pile_dispositions.haut()->addLayout(disposition);
 	}
 
-	m_pile_dispositions.empile(disposition);
+    m_pile_dispositions.empile(disposition);
+}
+
+void AssembleurDisposition::ajoute_étiquette(dls::chaine texte)
+{
+
+}
+
+void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle const &donnees, BasePropriete *prop)
+{
+    auto controle = cree_controle_pour_propriete(prop, m_temps);
+
+    m_pile_dispositions.haut()->addWidget(controle);
+
+    controle->finalise(donnees);
+
+    controles.insere({ donnees.nom, controle });
+
+    if (m_conteneur != nullptr) {
+        if (prop->type() == TypePropriete::LISTE) {
+            static_cast<ControleProprieteListe *>(controle)->conteneur(m_conteneur);
+        }
+
+        QObject::connect(controle, &ControlePropriete::precontrole_change,
+                         m_conteneur, &ConteneurControles::precontrole_change);
+
+        QObject::connect(controle, &ControlePropriete::controle_change,
+                         m_conteneur, &ConteneurControles::ajourne_manipulable);
+    }
 }
 
 void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
@@ -408,26 +436,7 @@ void AssembleurDisposition::finalise_controle()
     }
 
     // À FAIRE : restaure les étiquettes.
-
-    m_dernier_controle = cree_controle_pour_propriete(prop, m_temps);
-
-    m_pile_dispositions.haut()->addWidget(m_dernier_controle);
-
-	m_dernier_controle->finalise(m_donnees_controle);
-
-    controles.insere({ m_donnees_controle.nom, m_dernier_controle });
-
-	if (m_conteneur != nullptr) {
-        if (prop->type() == TypePropriete::LISTE) {
-            static_cast<ControleProprieteListe *>(m_dernier_controle)->conteneur(m_conteneur);
-        }
-
-		QObject::connect(m_dernier_controle, &ControlePropriete::precontrole_change,
-						 m_conteneur, &ConteneurControles::precontrole_change);
-
-		QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
-						 m_conteneur, &ConteneurControles::ajourne_manipulable);
-	}
+    ajoute_controle_pour_propriété(m_donnees_controle, prop);
 }
 
 void AssembleurDisposition::sors_disposition()

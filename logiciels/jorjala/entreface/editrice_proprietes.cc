@@ -25,6 +25,8 @@
 #include "editrice_proprietes.h"
 
 #include "danjo/danjo.h"
+#include "danjo/compilation/assembleuse_disposition.h"
+#include "danjo/controles_proprietes/donnees_controle.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -56,6 +58,219 @@
 
 #include "coeur/jorjala.hh"
 
+/* ------------------------------------------------------------------------- */
+
+std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TypeParametre type_param)
+{
+    switch (type_param) {
+        case JJL::TypeParametre::CHAINE: return danjo::TypePropriete::CHAINE_CARACTERE;
+        case JJL::TypeParametre::CHEMIN_FICHIER: return danjo::TypePropriete::FICHIER_ENTREE;
+        case JJL::TypeParametre::NOMBRE_ENTIER: return danjo::TypePropriete::ENTIER;
+        case JJL::TypeParametre::NOMBRE_RÉEL: return danjo::TypePropriete::DECIMAL;
+        case JJL::TypeParametre::VALEUR_BOOLÉENNE: return danjo::TypePropriete::BOOL;
+        default: // À FAIRE
+        case JJL::TypeParametre::CORPS: return {};
+    }
+}
+
+class EnveloppeParametre : public danjo::BasePropriete {
+    JJL::TableParametres_Parametre m_param;
+
+public:
+    EnveloppeParametre(JJL::TableParametres_Parametre param) : m_param(param) {};
+
+    danjo::TypePropriete type() const override
+    {
+        return type_propriété_danjo(m_param.type()).value();
+    }
+
+    /* Définit si la propriété est ajoutée par l'utilisateur. */
+    bool est_extra() const override
+    {
+        // À FAIRE
+        return false;
+    }
+
+    /* Définit si la propriété est visible. */
+    void definit_visibilité(bool /*ouinon*/) override
+    {
+        // À FAIRE
+    }
+    bool est_visible() const override
+    {
+        // À FAIRE
+        return true;
+    }
+
+    std::string donnne_infobulle() const override
+    {
+        // À FAIRE
+        return "";
+    }
+
+    /* Évaluation des valeurs. */
+    bool evalue_bool(int temps) const override
+    {
+        // À FAIRE
+        return false;
+    }
+    int evalue_entier(int temps) const override
+    {
+        // À FAIRE
+        return 0;
+    }
+    float evalue_decimal(int temps) const override
+    {
+        // À FAIRE
+        return 0.0f;
+    }
+    dls::math::vec3f evalue_vecteur(int temps) const override
+    {
+        // À FAIRE
+        return {};
+    }
+    dls::phys::couleur32 evalue_couleur(int temps) const override
+    {
+        // À FAIRE
+        return dls::phys::couleur32(1.0f);
+    }
+    std::string evalue_chaine(int temps) const override
+    {
+        // À FAIRE
+        return "";
+    }
+
+    /* Définition des valeurs. */
+    void définit_valeur_entier(int valeur) override
+    {
+        // À FAIRE
+    }
+    void définit_valeur_décimal(float valeur) override
+    {
+        // À FAIRE
+    }
+    void définit_valeur_bool(bool valeur) override
+    {
+        // À FAIRE
+    }
+    void définit_valeur_vec3(dls::math::vec3f valeur) override
+    {
+        // À FAIRE
+    }
+    void définit_valeur_couleur(dls::phys::couleur32 valeur) override
+    {
+        // À FAIRE
+    }
+    void définit_valeur_chaine(std::string const &valeur) override
+    {
+        // À FAIRE
+    }
+
+    /* Plage des valeurs. */
+    danjo::plage_valeur<float> plage_valeur_decimal() const override
+    {
+        // À FAIRE
+        return {-1.0f, 1.0f};
+    }
+    danjo::plage_valeur<int> plage_valeur_entier() const override
+    {
+        // À FAIRE
+        return {-10000, 10000};
+    }
+    danjo::plage_valeur<float> plage_valeur_vecteur() const override
+    {
+        // À FAIRE
+        return {-1.0f, 1.0f};
+    }
+    danjo::plage_valeur<float> plage_valeur_couleur() const override
+    {
+        // À FAIRE
+        return {-1.0f, 1.0f};
+    }
+
+    /* Animation des valeurs. */
+    void ajoute_cle(const int v, int temps) override
+    {
+        // À FAIRE
+    }
+    void ajoute_cle(const float v, int temps) override
+    {
+        // À FAIRE
+    }
+    void ajoute_cle(const dls::math::vec3f &v, int temps) override
+    {
+        // À FAIRE
+    }
+    void ajoute_cle(const dls::phys::couleur32 &v, int temps) override
+    {
+        // À FAIRE
+    }
+
+    void supprime_animation() override
+    {
+        // À FAIRE
+    }
+
+    bool est_animee() const override
+    {
+        // À FAIRE
+        return false;
+    }
+    bool est_animable() const override
+    {
+        // À FAIRE
+        return false;
+    }
+
+    bool possede_cle(int temps) const override
+    {
+        // À FAIRE
+        return false;
+    }
+};
+
+static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable,
+                                               danjo::RepondantBouton *repondant_bouton,
+                                               danjo::ConteneurControles *conteneur,
+                                               JJL::Noeud &noeud)
+{
+    std::cerr << __func__ << '\n';
+    auto table = noeud.table_paramètres();
+    if (table == nullptr) {
+        return nullptr;
+    }
+
+    danjo::AssembleurDisposition assembleuse(manipulable, repondant_bouton, conteneur);
+
+    /* Ajout d'une disposition par défaut. */
+    assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
+
+    /* Ajout d'une disposition par défaut. */
+    for (auto param : table.paramètres()) {
+        auto type = type_propriété_danjo(param.type());
+        std::cerr << "Param : " << param.nom().vers_std_string() << '\n';
+
+        if (!type.has_value()) {
+            std::cerr << "-- type paramètre non supporté\n";
+            continue;
+        }
+
+        dls::chaine nom(param.nom().vers_std_string());
+        assembleuse.ajoute_étiquette(nom);
+
+        auto prop = memoire::loge<EnveloppeParametre>("EnveloppeParametre", param);
+        manipulable->ajoute_propriete(nom, prop);
+
+        danjo::DonneesControle donnees_controle;
+        donnees_controle.nom = nom;
+        assembleuse.ajoute_controle_pour_propriété(donnees_controle, prop);
+    }
+
+    return assembleuse.disposition();
+}
+
+/* ------------------------------------------------------------------------- */
+
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("propriétés", jorjala, parent)
     , m_widget(new QWidget())
@@ -82,7 +297,7 @@ EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
 void EditriceProprietes::ajourne_etat(int evenement)
 {
 	auto creation = (evenement == (type_evenement::noeud | type_evenement::selectionne));
-	creation |= (evenement == (type_evenement::noeud | type_evenement::ajoute));
+    creation |= (evenement == (type_evenement::noeud | type_evenement::ajoute));
 	creation |= (evenement == (type_evenement::noeud | type_evenement::enleve));
 	creation |= (evenement == (type_evenement::temps | type_evenement::modifie));
 	creation |= (evenement == (type_evenement::propriete | type_evenement::ajoute));
@@ -107,11 +322,13 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
     auto graphe = m_jorjala.graphe();
     if (graphe == nullptr) {
+        std::cerr << "-- aucun graphe\n";
         return;
     }
 
     auto noeud = graphe.noeud_actif();
 	if (noeud == nullptr) {
+        std::cerr << "-- aucun noeud_actif\n";
 		return;
 	}
 
@@ -124,8 +341,19 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	 * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
 	 * rafraichissement que les avertissements. */
 	if (creation_avert) {
+        std::cerr << "-- aucun creation_avert\n";
 		return;
 	}
+
+    danjo::Manipulable manipulable;
+    auto repondant = repondant_commande(m_jorjala);
+
+    auto disposition = crée_disposition_paramètres(&manipulable, repondant, this, noeud);
+    if (disposition == nullptr) {
+        std::cerr << "-- aucun disposition\n";
+        return;
+    }
+    m_conteneur_disposition->setLayout(disposition);
 
 #if 0 // À FAIRE
     auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
@@ -165,10 +393,11 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 
 void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 {
+    std::cerr << __func__ << '\n';
     m_conteneur_avertissements->hide();
 
 	auto disposition_avertissements = new QGridLayout();
-	auto ligne = 0;
+    auto ligne = 0;
 	auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
     for (auto erreur : noeud.erreurs()) {
