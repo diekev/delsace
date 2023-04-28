@@ -57,7 +57,7 @@
 #include "coeur/jorjala.hh"
 
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
+    : BaseEditrice("propriétés", jorjala, parent)
     , m_widget(new QWidget())
 	, m_conteneur_avertissements(new QWidget())
 	, m_conteneur_disposition(new QWidget())

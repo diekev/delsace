@@ -51,8 +51,6 @@
 
 #include "coeur/jorjala.hh"
 
-#include "gestion_entreface.hh"
-
 // #include "lcc/lcc.hh"
 
 #include "opengl/rendu_image.h"
@@ -212,32 +210,28 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 
 void Visionneuse2D::mousePressEvent(QMouseEvent *event)
 {
-	m_base->rend_actif();
-    gere_pression_souris(m_jorjala, event, "vue_2d");
+    m_base->mousePressEvent(event);
 }
 
 void Visionneuse2D::mouseMoveEvent(QMouseEvent *event)
 {
-    m_base->rend_actif();
-    gere_mouvement_souris(m_jorjala, event, "vue_2d");
+    m_base->mouseMoveEvent(event);
 }
 
 void Visionneuse2D::mouseReleaseEvent(QMouseEvent *event)
 {
-    m_base->rend_actif();
-    gere_relachement_souris(m_jorjala, event, "vue_2d");
+    m_base->mouseReleaseEvent(event);
 }
 
 void Visionneuse2D::wheelEvent(QWheelEvent *event)
 {
-    m_base->rend_actif();
-    gere_molette_souris(m_jorjala, event, "vue_2d");
+    m_base->wheelEvent(event);
 }
 
 /* ************************************************************************** */
 
 EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
+    : BaseEditrice("vue_2d", jorjala, parent)
 	, m_vue(new Visionneuse2D(jorjala, this))
 {
 	m_main_layout->addWidget(m_vue);
@@ -286,4 +280,9 @@ void EditriceVue2D::ajourne_etat(int evenement)
 
 	m_vue->update();
 #endif
+}
+
+QPointF EditriceVue2D::transforme_position_evenement(QPoint pos)
+{
+    return QPointF(m_vue->size().width() - pos.x(), pos.y());
 }

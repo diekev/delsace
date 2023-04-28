@@ -45,7 +45,7 @@
 #include "coeur/jorjala.hh"
 
 EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
+    : BaseEditrice("scene", jorjala, parent)
 	, m_slider(new QSlider(m_frame))
 	, m_tc_layout(new QHBoxLayout())
 	, m_num_layout(new QHBoxLayout())

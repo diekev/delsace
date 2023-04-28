@@ -28,6 +28,7 @@
 
 class QComboBox;
 class QGraphicsScene;
+class QMenu;
 class VueEditeurNoeud;
 
 class EditriceGraphe : public BaseEditrice {
@@ -38,6 +39,8 @@ class EditriceGraphe : public BaseEditrice {
 
 	QLineEdit *m_barre_chemin;
 	QComboBox *m_selecteur_graphe;
+
+    std::map<std::string, QMenu *> m_menus{};
 
 public:
     explicit EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
@@ -51,7 +54,14 @@ public:
 
 	void ajourne_manipulable() override {}
 
+    void keyPressEvent(QKeyEvent *event) override;
+
 private Q_SLOTS:
 	void sors_noeud();
 	void change_contexte(int index);
+
+private:
+    QMenu *menu_pour_graphe();
+
+    QPointF transforme_position_evenement(QPoint pos) override;
 };

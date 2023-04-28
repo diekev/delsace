@@ -46,8 +46,6 @@
 //#include "coeur/operatrice_image.h"
 //#include "coeur/rendu.hh"
 
-#include "gestion_entreface.hh"
-
 #include "coeur/jorjala.hh"
 
 #include "opengl/visionneur_scene.h"
@@ -122,25 +120,22 @@ void VueCanevas3D::resizeGL(int w, int h)
 
 void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 {
-	m_base->rend_actif();
-    gere_pression_souris(m_jorjala, e, "vue_3d");
+    m_base->mousePressEvent(e);
 }
 
 void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
 {
-    gere_mouvement_souris(m_jorjala, e, "vue_3d");
+    m_base->mouseMoveEvent(e);
 }
 
 void VueCanevas3D::wheelEvent(QWheelEvent *e)
 {
-    m_base->rend_actif();
-    gere_molette_souris(m_jorjala, e, "vue_3d");
+    m_base->wheelEvent(e);
 }
 
 void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
 {
-    m_base->rend_actif();
-    gere_relachement_souris(m_jorjala, e, "vue_3d");
+    m_base->mouseReleaseEvent(e);
 }
 
 void VueCanevas3D::reconstruit_scene() const
@@ -156,7 +151,7 @@ void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
 /* ************************************************************************** */
 
 EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
+    : BaseEditrice("vue_3d", jorjala, parent)
 	, m_vue(new VueCanevas3D(jorjala, this, this))
 {
 	auto disp_widgets = new QVBoxLayout();

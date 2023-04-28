@@ -30,32 +30,15 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsView>
-#include <QMenu>
 #pragma GCC diagnostic pop
 
 class EditriceGraphe;
-class QMenu;
-class RepondantCommande;
-
-namespace JJL {
-class Jorjala;
-}
-
-namespace danjo {
-class GestionnaireInterface;
-}  /* namespace danjo */
 
 class VueEditeurNoeud : public QGraphicsView {
-    JJL::Jorjala &m_jorjala;
     EditriceGraphe *m_base;
 
-    std::map<std::string, QMenu *> m_menus{};
-
 public:
-	VueEditeurNoeud(
-            JJL::Jorjala &jorjala,
-			EditriceGraphe *base,
-			QWidget *parent = nullptr);
+    VueEditeurNoeud(EditriceGraphe *base, QWidget *parent = nullptr);
 
 	VueEditeurNoeud(VueEditeurNoeud const &) = default;
 	VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
@@ -76,9 +59,6 @@ public:
 
 	void keyPressEvent(QKeyEvent *event) override;
 
-	bool focusNextPrevChild(bool) override;
-
-private:
-    QMenu *menu_pour_graphe();
+    bool focusNextPrevChild(bool) override;
 };
 

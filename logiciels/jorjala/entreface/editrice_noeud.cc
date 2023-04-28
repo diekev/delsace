@@ -24,6 +24,8 @@
 
 #include "editrice_noeud.h"
 
+#include "danjo/danjo.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -31,13 +33,16 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QComboBox>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "graphe/item_noeud.h"
@@ -55,9 +60,9 @@ static QPointF point_central_rectangle(JJL::Rect const &rect)
 }
 
 EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
+    : BaseEditrice("graphe", jorjala, parent)
 	, m_scene(new QGraphicsScene(this))
-	, m_vue(new VueEditeurNoeud(jorjala, this, this))
+    , m_vue(new VueEditeurNoeud(this, this))
 	, m_barre_chemin(new QLineEdit())
 	, m_selecteur_graphe(new QComboBox(this))
 {
@@ -237,4 +242,77 @@ void EditriceGraphe::change_contexte(int index)
 	INUTILISE(index);
     auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
     repondant_commande(m_jorjala)->repond_clique("change_contexte", valeur);
+}
+
+void EditriceGraphe::keyPressEvent(QKeyEvent *event)
+{
+    rend_actif();
+
+    if (event->key() == Qt::Key_Tab) {
+        auto menu = menu_pour_graphe();
+
+        if (!menu) {
+            return;
+        }
+
+        menu->popup(QCursor::pos());
+        return;
+    }
+
+    BaseEditrice::keyPressEvent(event);
+}
+
+static std::string texte_danjo_pour_menu_catégorisation(JJL::CategorisationNoeuds catégorisation, const std::string &identifiant)
+{
+    std::stringstream ss;
+
+    ss << "menu \"" << identifiant << "\" {\n";
+
+    for (auto catégorie : catégorisation.catégories()) {
+        ss << "  menu \"" << catégorie.nom().vers_std_string() << "\" {\n";
+
+        for (auto noeud : catégorie.noeuds()) {
+            ss << "    action(valeur=\"" << noeud.vers_std_string() << "\"; attache=ajouter_noeud; métadonnée=\"" << noeud.vers_std_string() << "\")\n";
+        }
+
+        ss << "  }\n";
+    }
+
+    ss << "}\n";
+
+    return ss.str();
+}
+
+QMenu *EditriceGraphe::menu_pour_graphe()
+{
+    auto graphe = m_jorjala.graphe();
+    auto catégorisation = graphe.catégorisation_noeuds();
+    auto identifiant = graphe.identifiant_graphe().vers_std_string();
+    if (catégorisation == nullptr) {
+        return nullptr;
+    }
+
+    auto menu_existant = m_menus.find(identifiant);
+    if (menu_existant != m_menus.end()) {
+        return menu_existant->second;
+    }
+
+    auto texte = texte_danjo_pour_menu_catégorisation(catégorisation, identifiant);
+    auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+
+    auto menu = gestionnaire->compile_menu_texte(donnees, texte);
+    if (!menu) {
+        return nullptr;
+    }
+
+    m_menus[identifiant] = menu;
+
+    return menu;
+}
+
+QPointF EditriceGraphe::transforme_position_evenement(QPoint pos)
+{
+    auto position = m_vue->mapToScene(pos);
+    return QPointF(position.x(), position.y());
 }

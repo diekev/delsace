@@ -30,20 +30,25 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
+#include <QKeyEvent>
 #include <QFrame>
 #include <QHBoxLayout>
 #pragma GCC diagnostic pop
+
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "gestion_entreface.hh"
 
 #include "coeur/jorjala.hh"
 
-BaseEditrice::BaseEditrice(JJL::Jorjala &jorjala, QWidget *parent)
+BaseEditrice::BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWidget *parent)
 	: danjo::ConteneurControles(parent)
 	, m_jorjala(jorjala)
     , m_frame(new QFrame(this))
     , m_layout(new QVBoxLayout())
 	, m_main_layout(new QHBoxLayout(m_frame))
+    , identifiant(identifiant_)
 {
     /* Mise en place de l'observation. */
     ajoute_observatrice(m_jorjala, this);
@@ -81,8 +86,85 @@ void BaseEditrice::rend_actif()
 	this->actif(true);
 }
 
-void BaseEditrice::mousePressEvent(QMouseEvent *e)
+/* ------------------------------------------------------------------------- */
+
+static DonneesCommande donnees_commande_depuis_event(QMouseEvent *e, QPointF position)
 {
-	this->rend_actif();
-	QWidget::mousePressEvent(e);
+    auto donnees = DonneesCommande();
+    donnees.x = position.x();
+    donnees.y = position.y();
+    donnees.souris = static_cast<int>(e->buttons());
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+    return donnees;
+}
+
+void BaseEditrice::mousePressEvent(QMouseEvent *event)
+{
+    rend_actif();
+
+    /* À FAIRE : menu contextuel */
+    //			m_gestionnaire->ajourne_menu("Éditeur Noeud");
+    //			m_menu_contexte->popup(event->globalPos());
+
+    auto const position = transforme_position_evenement(event->pos());
+    auto donnees = donnees_commande_depuis_event(event, position);
+    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+}
+
+void BaseEditrice::keyPressEvent(QKeyEvent *event)
+{
+    rend_actif();
+    DonneesCommande donnees;
+    donnees.cle = event->key();
+    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+}
+
+void BaseEditrice::wheelEvent(QWheelEvent *event)
+{
+    /* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
+     * roulement de la molette de la souris, on prétend que le roulement est un
+     * double clique de la molette. */
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(event->angleDelta().x());
+    donnees.y = static_cast<float>(event->angleDelta().y());
+    donnees.souris = Qt::MiddleButton;
+    donnees.double_clique = true;
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+
+    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+}
+
+void BaseEditrice::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->button() != 0) {
+        rend_actif();
+    }
+
+    auto const position = transforme_position_evenement(event->pos());
+    auto donnees = donnees_commande_depuis_event(event, position);
+    repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
+}
+
+void BaseEditrice::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    rend_actif();
+
+    auto const position = transforme_position_evenement(event->pos());
+    auto donnees = donnees_commande_depuis_event(event, position);
+    donnees.double_clique = true;
+    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+}
+
+void BaseEditrice::mouseReleaseEvent(QMouseEvent *event)
+{
+    rend_actif();
+
+    auto const position = transforme_position_evenement(event->pos());
+    auto donnees = donnees_commande_depuis_event(event, position);
+    repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
+}
+
+QPointF BaseEditrice::transforme_position_evenement(QPoint pos)
+{
+    return QPointF(pos.x(), pos.y());
 }

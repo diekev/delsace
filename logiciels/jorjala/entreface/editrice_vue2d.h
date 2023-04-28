@@ -91,4 +91,7 @@ public:
 	void ajourne_etat(int event) override;
 
 	void ajourne_manipulable() override {}
+
+ private:
+    QPointF transforme_position_evenement(QPoint pos) override;
 };
