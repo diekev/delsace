@@ -50,7 +50,7 @@ class ControleProprieteVec3 final : public ControlePropriete {
 	ControleEchelleDecimale *m_echelle_z{};
 
 public:
-	explicit ControleProprieteVec3(QWidget *parent = nullptr);
+    explicit ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteVec3() override;
 
 	ControleProprieteVec3(ControleProprieteVec3 const &) = default;

@@ -47,7 +47,7 @@ class ControleProprieteEnum final : public ControlePropriete {
 	int m_index_courant{};
 
 public:
-	explicit ControleProprieteEnum(QWidget *parent = nullptr);
+    explicit ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteEnum() override = default;
 
 	ControleProprieteEnum(ControleProprieteEnum const &) = default;

@@ -31,8 +31,8 @@
 
 namespace danjo {
 
-ControleProprieteEnum::ControleProprieteEnum(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout)
 	, m_liste_deroulante(new QComboBox(this))
 	, m_pointeur(nullptr)

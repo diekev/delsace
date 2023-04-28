@@ -38,20 +38,8 @@
 
 namespace danjo {
 
-/* Il s'emblerait que std::atof a du mal à convertir les string en float. */
-template <typename T>
-static T convertie(const dls::chaine &valeur)
-{
-	std::istringstream ss(valeur.c_str());
-	T result;
-
-	ss >> result;
-
-	return result;
-}
-
-ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteDecimal::ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_controle(new ControleNombreDecimal(this))
 	, m_bouton(new QPushButton("H", this))
@@ -88,8 +76,8 @@ void ControleProprieteDecimal::ajourne_valeur_pointee(float valeur)
 	if (m_animation) {
 		m_propriete->ajoute_cle(valeur, m_temps);
 	}
-	else {
-		m_propriete->valeur = valeur;
+    else {
+        m_propriete->définit_valeur_décimal(valeur);
 	}
 
 	Q_EMIT(controle_change());
@@ -97,7 +85,7 @@ void ControleProprieteDecimal::ajourne_valeur_pointee(float valeur)
 
 void ControleProprieteDecimal::montre_echelle()
 {
-	m_echelle->valeur(std::any_cast<float>(m_propriete->valeur));
+    m_echelle->valeur(m_propriete->evalue_decimal(m_temps));
 	m_echelle->plage(m_controle->min(), m_controle->max());
 	m_echelle->show();
 }
@@ -109,11 +97,11 @@ void ControleProprieteDecimal::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		m_controle->valeur(std::any_cast<float>(m_propriete->valeur));
+        m_controle->valeur(m_propriete->evalue_decimal(m_temps));
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::any_cast<float>(m_propriete->valeur), m_temps);
+        m_propriete->ajoute_cle(m_propriete->evalue_decimal(m_temps), m_temps);
 		m_bouton_animation->setText("c");
 	}
 
@@ -123,25 +111,7 @@ void ControleProprieteDecimal::bascule_animation()
 
 void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
 {
-	auto min = -std::numeric_limits<float>::max();
-
-	if (donnees.valeur_min != "") {
-		min = convertie<float>(donnees.valeur_min.c_str());
-	}
-
-	auto max = std::numeric_limits<float>::max();
-
-	if (donnees.valeur_max != "") {
-		max = convertie<float>(donnees.valeur_max.c_str());
-	}
-
-	m_controle->ajourne_plage(min, max);
-
-	if (donnees.initialisation) {
-		m_propriete->valeur = convertie<float>(donnees.valeur_defaut);
-	}
-
-	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
+    if (!m_propriete->est_animable()) {
 		m_bouton_animation->hide();
 	}
 
@@ -149,16 +119,13 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
 
 	if (m_animation) {
 		m_bouton_animation->setText("c");
-		m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
-		m_controle->valeur(m_propriete->evalue_decimal(m_temps));
-	}
-	else {
-		m_controle->valeur(std::any_cast<float>(m_propriete->valeur));
-	}
+        m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
+    }
 
-	m_controle->suffixe(donnees.suffixe.c_str());
-
-	setToolTip(donnees.infobulle.c_str());
+    auto plage = m_propriete->plage_valeur_decimal();
+    m_controle->ajourne_plage(plage.min, plage.max);
+    m_controle->valeur(m_propriete->evalue_decimal(m_temps));
+    m_controle->suffixe(donnees.suffixe.c_str());
 }
 
 }  /* namespace danjo */

@@ -33,8 +33,8 @@
 
 namespace danjo {
 
-SelecteurFichier::SelecteurFichier(bool input, QWidget *parent)
-	: ControlePropriete(parent)
+SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_line_edit(new QLineEdit(this))
 	, m_push_button(new QPushButton("Choisir Fichier", this))
@@ -78,8 +78,8 @@ void SelecteurFichier::ajourne_filtres(const QString &chaine)
 	m_filtres = chaine;
 }
 
-ControleProprieteFichier::ControleProprieteFichier(bool input, QWidget *parent)
-	: SelecteurFichier(input, parent)
+ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
+    : SelecteurFichier(p, temps, input, parent)
 	, m_pointeur(nullptr)
 {
 	connect(this, &SelecteurFichier::valeur_changee, this, &ControleProprieteFichier::ajourne_valeur_pointee);

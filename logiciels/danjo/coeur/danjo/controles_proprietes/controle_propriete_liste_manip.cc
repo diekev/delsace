@@ -67,8 +67,8 @@ TreeWidget::TreeWidget(QWidget *parent)
 
 /* ************************************************************************** */
 
-ControleProprieteListeManip::ControleProprieteListeManip(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteListeManip::ControleProprieteListeManip(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_disp_horiz(new QHBoxLayout(this))
 	, m_disp_boutons(new QVBoxLayout())
 	, m_bouton_ajoute(new QPushButton("ajoute", this))

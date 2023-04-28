@@ -24,20 +24,16 @@
 
 #include "controle_propriete.h"
 
+#include "manipulable.h"
+
 namespace danjo {
 
-ControlePropriete::ControlePropriete(QWidget *parent)
+ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *parent)
 	: QWidget(parent)
-{}
-
-void ControlePropriete::proriete(Propriete *p)
+    , m_propriete(p)
+    , m_temps(temps)
 {
-	m_propriete = p;
-}
-
-void ControlePropriete::temps(int t)
-{
-	m_temps = t;
+    setToolTip(m_propriete->donnne_infobulle().c_str());
 }
 
 void ControlePropriete::emet_precontrole_change()

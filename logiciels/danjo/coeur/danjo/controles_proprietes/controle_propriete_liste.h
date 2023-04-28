@@ -54,7 +54,7 @@ class ControleProprieteListe final : public ControlePropriete {
 	dls::chaine *m_pointeur = nullptr;
 
 public:
-	explicit ControleProprieteListe(QWidget *parent = nullptr);
+    explicit ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
 	ControleProprieteListe(ControleProprieteListe const &) = default;
 	ControleProprieteListe &operator=(ControleProprieteListe const &) = default;

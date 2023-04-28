@@ -241,7 +241,7 @@ void GestionnaireInterface::ajourne_entreface(Manipulable *manipulable)
 			continue;
 		}
 
-		controle->setEnabled(prop->visible);
+        controle->setEnabled(prop->est_visible());
 	}
 }
 

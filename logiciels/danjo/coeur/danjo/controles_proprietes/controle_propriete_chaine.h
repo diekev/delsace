@@ -26,8 +26,6 @@
 
 #include "controle_propriete.h"
 
-#include "biblinternes/structures/chaine.hh"
-
 class QHBoxLayout;
 class QLineEdit;
 class QPushButton;
@@ -40,18 +38,14 @@ class ControleProprieteChaineCaractere final : public ControlePropriete {
 	Q_OBJECT
 
 	QHBoxLayout *m_agencement{};
-	QLineEdit *m_editeur_ligne{};
-
-	dls::chaine *m_pointeur{};
+    QLineEdit *m_editeur_ligne{};
 
 public:
-	explicit ControleProprieteChaineCaractere(QWidget *parent = nullptr);
+    explicit ControleProprieteChaineCaractere(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteChaineCaractere() override = default;
 
 	ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
-	ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
+    ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee();
@@ -62,18 +56,14 @@ class ControleProprieteEditeurTexte final : public ControlePropriete {
 
 	QVBoxLayout *m_agencement{};
 	QTextEdit *m_editeur_ligne{};
-	QPushButton *m_bouton{};
-
-	dls::chaine *m_pointeur{};
+    QPushButton *m_bouton{};
 
 public:
-	explicit ControleProprieteEditeurTexte(QWidget *parent = nullptr);
+    explicit ControleProprieteEditeurTexte(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteEditeurTexte() override = default;
 
 	ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
-	ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
+    ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee();

@@ -45,7 +45,7 @@ class ControleProprieteDecimal final : public ControlePropriete {
 	ControleEchelleDecimale *m_echelle{};
 
 public:
-	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
+    explicit ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteDecimal() override;
 
 	ControleProprieteDecimal(ControleProprieteDecimal const &) = default;

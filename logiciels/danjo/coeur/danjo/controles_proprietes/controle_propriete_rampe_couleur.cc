@@ -39,8 +39,8 @@
 
 namespace danjo {
 
-ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement_principal(new QVBoxLayout())
 	, m_agencement_nombre(new QHBoxLayout())
 	, m_entrepolation(new QComboBox(this))

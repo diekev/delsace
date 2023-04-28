@@ -39,8 +39,8 @@
 
 namespace danjo {
 
-ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement_principal(new QVBoxLayout())
 	, m_agencement_nombre(new QHBoxLayout())
 	, m_selection_mode(new QComboBox(this))

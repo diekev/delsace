@@ -63,7 +63,7 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
 	RampeCouleur *m_rampe{};
 
 public:
-	explicit ControleProprieteRampeCouleur(QWidget *parent = nullptr);
+    explicit ControleProprieteRampeCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteRampeCouleur() override;
 
 	ControleProprieteRampeCouleur(ControleProprieteRampeCouleur const &) = default;

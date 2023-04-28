@@ -38,53 +38,25 @@
 
 namespace danjo {
 
-ControleProprieteCouleur::ControleProprieteCouleur(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteCouleur::ControleProprieteCouleur(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_controle_couleur(new ControleCouleur(this))
 {
 	m_agencement->addWidget(m_controle_couleur);
 
+    auto plage = m_propriete->plage_valeur_couleur();
+    m_controle_couleur->ajourne_plage(plage.min, plage.max);
+    m_controle_couleur->couleur(m_propriete->evalue_couleur(m_temps));
+
 	connect(m_controle_couleur, &ControleCouleur::couleur_changee,
 			this, &ControleProprieteCouleur::ajourne_couleur);
-}
-
-void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
-{
-	auto min = 0.0f;
-	if (donnees.valeur_min != "") {
-		min = static_cast<float>(std::atof(donnees.valeur_min.c_str()));
-	}
-
-	auto max = 1.0f;
-	if (donnees.valeur_max != "") {
-		max = static_cast<float>(std::atof(donnees.valeur_max.c_str()));
-	}
-
-	m_controle_couleur->ajourne_plage(min, max);
-
-	if (donnees.initialisation) {
-		auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
-		auto index = 0;
-
-		dls::phys::couleur32 valeur_defaut(1.0f);
-
-		for (auto v : valeurs) {
-			valeur_defaut[index++] = static_cast<float>(std::atof(v.c_str()));
-		}
-
-		m_propriete->valeur = valeur_defaut;
-	}
-
-	m_controle_couleur->couleur(std::any_cast<dls::phys::couleur32>(m_propriete->valeur));
-
-	setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCouleur::ajourne_couleur()
 {
 	Q_EMIT(precontrole_change());
-	m_propriete->valeur = m_controle_couleur->couleur();
+    m_propriete->définit_valeur_couleur(m_controle_couleur->couleur());
 	Q_EMIT(controle_change());
 }
 

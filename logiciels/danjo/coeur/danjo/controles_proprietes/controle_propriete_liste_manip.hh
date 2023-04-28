@@ -84,7 +84,7 @@ class ControleProprieteListeManip : public ControlePropriete {
 	long m_index_courant = 0;
 
 public:
-	explicit ControleProprieteListeManip(QWidget *parent = nullptr);
+    explicit ControleProprieteListeManip(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
 	ControleProprieteListeManip(ControleProprieteListeManip const &) = default;
 	ControleProprieteListeManip &operator=(ControleProprieteListeManip const &) = default;

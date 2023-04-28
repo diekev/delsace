@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	danjo::DonneesControle donnees;
 	donnees.pointeur = &rampe;
 
-	danjo::ControleProprieteRampeCouleur controle;
+    danjo::ControleProprieteRampeCouleur controle(nullptr, 0);
 	controle.finalise(donnees);
 	controle.show();
 

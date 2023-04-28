@@ -31,8 +31,8 @@
 
 namespace danjo {
 
-ControleProprieteEtiquette::ControleProprieteEtiquette(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteEtiquette::ControleProprieteEtiquette(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_etiquette(new QLabel(this))
 {

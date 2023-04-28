@@ -36,18 +36,14 @@ class ControleProprieteBool final : public ControlePropriete {
 
 	char pad[3];
 	QHBoxLayout *m_agencement{};
-	QCheckBox *m_case_a_cocher{};
-
-	bool *m_pointeur{};
+    QCheckBox *m_case_a_cocher{};
 
 public:
-	explicit ControleProprieteBool(QWidget *parent = nullptr);
+    explicit ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteBool() override = default;
 
 	ControleProprieteBool(ControleProprieteBool const &) = default;
-	ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
+    ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
 
 private Q_SLOTS:
 	void ajourne_valeur_pointee(bool valeur);

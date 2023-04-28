@@ -67,7 +67,7 @@ class ControleProprieteCourbeCouleur final : public ControlePropriete {
 	CourbeBezier *m_courbe_active{};
 
 public:
-	explicit ControleProprieteCourbeCouleur(QWidget *parent = nullptr);
+    explicit ControleProprieteCourbeCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteCourbeCouleur() override;
 
 	ControleProprieteCourbeCouleur(ControleProprieteCourbeCouleur const &) = default;

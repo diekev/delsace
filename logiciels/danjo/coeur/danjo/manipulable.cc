@@ -34,6 +34,142 @@ namespace danjo {
 
 /* ************************************************************************** */
 
+std::string Propriete::donnne_infobulle() const
+{
+    return infobulle.c_str();
+}
+
+/* Évaluation des valeurs. */
+
+bool Propriete::evalue_bool(int /*temps*/) const
+{
+    assert(type == TypePropriete::BOOL);
+    return std::any_cast<bool>(valeur);
+}
+
+int Propriete::evalue_entier(int temps) const
+{
+    assert(type == TypePropriete::ENTIER);
+    std::any v1, v2;
+    int t1, t2;
+
+    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<int>(v1);
+    }
+
+    auto dt = t2 - t1;
+    auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
+    auto i1 = static_cast<float>(std::any_cast<int>(v1));
+    auto i2 = static_cast<float>(std::any_cast<int>(v2));
+
+    return static_cast<int>((1.0f - fac) * i1 + fac * i2);
+}
+
+float Propriete::evalue_decimal(int temps) const
+{
+    assert(type == TypePropriete::DECIMAL);
+    std::any v1, v2;
+    int t1, t2;
+
+    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<float>(v1);
+    }
+
+    auto dt = t2 - t1;
+    auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
+    auto i1 = std::any_cast<float>(v1);
+    auto i2 = std::any_cast<float>(v2);
+
+    return (1.0f - fac) * i1 + fac * i2;
+}
+
+dls::math::vec3f Propriete::evalue_vecteur(int temps) const
+{
+    assert(type == TypePropriete::VECTEUR);
+    std::any v1, v2;
+    int t1, t2;
+
+    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<dls::math::vec3f>(v1);
+    }
+
+    auto dt = t2 - t1;
+    auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
+    auto i1 = std::any_cast<dls::math::vec3f>(v1);
+    auto i2 = std::any_cast<dls::math::vec3f>(v2);
+
+    return (1.0f - fac) * i1 + fac * i2;
+}
+
+dls::phys::couleur32 Propriete::evalue_couleur(int temps) const
+{
+    assert(type == TypePropriete::COULEUR);
+    std::any v1, v2;
+    int t1, t2;
+
+    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<dls::phys::couleur32>(v1);
+    }
+
+    auto dt = t2 - t1;
+    auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
+    auto i1 = std::any_cast<dls::phys::couleur32>(v1);
+    auto i2 = std::any_cast<dls::phys::couleur32>(v2);
+
+    return (1.0f - fac) * i1 + fac * i2;
+}
+
+std::string Propriete::evalue_chaine(int /*temps*/) const
+{
+    dls::chaine chn = std::any_cast<dls::chaine>(valeur);
+    return chn.c_str();
+}
+
+/* Définition des valeurs. */
+void Propriete::définit_valeur_entier(int valeur_)
+{
+    valeur = valeur_;
+}
+void Propriete::définit_valeur_décimal(float valeur_)
+{
+    valeur = valeur_;
+}
+void Propriete::définit_valeur_bool(bool valeur_)
+{
+    valeur = valeur_;
+}
+void Propriete::définit_valeur_vec3(dls::math::vec3f valeur_)
+{
+    valeur = valeur_;
+}
+void Propriete::définit_valeur_couleur(dls::phys::couleur32 valeur_)
+{
+    valeur = valeur_;
+}
+void Propriete::définit_valeur_chaine(std::string const &valeur_)
+{
+    valeur = dls::chaine(valeur_.c_str());
+}
+
+/* Plage des valeurs. */
+plage_valeur<float> Propriete::plage_valeur_decimal() const
+{
+    return {valeur_min.f, valeur_max.f};
+}
+plage_valeur<int> Propriete::plage_valeur_entier() const
+{
+    return {valeur_min.i, valeur_max.i};
+}
+plage_valeur<float> Propriete::plage_valeur_vecteur() const
+{
+    return {valeur_min.f, valeur_max.f};
+}
+plage_valeur<float> Propriete::plage_valeur_couleur() const
+{
+    return {valeur_min.f, valeur_max.f};
+}
+
+/* Animation des valeurs. */
 void Propriete::ajoute_cle(const int v, int temps)
 {
 	assert(type == TypePropriete::ENTIER);
@@ -77,78 +213,6 @@ bool Propriete::possede_cle(int temps) const
 	}
 
 	return false;
-}
-
-int Propriete::evalue_entier(int temps) const
-{
-	assert(type == TypePropriete::ENTIER);
-	std::any v1, v2;
-	int t1, t2;
-
-	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::any_cast<int>(v1);
-	}
-
-	auto dt = t2 - t1;
-	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
-	auto i1 = static_cast<float>(std::any_cast<int>(v1));
-	auto i2 = static_cast<float>(std::any_cast<int>(v2));
-
-	return static_cast<int>((1.0f - fac) * i1 + fac * i2);
-}
-
-float Propriete::evalue_decimal(int temps) const
-{
-	assert(type == TypePropriete::DECIMAL);
-	std::any v1, v2;
-	int t1, t2;
-
-	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::any_cast<float>(v1);
-	}
-
-	auto dt = t2 - t1;
-	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
-	auto i1 = std::any_cast<float>(v1);
-	auto i2 = std::any_cast<float>(v2);
-
-	return (1.0f - fac) * i1 + fac * i2;
-}
-
-dls::math::vec3f Propriete::evalue_vecteur(int temps) const
-{
-	assert(type == TypePropriete::VECTEUR);
-	std::any v1, v2;
-	int t1, t2;
-
-	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::any_cast<dls::math::vec3f>(v1);
-	}
-
-	auto dt = t2 - t1;
-	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
-	auto i1 = std::any_cast<dls::math::vec3f>(v1);
-	auto i2 = std::any_cast<dls::math::vec3f>(v2);
-
-	return (1.0f - fac) * i1 + fac * i2;
-}
-
-dls::phys::couleur32 Propriete::evalue_couleur(int temps) const
-{
-	assert(type == TypePropriete::COULEUR);
-	std::any v1, v2;
-	int t1, t2;
-
-	if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-		return std::any_cast<dls::phys::couleur32>(v1);
-	}
-
-	auto dt = t2 - t1;
-	auto fac = static_cast<float>(temps - t1) / static_cast<float>(dt);
-	auto i1 = std::any_cast<dls::phys::couleur32>(v1);
-	auto i2 = std::any_cast<dls::phys::couleur32>(v2);
-
-	return (1.0f - fac) * i1 + fac * i2;
 }
 
 void Propriete::ajoute_cle_impl(const std::any &v, int temps)
@@ -236,7 +300,7 @@ Manipulable::iterateur_const Manipulable::fin() const
 
 void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::any &valeur)
 {
-	m_proprietes.insere({nom, {valeur, type}});
+    // m_proprietes.insere({nom, {valeur, type}});
 }
 
 void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
@@ -291,14 +355,14 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
 		}
 	}
 
-	m_proprietes[nom] = Propriete{valeur, type};
+    // m_proprietes[nom] = Propriete{valeur, type};
 }
 
 void Manipulable::ajoute_propriete_extra(const dls::chaine &nom, const Propriete &propriete)
 {
-	Propriete prop = propriete;
-	prop.est_extra = true;
-	m_proprietes[nom] = prop;
+//	Propriete prop = propriete;
+//	prop.est_extra = true;
+//	m_proprietes[nom] = prop;
 }
 
 int Manipulable::evalue_entier(const dls::chaine &nom, int temps) const
@@ -309,7 +373,7 @@ int Manipulable::evalue_entier(const dls::chaine &nom, int temps) const
 		return prop->evalue_entier(temps);
 	}
 
-	return std::any_cast<int>(prop->valeur);
+    return 0; // std::any_cast<int>(prop->valeur);
 }
 
 float Manipulable::evalue_decimal(const dls::chaine &nom, int temps) const
@@ -320,7 +384,7 @@ float Manipulable::evalue_decimal(const dls::chaine &nom, int temps) const
 		return prop->evalue_decimal(temps);
 	}
 
-	return std::any_cast<float>(prop->valeur);
+    return 0.0f; // std::any_cast<float>(prop->valeur);
 }
 
 dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps) const
@@ -331,7 +395,7 @@ dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps) 
 		return prop->evalue_vecteur(temps);
 	}
 
-	return std::any_cast<dls::math::vec3f>(prop->valeur);
+    return {}; // std::any_cast<dls::math::vec3f>(prop->valeur);
 }
 
 dls::phys::couleur32 Manipulable::evalue_couleur(const dls::chaine &nom, int temps) const
@@ -342,62 +406,62 @@ dls::phys::couleur32 Manipulable::evalue_couleur(const dls::chaine &nom, int tem
 		return prop->evalue_couleur(temps);
 	}
 
-	return std::any_cast<dls::phys::couleur32>(prop->valeur);
+    return dls::phys::couleur32(1.0f); //std::any_cast<dls::phys::couleur32>(prop->valeur);
 }
 
 dls::chaine Manipulable::evalue_fichier_entree(const dls::chaine &nom) const
 {
-	return std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_fichier_sortie(const dls::chaine &nom) const
 {
-	return std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_chaine(const dls::chaine &nom) const
 {
-	return std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 bool Manipulable::evalue_bool(const dls::chaine &nom) const
 {
-	return std::any_cast<bool>(propriete(nom)->valeur);
+    return false; //std::any_cast<bool>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_enum(const dls::chaine &nom) const
 {
-	return std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_liste(const dls::chaine &nom) const
 {
-	return std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 CourbeCouleur const *Manipulable::evalue_courbe_couleur(const dls::chaine &nom) const
 {
-	return std::any_cast<CourbeCouleur>(&propriete(nom)->valeur);
+    return {}; //std::any_cast<CourbeCouleur>(&propriete(nom)->valeur);
 }
 
 CourbeBezier const *Manipulable::evalue_courbe_valeur(const dls::chaine &nom) const
 {
-	return std::any_cast<CourbeBezier>(&propriete(nom)->valeur);
+    return {}; //std::any_cast<CourbeBezier>(&propriete(nom)->valeur);
 }
 
 RampeCouleur const *Manipulable::evalue_rampe_couleur(const dls::chaine &nom) const
 {
-	return std::any_cast<RampeCouleur>(&propriete(nom)->valeur);
+    return {}; //std::any_cast<RampeCouleur>(&propriete(nom)->valeur);
 }
 
 ListeManipulable const *Manipulable::evalue_liste_manip(const dls::chaine &nom) const
 {
-	return std::any_cast<ListeManipulable>(&propriete(nom)->valeur);
+    return nullptr; //std::any_cast<ListeManipulable>(&propriete(nom)->valeur);
 }
 
 void Manipulable::rend_propriete_visible(const dls::chaine &nom, bool ouinon)
 {
-	m_proprietes[nom].visible = ouinon;
+    m_proprietes[nom]->definit_visibilité(ouinon);
 }
 
 bool Manipulable::ajourne_proprietes()
@@ -405,6 +469,7 @@ bool Manipulable::ajourne_proprietes()
 	return true;
 }
 
+#if 0
 void Manipulable::valeur_bool(const dls::chaine &nom, bool valeur)
 {
 	m_proprietes[nom].valeur = valeur;
@@ -412,7 +477,7 @@ void Manipulable::valeur_bool(const dls::chaine &nom, bool valeur)
 
 void Manipulable::valeur_entier(const dls::chaine &nom, int valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    m_proprietes[nom]->valeur = valeur;
 }
 
 void Manipulable::valeur_decimal(const dls::chaine &nom, float valeur)
@@ -479,14 +544,15 @@ void *Manipulable::operator[](const dls::chaine &nom)
 
 	return pointeur;
 }
+#endif
 
 TypePropriete Manipulable::type_propriete(const dls::chaine &nom) const
 {
 	auto prop = propriete(nom);
-	return prop->type;
+    return prop->type();
 }
 
-Propriete *Manipulable::propriete(const dls::chaine &nom)
+BasePropriete *Manipulable::propriete(const dls::chaine &nom)
 {
 	auto iter = m_proprietes.trouve(nom);
 
@@ -494,10 +560,10 @@ Propriete *Manipulable::propriete(const dls::chaine &nom)
 		return nullptr;
 	}
 
-	return &(iter->second);
+    return iter->second;
 }
 
-Propriete const *Manipulable::propriete(const dls::chaine &nom) const
+BasePropriete const *Manipulable::propriete(const dls::chaine &nom) const
 {
 	auto iter = m_proprietes.trouve(nom);
 
@@ -505,7 +571,7 @@ Propriete const *Manipulable::propriete(const dls::chaine &nom) const
 		return nullptr;
 	}
 
-	return &(iter->second);
+    return iter->second;
 }
 
 bool Manipulable::possede_animation() const
@@ -513,7 +579,7 @@ bool Manipulable::possede_animation() const
 	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
 		auto &prop = iter->second;
 
-		if (prop.est_animee()) {
+        if (prop->est_animee()) {
 			return true;
 		}
 	}

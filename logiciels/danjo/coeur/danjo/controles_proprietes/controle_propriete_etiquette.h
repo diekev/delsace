@@ -37,7 +37,7 @@ class ControleProprieteEtiquette final : public ControlePropriete {
 	QLabel *m_etiquette{};
 
 public:
-	explicit ControleProprieteEtiquette(QWidget *parent = nullptr);
+    explicit ControleProprieteEtiquette(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
 	ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
 	ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;

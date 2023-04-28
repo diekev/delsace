@@ -55,6 +55,7 @@ enum TypePropriete {
 	COURBE_VALEUR,
 	RAMPE_COULEUR,
 	TEXTE,
+    LISTE,
 	LISTE_MANIP,
 };
 
@@ -69,13 +70,78 @@ enum etat_propriete : char {
 
 DEFINIE_OPERATEURS_DRAPEAU(etat_propriete, unsigned short)
 
-struct Propriete {
+template <typename T>
+struct plage_valeur {
+    T min{};
+    T max{};
+};
+
+class BasePropriete {
+public:
+    virtual TypePropriete type() const = 0;
+
+    /* Définit si la propriété est ajoutée par l'utilisateur. */
+    virtual bool est_extra() const = 0;
+
+    /* Définit si la propriété est visible. */
+    virtual void definit_visibilité(bool ouinon) = 0;
+    virtual bool est_visible() const = 0;
+
+    virtual std::string donnne_infobulle() const = 0;
+
+    /* Évaluation des valeurs. */
+    virtual bool evalue_bool(int temps) const = 0;
+    virtual int evalue_entier(int temps) const = 0;
+    virtual float evalue_decimal(int temps) const = 0;
+    virtual dls::math::vec3f evalue_vecteur(int temps) const = 0;
+    virtual dls::phys::couleur32 evalue_couleur(int temps) const = 0;
+    virtual std::string evalue_chaine(int temps) const = 0;
+
+    /* Définition des valeurs. */
+    virtual void définit_valeur_entier(int valeur) = 0;
+    virtual void définit_valeur_décimal(float valeur) = 0;
+    virtual void définit_valeur_bool(bool valeur) = 0;
+    virtual void définit_valeur_vec3(dls::math::vec3f valeur) = 0;
+    virtual void définit_valeur_couleur(dls::phys::couleur32 valeur) = 0;
+    virtual void définit_valeur_chaine(std::string const &valeur) = 0;
+
+    /* Plage des valeurs. */
+    virtual plage_valeur<float> plage_valeur_decimal() const = 0;
+    virtual plage_valeur<int> plage_valeur_entier() const = 0;
+    virtual plage_valeur<float> plage_valeur_vecteur() const = 0;
+    virtual plage_valeur<float> plage_valeur_couleur() const = 0;
+
+    /* Animation des valeurs. */
+    virtual void ajoute_cle(const int v, int temps) = 0;
+    virtual void ajoute_cle(const float v, int temps) = 0;
+    virtual void ajoute_cle(const dls::math::vec3f &v, int temps) = 0;
+    virtual void ajoute_cle(const dls::phys::couleur32 &v, int temps) = 0;
+
+    virtual void supprime_animation() = 0;
+
+    virtual bool est_animee() const = 0;
+    virtual bool est_animable() const = 0;
+
+    virtual bool possede_cle(int temps) const = 0;
+};
+
+struct Propriete : public BasePropriete {
 	std::any valeur{};
-	TypePropriete type{};
+    TypePropriete type_{};
+
+    union {
+        float f;
+        int i;
+    } valeur_min;
+
+    union {
+        float f;
+        int i;
+    } valeur_max;
 
 	etat_propriete etat = etat_propriete::VIERGE;
 
-	bool est_extra = false;
+    bool est_extra_ = false;
 
 	bool visible = true;
 
@@ -83,27 +149,68 @@ struct Propriete {
 
 	dls::tableau<std::pair<int, std::any>> courbe{};
 
-	void ajoute_cle(const int v, int temps);
+    dls::chaine infobulle{};
 
-	void ajoute_cle(const float v, int temps);
+    TypePropriete type() const override
+    {
+        return type_;
+    }
 
-	void ajoute_cle(const dls::math::vec3f &v, int temps);
+    bool est_extra() const override
+    {
+        return est_extra_;
+    }
 
-	void ajoute_cle(const dls::phys::couleur32 &v, int temps);
+    void definit_visibilité(bool ouinon) override
+    {
+        visible = ouinon;
+    }
 
-	void supprime_animation();
+    bool est_visible() const override
+    {
+        return visible;
+    }
 
-	bool est_animee() const;
+    bool est_animee() const override;
 
-	bool possede_cle(int temps) const;
+    bool est_animable() const override
+    {
+        return (etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE;
+    }
 
-	int evalue_entier(int temps) const;
+    std::string donnne_infobulle() const override;
 
-	float evalue_decimal(int temps) const;
+    /* Évaluation des valeurs. */
+    bool evalue_bool(int temps) const override;
+    int evalue_entier(int temps) const override;
+    float evalue_decimal(int temps) const override;
+    dls::math::vec3f evalue_vecteur(int temps) const override;
+    dls::phys::couleur32 evalue_couleur(int temps) const override;
+    std::string evalue_chaine(int temps) const override;
 
-	dls::math::vec3f evalue_vecteur(int temps) const;
+    /* Définition des valeurs. */
+    void définit_valeur_entier(int valeur) override;
+    void définit_valeur_décimal(float valeur) override;
+    void définit_valeur_bool(bool valeur) override;
+    void définit_valeur_vec3(dls::math::vec3f valeur) override;
+    void définit_valeur_couleur(dls::phys::couleur32 valeur) override;
+    void définit_valeur_chaine(std::string const &valeur) override;
 
-	dls::phys::couleur32 evalue_couleur(int temps) const;
+    /* Plage des valeurs. */
+    plage_valeur<float> plage_valeur_decimal() const override;
+    plage_valeur<int> plage_valeur_entier() const override;
+    plage_valeur<float> plage_valeur_vecteur() const override;
+    plage_valeur<float> plage_valeur_couleur() const override;
+
+    /* Animation des valeurs. */
+    void ajoute_cle(const int v, int temps) override;
+    void ajoute_cle(const float v, int temps) override;
+    void ajoute_cle(const dls::math::vec3f &v, int temps) override;
+    void ajoute_cle(const dls::phys::couleur32 &v, int temps) override;
+
+    bool possede_cle(int temps) const override;
+
+    void supprime_animation() override;
 
 private:
 	void ajoute_cle_impl(const std::any &v, int temps);
@@ -120,7 +227,7 @@ private:
  * toutes les propriétés utilisées dans le script de définition de l'entreface.
  */
 class Manipulable {
-	dls::dico_desordonne<dls::chaine, Propriete> m_proprietes{};
+    dls::dico_desordonne<dls::chaine, BasePropriete *> m_proprietes{};
 	bool m_initialise = false;
 	bool pad[7];
 
@@ -132,8 +239,8 @@ public:
 	/* Pour l'entreface des dossier. */
 	int onglet_courant = 0;
 
-	using iterateur = dls::dico_desordonne<dls::chaine, Propriete>::iteratrice;
-	using iterateur_const = dls::dico_desordonne<dls::chaine, Propriete>::const_iteratrice;
+    using iterateur = dls::dico_desordonne<dls::chaine, BasePropriete *>::iteratrice;
+    using iterateur_const = dls::dico_desordonne<dls::chaine, BasePropriete *>::const_iteratrice;
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste de propriétés.
@@ -153,6 +260,11 @@ public:
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
 	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::any &valeur);
+
+    void ajoute_propriete(const dls::chaine &nom, BasePropriete *prop)
+    {
+        m_proprietes[nom] = prop;
+    }
 
 	/**
 	 * Ajoute une propriété extra à ce manipulable avec le nom spécifié.
@@ -281,16 +393,18 @@ public:
 	/**
 	 * Retourne un pointeur vers la valeur de la propriété au nom spécifié.
 	 */
+#if 0
 	void *operator[](const dls::chaine &nom);
+#endif
 
 	/**
 	 * Retourne le type de la propriété du nom spécifié.
 	 */
 	TypePropriete type_propriete(const dls::chaine &nom) const;
 
-	Propriete *propriete(const dls::chaine &nom);
+    BasePropriete *propriete(const dls::chaine &nom);
 
-	Propriete const *propriete(const dls::chaine &nom) const;
+    BasePropriete const *propriete(const dls::chaine &nom) const;
 
 	bool possede_animation() const;
 

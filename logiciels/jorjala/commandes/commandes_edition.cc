@@ -88,11 +88,11 @@ public:
 		danjo::Propriete prop;
 
 		if (type == "entier") {
-			prop.type = danjo::TypePropriete::ENTIER;
+            prop.type_ = danjo::TypePropriete::ENTIER;
 			prop.valeur = 0;
 		}
 		else {
-			prop.type = danjo::TypePropriete::DECIMAL;
+            prop.type_ = danjo::TypePropriete::DECIMAL;
 			prop.valeur = 0.0f;
 		}
 

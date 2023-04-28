@@ -30,6 +30,8 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "controles/action.h"
 #include "controles/bouton.h"
 #include "controles/menu_filtrable.hh"
@@ -54,6 +56,193 @@
 #include "repondant_bouton.h"
 
 namespace danjo {
+
+static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete, int temps)
+{
+    switch (propriete->type()) {
+        case TypePropriete::ENTIER:
+            return new ControleProprieteEntier(propriete, temps);
+        case TypePropriete::DECIMAL:
+            return new ControleProprieteDecimal(propriete, temps);
+//        case TypePropriete::ETIQUETTE:
+//            controle = new ControleProprieteEtiquette;
+        case TypePropriete::ENUM:
+            return new ControleProprieteEnum(propriete, temps);
+        case TypePropriete::LISTE:
+            return new ControleProprieteListe(propriete, temps);
+        case TypePropriete::BOOL:
+            return new ControleProprieteBool(propriete, temps);
+        case TypePropriete::CHAINE_CARACTERE:
+            return new ControleProprieteChaineCaractere(propriete, temps);
+        case TypePropriete::FICHIER_ENTREE:
+            return new ControleProprieteFichier(propriete, temps, true);
+        case TypePropriete::FICHIER_SORTIE:
+            return new ControleProprieteFichier(propriete, temps, false);
+        case TypePropriete::COULEUR:
+            return new ControleProprieteCouleur(propriete, temps);
+        case TypePropriete::VECTEUR:
+            return new ControleProprieteVec3(propriete, temps);
+        case TypePropriete::COURBE_COULEUR:
+            return new ControleProprieteCourbeCouleur(propriete, temps);
+        case TypePropriete::COURBE_VALEUR:
+            return new ControleProprieteCourbeValeur(propriete, temps);
+        case TypePropriete::RAMPE_COULEUR:
+            return new ControleProprieteRampeCouleur(propriete, temps);
+        case TypePropriete::TEXTE:
+            return new ControleProprieteEditeurTexte(propriete, temps);
+        case TypePropriete::LISTE_MANIP:
+            return new ControleProprieteListeManip(propriete, temps);
+        default:
+            return nullptr;
+    }
+}
+
+static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
+{
+    switch (lexeme) {
+        case id_morceau::ENTIER:
+            return  TypePropriete::ENTIER;
+        case id_morceau::DECIMAL:
+            return  TypePropriete::DECIMAL;
+        case id_morceau::ENUM:
+            return  TypePropriete::ENUM;
+        case id_morceau::LISTE:
+            return  TypePropriete::LISTE;
+        case id_morceau::CASE:
+            return  TypePropriete::BOOL;
+        case id_morceau::CHAINE:
+            return  TypePropriete::CHAINE_CARACTERE;
+        case id_morceau::FICHIER_ENTREE:
+            return  TypePropriete::FICHIER_ENTREE;
+        case id_morceau::FICHIER_SORTIE:
+            return  TypePropriete::FICHIER_SORTIE;
+        case id_morceau::COULEUR:
+            return  TypePropriete::COULEUR;
+        case id_morceau::VECTEUR:
+            return  TypePropriete::VECTEUR;
+        case id_morceau::COURBE_COULEUR:
+            return  TypePropriete::COURBE_COULEUR;
+        case id_morceau::COURBE_VALEUR:
+            return  TypePropriete::COURBE_VALEUR;
+        case id_morceau::RAMPE_COULEUR:
+            return  TypePropriete::RAMPE_COULEUR;
+        case id_morceau::TEXTE:
+            return  TypePropriete::TEXTE;
+        case id_morceau::LISTE_MANIP:
+            return TypePropriete::LISTE_MANIP;
+        default:
+            break;
+
+    }
+
+    assert(false);
+    return TypePropriete::ENTIER;
+}
+
+/* Il s'emblerait que std::atof a du mal à convertir les string en float. */
+template <typename T>
+static T parse_valeur_ou_defaut(const dls::chaine &valeur, T defaut)
+{
+    if (valeur == "") {
+        return defaut;
+    }
+
+    std::istringstream ss(valeur.c_str());
+    T result;
+
+    ss >> result;
+
+    return result;
+}
+
+static Propriete *crée_propriété(DonneesControle const &donnees)
+{
+    auto résultat = memoire::loge<Propriete>("danjo::Propriete");
+    résultat->type_ = donnees.type;
+    résultat->etat = donnees.etat;
+
+    switch (donnees.type) {
+        case TypePropriete::ENTIER: {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<int>::min());
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<int>::max());
+            auto valeur_defaut = parse_valeur_ou_defaut(donnees.valeur_defaut, 0);
+            résultat->valeur_min.i = min;
+            résultat->valeur_max.i = max;
+            résultat->valeur = valeur_defaut;
+            break;
+        }
+        case TypePropriete::DECIMAL: {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min, -std::numeric_limits<float>::max());
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<float>::max());
+            auto valeur_defaut = parse_valeur_ou_defaut(donnees.valeur_defaut, 0.0f);
+            résultat->valeur_min.f = min;
+            résultat->valeur_max.f = max;
+            résultat->valeur = valeur_defaut;
+            break;
+        }
+        case TypePropriete::ENUM: {
+            break;
+        }
+        case TypePropriete::BOOL: {
+            résultat->valeur = (donnees.valeur_defaut == "vrai");
+            break;
+        }
+        case TypePropriete::LISTE:
+        case TypePropriete::CHAINE_CARACTERE:
+        case TypePropriete::TEXTE:
+        case TypePropriete::FICHIER_ENTREE:
+        case TypePropriete::FICHIER_SORTIE: {
+            résultat->valeur = donnees.valeur_defaut;
+            break;
+        }
+        case TypePropriete::COULEUR: {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min, 0.0f);
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min, 1.0f);
+            auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
+            auto index = 0;
+
+            dls::phys::couleur32 valeur_defaut(1.0f);
+            for (auto const &v : valeurs) {
+                valeur_defaut[index++] = parse_valeur_ou_defaut(v, 0.0f);
+            }
+
+            résultat->valeur_min.f = min;
+            résultat->valeur_max.f = max;
+            résultat->valeur = valeur_defaut;
+            break;
+        }
+        case TypePropriete::VECTEUR: {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min, -std::numeric_limits<float>::max());
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<float>::max());
+            auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
+            auto index = 0;
+
+            dls::math::vec3f valeur_defaut(1.0f);
+            for (auto const &v : valeurs) {
+                valeur_defaut[index++] = parse_valeur_ou_defaut(v, 0.0f);
+            }
+
+            résultat->valeur_min.f = min;
+            résultat->valeur_max.f = max;
+            résultat->valeur = valeur_defaut;
+            break;
+        }
+        case TypePropriete::COURBE_COULEUR: {
+            break;
+        }
+        case TypePropriete::COURBE_VALEUR: {
+            break;
+        }
+        case TypePropriete::RAMPE_COULEUR: {
+            break;
+        }
+        case TypePropriete::LISTE_MANIP: {
+            break;
+        }
+    }
+
+    return résultat;
+}
 
 AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur, int temps, bool initialisation_seule)
 	: m_manipulable(manipulable)
@@ -90,87 +279,10 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 
 void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 {
-	ControlePropriete *controle = nullptr;
-
 	m_donnees_controle = DonneesControle();
-
-	switch (identifiant) {
-		case id_morceau::ENTIER:
-			controle = new ControleProprieteEntier;
-			m_donnees_controle.type = TypePropriete::ENTIER;
-			break;
-		case id_morceau::DECIMAL:
-			controle = new ControleProprieteDecimal;
-			m_donnees_controle.type = TypePropriete::DECIMAL;
-			break;
-		case id_morceau::ETIQUETTE:
-			controle = new ControleProprieteEtiquette;
-			break;
-		case id_morceau::ENUM:
-			controle = new ControleProprieteEnum;
-			m_donnees_controle.type = TypePropriete::ENUM;
-			break;
-		case id_morceau::LISTE:
-		{
-			auto controle_liste = new ControleProprieteListe;
-			controle_liste->conteneur(m_conteneur);
-			controle = controle_liste;
-			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
-			break;
-		}
-		case id_morceau::CASE:
-			controle = new ControleProprieteBool;
-			m_donnees_controle.type = TypePropriete::BOOL;
-			break;
-		case id_morceau::CHAINE:
-			controle = new ControleProprieteChaineCaractere;
-			m_donnees_controle.type = TypePropriete::CHAINE_CARACTERE;
-			break;
-		case id_morceau::FICHIER_ENTREE:
-			controle = new ControleProprieteFichier(true);
-			m_donnees_controle.type = TypePropriete::FICHIER_ENTREE;
-			break;
-		case id_morceau::FICHIER_SORTIE:
-			controle = new ControleProprieteFichier(false);
-			m_donnees_controle.type = TypePropriete::FICHIER_SORTIE;
-			break;
-		case id_morceau::COULEUR:
-			controle = new ControleProprieteCouleur;
-			m_donnees_controle.type = TypePropriete::COULEUR;
-			break;
-		case id_morceau::VECTEUR:
-			controle = new ControleProprieteVec3;
-			m_donnees_controle.type = TypePropriete::VECTEUR;
-			break;
-		case id_morceau::COURBE_COULEUR:
-			controle = new ControleProprieteCourbeCouleur;
-			m_donnees_controle.type = TypePropriete::COURBE_COULEUR;
-			break;
-		case id_morceau::COURBE_VALEUR:
-			controle = new ControleProprieteCourbeValeur;
-			m_donnees_controle.type = TypePropriete::COURBE_VALEUR;
-			break;
-		case id_morceau::RAMPE_COULEUR:
-			controle = new ControleProprieteRampeCouleur;
-			m_donnees_controle.type = TypePropriete::RAMPE_COULEUR;
-			break;
-		case id_morceau::TEXTE:
-			controle = new ControleProprieteEditeurTexte;
-			m_donnees_controle.type = TypePropriete::TEXTE;
-			break;
-		case id_morceau::LISTE_MANIP:
-			controle = new ControleProprieteListeManip;
-			m_donnees_controle.type = TypePropriete::LISTE_MANIP;
-			break;
-		default:
-			break;
-	}
-
-	m_dernier_controle = controle;
-
-	if (!m_initialisation_seule) {
-		m_pile_dispositions.haut()->addWidget(controle);
-	}
+    if (identifiant != id_morceau::ETIQUETTE) {
+        m_donnees_controle.type = type_propriete_pour_lexeme(identifiant);
+    }
 }
 
 void AssembleurDisposition::cree_controles_proprietes_extra()
@@ -182,16 +294,17 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 	auto debut = m_manipulable->debut();
 	auto fin = m_manipulable->fin();
 
+    // À FAIRE : supprime tout ça
 	for (auto iter = debut; iter != fin; ++iter) {
-		const Propriete &prop = iter->second;
+        auto const prop = iter->second;
 
-		if (!prop.est_extra) {
+        if (!prop->est_extra()) {
 			continue;
 		}
 
 		auto identifiant = id_morceau::INCONNU;
 
-		switch (prop.type) {
+        switch (prop->type()) {
 			case TypePropriete::ENTIER:
 				identifiant = id_morceau::ENTIER;
 				break;
@@ -226,16 +339,15 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 
 		ajoute_disposition(id_morceau::LIGNE);
 
-		auto etiquette = new ControleProprieteEtiquette;
+        auto etiquette = new ControleProprieteEtiquette(nullptr, 0);
 		auto donnees_etiquette = DonneesControle();
 		donnees_etiquette.valeur_defaut = iter->first;
 		etiquette->finalise(donnees_etiquette);
 
 		m_pile_dispositions.haut()->addWidget(etiquette);
 
-		ajoute_controle(identifiant);
-		m_donnees_controle.nom = iter->first;
-		m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
+        ajoute_controle(identifiant);
+        m_donnees_controle.nom = iter->first;
 		finalise_controle();
 
 		sors_disposition();
@@ -266,43 +378,50 @@ void AssembleurDisposition::ajoute_bouton()
 
 void AssembleurDisposition::finalise_controle()
 {
-	if (m_donnees_controle.pointeur == nullptr && m_donnees_controle.nom != "") {
-		/* Ajoute la propriété au manipulable. */
-		m_manipulable->ajoute_propriete(
-					m_donnees_controle.nom, m_donnees_controle.type);
+//	if (m_donnees_controle.pointeur == nullptr && m_donnees_controle.nom != "") {
+//		/* Ajoute la propriété au manipulable. */
+//		m_manipulable->ajoute_propriete(
+//					m_donnees_controle.nom, m_donnees_controle.type);
 
-		m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
-		assert(m_donnees_controle.pointeur != nullptr);
-		m_donnees_controle.initialisation = true;
-	}
-	else {
-		m_donnees_controle.initialisation = false;
-	}
+//        // m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
+//		assert(m_donnees_controle.pointeur != nullptr);
+//		m_donnees_controle.initialisation = true;
+//	}
+//	else {
+//		m_donnees_controle.initialisation = false;
+//	}
 
 	/* NOTE : l'initialisation de la valeur par défaut de la propriété se fait
 	 * dans la méthode 'finalise' du controle. */
 	auto prop = m_manipulable->propriete(m_donnees_controle.nom);
 
 	/* Les étiquettes n'ont pas de pointeur dans le Manipulable. */
-	if (prop != nullptr) {
-		prop->etat = m_donnees_controle.etat;
+    if (prop == nullptr) {
+        prop = crée_propriété(m_donnees_controle);
+        m_manipulable->ajoute_propriete(m_donnees_controle.nom, prop);
 	}
 
-	m_dernier_controle->proriete(prop);
-	m_dernier_controle->temps(m_temps);
+    if (m_initialisation_seule) {
+        /* Si on ne fait qu'initialiser les propriétés du manipulable, nous pouvons
+         * nous arrêter là. */
+        return;
+    }
+
+    // À FAIRE : restaure les étiquettes.
+
+    m_dernier_controle = cree_controle_pour_propriete(prop, m_temps);
+
+    m_pile_dispositions.haut()->addWidget(m_dernier_controle);
+
 	m_dernier_controle->finalise(m_donnees_controle);
 
-	if (m_initialisation_seule) {
-		/* Si on ne fait qu'initialiser les propriétés du manipulable, on peut
-		 * directement supprimer le controle. */
-		delete m_dernier_controle;
-		m_dernier_controle = nullptr;
-	}
-	else {
-		controles.insere({ m_donnees_controle.nom, m_dernier_controle });
-	}
+    controles.insere({ m_donnees_controle.nom, m_dernier_controle });
 
 	if (m_conteneur != nullptr) {
+        if (prop->type() == TypePropriete::LISTE) {
+            static_cast<ControleProprieteListe *>(m_dernier_controle)->conteneur(m_conteneur);
+        }
+
 		QObject::connect(m_dernier_controle, &ControlePropriete::precontrole_change,
 						 m_conteneur, &ConteneurControles::precontrole_change);
 
@@ -337,7 +456,6 @@ void AssembleurDisposition::propriete_controle(id_morceau identifiant, const dls
 			break;
 		case id_morceau::ATTACHE:		
 			m_donnees_controle.nom = valeur;
-			m_donnees_controle.pointeur = (*m_manipulable)[valeur];
 			break;
 		case id_morceau::PRECISION:
 			m_donnees_controle.precision = valeur;

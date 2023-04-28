@@ -45,7 +45,7 @@ class ControleProprieteEntier final : public ControlePropriete {
 	ControleEchelleEntiere *m_echelle{};
 
 public:
-	explicit ControleProprieteEntier(QWidget *parent = nullptr);
+    explicit ControleProprieteEntier(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteEntier() override;
 
 	ControleProprieteEntier(ControleProprieteEntier const &) = default;

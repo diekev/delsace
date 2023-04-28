@@ -41,20 +41,8 @@
 
 namespace danjo {
 
-/* Il s'emblerait que std::atof a du mal à convertir les string en float. */
-template <typename T>
-static T convertie(const dls::chaine &valeur)
-{
-	std::istringstream ss(valeur.c_str());
-	T result;
-
-	ss >> result;
-
-	return result;
-}
-
-ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_x(new ControleNombreDecimal(this))
 	, m_y(new ControleNombreDecimal(this))
@@ -116,38 +104,14 @@ ControleProprieteVec3::~ControleProprieteVec3()
 
 void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 {
-	auto min = -std::numeric_limits<float>::max();
+    auto plage = m_propriete->plage_valeur_vecteur();
+    m_x->ajourne_plage(plage.min, plage.max);
+    m_y->ajourne_plage(plage.min, plage.max);
+    m_z->ajourne_plage(plage.min, plage.max);
 
-	if (donnees.valeur_min != "") {
-		min = convertie<float>(donnees.valeur_min.c_str());
-	}
-
-	auto max = std::numeric_limits<float>::max();
-
-	if (donnees.valeur_max != "") {
-		max = convertie<float>(donnees.valeur_max.c_str());
-	}
-
-	m_x->ajourne_plage(min, max);
-	m_y->ajourne_plage(min, max);
-	m_z->ajourne_plage(min, max);
-
-	if (donnees.initialisation) {
-		auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
-		auto index = 0ul;
-
-		auto valeur_defaut = dls::math::vec3f();
-
-		for (auto v : valeurs) {
-			valeur_defaut[index++] = static_cast<float>(std::atof(v.c_str()));
-		}
-
-		m_propriete->valeur = valeur_defaut;
-	}
-
-	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
+    if (!m_propriete->est_animable()) {
 		m_bouton_animation->hide();
-	}
+    }
 
 	m_animation = m_propriete->est_animee();
 
@@ -163,7 +127,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		m_z->valeur(valeur[2]);
 	}
 	else {
-		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
+        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
@@ -199,14 +163,14 @@ void ControleProprieteVec3::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
+        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
+        m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
 		m_bouton_animation->setText("c");
 	}
 
@@ -223,7 +187,7 @@ void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 		m_propriete->ajoute_cle(vec, m_temps);
 	}
 	else {
-		m_propriete->valeur = vec;
+        m_propriete->définit_valeur_vec3(vec);
 	}
 
 	Q_EMIT(controle_change());
@@ -236,8 +200,8 @@ void ControleProprieteVec3::ajourne_valeur_y(float valeur)
 	if (m_animation) {
 		m_propriete->ajoute_cle(vec, m_temps);
 	}
-	else {
-		m_propriete->valeur = vec;
+    else {
+        m_propriete->définit_valeur_vec3(vec);
 	}
 
 	Q_EMIT(controle_change());
@@ -250,8 +214,8 @@ void ControleProprieteVec3::ajourne_valeur_z(float valeur)
 	if (m_animation) {
 		m_propriete->ajoute_cle(vec, m_temps);
 	}
-	else {
-		m_propriete->valeur = vec;
+    else {
+        m_propriete->définit_valeur_vec3(vec);
 	}
 
 	Q_EMIT(controle_change());

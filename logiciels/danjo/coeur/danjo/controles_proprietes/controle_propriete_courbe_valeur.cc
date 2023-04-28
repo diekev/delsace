@@ -38,8 +38,8 @@
 
 namespace danjo {
 
-ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement_principal(new QVBoxLayout())
 	, m_agencement_nombre(new QHBoxLayout())
 	, m_utilise_table(new QCheckBox("Utilise table", this))

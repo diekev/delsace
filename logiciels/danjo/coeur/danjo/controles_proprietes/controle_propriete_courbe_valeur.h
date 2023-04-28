@@ -62,7 +62,7 @@ class ControleProprieteCourbeValeur final : public ControlePropriete {
 	CourbeBezier *m_courbe{};
 
 public:
-	explicit ControleProprieteCourbeValeur(QWidget *parent = nullptr);
+    explicit ControleProprieteCourbeValeur(BasePropriete *p, int temps, QWidget *parent = nullptr);
 	~ControleProprieteCourbeValeur() override;
 
 	ControleProprieteCourbeValeur(ControleProprieteCourbeValeur const &) = default;

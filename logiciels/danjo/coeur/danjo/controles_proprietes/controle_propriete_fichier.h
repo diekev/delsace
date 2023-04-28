@@ -48,7 +48,7 @@ class SelecteurFichier : public ControlePropriete {
 	char pad1[7];
 
 public:
-	explicit SelecteurFichier(bool input, QWidget *parent = nullptr);
+    explicit SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
 
 	SelecteurFichier(SelecteurFichier const &) = default;
 	SelecteurFichier &operator=(SelecteurFichier const &) = default;
@@ -72,7 +72,7 @@ class ControleProprieteFichier final : public SelecteurFichier {
 	dls::chaine *m_pointeur{};
 
 public:
-	explicit ControleProprieteFichier(bool input, QWidget *parent = nullptr);
+    explicit ControleProprieteFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
 	~ControleProprieteFichier() override = default;
 
 	ControleProprieteFichier(ControleProprieteFichier const &) = default;

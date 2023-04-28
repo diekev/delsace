@@ -37,8 +37,8 @@
 
 namespace danjo {
 
-ControleProprieteListe::ControleProprieteListe(QWidget *parent)
-	: ControlePropriete(parent)
+ControleProprieteListe::ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent)
 	, m_agencement(new QHBoxLayout(this))
 	, m_editeur_texte(new QLineEdit(this))
 	, m_bouton_liste(new QPushButton("list", this))
