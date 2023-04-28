@@ -47,18 +47,9 @@ class GestionnaireInterface;
 
 class VueEditeurNoeud : public QGraphicsView {
     JJL::Jorjala &m_jorjala;
-	EditriceGraphe *m_base;
+    EditriceGraphe *m_base;
 
-	QMenu *m_menu_ajout_noeud_composite = nullptr;
-	QMenu *m_menu_ajout_noeud_detail = nullptr;
-	QMenu *m_menu_ajout_noeud_objet = nullptr;
-	QMenu *m_menu_ajout_noeud_rendu = nullptr;
-	QMenu *m_menu_graphe_objet = nullptr;
-	QMenu *m_menu_ajout_noeud_simulation = nullptr;
-	QMenu *m_menu_graphe_composite = nullptr;
-	QMenu *m_menu_graphe_nuanceur = nullptr;
-	QMenu *m_menu_graphe_rendu = nullptr;
-	QMenu *m_menu_ajout_noeud_cycles = nullptr;
+    std::map<std::string, QMenu *> m_menus{};
 
 public:
 	VueEditeurNoeud(
@@ -86,5 +77,8 @@ public:
 	void keyPressEvent(QKeyEvent *event) override;
 
 	bool focusNextPrevChild(bool) override;
+
+private:
+    QMenu *menu_pour_graphe();
 };
 

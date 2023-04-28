@@ -194,8 +194,8 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		}
 	}
 
-    if (graphe.connexion_active()) {
-        auto connexion = graphe.connexion_active();
+    if (graphe.connexion_interactive()) {
+        auto connexion = graphe.connexion_interactive();
         QPointF p1;
         if (connexion.prise_entrée() != nullptr) {
             auto prise_entree = connexion.prise_entrée();

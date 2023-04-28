@@ -24,9 +24,12 @@
 
 #include "commandes_objet.hh"
 
+#include "biblinternes/patrons_conception/commande.h"
+
+#include "coeur/jorjala.hh"
+
 #if 0
 #include "biblinternes/outils/fichier.hh"
-#include "biblinternes/patrons_conception/commande.h"
 
 #include "danjo/danjo.h"
 
@@ -35,7 +38,6 @@
 #include "coeur/evenement.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
-#include "coeur/jorjala.hh"
 #include "coeur/noeud_image.h"
 
 /* ************************************************************************** */
@@ -115,6 +117,7 @@ static auto cree_graphe_ocean(
 	prop->ajoute_cle(static_cast<float>(temps_debut), temps_debut);
 	prop->ajoute_cle(static_cast<float>(temps_fin), temps_fin);
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -125,7 +128,11 @@ public:
 
 int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCommande &donnees)
 {
-	auto jorjala = extrait_jorjala(pointeur);
+#if 1
+    auto jorjala = extrait_jorjala(pointeur);
+    jorjala.crée_objet("objet");
+    jorjala.notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+#else
 	auto &bdd = jorjala->bdd;
 	auto nom = donnees.metadonnee;
 	auto gestionnaire = jorjala->gestionnaire_entreface;
@@ -168,6 +175,7 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
 
 	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
+#endif
 
 	return EXECUTION_COMMANDE_REUSSIE;
 }
@@ -182,6 +190,7 @@ public:
 
 int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande &donnees)
 {
+#if 0
 	auto jorjala = extrait_jorjala(pointeur);
 	auto &bdd = jorjala->bdd;
 	auto nom = donnees.metadonnee;
@@ -200,6 +209,7 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 	jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
 
 	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
+#endif
 
 	return EXECUTION_COMMANDE_REUSSIE;
 }
@@ -209,6 +219,7 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 struct CommandeImportObjet final : public Commande {
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
+#if 0
 		auto jorjala = extrait_jorjala(pointeur);
 		auto const chemin = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.obj *.stl");
 
@@ -237,16 +248,15 @@ struct CommandeImportObjet final : public Commande {
 
 		requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
 
+#endif
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
-#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_objet(UsineCommande &usine)
 {
-#if 0
 	usine.enregistre_type("ajoute_prereglage",
 						   description_commande<CommandeAjoutePrereglage>(
 							   "objet", 0, 0, 0, false));
@@ -257,6 +267,5 @@ void enregistre_commandes_objet(UsineCommande &usine)
 
 	usine.enregistre_type("import_objet",
 						   description_commande<CommandeImportObjet>(
-							   "objet", 0, 0, 0, false));
-#endif
+                               "objet", 0, 0, 0, false));
 }

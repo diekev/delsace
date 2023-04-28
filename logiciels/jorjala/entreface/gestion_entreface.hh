@@ -17,6 +17,8 @@ void active_editrice(JJL::Jorjala &jorjala, BaseEditrice *editrice);
 
 void gere_pression_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id);
 
+void gere_double_clique_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id);
+
 void gere_mouvement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id);
 
 void gere_relachement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id);

@@ -33,6 +33,9 @@
 #include <QPen>
 #pragma GCC diagnostic pop
 
+#include <ostream>
+#include <iostream>
+
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/jorjala.hh"
@@ -484,8 +487,8 @@ void ItemNoeud::finalise_dessin(
 
 	setRect(pos_x, pos_y, largeur_noeud, hauteur_noeud);
 
-    noeud.largeur(static_cast<int>(largeur_noeud));
-    noeud.hauteur(static_cast<int>(hauteur_noeud));
+    noeud.largeur(static_cast<float>(largeur_noeud));
+    noeud.hauteur(static_cast<float>(hauteur_noeud));
 }
 
 void ItemNoeud::cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur)

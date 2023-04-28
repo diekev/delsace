@@ -4,6 +4,7 @@
 #include "gestion_entreface.hh"
 
 #include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -48,7 +49,14 @@ static DonneesCommande donnees_commande_depuis_event(QMouseEvent *e, const char 
 void gere_pression_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
 {
     auto donnees = donnees_commande_depuis_event(e, id);
-    // repondant_commande(m_jorjala)->appele_commande("vue_3d", donnees);
+    repondant_commande(jorjala)->appele_commande(id, donnees);
+}
+
+void gere_double_clique_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
+{
+    auto donnees = donnees_commande_depuis_event(e, id);
+    donnees.double_clique = true;
+    repondant_commande(jorjala)->appele_commande(id, donnees);
 }
 
 void gere_mouvement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
@@ -56,17 +64,17 @@ void gere_mouvement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id
     auto donnees = donnees_commande_depuis_event(e, id);
 
     if (e->buttons() == 0) {
-        // repondant_commande(m_jorjala)->appele_commande(id, donnees);
+        repondant_commande(jorjala)->appele_commande(id, donnees);
     }
     else {
-        // repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
+        repondant_commande(jorjala)->ajourne_commande_modale(donnees);
     }
 }
 
 void gere_relachement_souris(JJL::Jorjala &jorjala, QMouseEvent *e, const char *id)
 {
     auto donnees = donnees_commande_depuis_event(e, id);
-    // repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
+    repondant_commande(jorjala)->acheve_commande_modale(donnees);
 }
 
 void gere_molette_souris(JJL::Jorjala &jorjala, QWheelEvent *e, const char *id)
@@ -81,5 +89,5 @@ void gere_molette_souris(JJL::Jorjala &jorjala, QWheelEvent *e, const char *id)
     donnees.double_clique = true;
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // repondant_commande(m_jorjala)->appele_commande(id, donnees);
+    repondant_commande(jorjala)->appele_commande(id, donnees);
 }

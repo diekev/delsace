@@ -38,12 +38,10 @@
 
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/jorjala.hh"
 
-// #include "operatrices/operatrices_cycles.hh"
-
+#include "../gestion_entreface.hh"
 #include "../editrice_noeud.h"
 
 /* ************************************************************************** */
@@ -56,81 +54,27 @@ VueEditeurNoeud::VueEditeurNoeud(JJL::Jorjala &jorjala,
 	, m_base(base)
 {
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-//	danjo::DonneesInterface donnees{};
-//	donnees.manipulable = nullptr;
-//	donnees.conteneur = nullptr;
-//	donnees.repondant_bouton = repondant_commande(m_jorjala);
-
-//	auto gestionnaire = m_jorjala.gestionnaire_entreface;
-
-//	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_composite.jo");
-//	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_objet.jo");
-//	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_detail.jo");
-//	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_rendu.jo");
-//	m_menu_graphe_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_objet.jo");
-//	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_simulation.jo");
-//	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
-//	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
-//	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
-
-//	auto texte_menu_cycles = genere_menu_noeuds_cycles();
-//	m_menu_ajout_noeud_cycles = gestionnaire->compile_menu_texte(donnees, texte_menu_cycles);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()
 {
-	delete m_menu_graphe_rendu;
-	delete m_menu_graphe_nuanceur;
-	delete m_menu_graphe_composite;
-	delete m_menu_ajout_noeud_rendu;
-	delete m_menu_ajout_noeud_composite;
-	delete m_menu_ajout_noeud_objet;
-	delete m_menu_ajout_noeud_detail;
-	delete m_menu_ajout_noeud_cycles;
-	delete m_menu_graphe_objet;
-	delete m_menu_ajout_noeud_simulation;
 }
 
 void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 {
-	m_base->rend_actif();
+    m_base->rend_actif();
 
-#if 0
-	if (event->key() == Qt::Key_Tab) {
-		switch (m_jorjala.graphe->type) {
-			case type_graphe::RACINE_COMPOSITE:
-				m_menu_graphe_composite->popup(QCursor::pos());
-				break;
-			case type_graphe::RACINE_NUANCEUR:
-				m_menu_graphe_nuanceur->popup(QCursor::pos());
-				break;
-			case type_graphe::RACINE_RENDU:
-				m_menu_graphe_rendu->popup(QCursor::pos());
-				break;
-			case type_graphe::RENDU:
-				m_menu_ajout_noeud_rendu->popup(QCursor::pos());
-				break;
-			case type_graphe::COMPOSITE:
-				m_menu_ajout_noeud_composite->popup(QCursor::pos());
-				break;
-			case type_graphe::RACINE_OBJET:
-				m_menu_graphe_objet->popup(QCursor::pos());
-				break;
-			case type_graphe::OBJET:
-				m_menu_ajout_noeud_objet->popup(QCursor::pos());
-				break;
-			case type_graphe::DETAIL:
-				m_menu_ajout_noeud_detail->popup(QCursor::pos());
-				break;
-			case type_graphe::CYCLES:
-				m_menu_ajout_noeud_cycles->popup(QCursor::pos());
-				break;
-			case type_graphe::INVALIDE:
-				break;
-		}
+    if (event->key() == Qt::Key_Tab) {
+        auto menu = menu_pour_graphe();
+
+        if (!menu) {
+            return;
+        }
+
+        menu->popup(QCursor::pos());
 	}
+#if 0
 	else {
 		DonneesCommande donnees;
 		donnees.cle = event->key();
@@ -142,16 +86,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 
 void VueEditeurNoeud::wheelEvent(QWheelEvent *event)
 {
-	m_base->rend_actif();
-
-	DonneesCommande donnees;
-	donnees.double_clique = true;
-	donnees.souris = Qt::MiddleButton;
-	donnees.x = static_cast<float>(event->angleDelta().x());
-	donnees.y = static_cast<float>(event->angleDelta().y());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
+    gere_molette_souris(m_jorjala, event, "graphe");
 }
 
 void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
@@ -168,7 +103,7 @@ void VueEditeurNoeud::mouseMoveEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
+    repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
 }
 
 void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
@@ -187,23 +122,23 @@ void VueEditeurNoeud::mousePressEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
+    repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	m_base->rend_actif();
+    m_base->rend_actif();
 
-	auto const position = mapToScene(event->pos());
+    auto const position = mapToScene(event->pos());
 
-	DonneesCommande donnees;
-	donnees.double_clique = true;
-	donnees.souris = Qt::LeftButton;
-	donnees.x = static_cast<float>(position.x());
-	donnees.y = static_cast<float>(position.y());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+    DonneesCommande donnees;
+    donnees.double_clique = true;
+    donnees.souris = Qt::LeftButton;
+    donnees.x = static_cast<float>(position.x());
+    donnees.y = static_cast<float>(position.y());
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
+    repondant_commande(m_jorjala)->appele_commande("graphe", donnees);
 }
 
 void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
@@ -217,12 +152,61 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 	donnees.y = static_cast<float>(position.y());
 	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    // repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
+    repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
 }
 
 bool VueEditeurNoeud::focusNextPrevChild(bool /*next*/)
 {
 	/* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
 	 * sur les éléments enfants du conteneur de contrôles. */
-	return false;
+    return false;
+}
+
+static std::string texte_danjo_pour_menu_catégorisation(JJL::CategorisationNoeuds catégorisation, const std::string &identifiant)
+{
+    std::stringstream ss;
+
+    ss << "menu \"" << identifiant << "\" {\n";
+
+    for (auto catégorie : catégorisation.catégories()) {
+        ss << "  menu \"" << catégorie.nom().vers_std_string() << "\" {\n";
+
+        for (auto noeud : catégorie.noeuds()) {
+            ss << "    action(valeur=\"" << noeud.vers_std_string() << "\"; attache=ajouter_noeud; métadonnée=\"" << noeud.vers_std_string() << "\")\n";
+        }
+
+        ss << "  }\n";
+    }
+
+    ss << "}\n";
+
+    return ss.str();
+}
+
+QMenu *VueEditeurNoeud::menu_pour_graphe()
+{
+    auto graphe = m_jorjala.graphe();
+    auto catégorisation = graphe.catégorisation_noeuds();
+    auto identifiant = graphe.identifiant_graphe().vers_std_string();
+    if (catégorisation == nullptr) {
+        return nullptr;
+    }
+
+    auto menu_existant = m_menus.find(identifiant);
+    if (menu_existant != m_menus.end()) {
+        return menu_existant->second;
+    }
+
+    auto texte = texte_danjo_pour_menu_catégorisation(catégorisation, identifiant);
+    auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+
+    auto menu = gestionnaire->compile_menu_texte(donnees, texte);
+    if (!menu) {
+        return nullptr;
+    }
+
+    m_menus[identifiant] = menu;
+
+    return menu;
 }
