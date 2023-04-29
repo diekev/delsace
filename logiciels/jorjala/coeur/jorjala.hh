@@ -57,6 +57,8 @@ struct DonnéesProgramme {
 
 std::optional<JJL::Jorjala> initialise_jorjala();
 
+void issitialise_jorjala(JJL::Jorjala &jorjala);
+
 /* Extrait une valeur de type Jorjala depuis un std::any.
  * Ceci est utilisé pour les commandes. */
 inline JJL::Jorjala extrait_jorjala(std::any const &any)

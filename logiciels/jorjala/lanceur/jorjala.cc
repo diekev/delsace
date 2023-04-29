@@ -118,5 +118,9 @@ int main(int argc, char *argv[])
 //		coeur::ouvre_projet(chemin, jorjala);
 //	}
 
-	return a.exec();
+    auto résultat = a.exec();
+
+    issitialise_jorjala(jorjala);
+
+    return résultat;
 }

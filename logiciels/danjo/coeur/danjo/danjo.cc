@@ -50,25 +50,23 @@ namespace danjo {
 
 GestionnaireInterface::~GestionnaireInterface()
 {
-	/* crash lors de la sortie des programmes */
-//	for (const auto &donnees : m_menus) {
-//		auto menu = donnees.second;
+    for (const auto &donnees : m_menus) {
+        auto menu = donnees.second;
 
-//		for (auto &action : menu->actions()) {
-//			delete action;
-//		}
+        for (auto &action : menu->actions()) {
+            delete action;
+        }
 
-//		delete menu;
-//	}
+        delete menu;
+    }
 
-	/* crash lors de la sortie des programmes */
-//	for (auto &barre_outils : m_barres_outils) {
-//		for (auto &action : barre_outils->actions()) {
-//			delete action;
-//		}
+    for (auto &barre_outils : m_barres_outils) {
+        for (auto &action : barre_outils->actions()) {
+            delete action;
+        }
 
-//		delete barre_outils;
-//	}
+        delete barre_outils;
+    }
 }
 
 void GestionnaireInterface::parent_dialogue(QWidget *p)
@@ -197,6 +195,10 @@ QBoxLayout *GestionnaireInterface::compile_entreface_texte(
 		m_controles.efface();
 		return nullptr;
 	}
+
+    for (const auto &pair : assembleuse.donnees_menus()) {
+        m_menus.insere(pair);
+    }
 
 	auto disposition = assembleuse.disposition();
 

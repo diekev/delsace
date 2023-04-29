@@ -102,6 +102,17 @@ std::optional<JJL::Jorjala> initialise_jorjala()
     return jorjala;
 }
 
+void issitialise_jorjala(JJL::Jorjala &jorjala)
+{
+    auto données_programme = accède_données_programme(jorjala);
+
+    memoire::deloge("UsineCommande", données_programme->usine_commande);
+    memoire::deloge("RepondantCommande", données_programme->repondant_commande);
+    memoire::deloge("danjo::GestionnaireInterface", données_programme->gestionnaire_danjo);
+
+    jorjala.libère_mémoire();
+}
+
 DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
 {
     auto données_programme = jorjala.gestionnaire_fenêtre();
