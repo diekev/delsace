@@ -64,8 +64,6 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
             return new ControleProprieteEntier(propriete, temps);
         case TypePropriete::DECIMAL:
             return new ControleProprieteDecimal(propriete, temps);
-//        case TypePropriete::ETIQUETTE:
-//            controle = new ControleProprieteEtiquette;
         case TypePropriete::ENUM:
             return new ControleProprieteEnum(propriete, temps);
         case TypePropriete::LISTE:
@@ -132,7 +130,6 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
             return TypePropriete::LISTE_MANIP;
         default:
             break;
-
     }
 
     assert(false);
@@ -279,17 +276,16 @@ void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 
 void AssembleurDisposition::ajoute_étiquette(dls::chaine texte)
 {
-
+    auto controle = new ControleProprieteEtiquette(texte.c_str());
+    m_pile_dispositions.haut()->addWidget(controle);
 }
 
 void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle const &donnees, BasePropriete *prop)
 {
     auto controle = cree_controle_pour_propriete(prop, m_temps);
-
-    m_pile_dispositions.haut()->addWidget(controle);
-
     controle->finalise(donnees);
 
+    m_pile_dispositions.haut()->addWidget(controle);
     controles.insere({ donnees.nom, controle });
 
     if (m_conteneur != nullptr) {
@@ -308,6 +304,7 @@ void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle con
 void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 {
 	m_donnees_controle = DonneesControle();
+    m_identifiant_donnees_controle = identifiant;
     if (identifiant != id_morceau::ETIQUETTE) {
         m_donnees_controle.type = type_propriete_pour_lexeme(identifiant);
     }
@@ -322,61 +319,19 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
 	auto debut = m_manipulable->debut();
 	auto fin = m_manipulable->fin();
 
-    // À FAIRE : supprime tout ça
 	for (auto iter = debut; iter != fin; ++iter) {
         auto const prop = iter->second;
 
         if (!prop->est_extra()) {
 			continue;
-		}
-
-		auto identifiant = id_morceau::INCONNU;
-
-        switch (prop->type()) {
-			case TypePropriete::ENTIER:
-				identifiant = id_morceau::ENTIER;
-				break;
-			case TypePropriete::DECIMAL:
-				identifiant = id_morceau::DECIMAL;
-				break;
-			case TypePropriete::ENUM:
-				identifiant = id_morceau::ENUM;
-				break;
-			case TypePropriete::CHAINE_CARACTERE:
-				identifiant = id_morceau::CHAINE;
-				break;
-			case TypePropriete::FICHIER_ENTREE:
-				identifiant = id_morceau::FICHIER_ENTREE;
-				break;
-			case TypePropriete::FICHIER_SORTIE:
-				identifiant = id_morceau::FICHIER_SORTIE;
-				break;
-			case TypePropriete::COULEUR:
-				identifiant = id_morceau::COULEUR;
-				break;
-			case TypePropriete::VECTEUR:
-				identifiant = id_morceau::VECTEUR;
-				break;
-			default:
-				break;
-		}
-
-		if (identifiant == id_morceau::INCONNU) {
-			continue;
-		}
+        }
 
 		ajoute_disposition(id_morceau::LIGNE);
 
-        auto etiquette = new ControleProprieteEtiquette(nullptr, 0);
-		auto donnees_etiquette = DonneesControle();
-		donnees_etiquette.valeur_defaut = iter->first;
-		etiquette->finalise(donnees_etiquette);
+        ajoute_étiquette(iter->first);
 
-		m_pile_dispositions.haut()->addWidget(etiquette);
-
-        ajoute_controle(identifiant);
         m_donnees_controle.nom = iter->first;
-		finalise_controle();
+        ajoute_controle_pour_propriété(m_donnees_controle, prop);
 
 		sors_disposition();
 	}
@@ -406,24 +361,14 @@ void AssembleurDisposition::ajoute_bouton()
 
 void AssembleurDisposition::finalise_controle()
 {
-//	if (m_donnees_controle.pointeur == nullptr && m_donnees_controle.nom != "") {
-//		/* Ajoute la propriété au manipulable. */
-//		m_manipulable->ajoute_propriete(
-//					m_donnees_controle.nom, m_donnees_controle.type);
+    if (m_identifiant_donnees_controle == id_morceau::ETIQUETTE) {
+        ajoute_étiquette(m_donnees_controle.valeur_defaut);
+        return;
+    }
 
-//        // m_donnees_controle.pointeur = (*m_manipulable)[m_donnees_controle.nom];
-//		assert(m_donnees_controle.pointeur != nullptr);
-//		m_donnees_controle.initialisation = true;
-//	}
-//	else {
-//		m_donnees_controle.initialisation = false;
-//	}
-
-	/* NOTE : l'initialisation de la valeur par défaut de la propriété se fait
-	 * dans la méthode 'finalise' du controle. */
 	auto prop = m_manipulable->propriete(m_donnees_controle.nom);
 
-	/* Les étiquettes n'ont pas de pointeur dans le Manipulable. */
+    /* Crée une propriété depuis la définition si aucune n'existe. */
     if (prop == nullptr) {
         prop = crée_propriété(m_donnees_controle);
         m_manipulable->ajoute_propriete(m_donnees_controle.nom, prop);
@@ -435,7 +380,6 @@ void AssembleurDisposition::finalise_controle()
         return;
     }
 
-    // À FAIRE : restaure les étiquettes.
     ajoute_controle_pour_propriété(m_donnees_controle, prop);
 }
 

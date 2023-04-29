@@ -33,7 +33,10 @@ ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *paren
     , m_propriete(p)
     , m_temps(temps)
 {
-    setToolTip(m_propriete->donnne_infobulle().c_str());
+    if (m_propriete) {
+        /* Les étiquettes n'ont pas de propriété. */
+        setToolTip(m_propriete->donnne_infobulle().c_str());
+    }
 }
 
 void ControlePropriete::emet_precontrole_change()

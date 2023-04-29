@@ -63,7 +63,6 @@ class AssembleurDisposition {
 	dls::tableau<std::pair<dls::chaine, QMenu *>> m_donnees_menus{};
 
 	Action *m_derniere_action = nullptr;
-	ControlePropriete *m_dernier_controle = nullptr;
 	Bouton *m_dernier_bouton = nullptr;
 	QMenu *m_menu_racine = nullptr;
 
@@ -80,6 +79,7 @@ class AssembleurDisposition {
 	int m_temps = 0;
 	bool m_initialisation_seule = false;
 
+    id_morceau m_identifiant_donnees_controle = id_morceau::INCONNU;
 	DonneesControle m_donnees_controle{};
 
 public:

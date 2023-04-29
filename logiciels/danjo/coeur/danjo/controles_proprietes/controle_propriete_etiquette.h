@@ -37,12 +37,10 @@ class ControleProprieteEtiquette final : public ControlePropriete {
 	QLabel *m_etiquette{};
 
 public:
-    explicit ControleProprieteEtiquette(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    explicit ControleProprieteEtiquette(QString const &texte, QWidget *parent = nullptr);
 
 	ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
-	ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
+    ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;
 };
 
 }  /* namespace danjo */
