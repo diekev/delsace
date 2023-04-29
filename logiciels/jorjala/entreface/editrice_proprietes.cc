@@ -68,13 +68,15 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TypeParametre ty
         case JJL::TypeParametre::NOMBRE_ENTIER: return danjo::TypePropriete::ENTIER;
         case JJL::TypeParametre::NOMBRE_RÉEL: return danjo::TypePropriete::DECIMAL;
         case JJL::TypeParametre::VALEUR_BOOLÉENNE: return danjo::TypePropriete::BOOL;
+        case JJL::TypeParametre::VEC3: return danjo::TypePropriete::VECTEUR;
         default: // À FAIRE
+        case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::CORPS: return {};
     }
 }
 
 class EnveloppeParametre : public danjo::BasePropriete {
-    JJL::TableParametres_Parametre m_param;
+    mutable JJL::TableParametres_Parametre m_param;
 
 public:
     EnveloppeParametre(JJL::TableParametres_Parametre param) : m_param(param) {};
@@ -98,8 +100,7 @@ public:
     }
     bool est_visible() const override
     {
-        // À FAIRE
-        return true;
+        return m_param.est_actif();
     }
 
     std::string donnne_infobulle() const override
@@ -111,51 +112,55 @@ public:
     /* Évaluation des valeurs. */
     bool evalue_bool(int temps) const override
     {
-        // À FAIRE
-        return false;
+        // À FAIRE: animation
+        return m_param.lis_valeur_bool();
     }
     int evalue_entier(int temps) const override
     {
-        // À FAIRE
-        return 0;
+        // À FAIRE: animation
+        return m_param.lis_valeur_entier();
     }
     float evalue_decimal(int temps) const override
     {
-        // À FAIRE
-        return 0.0f;
+        // À FAIRE: animation
+        return m_param.lis_valeur_réel();
     }
     dls::math::vec3f evalue_vecteur(int temps) const override
     {
-        // À FAIRE
-        return {};
+        // À FAIRE: animation
+        auto résultat = m_param.lis_valeur_vec3();
+        return dls::math::vec3f{résultat.x(), résultat.y(), résultat.z()};
     }
     dls::phys::couleur32 evalue_couleur(int temps) const override
     {
         // À FAIRE
-        return dls::phys::couleur32(1.0f);
+        return dls::phys::couleur32();
     }
-    std::string evalue_chaine(int temps) const override
+    std::string evalue_chaine(int /*temps*/) const override
     {
-        // À FAIRE
-        return "";
+        return m_param.lis_valeur_chaine().vers_std_string();
     }
 
     /* Définition des valeurs. */
     void définit_valeur_entier(int valeur) override
     {
-        // À FAIRE
+        m_param.définit_valeur_entier(valeur);
     }
     void définit_valeur_décimal(float valeur) override
     {
-        // À FAIRE
+        m_param.définit_valeur_réel(valeur);
     }
     void définit_valeur_bool(bool valeur) override
     {
-        // À FAIRE
+        m_param.définit_valeur_bool(valeur);
     }
     void définit_valeur_vec3(dls::math::vec3f valeur) override
     {
-        // À FAIRE
+        JJL::Vec3 résultat({});
+        résultat.x(valeur.x);
+        résultat.y(valeur.y);
+        résultat.z(valeur.z);
+        m_param.définit_valeur_vec3(résultat);
     }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
@@ -163,7 +168,7 @@ public:
     }
     void définit_valeur_chaine(std::string const &valeur) override
     {
-        // À FAIRE
+        m_param.définit_valeur_chaine(valeur.c_str());
     }
 
     /* Plage des valeurs. */
@@ -234,7 +239,6 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
                                                danjo::ConteneurControles *conteneur,
                                                JJL::Noeud &noeud)
 {
-    std::cerr << __func__ << '\n';
     auto table = noeud.table_paramètres();
     if (table == nullptr) {
         return nullptr;
@@ -245,15 +249,14 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
 
-    /* Ajout d'une disposition par défaut. */
     for (auto param : table.paramètres()) {
         auto type = type_propriété_danjo(param.type());
-        std::cerr << "Param : " << param.nom().vers_std_string() << '\n';
 
         if (!type.has_value()) {
-            std::cerr << "-- type paramètre non supporté\n";
             continue;
         }
+
+        assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
 
         dls::chaine nom(param.nom().vers_std_string());
         assembleuse.ajoute_étiquette(nom);
@@ -264,6 +267,8 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         danjo::DonneesControle donnees_controle;
         donnees_controle.nom = nom;
         assembleuse.ajoute_controle_pour_propriété(donnees_controle, prop);
+
+        assembleuse.sors_disposition();
     }
 
     return assembleuse.disposition();
@@ -322,13 +327,11 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
     auto graphe = m_jorjala.graphe();
     if (graphe == nullptr) {
-        std::cerr << "-- aucun graphe\n";
         return;
     }
 
     auto noeud = graphe.noeud_actif();
 	if (noeud == nullptr) {
-        std::cerr << "-- aucun noeud_actif\n";
 		return;
 	}
 
@@ -341,7 +344,6 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	 * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
 	 * rafraichissement que les avertissements. */
 	if (creation_avert) {
-        std::cerr << "-- aucun creation_avert\n";
 		return;
 	}
 
@@ -350,27 +352,12 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
     auto disposition = crée_disposition_paramètres(&manipulable, repondant, this, noeud);
     if (disposition == nullptr) {
-        std::cerr << "-- aucun disposition\n";
         return;
     }
+
+    // À FAIRE
+    // gestionnaire->ajourne_entreface(manipulable);
     m_conteneur_disposition->setLayout(disposition);
-
-#if 0 // À FAIRE
-    auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
-    auto chemin_entreface = "";
-    dls::chaine texte_entreface;
-
-    auto donnees = cree_donnees_interface_danjo(m_jorjala, manipulable, this);
-    auto gestionnaire = gestionnaire_danjo(m_jorjala);
-    auto disposition = gestionnaire->compile_entreface_texte(donnees, texte_entreface, m_jorjala.temps_courant());
-
-	if (disposition == nullptr) {
-		return;
-	}
-
-	gestionnaire->ajourne_entreface(manipulable);
-	m_conteneur_disposition->setLayout(disposition);
-#endif
 }
 
 void EditriceProprietes::reinitialise_entreface(bool creation_avert)
@@ -393,7 +380,6 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 
 void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 {
-    std::cerr << __func__ << '\n';
     m_conteneur_avertissements->hide();
 
 	auto disposition_avertissements = new QGridLayout();
