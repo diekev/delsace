@@ -212,7 +212,7 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             auto min = parse_valeur_ou_defaut(donnees.valeur_min, -std::numeric_limits<float>::max());
             auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<float>::max());
             auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
-            auto index = 0;
+            auto index = 0ul;
 
             dls::math::vec3f valeur_defaut(1.0f);
             for (auto const &v : valeurs) {

@@ -43,13 +43,13 @@ std::string Propriete::donnne_infobulle() const
 
 bool Propriete::evalue_bool(int /*temps*/) const
 {
-    assert(type == TypePropriete::BOOL);
+    assert(type() == TypePropriete::BOOL);
     return std::any_cast<bool>(valeur);
 }
 
 int Propriete::evalue_entier(int temps) const
 {
-    assert(type == TypePropriete::ENTIER);
+    assert(type() == TypePropriete::ENTIER);
     std::any v1, v2;
     int t1, t2;
 
@@ -67,7 +67,7 @@ int Propriete::evalue_entier(int temps) const
 
 float Propriete::evalue_decimal(int temps) const
 {
-    assert(type == TypePropriete::DECIMAL);
+    assert(type() == TypePropriete::DECIMAL);
     std::any v1, v2;
     int t1, t2;
 
@@ -85,7 +85,7 @@ float Propriete::evalue_decimal(int temps) const
 
 dls::math::vec3f Propriete::evalue_vecteur(int temps) const
 {
-    assert(type == TypePropriete::VECTEUR);
+    assert(type() == TypePropriete::VECTEUR);
     std::any v1, v2;
     int t1, t2;
 
@@ -103,7 +103,7 @@ dls::math::vec3f Propriete::evalue_vecteur(int temps) const
 
 dls::phys::couleur32 Propriete::evalue_couleur(int temps) const
 {
-    assert(type == TypePropriete::COULEUR);
+    assert(type() == TypePropriete::COULEUR);
     std::any v1, v2;
     int t1, t2;
 
@@ -172,25 +172,25 @@ plage_valeur<float> Propriete::plage_valeur_couleur() const
 /* Animation des valeurs. */
 void Propriete::ajoute_cle(const int v, int temps)
 {
-	assert(type == TypePropriete::ENTIER);
+    assert(type() == TypePropriete::ENTIER);
 	ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const float v, int temps)
 {
-	assert(type == TypePropriete::DECIMAL);
+    assert(type() == TypePropriete::DECIMAL);
 	ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const dls::math::vec3f &v, int temps)
 {
-	assert(type == TypePropriete::VECTEUR);
+    assert(type() == TypePropriete::VECTEUR);
 	ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const dls::phys::couleur32 &v, int temps)
 {
-	assert(type == TypePropriete::COULEUR);
+    assert(type() == TypePropriete::COULEUR);
 	ajoute_cle_impl(std::any(v), temps);
 }
 
@@ -325,6 +325,7 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
 		case TypePropriete::FICHIER_SORTIE:
 		case TypePropriete::CHAINE_CARACTERE:
 		case TypePropriete::TEXTE:
+        case TypePropriete::LISTE:
 			valeur = std::any(dls::chaine(""));
 			break;
 		case TypePropriete::BOOL:

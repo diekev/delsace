@@ -78,6 +78,8 @@ struct plage_valeur {
 
 class BasePropriete {
 public:
+    virtual ~BasePropriete() = default;
+
     virtual TypePropriete type() const = 0;
 
     /* Définit si la propriété est ajoutée par l'utilisateur. */
@@ -132,12 +134,12 @@ struct Propriete : public BasePropriete {
     union {
         float f;
         int i;
-    } valeur_min;
+    } valeur_min{};
 
     union {
         float f;
         int i;
-    } valeur_max;
+    } valeur_max{};
 
 	etat_propriete etat = etat_propriete::VIERGE;
 
