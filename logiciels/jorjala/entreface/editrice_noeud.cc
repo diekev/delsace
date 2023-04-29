@@ -75,7 +75,7 @@ EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
         current_index++;
     }
 
-    m_selecteur_graphe->setCurrentIndex(current_index);
+    m_selecteur_graphe->setCurrentIndex(index_graphe_courant);
 
 	connect(m_selecteur_graphe, SIGNAL(currentIndexChanged(int)),
 			this, SLOT(change_contexte(int)));
@@ -286,17 +286,17 @@ QMenu *EditriceGraphe::menu_pour_graphe()
 {
     auto graphe = m_jorjala.graphe();
     auto catégorisation = graphe.catégorisation_noeuds();
-    auto identifiant = graphe.identifiant_graphe().vers_std_string();
+    auto identifiant_graphe = graphe.identifiant_graphe().vers_std_string();
     if (catégorisation == nullptr) {
         return nullptr;
     }
 
-    auto menu_existant = m_menus.find(identifiant);
+    auto menu_existant = m_menus.find(identifiant_graphe);
     if (menu_existant != m_menus.end()) {
         return menu_existant->second;
     }
 
-    auto texte = texte_danjo_pour_menu_catégorisation(catégorisation, identifiant);
+    auto texte = texte_danjo_pour_menu_catégorisation(catégorisation, identifiant_graphe);
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
     auto gestionnaire = gestionnaire_danjo(m_jorjala);
 
@@ -305,7 +305,7 @@ QMenu *EditriceGraphe::menu_pour_graphe()
         return nullptr;
     }
 
-    m_menus[identifiant] = menu;
+    m_menus[identifiant_graphe] = menu;
 
     return menu;
 }

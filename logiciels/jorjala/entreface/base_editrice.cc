@@ -91,8 +91,8 @@ void BaseEditrice::rend_actif()
 static DonneesCommande donnees_commande_depuis_event(QMouseEvent *e, QPointF position)
 {
     auto donnees = DonneesCommande();
-    donnees.x = position.x();
-    donnees.y = position.y();
+    donnees.x = static_cast<float>(position.x());
+    donnees.y = static_cast<float>(position.y());
     donnees.souris = static_cast<int>(e->buttons());
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
     return donnees;

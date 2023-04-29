@@ -692,7 +692,9 @@ public:
 		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe();
 
+#if 0
 		bool connexion_sortie = false;
+#endif
 
         if (graphe.connexion_interactive()) {
             auto connexion = graphe.connexion_interactive();
