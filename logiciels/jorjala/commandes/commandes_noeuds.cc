@@ -1201,36 +1201,11 @@ public:
 class CommandeChangeContexte final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-#if 0
+    {
 		auto jorjala = extrait_jorjala(pointeur);
-
 		auto const &metadonnee = donnees.metadonnee;
-
-		if (metadonnee == "composites") {
-            jorjala.graphe = jorjala.bdd.graphe_composites();
-            jorjala.chemin_courant = "/composites/";
-            jorjala.noeud = nullptr;
-		}
-		else if (metadonnee == "nuanceurs") {
-            jorjala.graphe = jorjala.bdd.graphe_nuanceurs();
-            jorjala.chemin_courant = "/nuanceurs/";
-            jorjala.noeud = nullptr;
-		}
-		else if (metadonnee == "objets") {
-            jorjala.graphe = jorjala.bdd.graphe_objets();
-            jorjala.chemin_courant = "/objets/";
-            jorjala.noeud = nullptr;
-		}
-		else if (metadonnee == "rendus") {
-            jorjala.graphe = jorjala.bdd.graphe_rendus();
-            jorjala.chemin_courant = "/rendus/";
-            jorjala.noeud = nullptr;
-		}
-
+        jorjala.définit_racine_courante(metadonnee.c_str());
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
-
-#endif
         return EXECUTION_COMMANDE_REUSSIE;
 	}
 };

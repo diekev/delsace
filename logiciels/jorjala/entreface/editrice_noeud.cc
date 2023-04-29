@@ -64,12 +64,18 @@ EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
 	auto disposition_vert = new QVBoxLayout();
 	auto disposition_barre = new QHBoxLayout();
 
-	m_selecteur_graphe->addItem("Graphe Composites", QVariant("composites"));
-	m_selecteur_graphe->addItem("Graphe Nuanceurs", QVariant("nuanceurs"));
-	m_selecteur_graphe->addItem("Graphe Objets", QVariant("objets"));
-	m_selecteur_graphe->addItem("Graphe Rendus", QVariant("rendus"));
+    auto racines = JJL::liste_informations_graphes_racines();
+    auto current_index = 0;
+    auto index_graphe_courant = 0;
+    for (auto racine : racines) {
+        m_selecteur_graphe->addItem(racine.nom().vers_std_string().c_str(), QVariant(racine.dossier().vers_std_string().c_str()));
+        if (racine.dossier().vers_std_string() == "obj") {
+            index_graphe_courant = current_index;
+        }
+        current_index++;
+    }
 
-	m_selecteur_graphe->setCurrentIndex(2);
+    m_selecteur_graphe->setCurrentIndex(current_index);
 
 	connect(m_selecteur_graphe, SIGNAL(currentIndexChanged(int)),
 			this, SLOT(change_contexte(int)));
