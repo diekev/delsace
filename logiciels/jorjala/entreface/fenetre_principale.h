@@ -33,6 +33,7 @@
 #pragma GCC diagnostic pop
 
 class BarreDeProgres;
+class BaseEditrice;
 
 namespace JJL {
 class Jorjala;
@@ -45,6 +46,8 @@ class FenetrePrincipale : public QMainWindow {
 
 	BarreDeProgres *m_barre_progres = nullptr;
 	QToolBar *m_barre_outil = nullptr;
+
+    QVector<BaseEditrice *> m_editrices{};
 
 public:
     explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
@@ -71,4 +74,6 @@ private:
 	void charge_reglages();
 	void ecrit_reglages() const;
 	void closeEvent(QCloseEvent *) override;
+
+    bool event(QEvent *event) override;
 };

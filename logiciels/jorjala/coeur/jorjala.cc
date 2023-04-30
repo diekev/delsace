@@ -42,23 +42,6 @@
 
 #include "ipa/table_types.c"
 
-namespace detail {
-
-static void notifie_observatrices(void *donnees, JJL::TypeEvenement evenement)
-{
-    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
-    données_programme->sujette.notifie_observatrices(static_cast<int>(evenement));
-}
-
-static void ajoute_observatrice(void *donnees, void *ptr_observatrice)
-{
-    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
-    Observatrice *observatrice = static_cast<Observatrice *>(ptr_observatrice);
-    données_programme->sujette.ajoute_observatrice(observatrice);
-}
-
-}
-
 static void enregistre_commandes(UsineCommande &usine_commande)
 {
     enregistre_commandes_graphes(usine_commande);
@@ -73,9 +56,7 @@ static void enregistre_commandes(UsineCommande &usine_commande)
 
 static void initialise_données_programme(DonnéesProgramme *données_programme, JJL::Jorjala &jorjala)
 {
-    auto gestionnaire_jjl = jorjala.crée_gestionnaire_fenêtre(données_programme);
-    gestionnaire_jjl.mute_rappel_ajout_observatrice(reinterpret_cast<void *>(detail::ajoute_observatrice));
-    gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
+    jorjala.crée_gestionnaire_fenêtre(données_programme);
 
     données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface");
     données_programme->usine_commande = memoire::loge<UsineCommande>("UsineCommande");
@@ -117,12 +98,6 @@ DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
 {
     auto données_programme = jorjala.gestionnaire_fenêtre();
     return static_cast<DonnéesProgramme *>(données_programme.données());
-}
-
-void ajoute_observatrice(JJL::Jorjala &jorjala, Observatrice *observatrice)
-{
-    auto données = accède_données_programme(jorjala);
-    observatrice->observe(&données->sujette);
 }
 
 RepondantCommande *repondant_commande(JJL::Jorjala &jorjala)

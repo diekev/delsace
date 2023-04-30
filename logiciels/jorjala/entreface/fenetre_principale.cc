@@ -31,7 +31,9 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QCoreApplication>
 #include <QDockWidget>
+#include <QEvent>
 #include <QFile>
 #include <QFileInfo>
 #include <QMenuBar>
@@ -54,6 +56,59 @@
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
+
+/* ------------------------------------------------------------------------- */
+
+/* Sous-classe de QEvent pour ajouter les évnènements de Jorjala à la boucle
+ * d'évènements de Qt. */
+class EvenementJorjala : public QEvent {
+    JJL::TypeEvenement m_type;
+
+public:
+    static QEvent::Type id_type_qt;
+
+    EvenementJorjala(JJL::TypeEvenement type_evenenemt_jorjala)
+        : QEvent(id_type_qt)
+        , m_type(type_evenenemt_jorjala)
+    {
+    }
+
+    JJL::TypeEvenement pour_quoi() const
+    {
+        return m_type;
+    }
+};
+
+QEvent::Type EvenementJorjala::id_type_qt;
+
+namespace detail {
+
+static void notifie_observatrices(void *donnees, JJL::TypeEvenement evenement)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    auto event = new EvenementJorjala(evenement);
+    QCoreApplication::postEvent(données_programme->fenetre_principale, event);
+}
+
+static void ajoute_observatrice(void */*donnees*/, void */*ptr_observatrice*/)
+{
+}
+
+}
+
+static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
+{
+    EvenementJorjala::id_type_qt = static_cast<QEvent::Type>(QEvent::registerEventType());
+
+    auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
+    gestionnaire_jjl.mute_rappel_ajout_observatrice(reinterpret_cast<void *>(detail::ajoute_observatrice));
+    gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
+
+    auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+    données_programme->fenetre_principale = fenetre_principale;
+}
+
+/* ------------------------------------------------------------------------- */
 
 static const char *chemins_scripts[] = {
 	"entreface/menu_fichier.jo",
@@ -83,6 +138,8 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 //	jorjala.fenetre_principale = this;
 //	jorjala.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
 //	jorjala.gestionnaire_entreface->parent_dialogue(this);
+
+    initialise_evenements(m_jorjala, this);
 
 	genere_barre_menu();
 	genere_menu_prereglages();
@@ -155,7 +212,22 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 
 void FenetrePrincipale::closeEvent(QCloseEvent *)
 {
-	ecrit_reglages();
+    ecrit_reglages();
+}
+
+bool FenetrePrincipale::event(QEvent *event)
+{
+    if (event->type() == EvenementJorjala::id_type_qt) {
+        auto event_jjl = static_cast<EvenementJorjala *>(event);
+
+        for (auto editrice : m_editrices) {
+            editrice->ajourne_etat(static_cast<int>(event_jjl->pour_quoi()));
+        }
+
+        return true;
+    }
+
+    return QWidget::event(event);
 }
 
 void FenetrePrincipale::genere_barre_menu()
@@ -213,6 +285,7 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
 	dock->setAttribute(Qt::WA_DeleteOnClose);
 
     if (editrice) {
+        m_editrices.push_back(editrice);
         editrice->ajourne_etat(static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
         dock->setWidget(editrice);
     }

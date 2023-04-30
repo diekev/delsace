@@ -26,8 +26,6 @@
 
 #if 1
 
-#include "biblinternes/patrons_conception/observation.hh"
-
 #include <any>
 #include <optional>
 
@@ -44,11 +42,12 @@ struct DonneesInterface;
 }
 
 class BaseEditrice;
+class FenetrePrincipale;
 class RepondantCommande;
 class UsineCommande;
 
 struct DonnéesProgramme {
-    Sujette sujette{};
+    FenetrePrincipale *fenetre_principale = nullptr;
     BaseEditrice *editrice_active = nullptr;
     danjo::GestionnaireInterface *gestionnaire_danjo = nullptr;
     UsineCommande *usine_commande = nullptr;
@@ -67,8 +66,6 @@ inline JJL::Jorjala extrait_jorjala(std::any const &any)
 }
 
 DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala);
-
-void ajoute_observatrice(JJL::Jorjala &jorjala, Observatrice *observatrice);
 
 RepondantCommande *repondant_commande(JJL::Jorjala &jorjala);
 

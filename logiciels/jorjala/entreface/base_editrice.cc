@@ -50,9 +50,6 @@ BaseEditrice::BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWid
 	, m_main_layout(new QHBoxLayout(m_frame))
     , identifiant(identifiant_)
 {
-    /* Mise en place de l'observation. */
-    ajoute_observatrice(m_jorjala, this);
-
 	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	size_policy.setHorizontalStretch(0);
 	size_policy.setVerticalStretch(0);
