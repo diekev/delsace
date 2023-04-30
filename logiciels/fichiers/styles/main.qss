@@ -1,5 +1,4 @@
 
-
 QWidget
 {
         background-color: rgb(127, 127, 127);
@@ -8,14 +7,15 @@ QWidget
 
 QPushButton
 {
-        background-color: rgb(127, 127, 127);
-        background: rgb(127, 127, 127);
+    background-color: rgb(127, 127, 127);
+    border: 1px solid rgb(164, 164, 164);
 }
 
 QComboBox
 {
         background-color: rgb(127, 127, 127);
-
+        border: 1px solid rgb(164, 164, 164);
+        color: rgb(240, 240, 240);
 }
 
 QWidget:disabled
