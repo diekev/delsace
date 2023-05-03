@@ -602,7 +602,9 @@ class CommandeSelectionGraphe final : public Commande {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
 	bool m_prise_entree_deconnectee = false;
-	char m_pad[6];
+    bool m_chose_sélectionnée = false;
+    char m_pad[5];
+
 
 public:
 	CommandeSelectionGraphe()
@@ -625,6 +627,7 @@ public:
         if (noeud_selection  != nullptr) {
             delta_x = donnees.x - noeud_selection.pos_x();
             delta_y = donnees.y - noeud_selection.pos_y();
+            m_chose_sélectionnée = true;
 		}
 
         if (prise_entree != nullptr || prise_sortie != nullptr) {
@@ -646,6 +649,7 @@ public:
 
             connexion.prise_entrée(prise_entree);
             connexion.prise_sortie(prise_sortie);
+            m_chose_sélectionnée = true;
 		}
 
         bool besoin_evaluation = selectionne_noeud(jorjala, noeud_selection, graphe);
@@ -658,6 +662,10 @@ public:
 			requiers_evaluation(*jorjala, NOEUD_SELECTIONE, "noeud sélectionné");
 #endif
 		}
+
+        if (m_chose_sélectionnée) {
+            jorjala.change_curseur_application(JJL::TypeCurseur::MAIN_FERMÉE);
+        }
 
 		return EXECUTION_COMMANDE_MODALE;
 	}
@@ -722,6 +730,10 @@ public:
 
             graphe.termine_connexion_interactive();
 		}
+
+        if (m_chose_sélectionnée) {
+            jorjala.restaure_curseur_application();
+        }
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
