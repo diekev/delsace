@@ -50,19 +50,12 @@
     m_jorjala.gestionnaire_entreface->compile_barre_outils_fichier
 
   EditriceLigneTemps :
-    jorjala.repondant_commande
-    m_jorjala.gestionnaire_entreface->compile_entreface_fichier
     m_jorjala.ajourne_pour_nouveau_temps
 
   VueEditeurNoeud :
-    m_jorjala.repondant_commande
-    m_jorjala.gestionnaire_entreface->compile_menu_fichier
-    m_jorjala.gestionnaire_entreface->compile_menu_texte
-
     genere_menu_noeuds_cycles
 
   EditriceGraphe
-    m_jorjala.repondant_commande
     graphe->info_noeud
 
   ItemNoeud
@@ -70,7 +63,6 @@
 
   Visionneuse2D
     m_jorjala.camera_2d
-    m_jorjala.usine_commandes
     m_jorjala.usine_operatrices
     m_jorjala.lcc->fonctions.table.taille
     m_jorjala.bdd.graphe_composites
