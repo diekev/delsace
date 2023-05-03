@@ -64,4 +64,6 @@ private:
     QMenu *menu_pour_graphe();
 
     QPointF transforme_position_evenement(QPoint pos) override;
+
+    void ajourne_sélecteur_graphe();
 };

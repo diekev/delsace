@@ -108,38 +108,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		return;
 	}
 
-    auto chemin_courant = m_jorjala.chemin_courant().vers_std_string();
-
-	/* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
-	 * fichiers */
-	{
-		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
-
-        switch (chemin_courant[1]) {
-			case 'c':
-			{
-				m_selecteur_graphe->setCurrentIndex(0);
-				break;
-			}
-			case 'n':
-			{
-				m_selecteur_graphe->setCurrentIndex(1);
-				break;
-			}
-			case 'o':
-			{
-				m_selecteur_graphe->setCurrentIndex(2);
-				break;
-			}
-			case 'r':
-			{
-				m_selecteur_graphe->setCurrentIndex(3);
-				break;
-			}
-		}
-
-		m_selecteur_graphe->blockSignals(bloque_signaux);
-	}
+    ajourne_sélecteur_graphe();
 
 	m_scene->clear();
 	m_scene->items().clear();
@@ -224,8 +193,6 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		QToolTip::showText(point, graphe->info_noeud->informations.c_str());
 	}
 #endif
-
-    m_barre_chemin->setText(chemin_courant.c_str());
 }
 
 void EditriceGraphe::sors_noeud()
@@ -311,4 +278,28 @@ QPointF EditriceGraphe::transforme_position_evenement(QPoint pos)
 {
     auto position = m_vue->mapToScene(pos);
     return QPointF(position.x(), position.y());
+}
+
+void EditriceGraphe::ajourne_sélecteur_graphe()
+{
+    auto chemin_courant = m_jorjala.chemin_courant().vers_std_string();
+    m_barre_chemin->setText(chemin_courant.c_str());
+
+    auto racine_chemin_courant = chemin_courant.substr(1, 3);
+
+    auto racines = JJL::liste_informations_graphes_racines();
+    auto current_index = 0;
+    auto index_graphe_courant = 0;
+    for (auto racine : racines) {
+        if (racine.dossier().vers_std_string() == racine_chemin_courant) {
+            index_graphe_courant = current_index;
+        }
+        current_index++;
+    }
+
+    /* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
+     * fichiers */
+    auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
+    m_selecteur_graphe->setCurrentIndex(index_graphe_courant);
+    m_selecteur_graphe->blockSignals(bloque_signaux);
 }
