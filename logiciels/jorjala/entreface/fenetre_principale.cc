@@ -32,6 +32,8 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QCoreApplication>
+#include <QGuiApplication>
+#include <QCursor>
 #include <QDockWidget>
 #include <QEvent>
 #include <QFile>
@@ -99,6 +101,29 @@ static void notifie_erreur(void *donnees, JJL::Chaine message)
     boite_message.setFixedSize(500, 200);
 }
 
+static Qt::CursorShape convertis_type_curseur(JJL::TypeCurseur curseur)
+{
+    switch (curseur) {
+        case JJL::TypeCurseur::NORMAL: return Qt::CursorShape::ArrowCursor;
+        case JJL::TypeCurseur::ATTENTE_BLOQUÉ: return Qt::CursorShape::WaitCursor;
+        case JJL::TypeCurseur::TÂCHE_ARRIÈRE_PLAN_EN_COURS: return Qt::CursorShape::BusyCursor;
+        case JJL::TypeCurseur::MAIN_OUVERTE: return Qt::CursorShape::OpenHandCursor;
+        case JJL::TypeCurseur::MAIN_FERMÉE: return Qt::CursorShape::ClosedHandCursor;
+    }
+
+    return Qt::CursorShape::ArrowCursor;
+}
+
+static void change_curseur(void *donnees, JJL::TypeCurseur curseur)
+{
+  QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
+}
+
+static void restaure_curseur(void *donnees, JJL::TypeCurseur curseur)
+{
+  QGuiApplication::restoreOverrideCursor();
+}
+
 }
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
@@ -108,6 +133,8 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
     gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
     gestionnaire_jjl.mute_rappel_notifie_erreur(reinterpret_cast<void *>(detail::notifie_erreur));
+    gestionnaire_jjl.définit_rappel_change_curseur(reinterpret_cast<void *>(detail::change_curseur));
+    gestionnaire_jjl.définit_rappel_restaure_curseur(reinterpret_cast<void *>(detail::restaure_curseur));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
