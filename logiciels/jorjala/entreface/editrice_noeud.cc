@@ -111,7 +111,6 @@ void EditriceGraphe::ajourne_etat(int evenement)
     ajourne_sélecteur_graphe();
 
 	m_scene->clear();
-	m_scene->items().clear();
 	assert(m_scene->items().size() == 0);
 
     auto const graphe = m_jorjala.graphe();
