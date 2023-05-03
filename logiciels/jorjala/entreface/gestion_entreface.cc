@@ -3,6 +3,8 @@
 
 #include "gestion_entreface.hh"
 
+#include "biblinternes/patrons_conception/repondant_commande.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -52,4 +54,9 @@ dls::chaine affiche_dialogue(int type, dls::chaine const &filtre)
     }
 
     return "";
+}
+
+void appele_commande(JJL::Jorjala &jorjala, dls::chaine const &nom_commande, dls::chaine const &métadonnée)
+{
+    repondant_commande(jorjala)->repond_clique(nom_commande, métadonnée);
 }

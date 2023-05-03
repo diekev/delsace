@@ -31,8 +31,9 @@
 #include <QFile>
 #pragma GCC diagnostic pop
 
-//#include "coeur/sauvegarde.h"
+#include "biblinternes/structures/chaine.hh"
 
+#include "entreface/gestion_entreface.hh"
 #include "entreface/fenetre_principale.h"
 
 #include "coeur/jorjala.hh"
@@ -113,10 +114,9 @@ int main(int argc, char *argv[])
     w.setWindowTitle(QCoreApplication::applicationName());
     w.showMaximized();
 
-//	if (argc == 2) {
-//		auto chemin = argv[1];
-//		coeur::ouvre_projet(chemin, jorjala);
-//	}
+    if (argc == 2) {
+       appele_commande(jorjala, "ouvrir_fichier", argv[1]);
+    }
 
     auto résultat = a.exec();
 

@@ -227,7 +227,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 //	dls::tableau<danjo::DonneesAction> donnees_actions;
 
 //	danjo::DonneesAction donnees{};
-//	donnees.attache = "ouvrir_fichier_recent";
+//	donnees.attache = "ouvrir_fichier";
 //	donnees.repondant_bouton = repondant_commande(m_jorjala);
 
 //	for (auto const &fichier_recent : m_jorjala.fichiers_recents()) {

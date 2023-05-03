@@ -37,17 +37,28 @@
 
 class CommandeOuvrir final : public Commande {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);        
-        auto const &chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jorjala");
+        auto jorjala = extrait_jorjala(pointeur);
 
-        if (chemin_projet.est_vide()) {
-            return EXECUTION_COMMANDE_ECHOUEE;
+        dls::chaine chemin_projet = "";
+        if (!donnees.metadonnee.est_vide()) {
+            /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
+             * appelé au début de l'exécution pour gérer un chemin passé en
+             * ligne de commande. */
+            chemin_projet = donnees.metadonnee;
+        }
+        else {
+            chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jorjala");
+            if (chemin_projet.est_vide()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
         }
 
         /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
         jorjala.lis_projet(chemin_projet.c_str());
+        jorjala.restaure_curseur_application();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -55,26 +66,23 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeOuvrirRecent final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-        /* À FAIRE : erreur de lecture. */
-        jorjala.lis_projet(donnees.metadonnee.c_str());
-        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
-};
+static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::Chaine chemin)
+{
+    auto const &chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
 
-/* ************************************************************************** */
+    if (chemin_projet != "") {
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.sauvegarde_projet(chemin);
+        jorjala.restaure_curseur_application();
+    }
+}
 
 static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 {
     auto const &chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
 
     if (chemin_projet != "") {
-        jorjala.sauvegarde_projet(chemin_projet.c_str());
+        sauve_fichier_sous(jorjala, chemin_projet.c_str());
     }
 }
 
@@ -84,13 +92,10 @@ public:
     {
 		auto jorjala = extrait_jorjala(pointeur);
 
-#if 0
-        if (jorjala->projet_ouvert()) { // À FAIRE
-			coeur::sauvegarde_projet(jorjala->chemin_projet().c_str(), *jorjala);
+        if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
+            sauve_fichier_sous(jorjala, jorjala.chemin_fichier_projet());
 		}
-        else
-#endif
-        {
+        else {
             sauve_fichier_sous(jorjala);
         }
 
@@ -116,11 +121,7 @@ void enregistre_commandes_projet(UsineCommande &usine)
 {
 	usine.enregistre_type("ouvrir_fichier",
 						   description_commande<CommandeOuvrir>(
-							   "projet", 0, 0, 0, false));
-
-	usine.enregistre_type("ouvrir_fichier_recent",
-						   description_commande<CommandeOuvrirRecent>(
-							   "projet", 0, 0, 0, false));
+                               "projet", 0, 0, 0, false));
 
 	usine.enregistre_type("sauvegarder",
 						   description_commande<CommandeSauvegarder>(
