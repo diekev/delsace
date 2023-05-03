@@ -39,6 +39,7 @@
 #include <QMenuBar>
 #include <QSettings>
 #include <QStatusBar>
+#include <QMessageBox>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
@@ -90,8 +91,12 @@ static void notifie_observatrices(void *donnees, JJL::TypeEvenement evenement)
     QCoreApplication::postEvent(données_programme->fenetre_principale, event);
 }
 
-static void ajoute_observatrice(void */*donnees*/, void */*ptr_observatrice*/)
+static void notifie_erreur(void *donnees, JJL::Chaine message)
 {
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    QMessageBox boite_message;
+    boite_message.critical(données_programme->fenetre_principale, "Erreur", message.vers_std_string().c_str());
+    boite_message.setFixedSize(500, 200);
 }
 
 }
@@ -101,8 +106,8 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     EvenementJorjala::id_type_qt = static_cast<QEvent::Type>(QEvent::registerEventType());
 
     auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-    gestionnaire_jjl.mute_rappel_ajout_observatrice(reinterpret_cast<void *>(detail::ajoute_observatrice));
     gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
+    gestionnaire_jjl.mute_rappel_notifie_erreur(reinterpret_cast<void *>(detail::notifie_erreur));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;

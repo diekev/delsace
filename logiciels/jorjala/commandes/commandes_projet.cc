@@ -26,9 +26,9 @@
 
 #include "biblinternes/patrons_conception/commande.h"
 
-#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
-#include "coeur/sauvegarde.h"
+
+#include "entreface/gestion_entreface.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -39,17 +39,16 @@ class CommandeOuvrir final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-#if 0
-		auto jorjala = extrait_jorjala(pointeur);
-		auto const chemin_projet = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.jorjala");
+		auto jorjala = extrait_jorjala(pointeur);        
+        auto const &chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jorjala");
 
-		if (chemin_projet.est_vide()) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (chemin_projet.est_vide()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		coeur::ouvre_projet(chemin_projet.c_str(), *jorjala);
-#endif
-
+        /* À FAIRE : erreur de lecture. */
+        jorjala.lis_projet(chemin_projet.c_str());
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
@@ -60,43 +59,40 @@ class CommandeOuvrirRecent final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-#if 0
 		auto jorjala = extrait_jorjala(pointeur);
-		coeur::ouvre_projet(donnees.metadonnee.c_str(), *jorjala);
-#endif
-
+        /* À FAIRE : erreur de lecture. */
+        jorjala.lis_projet(donnees.metadonnee.c_str());
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
 
-static void sauve_fichier_sous(Jorjala &jorjala)
+static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 {
-#if 0
-	auto const &chemin_projet = jorjala.requiers_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
+    auto const &chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
 
-	jorjala.chemin_projet(chemin_projet);
-	jorjala.projet_ouvert(true);
-
-	coeur::sauvegarde_projet(chemin_projet.c_str(), jorjala);
-#endif
+    if (chemin_projet != "") {
+        jorjala.sauvegarde_projet(chemin_projet.c_str());
+    }
 }
 
 class CommandeSauvegarder final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-#if 0
+    {
 		auto jorjala = extrait_jorjala(pointeur);
 
-		if (jorjala->projet_ouvert()) {
+#if 0
+        if (jorjala->projet_ouvert()) { // À FAIRE
 			coeur::sauvegarde_projet(jorjala->chemin_projet().c_str(), *jorjala);
 		}
-		else {
-			sauve_fichier_sous(*jorjala);
-		}
+        else
 #endif
+        {
+            sauve_fichier_sous(jorjala);
+        }
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -108,11 +104,8 @@ class CommandeSauvegarderSous final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-#if 0
 		auto jorjala = extrait_jorjala(pointeur);
-		sauve_fichier_sous(*jorjala);
-#endif
-
+        sauve_fichier_sous(jorjala);
 		return EXECUTION_COMMANDE_REUSSIE;
     }
 };
