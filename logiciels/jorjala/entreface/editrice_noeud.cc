@@ -40,9 +40,6 @@
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/outils/conditions.h"
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "graphe/item_noeud.h"
