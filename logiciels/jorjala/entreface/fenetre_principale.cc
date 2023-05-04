@@ -217,7 +217,7 @@ void FenetrePrincipale::charge_reglages()
 
 	for (auto const &file : recent_files) {
 		if (QFile(file).exists()) {
-            // m_jorjala.ajoute_fichier_recent(file.toStdString());
+            m_jorjala.ajoute_fichier_récent(file.toStdString().c_str());
 		}
 	}
 }
@@ -227,31 +227,32 @@ void FenetrePrincipale::ecrit_reglages() const
 	QSettings settings;
 	QStringList recent;
 
-//	for (auto const &fichier_recent : m_jorjala.fichiers_recents()) {
-//		recent.push_front(fichier_recent.c_str());
-//	}
+    for (auto fichier_recent : m_jorjala.fichiers_récents()) {
+        recent.push_front(fichier_recent.vers_std_string().c_str());
+    }
 
 	settings.setValue("projet_récents", recent);
 }
 
 void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 {
-//	dls::tableau<danjo::DonneesAction> donnees_actions;
+    dls::tableau<danjo::DonneesAction> donnees_actions;
 
-//	danjo::DonneesAction donnees{};
-//	donnees.attache = "ouvrir_fichier";
-//	donnees.repondant_bouton = repondant_commande(m_jorjala);
+    danjo::DonneesAction donnees{};
+    donnees.attache = "ouvrir_fichier";
+    donnees.repondant_bouton = repondant_commande(m_jorjala);
 
-//	for (auto const &fichier_recent : m_jorjala.fichiers_recents()) {
-//		auto name = QFileInfo(fichier_recent.c_str()).fileName();
+    for (auto fichier_recent : m_jorjala.fichiers_récents()) {
+        auto string_fichier_recent = fichier_recent.vers_std_string();
+        auto name = QFileInfo(string_fichier_recent.c_str()).fileName();
 
-//		donnees.nom = name.toStdString();
-//		donnees.metadonnee = fichier_recent;
+        donnees.nom = name.toStdString();
+        donnees.metadonnee = string_fichier_recent.c_str();
 
-//		donnees_actions.ajoute(donnees);
-//	}
+        donnees_actions.ajoute(donnees);
+    }
 
-//	m_jorjala.gestionnaire_entreface->recree_menu("Projets Récents", donnees_actions);
+    gestionnaire_danjo(m_jorjala)->recree_menu("Projets Récents", donnees_actions);
 }
 
 void FenetrePrincipale::closeEvent(QCloseEvent *)
@@ -284,9 +285,9 @@ void FenetrePrincipale::genere_barre_menu()
         menuBar()->addMenu(menu);
     }
 
-//	auto menu_fichiers_recents = m_jorjala.gestionnaire_entreface->pointeur_menu("Projets Récents");
-//	connect(menu_fichiers_recents, SIGNAL(aboutToShow()),
-//			this, SLOT(mis_a_jour_menu_fichier_recent()));
+    auto menu_fichiers_recents = gestionnaire_danjo(m_jorjala)->pointeur_menu("Projets Récents");
+    connect(menu_fichiers_recents, SIGNAL(aboutToShow()),
+            this, SLOT(mis_a_jour_menu_fichier_recent()));
 }
 
 void FenetrePrincipale::genere_menu_prereglages()
