@@ -885,6 +885,15 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[]$T, rappel_déloge_élém
     déloge(tableau)
 }
 
+tableau_trouve_index_élément :: fonc (tableau: []$T, valeur: T) -> Optionnel(z64)
+{
+    pour tableau {
+        si it == valeur {
+            retourne index_it
+        }
+    }
+}
+
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> z64 #externe libc
