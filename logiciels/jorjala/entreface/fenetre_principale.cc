@@ -145,6 +145,7 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
+    données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -174,9 +175,7 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 	, m_jorjala(jorjala)
     , m_barre_progres(new BarreDeProgres(m_jorjala, this))
 {
-//	jorjala.fenetre_principale = this;
 //	jorjala.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
-//	jorjala.gestionnaire_entreface->parent_dialogue(this);
 
     initialise_evenements(m_jorjala, this);
     setWindowTitle("Projet Sans Titre - Jorjala");
