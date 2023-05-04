@@ -39,7 +39,7 @@
 
 #include "biblinternes/image/flux/ecriture.h"
 #include "biblinternes/outils/chemin.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
 #include "evaluation/evaluation.hh"
 
@@ -158,12 +158,10 @@ static bool ecris_image(
 
 /* ************************************************************************** */
 
-class CommandeRenduImage final : public Commande {
+class CommandeRenduImage final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		if (jorjala->nom_calque_sortie == "") {
 			jorjala->affiche_erreur("Le nom du calque de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -201,12 +199,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeRenduSequence final : public Commande {
+class CommandeRenduSequence final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		auto const temps_originale = jorjala->temps_courant;
 
 		if (jorjala->nom_calque_sortie == "") {

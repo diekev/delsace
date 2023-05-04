@@ -51,7 +51,8 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
-	commandes_edition.cc
+    commande_jorjala.cc
+        commandes_edition.cc
 	commandes_noeuds.cc
 	commandes_objet.cc
 	commandes_projet.cc
@@ -60,6 +61,7 @@ add_library(${NOM_CIBLE} STATIC
 	commandes_vue2d.cc
 	commandes_vue3d.cc
 
+        commande_jorjala.hh
 	commandes_edition.h
 	commandes_noeuds.h
 	commandes_objet.hh

@@ -24,7 +24,7 @@
 
 #include "commandes_projet.h"
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
 #include "coeur/jorjala.hh"
 
@@ -35,12 +35,10 @@
 
 /* ************************************************************************** */
 
-class CommandeOuvrir final : public Commande {
+class CommandeOuvrir final : public CommandeJorjala {
 public:
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-        auto jorjala = extrait_jorjala(pointeur);
-
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         dls::chaine chemin_projet = "";
         if (!donnees.metadonnee.est_vide()) {
             /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
@@ -86,12 +84,10 @@ static void sauve_fichier_sous(JJL::Jorjala &jorjala)
     }
 }
 
-class CommandeSauvegarder final : public Commande {
+class CommandeSauvegarder final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
     {
-		auto jorjala = extrait_jorjala(pointeur);
-
         if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
             sauve_fichier_sous(jorjala, jorjala.chemin_fichier_projet());
 		}
@@ -105,11 +101,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeSauvegarderSous final : public Commande {
+class CommandeSauvegarderSous final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
         sauve_fichier_sous(jorjala);
 		return EXECUTION_COMMANDE_REUSSIE;
     }

@@ -36,7 +36,7 @@
 #include "danjo/manipulable.h"
 
 #include "biblinternes/outils/fichier.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 //#include "coeur/composite.h"
@@ -54,11 +54,10 @@
 
 /* ************************************************************************** */
 
-class CommandeAjouterPropriete final : public Commande {
+class CommandeAjouterPropriete final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
         auto gestionnaire = gestionnaire_danjo(jorjala);
         auto graphe = jorjala.graphe();
 
@@ -110,12 +109,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjouterComposite final : public Commande {
+class CommandeAjouterComposite final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
-
 #if 0 // À FAIRE
         jorjala.bdd.cree_composite("composite");
 #endif
@@ -128,12 +125,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjouterNuanceur final : public Commande {
+class CommandeAjouterNuanceur final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
-
 #if 0 // À FAIRE
         jorjala.bdd.cree_nuanceur("nuanceur");
 #endif
@@ -146,12 +141,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjouterNuanceurCycles final : public Commande {
+class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
-
 #if 0 // À FAIRE
         auto nuanceur = jorjala.bdd.cree_nuanceur("nuanceur");
 		nuanceur->marque_est_cycles();
@@ -165,11 +158,10 @@ public:
 
 /* ************************************************************************** */
 
-struct CommandeCreeNuanceurOperatrice final : public Commande {
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
 #if 0 // À FAIRE
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe();
 
         if (graphe.noeud_actif() == nullptr) {
@@ -229,12 +221,10 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 
 /* ************************************************************************** */
 
-class CommandeAjouterRendu final : public Commande {
+class CommandeAjouterRendu final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
+    {
 #if 0 // À FAIRE
         jorjala.bdd.cree_rendu("rendu");
 #endif
@@ -247,24 +237,22 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeDefait final : public Commande {
+class CommandeDefait final : public CommandeJorjala {
 public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0 // À FAIRE
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
+        INUTILISE(metadonnee);
         return !jorjala.pile_defait.est_vide();
 #else
         return false;
 #endif
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
 	{
 #if 0 // À FAIRE
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
+        INUTILISE(metadonnee);
         jorjala.defait();
         jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
 #endif
@@ -275,24 +263,22 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeRefait final : public Commande {
+class CommandeRefait final : public CommandeJorjala {
 public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0 // À FAIRE
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
+        INUTILISE(metadonnee);
         return !jorjala.pile_refait.est_vide();
 #else
         return false;
 #endif
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
 	{
 #if 0 // À FAIRE
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
+        INUTILISE(metadonnee);
         jorjala.refait();
         jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
 #endif
@@ -303,12 +289,11 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeRenomme final : public Commande {
+class CommandeRenomme final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
 	{
-		INUTILISE(metadonnee);
-        auto jorjala = extrait_jorjala(pointeur);
+        INUTILISE(metadonnee);
         auto graphe = jorjala.graphe();
 
         if (graphe.noeud_actif() == nullptr) {

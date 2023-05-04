@@ -34,7 +34,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
 #include "coeur/jorjala.hh"
 
@@ -180,12 +180,11 @@ static bool peut_connecter(JJL::PriseEntree entree, JJL::PriseSortie sortie)
 
 /* ************************************************************************** */
 
-class CommandeDessineGrapheComposite final : public Commande {
+class CommandeDessineGrapheComposite final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto const &noeud_composite = jorjala.bdd.graphe_composites()->noeud_actif;
 
 		if (noeud_composite == nullptr) {
@@ -240,12 +239,10 @@ static bool finalise_ajout_noeud(
 
 /* ************************************************************************** */
 
-class CommandeAjoutNoeud final : public Commande {
+class CommandeAjoutNoeud final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto jorjala = extrait_jorjala(pointeur);
-
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe();
 
@@ -268,12 +265,11 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjoutNoeudDetail final : public Commande {
+class CommandeAjoutNoeudDetail final : public CommandeJorjala {
 public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		if (graphe->type != type_graphe::DETAIL) {
@@ -309,11 +305,9 @@ public:
 		return false;
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
-
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
 		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
@@ -333,12 +327,11 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjoutNoeudCycles final : public Commande {
+class CommandeAjoutNoeudCycles final : public CommandeJorjala {
 public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		if (graphe->type != type_graphe::CYCLES) {
@@ -351,11 +344,9 @@ public:
 #endif
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
-
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
 		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
@@ -373,12 +364,11 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjoutNoeudDetailSpecial final : public Commande {
+class CommandeAjoutNoeudDetailSpecial final : public CommandeJorjala {
 public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		if (graphe->type != type_graphe::DETAIL) {
@@ -424,11 +414,9 @@ public:
 		return false;
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
-
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
 
@@ -456,13 +444,11 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeAjoutGrapheDetail final : public Commande {
+class CommandeAjoutGrapheDetail final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
-
 		auto nom = donnees.metadonnee;
 		auto type_detail = 0;
 
@@ -598,7 +584,7 @@ static void trouve_noeud_prise(JJL::Graphe &graphe, float x, float y, JJL::Noeud
     *r_sortie = trouve_prise_sortie(noeud_le_plus_proche, x, y);
 }
 
-class CommandeSelectionGraphe final : public Commande {
+class CommandeSelectionGraphe final : public CommandeJorjala {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
 	bool m_prise_entree_deconnectee = false;
@@ -608,14 +594,13 @@ class CommandeSelectionGraphe final : public Commande {
 
 public:
 	CommandeSelectionGraphe()
-		: Commande()
+        : CommandeJorjala()
 	{
 		INUTILISE(m_pad); /* Pour faire taire les avertissements. */
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe();
 
         JJL::Noeud noeud_selection = nullptr;
@@ -664,16 +649,14 @@ public:
 		}
 
         if (m_chose_sélectionnée) {
-            jorjala.change_curseur_application(JJL::TypeCurseur::MAIN_FERMÉE);
+            return EXECUTION_COMMANDE_MODALE;
         }
 
-		return EXECUTION_COMMANDE_MODALE;
+        return EXECUTION_COMMANDE_REUSSIE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-
-		auto jorjala = extrait_jorjala(pointeur);
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         auto graphe = jorjala.graphe();
 
         if (graphe.connexion_interactive()) {
@@ -695,9 +678,8 @@ public:
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 	}
 
-	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
+    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe();
 
 #if 0
@@ -729,10 +711,6 @@ public:
 			}
 
             graphe.termine_connexion_interactive();
-		}
-
-        if (m_chose_sélectionnée) {
-            jorjala.restaure_curseur_application();
         }
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
@@ -758,16 +736,20 @@ public:
 		}
 #endif
 	}
+
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeSupprimeSelection final : public Commande {
+class CommandeSupprimeSelection final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 		auto noeud = graphe->noeud_actif;
 
@@ -918,12 +900,11 @@ static const char *chaine_portee(portee_attr portee)
 }
 #endif
 
-class CommandeInfoNoeud final : public Commande {
+class CommandeInfoNoeud final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 
@@ -1030,33 +1011,32 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
+    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
 		INUTILISE(donnees);
 
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		memoire::deloge("InfoNoeud", graphe->info_noeud);
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 #endif
-	}
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeDeplaceGraphe final : public Commande {
+class CommandeDeplaceGraphe final : public CommandeJorjala {
 	float m_orig_x = 0.0f;
 	float m_orig_y = 0.0f;
 
 public:
 	CommandeDeplaceGraphe() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		INUTILISE(pointeur);
+        INUTILISE(jorjala);
 
 		m_orig_x = donnees.x;
 		m_orig_y = donnees.y;
@@ -1064,9 +1044,8 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         auto graphe = jorjala.graphe();
 
         graphe.centre_x(graphe.centre_x() + m_orig_x - donnees.x);
@@ -1074,17 +1053,21 @@ public:
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 	}
+
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeZoomGraphe final : public Commande {
+class CommandeZoomGraphe final : public CommandeJorjala {
 public:
 	CommandeZoomGraphe() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         auto graphe = jorjala.graphe();
 
         auto valeur = graphe.zoom() * ((donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV);
@@ -1098,11 +1081,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeEntreNoeud final : public Commande {
+class CommandeEntreNoeud final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         auto graphe = jorjala.graphe();
         auto noeud = trouve_noeud(graphe, donnees.x, donnees.y);
         selectionne_noeud(jorjala, noeud, graphe);
@@ -1125,11 +1107,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeSorsNoeud final : public Commande {
+class CommandeSorsNoeud final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-        auto jorjala = extrait_jorjala(pointeur);
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
+    {
         auto graphe = jorjala.graphe();
 
         auto noeud_parent = graphe.noeud_parent();
@@ -1148,16 +1129,15 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeArrangeGraphe final : public Commande {
+class CommandeArrangeGraphe final : public CommandeJorjala {
 public:
 	CommandeArrangeGraphe() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
 		INUTILISE(donnees);
 
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		GVC_t *gvc = gvContext();
@@ -1212,11 +1192,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeChangeContexte final : public Commande {
+class CommandeChangeContexte final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-		auto jorjala = extrait_jorjala(pointeur);
 		auto const &metadonnee = donnees.metadonnee;
         jorjala.définit_racine_courante(metadonnee.c_str());
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
@@ -1226,12 +1205,11 @@ public:
 
 /* ************************************************************************** */
 
-struct CommandeAjoutPriseNoeud final : public Commande {
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
 	{
 #if 0
 		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 		auto noeud_actif = graphe->noeud_actif;
 
@@ -1245,11 +1223,10 @@ struct CommandeAjoutPriseNoeud final : public Commande {
 #endif
 	}
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 #if 0
 		INUTILISE(donnees);
-		auto jorjala = extrait_jorjala(pointeur);
         auto graphe = jorjala.graphe;
 
 		auto noeud_actif = graphe->noeud_actif;

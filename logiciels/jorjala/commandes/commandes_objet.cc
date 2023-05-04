@@ -24,7 +24,7 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
 #include "coeur/jorjala.hh"
 
@@ -121,15 +121,14 @@ static auto cree_graphe_ocean(
 
 /* ************************************************************************** */
 
-class CommandeAjoutePrereglage final : public Commande {
+class CommandeAjoutePrereglage final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override;
 };
 
-int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCommande &donnees)
+int CommandeAjoutePrereglage::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
 #if 1
-    auto jorjala = extrait_jorjala(pointeur);
     jorjala.crée_objet("objet");
     jorjala.notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
 #else
@@ -183,15 +182,14 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 /* ************************************************************************** */
 
 
-class CommandeAjouteObjet final : public Commande {
+class CommandeAjouteObjet final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override;
 };
 
-int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande &donnees)
+int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
 #if 0
-	auto jorjala = extrait_jorjala(pointeur);
 	auto &bdd = jorjala->bdd;
 	auto nom = donnees.metadonnee;
 
@@ -216,11 +214,10 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 
 /* ************************************************************************** */
 
-struct CommandeImportObjet final : public Commande {
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+struct CommandeImportObjet final : public CommandeJorjala {
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
 #if 0
-		auto jorjala = extrait_jorjala(pointeur);
 		auto const chemin = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.obj *.stl");
 
 		if (chemin.est_vide()) {

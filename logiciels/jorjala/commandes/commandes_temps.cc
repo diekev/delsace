@@ -28,7 +28,7 @@
 #include <chrono>
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
 //#include "coeur/composite.h"
 //#include "coeur/evenement.h"
@@ -79,12 +79,10 @@ static void anime_image(JJL::Jorjala &jorjala)
 	}
 }
 
-class CommandeChangementTemps final : public Commande {
+class CommandeChangementTemps final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		if (donnees.metadonnee == "va_image_debut") {
             jorjala.temps_courant(jorjala.temps_début());
 

@@ -35,7 +35,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 #include "biblinternes/vision/camera_2d.h"
 
 #include "coeur/composite.h"
@@ -48,11 +48,10 @@
 
 /* ************************************************************************** */
 
-class CommandeZoomCamera2D final : public Commande {
+class CommandeZoomCamera2D final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
 		auto camera = jorjala->camera_2d;
 
 		camera->zoom *= (donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI;
@@ -66,14 +65,14 @@ public:
 
 /* ************************************************************************** */
 
-class CommandePanCamera2D final : public Commande {
+class CommandePanCamera2D final : public CommandeJorjala {
 	float m_vieil_x = 0.0f;
 	float m_vieil_y = 0.0f;
 
 public:
 	CommandePanCamera2D() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
@@ -81,9 +80,8 @@ public:
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
+	void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		auto jorjala = extrait_jorjala(pointeur);
 		auto camera = jorjala->camera_2d;
 
 		camera->pos_x += (m_vieil_x - donnees.x) / static_cast<float>(camera->largeur);
@@ -95,18 +93,21 @@ public:
 
 		jorjala->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
 	}
+
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-struct CommandeOutil2D final : public Commande {
+struct CommandeOutil2D final : public CommandeJorjala {
 	float vieil_x = 0.0f;
 	float vieil_y = 0.0f;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		/* vérifie si le clique est dans l'image */
 
 		auto const &noeud_composite = jorjala->bdd.graphe_composites()->noeud_actif;
@@ -153,7 +154,7 @@ struct CommandeOutil2D final : public Commande {
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
+	void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		INUTILISE(donnees);
