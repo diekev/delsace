@@ -75,5 +75,5 @@ private:
 	void ecrit_reglages() const;
 	void closeEvent(QCloseEvent *) override;
 
-    bool event(QEvent *event) override;
+    bool eventFilter(QObject *, QEvent *) override;
 };

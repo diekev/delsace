@@ -195,6 +195,11 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 	charge_reglages();
 
 	setCentralWidget(nullptr);
+
+    /* Nous utilisons un eventFilter pour filtrer les évènements de Jorjala, car
+     * surcharger QMainWindow::event() nous fait perdre la capacité de
+     * redimensionner les dock widgets. */
+    qApp->installEventFilter(this);
 }
 
 void FenetrePrincipale::charge_reglages()
@@ -247,7 +252,7 @@ void FenetrePrincipale::closeEvent(QCloseEvent *)
     ecrit_reglages();
 }
 
-bool FenetrePrincipale::event(QEvent *event)
+bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 {
     if (event->type() == EvenementJorjala::id_type_qt) {
         auto event_jjl = static_cast<EvenementJorjala *>(event);
@@ -259,7 +264,7 @@ bool FenetrePrincipale::event(QEvent *event)
         return true;
     }
 
-    return QWidget::event(event);
+    return QWidget::eventFilter(object, event);
 }
 
 void FenetrePrincipale::genere_barre_menu()
