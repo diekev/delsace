@@ -156,15 +156,6 @@ danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala, danj
 #include "tache.h"
 #include "operatrice_graphe_detail.hh"
 
-#include "commandes/commandes_edition.h"
-#include "commandes/commandes_noeuds.h"
-#include "commandes/commandes_objet.hh"
-#include "commandes/commandes_projet.h"
-#include "commandes/commandes_rendu.h"
-#include "commandes/commandes_temps.h"
-#include "commandes/commandes_vue2d.h"
-#include "commandes/commandes_vue3d.h"
-
 #include "lcc/lcc.hh"
 
 #include "operatrices/operatrices_3d.h"
@@ -271,25 +262,11 @@ void Jorjala::initialise()
 	enregistre_operatrices_uvs(m_usine_operatrices);
 	enregistre_operatrices_vetement(m_usine_operatrices);
 	enregistre_operatrices_visualisation(m_usine_operatrices);
-	enregistre_operatrices_volume(m_usine_operatrices);
-
-	enregistre_commandes_graphes(m_usine_commande);
-	enregistre_commandes_objet(m_usine_commande);
-	enregistre_commandes_projet(m_usine_commande);
-	enregistre_commandes_edition(m_usine_commande);
-	enregistre_commandes_rendu(m_usine_commande);
-	enregistre_commandes_temps(m_usine_commande);
-	enregistre_commandes_vue2d(m_usine_commande);
-	enregistre_commandes_vue3d(m_usine_commande);
+    enregistre_operatrices_volume(m_usine_operatrices);
 
 	cree_rendu_defaut(*this);
 
 	lcc::initialise(*lcc);
-}
-
-UsineCommande &Jorjala::usine_commandes()
-{
-	return m_usine_commande;
 }
 
 UsineOperatrice &Jorjala::usine_operatrices()
@@ -297,93 +274,9 @@ UsineOperatrice &Jorjala::usine_operatrices()
 	return m_usine_operatrices;
 }
 
-dls::chaine Jorjala::requiers_dialogue(int type, dls::chaine const &filtre)
-{
-	auto parent = static_cast<QWidget *>(nullptr);
-	auto caption = "";
-	auto dir = "";
-
-	/* À FAIRE : sort ça de la classe. */
-	if (type == FICHIER_OUVERTURE) {
-
-		auto const chemin = QFileDialog::getOpenFileName(
-					parent,
-					caption,
-					dir,
-					filtre.c_str());
-		return chemin.toStdString();
-	}
-
-	if (type == FICHIER_SAUVEGARDE) {
-		auto const chemin = QFileDialog::getSaveFileName(
-					parent,
-					caption,
-					dir,
-					filtre.c_str());
-		return chemin.toStdString();
-	}
-
-	return "";
-}
-
-void Jorjala::affiche_erreur(dls::chaine const &message)
-{
-	/* À FAIRE : sort ça de la classe. */
-	QMessageBox boite_message;
-	boite_message.critical(nullptr, "Erreur", message.c_str());
-	boite_message.setFixedSize(500, 200);
-}
-
-dls::chaine Jorjala::chemin_projet() const
-{
-	return m_chemin_projet;
-}
-
-void Jorjala::chemin_projet(dls::chaine const &chemin)
-{
-	m_chemin_projet = chemin;
-	ajoute_fichier_recent(chemin);
-}
-
-void Jorjala::ajoute_fichier_recent(dls::chaine const &chemin)
-{
-	auto index = std::find(m_fichiers_recents.debut(), m_fichiers_recents.fin(), chemin);
-
-	if (index != m_fichiers_recents.fin()) {
-		std::rotate(m_fichiers_recents.debut(), index, index + 1);
-	}
-	else {
-		m_fichiers_recents.insere(m_fichiers_recents.debut(), chemin);
-
-		if (m_fichiers_recents.taille() > MAX_FICHIER_RECENT) {
-			m_fichiers_recents.redimensionne(MAX_FICHIER_RECENT);
-		}
-	}
-}
-
-dls::tableau<dls::chaine> const &Jorjala::fichiers_recents()
-{
-	return m_fichiers_recents;
-}
-
-bool Jorjala::projet_ouvert() const
-{
-	return m_projet_ouvert;
-}
-
-void Jorjala::projet_ouvert(bool ouinon)
-{
-	m_projet_ouvert = ouinon;
-}
-
-RepondantCommande *Jorjala::repondant_commande() const
-{
-	return m_repondant_commande;
-}
-
 void Jorjala::ajourne_pour_nouveau_temps(const char *message)
 {
-	requiers_evaluation(*this, TEMPS_CHANGE, message);
+    requiers_evaluation(*this, TEMPS_CHANGE, message);
 }
 
 Jorjala::EtatLogiciel Jorjala::etat_courant()
