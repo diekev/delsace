@@ -124,6 +124,12 @@ static void restaure_curseur(void *donnees, JJL::TypeCurseur curseur)
   QGuiApplication::restoreOverrideCursor();
 }
 
+static void titre_application(void *donnees, JJL::Chaine titre)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    données_programme->fenetre_principale->setWindowTitle(titre.vers_std_string().c_str());
+}
+
 }
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
@@ -135,6 +141,7 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     gestionnaire_jjl.mute_rappel_notifie_erreur(reinterpret_cast<void *>(detail::notifie_erreur));
     gestionnaire_jjl.définit_rappel_change_curseur(reinterpret_cast<void *>(detail::change_curseur));
     gestionnaire_jjl.définit_rappel_restaure_curseur(reinterpret_cast<void *>(detail::restaure_curseur));
+    gestionnaire_jjl.définit_rappel_titre_application(reinterpret_cast<void *>(detail::titre_application));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
@@ -172,6 +179,7 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 //	jorjala.gestionnaire_entreface->parent_dialogue(this);
 
     initialise_evenements(m_jorjala, this);
+    setWindowTitle("Projet Sans Titre - Jorjala");
 
 	genere_barre_menu();
 	genere_menu_prereglages();
