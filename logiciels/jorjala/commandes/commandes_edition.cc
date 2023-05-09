@@ -113,12 +113,8 @@ class CommandeAjouterComposite final : public CommandeJorjala {
 public:
 	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
 	{
-#if 0 // À FAIRE
-        jorjala.bdd.cree_composite("composite");
-#endif
-
+        jorjala.crée_racine_composite("composite");
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
-
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
