@@ -80,30 +80,20 @@ void SelecteurFichier::ajourne_filtres(const QString &chaine)
 
 ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
     : SelecteurFichier(p, temps, input, parent)
-	, m_pointeur(nullptr)
 {
+    setValue(p->evalue_chaine(temps).c_str());
 	connect(this, &SelecteurFichier::valeur_changee, this, &ControleProprieteFichier::ajourne_valeur_pointee);
 }
 
 void ControleProprieteFichier::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
-
-	if (donnees.initialisation) {
-		*m_pointeur = donnees.valeur_defaut;
-	}
-
-	setValue(m_pointeur->c_str());
-
-	setToolTip(donnees.infobulle.c_str());
-
 	ajourne_filtres(donnees.filtres.c_str());
 }
 
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)
 {
 	Q_EMIT(precontrole_change());
-	*m_pointeur = valeur.toStdString();
+    m_propriete->définit_valeur_chaine(valeur.toStdString().c_str());
 	Q_EMIT(controle_change());
 }
 

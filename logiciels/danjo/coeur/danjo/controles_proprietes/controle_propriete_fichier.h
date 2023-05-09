@@ -69,8 +69,6 @@ Q_SIGNALS:
 class ControleProprieteFichier final : public SelecteurFichier {
 	Q_OBJECT
 
-	dls::chaine *m_pointeur{};
-
 public:
     explicit ControleProprieteFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
 	~ControleProprieteFichier() override = default;
