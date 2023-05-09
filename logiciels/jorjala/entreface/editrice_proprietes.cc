@@ -76,10 +76,11 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TypeParametre ty
 }
 
 class EnveloppeParametre : public danjo::BasePropriete {
+    mutable JJL::Noeud m_noeud;
     mutable JJL::TableParametres_Parametre m_param;
 
 public:
-    EnveloppeParametre(JJL::TableParametres_Parametre param) : m_param(param) {};
+    EnveloppeParametre(JJL::Noeud noeud, JJL::TableParametres_Parametre param) : m_noeud(noeud), m_param(param) {};
 
     danjo::TypePropriete type() const override
     {
@@ -144,15 +145,15 @@ public:
     /* Définition des valeurs. */
     void définit_valeur_entier(int valeur) override
     {
-        m_param.définit_valeur_entier(valeur);
+        m_noeud.définit_param_entier(m_param, valeur);
     }
     void définit_valeur_décimal(float valeur) override
     {
-        m_param.définit_valeur_réel(valeur);
+        m_noeud.définit_param_réel(m_param, valeur);
     }
     void définit_valeur_bool(bool valeur) override
     {
-        m_param.définit_valeur_bool(valeur);
+        m_noeud.définit_param_bool(m_param, valeur);
     }
     void définit_valeur_vec3(dls::math::vec3f valeur) override
     {
@@ -160,7 +161,7 @@ public:
         résultat.x(valeur.x);
         résultat.y(valeur.y);
         résultat.z(valeur.z);
-        m_param.définit_valeur_vec3(résultat);
+        m_noeud.définit_param_vec3(m_param, résultat);
     }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
@@ -168,7 +169,7 @@ public:
     }
     void définit_valeur_chaine(std::string const &valeur) override
     {
-        m_param.définit_valeur_chaine(valeur.c_str());
+        m_noeud.définit_param_chaine(m_param, valeur.c_str());
     }
 
     /* Plage des valeurs. */
@@ -261,7 +262,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         dls::chaine nom(param.nom().vers_std_string());
         assembleuse.ajoute_étiquette(nom);
 
-        auto prop = memoire::loge<EnveloppeParametre>("EnveloppeParametre", param);
+        auto prop = memoire::loge<EnveloppeParametre>("EnveloppeParametre", noeud, param);
         manipulable->ajoute_propriete(nom, prop);
 
         danjo::DonneesControle donnees_controle;
