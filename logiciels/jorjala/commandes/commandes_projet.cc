@@ -66,13 +66,9 @@ public:
 
 static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::Chaine chemin)
 {
-    auto const &chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
-
-    if (chemin_projet != "") {
-        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
-        jorjala.sauvegarde_projet(chemin);
-        jorjala.restaure_curseur_application();
-    }
+    jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+    jorjala.sauvegarde_projet(chemin);
+    jorjala.restaure_curseur_application();
 }
 
 static void sauve_fichier_sous(JJL::Jorjala &jorjala)
