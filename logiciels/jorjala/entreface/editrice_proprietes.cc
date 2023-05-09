@@ -409,80 +409,15 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 
 void EditriceProprietes::ajourne_manipulable()
 {
+    auto graphe = m_jorjala.graphe();
+    if (graphe == nullptr) {
+        return;
+    }
+
+    m_jorjala.requiers_évaluation(graphe);
+
 #if 0
-	std::cerr << "Controle changé !\n";
-	auto graphe = m_jorjala.graphe;
-	auto noeud = graphe->noeud_actif;
-	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
-
-	if (noeud == nullptr) {
-		return;
-	}
-
-	switch (noeud->type) {
-		case type_noeud::INVALIDE:
-		{
-			break;
-		}
-		case type_noeud::OBJET:
-		{
-			auto objet = extrait_objet(noeud->donnees);
-			objet->ajourne_parametres();
-			manipulable = objet->noeud;
-			break;
-		}
-		case type_noeud::COMPOSITE:
-		{
-			break;
-		}
-		case type_noeud::NUANCEUR:
-		{
-			auto nuanceur = extrait_nuanceur(noeud->donnees);
-			nuanceur->temps_modifie += 1;
-			break;
-		}
-		case type_noeud::RENDU:
-		{
-			break;
-		}
-		case type_noeud::OPERATRICE:
-		{
-			/* Marque le noeud courant et ceux en son aval surannées. */
-			marque_surannee(noeud, [](Noeud *n, PriseEntree *prise)
-			{
-				auto op = extrait_opimage(n->donnees);
-				op->amont_change(prise);
-			});
-
-			if (noeud->parent->type == type_noeud::NUANCEUR) {
-				auto nuanceur = extrait_nuanceur(noeud->parent->donnees);
-				nuanceur->temps_modifie += 1;
-			}
-
-			/* Notifie les graphes des noeuds parents comme étant surrannés */
-			marque_parent_surannee(noeud->parent, [](Noeud *n, PriseEntree *prise)
-			{
-				if (n->type != type_noeud::OPERATRICE) {
-					return;
-				}
-
-				auto op = extrait_opimage(n->donnees);
-				op->amont_change(prise);
-			});
-
-			auto op = extrait_opimage(noeud->donnees);
-			op->parametres_changes();
-			manipulable = op;
-			break;
-		}
-	}
-
-	if (manipulable != nullptr) {
-		manipulable->ajourne_proprietes();
-		auto gestionnaire = m_jorjala.gestionnaire_entreface;
-		gestionnaire->ajourne_entreface(manipulable);
-	}
-
+    // À FAIRE
 	requiers_evaluation(m_jorjala, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
 #endif
 }
