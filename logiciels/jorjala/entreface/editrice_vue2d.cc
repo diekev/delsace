@@ -87,6 +87,10 @@ void Visionneuse2D::initializeGL()
 	m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
 	m_rendu_manipulatrice = memoire::loge<RenduManipulatrice2D>("RenduManipulatrice");
 	m_chrono_rendu.commence();
+
+    m_matrice_image = dls::math::mat4x4f(1.0);
+    m_matrice_image[0][0] = 1.0;
+    m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
 
 void Visionneuse2D::paintGL()
@@ -164,11 +168,9 @@ void Visionneuse2D::resizeGL(int w, int h)
     m_camera_2d->largeur = w;
 
     m_camera_2d->ajourne_matrice();
-	m_rendu_texte->etablie_dimension_fenetre(w, h);
+    m_rendu_texte->etablie_dimension_fenetre(w, h);
 
-	m_matrice_image = dls::math::mat4x4f(1.0);
-	m_matrice_image[0][0] = 1.0;
-	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
+    update();
 }
 
 void Visionneuse2D::charge_image(grille_couleur const &image)
