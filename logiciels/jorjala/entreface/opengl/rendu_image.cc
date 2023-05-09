@@ -30,6 +30,8 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include "coeur/jorjala.hh"
+
 /* ************************************************************************** */
 
 static const char *source_vertex =
@@ -202,6 +204,22 @@ void RenduImage::charge_image(const grille_couleur &image)
 	genere_texture_image(m_tampon_image, &image.valeur(0).r, size);
 
 	dls::ego::util::GPU_check_errors("Unable to create image texture");
+}
+
+void RenduImage::charge_composite(JJL::Composite composite)
+{
+    auto fenetre = composite.fenêtre();
+    /* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
+    auto pixels = composite.pixels_aplatis(fenetre, "rgba", "Tous");
+
+    GLint size[2] = {
+        fenetre.x_max() - fenetre.x_min() + 1,
+        fenetre.y_max() - fenetre.y_min() + 1,
+    };
+
+    genere_texture_image(m_tampon_image, pixels.données_crues(), size);
+
+    dls::ego::util::GPU_check_errors("Unable to create image texture");
 }
 
 void RenduImage::dessine(ContexteRendu const &contexte)

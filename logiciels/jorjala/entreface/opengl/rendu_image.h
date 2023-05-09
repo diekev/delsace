@@ -29,6 +29,10 @@
 class ContexteRendu;
 class TamponRendu;
 
+namespace JJL {
+class Composite;
+}
+
 class RenduImage {
 	TamponRendu *m_tampon_image{};
 	TamponRendu *m_tampon_bordure{};
@@ -57,7 +61,9 @@ public:
 	 */
 	void dessine(ContexteRendu const &contexte);
 
-	void dessine_bordure(const ContexteRendu &contexte);
+    void dessine_bordure(const ContexteRendu &contexte);
+
+    void charge_composite(JJL::Composite composite);
 };
 
 TamponRendu *cree_tampon_image();

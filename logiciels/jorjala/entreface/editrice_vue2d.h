@@ -47,6 +47,10 @@ class RenduTexte;
 class RenduImage;
 class RenduManipulatrice2D;
 
+namespace JJL {
+class Composite;
+}
+
 class Visionneuse2D : public QGLWidget {
 	RenduImage *m_rendu_image = nullptr;
 	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
@@ -57,6 +61,9 @@ class Visionneuse2D : public QGLWidget {
 	ContexteRendu m_contexte{};
 	dls::math::mat4x4f m_matrice_image{};
 	dls::chrono::metre_seconde m_chrono_rendu{};
+
+    /* À FAIRE : réimplémente en Kuri. */
+    vision::Camera2D *m_camera_2d = nullptr;
 
 public:
     explicit Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
@@ -72,7 +79,8 @@ public:
 	void wheelEvent(QWheelEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void charge_composite(JJL::Composite composite);
 };
 
 /* ************************************************************************** */

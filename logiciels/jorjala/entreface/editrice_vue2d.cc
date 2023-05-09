@@ -62,6 +62,7 @@ Visionneuse2D::Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget
 	: QGLWidget(parent)
 	, m_jorjala(jorjala)
 	, m_base(base)
+    , m_camera_2d(memoire::loge<vision::Camera2D>("vision::Camera2D"))
 {}
 
 Visionneuse2D::~Visionneuse2D()
@@ -69,6 +70,7 @@ Visionneuse2D::~Visionneuse2D()
 	memoire::deloge("RenduTexte", m_rendu_texte);
 	memoire::deloge("RenduImage", m_rendu_image);
 	memoire::deloge("RenduManipulatrice", m_rendu_manipulatrice);
+    memoire::deloge("RenduManipulatrice", m_camera_2d);
 }
 
 void Visionneuse2D::initializeGL()
@@ -95,7 +97,7 @@ void Visionneuse2D::paintGL()
 
 	glEnable(GL_BLEND);
 
-    // m_contexte.MVP(m_jorjala.camera_2d->matrice);
+    m_contexte.MVP(m_camera_2d->matrice);
 	m_contexte.matrice_objet(m_matrice_image);
 
 	m_rendu_image->dessine(m_contexte);
@@ -158,10 +160,10 @@ void Visionneuse2D::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
 
-//	m_jorjala.camera_2d->hauteur = h;
-//	m_jorjala.camera_2d->largeur = w;
+    m_camera_2d->hauteur = h;
+    m_camera_2d->largeur = w;
 
-//	m_jorjala.camera_2d->ajourne_matrice();
+    m_camera_2d->ajourne_matrice();
 	m_rendu_texte->etablie_dimension_fenetre(w, h);
 
 	m_matrice_image = dls::math::mat4x4f(1.0);
@@ -208,6 +210,47 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 	}
 }
 
+void Visionneuse2D::charge_composite(JJL::Composite composite)
+{
+    auto fenetre = composite.fenêtre();
+
+    GLint size[2] = {
+        fenetre.x_max() - fenetre.x_min() + 1,
+        fenetre.y_max() - fenetre.y_min() + 1,
+    };
+
+    if ((size[0] == 0) || (size[1] == 0)) {
+        m_matrice_image = dls::math::mat4x4f(1.0);
+        m_matrice_image[0][0] = 1.0;
+        m_matrice_image[1][1] = static_cast<float>(720) / 1280;
+        return;
+    }
+
+    m_matrice_image = dls::math::mat4x4f(1.0f);
+    m_matrice_image[0][0] = static_cast<float>(size[0]) / 1920.0f;
+    m_matrice_image[1][1] = static_cast<float>(size[1]) / 1920.0f;
+
+    /* calcul de la translation puisque l'image n'est pas forcément centrée
+     * À FAIRE : pour les images EXR il faut préserver la fenêtre d'affichage */
+    auto moitie_x = -static_cast<float>(size[0]) * 0.5f;
+    auto moitie_y = -static_cast<float>(size[1]) * 0.5f;
+
+    auto min_x = static_cast<float>(fenetre.x_min());
+    auto min_y = static_cast<float>(fenetre.y_min());
+
+    auto trans_x = (moitie_x - min_x) / 1920.0f;
+    auto trans_y = (moitie_y - min_y) / 1920.0f;
+
+    m_matrice_image[3][0] = trans_x;
+    m_matrice_image[3][1] = trans_y;
+
+    /* À FAIRE : il y a des crashs lors du démarrage, il faudrait réviser la
+     * manière d'initialiser les éditeurs quand ils sont ajoutés */
+    if (m_rendu_image != nullptr) {
+        m_rendu_image->charge_composite(composite);
+    }
+}
+
 void Visionneuse2D::mousePressEvent(QMouseEvent *event)
 {
     m_base->mousePressEvent(event);
@@ -230,6 +273,27 @@ void Visionneuse2D::wheelEvent(QWheelEvent *event)
 
 /* ************************************************************************** */
 
+static JJL::Composite accède_composite(JJL::Noeud noeud_racine_composite)
+{
+    if (noeud_racine_composite == nullptr) {
+        return nullptr;
+    }
+
+    auto graphe_composite_ = noeud_racine_composite.accède_sous_graphe();
+    if (graphe_composite_ == nullptr) {
+        return nullptr;
+    }
+
+    auto graphe_composite = JJL::GrapheComposite(reinterpret_cast<JJL_GrapheComposite *>(graphe_composite_.poignee()));
+
+    auto noeud_sortie = graphe_composite.noeud_sortie();
+    if (noeud_sortie == nullptr) {
+        return nullptr;
+    }
+
+    return noeud_sortie.composite();
+}
+
 EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("vue_2d", jorjala, parent)
 	, m_vue(new Visionneuse2D(jorjala, this))
@@ -239,24 +303,21 @@ EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
 
 void EditriceVue2D::ajourne_etat(int evenement)
 {
-#if 0
-	auto chargement = evenement == (type_evenement::image | type_evenement::traite);
-	chargement |= (evenement == (type_evenement::temps | type_evenement::modifie));
-	chargement |= (evenement == (type_evenement::rafraichissement));
+    auto chargement = evenement == static_cast<int>(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
+    chargement |= (evenement == static_cast<int>(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
+    chargement |= (evenement == static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
 
 	if (chargement) {
-		auto const &noeud_composite = m_jorjala.bdd.graphe_composites()->noeud_actif;
+        auto graphe_cmp = m_jorjala.trouve_graphe_pour_chemin("/cmp");
+        auto noeud_actif = graphe_cmp.noeud_actif();
 
-		if (noeud_composite == nullptr) {
+        if (noeud_actif == nullptr) {
 			return;
 		}
 
-		auto const &composite = extrait_composite(noeud_composite->donnees);
-		auto const &image = composite->image();
-		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
-		auto calque = image.calque_pour_lecture(image.nom_calque_actif());
+        auto composite = accède_composite(noeud_actif);
 
-		if (calque == nullptr) {
+        if (composite == nullptr) {
 			/* Charge une image vide, les dimensions sont à peu près celle d'une
 			 * image de 1280x720. */
 			auto desc = wlk::desc_grille_2d();
@@ -273,13 +334,11 @@ void EditriceVue2D::ajourne_etat(int evenement)
 			m_vue->charge_image(image_vide);
 		}
 		else {
-			auto tampon = extrait_grille_couleur(calque);
-			m_vue->charge_image(*tampon);
+            m_vue->charge_composite(composite);
 		}
 	}
 
 	m_vue->update();
-#endif
 }
 
 QPointF EditriceVue2D::transforme_position_evenement(QPoint pos)
