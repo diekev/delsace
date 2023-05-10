@@ -60,10 +60,7 @@ class Visionneuse2D : public QGLWidget {
 
 	ContexteRendu m_contexte{};
 	dls::math::mat4x4f m_matrice_image{};
-	dls::chrono::metre_seconde m_chrono_rendu{};
-
-    /* À FAIRE : réimplémente en Kuri. */
-    vision::Camera2D *m_camera_2d = nullptr;
+    dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
     explicit Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);

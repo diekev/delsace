@@ -56,13 +56,17 @@
 #include "opengl/rendu_image.h"
 #include "opengl/rendu_manipulatrice_2d.h"
 
+static dls::math::mat4x4f convertis_matrice(JJL::Mat4r matrice)
+{
+    return *reinterpret_cast<dls::math::mat4x4f *>(&matrice);
+}
+
 /* ************************************************************************** */
 
 Visionneuse2D::Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent)
 	: QGLWidget(parent)
 	, m_jorjala(jorjala)
 	, m_base(base)
-    , m_camera_2d(memoire::loge<vision::Camera2D>("vision::Camera2D"))
 {}
 
 Visionneuse2D::~Visionneuse2D()
@@ -70,7 +74,6 @@ Visionneuse2D::~Visionneuse2D()
 	memoire::deloge("RenduTexte", m_rendu_texte);
 	memoire::deloge("RenduImage", m_rendu_image);
 	memoire::deloge("RenduManipulatrice", m_rendu_manipulatrice);
-    memoire::deloge("RenduManipulatrice", m_camera_2d);
 }
 
 void Visionneuse2D::initializeGL()
@@ -101,7 +104,8 @@ void Visionneuse2D::paintGL()
 
 	glEnable(GL_BLEND);
 
-    m_contexte.MVP(m_camera_2d->matrice);
+    auto camera_2d = m_jorjala.caméra_2d();
+    m_contexte.MVP(convertis_matrice(camera_2d.matrice()));
 	m_contexte.matrice_objet(m_matrice_image);
 
 	m_rendu_image->dessine(m_contexte);
@@ -164,10 +168,11 @@ void Visionneuse2D::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
 
-    m_camera_2d->hauteur = h;
-    m_camera_2d->largeur = w;
+    auto camera_2d = m_jorjala.caméra_2d();
+    camera_2d.hauteur(h);
+    camera_2d.largeur(w);
+    camera_2d.ajourne_matrice();
 
-    m_camera_2d->ajourne_matrice();
     m_rendu_texte->etablie_dimension_fenetre(w, h);
 
     update();

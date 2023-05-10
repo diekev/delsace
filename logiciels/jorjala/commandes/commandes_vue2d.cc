@@ -24,7 +24,6 @@
 
 #include "commandes_vue2d.h"
 
-#if 0
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -35,13 +34,10 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "commande_jorjala.hh"
-#include "biblinternes/vision/camera_2d.h"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
+#include "commande_jorjala.hh"
+
 #include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -52,12 +48,13 @@ class CommandeZoomCamera2D final : public CommandeJorjala {
 public:
 	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		auto camera = jorjala->camera_2d;
+        auto camera = jorjala.caméra_2d();
 
-		camera->zoom *= (donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI;
-		camera->ajourne_matrice();
+        auto zoom = camera.zoom() * ((donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI);
+        camera.zoom(zoom);
+        camera.ajourne_matrice();
 
-		jorjala->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -74,7 +71,6 @@ public:
 
 	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		INUTILISE(pointeur);
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 		return EXECUTION_COMMANDE_MODALE;
@@ -82,16 +78,18 @@ public:
 
 	void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
-		auto camera = jorjala->camera_2d;
+        auto camera = jorjala.caméra_2d();
 
-		camera->pos_x += (m_vieil_x - donnees.x) / static_cast<float>(camera->largeur);
-		camera->pos_y += (m_vieil_y - donnees.y) / static_cast<float>(camera->hauteur);
-		camera->ajourne_matrice();
+        auto delta_pos_x = (m_vieil_x - donnees.x) / static_cast<float>(camera.largeur());
+        auto delta_pos_y = (m_vieil_y - donnees.y) / static_cast<float>(camera.hauteur());
+        camera.pos_x(camera.pos_x() + delta_pos_x);
+        camera.pos_y(camera.pos_y() + delta_pos_y);
+        camera.ajourne_matrice();
 
 		m_vieil_x = donnees.x;
 		m_vieil_y = donnees.y;
 
-		jorjala->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
 	}
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -102,6 +100,7 @@ public:
 
 /* ************************************************************************** */
 
+#if 0
 struct CommandeOutil2D final : public CommandeJorjala {
 	float vieil_x = 0.0f;
 	float vieil_y = 0.0f;
@@ -125,7 +124,7 @@ struct CommandeOutil2D final : public CommandeJorjala {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto camera_2d = jorjala->camera_2d;
+        auto camera_2d = jorjala.caméra_2d();
 		/* converti en espace -1:1 */
 		auto x = (static_cast<float>(camera_2d->largeur) - donnees.x);
 		auto y = (static_cast<float>(camera_2d->hauteur) - donnees.y);
@@ -166,7 +165,6 @@ struct CommandeOutil2D final : public CommandeJorjala {
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-#if 0
 	usine.enregistre_type("commande_zoom_camera_2d",
 						   description_commande<CommandeZoomCamera2D>(
 							   "vue_2d", Qt::MiddleButton, 0, 0, true));
@@ -175,6 +173,7 @@ void enregistre_commandes_vue2d(UsineCommande &usine)
 						   description_commande<CommandePanCamera2D>(
 							   "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
+#if 0
 	usine.enregistre_type("commande_outil_2d",
 						   description_commande<CommandeOutil2D>(
 							   "vue_2d", Qt::LeftButton, 0, 0, false));
