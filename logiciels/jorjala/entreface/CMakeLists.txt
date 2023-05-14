@@ -59,6 +59,7 @@ qt5_wrap_cpp(
         editrice_vue2d.h
         editrice_vue3d.h
 	fenetre_principale.h
+        tache.h
 )
 
 set(NUANCEURS
@@ -245,6 +246,7 @@ add_library(${NOM_CIBLE} STATIC
 
         barre_progres.hh
         base_editrice.h
+        chef_execution.hh
 #	editrice_arborescence.hh
         editrice_ligne_temps.h
         editrice_noeud.h
@@ -254,6 +256,7 @@ add_library(${NOM_CIBLE} STATIC
         editrice_vue3d.h
 	fenetre_principale.h
         gestion_entreface.hh
+        tache.h
 
 	${moc_headers}
 
@@ -267,6 +270,7 @@ add_library(${NOM_CIBLE} STATIC
 
         barre_progres.cc
         base_editrice.cc
+        chef_execution.cc
 #	editrice_arborescence.cc
         editrice_ligne_temps.cc
         editrice_noeud.cc
@@ -276,6 +280,7 @@ add_library(${NOM_CIBLE} STATIC
         editrice_vue3d.cc
 	fenetre_principale.cc
         gestion_entreface.cc
+        tache.cc
 
 	${FICHIERS_DANJO}
 	${NUANCEURS}

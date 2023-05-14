@@ -24,7 +24,7 @@
 
 #include "tache.h"
 
-#include "entreface/fenetre_principale.h"
+#include "fenetre_principale.h"
 
 TaskNotifier::TaskNotifier(FenetrePrincipale *window)
 {

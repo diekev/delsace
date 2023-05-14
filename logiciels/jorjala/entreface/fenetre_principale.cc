@@ -44,16 +44,14 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
-#include <mutex>
-
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/jorjala.hh"
-//#include "coeur/tache.h"
 
 #include "barre_progres.hh"
+#include "chef_execution.hh"
 //#include "editrice_arborescence.hh"
 #include "editrice_ligne_temps.h"
 #include "editrice_noeud.h"
@@ -61,126 +59,7 @@
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
-
-/* ------------------------------------------------------------------------- */
-
-/* Apparently we can not have a class derived from both a QObject and a
- * tbb::task so this class is to be used in conjunction with a tbb::task derived
- * class to notify the UI about certain events.
- */
-class TaskNotifier : public QObject {
-    Q_OBJECT
-
-public:
-    TaskNotifier(FenetrePrincipale *window)
-    {
-        if (!window) {
-            return;
-        }
-
-        connect(this, SIGNAL(image_traitee()), window, SLOT(image_traitee()));
-        connect(this, SIGNAL(signal_proces(int)), window, SLOT(signale_proces(int)));
-
-        connect(this, &TaskNotifier::debut_tache, window, &FenetrePrincipale::tache_demarree);
-        connect(this, &TaskNotifier::ajourne_progres, window, &FenetrePrincipale::ajourne_progres);
-        connect(this, &TaskNotifier::fin_tache, window, &FenetrePrincipale::tache_terminee);
-        connect(this, &TaskNotifier::debut_evaluation, window, &FenetrePrincipale::evaluation_debutee);
-    }
-
-    void signalImageProcessed()
-    {
-        Q_EMIT(image_traitee());
-    }
-
-    void signalise_proces(int quoi)
-    {
-        Q_EMIT(signal_proces(quoi));
-    }
-
-    void signale_debut_tache()
-    {
-        Q_EMIT(debut_tache());
-    }
-
-    void signale_ajournement_progres(float progres)
-    {
-        Q_EMIT(ajourne_progres(progres));
-    }
-
-    void signale_fin_tache()
-    {
-        Q_EMIT(fin_tache());
-    }
-
-    void signale_debut_evaluation(const char *message, int execution, int total)
-    {
-        Q_EMIT(debut_evaluation(message, execution, total));
-    }
-
-Q_SIGNALS:
-    void image_traitee();
-
-    void signal_proces(int quoi);
-
-    void debut_tache();
-    void ajourne_progres(float progress);
-    void fin_tache();
-    void debut_evaluation(const char *message, int execution, int total);
-};
-
-/* ------------------------------------------------------------------------- */
-
-class ChefExecution {
-    JJL::Jorjala &m_jorjala;
-    TaskNotifier *m_task_notifier;
-    float m_progression_parallele = 0.0f;
-    std::mutex m_mutex_progression{};
-
-    int m_nombre_a_executer = 0;
-    int m_nombre_execution = 0;
-
-public:
-    ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier)
-        : m_jorjala(jorjala)
-        , m_task_notifier(task_notifier)
-    {}
-
-    bool interrompu() const
-    {
-        return m_jorjala.interrompu();
-    }
-
-    void indique_progression(float progression)
-    {
-        m_task_notifier->signale_ajournement_progres(progression);
-    }
-
-    void indique_progression_parallele(float delta)
-    {
-        m_mutex_progression.lock();
-        m_progression_parallele += delta;
-        indique_progression(m_progression_parallele);
-        m_mutex_progression.unlock();
-    }
-
-    void demarre_evaluation(const char *message)
-    {
-        m_progression_parallele = 0.0f;
-        m_nombre_execution += 1;
-        m_task_notifier->signale_debut_evaluation(message, m_nombre_execution, m_nombre_a_executer);
-    }
-
-    void reinitialise()
-    {
-        m_nombre_a_executer = 0;
-        m_nombre_execution = 0;
-    }
-
-    void incremente_compte_a_executer()
-    {
-        m_nombre_a_executer += 1;
-    }
-};
+#include "tache.h"
 
 /* ------------------------------------------------------------------------- */
 

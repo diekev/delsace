@@ -49,18 +49,8 @@ set(BIBLIOTHEQUES
         dl
 )
 
-qt5_wrap_cpp(
-	moc_headers
-
-	tache.h
-)
-
 add_compile_options(-fPIC)
 
-add_library(qt_jorjala_coeur ${moc_headers})
-target_include_directories(qt_jorjala_coeur PUBLIC "${INCLUSIONS}")
-
-desactive_drapeaux_compilation(qt_jorjala_coeur)
 
 add_library(${NOM_CIBLE} STATIC
 #	arbre_hbe.cc
@@ -93,7 +83,6 @@ add_library(${NOM_CIBLE} STATIC
 #	outils_entreface.cc
 #	rendu.cc
 #	sauvegarde.cc
-#	tache.cc
 #	usine_operatrice.cc
 
 #	arbre_hbe.hh
@@ -126,10 +115,9 @@ add_library(${NOM_CIBLE} STATIC
 #	outils_entreface.hh
 #	rendu.hh
 #	sauvegarde.h
-#	tache.h
 #	usine_operatrice.h
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES} qt_jorjala_coeur)
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
