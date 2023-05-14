@@ -44,6 +44,7 @@ struct DonneesInterface;
 class BaseEditrice;
 class FenetrePrincipale;
 class RepondantCommande;
+class TaskNotifier;
 class UsineCommande;
 
 struct DonnéesProgramme {
@@ -52,6 +53,7 @@ struct DonnéesProgramme {
     danjo::GestionnaireInterface *gestionnaire_danjo = nullptr;
     UsineCommande *usine_commande = nullptr;
     RepondantCommande *repondant_commande = nullptr;
+    TaskNotifier *task_notifier = nullptr;
 };
 
 std::optional<JJL::Jorjala> initialise_jorjala();

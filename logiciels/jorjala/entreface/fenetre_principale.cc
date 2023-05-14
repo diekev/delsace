@@ -136,13 +136,13 @@ static void titre_application(void *donnees, JJL::Chaine titre)
 static void tache_demaree(void *donnees)
 {
     auto données_programme = static_cast<DonnéesProgramme *>(donnees);
-    données_programme->fenetre_principale->tache_demarree();
+    données_programme->task_notifier->signale_debut_evaluation("", 0, 0);
 }
 
 static void tache_terminee(void *donnees)
 {
     auto données_programme = static_cast<DonnéesProgramme *>(donnees);
-    données_programme->fenetre_principale->tache_terminee();
+    données_programme->task_notifier->signale_fin_tache();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -185,13 +185,16 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
+    données_programme->task_notifier = memoire::loge<TaskNotifier>("TaskNotifier", fenetre_principale);
 }
 
 static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
 {
+    auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
+    auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+
     /* À FAIRE : libère la mémoire. */
-    auto task_notifier = memoire::loge<TaskNotifier>("TaskNotifier", fenetre_principale);
-    auto chef = memoire::loge<ChefExecution>("ChefExecution", jorjala, task_notifier);
+    auto chef = memoire::loge<ChefExecution>("ChefExecution", jorjala, données_programme->task_notifier);
 
     auto chef_jjl = jorjala.chef_exécution();
     chef_jjl.données(chef);

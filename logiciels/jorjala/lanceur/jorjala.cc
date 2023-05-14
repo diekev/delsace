@@ -29,6 +29,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFile>
+#include <QTimer>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/structures/chaine.hh"
