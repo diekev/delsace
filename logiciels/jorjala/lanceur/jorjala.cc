@@ -44,11 +44,6 @@
 
   À FAIRE :
 
-  FenetrePrincipale :
-    m_jorjala.fichiers_recents
-    m_jorjala.ajoute_fichier_recent
-    m_jorjala.gestionnaire_entreface->compile_barre_outils_fichier
-
   EditriceLigneTemps :
     m_jorjala.ajourne_pour_nouveau_temps
 
@@ -62,7 +57,6 @@
     noeud->type
 
   Visionneuse2D
-    m_jorjala.camera_2d
     m_jorjala.usine_operatrices
     m_jorjala.lcc->fonctions.table.taille
     m_jorjala.bdd.graphe_composites
