@@ -44,6 +44,8 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
+#include <mutex>
+
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
@@ -59,6 +61,126 @@
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
+
+/* ------------------------------------------------------------------------- */
+
+/* Apparently we can not have a class derived from both a QObject and a
+ * tbb::task so this class is to be used in conjunction with a tbb::task derived
+ * class to notify the UI about certain events.
+ */
+class TaskNotifier : public QObject {
+    Q_OBJECT
+
+public:
+    TaskNotifier(FenetrePrincipale *window)
+    {
+        if (!window) {
+            return;
+        }
+
+        connect(this, SIGNAL(image_traitee()), window, SLOT(image_traitee()));
+        connect(this, SIGNAL(signal_proces(int)), window, SLOT(signale_proces(int)));
+
+        connect(this, &TaskNotifier::debut_tache, window, &FenetrePrincipale::tache_demarree);
+        connect(this, &TaskNotifier::ajourne_progres, window, &FenetrePrincipale::ajourne_progres);
+        connect(this, &TaskNotifier::fin_tache, window, &FenetrePrincipale::tache_terminee);
+        connect(this, &TaskNotifier::debut_evaluation, window, &FenetrePrincipale::evaluation_debutee);
+    }
+
+    void signalImageProcessed()
+    {
+        Q_EMIT(image_traitee());
+    }
+
+    void signalise_proces(int quoi)
+    {
+        Q_EMIT(signal_proces(quoi));
+    }
+
+    void signale_debut_tache()
+    {
+        Q_EMIT(debut_tache());
+    }
+
+    void signale_ajournement_progres(float progres)
+    {
+        Q_EMIT(ajourne_progres(progres));
+    }
+
+    void signale_fin_tache()
+    {
+        Q_EMIT(fin_tache());
+    }
+
+    void signale_debut_evaluation(const char *message, int execution, int total)
+    {
+        Q_EMIT(debut_evaluation(message, execution, total));
+    }
+
+Q_SIGNALS:
+    void image_traitee();
+
+    void signal_proces(int quoi);
+
+    void debut_tache();
+    void ajourne_progres(float progress);
+    void fin_tache();
+    void debut_evaluation(const char *message, int execution, int total);
+};
+
+/* ------------------------------------------------------------------------- */
+
+class ChefExecution {
+    JJL::Jorjala &m_jorjala;
+    TaskNotifier *m_task_notifier;
+    float m_progression_parallele = 0.0f;
+    std::mutex m_mutex_progression{};
+
+    int m_nombre_a_executer = 0;
+    int m_nombre_execution = 0;
+
+public:
+    ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier)
+        : m_jorjala(jorjala)
+        , m_task_notifier(task_notifier)
+    {}
+
+    bool interrompu() const
+    {
+        return m_jorjala.interrompu();
+    }
+
+    void indique_progression(float progression)
+    {
+        m_task_notifier->signale_ajournement_progres(progression);
+    }
+
+    void indique_progression_parallele(float delta)
+    {
+        m_mutex_progression.lock();
+        m_progression_parallele += delta;
+        indique_progression(m_progression_parallele);
+        m_mutex_progression.unlock();
+    }
+
+    void demarre_evaluation(const char *message)
+    {
+        m_progression_parallele = 0.0f;
+        m_nombre_execution += 1;
+        m_task_notifier->signale_debut_evaluation(message, m_nombre_execution, m_nombre_a_executer);
+    }
+
+    void reinitialise()
+    {
+        m_nombre_a_executer = 0;
+        m_nombre_execution = 0;
+    }
+
+    void incremente_compte_a_executer()
+    {
+        m_nombre_a_executer += 1;
+    }
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -83,6 +205,8 @@ public:
 };
 
 QEvent::Type EvenementJorjala::id_type_qt;
+
+/* ------------------------------------------------------------------------- */
 
 namespace detail {
 
@@ -130,6 +254,40 @@ static void titre_application(void *donnees, JJL::Chaine titre)
     données_programme->fenetre_principale->setWindowTitle(titre.vers_std_string().c_str());
 }
 
+static void tache_demaree(void *donnees)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    données_programme->fenetre_principale->tache_demarree();
+}
+
+static void tache_terminee(void *donnees)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(donnees);
+    données_programme->fenetre_principale->tache_terminee();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void rapporte_démarre_évaluation(void *données, JJL::Chaine message)
+{
+    static_cast<ChefExecution *>(données)->demarre_evaluation(message.vers_std_string().c_str());
+}
+
+void rapporte_progression_chef(void *données, float progression)
+{
+    static_cast<ChefExecution *>(données)->indique_progression(progression);
+}
+
+void rapporte_progression_parallele_chef(void *données, float delta)
+{
+    static_cast<ChefExecution *>(données)->indique_progression_parallele(delta);
+}
+
+bool doit_interrompre_chef(void *données)
+{
+    return static_cast<ChefExecution *>(données)->interrompu();
+}
+
 }
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
@@ -142,10 +300,27 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     gestionnaire_jjl.définit_rappel_change_curseur(reinterpret_cast<void *>(detail::change_curseur));
     gestionnaire_jjl.définit_rappel_restaure_curseur(reinterpret_cast<void *>(detail::restaure_curseur));
     gestionnaire_jjl.définit_rappel_titre_application(reinterpret_cast<void *>(detail::titre_application));
+    gestionnaire_jjl.définit_rappel_tâche_démarrée(reinterpret_cast<void *>(detail::tache_demaree));
+    gestionnaire_jjl.définit_rappel_tâche_terminée(reinterpret_cast<void *>(detail::tache_terminee));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
+}
+
+static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
+{
+    /* À FAIRE : libère la mémoire. */
+    auto task_notifier = memoire::loge<TaskNotifier>("TaskNotifier", fenetre_principale);
+    auto chef = memoire::loge<ChefExecution>("ChefExecution", jorjala, task_notifier);
+
+    auto chef_jjl = jorjala.chef_exécution();
+    chef_jjl.données(chef);
+
+    chef_jjl.définit_rappel_doit_interrompre(reinterpret_cast<void *>(detail::doit_interrompre_chef));
+    chef_jjl.définit_rappel_rapporte_progression(reinterpret_cast<void *>(detail::rapporte_progression_chef));
+    chef_jjl.définit_rappel_rapporte_progression_parallèle(reinterpret_cast<void *>(detail::rapporte_progression_parallele_chef));
+    chef_jjl.définit_rappel_démarre_évaluation(reinterpret_cast<void *>(detail::rapporte_démarre_évaluation));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -175,9 +350,8 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 	, m_jorjala(jorjala)
     , m_barre_progres(new BarreDeProgres(m_jorjala, this))
 {
-//	jorjala.notifiant_thread = memoire::loge<TaskNotifier>("TaskNotifier", this);
-
     initialise_evenements(m_jorjala, this);
+    initialise_chef_execution(m_jorjala, this);
     setWindowTitle("Projet Sans Titre - Jorjala");
 
 	genere_barre_menu();
@@ -363,7 +537,7 @@ void FenetrePrincipale::tache_demarree()
 
 void FenetrePrincipale::ajourne_progres(float progres)
 {
-    m_barre_progres->ajourne_valeur(static_cast<int>(progres));
+    m_barre_progres->ajourne_valeur(static_cast<int>(progres * 100.0f));
 }
 
 void FenetrePrincipale::tache_terminee()
@@ -374,5 +548,6 @@ void FenetrePrincipale::tache_terminee()
 void FenetrePrincipale::evaluation_debutee(const char *message, int execution, int total)
 {
     m_barre_progres->ajourne_valeur(0);
+    m_barre_progres->setVisible(true);
     m_barre_progres->ajourne_message(message, execution, total);
 }
