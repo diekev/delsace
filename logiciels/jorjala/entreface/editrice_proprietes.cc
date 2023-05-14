@@ -414,12 +414,13 @@ void EditriceProprietes::ajourne_manipulable()
         return;
     }
 
-    m_jorjala.requiers_évaluation(graphe);
+    auto requête = JJL::RequeteEvaluation({});
+    requête.raison(JJL::RaisonEvaluation::PARAMETRE_CHANGÉ);
+    requête.graphe(graphe);
+    // À FAIRE : message ?
+    // requête.message("réponse modification propriété manipulable");
 
-#if 0
-    // À FAIRE
-	requiers_evaluation(m_jorjala, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
-#endif
+    m_jorjala.requiers_évaluation(requête);
 }
 
 void EditriceProprietes::precontrole_change()
