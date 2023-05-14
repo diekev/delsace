@@ -24,6 +24,7 @@ set(NOM_CIBLE jorjala_entreface)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_QT5_WIDGETS}
         ${INCLUSIONS_QT5_OPENGL}
@@ -61,6 +62,11 @@ set(ENTETES_POUR_QT
 )
 
 qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+
+add_library(qt_jorjala_entreface ${moc_headers})
+target_include_directories(qt_jorjala_entreface PUBLIC "${INCLUSIONS}")
+
+desactive_drapeaux_compilation(qt_jorjala_entreface)
 
 set(NUANCEURS
 	opengl/nuanceurs/couleur.frag
@@ -248,8 +254,6 @@ add_library(${NOM_CIBLE} STATIC
         chef_execution.hh
         gestion_entreface.hh
 
-	${moc_headers}
-
         graphe/item_noeud.cc
         graphe/vue_editrice_graphe.cc
 
@@ -278,7 +282,7 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES} qt_jorjala_entreface)
 
 install(
 	FILES ${FICHIERS_DANJO}
