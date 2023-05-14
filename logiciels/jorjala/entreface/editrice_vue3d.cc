@@ -150,6 +150,28 @@ void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
 
 /* ************************************************************************** */
 
+enum {
+   BOUTON_MANIPULATION = 0,
+   BOUTON_POSITION = 1,
+   BOUTON_ROTATION = 2,
+   BOUTON_ECHELLE = 3,
+
+   NOMBRE_DE_BOUTONS = 4,
+};
+
+struct DonneesBoutonsManipulation {
+    int type = BOUTON_MANIPULATION;
+    const char *chemin_icone_inactif;
+    const char *chemin_icone_actif;
+};
+
+static DonneesBoutonsManipulation donnees_boutons_manipulation[NOMBRE_DE_BOUTONS] = {
+    {BOUTON_MANIPULATION, "icones/icone_manipulation.png", "icones/icone_manipulation_active.png"},
+    {BOUTON_POSITION, "icones/icone_position.png", "icones/icone_position_active.png"},
+    {BOUTON_ROTATION, "icones/icone_rotation.png", "icones/icone_rotation_active.png"},
+    {BOUTON_ECHELLE, "icones/icone_echelle.png", "icones/icone_echelle_active.png"},
+};
+
 EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("vue_3d", jorjala, parent)
 	, m_vue(new VueCanevas3D(jorjala, this, this))
@@ -158,58 +180,39 @@ EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
 	auto disp_boutons = new QHBoxLayout();
 	disp_boutons->addStretch();
 
-	QIcon icone_manipulation;
-	icone_manipulation.addPixmap(QPixmap("icones/icone_manipulation.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_manipulation.addPixmap(QPixmap("icones/icone_manipulation_active.png"), QIcon::Mode::Normal, QIcon::State::On);
+    QToolButton *boutons_manipulation[4];
+    for (auto données_bouton : donnees_boutons_manipulation) {
+        QIcon icone_manipulation;
+        icone_manipulation.addPixmap(QPixmap(données_bouton.chemin_icone_inactif), QIcon::Mode::Normal, QIcon::State::Off);
+        icone_manipulation.addPixmap(QPixmap(données_bouton.chemin_icone_actif), QIcon::Mode::Normal, QIcon::State::On);
 
-	auto bouton = new QToolButton();
-	bouton->setIcon(icone_manipulation);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	bouton->setCheckable(true);
+        auto bouton = new QToolButton();
+        bouton->setIcon(icone_manipulation);
+        bouton->setFixedHeight(32);
+        bouton->setFixedWidth(32);
+        bouton->setCheckable(true);
+        disp_boutons->addWidget(bouton);
+
+        boutons_manipulation[données_bouton.type] = bouton;
+        disp_boutons->addWidget(bouton);
+    }
+
+    auto bouton = boutons_manipulation[BOUTON_MANIPULATION];
 	bouton->setChecked(false);
-	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::bascule_manipulation);
-	disp_boutons->addWidget(bouton);
+    connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::bascule_manipulation);
 
-	QIcon icone_position;
-	icone_position.addPixmap(QPixmap("icones/icone_position.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_position.addPixmap(QPixmap("icones/icone_position_active.png"), QIcon::Mode::Normal, QIcon::State::On);
-
-	bouton = new QToolButton();
-	bouton->setIcon(icone_position);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	bouton->setCheckable(true);
+    bouton = boutons_manipulation[BOUTON_POSITION];
 	bouton->setChecked(true);
 	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_position);
-	disp_boutons->addWidget(bouton);
 	m_bouton_position = bouton;
 	m_bouton_actif = bouton;
 
-	QIcon icone_rotation;
-	icone_rotation.addPixmap(QPixmap("icones/icone_rotation.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_rotation.addPixmap(QPixmap("icones/icone_rotation_active.png"), QIcon::Mode::Normal, QIcon::State::On);
-
-	bouton = new QToolButton();
-	bouton->setIcon(icone_rotation);
-	bouton->setCheckable(true);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
+    bouton = boutons_manipulation[BOUTON_ROTATION];
 	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_rotation);
-	disp_boutons->addWidget(bouton);
 	m_bouton_rotation = bouton;
 
-	QIcon icone_echelle;
-	icone_echelle.addPixmap(QPixmap("icones/icone_echelle.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_echelle.addPixmap(QPixmap("icones/icone_echelle_active.png"), QIcon::Mode::Normal, QIcon::State::On);
-
-	bouton = new QToolButton();
-	bouton->setIcon(icone_echelle);
-	bouton->setCheckable(true);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
+    bouton = boutons_manipulation[BOUTON_ECHELLE];
 	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_echelle);
-	disp_boutons->addWidget(bouton);
 	m_bouton_echelle = bouton;
 
 	m_selecteur_rendu = new QComboBox(this);
