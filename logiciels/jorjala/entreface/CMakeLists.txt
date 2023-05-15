@@ -44,6 +44,7 @@ set(BIBLIOTHEQUES
         bib_vision
 #	jorjala_coeur
 #	jorjala_evaluation
+        jorjala_rendu
 )
 
 add_compile_options(-fPIC)

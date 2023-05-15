@@ -31,7 +31,10 @@ namespace vision {
 class Camera3D;
 }
 
+namespace JJL {
 class Objet;
+}
+
 class Scene;
 
 struct deleguee_scene;
@@ -40,7 +43,7 @@ struct StatistiquesRendu;
 /* ************************************************************************** */
 
 struct ObjetRendu {
-	Objet *objet{};
+    JJL::Objet *objet{};
 
 	/* matrices pour définir où instancier l'objet */
 	dls::tableau<dls::math::mat4x4f> matrices{};

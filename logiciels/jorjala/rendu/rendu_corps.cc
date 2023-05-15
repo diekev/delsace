@@ -39,6 +39,8 @@
 #include "corps/sphere.hh"
 #include "corps/volume.hh"
 
+#include "coeur/jorjala.hh"
+
 #include "wolika/grille_dense.hh"
 #include "wolika/grille_eparse.hh"
 #include "wolika/iteration.hh"
@@ -94,42 +96,56 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 /* ************************************************************************** */
 
+static dls::math::vec3f convertis_point(JJL::Point3D point)
+{
+    return dls::math::vec3f(point.x(), point.y(), point.z());
+}
+
 void ajoute_polygone_surface(
-		Polygone *polygone,
-		AccesseusePointLecture const &liste_points,
+        JJL::PrimitivePolygone &polygone,
+        JJL::Corps liste_points,
 		Attribut const *attr_normaux,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &normaux,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
-	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-		points.ajoute(liste_points.point_local(polygone->index_point(0)));
-		points.ajoute(liste_points.point_local(polygone->index_point(i - 1)));
-		points.ajoute(liste_points.point_local(polygone->index_point(i)));
+    for (long i = 2; i < polygone.nombre_de_sommets(); ++i) {
+        /* À FAIRE : point local, quand nous aurons des matrices pour les corps. */
 
-		if (attr_normaux) {
-			auto idx = normaux.taille();
-			normaux.redimensionne(idx + 3);
+        auto p0 = liste_points.point_pour_index(polygone.sommet_pour_index(0));
+        auto p1 = liste_points.point_pour_index(polygone.sommet_pour_index(i - 1));
+        auto p2 = liste_points.point_pour_index(polygone.sommet_pour_index(i));
 
-			if (attr_normaux->portee == portee_attr::POINT) {
-				extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
-				extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
-				extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
-			}
-			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-				extrait(attr_normaux->r32(polygone->index), normaux[idx]);
-				extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
-				extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
-			}
-			else if (attr_normaux->portee == portee_attr::CORPS) {
-				extrait(attr_normaux->r32(0), normaux[idx]);
-				extrait(attr_normaux->r32(0), normaux[idx + 1]);
-				extrait(attr_normaux->r32(0), normaux[idx + 2]);
-			}
-		}
+        points.ajoute(convertis_point(p0));
+        points.ajoute(convertis_point(p1));
+        points.ajoute(convertis_point(p2));
+//		points.ajoute(liste_points.point_local(polygone->index_point(0)));
+//		points.ajoute(liste_points.point_local(polygone->index_point(i - 1)));
+//		points.ajoute(liste_points.point_local(polygone->index_point(i)));
 
-		if (attr_couleurs) {
+//		if (attr_normaux) {
+//			auto idx = normaux.taille();
+//			normaux.redimensionne(idx + 3);
+
+//			if (attr_normaux->portee == portee_attr::POINT) {
+//				extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
+//				extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
+//				extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
+//			}
+//			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
+//				extrait(attr_normaux->r32(polygone->index), normaux[idx]);
+//				extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
+//				extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
+//			}
+//			else if (attr_normaux->portee == portee_attr::CORPS) {
+//				extrait(attr_normaux->r32(0), normaux[idx]);
+//				extrait(attr_normaux->r32(0), normaux[idx + 1]);
+//				extrait(attr_normaux->r32(0), normaux[idx + 2]);
+//			}
+//		}
+
+        /*if (attr_couleurs) {
 			auto idx = couleurs.taille();
 			couleurs.redimensionne(idx + 3);
 
@@ -154,7 +170,7 @@ void ajoute_polygone_surface(
 				extrait(attr_couleurs->r32(0), couleurs[idx + 2]);
 			}
 		}
-		else {
+        else*/ {
 			couleurs.ajoute(dls::math::vec3f(0.8f));
 			couleurs.ajoute(dls::math::vec3f(0.8f));
 			couleurs.ajoute(dls::math::vec3f(0.8f));
@@ -169,6 +185,7 @@ void ajoute_polygone_segment(
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
+#if 0
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
 		points.ajoute(liste_points.point_local(polygone->index_point(i)));
 		points.ajoute(liste_points.point_local(polygone->index_point(i + 1)));
@@ -195,6 +212,7 @@ void ajoute_polygone_segment(
 			couleurs.ajoute(dls::math::vec3f(0.8f));
 		}
 	}
+#endif
 }
 
 static dls::math::vec3f points_cercle_XZ[32] = {
@@ -630,7 +648,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 /* ************************************************************************** */
 
-RenduCorps::RenduCorps(Corps const *corps)
+RenduCorps::RenduCorps(JJL::Corps &corps)
 	: m_corps(corps)
 {}
 
@@ -650,40 +668,57 @@ void RenduCorps::initialise(
 	stats.nombre_objets += 1;
 	auto est_instance = matrices.taille() != 0;
 
-	auto liste_points = m_corps->points_pour_lecture();
-	auto liste_prims = m_corps->prims();
+    auto nombre_de_points = m_corps.nombre_de_points();
+    auto nombre_de_prims = m_corps.nombre_de_primitives();
 
-	if (liste_points.taille() == 0l && liste_prims->taille() == 0l) {
+    if (nombre_de_points == 0l && nombre_de_prims == 0l) {
 		return;
-	}
+    }
 
-	dls::tableau<char> point_utilise(liste_points.taille(), 0);
+    dls::tableau<char> point_utilise(nombre_de_points, 0);
 
-	if (liste_prims->taille() != 0l) {
-		auto attr_N = m_corps->attribut("N");
-		auto attr_C = m_corps->attribut("C");
+    if (nombre_de_prims != 0l) {
+        /* À FAIRE. */
+//		auto attr_N = m_corps->attribut("N");
+//		auto attr_C = m_corps->attribut("C");
 		dls::tableau<dls::math::vec3f> points_polys;
 		dls::tableau<dls::math::vec3f> points_segment;
 		dls::tableau<dls::math::vec3f> normaux;
 		dls::tableau<dls::math::vec3f> couleurs_polys;
 		dls::tableau<dls::math::vec3f> couleurs_segment;
 
-		for (auto ip = 0; ip < liste_prims->taille(); ++ip) {
-			auto prim = liste_prims->prim(ip);
-			if (prim->type_prim() == type_primitive::POLYGONE) {
-				auto polygone = dynamic_cast<Polygone *>(prim);
-				if (polygone->type == type_polygone::FERME) {
-					stats.nombre_polygones += 1;
-					ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs_polys);
-				}
-				else if (polygone->type == type_polygone::OUVERT) {
-					stats.nombre_polylignes += 1;
-					ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
-				}
+        for (auto ip = 0; ip < nombre_de_prims; ++ip) {
+            auto prim = m_corps.primitive_pour_index(ip);
 
-				for (auto i = 0; i < polygone->nombre_sommets(); ++i) {
-					point_utilise[polygone->index_point(i)] = 1;
-				}
+            switch (prim.type()) {
+                case JJL::TypePrimitive::POLYGONE: {
+                    auto polygone = JJL::PrimitivePolygone(reinterpret_cast<JJL_PrimitivePolygone *>(prim.poignee()));
+                    stats.nombre_polygones += 1;
+
+                    ajoute_polygone_surface(polygone, m_corps, nullptr, nullptr, points_polys, normaux, couleurs_polys);
+
+                    for (auto i = 0; i < polygone.nombre_de_sommets(); ++i) {
+                        point_utilise[polygone.sommet_pour_index(i)] = 1;
+                    }
+
+                    break;
+                }
+                case JJL::TypePrimitive::COURBE: {
+#if 0
+                else if (polygone->type == type_polygone::OUVERT) {
+                    stats.nombre_polylignes += 1;
+                    ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
+                }
+#endif
+                    break;
+                }
+                case JJL::TypePrimitive::VOLUME: {
+                    break;
+                }
+            }
+
+#if 0
+            if (prim.type() == JJL::TypePrimitive::POLYGONE) {
 			}
 			else if (prim->type_prim() == type_primitive::SPHERE) {
 				auto sphere = dynamic_cast<Sphere *>(prim);
@@ -695,6 +730,7 @@ void RenduCorps::initialise(
 					m_tampon_volume = cree_tampon_volume(dynamic_cast<Volume *>(prim), contexte.vue());
 				}
 			}
+#endif
 		}
 
 		if (points_polys.taille() != 0) {
@@ -763,6 +799,7 @@ void RenduCorps::initialise(
 //		return;
 //	}
 
+#if 0
 	dls::tableau<dls::math::vec3f> points;
 	dls::tableau<dls::math::vec3f> couleurs;
 	points.reserve(liste_points.taille());
@@ -785,6 +822,7 @@ void RenduCorps::initialise(
 			extrait(attr_C->r32(i), couleurs[idx]);
 		}
 	}
+#endif
 
 	auto parametres_tampon_instance = ParametresTampon{};
 
@@ -804,6 +842,7 @@ void RenduCorps::initialise(
 		}
 	}
 
+#if 0
 	if (points.est_vide()) {
 		return;
 	}
@@ -841,6 +880,7 @@ void RenduCorps::initialise(
 	if (est_instance) {
 		m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
 	}
+#endif
 }
 
 void RenduCorps::dessine(ContexteRendu const &contexte)

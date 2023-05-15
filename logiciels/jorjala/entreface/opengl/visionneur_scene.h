@@ -71,6 +71,8 @@ class VisionneurScene {
 	float m_pos_x, m_pos_y;
 	dls::chrono::metre_seconde m_chrono_rendu{};
 
+    MoteurRendu *m_moteur_rendu;
+
 public:
 	/**
 	 * Empêche la construction d'un visionneur sans VueCanevas.

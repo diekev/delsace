@@ -27,9 +27,12 @@
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/structures/tableau.hh"
 
-class Corps;
 class ContexteRendu;
 class TamponRendu;
+
+namespace JJL {
+class Corps;
+}
 
 struct StatistiquesRendu {
 	long nombre_objets = 0;
@@ -50,13 +53,13 @@ class RenduCorps {
 	TamponRendu *m_tampon_segments = nullptr;
 	TamponRendu *m_tampon_volume = nullptr;
 
-	Corps const *m_corps = nullptr;
+    JJL::Corps &m_corps;
 
 public:
 	/**
 	 * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
 	 */
-	explicit RenduCorps(Corps const *corps);
+    explicit RenduCorps(JJL::Corps &corps);
 
 	RenduCorps(RenduCorps const &) = default;
 	RenduCorps &operator=(RenduCorps const &) = default;

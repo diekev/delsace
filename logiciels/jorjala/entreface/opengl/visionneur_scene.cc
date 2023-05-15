@@ -31,14 +31,14 @@
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/contexte_evaluation.hh"
-#include "coeur/manipulatrice.h"
+// #include "coeur/contexte_evaluation.hh"
+// #include "coeur/manipulatrice.h"
 #include "coeur/jorjala.hh"
 #include "coeur/rendu.hh"
 
-#include "lcc/lcc.hh"
+// #include "lcc/lcc.hh"
 
-#include "rendu/moteur_rendu_koudou.hh"
+// #include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
 #include "rendu/rendu_corps.h"
 
@@ -50,14 +50,17 @@
 VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
 	: m_parent(parent)
 	, m_jorjala(jorjala)
-    //, m_camera(jorjala.camera_3d)
+    , m_camera(memoire::loge<vision::Camera3D>("Camera3D", 0, 0))
 	, m_rendu_texte(nullptr)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
 	, m_pos_x(0)
 	, m_pos_y(0)
-{}
+    , m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
+{
+    m_camera->projection(vision::TypeProjection::PERSPECTIVE);
+}
 
 VisionneurScene::~VisionneurScene()
 {
@@ -90,8 +93,22 @@ void VisionneurScene::peint_opengl()
 {
     /* dessine la scène dans le tampon */
 
-#if 0
     auto stats = StatistiquesRendu{};
+
+#if 1
+    /* À FAIRE : Graphe Rendu. */
+    auto délégué = m_moteur_rendu->delegue();
+    délégué->objets.efface();
+
+    auto graphe_obj = m_jorjala.trouve_graphe_pour_chemin("/obj");
+
+    for (auto noeud : graphe_obj.noeuds()) {
+        délégué->objets.ajoute({reinterpret_cast<JJL::Objet *>(&noeud), {}});
+    }
+
+    m_moteur_rendu->camera(m_camera);
+    m_moteur_rendu->calcule_rendu(stats, m_tampon, m_camera->hauteur(), m_camera->largeur(), false);
+#else
 	auto contexte_eval = cree_contexte_evaluation(m_jorjala);
 	contexte_eval.rendu_final = false;
 	contexte_eval.camera_rendu = m_camera;
@@ -101,6 +118,7 @@ void VisionneurScene::peint_opengl()
 	auto rendu = m_jorjala.bdd.rendu(m_nom_rendu);
 
 	evalue_graphe_rendu(rendu, contexte_eval);
+#endif
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -133,6 +151,7 @@ void VisionneurScene::peint_opengl()
 	m_contexte.MVP(MVP);
 	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
 
+#if 0
 	if (m_jorjala.manipulation_3d_activee && m_jorjala.manipulatrice_3d) {
 		auto pos = m_jorjala.manipulatrice_3d->pos();
 		auto matrice = dls::math::mat4x4d(1.0);
@@ -155,8 +174,9 @@ void VisionneurScene::peint_opengl()
 
 		m_stack.enleve_sommet();
 	}
+#endif
 
-	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
+    auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	glEnable(GL_BLEND);
 
@@ -202,6 +222,7 @@ void VisionneurScene::peint_opengl()
 	ss << "Nombre volumes    : " << stats.nombre_volumes;
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
+#if 0
 	ss.chn("");
 	ss << "Nombre commandes  : " << m_jorjala.usine_commandes().taille();
 	m_rendu_texte->dessine(m_contexte, ss.chn());

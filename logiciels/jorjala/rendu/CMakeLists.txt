@@ -41,30 +41,30 @@ set(BIBLIOTHEQUES
 	bib_texture
 	jorjala_coeur
 	bib_outils
-	jorjala_koudou
+#	jorjala_koudou
 
-	cycles_render
-	cycles_util
-	cycles_bvh
-	cycles_device
-	cycles_graph
-	${OPENIMAGEIO_LIBRARY}
-	extern_numaapi
+#	cycles_render
+#	cycles_util
+#	cycles_bvh
+#	cycles_device
+#	cycles_graph
+#	${OPENIMAGEIO_LIBRARY}
+#	extern_numaapi
 	dl
 )
 
 add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.cc
-	moteur_rendu_cycles.cc
-	moteur_rendu_koudou.cc
+        # moteur_rendu_cycles.cc
+        # moteur_rendu_koudou.cc
 	moteur_rendu_opengl.cc
 	rendu_corps.cc
 	rendu_lumiere.cc
 
-	cycles.hh
+        # cycles.hh
 	moteur_rendu.hh
-	moteur_rendu_cycles.hh
-	moteur_rendu_koudou.hh
+        # moteur_rendu_cycles.hh
+        # moteur_rendu_koudou.hh
 	moteur_rendu_opengl.hh
 	rendu_corps.h
 	rendu_lumiere.h

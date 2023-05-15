@@ -34,6 +34,7 @@
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"
+#include "coeur/jorjala.hh"
 
 #include "rendu_corps.h"
 #include "rendu_lumiere.h"
@@ -525,15 +526,44 @@ void MoteurRenduOpenGL::calcule_rendu(
 		auto objet_rendu = m_delegue->objet(i);
 		auto objet = objet_rendu.objet;
 
-		if (!objet->rendu_scene) {
-			continue;
-		}
+        /* À FAIRE : drapeaux pour savoir si l'objet est à rendre. */
+//		if (!objet->rendu_scene) {
+//			continue;
+//		}
 
-		if (objet->type != type_objet::CORPS && rendu_final) {
-			continue;
-		}
+        /* À FAIRE : types d'objets */
+//		if (objet->type != type_objet::CORPS && rendu_final) {
+//			continue;
+//      }
 
-		pile.ajoute(objet->transformation.matrice());
+        /* À FAIRE : matrice pour chaque objet */
+        // pile.ajoute(objet->transformation.matrice());
+        pile.ajoute(dls::math::mat4x4d(1.0));
+
+        /* À FAIRE : mutex pour accéder aux données de l'objet. */
+        // objet->donnees.accede_lecture
+        auto corps = objet->accède_corps();
+        if (!corps) {
+            continue;
+        }
+
+        if (objet_rendu.matrices.taille() == 0) {
+            /* À FAIRE : matrice pour chaque corps */
+            // pile.ajoute(corps.transformation.matrice());
+            pile.ajoute(dls::math::mat4x4d(1.0));
+        }
+
+        contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+        RenduCorps rendu_corps(corps);
+        rendu_corps.initialise(contexte, stats, objet_rendu.matrices);
+        rendu_corps.dessine(contexte);
+
+        if (objet_rendu.matrices.taille() == 0) {
+            pile.enleve_sommet();
+        }
+
+#if 0
 
 		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats, &objet_rendu](DonneesObjet const *donnees)
 		{
@@ -583,9 +613,10 @@ void MoteurRenduOpenGL::calcule_rendu(
 				}
 			}
 		});
+#endif
 
 		pile.enleve_sommet();
-	}
+    }
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
