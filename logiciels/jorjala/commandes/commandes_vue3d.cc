@@ -25,29 +25,29 @@
 #include "commandes_vue3d.h"
 
 #if 0
-#include <iostream>
+#    include <iostream>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include <QKeyEvent>
-#pragma GCC diagnostic pop
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#    include <QKeyEvent>
+#    pragma GCC diagnostic pop
 
-#include "biblinternes/objets/creation.h"
-#include "biblinternes/outils/definitions.h"
-#include "commande_jorjala.hh"
-#include "biblinternes/vision/camera.h"
+#    include "biblinternes/objets/creation.h"
+#    include "biblinternes/outils/definitions.h"
+#    include "biblinternes/vision/camera.h"
+#    include "commande_jorjala.hh"
 
-#include "coeur/evenement.h"
-#include "coeur/composite.h"
-#include "coeur/manipulatrice.h"
-#include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
+#    include "coeur/composite.h"
+#    include "coeur/evenement.h"
+#    include "coeur/jorjala.hh"
+#    include "coeur/manipulatrice.h"
+#    include "coeur/operatrice_image.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 

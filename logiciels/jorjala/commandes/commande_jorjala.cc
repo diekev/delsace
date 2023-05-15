@@ -17,13 +17,15 @@ int CommandeJorjala::execute(const std::any &pointeur, const DonneesCommande &do
     return résultat;
 }
 
-void CommandeJorjala::ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees)
+void CommandeJorjala::ajourne_execution_modale(std::any const &pointeur,
+                                               DonneesCommande const &donnees)
 {
     auto jorjala = extrait_jorjala(pointeur);
     ajourne_execution_modale_jorjala(jorjala, donnees);
 }
 
-void CommandeJorjala::termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees)
+void CommandeJorjala::termine_execution_modale(std::any const &pointeur,
+                                               DonneesCommande const &donnees)
 {
     auto jorjala = extrait_jorjala(pointeur);
     termine_execution_modale_jorjala(jorjala, donnees);
@@ -36,20 +38,24 @@ bool CommandeJorjala::evalue_predicat(std::any const &pointeur, dls::chaine cons
     return evalue_predicat_jorjala(jorjala, metadonnee);
 }
 
-int CommandeJorjala::execute_jorjala(JJL::Jorjala &/*jorjala*/, DonneesCommande const &/*donnees*/)
+int CommandeJorjala::execute_jorjala(JJL::Jorjala & /*jorjala*/,
+                                     DonneesCommande const & /*donnees*/)
 {
     return EXECUTION_COMMANDE_REUSSIE;
 }
 
-void CommandeJorjala::ajourne_execution_modale_jorjala(JJL::Jorjala &/*jorjala*/, DonneesCommande const &/*donnees*/)
+void CommandeJorjala::ajourne_execution_modale_jorjala(JJL::Jorjala & /*jorjala*/,
+                                                       DonneesCommande const & /*donnees*/)
 {
 }
 
-void CommandeJorjala::termine_execution_modale_jorjala(JJL::Jorjala &/*jorjala*/, DonneesCommande const &/*donnees*/)
+void CommandeJorjala::termine_execution_modale_jorjala(JJL::Jorjala & /*jorjala*/,
+                                                       DonneesCommande const & /*donnees*/)
 {
 }
 
-bool CommandeJorjala::evalue_predicat_jorjala(JJL::Jorjala &/*jorjala*/, dls::chaine const &/*metadonnee*/)
+bool CommandeJorjala::evalue_predicat_jorjala(JJL::Jorjala & /*jorjala*/,
+                                              dls::chaine const & /*metadonnee*/)
 {
     return true;
 }

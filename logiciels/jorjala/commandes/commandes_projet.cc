@@ -36,7 +36,7 @@
 /* ************************************************************************** */
 
 class CommandeOuvrir final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         dls::chaine chemin_projet = "";
@@ -58,8 +58,8 @@ public:
         jorjala.lis_projet(chemin_projet.c_str());
         jorjala.restaure_curseur_application();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
@@ -81,28 +81,28 @@ static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 }
 
 class CommandeSauvegarder final : public CommandeJorjala {
-public:
-	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
             sauve_fichier_sous(jorjala, jorjala.chemin_fichier_projet());
-		}
+        }
         else {
             sauve_fichier_sous(jorjala);
         }
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeSauvegarderSous final : public CommandeJorjala {
-public:
-	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
-	{
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
         sauve_fichier_sous(jorjala);
-		return EXECUTION_COMMANDE_REUSSIE;
+        return EXECUTION_COMMANDE_REUSSIE;
     }
 };
 
@@ -110,17 +110,14 @@ public:
 
 void enregistre_commandes_projet(UsineCommande &usine)
 {
-	usine.enregistre_type("ouvrir_fichier",
-						   description_commande<CommandeOuvrir>(
-                               "projet", 0, 0, 0, false));
+    usine.enregistre_type("ouvrir_fichier",
+                          description_commande<CommandeOuvrir>("projet", 0, 0, 0, false));
 
-	usine.enregistre_type("sauvegarder",
-						   description_commande<CommandeSauvegarder>(
-							   "projet", 0, 0, 0, false));
+    usine.enregistre_type("sauvegarder",
+                          description_commande<CommandeSauvegarder>("projet", 0, 0, 0, false));
 
-	usine.enregistre_type("sauvegarder_sous",
-						   description_commande<CommandeSauvegarderSous>(
-                               "projet", 0, 0, 0, false));
+    usine.enregistre_type("sauvegarder_sous",
+                          description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop

@@ -45,39 +45,41 @@
 /* ************************************************************************** */
 
 class CommandeZoomCamera2D final : public CommandeJorjala {
-public:
-	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
         auto camera = jorjala.caméra_2d();
 
-        auto zoom = camera.zoom() * ((donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI);
+        auto zoom = camera.zoom() *
+                    ((donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI);
         camera.zoom(zoom);
         camera.ajourne_matrice();
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandePanCamera2D final : public CommandeJorjala {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandePanCamera2D() = default;
+  public:
+    CommandePanCamera2D() = default;
 
-	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
         auto camera = jorjala.caméra_2d();
 
         auto delta_pos_x = (m_vieil_x - donnees.x) / static_cast<float>(camera.largeur());
@@ -86,11 +88,11 @@ public:
         camera.pos_y(camera.pos_y() + delta_pos_y);
         camera.ajourne_matrice();
 
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
-	}
+    }
 
     JJL::TypeCurseur type_curseur_modal() override
     {
@@ -165,13 +167,13 @@ struct CommandeOutil2D final : public CommandeJorjala {
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_zoom_camera_2d",
-						   description_commande<CommandeZoomCamera2D>(
-							   "vue_2d", Qt::MiddleButton, 0, 0, true));
+    usine.enregistre_type(
+        "commande_zoom_camera_2d",
+        description_commande<CommandeZoomCamera2D>("vue_2d", Qt::MiddleButton, 0, 0, true));
 
-	usine.enregistre_type("commande_pan_camera_2d",
-						   description_commande<CommandePanCamera2D>(
-							   "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
+    usine.enregistre_type("commande_pan_camera_2d",
+                          description_commande<CommandePanCamera2D>(
+                              "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
 #if 0
 	usine.enregistre_type("commande_outil_2d",

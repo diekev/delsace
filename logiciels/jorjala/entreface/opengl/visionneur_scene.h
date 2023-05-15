@@ -32,7 +32,7 @@ namespace vision {
 
 class Camera3D;
 
-}  /* namespace VisionneurScene */
+}  // namespace vision
 
 namespace JJL {
 class Jorjala;
@@ -51,72 +51,72 @@ class VueCanevas3D;
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurScene {
-	VueCanevas3D *m_parent;
+    VueCanevas3D *m_parent;
     JJL::Jorjala &m_jorjala;
 
     vision::Camera3D *m_camera = nullptr;
-	RenduTexte *m_rendu_texte;
-	RenduManipulatricePosition *m_rendu_manipulatrice_pos;
-	RenduManipulatriceRotation *m_rendu_manipulatrice_rot;
-	RenduManipulatriceEchelle *m_rendu_manipulatrice_ech;
+    RenduTexte *m_rendu_texte;
+    RenduManipulatricePosition *m_rendu_manipulatrice_pos;
+    RenduManipulatriceRotation *m_rendu_manipulatrice_rot;
+    RenduManipulatriceEchelle *m_rendu_manipulatrice_ech;
 
-	ContexteRendu m_contexte{};
+    ContexteRendu m_contexte{};
 
-	PileMatrice m_stack = {};
+    PileMatrice m_stack = {};
 
-	TamponRendu *m_tampon_image = nullptr;
-	dls::chaine m_nom_rendu = "rendu";
-	float *m_tampon = nullptr;
+    TamponRendu *m_tampon_image = nullptr;
+    dls::chaine m_nom_rendu = "rendu";
+    float *m_tampon = nullptr;
 
-	float m_pos_x, m_pos_y;
-	dls::chrono::metre_seconde m_chrono_rendu{};
+    float m_pos_x, m_pos_y;
+    dls::chrono::metre_seconde m_chrono_rendu{};
 
     MoteurRendu *m_moteur_rendu;
 
-public:
-	/**
-	 * Empêche la construction d'un visionneur sans VueCanevas.
-	 */
-	VisionneurScene() = delete;
+  public:
+    /**
+     * Empêche la construction d'un visionneur sans VueCanevas.
+     */
+    VisionneurScene() = delete;
 
-	/**
-	 * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
-	 * pointeur vers l'instance de Kanba du programme en cours.
-	 */
+    /**
+     * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
+     * pointeur vers l'instance de Kanba du programme en cours.
+     */
     VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala);
 
-	/**
-	 * Empêche la copie d'un visionneur.
-	 */
-	VisionneurScene(VisionneurScene const &visionneur) = delete;
-	VisionneurScene &operator=(VisionneurScene const &) = default;
+    /**
+     * Empêche la copie d'un visionneur.
+     */
+    VisionneurScene(VisionneurScene const &visionneur) = delete;
+    VisionneurScene &operator=(VisionneurScene const &) = default;
 
-	/**
-	 * Détruit le visionneur scène. Les tampons de rendus sont détruits, et
-	 * utiliser cette instance après la destruction crashera le programme.
-	 */
-	~VisionneurScene();
+    /**
+     * Détruit le visionneur scène. Les tampons de rendus sont détruits, et
+     * utiliser cette instance après la destruction crashera le programme.
+     */
+    ~VisionneurScene();
 
-	/**
-	 * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
-	 * dans un contexte OpenGL valide.
-	 */
-	void initialise();
+    /**
+     * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
+     * dans un contexte OpenGL valide.
+     */
+    void initialise();
 
-	/**
-	 * Dessine la scène avec OpenGL.
-	 */
-	void peint_opengl();
+    /**
+     * Dessine la scène avec OpenGL.
+     */
+    void peint_opengl();
 
-	/**
-	 * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
-	 */
-	void redimensionne(int largeur, int hauteur);
+    /**
+     * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
+     */
+    void redimensionne(int largeur, int hauteur);
 
-	/**
-	 * Renseigne la position de la souris.
-	 */
-	void position_souris(int x, int y);
+    /**
+     * Renseigne la position de la souris.
+     */
+    void position_souris(int x, int y);
 
-	void change_moteur_rendu(const dls::chaine &id);
+    void change_moteur_rendu(const dls::chaine &id);
 };

@@ -45,113 +45,108 @@
 #include "coeur/jorjala.hh"
 
 EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("scene", jorjala, parent)
-	, m_slider(new QSlider(m_frame))
-	, m_tc_layout(new QHBoxLayout())
-	, m_num_layout(new QHBoxLayout())
-	, m_vbox_layout(new QVBoxLayout())
-	, m_end_frame(new QSpinBox(m_frame))
-	, m_start_frame(new QSpinBox(m_frame))
-	, m_cur_frame(new QSpinBox(m_frame))
-	, m_fps(new QDoubleSpinBox(m_frame))
+    : BaseEditrice("scene", jorjala, parent), m_slider(new QSlider(m_frame)),
+      m_tc_layout(new QHBoxLayout()), m_num_layout(new QHBoxLayout()),
+      m_vbox_layout(new QVBoxLayout()), m_end_frame(new QSpinBox(m_frame)),
+      m_start_frame(new QSpinBox(m_frame)), m_cur_frame(new QSpinBox(m_frame)),
+      m_fps(new QDoubleSpinBox(m_frame))
 {
-	m_main_layout->addLayout(m_vbox_layout);
+    m_main_layout->addLayout(m_vbox_layout);
 
-	m_num_layout->setSizeConstraint(QLayout::SetMinimumSize);
+    m_num_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
-	/* ------------------------------ jog bar ------------------------------- */
+    /* ------------------------------ jog bar ------------------------------- */
 
-	m_slider->setMouseTracking(false);
-	m_slider->setValue(0);
-	m_slider->setOrientation(Qt::Horizontal);
-	m_slider->setTickPosition(QSlider::TicksBothSides);
-	m_slider->setTickInterval(0);
-	m_slider->setMaximum(250);
+    m_slider->setMouseTracking(false);
+    m_slider->setValue(0);
+    m_slider->setOrientation(Qt::Horizontal);
+    m_slider->setTickPosition(QSlider::TicksBothSides);
+    m_slider->setTickInterval(0);
+    m_slider->setMaximum(250);
 
-	m_start_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
-	m_start_frame->setMaximum(500000);
-	m_start_frame->setValue(0);
-	m_start_frame->setToolTip("Start Frame");
+    m_start_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
+    m_start_frame->setMaximum(500000);
+    m_start_frame->setValue(0);
+    m_start_frame->setToolTip("Start Frame");
 
-	m_end_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
-	m_end_frame->setMaximum(500000);
-	m_end_frame->setValue(250);
-	m_start_frame->setToolTip("End Frame");
+    m_end_frame->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
+    m_end_frame->setMaximum(500000);
+    m_end_frame->setValue(250);
+    m_start_frame->setToolTip("End Frame");
 
-	m_num_layout->addWidget(m_start_frame);
-	m_num_layout->addWidget(m_slider);
-	m_num_layout->addWidget(m_end_frame);
+    m_num_layout->addWidget(m_start_frame);
+    m_num_layout->addWidget(m_slider);
+    m_num_layout->addWidget(m_end_frame);
 
-	m_vbox_layout->addLayout(m_num_layout);
+    m_vbox_layout->addLayout(m_num_layout);
 
-	/* ------------------------- current selection -------------------------- */
+    /* ------------------------- current selection -------------------------- */
 
-	m_cur_frame->setAlignment(Qt::AlignCenter);
-	m_cur_frame->setReadOnly(true);
-	m_cur_frame->setButtonSymbols(QAbstractSpinBox::NoButtons);
-	m_cur_frame->setProperty("showGroupSeparator", QVariant(false));
-	m_cur_frame->setMaximum(500000);
-	m_cur_frame->setToolTip("Current Frame");
+    m_cur_frame->setAlignment(Qt::AlignCenter);
+    m_cur_frame->setReadOnly(true);
+    m_cur_frame->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    m_cur_frame->setProperty("showGroupSeparator", QVariant(false));
+    m_cur_frame->setMaximum(500000);
+    m_cur_frame->setToolTip("Current Frame");
 
-	m_tc_layout->addWidget(m_cur_frame);
+    m_tc_layout->addWidget(m_cur_frame);
 
-	/* ------------------------- transport controls ------------------------- */
+    /* ------------------------- transport controls ------------------------- */
 
-	m_tc_layout->addStretch();
+    m_tc_layout->addStretch();
 
-	danjo::Manipulable dummy;
+    danjo::Manipulable dummy;
 
     auto données = cree_donnees_interface_danjo(m_jorjala, &dummy);
     auto gestionnaire = gestionnaire_danjo(m_jorjala);
 
     auto disp_controles = gestionnaire->compile_entreface_fichier(
-                données,
-                "entreface/disposition_ligne_temps.jo");
+        données, "entreface/disposition_ligne_temps.jo");
 
     m_tc_layout->addLayout(disp_controles);
 
-	m_tc_layout->addStretch();
+    m_tc_layout->addStretch();
 
-	/* --------------------------------- fps -------------------------------- */
+    /* --------------------------------- fps -------------------------------- */
 
-	m_fps->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
-	m_fps->setValue(24);
-	m_fps->setToolTip("Frame Rate");
+    m_fps->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
+    m_fps->setValue(24);
+    m_fps->setToolTip("Frame Rate");
 
-	m_tc_layout->addWidget(m_fps);
+    m_tc_layout->addWidget(m_fps);
 
-	m_vbox_layout->addLayout(m_tc_layout);
+    m_vbox_layout->addLayout(m_tc_layout);
 
-	/* ------------------------------ finalize ------------------------------ */
+    /* ------------------------------ finalize ------------------------------ */
 
-	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-	connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
-	connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
-	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
-	connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
+    connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
+    connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
+    connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
+    connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 }
 
 void EditriceLigneTemps::ajourne_etat(int evenement)
 {
-	auto creation = (evenement == (type_evenement::temps | type_evenement::modifie));
-	creation |= (evenement == (type_evenement::rafraichissement));
+    auto creation = (evenement == (type_evenement::temps | type_evenement::modifie));
+    creation |= (evenement == (type_evenement::rafraichissement));
 
-	if (!creation) {
-		return;
-	}
+    if (!creation) {
+        return;
+    }
 
-	/* déconnexion pour deux raison :
-	 * - on peut se retrouver dans une boucle infinie à cause de setCurrentFrame
-	 *   étant appelé par m_slider qui cause une notification de toutes les
-	 *   observatrices
-	 * - lors des animations, ajourner l'état lance tout un tas de signaux qui
-	 *   dans les slots ci-dessous changent quelle éditrice est active
-	 */
-	disconnect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
-	disconnect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
-	disconnect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
-	disconnect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
+    /* déconnexion pour deux raison :
+     * - on peut se retrouver dans une boucle infinie à cause de setCurrentFrame
+     *   étant appelé par m_slider qui cause une notification de toutes les
+     *   observatrices
+     * - lors des animations, ajourner l'état lance tout un tas de signaux qui
+     *   dans les slots ci-dessous changent quelle éditrice est active
+     */
+    disconnect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
+    disconnect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
+    disconnect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
+    disconnect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 
     m_slider->setMinimum(m_jorjala.temps_début());
     m_start_frame->setValue(m_jorjala.temps_début());
@@ -165,27 +160,27 @@ void EditriceLigneTemps::ajourne_etat(int evenement)
 
     m_fps->setValue(m_jorjala.cadence());
 
-	connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
-	connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
-	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
-	connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
+    connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
+    connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
+    connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
+    connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 }
 
 void EditriceLigneTemps::setStartFrame(int value)
 {
-	this->rend_actif();
+    this->rend_actif();
     m_jorjala.temps_début(value);
 }
 
 void EditriceLigneTemps::setEndFrame(int value)
 {
-	this->rend_actif();
+    this->rend_actif();
     m_jorjala.temps_fin(value);
 }
 
 void EditriceLigneTemps::setCurrentFrame(int value)
 {
-	this->rend_actif();
+    this->rend_actif();
     m_jorjala.temps_courant(value);
     m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
 
@@ -194,6 +189,6 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 
 void EditriceLigneTemps::setFPS(double value)
 {
-	this->rend_actif();
+    this->rend_actif();
     m_jorjala.cadence(value);
 }

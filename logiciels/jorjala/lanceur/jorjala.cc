@@ -34,8 +34,8 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-#include "entreface/gestion_entreface.hh"
 #include "entreface/fenetre_principale.h"
+#include "entreface/gestion_entreface.hh"
 
 #include "coeur/jorjala.hh"
 
@@ -86,15 +86,15 @@ int main(int argc, char *argv[])
 
     JJL::Jorjala jorjala = jorjala_initialisé.value();
 
-	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("delsace");
-	QCoreApplication::setApplicationName("jorjala");
+    QApplication a(argc, argv);
+    QCoreApplication::setOrganizationName("delsace");
+    QCoreApplication::setApplicationName("jorjala");
 
-	QFile file("styles/main.qss");
+    QFile file("styles/main.qss");
 
-	if (file.open(QFile::ReadOnly)) {
-		QString style_sheet = QLatin1String(file.readAll());
-		qApp->setStyleSheet(style_sheet);
+    if (file.open(QFile::ReadOnly)) {
+        QString style_sheet = QLatin1String(file.readAll());
+        qApp->setStyleSheet(style_sheet);
     }
 
     FenetrePrincipale w(jorjala);
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     w.showMaximized();
 
     if (argc == 2) {
-       appele_commande(jorjala, "ouvrir_fichier", argv[1]);
+        appele_commande(jorjala, "ouvrir_fichier", argv[1]);
     }
 
     auto résultat = a.exec();

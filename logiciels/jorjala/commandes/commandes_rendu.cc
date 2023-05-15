@@ -26,29 +26,29 @@
 
 #if 0
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wregister"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wconversion"
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImfChannelList.h>
-#include <OpenEXR/ImfOutputFile.h>
-#pragma GCC diagnostic pop
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wregister"
+#    pragma GCC diagnostic ignored "-Wold-style-cast"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    include <OpenEXR/ImathBox.h>
+#    include <OpenEXR/ImfChannelList.h>
+#    include <OpenEXR/ImfOutputFile.h>
+#    pragma GCC diagnostic pop
 
-#include "biblinternes/image/flux/ecriture.h"
-#include "biblinternes/outils/chemin.hh"
-#include "commande_jorjala.hh"
+#    include "biblinternes/image/flux/ecriture.h"
+#    include "biblinternes/outils/chemin.hh"
+#    include "commande_jorjala.hh"
 
-#include "evaluation/evaluation.hh"
+#    include "evaluation/evaluation.hh"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
-#include "coeur/jorjala.hh"
+#    include "coeur/composite.h"
+#    include "coeur/evenement.h"
+#    include "coeur/jorjala.hh"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 

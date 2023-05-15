@@ -35,34 +35,29 @@
 namespace JJL {
 class Noeud;
 class Prise;
-}
+}  // namespace JJL
 class OperatriceImage;
 
 class ItemNoeud : public QGraphicsRectItem {
-public:
-	explicit ItemNoeud(
-            JJL::Noeud &noeud,
-			bool selectionne,
-			bool est_noeud_detail,
-			QGraphicsItem *parent = nullptr);
+  public:
+    explicit ItemNoeud(JJL::Noeud &noeud,
+                       bool selectionne,
+                       bool est_noeud_detail,
+                       QGraphicsItem *parent = nullptr);
 
-	void dessine_noeud_detail(
-            JJL::Noeud &noeud,
-			bool selectionne);
+    void dessine_noeud_detail(JJL::Noeud &noeud, bool selectionne);
 
-	void dessine_noeud_generique(
-            JJL::Noeud &noeud,
-			QBrush const &brosse_couleur,
-			bool selectionne);
+    void dessine_noeud_generique(JJL::Noeud &noeud,
+                                 QBrush const &brosse_couleur,
+                                 bool selectionne);
 
-private:
-	void finalise_dessin(
-            JJL::Noeud &noeud,
-			bool selectionne,
-			double pos_x,
-			double pos_y,
-			double largeur_noeud,
-			double hauteur_noeud);
+  private:
+    void finalise_dessin(JJL::Noeud &noeud,
+                         bool selectionne,
+                         double pos_x,
+                         double pos_y,
+                         double largeur_noeud,
+                         double hauteur_noeud);
 
     void cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur);
 };

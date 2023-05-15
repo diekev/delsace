@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace vision {
 class Camera3D;
@@ -45,8 +45,8 @@ struct StatistiquesRendu;
 struct ObjetRendu {
     JJL::Objet *objet{};
 
-	/* matrices pour définir où instancier l'objet */
-	dls::tableau<dls::math::mat4x4f> matrices{};
+    /* matrices pour définir où instancier l'objet */
+    dls::tableau<dls::math::mat4x4f> matrices{};
 };
 
 /* Concernant ce déléguée_scène :
@@ -58,35 +58,36 @@ struct ObjetRendu {
  * L'idée est similaire à celle présente dans Hydra de Pixar.
  */
 struct deleguee_scene {
-	dls::tableau<ObjetRendu> objets{};
+    dls::tableau<ObjetRendu> objets{};
 
-	long nombre_objets() const;
+    long nombre_objets() const;
 
-	ObjetRendu const &objet(long idx) const;
+    ObjetRendu const &objet(long idx) const;
 };
 
 /* ************************************************************************** */
 
 class MoteurRendu {
-protected:
-	vision::Camera3D *m_camera = nullptr;
-	deleguee_scene *m_delegue = nullptr;
+  protected:
+    vision::Camera3D *m_camera = nullptr;
+    deleguee_scene *m_delegue = nullptr;
 
-public:
-	MoteurRendu();
+  public:
+    MoteurRendu();
 
-	virtual ~MoteurRendu();
+    virtual ~MoteurRendu();
 
-	MoteurRendu(MoteurRendu const &) = default;
-	MoteurRendu &operator=(MoteurRendu const &) = default;
+    MoteurRendu(MoteurRendu const &) = default;
+    MoteurRendu &operator=(MoteurRendu const &) = default;
 
-	void camera(vision::Camera3D *camera);
+    void camera(vision::Camera3D *camera);
 
-	deleguee_scene *delegue();
+    deleguee_scene *delegue();
 
-	virtual const char *id() const = 0;
+    virtual const char *id() const = 0;
 
-	virtual void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) = 0;
+    virtual void calcule_rendu(
+        StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) = 0;
 
-	virtual void construit_scene();
+    virtual void construit_scene();
 };

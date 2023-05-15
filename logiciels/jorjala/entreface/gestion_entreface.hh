@@ -22,4 +22,6 @@ enum {
 
 dls::chaine affiche_dialogue(int type, dls::chaine const &filtre);
 
-void appele_commande(JJL::Jorjala &jorjala, dls::chaine const &nom_commande, dls::chaine const &métadonnée);
+void appele_commande(JJL::Jorjala &jorjala,
+                     dls::chaine const &nom_commande,
+                     dls::chaine const &métadonnée);

@@ -32,21 +32,21 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QCoreApplication>
-#include <QGuiApplication>
 #include <QCursor>
 #include <QDockWidget>
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QSettings>
 #include <QStatusBar>
-#include <QMessageBox>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/jorjala.hh"
 
@@ -68,12 +68,11 @@
 class EvenementJorjala : public QEvent {
     JJL::TypeEvenement m_type;
 
-public:
+  public:
     static QEvent::Type id_type_qt;
 
     EvenementJorjala(JJL::TypeEvenement type_evenenemt_jorjala)
-        : QEvent(id_type_qt)
-        , m_type(type_evenenemt_jorjala)
+        : QEvent(id_type_qt), m_type(type_evenenemt_jorjala)
     {
     }
 
@@ -100,18 +99,24 @@ static void notifie_erreur(void *donnees, JJL::Chaine message)
 {
     auto données_programme = static_cast<DonnéesProgramme *>(donnees);
     QMessageBox boite_message;
-    boite_message.critical(données_programme->fenetre_principale, "Erreur", message.vers_std_string().c_str());
+    boite_message.critical(
+        données_programme->fenetre_principale, "Erreur", message.vers_std_string().c_str());
     boite_message.setFixedSize(500, 200);
 }
 
 static Qt::CursorShape convertis_type_curseur(JJL::TypeCurseur curseur)
 {
     switch (curseur) {
-        case JJL::TypeCurseur::NORMAL: return Qt::CursorShape::ArrowCursor;
-        case JJL::TypeCurseur::ATTENTE_BLOQUÉ: return Qt::CursorShape::WaitCursor;
-        case JJL::TypeCurseur::TÂCHE_ARRIÈRE_PLAN_EN_COURS: return Qt::CursorShape::BusyCursor;
-        case JJL::TypeCurseur::MAIN_OUVERTE: return Qt::CursorShape::OpenHandCursor;
-        case JJL::TypeCurseur::MAIN_FERMÉE: return Qt::CursorShape::ClosedHandCursor;
+        case JJL::TypeCurseur::NORMAL:
+            return Qt::CursorShape::ArrowCursor;
+        case JJL::TypeCurseur::ATTENTE_BLOQUÉ:
+            return Qt::CursorShape::WaitCursor;
+        case JJL::TypeCurseur::TÂCHE_ARRIÈRE_PLAN_EN_COURS:
+            return Qt::CursorShape::BusyCursor;
+        case JJL::TypeCurseur::MAIN_OUVERTE:
+            return Qt::CursorShape::OpenHandCursor;
+        case JJL::TypeCurseur::MAIN_FERMÉE:
+            return Qt::CursorShape::ClosedHandCursor;
     }
 
     return Qt::CursorShape::ArrowCursor;
@@ -119,12 +124,12 @@ static Qt::CursorShape convertis_type_curseur(JJL::TypeCurseur curseur)
 
 static void change_curseur(void *donnees, JJL::TypeCurseur curseur)
 {
-  QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
+    QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
 }
 
 static void restaure_curseur(void *donnees, JJL::TypeCurseur curseur)
 {
-  QGuiApplication::restoreOverrideCursor();
+    QGuiApplication::restoreOverrideCursor();
 }
 
 static void titre_application(void *donnees, JJL::Chaine titre)
@@ -167,25 +172,32 @@ bool doit_interrompre_chef(void *données)
     return static_cast<ChefExecution *>(données)->interrompu();
 }
 
-}
+}  // namespace detail
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
 {
     EvenementJorjala::id_type_qt = static_cast<QEvent::Type>(QEvent::registerEventType());
 
     auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-    gestionnaire_jjl.mute_rappel_notification(reinterpret_cast<void *>(detail::notifie_observatrices));
+    gestionnaire_jjl.mute_rappel_notification(
+        reinterpret_cast<void *>(detail::notifie_observatrices));
     gestionnaire_jjl.mute_rappel_notifie_erreur(reinterpret_cast<void *>(detail::notifie_erreur));
-    gestionnaire_jjl.définit_rappel_change_curseur(reinterpret_cast<void *>(detail::change_curseur));
-    gestionnaire_jjl.définit_rappel_restaure_curseur(reinterpret_cast<void *>(detail::restaure_curseur));
-    gestionnaire_jjl.définit_rappel_titre_application(reinterpret_cast<void *>(detail::titre_application));
-    gestionnaire_jjl.définit_rappel_tâche_démarrée(reinterpret_cast<void *>(detail::tache_demaree));
-    gestionnaire_jjl.définit_rappel_tâche_terminée(reinterpret_cast<void *>(detail::tache_terminee));
+    gestionnaire_jjl.définit_rappel_change_curseur(
+        reinterpret_cast<void *>(detail::change_curseur));
+    gestionnaire_jjl.définit_rappel_restaure_curseur(
+        reinterpret_cast<void *>(detail::restaure_curseur));
+    gestionnaire_jjl.définit_rappel_titre_application(
+        reinterpret_cast<void *>(detail::titre_application));
+    gestionnaire_jjl.définit_rappel_tâche_démarrée(
+        reinterpret_cast<void *>(detail::tache_demaree));
+    gestionnaire_jjl.définit_rappel_tâche_terminée(
+        reinterpret_cast<void *>(detail::tache_terminee));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
-    données_programme->task_notifier = memoire::loge<TaskNotifier>("TaskNotifier", fenetre_principale);
+    données_programme->task_notifier = memoire::loge<TaskNotifier>("TaskNotifier",
+                                                                   fenetre_principale);
 }
 
 static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
@@ -194,70 +206,73 @@ static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
 
     /* À FAIRE : libère la mémoire. */
-    auto chef = memoire::loge<ChefExecution>("ChefExecution", jorjala, données_programme->task_notifier);
+    auto chef = memoire::loge<ChefExecution>(
+        "ChefExecution", jorjala, données_programme->task_notifier);
 
     auto chef_jjl = jorjala.chef_exécution();
     chef_jjl.données(chef);
 
-    chef_jjl.définit_rappel_doit_interrompre(reinterpret_cast<void *>(detail::doit_interrompre_chef));
-    chef_jjl.définit_rappel_rapporte_progression(reinterpret_cast<void *>(detail::rapporte_progression_chef));
-    chef_jjl.définit_rappel_rapporte_progression_parallèle(reinterpret_cast<void *>(detail::rapporte_progression_parallele_chef));
-    chef_jjl.définit_rappel_démarre_évaluation(reinterpret_cast<void *>(detail::rapporte_démarre_évaluation));
+    chef_jjl.définit_rappel_doit_interrompre(
+        reinterpret_cast<void *>(detail::doit_interrompre_chef));
+    chef_jjl.définit_rappel_rapporte_progression(
+        reinterpret_cast<void *>(detail::rapporte_progression_chef));
+    chef_jjl.définit_rappel_rapporte_progression_parallèle(
+        reinterpret_cast<void *>(detail::rapporte_progression_parallele_chef));
+    chef_jjl.définit_rappel_démarre_évaluation(
+        reinterpret_cast<void *>(detail::rapporte_démarre_évaluation));
 }
 
 /* ------------------------------------------------------------------------- */
 
 static const char *chemins_scripts[] = {
-	"entreface/menu_fichier.jo",
-	"entreface/menu_edition.jo",
-	"entreface/menu_ajouter_noeud_composite.jo",
-	"entreface/menu_ajouter_noeud_detail.jo",
-	"entreface/menu_ajouter_noeud_objet.jo",
-	"entreface/menu_ajouter_noeud_simulation.jo",
-	"entreface/menu_debogage.jo",
+    "entreface/menu_fichier.jo",
+    "entreface/menu_edition.jo",
+    "entreface/menu_ajouter_noeud_composite.jo",
+    "entreface/menu_ajouter_noeud_detail.jo",
+    "entreface/menu_ajouter_noeud_objet.jo",
+    "entreface/menu_ajouter_noeud_simulation.jo",
+    "entreface/menu_debogage.jo",
 };
 
 enum {
-	EDITRICE_ARBORESCENCE,
-	EDITRICE_PROPRIETE,
-	EDITRICE_GRAPHE,
-	EDITRICE_LIGNE_TEMPS,
-	EDITRICE_RENDU,
-	EDITRICE_VUE2D,
-	EDITRICE_VUE3D,
+    EDITRICE_ARBORESCENCE,
+    EDITRICE_PROPRIETE,
+    EDITRICE_GRAPHE,
+    EDITRICE_LIGNE_TEMPS,
+    EDITRICE_RENDU,
+    EDITRICE_VUE2D,
+    EDITRICE_VUE3D,
 };
 
 FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
-	: QMainWindow(parent)
-	, m_jorjala(jorjala)
-    , m_barre_progres(new BarreDeProgres(m_jorjala, this))
+    : QMainWindow(parent), m_jorjala(jorjala), m_barre_progres(new BarreDeProgres(m_jorjala, this))
 {
     initialise_evenements(m_jorjala, this);
     initialise_chef_execution(m_jorjala, this);
     setWindowTitle("Projet Sans Titre - Jorjala");
 
-	genere_barre_menu();
-	genere_menu_prereglages();
+    genere_barre_menu();
+    genere_menu_prereglages();
 
     statusBar()->addWidget(m_barre_progres);
     m_barre_progres->setVisible(false);
 
-	auto dock_vue2D = ajoute_dock("Vue 2D", EDITRICE_VUE2D, Qt::LeftDockWidgetArea);
-	ajoute_dock("Vue 3D", EDITRICE_VUE3D, Qt::LeftDockWidgetArea, dock_vue2D);
-	dock_vue2D->raise();
+    auto dock_vue2D = ajoute_dock("Vue 2D", EDITRICE_VUE2D, Qt::LeftDockWidgetArea);
+    ajoute_dock("Vue 3D", EDITRICE_VUE3D, Qt::LeftDockWidgetArea, dock_vue2D);
+    dock_vue2D->raise();
 
-	ajoute_dock("Grapĥe", EDITRICE_GRAPHE, Qt::LeftDockWidgetArea);
+    ajoute_dock("Grapĥe", EDITRICE_GRAPHE, Qt::LeftDockWidgetArea);
 
-	auto dock_arbre = ajoute_dock("Arborescence", EDITRICE_ARBORESCENCE, Qt::RightDockWidgetArea);
-	ajoute_dock("Propriétés", EDITRICE_PROPRIETE, Qt::RightDockWidgetArea, dock_arbre);
-	dock_arbre->raise();
+    auto dock_arbre = ajoute_dock("Arborescence", EDITRICE_ARBORESCENCE, Qt::RightDockWidgetArea);
+    ajoute_dock("Propriétés", EDITRICE_PROPRIETE, Qt::RightDockWidgetArea, dock_arbre);
+    dock_arbre->raise();
 
-	ajoute_dock("Rendu", EDITRICE_RENDU, Qt::RightDockWidgetArea);
-	ajoute_dock("Ligne Temps", EDITRICE_LIGNE_TEMPS, Qt::RightDockWidgetArea);
+    ajoute_dock("Rendu", EDITRICE_RENDU, Qt::RightDockWidgetArea);
+    ajoute_dock("Ligne Temps", EDITRICE_LIGNE_TEMPS, Qt::RightDockWidgetArea);
 
-	charge_reglages();
+    charge_reglages();
 
-	setCentralWidget(nullptr);
+    setCentralWidget(nullptr);
 
     /* Nous utilisons un eventFilter pour filtrer les évènements de Jorjala, car
      * surcharger QMainWindow::event() nous fait perdre la capacité de
@@ -267,27 +282,27 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 
 void FenetrePrincipale::charge_reglages()
 {
-	QSettings settings;
+    QSettings settings;
 
-	auto const &recent_files = settings.value("projet_récents").toStringList();
+    auto const &recent_files = settings.value("projet_récents").toStringList();
 
-	for (auto const &file : recent_files) {
-		if (QFile(file).exists()) {
+    for (auto const &file : recent_files) {
+        if (QFile(file).exists()) {
             m_jorjala.ajoute_fichier_récent(file.toStdString().c_str());
-		}
-	}
+        }
+    }
 }
 
 void FenetrePrincipale::ecrit_reglages() const
 {
-	QSettings settings;
-	QStringList recent;
+    QSettings settings;
+    QStringList recent;
 
     for (auto fichier_recent : m_jorjala.fichiers_récents()) {
         recent.push_front(fichier_recent.vers_std_string().c_str());
     }
 
-	settings.setValue("projet_récents", recent);
+    settings.setValue("projet_récents", recent);
 }
 
 void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
@@ -342,19 +357,25 @@ void FenetrePrincipale::genere_barre_menu()
     }
 
     auto menu_fichiers_recents = gestionnaire_danjo(m_jorjala)->pointeur_menu("Projets Récents");
-    connect(menu_fichiers_recents, SIGNAL(aboutToShow()),
-            this, SLOT(mis_a_jour_menu_fichier_recent()));
+    connect(menu_fichiers_recents,
+            SIGNAL(aboutToShow()),
+            this,
+            SLOT(mis_a_jour_menu_fichier_recent()));
 }
 
 void FenetrePrincipale::genere_menu_prereglages()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
     auto gestionnaire = gestionnaire_danjo(m_jorjala);
-    m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees, "entreface/menu_prereglage.jo");
+    m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees,
+                                                               "entreface/menu_prereglage.jo");
     addToolBar(Qt::TopToolBarArea, m_barre_outil);
 }
 
-QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier)
+QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom,
+                                            int type,
+                                            int aire,
+                                            QDockWidget *premier)
 {
     BaseEditrice *editrice = nullptr;
 
@@ -382,23 +403,23 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom, int type, int ai
             break;
     }
 
-	auto dock = new QDockWidget(nom, this);
-	dock->setAttribute(Qt::WA_DeleteOnClose);
+    auto dock = new QDockWidget(nom, this);
+    dock->setAttribute(Qt::WA_DeleteOnClose);
 
     if (editrice) {
         m_editrices.push_back(editrice);
         editrice->ajourne_etat(static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
         dock->setWidget(editrice);
     }
-	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
-	addDockWidget(static_cast<Qt::DockWidgetArea>(aire), dock);
+    addDockWidget(static_cast<Qt::DockWidgetArea>(aire), dock);
 
-	if (premier) {
-		tabifyDockWidget(premier, dock);
-	}
+    if (premier) {
+        tabifyDockWidget(premier, dock);
+    }
 
-	return dock;
+    return dock;
 }
 
 void FenetrePrincipale::image_traitee()

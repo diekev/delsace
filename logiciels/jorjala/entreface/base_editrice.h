@@ -40,27 +40,29 @@ class QPoint;
 class QPointF;
 
 class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
-	Q_OBJECT
+    Q_OBJECT
 
-protected:
+  protected:
     JJL::Jorjala &m_jorjala;
-	QFrame *m_frame;
-	QVBoxLayout *m_layout;
-	QHBoxLayout *m_main_layout;
-	QLineEdit *m_path_edit{};
+    QFrame *m_frame;
+    QVBoxLayout *m_layout;
+    QHBoxLayout *m_main_layout;
+    QLineEdit *m_path_edit{};
 
     const char *identifiant = nullptr;
 
-public:
-    explicit BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit BaseEditrice(const char *identifiant_,
+                          JJL::Jorjala &jorjala,
+                          QWidget *parent = nullptr);
 
-	BaseEditrice(BaseEditrice const &) = default;
-	BaseEditrice &operator=(BaseEditrice const &) = default;
+    BaseEditrice(BaseEditrice const &) = default;
+    BaseEditrice &operator=(BaseEditrice const &) = default;
 
-	void actif(bool ouinon);
-	void rend_actif();
+    void actif(bool ouinon);
+    void rend_actif();
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
 
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -72,6 +74,6 @@ public:
 
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-protected:
+  protected:
     virtual QPointF transforme_position_evenement(QPoint pos);
 };

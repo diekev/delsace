@@ -40,44 +40,44 @@
 
 #if 0
 
-#include <graphviz/cgraph.h>
-#include <graphviz/gvc.h>
+#    include <graphviz/cgraph.h>
+#    include <graphviz/gvc.h>
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/outils/chaine.hh"
-#include "biblinternes/outils/conditions.h"
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/fichier.hh"
-#include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
+#    include "biblinternes/memoire/logeuse_memoire.hh"
+#    include "biblinternes/outils/chaine.hh"
+#    include "biblinternes/outils/conditions.h"
+#    include "biblinternes/outils/definitions.h"
+#    include "biblinternes/outils/fichier.hh"
+#    include "biblinternes/patrons_conception/commande.h"
+#    include "biblinternes/patrons_conception/repondant_commande.h"
+#    include "biblinternes/structures/dico_fixe.hh"
+#    include "biblinternes/structures/flux_chaine.hh"
 
-#include "danjo/danjo.h"
+#    include "danjo/danjo.h"
 
-#include "evaluation/evaluation.hh"
+#    include "evaluation/evaluation.hh"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
-#include "coeur/imprimeuse_graphe.h"
-#include "coeur/manipulatrice.h"
-#include "coeur/jorjala.hh"
-#include "coeur/noeud_image.h"
-#include "coeur/nuanceur.hh"
-#include "coeur/objet.h"
-#include "coeur/operatrice_graphe_detail.hh"
-#include "coeur/operatrice_image.h"
-#include "coeur/operatrice_simulation.hh"
-#include "coeur/rendu.hh"
-#include "coeur/usine_operatrice.h"
+#    include "coeur/composite.h"
+#    include "coeur/evenement.h"
+#    include "coeur/imprimeuse_graphe.h"
+#    include "coeur/jorjala.hh"
+#    include "coeur/manipulatrice.h"
+#    include "coeur/noeud_image.h"
+#    include "coeur/nuanceur.hh"
+#    include "coeur/objet.h"
+#    include "coeur/operatrice_graphe_detail.hh"
+#    include "coeur/operatrice_image.h"
+#    include "coeur/operatrice_simulation.hh"
+#    include "coeur/rendu.hh"
+#    include "coeur/usine_operatrice.h"
 
-#include "operatrices/operatrices_cycles.hh"
+#    include "operatrices/operatrices_cycles.hh"
 
-#include "lcc/contexte_execution.hh"
-#include "lcc/lcc.hh"
+#    include "lcc/contexte_execution.hh"
+#    include "lcc/lcc.hh"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
 
 /* ************************************************************************** */
@@ -94,8 +94,8 @@ static bool selectionne_noeud(JJL::Jorjala &jorjala, JJL::Noeud noeud, JJL::Grap
     graphe.noeud_actif(noeud);
 
     if (graphe.noeud_actif() == nullptr) {
-		return false;
-	}
+        return false;
+    }
 
 #if 0
 	using dls::outils::est_element;
@@ -123,7 +123,7 @@ static bool selectionne_noeud(JJL::Jorjala &jorjala, JJL::Noeud noeud, JJL::Grap
 	}
 #endif
 
-	return false;
+    return false;
 }
 
 #if 0
@@ -157,13 +157,13 @@ static bool noeud_connecte_sortie(Noeud *noeud, Noeud *sortie)
  */
 static bool peut_connecter(JJL::PriseEntree entree, JJL::PriseSortie sortie)
 {
-	if (entree == nullptr || sortie == nullptr) {
-		return false;
-	}
+    if (entree == nullptr || sortie == nullptr) {
+        return false;
+    }
 
     if (entree.noeud_parent() == sortie.noeud_parent()) {
-		return false;
-	}
+        return false;
+    }
 
     if (entree.type() != sortie.type()) {
 #if 0
@@ -172,18 +172,18 @@ static bool peut_connecter(JJL::PriseEntree entree, JJL::PriseSortie sortie)
 		}
 #endif
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* ************************************************************************** */
 
 class CommandeDessineGrapheComposite final : public CommandeJorjala {
-public:
-    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
-	{
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
 #if 0
         auto const &noeud_composite = jorjala.bdd.graphe_composites()->noeud_actif;
 
@@ -203,16 +203,13 @@ public:
 		}
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-static bool finalise_ajout_noeud(
-        JJL::Jorjala &jorjala,
-        JJL::Graphe &graphe,
-        JJL::Noeud &noeud)
+static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL::Noeud &noeud)
 {
     noeud.pos_x(graphe.centre_x());
     noeud.pos_y(graphe.centre_y());
@@ -234,16 +231,16 @@ static bool finalise_ajout_noeud(
 
     jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
 
-	return besoin_evaluation;
+    return besoin_evaluation;
 }
 
 /* ************************************************************************** */
 
 class CommandeAjoutNoeud final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-		auto nom = donnees.metadonnee;
+        auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe();
 
         auto noeud = jorjala.crée_noeud_dans_graphe(graphe, nom.c_str());
@@ -253,22 +250,22 @@ public:
 
         auto besoin_evaluation = finalise_ajout_noeud(jorjala, graphe, noeud);
 
-		if (besoin_evaluation) {
+        if (besoin_evaluation) {
 #if 0
 			requiers_evaluation(*jorjala, NOEUD_AJOUTE, "noeud ajouté");
 #endif
-		}
+        }
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeAjoutNoeudDetail final : public CommandeJorjala {
-public:
+  public:
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
-	{
+    {
 #if 0
         auto graphe = jorjala.graphe;
 
@@ -302,11 +299,11 @@ public:
 		}
 #endif
 
-		return false;
-	}
+        return false;
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
@@ -321,16 +318,16 @@ public:
 		finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeAjoutNoeudCycles final : public CommandeJorjala {
-public:
+  public:
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
-	{
+    {
 #if 0
         auto graphe = jorjala.graphe;
 
@@ -342,10 +339,10 @@ public:
 #else
         return false;
 #endif
-	}
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
@@ -358,16 +355,16 @@ public:
 		finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeAjoutNoeudDetailSpecial final : public CommandeJorjala {
-public:
+  public:
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
-	{
+    {
 #if 0
         auto graphe = jorjala.graphe;
 
@@ -411,11 +408,11 @@ public:
 		}
 
 #endif
-		return false;
-	}
+        return false;
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		auto nom = donnees.metadonnee;
         auto graphe = jorjala.graphe;
@@ -438,16 +435,16 @@ public:
 		}
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeAjoutGrapheDetail final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		auto nom = donnees.metadonnee;
 		auto type_detail = 0;
@@ -493,8 +490,8 @@ public:
 		}
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
@@ -571,7 +568,12 @@ static JJL::PriseEntree trouve_prise_entree(JJL::Graphe &graphe, float x, float 
     return trouve_prise_entree(noeud_le_plus_proche, x, y);
 }
 
-static void trouve_noeud_prise(JJL::Graphe &graphe, float x, float y, JJL::Noeud *r_noeud, JJL::PriseEntree *r_entree, JJL::PriseSortie *r_sortie)
+static void trouve_noeud_prise(JJL::Graphe &graphe,
+                               float x,
+                               float y,
+                               JJL::Noeud *r_noeud,
+                               JJL::PriseEntree *r_entree,
+                               JJL::PriseSortie *r_sortie)
 {
     JJL::Noeud noeud_le_plus_proche = trouve_noeud(graphe, x, y);
 
@@ -585,35 +587,34 @@ static void trouve_noeud_prise(JJL::Graphe &graphe, float x, float y, JJL::Noeud
 }
 
 class CommandeSelectionGraphe final : public CommandeJorjala {
-	float delta_x = 0.0f;
-	float delta_y = 0.0f;
-	bool m_prise_entree_deconnectee = false;
+    float delta_x = 0.0f;
+    float delta_y = 0.0f;
+    bool m_prise_entree_deconnectee = false;
     bool m_chose_sélectionnée = false;
     char m_pad[5];
 
-
-public:
-	CommandeSelectionGraphe()
-        : CommandeJorjala()
-	{
-		INUTILISE(m_pad); /* Pour faire taire les avertissements. */
-	}
+  public:
+    CommandeSelectionGraphe() : CommandeJorjala()
+    {
+        INUTILISE(m_pad); /* Pour faire taire les avertissements. */
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
         auto graphe = jorjala.graphe();
 
         JJL::Noeud noeud_selection = nullptr;
         JJL::PriseEntree prise_entree = nullptr;
         JJL::PriseSortie prise_sortie = nullptr;
 
-        trouve_noeud_prise(graphe, donnees.x, donnees.y, &noeud_selection, &prise_entree, &prise_sortie);
+        trouve_noeud_prise(
+            graphe, donnees.x, donnees.y, &noeud_selection, &prise_entree, &prise_sortie);
 
-        if (noeud_selection  != nullptr) {
+        if (noeud_selection != nullptr) {
             delta_x = donnees.x - noeud_selection.pos_x();
             delta_y = donnees.y - noeud_selection.pos_y();
             m_chose_sélectionnée = true;
-		}
+        }
 
         if (prise_entree != nullptr || prise_sortie != nullptr) {
             auto connexion = graphe.débute_connexion_interactive();
@@ -630,32 +631,33 @@ public:
 													 prise_entree->parent,
 													 graphe->dernier_noeud_sortie);
 #endif
-			}
+            }
 
             connexion.prise_entrée(prise_entree);
             connexion.prise_sortie(prise_sortie);
             m_chose_sélectionnée = true;
-		}
+        }
 
         bool besoin_evaluation = selectionne_noeud(jorjala, noeud_selection, graphe);
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
 
-		/* évalue le graphe si un visionneur a été sélectionné */
-		if (besoin_evaluation) {
+        /* évalue le graphe si un visionneur a été sélectionné */
+        if (besoin_evaluation) {
 #if 0
 			requiers_evaluation(*jorjala, NOEUD_SELECTIONE, "noeud sélectionné");
 #endif
-		}
+        }
 
         if (m_chose_sélectionnée) {
             return EXECUTION_COMMANDE_MODALE;
         }
 
         return EXECUTION_COMMANDE_REUSSIE;
-	}
+    }
 
-    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
 
@@ -663,22 +665,23 @@ public:
             auto connexion = graphe.débute_connexion_interactive();
             connexion.x(donnees.x);
             connexion.y(donnees.y);
-		}
+        }
         else {
             auto noeud_actif = graphe.noeud_actif();
 
-			if (noeud_actif == nullptr) {
-				return;
-			}
+            if (noeud_actif == nullptr) {
+                return;
+            }
 
             noeud_actif.pos_x(donnees.x - delta_x);
             noeud_actif.pos_y(donnees.y - delta_y);
-		}
+        }
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
-	}
+    }
 
-    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
 
@@ -694,11 +697,11 @@ public:
             if (connexion.prise_entrée() != nullptr) {
                 entree = connexion.prise_entrée();
                 sortie = trouve_prise_sortie(graphe, donnees.x, donnees.y);
-			}
-			else {
+            }
+            else {
                 entree = trouve_prise_entree(graphe, donnees.x, donnees.y);
                 sortie = connexion.prise_sortie();
-			}
+            }
 
             if (peut_connecter(entree, sortie)) {
                 graphe.crée_connexion(entree, sortie);
@@ -708,7 +711,7 @@ public:
 								entree->parent,
 								graphe->dernier_noeud_sortie);
 #endif
-			}
+            }
 
             graphe.termine_connexion_interactive();
         }
@@ -735,7 +738,7 @@ public:
 			requiers_evaluation(*jorjala, GRAPHE_MODIFIE, "graphe modifié");
 		}
 #endif
-	}
+    }
 
     JJL::TypeCurseur type_curseur_modal() override
     {
@@ -746,9 +749,9 @@ public:
 /* ************************************************************************** */
 
 class CommandeSupprimeSelection final : public CommandeJorjala {
-public:
-    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
-	{
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
 #if 0
         auto graphe = jorjala.graphe;
 		auto noeud = graphe->noeud_actif;
@@ -840,8 +843,8 @@ public:
 		}
 #endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
@@ -901,9 +904,9 @@ static const char *chaine_portee(portee_attr portee)
 #endif
 
 class CommandeInfoNoeud final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
         auto graphe = jorjala.graphe;
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
@@ -1008,11 +1011,12 @@ public:
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
 #endif
 
-		return EXECUTION_COMMANDE_MODALE;
-	}
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    void termine_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
 #if 0
 		INUTILISE(donnees);
 
@@ -1028,23 +1032,24 @@ public:
 /* ************************************************************************** */
 
 class CommandeDeplaceGraphe final : public CommandeJorjala {
-	float m_orig_x = 0.0f;
-	float m_orig_y = 0.0f;
+    float m_orig_x = 0.0f;
+    float m_orig_y = 0.0f;
 
-public:
-	CommandeDeplaceGraphe() = default;
+  public:
+    CommandeDeplaceGraphe() = default;
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
         INUTILISE(jorjala);
 
-		m_orig_x = donnees.x;
-		m_orig_y = donnees.y;
+        m_orig_x = donnees.x;
+        m_orig_y = donnees.y;
 
-		return EXECUTION_COMMANDE_MODALE;
-	}
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
 
@@ -1052,7 +1057,7 @@ public:
         graphe.centre_y(graphe.centre_y() + m_orig_y - donnees.y);
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
-	}
+    }
 
     JJL::TypeCurseur type_curseur_modal() override
     {
@@ -1063,53 +1068,54 @@ public:
 /* ************************************************************************** */
 
 class CommandeZoomGraphe final : public CommandeJorjala {
-public:
-	CommandeZoomGraphe() = default;
+  public:
+    CommandeZoomGraphe() = default;
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
 
-        auto valeur = graphe.zoom() * ((donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV);
+        auto valeur = graphe.zoom() *
+                      ((donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV);
         graphe.zoom(valeur);
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeEntreNoeud final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
         auto noeud = trouve_noeud(graphe, donnees.x, donnees.y);
         selectionne_noeud(jorjala, noeud, graphe);
 
-		if (noeud == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (noeud == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
         auto sous_graphe = noeud.accède_sous_graphe();
         if (sous_graphe == nullptr) {
-			return EXECUTION_COMMANDE_REUSSIE;
-		}
+            return EXECUTION_COMMANDE_REUSSIE;
+        }
 
         jorjala.définit_graphe_courant(sous_graphe);
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeSorsNoeud final : public CommandeJorjala {
-public:
-    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &/*donnees*/) override
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         auto graphe = jorjala.graphe();
 
@@ -1117,24 +1123,24 @@ public:
         auto graphe_parent = noeud_parent.graphe_parent();
 
         if (graphe_parent == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
         jorjala.définit_graphe_courant(graphe_parent);
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeArrangeGraphe final : public CommandeJorjala {
-public:
-	CommandeArrangeGraphe() = default;
+  public:
+    CommandeArrangeGraphe() = default;
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		INUTILISE(donnees);
 
@@ -1187,27 +1193,27 @@ public:
 
 #endif
         return EXECUTION_COMMANDE_REUSSIE;
-	}
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeChangeContexte final : public CommandeJorjala {
-public:
+  public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-		auto const &metadonnee = donnees.metadonnee;
+        auto const &metadonnee = donnees.metadonnee;
         jorjala.définit_racine_courante(metadonnee.c_str());
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
         return EXECUTION_COMMANDE_REUSSIE;
-	}
+    }
 };
 
 /* ************************************************************************** */
 
 struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
-	{
+    {
 #if 0
 		INUTILISE(metadonnee);
         auto graphe = jorjala.graphe;
@@ -1221,10 +1227,10 @@ struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
 #else
         return false;
 #endif
-	}
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
-	{
+    {
 #if 0
 		INUTILISE(donnees);
         auto graphe = jorjala.graphe;
@@ -1301,85 +1307,81 @@ struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
 
 #endif
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_graphes(UsineCommande &usine)
 {
-	usine.enregistre_type("dessine_graphe_composite",
-						   description_commande<CommandeDessineGrapheComposite>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type(
+        "dessine_graphe_composite",
+        description_commande<CommandeDessineGrapheComposite>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_noeud",
-						   description_commande<CommandeAjoutNoeud>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_noeud",
+                          description_commande<CommandeAjoutNoeud>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_noeud_vision",
-						   description_commande<CommandeAjoutNoeud>(
-							   "graphe", 0, 0, Qt::Key_V, false, "Visionneur"));
+    usine.enregistre_type(
+        "ajouter_noeud_vision",
+        description_commande<CommandeAjoutNoeud>("graphe", 0, 0, Qt::Key_V, false, "Visionneur"));
 
-	usine.enregistre_type("ajouter_noeud_image",
-						   description_commande<CommandeAjoutNoeud>(
-							   "graphe", 0, 0, Qt::Key_I, false, "Lecture Image"));
+    usine.enregistre_type("ajouter_noeud_image",
+                          description_commande<CommandeAjoutNoeud>(
+                              "graphe", 0, 0, Qt::Key_I, false, "Lecture Image"));
 
-	usine.enregistre_type("ajouter_noeud_detail",
-						   description_commande<CommandeAjoutNoeudDetail>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type(
+        "ajouter_noeud_detail",
+        description_commande<CommandeAjoutNoeudDetail>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_noeud_cycles",
-						   description_commande<CommandeAjoutNoeudCycles>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type(
+        "ajouter_noeud_cycles",
+        description_commande<CommandeAjoutNoeudCycles>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_noeud_spécial_détail",
-						   description_commande<CommandeAjoutNoeudDetailSpecial>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type(
+        "ajouter_noeud_spécial_détail",
+        description_commande<CommandeAjoutNoeudDetailSpecial>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_graphe_detail",
-						   description_commande<CommandeAjoutGrapheDetail>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type(
+        "ajouter_graphe_detail",
+        description_commande<CommandeAjoutGrapheDetail>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("selection_graphe",
-						   description_commande<CommandeSelectionGraphe>(
-							   "graphe", Qt::LeftButton, 0, 0, false));
+    usine.enregistre_type(
+        "selection_graphe",
+        description_commande<CommandeSelectionGraphe>("graphe", Qt::LeftButton, 0, 0, false));
 
-	usine.enregistre_type("supprime_selection",
-						   description_commande<CommandeSupprimeSelection>(
-							   "graphe", 0, 0, Qt::Key_Delete, false));
+    usine.enregistre_type(
+        "supprime_selection",
+        description_commande<CommandeSupprimeSelection>("graphe", 0, 0, Qt::Key_Delete, false));
 
-	usine.enregistre_type("information_noeud",
-						   description_commande<CommandeInfoNoeud>(
-							   "graphe", Qt::MiddleButton, 0, 0, false));
+    usine.enregistre_type(
+        "information_noeud",
+        description_commande<CommandeInfoNoeud>("graphe", Qt::MiddleButton, 0, 0, false));
 
-	usine.enregistre_type("deplace_graphe",
-						   description_commande<CommandeDeplaceGraphe>(
-							   "graphe", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
+    usine.enregistre_type("deplace_graphe",
+                          description_commande<CommandeDeplaceGraphe>(
+                              "graphe", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
-	usine.enregistre_type("zoom_graphe",
-						   description_commande<CommandeZoomGraphe>(
-							   "graphe", Qt::MiddleButton, 0, 0, true));
+    usine.enregistre_type(
+        "zoom_graphe",
+        description_commande<CommandeZoomGraphe>("graphe", Qt::MiddleButton, 0, 0, true));
 
-	usine.enregistre_type("entre_noeud",
-						   description_commande<CommandeEntreNoeud>(
-							   "graphe", Qt::LeftButton, 0, 0, true));
+    usine.enregistre_type(
+        "entre_noeud",
+        description_commande<CommandeEntreNoeud>("graphe", Qt::LeftButton, 0, 0, true));
 
-	usine.enregistre_type("sors_noeud",
-						   description_commande<CommandeSorsNoeud>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type("sors_noeud",
+                          description_commande<CommandeSorsNoeud>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("arrange_graphe",
-						   description_commande<CommandeArrangeGraphe>(
-							   "graphe", 0, 0, Qt::Key_L, false));
+    usine.enregistre_type(
+        "arrange_graphe",
+        description_commande<CommandeArrangeGraphe>("graphe", 0, 0, Qt::Key_L, false));
 
-	usine.enregistre_type("change_contexte",
-						   description_commande<CommandeChangeContexte>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type("change_contexte",
+                          description_commande<CommandeChangeContexte>("graphe", 0, 0, 0, false));
 
-	usine.enregistre_type("ajout_prise_noeud",
-						   description_commande<CommandeAjoutPriseNoeud>(
-							   "graphe", 0, 0, 0, false));
+    usine.enregistre_type("ajout_prise_noeud",
+                          description_commande<CommandeAjoutPriseNoeud>("graphe", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop

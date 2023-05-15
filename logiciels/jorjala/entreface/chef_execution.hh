@@ -20,7 +20,7 @@ class ChefExecution {
     int m_nombre_a_executer = 0;
     int m_nombre_execution = 0;
 
-public:
+  public:
     ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier);
 
     bool interrompu() const;

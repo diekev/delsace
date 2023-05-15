@@ -29,10 +29,9 @@
 /* ************************************************************************** */
 
 VueEditeurNoeud::VueEditeurNoeud(EditriceGraphe *base, QWidget *parent)
-	: QGraphicsView(parent)
-	, m_base(base)
+    : QGraphicsView(parent), m_base(base)
 {
-	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
@@ -72,7 +71,7 @@ void VueEditeurNoeud::mouseReleaseEvent(QMouseEvent *event)
 
 bool VueEditeurNoeud::focusNextPrevChild(bool /*next*/)
 {
-	/* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
-	 * sur les éléments enfants du conteneur de contrôles. */
+    /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
+     * sur les éléments enfants du conteneur de contrôles. */
     return false;
 }

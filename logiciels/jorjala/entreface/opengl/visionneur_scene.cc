@@ -48,45 +48,44 @@
 /* ************************************************************************** */
 
 VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
-	: m_parent(parent)
-	, m_jorjala(jorjala)
-    , m_camera(memoire::loge<vision::Camera3D>("Camera3D", 0, 0))
-	, m_rendu_texte(nullptr)
-	, m_rendu_manipulatrice_pos(nullptr)
-	, m_rendu_manipulatrice_rot(nullptr)
-	, m_rendu_manipulatrice_ech(nullptr)
-	, m_pos_x(0)
-	, m_pos_y(0)
-    , m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
+    : m_parent(parent), m_jorjala(jorjala),
+      m_camera(memoire::loge<vision::Camera3D>("Camera3D", 0, 0)), m_rendu_texte(nullptr),
+      m_rendu_manipulatrice_pos(nullptr), m_rendu_manipulatrice_rot(nullptr),
+      m_rendu_manipulatrice_ech(nullptr), m_pos_x(0), m_pos_y(0),
+      m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 {
     m_camera->projection(vision::TypeProjection::PERSPECTIVE);
 }
 
 VisionneurScene::~VisionneurScene()
 {
-	memoire::deloge("RenduTexte", m_rendu_texte);
-	memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
-	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
-	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
+    memoire::deloge("RenduTexte", m_rendu_texte);
+    memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
+    memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
+    memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
 
-	memoire::deloge("TamponRendu", m_tampon_image);
+    memoire::deloge("TamponRendu", m_tampon_image);
 
-	if (m_tampon != nullptr) {
-		memoire::deloge_tableau("tampon_vue3d", m_tampon, m_camera->hauteur() * m_camera->largeur() * 4);
-	}
+    if (m_tampon != nullptr) {
+        memoire::deloge_tableau(
+            "tampon_vue3d", m_tampon, m_camera->hauteur() * m_camera->largeur() * 4);
+    }
 }
 
 void VisionneurScene::initialise()
 {
-	m_tampon_image = cree_tampon_image();
-	m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
-	m_rendu_manipulatrice_pos = memoire::loge<RenduManipulatricePosition>("RenduManipulatricePosition");
-	m_rendu_manipulatrice_rot = memoire::loge<RenduManipulatriceRotation>("RenduManipulatriceRotation");
-	m_rendu_manipulatrice_ech = memoire::loge<RenduManipulatriceEchelle>("RenduManipulatriceEchelle");
+    m_tampon_image = cree_tampon_image();
+    m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
+    m_rendu_manipulatrice_pos = memoire::loge<RenduManipulatricePosition>(
+        "RenduManipulatricePosition");
+    m_rendu_manipulatrice_rot = memoire::loge<RenduManipulatriceRotation>(
+        "RenduManipulatriceRotation");
+    m_rendu_manipulatrice_ech = memoire::loge<RenduManipulatriceEchelle>(
+        "RenduManipulatriceEchelle");
 
-	m_camera->ajourne();
+    m_camera->ajourne();
 
-	m_chrono_rendu.commence();
+    m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
@@ -107,49 +106,47 @@ void VisionneurScene::peint_opengl()
     }
 
     m_moteur_rendu->camera(m_camera);
-    m_moteur_rendu->calcule_rendu(stats, m_tampon, m_camera->hauteur(), m_camera->largeur(), false);
+    m_moteur_rendu->calcule_rendu(
+        stats, m_tampon, m_camera->hauteur(), m_camera->largeur(), false);
 #else
-	auto contexte_eval = cree_contexte_evaluation(m_jorjala);
-	contexte_eval.rendu_final = false;
-	contexte_eval.camera_rendu = m_camera;
-	contexte_eval.tampon_rendu = m_tampon;
-	contexte_eval.stats_rendu = &stats;
+    auto contexte_eval = cree_contexte_evaluation(m_jorjala);
+    contexte_eval.rendu_final = false;
+    contexte_eval.camera_rendu = m_camera;
+    contexte_eval.tampon_rendu = m_tampon;
+    contexte_eval.stats_rendu = &stats;
 
-	auto rendu = m_jorjala.bdd.rendu(m_nom_rendu);
+    auto rendu = m_jorjala.bdd.rendu(m_nom_rendu);
 
-	evalue_graphe_rendu(rendu, contexte_eval);
+    evalue_graphe_rendu(rendu, contexte_eval);
 #endif
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
 
-	/* dessine le tampon */
+    /* dessine le tampon */
 
-	int taille[2] = {
-		m_camera->largeur(),
-		m_camera->hauteur()
-	};
+    int taille[2] = {m_camera->largeur(), m_camera->hauteur()};
 
-	genere_texture_image(m_tampon_image, m_tampon, taille);
+    genere_texture_image(m_tampon_image, m_tampon, taille);
 
-	m_contexte.MVP(dls::math::mat4x4f(1.0f));
-	m_contexte.matrice_objet(dls::math::mat4x4f(1.0f));
+    m_contexte.MVP(dls::math::mat4x4f(1.0f));
+    m_contexte.matrice_objet(dls::math::mat4x4f(1.0f));
 
-	m_tampon_image->dessine(m_contexte);
+    m_tampon_image->dessine(m_contexte);
 
-	/* dessine les surperpositions */
+    /* dessine les surperpositions */
 
-	auto const &MV = m_camera->MV();
-	auto const &P = m_camera->P();
-	auto const &MVP = P * MV;
+    auto const &MV = m_camera->MV();
+    auto const &P = m_camera->P();
+    auto const &MVP = P * MV;
 
-	m_contexte.vue(m_camera->dir());
-	m_contexte.modele_vue(MV);
-	m_contexte.projection(P);
-	m_contexte.MVP(MVP);
-	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+    m_contexte.vue(m_camera->dir());
+    m_contexte.modele_vue(MV);
+    m_contexte.projection(P);
+    m_contexte.MVP(MVP);
+    m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
 
 #if 0
 	if (m_jorjala.manipulation_3d_activee && m_jorjala.manipulatrice_3d) {
@@ -178,49 +175,49 @@ void VisionneurScene::peint_opengl()
 
     auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
-	glEnable(GL_BLEND);
+    glEnable(GL_BLEND);
 
-	m_rendu_texte->reinitialise();
+    m_rendu_texte->reinitialise();
 
-	dls::flux_chaine ss;
-	ss << fps << " IPS";
+    dls::flux_chaine ss;
+    ss << fps << " IPS";
 
-	auto couleur_fps = dls::math::vec4f(1.0f);
+    auto couleur_fps = dls::math::vec4f(1.0f);
 
-	if (fps < 12) {
-		couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
-	}
+    if (fps < 12) {
+        couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
+    }
 
-	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
+    m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
 
     // À FAIRE : stats rendu
-	ss.chn("");
-	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre objets     : " << stats.nombre_objets;
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Nombre objets     : " << stats.nombre_objets;
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre points     : " << stats.nombre_points;
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Nombre points     : " << stats.nombre_points;
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre polygones  : " << stats.nombre_polygones;
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Nombre polygones  : " << stats.nombre_polygones;
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre polylignes : " << stats.nombre_polylignes;
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Nombre polylignes : " << stats.nombre_polylignes;
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	ss.chn("");
-	ss << "Nombre volumes    : " << stats.nombre_volumes;
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    ss.chn("");
+    ss << "Nombre volumes    : " << stats.nombre_volumes;
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
 #if 0
 	ss.chn("");
@@ -242,30 +239,33 @@ void VisionneurScene::peint_opengl()
 	}
 #endif
 
-	glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
 
-	m_chrono_rendu.commence();
+    m_chrono_rendu.commence();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
-	if (m_tampon != nullptr) {
-		memoire::deloge_tableau("tampon_vue3d", m_tampon, m_camera->largeur() * m_camera->hauteur() * 4);
-	}
+    if (m_tampon != nullptr) {
+        memoire::deloge_tableau(
+            "tampon_vue3d", m_tampon, m_camera->largeur() * m_camera->hauteur() * 4);
+    }
 
-	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
-	m_camera->redimensionne(largeur, hauteur);
+    m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
+    m_camera->redimensionne(largeur, hauteur);
 
-	m_tampon = memoire::loge_tableau<float>("tampon_vue3d", hauteur * largeur * 4);
+    m_tampon = memoire::loge_tableau<float>("tampon_vue3d", hauteur * largeur * 4);
 }
 
 void VisionneurScene::position_souris(int x, int y)
 {
-	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
-	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
+    m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
+    m_pos_y = static_cast<float>(m_camera->hauteur() - y) /
+                  static_cast<float>(m_camera->hauteur()) * 2.0f -
+              1.0f;
 }
 
 void VisionneurScene::change_moteur_rendu(const dls::chaine &id)
 {
-	m_nom_rendu = id;
+    m_nom_rendu = id;
 }

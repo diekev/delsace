@@ -30,9 +30,9 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
-#include <QKeyEvent>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/commande.h"
@@ -43,44 +43,41 @@
 #include "coeur/jorjala.hh"
 
 BaseEditrice::BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWidget *parent)
-	: danjo::ConteneurControles(parent)
-	, m_jorjala(jorjala)
-    , m_frame(new QFrame(this))
-    , m_layout(new QVBoxLayout())
-	, m_main_layout(new QHBoxLayout(m_frame))
-    , identifiant(identifiant_)
+    : danjo::ConteneurControles(parent), m_jorjala(jorjala), m_frame(new QFrame(this)),
+      m_layout(new QVBoxLayout()), m_main_layout(new QHBoxLayout(m_frame)),
+      identifiant(identifiant_)
 {
-	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	size_policy.setHorizontalStretch(0);
-	size_policy.setVerticalStretch(0);
-	size_policy.setHeightForWidth(m_frame->sizePolicy().hasHeightForWidth());
+    QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    size_policy.setHorizontalStretch(0);
+    size_policy.setVerticalStretch(0);
+    size_policy.setHeightForWidth(m_frame->sizePolicy().hasHeightForWidth());
 
-	/* Intern frame, where individual entreface regions put their buttons. */
+    /* Intern frame, where individual entreface regions put their buttons. */
 
-	m_frame->setSizePolicy(size_policy);
-	m_frame->setFrameShape(QFrame::StyledPanel);
-	m_frame->setFrameShadow(QFrame::Raised);
+    m_frame->setSizePolicy(size_policy);
+    m_frame->setFrameShape(QFrame::StyledPanel);
+    m_frame->setFrameShadow(QFrame::Raised);
 
-	m_layout->addWidget(m_frame);
+    m_layout->addWidget(m_frame);
 
-	m_layout->setMargin(0);
-	this->setLayout(m_layout);
+    m_layout->setMargin(0);
+    this->setLayout(m_layout);
 
-	m_main_layout->setMargin(0);
+    m_main_layout->setMargin(0);
 
-	this->actif(false);
+    this->actif(false);
 }
 
 void BaseEditrice::actif(bool ouinon)
 {
-	m_frame->setProperty("state", (ouinon) ? "on" : "off");
-	m_frame->setStyle(QApplication::style());
+    m_frame->setProperty("state", (ouinon) ? "on" : "off");
+    m_frame->setStyle(QApplication::style());
 }
 
 void BaseEditrice::rend_actif()
 {
     active_editrice(m_jorjala, this);
-	this->actif(true);
+    this->actif(true);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -37,28 +37,27 @@ class EditriceGraphe;
 class VueEditeurNoeud : public QGraphicsView {
     EditriceGraphe *m_base;
 
-public:
+  public:
     VueEditeurNoeud(EditriceGraphe *base, QWidget *parent = nullptr);
 
-	VueEditeurNoeud(VueEditeurNoeud const &) = default;
-	VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
+    VueEditeurNoeud(VueEditeurNoeud const &) = default;
+    VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
 
-	~VueEditeurNoeud() override;
+    ~VueEditeurNoeud() override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	/* Réimplémentation pour éviter les conflits entre le zoom et les barres de
-	 * défilement. */
-	void wheelEvent(QWheelEvent *event) override;
+    /* Réimplémentation pour éviter les conflits entre le zoom et les barres de
+     * défilement. */
+    void wheelEvent(QWheelEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     bool focusNextPrevChild(bool) override;
 };
-

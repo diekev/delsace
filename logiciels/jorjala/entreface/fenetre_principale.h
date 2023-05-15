@@ -40,40 +40,43 @@ class Jorjala;
 }
 
 class FenetrePrincipale : public QMainWindow {
-	Q_OBJECT
+    Q_OBJECT
 
     JJL::Jorjala &m_jorjala;
 
-	BarreDeProgres *m_barre_progres = nullptr;
-	QToolBar *m_barre_outil = nullptr;
+    BarreDeProgres *m_barre_progres = nullptr;
+    QToolBar *m_barre_outil = nullptr;
 
     QVector<BaseEditrice *> m_editrices{};
 
-public:
+  public:
     explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	FenetrePrincipale(FenetrePrincipale const &) = default;
-	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    FenetrePrincipale(FenetrePrincipale const &) = default;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
-public Q_SLOTS:
-	void image_traitee();
-	void mis_a_jour_menu_fichier_recent();
+  public Q_SLOTS:
+    void image_traitee();
+    void mis_a_jour_menu_fichier_recent();
 
-	void signale_proces(int quoi);
+    void signale_proces(int quoi);
 
-	/* barre de progrès */
-	void tache_demarree();
-	void ajourne_progres(float progres);
-	void tache_terminee();
-	void evaluation_debutee(const char *message, int execution, int total);
+    /* barre de progrès */
+    void tache_demarree();
+    void ajourne_progres(float progres);
+    void tache_terminee();
+    void evaluation_debutee(const char *message, int execution, int total);
 
-private:
-	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);
-	void genere_barre_menu();
-	void genere_menu_prereglages();
-	void charge_reglages();
-	void ecrit_reglages() const;
-	void closeEvent(QCloseEvent *) override;
+  private:
+    QDockWidget *ajoute_dock(QString const &nom,
+                             int type,
+                             int aire,
+                             QDockWidget *premier = nullptr);
+    void genere_barre_menu();
+    void genere_menu_prereglages();
+    void charge_reglages();
+    void ecrit_reglages() const;
+    void closeEvent(QCloseEvent *) override;
 
     bool eventFilter(QObject *, QEvent *) override;
 };

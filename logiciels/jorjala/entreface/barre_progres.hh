@@ -36,26 +36,26 @@ class Jorjala;
 }
 
 class BarreDeProgres : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
     JJL::Jorjala &m_jorjala;
 
-	QProgressBar *m_barre_progres;
-	QLabel *m_label;
-	QPushButton *m_bouton_stop;
+    QProgressBar *m_barre_progres;
+    QLabel *m_label;
+    QPushButton *m_bouton_stop;
 
-	QHBoxLayout *m_disposition;
+    QHBoxLayout *m_disposition;
 
-public:
+  public:
     explicit BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	BarreDeProgres(BarreDeProgres const &) = default;
-	BarreDeProgres &operator=(BarreDeProgres const &) = default;
+    BarreDeProgres(BarreDeProgres const &) = default;
+    BarreDeProgres &operator=(BarreDeProgres const &) = default;
 
-	void ajourne_valeur(int valeur);
+    void ajourne_valeur(int valeur);
 
-	void ajourne_message(const char *message, int execution, int total);
+    void ajourne_message(const char *message, int execution, int total);
 
-private Q_SLOTS:
-	void signal_stop();
+  private Q_SLOTS:
+    void signal_stop();
 };

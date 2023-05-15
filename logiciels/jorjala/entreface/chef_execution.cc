@@ -8,9 +8,9 @@
 #include "tache.h"
 
 ChefExecution::ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier)
-    : m_jorjala(jorjala)
-    , m_task_notifier(task_notifier)
-{}
+    : m_jorjala(jorjala), m_task_notifier(task_notifier)
+{
+}
 
 bool ChefExecution::interrompu() const
 {

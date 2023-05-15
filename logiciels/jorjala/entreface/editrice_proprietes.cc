@@ -24,9 +24,9 @@
 
 #include "editrice_proprietes.h"
 
-#include "danjo/danjo.h"
 #include "danjo/compilation/assembleuse_disposition.h"
 #include "danjo/controles_proprietes/donnees_controle.h"
+#include "danjo/danjo.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -34,9 +34,9 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QFrame>
-#include <QVBoxLayout>
 #include <QLabel>
 #include <QScrollArea>
+#include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/outils/fichier.hh"
@@ -63,15 +63,22 @@
 std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TypeParametre type_param)
 {
     switch (type_param) {
-        case JJL::TypeParametre::CHAINE: return danjo::TypePropriete::CHAINE_CARACTERE;
-        case JJL::TypeParametre::CHEMIN_FICHIER: return danjo::TypePropriete::FICHIER_ENTREE;
-        case JJL::TypeParametre::NOMBRE_ENTIER: return danjo::TypePropriete::ENTIER;
-        case JJL::TypeParametre::NOMBRE_RÉEL: return danjo::TypePropriete::DECIMAL;
-        case JJL::TypeParametre::VALEUR_BOOLÉENNE: return danjo::TypePropriete::BOOL;
-        case JJL::TypeParametre::VEC3: return danjo::TypePropriete::VECTEUR;
-        default: // À FAIRE
+        case JJL::TypeParametre::CHAINE:
+            return danjo::TypePropriete::CHAINE_CARACTERE;
+        case JJL::TypeParametre::CHEMIN_FICHIER:
+            return danjo::TypePropriete::FICHIER_ENTREE;
+        case JJL::TypeParametre::NOMBRE_ENTIER:
+            return danjo::TypePropriete::ENTIER;
+        case JJL::TypeParametre::NOMBRE_RÉEL:
+            return danjo::TypePropriete::DECIMAL;
+        case JJL::TypeParametre::VALEUR_BOOLÉENNE:
+            return danjo::TypePropriete::BOOL;
+        case JJL::TypeParametre::VEC3:
+            return danjo::TypePropriete::VECTEUR;
+        default:  // À FAIRE
         case JJL::TypeParametre::VEC2:
-        case JJL::TypeParametre::CORPS: return {};
+        case JJL::TypeParametre::CORPS:
+            return {};
     }
 }
 
@@ -79,8 +86,9 @@ class EnveloppeParametre : public danjo::BasePropriete {
     mutable JJL::Noeud m_noeud;
     mutable JJL::TableParametres_Parametre m_param;
 
-public:
-    EnveloppeParametre(JJL::Noeud noeud, JJL::TableParametres_Parametre param) : m_noeud(noeud), m_param(param) {};
+  public:
+    EnveloppeParametre(JJL::Noeud noeud, JJL::TableParametres_Parametre param)
+        : m_noeud(noeud), m_param(param){};
 
     danjo::TypePropriete type() const override
     {
@@ -278,53 +286,50 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 /* ------------------------------------------------------------------------- */
 
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("propriétés", jorjala, parent)
-    , m_widget(new QWidget())
-	, m_conteneur_avertissements(new QWidget())
-	, m_conteneur_disposition(new QWidget())
-    , m_scroll(new QScrollArea())
-	, m_disposition_widget(new QVBoxLayout(m_widget))
+    : BaseEditrice("propriétés", jorjala, parent), m_widget(new QWidget()),
+      m_conteneur_avertissements(new QWidget()), m_conteneur_disposition(new QWidget()),
+      m_scroll(new QScrollArea()), m_disposition_widget(new QVBoxLayout(m_widget))
 {
-	m_widget->setSizePolicy(m_frame->sizePolicy());
+    m_widget->setSizePolicy(m_frame->sizePolicy());
 
-	m_scroll->setWidget(m_widget);
-	m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	m_scroll->setWidgetResizable(true);
+    m_scroll->setWidget(m_widget);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scroll->setWidgetResizable(true);
 
-	/* Cache le cadre du scroll area. */
-	m_scroll->setFrameStyle(0);
+    /* Cache le cadre du scroll area. */
+    m_scroll->setFrameStyle(0);
 
-	m_main_layout->addWidget(m_scroll);
+    m_main_layout->addWidget(m_scroll);
 
-	m_disposition_widget->addWidget(m_conteneur_avertissements);
-	m_disposition_widget->addWidget(m_conteneur_disposition);
+    m_disposition_widget->addWidget(m_conteneur_avertissements);
+    m_disposition_widget->addWidget(m_conteneur_disposition);
 }
 
 void EditriceProprietes::ajourne_etat(int evenement)
 {
-	auto creation = (evenement == (type_evenement::noeud | type_evenement::selectionne));
+    auto creation = (evenement == (type_evenement::noeud | type_evenement::selectionne));
     creation |= (evenement == (type_evenement::noeud | type_evenement::ajoute));
-	creation |= (evenement == (type_evenement::noeud | type_evenement::enleve));
-	creation |= (evenement == (type_evenement::temps | type_evenement::modifie));
-	creation |= (evenement == (type_evenement::propriete | type_evenement::ajoute));
-	creation |= (evenement == (type_evenement::objet | type_evenement::manipule));
-	creation |= (evenement == (type_evenement::rafraichissement));
+    creation |= (evenement == (type_evenement::noeud | type_evenement::enleve));
+    creation |= (evenement == (type_evenement::temps | type_evenement::modifie));
+    creation |= (evenement == (type_evenement::propriete | type_evenement::ajoute));
+    creation |= (evenement == (type_evenement::objet | type_evenement::manipule));
+    creation |= (evenement == (type_evenement::rafraichissement));
 
-	/* n'ajourne pas durant les animation */
-	if (evenement == (type_evenement::temps | type_evenement::modifie)) {
+    /* n'ajourne pas durant les animation */
+    if (evenement == (type_evenement::temps | type_evenement::modifie)) {
         if (m_jorjala.animation_en_cours()) {
-			return;
-		}
-	}
+            return;
+        }
+    }
 
-	/* ajourne l'entreface d'avertissement */
-	auto creation_avert = (evenement == (type_evenement::image | type_evenement::traite));
+    /* ajourne l'entreface d'avertissement */
+    auto creation_avert = (evenement == (type_evenement::image | type_evenement::traite));
 
-	if (!(creation | creation_avert)) {
-		return;
-	}
+    if (!(creation | creation_avert)) {
+        return;
+    }
 
-	reinitialise_entreface(creation_avert);
+    reinitialise_entreface(creation_avert);
 
     auto graphe = m_jorjala.graphe();
     if (graphe == nullptr) {
@@ -332,21 +337,20 @@ void EditriceProprietes::ajourne_etat(int evenement)
     }
 
     auto noeud = graphe.noeud_actif();
-	if (noeud == nullptr) {
-		return;
-	}
-
+    if (noeud == nullptr) {
+        return;
+    }
 
     /* Rafraichis les avertissements. */
     ajoute_avertissements(noeud);
 
-	/* l'évènement a peut-être été lancé depuis cet éditeur, supprimer
-	 * l'entreface de controles crashera le logiciel car nous sommes dans la
-	 * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
-	 * rafraichissement que les avertissements. */
-	if (creation_avert) {
-		return;
-	}
+    /* l'évènement a peut-être été lancé depuis cet éditeur, supprimer
+     * l'entreface de controles crashera le logiciel car nous sommes dans la
+     * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
+     * rafraichissement que les avertissements. */
+    if (creation_avert) {
+        return;
+    }
 
     danjo::Manipulable manipulable;
     auto repondant = repondant_commande(m_jorjala);
@@ -363,29 +367,29 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 {
-	/* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est
-	 * assignée à un autre widget. Donc pour détruire la disposition précédente
-	 * nous la reparentons à un widget temporaire qui la détruira dans son
-	 * destructeur. */
+    /* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est
+     * assignée à un autre widget. Donc pour détruire la disposition précédente
+     * nous la reparentons à un widget temporaire qui la détruira dans son
+     * destructeur. */
 
-	if (m_conteneur_avertissements->layout()) {
-		QWidget temp;
-		temp.setLayout(m_conteneur_avertissements->layout());
-	}
+    if (m_conteneur_avertissements->layout()) {
+        QWidget temp;
+        temp.setLayout(m_conteneur_avertissements->layout());
+    }
 
-	if (!creation_avert && m_conteneur_disposition->layout()) {
-		QWidget temp;
-		temp.setLayout(m_conteneur_disposition->layout());
-	}
+    if (!creation_avert && m_conteneur_disposition->layout()) {
+        QWidget temp;
+        temp.setLayout(m_conteneur_disposition->layout());
+    }
 }
 
 void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 {
     m_conteneur_avertissements->hide();
 
-	auto disposition_avertissements = new QGridLayout();
+    auto disposition_avertissements = new QGridLayout();
     auto ligne = 0;
-	auto const &pixmap = QPixmap("icones/icone_avertissement.png");
+    auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
     for (auto erreur : noeud.erreurs()) {
         if (erreur.type() == JJL::TypeErreurNoeud::PARAMÉTRIQUE) {
@@ -403,8 +407,8 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
         ++ligne;
     }
 
-	m_conteneur_avertissements->setLayout(disposition_avertissements);
-	m_conteneur_avertissements->show();
+    m_conteneur_avertissements->setLayout(disposition_avertissements);
+    m_conteneur_avertissements->show();
 }
 
 void EditriceProprietes::ajourne_manipulable()
@@ -431,9 +435,8 @@ void EditriceProprietes::precontrole_change()
 #endif
 }
 
-void EditriceProprietes::obtiens_liste(
-		dls::chaine const &attache,
-		dls::tableau<dls::chaine> &chaines)
+void EditriceProprietes::obtiens_liste(dls::chaine const &attache,
+                                       dls::tableau<dls::chaine> &chaines)
 {
 #if 0
 	auto graphe = m_jorjala.graphe;

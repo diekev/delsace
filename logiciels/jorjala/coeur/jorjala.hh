@@ -26,20 +26,20 @@
 
 #if 1
 
-#include <any>
-#include <optional>
+#    include <any>
+#    include <optional>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include "ipa/jorjala.hh"
-#pragma GCC pop
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wold-style-cast"
+#    include "ipa/jorjala.hh"
+#    pragma GCC pop
 
 namespace danjo {
 class ConteneurControles;
 class GestionnaireInterface;
 class Manipulable;
 struct DonneesInterface;
-}
+}  // namespace danjo
 
 class BaseEditrice;
 class FenetrePrincipale;
@@ -73,24 +73,27 @@ RepondantCommande *repondant_commande(JJL::Jorjala &jorjala);
 
 danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala);
 
-danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala, danjo::Manipulable *manipulable, danjo::ConteneurControles *conteneur = nullptr);
+danjo::DonneesInterface cree_donnees_interface_danjo(
+    JJL::Jorjala &jorjala,
+    danjo::Manipulable *manipulable,
+    danjo::ConteneurControles *conteneur = nullptr);
 
 #else
 
-#include <thread>
+#    include <thread>
 
-#include "biblinternes/patrons_conception/observation.hh"
-#include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau.hh"
+#    include "biblinternes/patrons_conception/commande.h"
+#    include "biblinternes/patrons_conception/observation.hh"
+#    include "biblinternes/structures/pile.hh"
+#    include "biblinternes/structures/tableau.hh"
 
-#include "base_de_donnees.hh"
+#    include "base_de_donnees.hh"
 
-#include "chef_execution.hh"
-#include "gestionnaire_fichier.hh"
-#include "usine_operatrice.h"
+#    include "chef_execution.hh"
+#    include "gestionnaire_fichier.hh"
+#    include "usine_operatrice.h"
 
-#include "evaluation/reseau.hh"
+#    include "evaluation/reseau.hh"
 
 class BaseEditrice;
 class FenetrePrincipale;
@@ -105,146 +108,146 @@ class TaskNotifier;
 namespace vision {
 class Camera2D;
 class Camera3D;
-}  /* namespace vision */
+} /* namespace vision */
 
 namespace danjo {
 class GestionnaireInterface;
-}  /* namespace danjo */
+} /* namespace danjo */
 
 namespace lcc {
 struct LCC;
 }
 
 enum {
-	FICHIER_OUVERTURE,
-	FICHIER_SAUVEGARDE,
+    FICHIER_OUVERTURE,
+    FICHIER_SAUVEGARDE,
 };
 
 struct Jorjala : public Sujette {
-private:
-	UsineCommande m_usine_commande{};
-	UsineOperatrice m_usine_operatrices;
-	RepondantCommande *m_repondant_commande = nullptr;
+  private:
+    UsineCommande m_usine_commande{};
+    UsineOperatrice m_usine_operatrices;
+    RepondantCommande *m_repondant_commande = nullptr;
 
-	dls::tableau<dls::chaine> m_fichiers_recents{};
-	dls::chaine m_chemin_projet{};
+    dls::tableau<dls::chaine> m_fichiers_recents{};
+    dls::chaine m_chemin_projet{};
 
-	bool m_projet_ouvert = false;
+    bool m_projet_ouvert = false;
 
-public:
-	Jorjala();
-	~Jorjala();
+  public:
+    Jorjala();
+    ~Jorjala();
 
-	/* Les usines et le répondant commande peuvent et doivent être partagés. */
-	Jorjala(Jorjala const &autre) = default;
-	Jorjala &operator=(Jorjala const &autre) = default;
+    /* Les usines et le répondant commande peuvent et doivent être partagés. */
+    Jorjala(Jorjala const &autre) = default;
+    Jorjala &operator=(Jorjala const &autre) = default;
 
-	void initialise();
+    void initialise();
 
-	UsineCommande &usine_commandes();
+    UsineCommande &usine_commandes();
 
-	UsineOperatrice &usine_operatrices();
+    UsineOperatrice &usine_operatrices();
 
-	dls::chaine requiers_dialogue(int type, dls::chaine const &filtre);
-	void affiche_erreur(dls::chaine const &message);
+    dls::chaine requiers_dialogue(int type, dls::chaine const &filtre);
+    void affiche_erreur(dls::chaine const &message);
 
-	dls::chaine chemin_projet() const;
+    dls::chaine chemin_projet() const;
 
-	void chemin_projet(dls::chaine const &chemin);
+    void chemin_projet(dls::chaine const &chemin);
 
-	dls::tableau<dls::chaine> const &fichiers_recents();
-	void ajoute_fichier_recent(dls::chaine const &chemin);
+    dls::tableau<dls::chaine> const &fichiers_recents();
+    void ajoute_fichier_recent(dls::chaine const &chemin);
 
-	bool projet_ouvert() const;
+    bool projet_ouvert() const;
 
-	void projet_ouvert(bool ouinon);
+    void projet_ouvert(bool ouinon);
 
-	RepondantCommande *repondant_commande() const;
+    RepondantCommande *repondant_commande() const;
 
-	/* entreface */
-	FenetrePrincipale *fenetre_principale;
-	BaseEditrice *editrice_active;
-	danjo::GestionnaireInterface *gestionnaire_entreface;
+    /* entreface */
+    FenetrePrincipale *fenetre_principale;
+    BaseEditrice *editrice_active;
+    danjo::GestionnaireInterface *gestionnaire_entreface;
 
-	/* Preferences and settings. */
-	ProjectSettings *project_settings;
+    /* Preferences and settings. */
+    ProjectSettings *project_settings;
 
-	/* Information de sortie. */
-	dls::chaine chemin_sortie = "";
-	dls::chaine nom_calque_sortie = "";
+    /* Information de sortie. */
+    dls::chaine chemin_sortie = "";
+    dls::chaine nom_calque_sortie = "";
 
-	/* vue 2d */
-	vision::Camera2D *camera_2d = nullptr;
+    /* vue 2d */
+    vision::Camera2D *camera_2d = nullptr;
 
-	/* vue 3d */
-	vision::Camera3D *camera_3d = nullptr;
+    /* vue 3d */
+    vision::Camera3D *camera_3d = nullptr;
 
-	/* temps */
-	int temps_debut = 1;
-	int temps_courant = 1;
-	int temps_fin = 250;
-	double cadence = 24.0;
-	bool animation = false;
+    /* temps */
+    int temps_debut = 1;
+    int temps_courant = 1;
+    int temps_fin = 250;
+    double cadence = 24.0;
+    bool animation = false;
 
-	/* contexte graphe */
-	Graphe *graphe = nullptr;
-	Noeud *noeud = nullptr;
+    /* contexte graphe */
+    Graphe *graphe = nullptr;
+    Noeud *noeud = nullptr;
 
-	/* manipulation objets 2d */
-	bool manipulation_2d_activee = false;
-	int type_manipulation_2d = 0;
-	Manipulatrice2D *manipulatrice_2d = nullptr;
+    /* manipulation objets 2d */
+    bool manipulation_2d_activee = false;
+    int type_manipulation_2d = 0;
+    Manipulatrice2D *manipulatrice_2d = nullptr;
 
-	/* manipulation objets 3d */
-	bool manipulation_3d_activee = false;
-	int type_manipulation_3d = 0;
-	Manipulatrice3D *manipulatrice_3d = nullptr;
+    /* manipulation objets 3d */
+    bool manipulation_3d_activee = false;
+    int type_manipulation_3d = 0;
+    Manipulatrice3D *manipulatrice_3d = nullptr;
 
-	/* chemin du graphe courant */
-	dls::chaine chemin_courant = "";
+    /* chemin du graphe courant */
+    dls::chaine chemin_courant = "";
 
-	/* pour les tâches */
-	bool tache_en_cours = false;
-	bool interrompu = false;
+    /* pour les tâches */
+    bool tache_en_cours = false;
+    bool interrompu = false;
 
-	/* thread utilisé pour jouer des animations */
-	std::thread *thread_animation{};
+    /* thread utilisé pour jouer des animations */
+    std::thread *thread_animation{};
 
-	TaskNotifier *notifiant_thread{};
+    TaskNotifier *notifiant_thread{};
 
-	GestionnaireFichier gestionnaire_fichier{};
+    GestionnaireFichier gestionnaire_fichier{};
 
-	ChefExecution chef_execution;
+    ChefExecution chef_execution;
 
-	BaseDeDonnees bdd{};
+    BaseDeDonnees bdd{};
 
-	/* Pour la compilation des scripts LCC */
-	lcc::LCC *lcc = nullptr;
+    /* Pour la compilation des scripts LCC */
+    lcc::LCC *lcc = nullptr;
 
-	/* pour l'évaluation du graphe d'objets */
-	Reseau reseau{};
+    /* pour l'évaluation du graphe d'objets */
+    Reseau reseau{};
 
-	void ajourne_pour_nouveau_temps(const char *message);
+    void ajourne_pour_nouveau_temps(const char *message);
 
-	struct EtatLogiciel {
-		BaseDeDonnees bdd{};
-	};
+    struct EtatLogiciel {
+        BaseDeDonnees bdd{};
+    };
 
-	dls::pile<EtatLogiciel> pile_defait{};
-	dls::pile<EtatLogiciel> pile_refait{};
+    dls::pile<EtatLogiciel> pile_defait{};
+    dls::pile<EtatLogiciel> pile_refait{};
 
-	EtatLogiciel etat_courant();
+    EtatLogiciel etat_courant();
 
-	void empile_etat();
+    void empile_etat();
 
-	void defait();
+    void defait();
 
-	void refait();
+    void refait();
 };
 
 inline Jorjala *extrait_jorjala(std::any const &any)
 {
-	return std::any_cast<Jorjala *>(any);
+    return std::any_cast<Jorjala *>(any);
 }
 
 #endif

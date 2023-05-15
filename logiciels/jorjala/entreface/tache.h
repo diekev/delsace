@@ -41,26 +41,26 @@ class FenetrePrincipale;
  * class to notify the UI about certain events.
  */
 class TaskNotifier : public QObject {
-	Q_OBJECT
+    Q_OBJECT
 
-public:
-	explicit TaskNotifier(FenetrePrincipale *window);
+  public:
+    explicit TaskNotifier(FenetrePrincipale *window);
 
-	void signalImageProcessed();
-	void signalise_proces(int quoi);
+    void signalImageProcessed();
+    void signalise_proces(int quoi);
 
-	void signale_debut_tache();
-	void signale_ajournement_progres(float progress);
-	void signale_fin_tache();
-	void signale_debut_evaluation(const char *message, int execution, int total);
+    void signale_debut_tache();
+    void signale_ajournement_progres(float progress);
+    void signale_fin_tache();
+    void signale_debut_evaluation(const char *message, int execution, int total);
 
-Q_SIGNALS:
-	void image_traitee();
+  Q_SIGNALS:
+    void image_traitee();
 
-	void signal_proces(int quoi);
+    void signal_proces(int quoi);
 
-	void debut_tache();
-	void ajourne_progres(float progress);
-	void fin_tache();
-	void debut_evaluation(const char *message, int execution, int total);
+    void debut_tache();
+    void ajourne_progres(float progress);
+    void fin_tache();
+    void debut_evaluation(const char *message, int execution, int total);
 };

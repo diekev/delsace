@@ -32,24 +32,23 @@ class RenduGrille;
 class TamponRendu;
 
 class MoteurRenduOpenGL final : public MoteurRendu {
-	RenduGrille *m_rendu_grille = nullptr;
+    RenduGrille *m_rendu_grille = nullptr;
 
-	dls::tableau<TamponRendu *> m_tampons{};
+    dls::tableau<TamponRendu *> m_tampons{};
 
-public:
-	MoteurRenduOpenGL() = default;
+  public:
+    MoteurRenduOpenGL() = default;
 
-	~MoteurRenduOpenGL() override;
+    ~MoteurRenduOpenGL() override;
 
-	MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
-	MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
+    MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
+    MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
 
-	const char *id() const override;
+    const char *id() const override;
 
-	void calcule_rendu(
-			StatistiquesRendu &stats,
-			float *tampon,
-			int hauteur,
-			int largeur,
-			bool rendu_final) override;
+    void calcule_rendu(StatistiquesRendu &stats,
+                       float *tampon,
+                       int hauteur,
+                       int largeur,
+                       bool rendu_final) override;
 };
