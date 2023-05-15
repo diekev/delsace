@@ -287,8 +287,7 @@ static JJL::Composite accède_composite(JJL::Noeud noeud_racine_composite)
         return nullptr;
     }
 
-    auto graphe_composite = JJL::GrapheComposite(
-        reinterpret_cast<JJL_GrapheComposite *>(graphe_composite_.poignee()));
+    auto graphe_composite = transtype<JJL::GrapheComposite>(graphe_composite_);
 
     auto noeud_sortie = graphe_composite.noeud_sortie();
     if (noeud_sortie == nullptr) {

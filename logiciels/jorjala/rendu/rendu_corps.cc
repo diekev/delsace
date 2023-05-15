@@ -668,8 +668,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
             switch (prim.type()) {
                 case JJL::TypePrimitive::POLYGONE:
                 {
-                    auto polygone = JJL::PrimitivePolygone(
-                        reinterpret_cast<JJL_PrimitivePolygone *>(prim.poignee()));
+                    auto polygone = transtype<JJL::PrimitivePolygone>(prim);
                     stats.nombre_polygones += 1;
 
                     ajoute_polygone_surface(polygone,
