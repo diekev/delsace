@@ -155,7 +155,15 @@ void EditriceGraphe::ajourne_etat(int evenement)
             auto const p2 = rectangle_lien.position_centrale();
 
             auto ligne = new QGraphicsLineItem();
-            ligne->setPen(QPen(Qt::white, 2.0));
+
+            if (graphe.connexion_interactive() &&
+                prise.connexion() == graphe.connexion_interactive().connexion_originelle()) {
+                ligne->setPen(QPen(Qt::gray, 2.0));
+            }
+            else {
+                ligne->setPen(QPen(Qt::white, 2.0));
+            }
+
             ligne->setLine(p1.x(), p1.y(), p2.x(), p2.y());
 
             m_scene->addItem(ligne);

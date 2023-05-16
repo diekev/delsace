@@ -621,16 +621,13 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
             connexion.x(donnees.x);
             connexion.y(donnees.y);
 
+            /* Si nous débutons sur une prise entrée déjà connectée, nous devons nous préparer à la
+             * déconnecter. */
             if (prise_entree != nullptr && prise_entree.connexion() != nullptr) {
                 prise_sortie = prise_entree.connexion().prise_sortie();
-                graphe.déconnecte(prise_entree);
+                auto connexion_originelle = prise_entree.connexion();
+                connexion.connexion_originelle(connexion_originelle);
                 prise_entree = nullptr;
-
-#if 0
-					m_prise_entree_deconnectee = noeud_connecte_sortie(
-													 prise_entree->parent,
-													 graphe->dernier_noeud_sortie);
-#endif
             }
 
             connexion.prise_entrée(prise_entree);
@@ -701,6 +698,12 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
             else {
                 entree = trouve_prise_entree(graphe, donnees.x, donnees.y);
                 sortie = connexion.prise_sortie();
+            }
+
+            /* Déconnecte la prise entrée originelle si existante. */
+            if (connexion.connexion_originelle()) {
+                auto prise_entrée = connexion.connexion_originelle().prise_entrée();
+                graphe.déconnecte(prise_entrée);
             }
 
             if (peut_connecter(entree, sortie)) {
