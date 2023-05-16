@@ -264,6 +264,15 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         assembleuse.ajoute_controle_pour_propriété(donnees_controle, prop);
 
         assembleuse.sors_disposition();
+
+        if (noeud.paramètre_est_erroné(param.nom())) {
+            auto erreur_param = noeud.erreur_pour_paramètre(param.nom());
+
+            // À FAIRE : icone, stylisation du paramètre
+            assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
+            assembleuse.ajoute_étiquette(erreur_param.vers_std_string());
+            assembleuse.sors_disposition();
+        }
     }
 
     return assembleuse.disposition();
