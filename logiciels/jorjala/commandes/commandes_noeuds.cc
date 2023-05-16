@@ -682,10 +682,6 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
     {
         auto graphe = jorjala.graphe();
 
-#if 0
-		bool connexion_sortie = false;
-#endif
-
         if (graphe.connexion_interactive()) {
             auto connexion = graphe.connexion_interactive();
             JJL::PriseEntree entree = nullptr;
@@ -708,39 +704,17 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
 
             if (peut_connecter(entree, sortie)) {
                 graphe.crée_connexion(entree, sortie);
-
-#if 0
-				connexion_sortie = noeud_connecte_sortie(
-								entree->parent,
-								graphe->dernier_noeud_sortie);
-#endif
             }
 
             graphe.termine_connexion_interactive();
+
+            auto requete = JJL::RequeteEvaluation({});
+            requete.raison(JJL::RaisonEvaluation::GRAPHE_MODIFIÉ);
+            requete.graphe(graphe);
+            jorjala.requiers_évaluation(requete);
         }
 
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
-
-#if 0
-		if (connexion_sortie || m_prise_entree_deconnectee) {
-			if (graphe->noeud_parent.type == type_noeud::NUANCEUR) {
-				auto nuanceur = extrait_nuanceur(graphe->noeud_parent.donnees);
-				nuanceur->temps_modifie += 1;
-			}
-
-			marque_parent_surannee(&graphe->noeud_parent, [](Noeud *n, PriseEntree *prise)
-			{
-				if (n->type != type_noeud::OPERATRICE) {
-					return;
-				}
-
-				auto op = extrait_opimage(n->donnees);
-				op->amont_change(prise);
-			});
-
-			requiers_evaluation(*jorjala, GRAPHE_MODIFIE, "graphe modifié");
-		}
-#endif
     }
 
     JJL::TypeCurseur type_curseur_modal() override
