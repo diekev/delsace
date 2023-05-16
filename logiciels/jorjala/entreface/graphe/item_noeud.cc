@@ -40,99 +40,22 @@
 
 #include "coeur/jorjala.hh"
 
-static auto const COULEUR_DECIMAL = QColor::fromRgb(128, 128, 128);
-static auto const COULEUR_ENTIER = QColor::fromRgb(255, 255, 255);
-static auto const COULEUR_VEC2 = QColor::fromHsl(static_cast<int>(143.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_VEC3 = QColor::fromHsl(static_cast<int>(154.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_VEC4 = QColor::fromHsl(static_cast<int>(165.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_MAT3 = QColor::fromHsl(static_cast<int>(189.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_MAT4 = QColor::fromHsl(static_cast<int>(200.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_COULEUR = QColor::fromHsl(
-    static_cast<int>(176.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_CORPS = QColor::fromHsl(static_cast<int>(90.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_IMAGE = QColor::fromHsl(
-    static_cast<int>(156.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_OBJET = QColor::fromHsl(static_cast<int>(90.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_TABLEAU = QColor::fromHsl(
-    static_cast<int>(211.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_POLYMORPHIQUE = QColor::fromHsl(
-    static_cast<int>(249.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_CHAINE = QColor::fromHsl(
-    static_cast<int>(132.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_INVALIDE = QColor::fromHsl(0, 0, 0);
-
 static QBrush brosse_pour_type(JJL::TypePrise type)
 {
-    switch (type) {
-        default:
-        {
-            return QBrush(COULEUR_INVALIDE);
-        }
-        case JJL::TypePrise::NOMBRE_RÉEL:
-        {
-            return QBrush(COULEUR_DECIMAL);
-        }
-        case JJL::TypePrise::CORPS:
-        {
-            return QBrush(COULEUR_CORPS);
-        }
-        case JJL::TypePrise::COMPOSITE:
-        {
-            return QBrush(COULEUR_IMAGE);
-        }
-#if 0
-		case type_prise::ENTIER:
-		{
-			return QBrush(COULEUR_ENTIER);
-		}
-		case type_prise::VEC2:
-		{
-			return QBrush(COULEUR_VEC2);
-		}
-		case type_prise::VEC3:
-		{
-			return QBrush(COULEUR_VEC3);
-		}
-		case type_prise::VEC4:
-		{
-			return QBrush(COULEUR_VEC4);
-		}
-		case type_prise::MAT3:
-		{
-			return QBrush(COULEUR_MAT3);
-		}
-		case type_prise::MAT4:
-		{
-			return QBrush(COULEUR_MAT4);
-		}
-		case type_prise::COULEUR:
-		{
-			return QBrush(COULEUR_COULEUR);
-		}
-        case type_prise::OBJET:
-        {
-            return QBrush(COULEUR_OBJET);
-        }
-        case type_prise::TABLEAU:
-        {
-            return QBrush(COULEUR_TABLEAU);
-        }
-        case type_prise::POLYMORPHIQUE:
-        {
-            return QBrush(COULEUR_POLYMORPHIQUE);
-        }
-        case type_prise::CHAINE:
-        {
-            return QBrush(COULEUR_CHAINE);
-        }
-        case type_prise::INVALIDE:
-        {
-            return QBrush(COULEUR_INVALIDE);
-        }
-#endif
-    }
+    auto couleur_prise = JJL::couleur_pour_type_prise(type);
+    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur_prise.t()),
+                                       static_cast<double>(couleur_prise.s()),
+                                       static_cast<double>(couleur_prise.l()));
+    return QBrush(couleur_qt);
+}
 
-    return QBrush(COULEUR_INVALIDE);
+static QBrush brosse_pour_noeud(JJL::Noeud noeud)
+{
+    auto couleur_prise = JJL::couleur_pour_type_noeud(noeud);
+    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur_prise.t()),
+                                       static_cast<double>(couleur_prise.s()),
+                                       static_cast<double>(couleur_prise.l()));
+    return QBrush(couleur_qt);
 }
 
 static void ajourne_rectangle(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
@@ -151,61 +74,11 @@ ItemNoeud::ItemNoeud(JJL::Noeud &noeud,
                      QGraphicsItem *parent)
     : QGraphicsRectItem(parent)
 {
-    auto brosse_couleur = QBrush();
-
-#if 0
-    auto operatrice = static_cast<OperatriceImage *>(nullptr);
-
-    switch (noeud.type) {
-		case type_noeud::COMPOSITE:
-		{
-			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-			break;
-		}
-		case type_noeud::INVALIDE:
-		{
-			break;
-		}
-		case type_noeud::NUANCEUR:
-		{
-			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-			break;
-		}
-		case type_noeud::OBJET:
-		{
-			brosse_couleur = brosse_pour_type(type_prise::OBJET);
-			break;
-		}
-		case type_noeud::OPERATRICE:
-		{
-            operatrice = extrait_opimage(noeud.donnees);
-
-			switch (operatrice->type()) {
-				default:
-				case OPERATRICE_IMAGE:
-					brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-					break;
-				case OPERATRICE_GRAPHE_DETAIL:
-				case OPERATRICE_SIMULATION:
-				case OPERATRICE_CORPS:
-					brosse_couleur = brosse_pour_type(type_prise::CORPS);
-					break;
-			}
-
-			break;
-		}
-		case type_noeud::RENDU:
-		{
-			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-			break;
-		}
-	}
-#endif
-
     if (est_noeud_detail) {
         dessine_noeud_detail(noeud, selectionne);
     }
     else {
+        auto brosse_couleur = brosse_pour_noeud(noeud);
         dessine_noeud_generique(noeud, brosse_couleur, selectionne);
     }
 }
