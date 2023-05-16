@@ -235,7 +235,9 @@ void EditriceVue3D::ajourne_etat(int evenement)
     auto const camera_modifie = evenement == (type_evenement::camera_3d | type_evenement::modifie);
 
     auto ajourne = camera_modifie | reconstruit_scene;
-    ajourne |= evenement == (type_evenement::noeud | type_evenement::selectionne);
+    // L'affichage des informations des noeuds nous fait tout redessiner... (il nous faudrait une
+    // mise en tampon des données de dessin).
+    // ajourne |= evenement == (type_evenement::noeud | type_evenement::selectionne);
     ajourne |= evenement == (type_evenement::noeud | type_evenement::enleve);
     ajourne |= evenement == (type_evenement::image | type_evenement::traite);
     ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
@@ -248,7 +250,7 @@ void EditriceVue3D::ajourne_etat(int evenement)
 
     //	for (auto rendu : m_jorjala.bdd.rendus()) {
     //		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(),
-    //QVariant(rendu->noeud.nom.c_str()));
+    // QVariant(rendu->noeud.nom.c_str()));
     //	}
 
     m_selecteur_rendu->blockSignals(signaux_blockes);
