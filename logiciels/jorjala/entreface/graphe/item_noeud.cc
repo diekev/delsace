@@ -33,9 +33,6 @@
 #include <QPen>
 #pragma GCC diagnostic pop
 
-#include <iostream>
-#include <ostream>
-
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/jorjala.hh"

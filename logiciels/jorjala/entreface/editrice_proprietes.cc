@@ -39,23 +39,9 @@
 #include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "evaluation/evaluation.hh"
-
-//#include "coeur/composite.h"
-//#include "coeur/contexte_evaluation.hh"
-//#include "coeur/evenement.h"
-//#include "coeur/operatrice_graphe_detail.hh"
-//#include "coeur/objet.h"
-//#include "coeur/jorjala.hh"
-//#include "coeur/noeud_image.h"
-//#include "coeur/nuanceur.hh"
-//#include "coeur/operatrice_image.h"
-
 #include "coeur/evenement.h"
-
 #include "coeur/jorjala.hh"
 
 /* ------------------------------------------------------------------------- */

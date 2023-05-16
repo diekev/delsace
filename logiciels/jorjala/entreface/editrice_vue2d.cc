@@ -51,8 +51,6 @@
 
 #include "coeur/jorjala.hh"
 
-// #include "lcc/lcc.hh"
-
 #include "opengl/rendu_image.h"
 #include "opengl/rendu_manipulatrice_2d.h"
 
