@@ -66,7 +66,7 @@ void TaskNotifier::signale_fin_tache()
     Q_EMIT(fin_tache());
 }
 
-void TaskNotifier::signale_debut_evaluation(const char *message, int execution, int total)
+void TaskNotifier::signale_debut_evaluation(const QString &message, int execution, int total)
 {
     Q_EMIT(debut_evaluation(message, execution, total));
 }

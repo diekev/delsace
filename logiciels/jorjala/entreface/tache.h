@@ -52,7 +52,7 @@ class TaskNotifier : public QObject {
     void signale_debut_tache();
     void signale_ajournement_progres(float progress);
     void signale_fin_tache();
-    void signale_debut_evaluation(const char *message, int execution, int total);
+    void signale_debut_evaluation(const QString &message, int execution, int total);
 
   Q_SIGNALS:
     void image_traitee();
@@ -62,5 +62,5 @@ class TaskNotifier : public QObject {
     void debut_tache();
     void ajourne_progres(float progress);
     void fin_tache();
-    void debut_evaluation(const char *message, int execution, int total);
+    void debut_evaluation(const QString &message, int execution, int total);
 };

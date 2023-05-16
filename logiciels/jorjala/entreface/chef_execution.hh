@@ -9,6 +9,7 @@ namespace JJL {
 class Jorjala;
 }
 
+class QString;
 class TaskNotifier;
 
 class ChefExecution {
@@ -29,7 +30,7 @@ class ChefExecution {
 
     void indique_progression_parallele(float delta);
 
-    void demarre_evaluation(const char *message);
+    void demarre_evaluation(const QString &message);
 
     void reinitialise();
 

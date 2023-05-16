@@ -65,7 +65,7 @@ class FenetrePrincipale : public QMainWindow {
     void tache_demarree();
     void ajourne_progres(float progres);
     void tache_terminee();
-    void evaluation_debutee(const char *message, int execution, int total);
+    void evaluation_debutee(const QString &message, int execution, int total);
 
   private:
     QDockWidget *ajoute_dock(QString const &nom,

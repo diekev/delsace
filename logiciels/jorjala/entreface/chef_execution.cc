@@ -30,7 +30,7 @@ void ChefExecution::indique_progression_parallele(float delta)
     m_mutex_progression.unlock();
 }
 
-void ChefExecution::demarre_evaluation(const char *message)
+void ChefExecution::demarre_evaluation(const QString &message)
 {
     m_progression_parallele = 0.0f;
     m_nombre_execution += 1;

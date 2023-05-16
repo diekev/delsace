@@ -54,7 +54,7 @@ class BarreDeProgres : public QWidget {
 
     void ajourne_valeur(int valeur);
 
-    void ajourne_message(const char *message, int execution, int total);
+    void ajourne_message(const QString &message, int execution, int total);
 
   private Q_SLOTS:
     void signal_stop();
