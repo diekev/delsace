@@ -46,10 +46,13 @@
 
 /* ------------------------------------------------------------------------- */
 
-std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TypeParametre type_param)
+std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_Parametre param)
 {
-    switch (type_param) {
+    switch (param.type()) {
         case JJL::TypeParametre::CHAINE:
+            if (param.index_prise_pour_recherche_chaine() != -1) {
+                return danjo::TypePropriete::LISTE;
+            }
             return danjo::TypePropriete::CHAINE_CARACTERE;
         case JJL::TypeParametre::CHEMIN_FICHIER:
             return danjo::TypePropriete::FICHIER_ENTREE;
@@ -78,7 +81,7 @@ class EnveloppeParametre : public danjo::BasePropriete {
 
     danjo::TypePropriete type() const override
     {
-        return type_propriété_danjo(m_param.type()).value();
+        return type_propriété_danjo(m_param).value();
     }
 
     /* Définit si la propriété est ajoutée par l'utilisateur. */
@@ -245,7 +248,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
 
     for (auto param : table.paramètres()) {
-        auto type = type_propriété_danjo(param.type());
+        auto type = type_propriété_danjo(param);
 
         if (!type.has_value()) {
             continue;
@@ -430,22 +433,102 @@ void EditriceProprietes::precontrole_change()
 #endif
 }
 
+static void copie_liste(JJL::tableau<JJL_Chaine, JJL::Chaine> liste,
+                        dls::tableau<dls::chaine> &dst)
+{
+    dst.reserve(dst.taille() + liste.taille());
+
+    for (auto element : liste) {
+        dst.ajoute(element.vers_std_string().c_str());
+    }
+}
+
+static void copie_liste(JJL::tableau<JJL_ChampsDeHauteur_Canal, JJL::ChampsDeHauteur_Canal> liste,
+                        dls::tableau<dls::chaine> &dst)
+{
+    dst.reserve(dst.taille() + liste.taille());
+
+    for (auto element : liste) {
+        dst.ajoute(element.nom().vers_std_string().c_str());
+    }
+}
+
+static void copie_liste(JJL::tableau<JJL_Attribut *, JJL::Attribut> liste,
+                        dls::tableau<dls::chaine> &dst)
+{
+    dst.reserve(dst.taille() + liste.taille());
+
+    for (auto element : liste) {
+        dst.ajoute(element.nom().vers_std_string().c_str());
+    }
+}
+
+static void copie_liste(JJL::tableau<JJL_Composite_Calque, JJL::Composite_Calque> liste,
+                        dls::tableau<dls::chaine> &dst)
+{
+    dst.reserve(dst.taille() + liste.taille());
+
+    for (auto element : liste) {
+        dst.ajoute(element.nom().vers_std_string().c_str());
+    }
+}
+
 void EditriceProprietes::obtiens_liste(dls::chaine const &attache,
                                        dls::tableau<dls::chaine> &chaines)
 {
-#if 0
-	auto graphe = m_jorjala.graphe;
-	auto noeud = graphe->noeud_actif;
+    auto graphe = m_jorjala.graphe();
+    assert(graphe != nullptr);
 
-	if (noeud == nullptr || noeud->type != type_noeud::OPERATRICE) {
-		return;
-	}
+    auto noeud = graphe.noeud_actif();
+    assert(noeud != nullptr);
 
-	auto operatrice = extrait_opimage(noeud->donnees);
-	auto contexte = cree_contexte_evaluation(m_jorjala);
+    auto param = noeud.trouve_paramètre(attache.c_str());
+    assert(param != nullptr);
 
-	operatrice->obtiens_liste(contexte, attache, chaines);
-#endif
+    auto index_prise = param.index_prise_pour_recherche_chaine();
+    assert(index_prise != -1);
+
+    // À FAIRE : type de noeud pour correctement transtyper
+
+    switch (param.type_chaine_recherchée()) {
+        case JJL::TypeChaineRecherchee::NOM_CANAL_CHAMPS_DE_HAUTEUR:
+        {
+            auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
+            auto liste = noeud_corps.liste_canaux_champs_de_hauteur_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            break;
+        }
+        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT_POINT:
+        {
+            auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
+            auto liste = noeud_corps.liste_attributs_points_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            break;
+        }
+        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT_PRIMITIVE:
+        {
+            auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
+            auto liste = noeud_corps.liste_attributs_primitives_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            break;
+        }
+        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT:
+        {
+            auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
+            auto liste = noeud_corps.liste_attributs_points_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            liste = noeud_corps.liste_attributs_primitives_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            break;
+        }
+        case JJL::TypeChaineRecherchee::NOM_CALQUE:
+        {
+            auto noeud_composite = transtype<JJL::NoeudComposite>(noeud);
+            auto liste = noeud_composite.liste_calques_composite_pour_entrée(index_prise);
+            copie_liste(liste, chaines);
+            break;
+        }
+    }
 }
 
 void EditriceProprietes::onglet_dossier_change(int index)
