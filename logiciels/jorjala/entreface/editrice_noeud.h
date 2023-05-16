@@ -31,6 +31,10 @@ class QGraphicsScene;
 class QMenu;
 class VueEditeurNoeud;
 
+namespace JJL {
+class Noeud;
+}
+
 class EditriceGraphe : public BaseEditrice {
     Q_OBJECT
 
@@ -68,4 +72,5 @@ class EditriceGraphe : public BaseEditrice {
     QPointF transforme_position_evenement(QPoint pos) override;
 
     void ajourne_sélecteur_graphe();
+    void affiche_informations_noeud(JJL::Noeud noeud);
 };

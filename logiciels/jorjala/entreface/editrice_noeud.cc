@@ -41,6 +41,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "graphe/item_noeud.h"
 #include "graphe/vue_editrice_graphe.h"
@@ -192,13 +193,9 @@ void EditriceGraphe::ajourne_etat(int evenement)
         m_scene->addItem(ligne);
     }
 
-#if 0
-	if (graphe->info_noeud) {
-		auto point = m_vue->mapFromScene(graphe->info_noeud->x, graphe->info_noeud->y);
-		point = m_vue->mapToGlobal(point);
-		QToolTip::showText(point, graphe->info_noeud->informations.c_str());
-	}
-#endif
+    if (graphe.noeud_pour_information()) {
+        affiche_informations_noeud(graphe.noeud_pour_information());
+    }
 }
 
 void EditriceGraphe::sors_noeud()
@@ -310,4 +307,39 @@ void EditriceGraphe::ajourne_sélecteur_graphe()
     auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
     m_selecteur_graphe->setCurrentIndex(index_graphe_courant);
     m_selecteur_graphe->blockSignals(bloque_signaux);
+}
+
+static const char *chaine_pour_type_information(JJL::TypeInformationNoeud type)
+{
+    switch (type) {
+        case JJL::TypeInformationNoeud::EXÉCUTION:
+        {
+            return "Nombre d'exécution";
+        }
+        case JJL::TypeInformationNoeud::TEMPS:
+        {
+            return "Temps d'exécution";
+        }
+        case JJL::TypeInformationNoeud::MÉMOIRE:
+        {
+            return "Mémoire utilisée";
+        }
+    }
+    return "";
+}
+
+void EditriceGraphe::affiche_informations_noeud(JJL::Noeud noeud)
+{
+    dls::flux_chaine ss;
+    ss << "<p>Noeud : " << noeud.nom().vers_std_string() << "</p>";
+    ss << "<hr/>";
+
+    for (auto info : noeud.informations()) {
+        ss << "<p>" << chaine_pour_type_information(info.type()) << " : "
+           << info.texte().vers_std_string() << "</p>";
+    }
+
+    auto point = m_vue->mapFromScene(noeud.pos_x(), noeud.pos_y());
+    point = m_vue->mapToGlobal(point);
+    QToolTip::showText(point, ss.chn().c_str());
 }

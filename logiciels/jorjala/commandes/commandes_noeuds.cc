@@ -826,183 +826,31 @@ class CommandeSupprimeSelection final : public CommandeJorjala {
 
 /* ************************************************************************** */
 
-#if 0
-static const char *chaine_attribut(type_attribut type)
-{
-	switch (type) {
-		case type_attribut::Z8:
-			return "z8";
-		case type_attribut::Z16:
-			return "z16";
-		case type_attribut::Z32:
-			return "z32";
-		case type_attribut::Z64:
-			return "z64";
-		case type_attribut::N8:
-			return "n8";
-		case type_attribut::N16:
-			return "n16";
-		case type_attribut::N32:
-			return "n32";
-		case type_attribut::N64:
-			return "n64";
-		case type_attribut::R16:
-			return "r16";
-		case type_attribut::R32:
-			return "r32";
-		case type_attribut::R64:
-			return "r64";
-		case type_attribut::INVALIDE:
-			return "invalide";
-		case type_attribut::CHAINE:
-			return "chaine";
-	}
-
-	return "quelque chose va mal";
-}
-
-static const char *chaine_portee(portee_attr portee)
-{
-	switch (portee) {
-		case portee_attr::CORPS:
-			return "corps";
-		case portee_attr::POINT:
-			return "point";
-		case portee_attr::PRIMITIVE:
-			return "primitive";
-		case portee_attr::VERTEX:
-			return "vertex";
-		case portee_attr::GROUPE:
-			return "groupe";
-	}
-
-	return "quelque chose va mal";
-}
-#endif
-
 class CommandeInfoNoeud final : public CommandeJorjala {
   public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-#if 0
-        auto graphe = jorjala.graphe;
-		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
+        auto graphe = jorjala.graphe();
+        auto noeud = trouve_noeud(graphe, donnees.x, donnees.y);
 
-		if (noeud == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (noeud == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto sans_info = dls::outils::est_element(
-					noeud->type,
-					type_noeud::OBJET,
-					type_noeud::COMPOSITE);
-
-		if (sans_info) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
-
-		if (noeud != nullptr) {
-			auto info_noeud = memoire::loge<InfoNoeud>("InfoNoeud");
-			info_noeud->x = donnees.x;
-			info_noeud->y = donnees.y;
-
-			dls::flux_chaine ss;
-			ss << "<p>Opératrice : " << noeud->nom << "</p>";
-			ss << "<hr/>";
-
-			auto op = extrait_opimage(noeud->donnees);
-
-			if (op->type() == OPERATRICE_CORPS) {
-				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
-				auto corps = op_objet->corps();
-
-				ss << "<p>Points         : " << corps->points_pour_lecture().taille() << "</p>";
-				ss << "<p>Prims          : " << corps->prims()->taille() << "</p>";
-
-				ss << "<hr/>";
-
-				ss << "<p>Groupes points : " << corps->groupes_points().taille() << "</p>";
-				ss << "<p>Groupes prims  : " << corps->groupes_prims().taille() << "</p>";
-
-				ss << "<hr/>";
-
-				ss << "<p>Attributs : </p>";
-
-				for (auto const &attr : corps->attributs()) {
-					ss << "<p>"
-					   << attr.nom()
-					   << " : "
-					   << chaine_attribut(attr.type())
-					   << " (" << chaine_portee(attr.portee) << ")"
-					   << "</p>";
-				}
-
-				ss << "<hr/>";
-			}
-			else if (op->type() == OPERATRICE_IMAGE) {
-				auto image = op->image();
-
-				if (image->est_profonde) {
-					ss << "<p>Image profonde</p>";
-					ss << "<hr/>";
-
-					ss << "<p>Calques : </p>";
-
-					for (auto calque : image->m_calques_profond) {
-						ss << "<p>" << calque->nom << " (";
-						ss << calque->tampon()->desc().resolution.x;
-						ss << "x";
-						ss << calque->tampon()->desc().resolution.y;
-						ss << ")</p>";
-					}
-				}
-				else {
-					ss << "<p>Image plate</p>";
-					ss << "<hr/>";
-
-					for (auto calque : image->calques()) {
-						ss << "<p>" << calque->nom << " (";
-						ss << calque->tampon()->desc().resolution.x;
-						ss << "x";
-						ss << calque->tampon()->desc().resolution.y;
-						ss << ")</p>";
-					}
-				}
-
-				ss << "<hr/>";
-			}
-
-			ss << "<p>Temps d'exécution :";
-			ss << "<p>- dernière : " << noeud->temps_execution << " secondes.</p>";
-			ss << "<hr/>";
-			ss << "<p>Nombre d'exécution : " << noeud->executions << "</p>";
-			ss << "<hr/>";
-
-			info_noeud->informations = ss.chn();
-
-			graphe->info_noeud = info_noeud;
-		}
-
-		selectionne_noeud(*jorjala, noeud, *graphe);
-
+        graphe.noeud_pour_information(noeud);
+        selectionne_noeud(jorjala, noeud, graphe);
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
-#endif
-
         return EXECUTION_COMMANDE_MODALE;
     }
 
     void termine_execution_modale_jorjala(JJL::Jorjala &jorjala,
                                           DonneesCommande const &donnees) override
     {
-#if 0
-		INUTILISE(donnees);
-
-        auto graphe = jorjala.graphe;
-
-		memoire::deloge("InfoNoeud", graphe->info_noeud);
-
+        INUTILISE(donnees);
+        auto graphe = jorjala.graphe();
+        JJL::Noeud noeud(nullptr);
+        graphe.noeud_pour_information(noeud);
         jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
-#endif
     }
 };
 
