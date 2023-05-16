@@ -95,6 +95,7 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
     memoire::deloge("danjo::GestionnaireInterface", données_programme->gestionnaire_danjo);
 
     jorjala.libère_mémoire();
+    JJL::détruit_instance_jorjala(jorjala);
 }
 
 DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
