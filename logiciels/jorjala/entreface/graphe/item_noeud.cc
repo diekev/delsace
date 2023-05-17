@@ -37,22 +37,18 @@
 
 #include "coeur/jorjala.hh"
 
-static QBrush brosse_pour_type(JJL::TypePrise type)
+static QBrush brosse_pour_couleur(JJL::CouleurTSL couleur)
 {
-    auto couleur_prise = JJL::couleur_pour_type_prise(type);
-    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur_prise.t()),
-                                       static_cast<double>(couleur_prise.s()),
-                                       static_cast<double>(couleur_prise.l()));
+    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur.t()),
+                                       static_cast<double>(couleur.s()),
+                                       static_cast<double>(couleur.l()));
     return QBrush(couleur_qt);
 }
 
 static QBrush brosse_pour_noeud(JJL::Noeud noeud)
 {
     auto couleur_prise = JJL::couleur_pour_type_noeud(noeud);
-    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur_prise.t()),
-                                       static_cast<double>(couleur_prise.s()),
-                                       static_cast<double>(couleur_prise.l()));
-    return QBrush(couleur_qt);
+    return brosse_pour_couleur(couleur_prise);
 }
 
 static void ajourne_rectangle(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
@@ -369,7 +365,7 @@ void ItemNoeud::cree_geometrie_prise(
                         static_cast<double>(y),
                         static_cast<double>(largeur),
                         static_cast<double>(hauteur));
-    item_prise->setBrush(brosse_pour_type(prise->type()));
+    item_prise->setBrush(brosse_pour_couleur(prise->accède_description().couleur()));
     item_prise->setPen(QPen(Qt::white, 0.5));
 
     ajourne_rectangle(prise, x, y, hauteur, largeur);
