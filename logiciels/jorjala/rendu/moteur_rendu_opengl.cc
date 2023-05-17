@@ -434,7 +434,7 @@ void MoteurRenduOpenGL::calcule_rendu(
                         }
                         // else if (polygone->type == type_polygone::OUVERT) {
                         //	ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment,
-                        //couleurs_segment);
+                        // couleurs_segment);
                         //}
 
                         // for (auto i = 0; i < polygone->nombre_sommets(); ++i) {

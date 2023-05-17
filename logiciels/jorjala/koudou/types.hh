@@ -30,10 +30,10 @@ namespace kdo {
 
 /* Pour les entresections. */
 enum {
-	ESECT_OBJET_TYPE_AUCUN    = 0,
-	ESECT_OBJET_TYPE_LUMIERE  = 1,
-	ESECT_OBJET_TYPE_TRIANGLE = 2,
-	ESECT_OBJET_TYPE_SPHERE   = 3,
+    ESECT_OBJET_TYPE_AUCUN = 0,
+    ESECT_OBJET_TYPE_LUMIERE = 1,
+    ESECT_OBJET_TYPE_TRIANGLE = 2,
+    ESECT_OBJET_TYPE_SPHERE = 3,
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

@@ -35,30 +35,30 @@ class Noeud;
 }
 
 class EditriceProprietes : public BaseEditrice {
-	QWidget *m_widget;
-	QWidget *m_conteneur_avertissements;
-	QWidget *m_conteneur_disposition;
-	QScrollArea *m_scroll;
-	QVBoxLayout *m_disposition_widget;
+    QWidget *m_widget;
+    QWidget *m_conteneur_avertissements;
+    QWidget *m_conteneur_disposition;
+    QScrollArea *m_scroll;
+    QVBoxLayout *m_disposition_widget;
 
-public:
+  public:
     explicit EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceProprietes(EditriceProprietes const &) = default;
-	EditriceProprietes &operator=(EditriceProprietes const &) = default;
+    EditriceProprietes(EditriceProprietes const &) = default;
+    EditriceProprietes &operator=(EditriceProprietes const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 
-	void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
+    void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
 
-	void onglet_dossier_change(int index) override;
+    void onglet_dossier_change(int index) override;
 
-	void reinitialise_entreface(bool creation_avert);
+    void reinitialise_entreface(bool creation_avert);
 
-	void precontrole_change() override;
+    void precontrole_change() override;
 
-private:
+  private:
     void ajoute_avertissements(JJL::Noeud &noeud);
 };

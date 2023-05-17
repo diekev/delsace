@@ -27,16 +27,16 @@
 struct Jorjala;
 
 enum {
-	OBJET_AJOUTE,
-	OBJET_ENLEVE,
-	NOEUD_AJOUTE,
-	NOEUD_ENLEVE,
-	NOEUD_SELECTIONE, /* pour les sorties/visionneuses */
-	GRAPHE_MODIFIE,
-	TEMPS_CHANGE,
-	FICHIER_OUVERT,
-	PARAMETRE_CHANGE,
-	RENDU_REQUIS,
+    OBJET_AJOUTE,
+    OBJET_ENLEVE,
+    NOEUD_AJOUTE,
+    NOEUD_ENLEVE,
+    NOEUD_SELECTIONE, /* pour les sorties/visionneuses */
+    GRAPHE_MODIFIE,
+    TEMPS_CHANGE,
+    FICHIER_OUVERT,
+    PARAMETRE_CHANGE,
+    RENDU_REQUIS,
 };
 
 void requiers_evaluation(Jorjala &jorjala, int raison, const char *message);

@@ -28,14 +28,14 @@
 
 namespace kdo {
 
-noeud::noeud(type_noeud t)
-	: type(t)
-{}
+noeud::noeud(type_noeud t) : type(t)
+{
+}
 
 noeud::~noeud()
 {
-	memoire::deloge("ArbreHBE", arbre_hbe);
-	delete nuanceur;
+    memoire::deloge("ArbreHBE", arbre_hbe);
+    delete nuanceur;
 }
 
 void noeud::construit_arbre_hbe()
@@ -44,13 +44,13 @@ void noeud::construit_arbre_hbe()
 
 dls::phys::esectd noeud::traverse_arbre(const dls::phys::rayond &rayon)
 {
-	INUTILISE(rayon);
-	return {};
+    INUTILISE(rayon);
+    return {};
 }
 
 limites3d noeud::calcule_limites()
 {
-	return limites3d();
+    return limites3d();
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

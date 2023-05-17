@@ -32,98 +32,98 @@ namespace wlk {
 
 void deloge_grille(base_grille_2d *&tampon)
 {
-	if (tampon == nullptr) {
-		return;
-	}
+    if (tampon == nullptr) {
+        return;
+    }
 
-	auto const &desc = tampon->desc();
+    auto const &desc = tampon->desc();
 
-	switch (desc.type_donnees) {
-		case type_grille::N32:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<unsigned int> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::Z8:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<char> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::Z32:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<int> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::R32:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<float> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::R32_PTR:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<float *> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::R64:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<double> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::VEC2:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<dls::math::vec2f> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::VEC3:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::VEC3_R64:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<dls::math::vec3d> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::COULEUR:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<dls::phys::couleur32> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-		case type_grille::COURBE_PAIRE_TEMPS:
-		{
-			auto grille = dynamic_cast<grille_dense_2d<wlk::type_courbe> *>(tampon);
-			memoire::deloge("grille_dense", grille);
-			break;
-		}
-	}
+    switch (desc.type_donnees) {
+        case type_grille::N32:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<unsigned int> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::Z8:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<char> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::Z32:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<int> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::R32:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<float> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::R32_PTR:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<float *> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::R64:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<double> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::VEC2:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<dls::math::vec2f> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::VEC3:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::VEC3_R64:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<dls::math::vec3d> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::COULEUR:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<dls::phys::couleur32> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+        case type_grille::COURBE_PAIRE_TEMPS:
+        {
+            auto grille = dynamic_cast<grille_dense_2d<wlk::type_courbe> *>(tampon);
+            memoire::deloge("grille_dense", grille);
+            break;
+        }
+    }
 
-	tampon = nullptr;
+    tampon = nullptr;
 }
 
 desc_grille_2d desc_depuis_hauteur_largeur(int hauteur, int largeur)
 {
-	auto moitie_x = static_cast<float>(largeur) * 0.5f;
-	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
+    auto moitie_x = static_cast<float>(largeur) * 0.5f;
+    auto moitie_y = static_cast<float>(hauteur) * 0.5f;
 
-	auto desc = wlk::desc_grille_2d();
-	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
-	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
-	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = 1.0;
-	desc.resolution.x = hauteur;
-	desc.resolution.y = largeur;
+    auto desc = wlk::desc_grille_2d();
+    desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
+    desc.etendue.max = dls::math::vec2f(moitie_x, moitie_y);
+    desc.fenetre_donnees = desc.etendue;
+    desc.taille_voxel = 1.0;
+    desc.resolution.x = hauteur;
+    desc.resolution.y = largeur;
 
-	return desc;
+    return desc;
 }
 
-}  /* namespace wlk */
+} /* namespace wlk */

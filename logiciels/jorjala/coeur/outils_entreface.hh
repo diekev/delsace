@@ -29,17 +29,19 @@
 #include "danjo.h"
 
 struct CheminFichier {
-	const char *chemin = nullptr;
-	static int tag;
+    const char *chemin = nullptr;
+    static int tag;
 };
 
 struct SourceFichier {
-	dls::chaine texte = "";
-	static int tag;
+    dls::chaine texte = "";
+    static int tag;
 };
 
 using ResultatCheminEntreface = std::variant<CheminFichier, SourceFichier>;
 
 void initialise_entreface(danjo::Manipulable *manipulable, const ResultatCheminEntreface &res);
 
-void initialise_entreface(danjo::GestionnaireInterface *gestionnaire, danjo::Manipulable *manipulable, const ResultatCheminEntreface &res);
+void initialise_entreface(danjo::GestionnaireInterface *gestionnaire,
+                          danjo::Manipulable *manipulable,
+                          const ResultatCheminEntreface &res);

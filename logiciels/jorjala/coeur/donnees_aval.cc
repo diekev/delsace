@@ -23,4 +23,3 @@
  */
 
 #include "donnees_aval.hh"
-

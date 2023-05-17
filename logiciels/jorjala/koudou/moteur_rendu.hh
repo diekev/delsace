@@ -36,22 +36,27 @@ namespace kdo {
 class ParametresRendu;
 
 class MoteurRendu {
-	Pellicule m_pellicule{};
-	bool m_est_arrete = false;
+    Pellicule m_pellicule{};
+    bool m_est_arrete = false;
 
-public:
-	void echantillone_scene(ParametresRendu const &parametres, dls::tableau<CarreauPellicule> const &carreaux, unsigned int echantillon);
+  public:
+    void echantillone_scene(ParametresRendu const &parametres,
+                            dls::tableau<CarreauPellicule> const &carreaux,
+                            unsigned int echantillon);
 
-	Pellicule const &pellicule();
+    Pellicule const &pellicule();
 
-	void reinitialise();
+    void reinitialise();
 
-	Pellicule *pointeur_pellicule();
+    Pellicule *pointeur_pellicule();
 
-	bool est_arrete() const;
-	void arrete();
+    bool est_arrete() const;
+    void arrete();
 };
 
-Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::rayond const &rayon, uint profondeur = 0);
+Spectre calcul_spectre(GNA &gna,
+                       ParametresRendu const &parametres,
+                       dls::phys::rayond const &rayon,
+                       uint profondeur = 0);
 
-}  /* namespace kdo */
+} /* namespace kdo */

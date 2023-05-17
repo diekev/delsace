@@ -33,107 +33,108 @@ namespace kdo {
 
 BSDF *Nuanceur::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFTrivial(ctx);
+    return new BSDFTrivial(ctx);
 }
 
 bool Nuanceur::a_volume() const
 {
-	return false;
+    return false;
 }
 
-Volume *Nuanceur::cree_volume(ContexteNuancage &/*ctx*/, wlk::grille_eparse<float> const */*grille*/)
+Volume *Nuanceur::cree_volume(ContexteNuancage & /*ctx*/,
+                              wlk::grille_eparse<float> const * /*grille*/)
 {
-	return nullptr;
+    return nullptr;
 }
 
 /* ************************************************************************** */
 
 Nuanceur *NuanceurAngleVue::defaut()
 {
-	return new NuanceurAngleVue();
+    return new NuanceurAngleVue();
 }
 
 BSDF *NuanceurAngleVue::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFAngleVue(ctx);
+    return new BSDFAngleVue(ctx);
 }
 
 /* ************************************************************************** */
 
 Nuanceur *NuanceurDiffus::defaut()
 {
-	auto nuanceur = new NuanceurDiffus();
-	nuanceur->spectre = Spectre(0.8);
-	return nuanceur;
+    auto nuanceur = new NuanceurDiffus();
+    nuanceur->spectre = Spectre(0.8);
+    return nuanceur;
 }
 
 BSDF *NuanceurDiffus::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFDiffus(ctx, spectre);
+    return new BSDFDiffus(ctx, spectre);
 }
 
 /* ************************************************************************** */
 
 Nuanceur *NuanceurReflection::defaut()
 {
-	return new NuanceurReflection();
+    return new NuanceurReflection();
 }
 
 BSDF *NuanceurReflection::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFReflectance(ctx);
+    return new BSDFReflectance(ctx);
 }
 
 /* ************************************************************************** */
 
 Nuanceur *NuanceurRefraction::defaut()
 {
-	return new NuanceurRefraction();
+    return new NuanceurRefraction();
 }
 
 BSDF *NuanceurRefraction::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFVerre(ctx);
+    return new BSDFVerre(ctx);
 }
 
 /* ************************************************************************** */
 
 Nuanceur *NuanceurVolume::defaut()
 {
-	return new NuanceurVolume();
+    return new NuanceurVolume();
 }
 
 BSDF *NuanceurVolume::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFVolume(ctx);
+    return new BSDFVolume(ctx);
 }
 
 Volume *NuanceurVolume::cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille)
 {
-	//return new VolumeLoiBeers(ctx);
-	return new VolumeHeterogeneDiffusionSimple(ctx, grille);
+    // return new VolumeLoiBeers(ctx);
+    return new VolumeHeterogeneDiffusionSimple(ctx, grille);
 }
 
 bool NuanceurVolume::a_volume() const
 {
-	return true;
+    return true;
 }
 
 /* ************************************************************************** */
 
 NuanceurEmission::NuanceurEmission()
 {
-	type = TypeNuanceur::EMISSION;
+    type = TypeNuanceur::EMISSION;
 }
 
 Nuanceur *NuanceurEmission::defaut()
 {
-	return new NuanceurEmission();
+    return new NuanceurEmission();
 }
 
 BSDF *NuanceurEmission::cree_BSDF(ContexteNuancage &ctx)
 {
-	return new BSDFTrivial(ctx);
+    return new BSDFTrivial(ctx);
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

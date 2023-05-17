@@ -28,10 +28,9 @@ namespace psn {
 
 struct Poseidon;
 
-void ajoute_vorticite(
-		Poseidon &poseidon,
-		float quantite_vorticite,
-		float vorticite_flamme,
-		float dt);
+void ajoute_vorticite(Poseidon &poseidon,
+                      float quantite_vorticite,
+                      float vorticite_flamme,
+                      float dt);
 
-}  /* namespace psn */
+} /* namespace psn */
