@@ -30,7 +30,6 @@
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
-#include "biblinternes/vision/camera.h"
 
 #include "biblinternes/structures/tableau.hh"
 

@@ -68,7 +68,6 @@
     m_jorjala.bdd
 
   VisionneurScene
-    jorjala.camera_3d
     cree_contexte_evaluation
     m_jorjala.bdd.rendu
 

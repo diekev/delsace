@@ -34,7 +34,6 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
-#include "biblinternes/vision/camera_2d.h"
 
 #include "coeur/image.hh"
 

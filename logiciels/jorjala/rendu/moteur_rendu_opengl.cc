@@ -31,7 +31,6 @@
 #include "biblinternes/opengl/pile_matrice.h"
 #include "biblinternes/opengl/rendu_camera.h"
 #include "biblinternes/opengl/rendu_grille.h"
-#include "biblinternes/vision/camera.h"
 
 #include "coeur/jorjala.hh"
 #include "coeur/objet.h"

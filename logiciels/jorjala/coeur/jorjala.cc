@@ -147,8 +147,6 @@ danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala,
 #    include "danjo/danjo.h"
 
 #    include "biblinternes/patrons_conception/repondant_commande.h"
-#    include "biblinternes/vision/camera.h"
-#    include "biblinternes/vision/camera_2d.h"
 
 #    include "biblinternes/memoire/logeuse_memoire.hh"
 

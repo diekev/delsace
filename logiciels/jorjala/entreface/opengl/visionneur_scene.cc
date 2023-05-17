@@ -29,7 +29,6 @@
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/vision/camera.h"
 
 // #include "coeur/contexte_evaluation.hh"
 // #include "coeur/manipulatrice.h"
