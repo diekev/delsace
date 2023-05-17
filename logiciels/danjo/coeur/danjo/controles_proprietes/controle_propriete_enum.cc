@@ -32,65 +32,63 @@
 namespace danjo {
 
 ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent)
-	, m_agencement(new QHBoxLayout)
-	, m_liste_deroulante(new QComboBox(this))
-	, m_pointeur(nullptr)
-	, m_index_valeur_defaut(0)
-	, m_index_courant(0)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+      m_liste_deroulante(new QComboBox(this)), m_pointeur(nullptr), m_index_valeur_defaut(0),
+      m_index_courant(0)
 {
-	m_agencement->addWidget(m_liste_deroulante);
-	this->setLayout(m_agencement);
+    m_agencement->addWidget(m_liste_deroulante);
+    this->setLayout(m_agencement);
 
-	/* On ne peut pas utilisé le nouveau style de connection de Qt5 :
-	 *     connect(m_liste_deroulante, &QComboBox::currentIndexChanged,
-	 *             this, &ControleEnum::ajourne_valeur_pointee);
-	 * car currentIndexChanged a deux signatures possibles et le compileur
-	 * ne sait pas laquelle choisir. */
-	connect(m_liste_deroulante, SIGNAL(currentIndexChanged(int)),
-			this, SLOT(ajourne_valeur_pointee(int)));
+    /* On ne peut pas utilisé le nouveau style de connection de Qt5 :
+     *     connect(m_liste_deroulante, &QComboBox::currentIndexChanged,
+     *             this, &ControleEnum::ajourne_valeur_pointee);
+     * car currentIndexChanged a deux signatures possibles et le compileur
+     * ne sait pas laquelle choisir. */
+    connect(m_liste_deroulante,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(ajourne_valeur_pointee(int)));
 }
 
 void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)
 {
-	Q_EMIT(precontrole_change());
-	*m_pointeur = m_liste_deroulante->currentData().toString().toStdString();
-	Q_EMIT(controle_change());
+    Q_EMIT(precontrole_change());
+    *m_pointeur = m_liste_deroulante->currentData().toString().toStdString();
+    Q_EMIT(controle_change());
 }
 
 void ControleProprieteEnum::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
+    m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
 
-	auto valeur_defaut = donnees.valeur_defaut;
+    auto valeur_defaut = donnees.valeur_defaut;
 
-	if (donnees.initialisation) {
-		*m_pointeur = valeur_defaut;
-	}
-	else {
-		valeur_defaut = *m_pointeur;
-	}
+    if (donnees.initialisation) {
+        *m_pointeur = valeur_defaut;
+    }
+    else {
+        valeur_defaut = *m_pointeur;
+    }
 
-	const auto vieil_etat = m_liste_deroulante->blockSignals(true);
+    const auto vieil_etat = m_liste_deroulante->blockSignals(true);
 
-	auto index_courant = 0;
+    auto index_courant = 0;
 
-	for (const auto &pair : donnees.valeur_enum) {
-		m_liste_deroulante->addItem(pair.first.c_str(),
-									QVariant(pair.second.c_str()));
+    for (const auto &pair : donnees.valeur_enum) {
+        m_liste_deroulante->addItem(pair.first.c_str(), QVariant(pair.second.c_str()));
 
-		if (pair.second == valeur_defaut) {
-			m_index_valeur_defaut = index_courant;
-		}
+        if (pair.second == valeur_defaut) {
+            m_index_valeur_defaut = index_courant;
+        }
 
-		index_courant++;
-	}
+        index_courant++;
+    }
 
-	m_liste_deroulante->setCurrentIndex(m_index_valeur_defaut);
+    m_liste_deroulante->setCurrentIndex(m_index_valeur_defaut);
 
-	m_liste_deroulante->blockSignals(vieil_etat);
+    m_liste_deroulante->blockSignals(vieil_etat);
 
-	setToolTip(donnees.infobulle.c_str());
+    setToolTip(donnees.infobulle.c_str());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -34,67 +34,71 @@
 namespace danjo {
 
 SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
-    : ControlePropriete(p, temps, parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_line_edit(new QLineEdit(this))
-	, m_push_button(new QPushButton("Choisir Fichier", this))
-	, m_input(input)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_line_edit(new QLineEdit(this)), m_push_button(new QPushButton("Choisir Fichier", this)),
+      m_input(input)
 {
-	m_agencement->addWidget(m_line_edit);
-	m_agencement->addWidget(m_push_button);
+    m_agencement->addWidget(m_line_edit);
+    m_agencement->addWidget(m_push_button);
 
-	setLayout(m_agencement);
+    setLayout(m_agencement);
 
-	connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
+    connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
 }
 
 void SelecteurFichier::setValue(const QString &text)
 {
-	m_line_edit->setText(text);
+    m_line_edit->setText(text);
 }
 
 void SelecteurFichier::setChoosenFile()
 {
-	QString chemin;
-	QString caption = "";
-	QString dir = "";
-	QString filtres = m_filtres;
+    QString chemin;
+    QString caption = "";
+    QString dir = "";
+    QString filtres = m_filtres;
 
-	if (m_input) {
-		chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
-	}
-	else {
-		chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
-	}
+    if (m_input) {
+        chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
+    }
+    else {
+        chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
+    }
 
-	if (!chemin.isEmpty()) {
-		m_line_edit->setText(chemin);
-		Q_EMIT(valeur_changee(chemin));
-	}
+    if (!chemin.isEmpty()) {
+        m_line_edit->setText(chemin);
+        Q_EMIT(valeur_changee(chemin));
+    }
 }
 
 void SelecteurFichier::ajourne_filtres(const QString &chaine)
 {
-	m_filtres = chaine;
+    m_filtres = chaine;
 }
 
-ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
+ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p,
+                                                   int temps,
+                                                   bool input,
+                                                   QWidget *parent)
     : SelecteurFichier(p, temps, input, parent)
 {
     setValue(p->evalue_chaine(temps).c_str());
-	connect(this, &SelecteurFichier::valeur_changee, this, &ControleProprieteFichier::ajourne_valeur_pointee);
+    connect(this,
+            &SelecteurFichier::valeur_changee,
+            this,
+            &ControleProprieteFichier::ajourne_valeur_pointee);
 }
 
 void ControleProprieteFichier::finalise(const DonneesControle &donnees)
 {
-	ajourne_filtres(donnees.filtres.c_str());
+    ajourne_filtres(donnees.filtres.c_str());
 }
 
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)
 {
-	Q_EMIT(precontrole_change());
+    Q_EMIT(precontrole_change());
     m_propriete->définit_valeur_chaine(valeur.toStdString().c_str());
-	Q_EMIT(controle_change());
+    Q_EMIT(controle_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -32,15 +32,15 @@ class QLabel;
 namespace danjo {
 
 class ControleProprieteEtiquette final : public ControlePropriete {
-	char pad[3];
-	QHBoxLayout *m_agencement{};
-	QLabel *m_etiquette{};
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    QLabel *m_etiquette{};
 
-public:
+  public:
     explicit ControleProprieteEtiquette(QString const &texte, QWidget *parent = nullptr);
 
-	ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
+    ControleProprieteEtiquette(ControleProprieteEtiquette const &) = default;
     ControleProprieteEtiquette &operator=(ControleProprieteEtiquette const &) = default;
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

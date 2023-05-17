@@ -28,47 +28,46 @@
 
 namespace danjo {
 
-Bouton::Bouton(QWidget *parent)
-	: QPushButton(parent)
+Bouton::Bouton(QWidget *parent) : QPushButton(parent)
 {
-	connect(this, SIGNAL(pressed()), this, SLOT(bouton_presse()));
+    connect(this, SIGNAL(pressed()), this, SLOT(bouton_presse()));
 }
 
 void Bouton::installe_repondant(RepondantBouton *repondant)
 {
-	m_repondant = repondant;
+    m_repondant = repondant;
 }
 
 void Bouton::etablie_attache(const dls::chaine &attache)
 {
-	m_attache = attache;
+    m_attache = attache;
 }
 
 void Bouton::etablie_metadonnee(const dls::chaine &metadonnee)
 {
-	m_metadonnee = metadonnee;
+    m_metadonnee = metadonnee;
 }
 
 void Bouton::etablie_icone(const dls::chaine &valeur)
 {
-	this->setIcon(QIcon(valeur.c_str()));
+    this->setIcon(QIcon(valeur.c_str()));
 }
 
 void Bouton::etablie_valeur(const dls::chaine &valeur)
 {
-	this->setText(valeur.c_str());
+    this->setText(valeur.c_str());
 }
 
 void Bouton::etablie_infobulle(const dls::chaine &valeur)
 {
-	this->setToolTip(valeur.c_str());
+    this->setToolTip(valeur.c_str());
 }
 
 void Bouton::bouton_presse()
 {
-	if (m_repondant) {
-		m_repondant->repond_clique(m_attache, m_metadonnee);
-	}
+    if (m_repondant) {
+        m_repondant->repond_clique(m_attache, m_metadonnee);
+    }
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

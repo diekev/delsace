@@ -34,38 +34,38 @@ class QPushButton;
 namespace danjo {
 
 class ControleProprieteVec3 final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	QHBoxLayout *m_agencement{};
-	ControleNombreDecimal *m_x{};
-	ControleNombreDecimal *m_y{};
-	ControleNombreDecimal *m_z{};
+    QHBoxLayout *m_agencement{};
+    ControleNombreDecimal *m_x{};
+    ControleNombreDecimal *m_y{};
+    ControleNombreDecimal *m_z{};
 
-	QPushButton *m_bouton_animation{};
-	QPushButton *m_bouton_x{};
-	QPushButton *m_bouton_y{};
-	QPushButton *m_bouton_z{};
-	ControleEchelleDecimale *m_echelle_x{};
-	ControleEchelleDecimale *m_echelle_y{};
-	ControleEchelleDecimale *m_echelle_z{};
+    QPushButton *m_bouton_animation{};
+    QPushButton *m_bouton_x{};
+    QPushButton *m_bouton_y{};
+    QPushButton *m_bouton_z{};
+    ControleEchelleDecimale *m_echelle_x{};
+    ControleEchelleDecimale *m_echelle_y{};
+    ControleEchelleDecimale *m_echelle_z{};
 
-public:
+  public:
     explicit ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent = nullptr);
-	~ControleProprieteVec3() override;
+    ~ControleProprieteVec3() override;
 
-	ControleProprieteVec3(ControleProprieteVec3 const &) = default;
-	ControleProprieteVec3 &operator=(ControleProprieteVec3 const &) = default;
+    ControleProprieteVec3(ControleProprieteVec3 const &) = default;
+    ControleProprieteVec3 &operator=(ControleProprieteVec3 const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void ajourne_valeur_x(float valeur);
-	void ajourne_valeur_y(float valeur);
-	void ajourne_valeur_z(float valeur);
-	void montre_echelle_x();
-	void montre_echelle_y();
-	void montre_echelle_z();
-	void bascule_animation();
+  private Q_SLOTS:
+    void ajourne_valeur_x(float valeur);
+    void ajourne_valeur_y(float valeur);
+    void ajourne_valeur_z(float valeur);
+    void montre_echelle_x();
+    void montre_echelle_y();
+    void montre_echelle_z();
+    void bascule_animation();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -173,291 +173,293 @@ plage_valeur<float> Propriete::plage_valeur_couleur() const
 void Propriete::ajoute_cle(const int v, int temps)
 {
     assert(type() == TypePropriete::ENTIER);
-	ajoute_cle_impl(std::any(v), temps);
+    ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const float v, int temps)
 {
     assert(type() == TypePropriete::DECIMAL);
-	ajoute_cle_impl(std::any(v), temps);
+    ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const dls::math::vec3f &v, int temps)
 {
     assert(type() == TypePropriete::VECTEUR);
-	ajoute_cle_impl(std::any(v), temps);
+    ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::ajoute_cle(const dls::phys::couleur32 &v, int temps)
 {
     assert(type() == TypePropriete::COULEUR);
-	ajoute_cle_impl(std::any(v), temps);
+    ajoute_cle_impl(std::any(v), temps);
 }
 
 void Propriete::supprime_animation()
 {
-	courbe.efface();
+    courbe.efface();
 }
 
 bool Propriete::est_animee() const
 {
-	return !courbe.est_vide();
+    return !courbe.est_vide();
 }
 
 bool Propriete::possede_cle(int temps) const
 {
-	for (const auto &val : courbe) {
-		if (val.first == temps) {
-			return true;
-		}
-	}
+    for (const auto &val : courbe) {
+        if (val.first == temps) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 void Propriete::ajoute_cle_impl(const std::any &v, int temps)
 {
-	bool insere = false;
-	long i = 0;
+    bool insere = false;
+    long i = 0;
 
-	for (; i < courbe.taille(); ++i) {
-		if (courbe[i].first == temps) {
-			courbe[i].second = v;
-			insere = true;
-			break;
-		}
+    for (; i < courbe.taille(); ++i) {
+        if (courbe[i].first == temps) {
+            courbe[i].second = v;
+            insere = true;
+            break;
+        }
 
-		if (courbe[i].first > temps) {
-			courbe.insere(courbe.debut() + i, std::make_pair(temps, v));
-			insere = true;
-			break;
-		}
-	}
+        if (courbe[i].first > temps) {
+            courbe.insere(courbe.debut() + i, std::make_pair(temps, v));
+            insere = true;
+            break;
+        }
+    }
 
-	if (!insere) {
-		courbe.ajoute(std::make_pair(temps, v));
-	}
+    if (!insere) {
+        courbe.ajoute(std::make_pair(temps, v));
+    }
 }
 
 bool Propriete::trouve_valeurs_temps(int temps, std::any &v1, std::any &v2, int &t1, int &t2) const
 {
-	bool v1_trouve = false;
-	bool v2_trouve = false;
+    bool v1_trouve = false;
+    bool v2_trouve = false;
 
-	for (auto i = 0; i < courbe.taille(); ++i) {
-		if (courbe[i].first < temps) {
-			v1 = courbe[i].second;
-			t1 = courbe[i].first;
-			v1_trouve = true;
-			continue;
-		}
+    for (auto i = 0; i < courbe.taille(); ++i) {
+        if (courbe[i].first < temps) {
+            v1 = courbe[i].second;
+            t1 = courbe[i].first;
+            v1_trouve = true;
+            continue;
+        }
 
-		if (courbe[i].first == temps) {
-			v1 = courbe[i].second;
-			return true;
-		}
+        if (courbe[i].first == temps) {
+            v1 = courbe[i].second;
+            return true;
+        }
 
-		if (courbe[i].first > temps) {
-			v2 = courbe[i].second;
-			t2 = courbe[i].first;
-			v2_trouve = true;
-			break;
-		}
-	}
+        if (courbe[i].first > temps) {
+            v2 = courbe[i].second;
+            t2 = courbe[i].first;
+            v2_trouve = true;
+            break;
+        }
+    }
 
-	if (!v1_trouve) {
-		v1 = v2;
-	}
+    if (!v1_trouve) {
+        v1 = v2;
+    }
 
-	if (!v2_trouve) {
-		v2 = v1;
-	}
+    if (!v2_trouve) {
+        v2 = v1;
+    }
 
-	return false;
+    return false;
 }
 
 /* ************************************************************************** */
 
 Manipulable::iterateur Manipulable::debut()
 {
-	return m_proprietes.debut();
+    return m_proprietes.debut();
 }
 
 Manipulable::iterateur_const Manipulable::debut() const
 {
-	return m_proprietes.debut();
+    return m_proprietes.debut();
 }
 
 Manipulable::iterateur Manipulable::fin()
 {
-	return m_proprietes.fin();
+    return m_proprietes.fin();
 }
 
 Manipulable::iterateur_const Manipulable::fin() const
 {
-	return m_proprietes.fin();
+    return m_proprietes.fin();
 }
 
-void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::any &valeur)
+void Manipulable::ajoute_propriete(const dls::chaine &nom,
+                                   TypePropriete type,
+                                   const std::any &valeur)
 {
     // m_proprietes.insere({nom, {valeur, type}});
 }
 
 void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
 {
-	std::any valeur;
+    std::any valeur;
 
-	switch (type) {
-		case TypePropriete::ENTIER:
-			valeur = std::any(0);
-			break;
-		case TypePropriete::DECIMAL:
-			valeur = std::any(0.0f);
-			break;
-		case TypePropriete::VECTEUR:
-			valeur = std::any(dls::math::vec3f(0));
-			break;
-		case TypePropriete::COULEUR:
-			valeur = std::any(dls::phys::couleur32(0));
-			break;
-		case TypePropriete::ENUM:
-		case TypePropriete::FICHIER_ENTREE:
-		case TypePropriete::FICHIER_SORTIE:
-		case TypePropriete::CHAINE_CARACTERE:
-		case TypePropriete::TEXTE:
+    switch (type) {
+        case TypePropriete::ENTIER:
+            valeur = std::any(0);
+            break;
+        case TypePropriete::DECIMAL:
+            valeur = std::any(0.0f);
+            break;
+        case TypePropriete::VECTEUR:
+            valeur = std::any(dls::math::vec3f(0));
+            break;
+        case TypePropriete::COULEUR:
+            valeur = std::any(dls::phys::couleur32(0));
+            break;
+        case TypePropriete::ENUM:
+        case TypePropriete::FICHIER_ENTREE:
+        case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::CHAINE_CARACTERE:
+        case TypePropriete::TEXTE:
         case TypePropriete::LISTE:
-			valeur = std::any(dls::chaine(""));
-			break;
-		case TypePropriete::BOOL:
-			valeur = std::any(false);
-			break;
-		case TypePropriete::COURBE_COULEUR:
-			valeur = std::any(CourbeCouleur());
-			break;
-		case TypePropriete::COURBE_VALEUR:
-		{
-			auto courbe = CourbeBezier();
-			cree_courbe_defaut(courbe);
-			valeur = std::any(courbe);
-			break;
-		}
-		case TypePropriete::RAMPE_COULEUR:
-		{
-			auto rampe = RampeCouleur();
-			cree_rampe_defaut(rampe);
-			valeur = std::any(rampe);
-			break;
-		}
-		case TypePropriete::LISTE_MANIP:
-		{
-			auto liste = ListeManipulable();
-			valeur = std::any(liste);
-			break;
-		}
-	}
+            valeur = std::any(dls::chaine(""));
+            break;
+        case TypePropriete::BOOL:
+            valeur = std::any(false);
+            break;
+        case TypePropriete::COURBE_COULEUR:
+            valeur = std::any(CourbeCouleur());
+            break;
+        case TypePropriete::COURBE_VALEUR:
+        {
+            auto courbe = CourbeBezier();
+            cree_courbe_defaut(courbe);
+            valeur = std::any(courbe);
+            break;
+        }
+        case TypePropriete::RAMPE_COULEUR:
+        {
+            auto rampe = RampeCouleur();
+            cree_rampe_defaut(rampe);
+            valeur = std::any(rampe);
+            break;
+        }
+        case TypePropriete::LISTE_MANIP:
+        {
+            auto liste = ListeManipulable();
+            valeur = std::any(liste);
+            break;
+        }
+    }
 
     // m_proprietes[nom] = Propriete{valeur, type};
 }
 
 void Manipulable::ajoute_propriete_extra(const dls::chaine &nom, const Propriete &propriete)
 {
-//	Propriete prop = propriete;
-//	prop.est_extra = true;
-//	m_proprietes[nom] = prop;
+    //	Propriete prop = propriete;
+    //	prop.est_extra = true;
+    //	m_proprietes[nom] = prop;
 }
 
 int Manipulable::evalue_entier(const dls::chaine &nom, int temps) const
 {
-	auto prop = propriete(nom);
+    auto prop = propriete(nom);
 
-	if (prop->est_animee()) {
-		return prop->evalue_entier(temps);
-	}
+    if (prop->est_animee()) {
+        return prop->evalue_entier(temps);
+    }
 
-    return 0; // std::any_cast<int>(prop->valeur);
+    return 0;  // std::any_cast<int>(prop->valeur);
 }
 
 float Manipulable::evalue_decimal(const dls::chaine &nom, int temps) const
 {
-	auto prop = propriete(nom);
+    auto prop = propriete(nom);
 
-	if (prop->est_animee()) {
-		return prop->evalue_decimal(temps);
-	}
+    if (prop->est_animee()) {
+        return prop->evalue_decimal(temps);
+    }
 
-    return 0.0f; // std::any_cast<float>(prop->valeur);
+    return 0.0f;  // std::any_cast<float>(prop->valeur);
 }
 
 dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps) const
 {
-	auto prop = propriete(nom);
+    auto prop = propriete(nom);
 
-	if (prop->est_animee()) {
-		return prop->evalue_vecteur(temps);
-	}
+    if (prop->est_animee()) {
+        return prop->evalue_vecteur(temps);
+    }
 
-    return {}; // std::any_cast<dls::math::vec3f>(prop->valeur);
+    return {};  // std::any_cast<dls::math::vec3f>(prop->valeur);
 }
 
 dls::phys::couleur32 Manipulable::evalue_couleur(const dls::chaine &nom, int temps) const
 {
-	auto prop = propriete(nom);
+    auto prop = propriete(nom);
 
-	if (prop->est_animee()) {
-		return prop->evalue_couleur(temps);
-	}
+    if (prop->est_animee()) {
+        return prop->evalue_couleur(temps);
+    }
 
-    return dls::phys::couleur32(1.0f); //std::any_cast<dls::phys::couleur32>(prop->valeur);
+    return dls::phys::couleur32(1.0f);  // std::any_cast<dls::phys::couleur32>(prop->valeur);
 }
 
 dls::chaine Manipulable::evalue_fichier_entree(const dls::chaine &nom) const
 {
-    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return "";  // std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_fichier_sortie(const dls::chaine &nom) const
 {
-    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return "";  // std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_chaine(const dls::chaine &nom) const
 {
-    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return "";  // std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 bool Manipulable::evalue_bool(const dls::chaine &nom) const
 {
-    return false; //std::any_cast<bool>(propriete(nom)->valeur);
+    return false;  // std::any_cast<bool>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_enum(const dls::chaine &nom) const
 {
-    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return "";  // std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 dls::chaine Manipulable::evalue_liste(const dls::chaine &nom) const
 {
-    return ""; //std::any_cast<dls::chaine>(propriete(nom)->valeur);
+    return "";  // std::any_cast<dls::chaine>(propriete(nom)->valeur);
 }
 
 CourbeCouleur const *Manipulable::evalue_courbe_couleur(const dls::chaine &nom) const
 {
-    return {}; //std::any_cast<CourbeCouleur>(&propriete(nom)->valeur);
+    return {};  // std::any_cast<CourbeCouleur>(&propriete(nom)->valeur);
 }
 
 CourbeBezier const *Manipulable::evalue_courbe_valeur(const dls::chaine &nom) const
 {
-    return {}; //std::any_cast<CourbeBezier>(&propriete(nom)->valeur);
+    return {};  // std::any_cast<CourbeBezier>(&propriete(nom)->valeur);
 }
 
 RampeCouleur const *Manipulable::evalue_rampe_couleur(const dls::chaine &nom) const
 {
-    return {}; //std::any_cast<RampeCouleur>(&propriete(nom)->valeur);
+    return {};  // std::any_cast<RampeCouleur>(&propriete(nom)->valeur);
 }
 
 ListeManipulable const *Manipulable::evalue_liste_manip(const dls::chaine &nom) const
 {
-    return nullptr; //std::any_cast<ListeManipulable>(&propriete(nom)->valeur);
+    return nullptr;  // std::any_cast<ListeManipulable>(&propriete(nom)->valeur);
 }
 
 void Manipulable::rend_propriete_visible(const dls::chaine &nom, bool ouinon)
@@ -467,7 +469,7 @@ void Manipulable::rend_propriete_visible(const dls::chaine &nom, bool ouinon)
 
 bool Manipulable::ajourne_proprietes()
 {
-	return true;
+    return true;
 }
 
 #if 0
@@ -549,47 +551,47 @@ void *Manipulable::operator[](const dls::chaine &nom)
 
 TypePropriete Manipulable::type_propriete(const dls::chaine &nom) const
 {
-	auto prop = propriete(nom);
+    auto prop = propriete(nom);
     return prop->type();
 }
 
 BasePropriete *Manipulable::propriete(const dls::chaine &nom)
 {
-	auto iter = m_proprietes.trouve(nom);
+    auto iter = m_proprietes.trouve(nom);
 
-	if (iter == m_proprietes.fin()) {
-		return nullptr;
-	}
+    if (iter == m_proprietes.fin()) {
+        return nullptr;
+    }
 
     return iter->second;
 }
 
 BasePropriete const *Manipulable::propriete(const dls::chaine &nom) const
 {
-	auto iter = m_proprietes.trouve(nom);
+    auto iter = m_proprietes.trouve(nom);
 
-	if (iter == m_proprietes.fin()) {
-		return nullptr;
-	}
+    if (iter == m_proprietes.fin()) {
+        return nullptr;
+    }
 
     return iter->second;
 }
 
 bool Manipulable::possede_animation() const
 {
-	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
-		auto &prop = iter->second;
+    for (auto iter = this->debut(); iter != this->fin(); ++iter) {
+        auto &prop = iter->second;
 
         if (prop->est_animee()) {
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 void Manipulable::performe_versionnage()
 {
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

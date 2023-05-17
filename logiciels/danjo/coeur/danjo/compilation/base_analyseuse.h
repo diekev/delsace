@@ -40,18 +40,18 @@ namespace danjo {
  * Classe de base pour définir des analyseuses syntactique.
  */
 class base_analyseuse : public lng::analyseuse<DonneesMorceaux> {
-	lng::tampon_source const &m_tampon;
+    lng::tampon_source const &m_tampon;
 
-public:
-	base_analyseuse(lng::tampon_source const &tampon, dls::tableau<DonneesMorceaux> &identifiants);
+  public:
+    base_analyseuse(lng::tampon_source const &tampon, dls::tableau<DonneesMorceaux> &identifiants);
 
-protected:
-	/**
-	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
-	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesMorceaux lui correspondant.
-	 */
-	[[noreturn]] void lance_erreur(const dls::chaine &quoi);
+  protected:
+    /**
+     * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+     * en paramètre ainsi que plusieurs données sur l'identifiant courant
+     * contenues dans l'instance DonneesMorceaux lui correspondant.
+     */
+    [[noreturn]] void lance_erreur(const dls::chaine &quoi);
 };
 
 } /* namespace danjo */

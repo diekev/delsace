@@ -32,13 +32,12 @@
 namespace danjo {
 
 ControleProprieteEtiquette::ControleProprieteEtiquette(QString const &texte, QWidget *parent)
-    : ControlePropriete(nullptr, 0, parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_etiquette(new QLabel(this))
+    : ControlePropriete(nullptr, 0, parent), m_agencement(new QHBoxLayout(this)),
+      m_etiquette(new QLabel(this))
 {
-	m_agencement->addWidget(m_etiquette);
+    m_agencement->addWidget(m_etiquette);
     m_etiquette->setText(texte);
-	setLayout(m_agencement);
+    setLayout(m_agencement);
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -40,48 +40,48 @@ namespace danjo {
 class ControleCouleur;
 
 class ControleProprieteRampeCouleur final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	/* entreface */
-	QVBoxLayout *m_agencement_principal{};
-	QHBoxLayout *m_agencement_nombre{};
+    /* entreface */
+    QVBoxLayout *m_agencement_principal{};
+    QHBoxLayout *m_agencement_nombre{};
 
-	QComboBox *m_entrepolation{};
+    QComboBox *m_entrepolation{};
 
-	/* rampe */
-	ControleRampeCouleur *m_controle_rampe{};
+    /* rampe */
+    ControleRampeCouleur *m_controle_rampe{};
 
-	/* controle de la position du point sélectionné */
-	QPushButton *m_bouton_echelle{};
-	ControleEchelleDecimale *m_echelle{};
-	ControleNombreDecimal *m_pos{};
+    /* controle de la position du point sélectionné */
+    QPushButton *m_bouton_echelle{};
+    ControleEchelleDecimale *m_echelle{};
+    ControleNombreDecimal *m_pos{};
 
-	/* controle de la couleur */
-	ControleCouleur *m_controle_couleur{};
+    /* controle de la couleur */
+    ControleCouleur *m_controle_couleur{};
 
-	/* connexion */
-	RampeCouleur *m_rampe{};
+    /* connexion */
+    RampeCouleur *m_rampe{};
 
-public:
+  public:
     explicit ControleProprieteRampeCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
-	~ControleProprieteRampeCouleur() override;
+    ~ControleProprieteRampeCouleur() override;
 
-	ControleProprieteRampeCouleur(ControleProprieteRampeCouleur const &) = default;
-	ControleProprieteRampeCouleur &operator=(ControleProprieteRampeCouleur const &) = default;
+    ControleProprieteRampeCouleur(ControleProprieteRampeCouleur const &) = default;
+    ControleProprieteRampeCouleur &operator=(ControleProprieteRampeCouleur const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void montre_echelle();
-	void controle_ajoute();
+  private Q_SLOTS:
+    void montre_echelle();
+    void controle_ajoute();
 
-	void ajourne_position(float x);
-	void ajourne_position_controle(float v);
-	void ajourne_point_actif();
+    void ajourne_position(float x);
+    void ajourne_position_controle(float v);
+    void ajourne_point_actif();
 
-	void ajourne_entrepolation(int i);
+    void ajourne_entrepolation(int i);
 
-	void ajourne_couleur();
+    void ajourne_couleur();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

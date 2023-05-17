@@ -24,40 +24,39 @@
 
 #pragma once
 
-#include "base_analyseuse.h"
 #include "assembleuse_logique.h"
+#include "base_analyseuse.h"
 
 namespace danjo {
 
 class Manipulable;
 
 class AnalyseuseLogique : public base_analyseuse {
-	AssembleuseLogique m_assembleuse{};
-	Manipulable *m_manipulable{};
-	bool m_initialise_manipulable{};
-	char pad[7];
+    AssembleuseLogique m_assembleuse{};
+    Manipulable *m_manipulable{};
+    bool m_initialise_manipulable{};
+    char pad[7];
 
-public:
-	explicit AnalyseuseLogique(
-			Manipulable *manipulable,
-			lng::tampon_source const &tampon,
-			dls::tableau<DonneesMorceaux> &identifiants,
-			bool initialise_manipulable = false);
+  public:
+    explicit AnalyseuseLogique(Manipulable *manipulable,
+                               lng::tampon_source const &tampon,
+                               dls::tableau<DonneesMorceaux> &identifiants,
+                               bool initialise_manipulable = false);
 
-	AnalyseuseLogique(AnalyseuseLogique const &) = default;
-	AnalyseuseLogique &operator=(AnalyseuseLogique const &) = default;
+    AnalyseuseLogique(AnalyseuseLogique const &) = default;
+    AnalyseuseLogique &operator=(AnalyseuseLogique const &) = default;
 
-	void lance_analyse(std::ostream &) override;
-        
-private:
-	void analyse_corps();
-	void analyse_entree();
-	void analyse_declaration(const int type);
-	void analyse_expression(const dls::chaine &nom, const int type);
-	void analyse_entreface();
-	void analyse_logique();
-	void analyse_sortie();
-	void analyse_relation();
+    void lance_analyse(std::ostream &) override;
+
+  private:
+    void analyse_corps();
+    void analyse_entree();
+    void analyse_declaration(const int type);
+    void analyse_expression(const dls::chaine &nom, const int type);
+    void analyse_entreface();
+    void analyse_logique();
+    void analyse_sortie();
+    void analyse_relation();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

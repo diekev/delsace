@@ -35,38 +35,41 @@ class QVBoxLayout;
 namespace danjo {
 
 class ControleProprieteChaineCaractere final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	QHBoxLayout *m_agencement{};
+    QHBoxLayout *m_agencement{};
     QLineEdit *m_editeur_ligne{};
 
-public:
-    explicit ControleProprieteChaineCaractere(BasePropriete *p, int temps, QWidget *parent = nullptr);
-	~ControleProprieteChaineCaractere() override = default;
+  public:
+    explicit ControleProprieteChaineCaractere(BasePropriete *p,
+                                              int temps,
+                                              QWidget *parent = nullptr);
+    ~ControleProprieteChaineCaractere() override = default;
 
-	ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
-    ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
+    ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
+    ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) =
+        default;
 
-private Q_SLOTS:
-	void ajourne_valeur_pointee();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee();
 };
 
 class ControleProprieteEditeurTexte final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	QVBoxLayout *m_agencement{};
-	QTextEdit *m_editeur_ligne{};
+    QVBoxLayout *m_agencement{};
+    QTextEdit *m_editeur_ligne{};
     QPushButton *m_bouton{};
 
-public:
+  public:
     explicit ControleProprieteEditeurTexte(BasePropriete *p, int temps, QWidget *parent = nullptr);
-	~ControleProprieteEditeurTexte() override = default;
+    ~ControleProprieteEditeurTexte() override = default;
 
-	ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
+    ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
     ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
 
-private Q_SLOTS:
-	void ajourne_valeur_pointee();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

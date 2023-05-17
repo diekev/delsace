@@ -37,38 +37,38 @@ class BasePropriete;
  * Controle::controle_change() est émis.
  */
 class ControlePropriete : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-protected:
+  protected:
     BasePropriete *m_propriete = nullptr;
-	int m_temps = 0;
-	bool m_animation = false;
+    int m_temps = 0;
+    bool m_animation = false;
 
-public:
+  public:
     explicit ControlePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-	ControlePropriete(ControlePropriete const &) = default;
-	ControlePropriete &operator=(ControlePropriete const &) = default;
+    ControlePropriete(ControlePropriete const &) = default;
+    ControlePropriete &operator=(ControlePropriete const &) = default;
 
-	/**
-	 * Finalise le contrôle. Cette fonction est appelée à la fin de la création
-	 * du contrôle par l'assembleur de contrôle.
-	 */
-    virtual void finalise(const DonneesControle &/*donnees*/) {};
+    /**
+     * Finalise le contrôle. Cette fonction est appelée à la fin de la création
+     * du contrôle par l'assembleur de contrôle.
+     */
+    virtual void finalise(const DonneesControle & /*donnees*/){};
 
-Q_SIGNALS:
-	/**
-	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
-	 */
-	void precontrole_change();
+  Q_SIGNALS:
+    /**
+     * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+     */
+    void precontrole_change();
 
-	/**
-	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
-	 */
-	void controle_change();
+    /**
+     * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+     */
+    void controle_change();
 
-public Q_SLOTS:
-	void emet_precontrole_change();
+  public Q_SLOTS:
+    void emet_precontrole_change();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

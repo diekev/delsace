@@ -43,8 +43,8 @@
 #include "controles_proprietes/controle_propriete_courbe_valeur.h"
 #include "controles_proprietes/controle_propriete_decimal.h"
 #include "controles_proprietes/controle_propriete_entier.h"
-#include "controles_proprietes/controle_propriete_etiquette.h"
 #include "controles_proprietes/controle_propriete_enum.h"
+#include "controles_proprietes/controle_propriete_etiquette.h"
 #include "controles_proprietes/controle_propriete_fichier.h"
 #include "controles_proprietes/controle_propriete_liste.h"
 #include "controles_proprietes/controle_propriete_liste_manip.hh"
@@ -99,33 +99,33 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
 {
     switch (lexeme) {
         case id_morceau::ENTIER:
-            return  TypePropriete::ENTIER;
+            return TypePropriete::ENTIER;
         case id_morceau::DECIMAL:
-            return  TypePropriete::DECIMAL;
+            return TypePropriete::DECIMAL;
         case id_morceau::ENUM:
-            return  TypePropriete::ENUM;
+            return TypePropriete::ENUM;
         case id_morceau::LISTE:
-            return  TypePropriete::LISTE;
+            return TypePropriete::LISTE;
         case id_morceau::CASE:
-            return  TypePropriete::BOOL;
+            return TypePropriete::BOOL;
         case id_morceau::CHAINE:
-            return  TypePropriete::CHAINE_CARACTERE;
+            return TypePropriete::CHAINE_CARACTERE;
         case id_morceau::FICHIER_ENTREE:
-            return  TypePropriete::FICHIER_ENTREE;
+            return TypePropriete::FICHIER_ENTREE;
         case id_morceau::FICHIER_SORTIE:
-            return  TypePropriete::FICHIER_SORTIE;
+            return TypePropriete::FICHIER_SORTIE;
         case id_morceau::COULEUR:
-            return  TypePropriete::COULEUR;
+            return TypePropriete::COULEUR;
         case id_morceau::VECTEUR:
-            return  TypePropriete::VECTEUR;
+            return TypePropriete::VECTEUR;
         case id_morceau::COURBE_COULEUR:
-            return  TypePropriete::COURBE_COULEUR;
+            return TypePropriete::COURBE_COULEUR;
         case id_morceau::COURBE_VALEUR:
-            return  TypePropriete::COURBE_VALEUR;
+            return TypePropriete::COURBE_VALEUR;
         case id_morceau::RAMPE_COULEUR:
-            return  TypePropriete::RAMPE_COULEUR;
+            return TypePropriete::RAMPE_COULEUR;
         case id_morceau::TEXTE:
-            return  TypePropriete::TEXTE;
+            return TypePropriete::TEXTE;
         case id_morceau::LISTE_MANIP:
             return TypePropriete::LISTE_MANIP;
         default:
@@ -159,7 +159,8 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
     résultat->etat = donnees.etat;
 
     switch (donnees.type) {
-        case TypePropriete::ENTIER: {
+        case TypePropriete::ENTIER:
+        {
             auto min = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<int>::min());
             auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<int>::max());
             auto valeur_defaut = parse_valeur_ou_defaut(donnees.valeur_defaut, 0);
@@ -168,19 +169,24 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             résultat->valeur = valeur_defaut;
             break;
         }
-        case TypePropriete::DECIMAL: {
-            auto min = parse_valeur_ou_defaut(donnees.valeur_min, -std::numeric_limits<float>::max());
-            auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<float>::max());
+        case TypePropriete::DECIMAL:
+        {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min,
+                                              -std::numeric_limits<float>::max());
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min,
+                                              std::numeric_limits<float>::max());
             auto valeur_defaut = parse_valeur_ou_defaut(donnees.valeur_defaut, 0.0f);
             résultat->valeur_min.f = min;
             résultat->valeur_max.f = max;
             résultat->valeur = valeur_defaut;
             break;
         }
-        case TypePropriete::ENUM: {
+        case TypePropriete::ENUM:
+        {
             break;
         }
-        case TypePropriete::BOOL: {
+        case TypePropriete::BOOL:
+        {
             résultat->valeur = (donnees.valeur_defaut == "vrai");
             break;
         }
@@ -188,11 +194,13 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
         case TypePropriete::CHAINE_CARACTERE:
         case TypePropriete::TEXTE:
         case TypePropriete::FICHIER_ENTREE:
-        case TypePropriete::FICHIER_SORTIE: {
+        case TypePropriete::FICHIER_SORTIE:
+        {
             résultat->valeur = donnees.valeur_defaut;
             break;
         }
-        case TypePropriete::COULEUR: {
+        case TypePropriete::COULEUR:
+        {
             auto min = parse_valeur_ou_defaut(donnees.valeur_min, 0.0f);
             auto max = parse_valeur_ou_defaut(donnees.valeur_min, 1.0f);
             auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
@@ -208,9 +216,12 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             résultat->valeur = valeur_defaut;
             break;
         }
-        case TypePropriete::VECTEUR: {
-            auto min = parse_valeur_ou_defaut(donnees.valeur_min, -std::numeric_limits<float>::max());
-            auto max = parse_valeur_ou_defaut(donnees.valeur_min, std::numeric_limits<float>::max());
+        case TypePropriete::VECTEUR:
+        {
+            auto min = parse_valeur_ou_defaut(donnees.valeur_min,
+                                              -std::numeric_limits<float>::max());
+            auto max = parse_valeur_ou_defaut(donnees.valeur_min,
+                                              std::numeric_limits<float>::max());
             auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
             auto index = 0ul;
 
@@ -224,16 +235,20 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             résultat->valeur = valeur_defaut;
             break;
         }
-        case TypePropriete::COURBE_COULEUR: {
+        case TypePropriete::COURBE_COULEUR:
+        {
             break;
         }
-        case TypePropriete::COURBE_VALEUR: {
+        case TypePropriete::COURBE_VALEUR:
+        {
             break;
         }
-        case TypePropriete::RAMPE_COULEUR: {
+        case TypePropriete::RAMPE_COULEUR:
+        {
             break;
         }
-        case TypePropriete::LISTE_MANIP: {
+        case TypePropriete::LISTE_MANIP:
+        {
             break;
         }
     }
@@ -241,35 +256,37 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
     return résultat;
 }
 
-AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable, RepondantBouton *repondant_bouton, ConteneurControles *conteneur, int temps, bool initialisation_seule)
-	: m_manipulable(manipulable)
-	, m_repondant(repondant_bouton)
-	, m_conteneur(conteneur)
-	, m_temps(temps)
-	, m_initialisation_seule(initialisation_seule)
-{}
+AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable,
+                                             RepondantBouton *repondant_bouton,
+                                             ConteneurControles *conteneur,
+                                             int temps,
+                                             bool initialisation_seule)
+    : m_manipulable(manipulable), m_repondant(repondant_bouton), m_conteneur(conteneur),
+      m_temps(temps), m_initialisation_seule(initialisation_seule)
+{
+}
 
 void AssembleurDisposition::ajoute_disposition(id_morceau identifiant)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	QBoxLayout *disposition = nullptr;
+    QBoxLayout *disposition = nullptr;
 
-	switch (identifiant) {
-		default:
-		case id_morceau::LIGNE:
-			disposition = new QHBoxLayout;
-			break;
-		case id_morceau::COLONNE:
-			disposition = new QVBoxLayout;
-			break;
-	}
+    switch (identifiant) {
+        default:
+        case id_morceau::LIGNE:
+            disposition = new QHBoxLayout;
+            break;
+        case id_morceau::COLONNE:
+            disposition = new QVBoxLayout;
+            break;
+    }
 
-	if (!m_pile_dispositions.est_vide()) {
-		m_pile_dispositions.haut()->addLayout(disposition);
-	}
+    if (!m_pile_dispositions.est_vide()) {
+        m_pile_dispositions.haut()->addLayout(disposition);
+    }
 
     m_pile_dispositions.empile(disposition);
 }
@@ -280,30 +297,35 @@ void AssembleurDisposition::ajoute_étiquette(dls::chaine texte)
     m_pile_dispositions.haut()->addWidget(controle);
 }
 
-void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle const &donnees, BasePropriete *prop)
+void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle const &donnees,
+                                                           BasePropriete *prop)
 {
     auto controle = cree_controle_pour_propriete(prop, m_temps);
     controle->finalise(donnees);
 
     m_pile_dispositions.haut()->addWidget(controle);
-    controles.insere({ donnees.nom, controle });
+    controles.insere({donnees.nom, controle});
 
     if (m_conteneur != nullptr) {
         if (prop->type() == TypePropriete::LISTE) {
             static_cast<ControleProprieteListe *>(controle)->conteneur(m_conteneur);
         }
 
-        QObject::connect(controle, &ControlePropriete::precontrole_change,
-                         m_conteneur, &ConteneurControles::precontrole_change);
+        QObject::connect(controle,
+                         &ControlePropriete::precontrole_change,
+                         m_conteneur,
+                         &ConteneurControles::precontrole_change);
 
-        QObject::connect(controle, &ControlePropriete::controle_change,
-                         m_conteneur, &ConteneurControles::ajourne_manipulable);
+        QObject::connect(controle,
+                         &ControlePropriete::controle_change,
+                         m_conteneur,
+                         &ConteneurControles::ajourne_manipulable);
     }
 }
 
 void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 {
-	m_donnees_controle = DonneesControle();
+    m_donnees_controle = DonneesControle();
     m_identifiant_donnees_controle = identifiant;
     if (identifiant != id_morceau::ETIQUETTE) {
         m_donnees_controle.type = type_propriete_pour_lexeme(identifiant);
@@ -312,51 +334,51 @@ void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 
 void AssembleurDisposition::cree_controles_proprietes_extra()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	auto debut = m_manipulable->debut();
-	auto fin = m_manipulable->fin();
+    auto debut = m_manipulable->debut();
+    auto fin = m_manipulable->fin();
 
-	for (auto iter = debut; iter != fin; ++iter) {
+    for (auto iter = debut; iter != fin; ++iter) {
         auto const prop = iter->second;
 
         if (!prop->est_extra()) {
-			continue;
+            continue;
         }
 
-		ajoute_disposition(id_morceau::LIGNE);
+        ajoute_disposition(id_morceau::LIGNE);
 
         ajoute_étiquette(iter->first);
 
         m_donnees_controle.nom = iter->first;
         ajoute_controle_pour_propriété(m_donnees_controle, prop);
 
-		sors_disposition();
-	}
+        sors_disposition();
+    }
 }
 
 void AssembleurDisposition::ajoute_item_liste(const dls::chaine &nom, const dls::chaine &valeur)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_donnees_controle.valeur_enum.ajoute({nom, valeur});
+    m_donnees_controle.valeur_enum.ajoute({nom, valeur});
 }
 
 void AssembleurDisposition::ajoute_bouton()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	Bouton *bouton = new Bouton;
-	bouton->installe_repondant(m_repondant);
+    Bouton *bouton = new Bouton;
+    bouton->installe_repondant(m_repondant);
 
-	m_dernier_bouton = bouton;
-	m_pile_dispositions.haut()->addWidget(bouton);
+    m_dernier_bouton = bouton;
+    m_pile_dispositions.haut()->addWidget(bouton);
 }
 
 void AssembleurDisposition::finalise_controle()
@@ -366,13 +388,13 @@ void AssembleurDisposition::finalise_controle()
         return;
     }
 
-	auto prop = m_manipulable->propriete(m_donnees_controle.nom);
+    auto prop = m_manipulable->propriete(m_donnees_controle.nom);
 
     /* Crée une propriété depuis la définition si aucune n'existe. */
     if (prop == nullptr) {
         prop = crée_propriété(m_donnees_controle);
         m_manipulable->ajoute_propriete(m_donnees_controle.nom, prop);
-	}
+    }
 
     if (m_initialisation_seule) {
         /* Si on ne fait qu'initialiser les propriétés du manipulable, nous pouvons
@@ -385,266 +407,268 @@ void AssembleurDisposition::finalise_controle()
 
 void AssembleurDisposition::sors_disposition()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_pile_dispositions.depile();
+    m_pile_dispositions.depile();
 }
 
 void AssembleurDisposition::propriete_controle(id_morceau identifiant, const dls::chaine &valeur)
 {
-	switch (identifiant) {
-		case id_morceau::INFOBULLE:
-			m_donnees_controle.infobulle = valeur;
-			break;
-		case id_morceau::MIN:
-			m_donnees_controle.valeur_min = valeur;
-			break;
-		case id_morceau::MAX:
-			m_donnees_controle.valeur_max = valeur;
-			break;
-		case id_morceau::VALEUR:
-			m_donnees_controle.valeur_defaut = valeur;
-			break;
-		case id_morceau::ATTACHE:		
-			m_donnees_controle.nom = valeur;
-			break;
-		case id_morceau::PRECISION:
-			m_donnees_controle.precision = valeur;
-			break;
-		case id_morceau::PAS:
-			m_donnees_controle.pas = valeur;
-			break;
-		case id_morceau::FILTRES:
-			m_donnees_controle.filtres = valeur;
-			break;
-		case id_morceau::SUFFIXE:
-			m_donnees_controle.suffixe = valeur;
-			break;
-		case id_morceau::ANIMABLE:
-			m_donnees_controle.etat |= EST_ANIMABLE;
-			break;
-		case id_morceau::ACTIVABLE:
-			m_donnees_controle.etat |= EST_ACTIVABLE;
-			break;
-		default:
-			break;
-	}
+    switch (identifiant) {
+        case id_morceau::INFOBULLE:
+            m_donnees_controle.infobulle = valeur;
+            break;
+        case id_morceau::MIN:
+            m_donnees_controle.valeur_min = valeur;
+            break;
+        case id_morceau::MAX:
+            m_donnees_controle.valeur_max = valeur;
+            break;
+        case id_morceau::VALEUR:
+            m_donnees_controle.valeur_defaut = valeur;
+            break;
+        case id_morceau::ATTACHE:
+            m_donnees_controle.nom = valeur;
+            break;
+        case id_morceau::PRECISION:
+            m_donnees_controle.precision = valeur;
+            break;
+        case id_morceau::PAS:
+            m_donnees_controle.pas = valeur;
+            break;
+        case id_morceau::FILTRES:
+            m_donnees_controle.filtres = valeur;
+            break;
+        case id_morceau::SUFFIXE:
+            m_donnees_controle.suffixe = valeur;
+            break;
+        case id_morceau::ANIMABLE:
+            m_donnees_controle.etat |= EST_ANIMABLE;
+            break;
+        case id_morceau::ACTIVABLE:
+            m_donnees_controle.etat |= EST_ACTIVABLE;
+            break;
+        default:
+            break;
+    }
 }
 
 void AssembleurDisposition::propriete_bouton(id_morceau identifiant, const dls::chaine &valeur)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	switch (identifiant) {
-		case id_morceau::INFOBULLE:
-			m_dernier_bouton->etablie_infobulle(valeur);
-			break;
-		case id_morceau::VALEUR:
-			m_dernier_bouton->etablie_valeur(valeur);
-			break;
-		case id_morceau::ATTACHE:
-			m_dernier_bouton->etablie_attache(valeur);
-			break;
-		case id_morceau::METADONNEE:
-			m_dernier_bouton->etablie_metadonnee(valeur);
-			break;
-		case id_morceau::ICONE:
-			m_dernier_bouton->etablie_icone(valeur);
-			break;
-		default:
-			break;
-	}
+    switch (identifiant) {
+        case id_morceau::INFOBULLE:
+            m_dernier_bouton->etablie_infobulle(valeur);
+            break;
+        case id_morceau::VALEUR:
+            m_dernier_bouton->etablie_valeur(valeur);
+            break;
+        case id_morceau::ATTACHE:
+            m_dernier_bouton->etablie_attache(valeur);
+            break;
+        case id_morceau::METADONNEE:
+            m_dernier_bouton->etablie_metadonnee(valeur);
+            break;
+        case id_morceau::ICONE:
+            m_dernier_bouton->etablie_icone(valeur);
+            break;
+        default:
+            break;
+    }
 }
 
 void AssembleurDisposition::propriete_action(id_morceau identifiant, const dls::chaine &valeur)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	switch (identifiant) {
-		case id_morceau::INFOBULLE:
-			m_derniere_action->etablie_infobulle(valeur.c_str());
-			break;
-		case id_morceau::VALEUR:
-			m_derniere_action->etablie_valeur(valeur.c_str());
-			break;
-		case id_morceau::ATTACHE:
-			m_derniere_action->etablie_attache(valeur);
-			break;
-		case id_morceau::METADONNEE:
-			m_derniere_action->etablie_metadonnee(valeur);
-			break;
-		case id_morceau::ICONE:
-			m_derniere_action->etablie_icone(valeur);
-			break;
-		default:
-			break;
-	}
+    switch (identifiant) {
+        case id_morceau::INFOBULLE:
+            m_derniere_action->etablie_infobulle(valeur.c_str());
+            break;
+        case id_morceau::VALEUR:
+            m_derniere_action->etablie_valeur(valeur.c_str());
+            break;
+        case id_morceau::ATTACHE:
+            m_derniere_action->etablie_attache(valeur);
+            break;
+        case id_morceau::METADONNEE:
+            m_derniere_action->etablie_metadonnee(valeur);
+            break;
+        case id_morceau::ICONE:
+            m_derniere_action->etablie_icone(valeur);
+            break;
+        default:
+            break;
+    }
 }
 
 QBoxLayout *AssembleurDisposition::disposition()
 {
-	if (m_pile_dispositions.est_vide()) {
-		return nullptr;
-	}
+    if (m_pile_dispositions.est_vide()) {
+        return nullptr;
+    }
 
-	return m_pile_dispositions.haut();
+    return m_pile_dispositions.haut();
 }
 
 QMenu *AssembleurDisposition::menu()
 {
-	return m_menu_racine;
+    return m_menu_racine;
 }
 
 void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	auto menu = new MenuFiltrable(nom.c_str());
+    auto menu = new MenuFiltrable(nom.c_str());
 
-	if (!m_pile_menus.est_vide()) {
-		m_pile_menus.haut()->addMenu(menu);
-	}
-	else {
-		m_menu_racine = menu;
-	}
+    if (!m_pile_menus.est_vide()) {
+        m_pile_menus.haut()->addMenu(menu);
+    }
+    else {
+        m_menu_racine = menu;
+    }
 
-	m_donnees_menus.ajoute({nom, menu});
+    m_donnees_menus.ajoute({nom, menu});
 
-	m_pile_menus.empile(menu);
+    m_pile_menus.empile(menu);
 }
 
 void AssembleurDisposition::sort_menu()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_pile_menus.depile();
+    m_pile_menus.depile();
 }
 
 void AssembleurDisposition::ajoute_action()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	auto action = new Action;
-	action->installe_repondant(m_repondant);
+    auto action = new Action;
+    action->installe_repondant(m_repondant);
 
-	/* À FAIRE : trouve une meilleure manière de procéder. */
-	if (m_barre_outils) {
-		m_barre_outils->addAction(action);
-	}
-	else {
-		m_pile_menus.haut()->addAction(action);
-	}
+    /* À FAIRE : trouve une meilleure manière de procéder. */
+    if (m_barre_outils) {
+        m_barre_outils->addAction(action);
+    }
+    else {
+        m_pile_menus.haut()->addAction(action);
+    }
 
-	m_derniere_action = action;
+    m_derniere_action = action;
 }
 
 void AssembleurDisposition::ajoute_separateur()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_pile_menus.haut()->addSeparator();
+    m_pile_menus.haut()->addSeparator();
 }
 
 void AssembleurDisposition::ajoute_dossier()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	QTabWidget *dossier = new QTabWidget;
+    QTabWidget *dossier = new QTabWidget;
 
-	m_pile_dispositions.haut()->addWidget(dossier);
+    m_pile_dispositions.haut()->addWidget(dossier);
 
-	m_dernier_dossier = dossier;
+    m_dernier_dossier = dossier;
 }
 
 void AssembleurDisposition::finalise_dossier()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
+    m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
 
-	if (m_conteneur != nullptr) {
-		QObject::connect(m_dernier_dossier, &QTabWidget::currentChanged,
-						 m_conteneur, &ConteneurControles::onglet_dossier_change);
-	}
+    if (m_conteneur != nullptr) {
+        QObject::connect(m_dernier_dossier,
+                         &QTabWidget::currentChanged,
+                         m_conteneur,
+                         &ConteneurControles::onglet_dossier_change);
+    }
 
-	m_dernier_dossier = nullptr;
+    m_dernier_dossier = nullptr;
 }
 
 void AssembleurDisposition::ajoute_onglet(const dls::chaine &nom)
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	/* À FAIRE : expose contrôle de la direction. */
-	auto disp_onglet = new QVBoxLayout;
+    /* À FAIRE : expose contrôle de la direction. */
+    auto disp_onglet = new QVBoxLayout;
 
-	auto onglet = new QWidget;
-	onglet->setLayout(disp_onglet);
+    auto onglet = new QWidget;
+    onglet->setLayout(disp_onglet);
 
-	m_pile_dispositions.empile(disp_onglet);
+    m_pile_dispositions.empile(disp_onglet);
 
-	m_dernier_dossier->addTab(onglet, nom.c_str());
+    m_dernier_dossier->addTab(onglet, nom.c_str());
 }
 
 void AssembleurDisposition::finalise_onglet()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	m_pile_dispositions.depile();
+    m_pile_dispositions.depile();
 }
 
 void AssembleurDisposition::nom_disposition(const dls::chaine &chaine)
 {
-	m_nom = chaine;
+    m_nom = chaine;
 }
 
 dls::chaine AssembleurDisposition::nom_disposition() const
 {
-	return m_nom;
+    return m_nom;
 }
 
 const dls::tableau<std::pair<dls::chaine, QMenu *>> &AssembleurDisposition::donnees_menus() const
 {
-	return m_donnees_menus;
+    return m_donnees_menus;
 }
 
 void AssembleurDisposition::ajoute_barre_outils()
 {
-	if (m_initialisation_seule) {
-		return;
-	}
+    if (m_initialisation_seule) {
+        return;
+    }
 
-	if (m_barre_outils) {
-		delete m_barre_outils;
-	}
+    if (m_barre_outils) {
+        delete m_barre_outils;
+    }
 
-	m_barre_outils = new QToolBar;
+    m_barre_outils = new QToolBar;
 }
 
 QToolBar *AssembleurDisposition::barre_outils() const
 {
-	return m_barre_outils;
+    return m_barre_outils;
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

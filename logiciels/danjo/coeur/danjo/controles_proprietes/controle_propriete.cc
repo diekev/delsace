@@ -29,9 +29,7 @@
 namespace danjo {
 
 ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *parent)
-	: QWidget(parent)
-    , m_propriete(p)
-    , m_temps(temps)
+    : QWidget(parent), m_propriete(p), m_temps(temps)
 {
     if (m_propriete) {
         /* Les étiquettes n'ont pas de propriété. */
@@ -41,7 +39,7 @@ ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *paren
 
 void ControlePropriete::emet_precontrole_change()
 {
-	Q_EMIT(precontrole_change());
+    Q_EMIT(precontrole_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

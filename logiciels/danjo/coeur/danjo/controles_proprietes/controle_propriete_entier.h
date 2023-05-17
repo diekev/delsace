@@ -34,29 +34,29 @@ class QPushButton;
 namespace danjo {
 
 class ControleProprieteEntier final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	/* entreface */
-	QHBoxLayout *m_agencement{};
-	ControleNombreEntier *m_controle{};
+    /* entreface */
+    QHBoxLayout *m_agencement{};
+    ControleNombreEntier *m_controle{};
 
-	QPushButton *m_bouton{};
-	QPushButton *m_bouton_animation{};
-	ControleEchelleEntiere *m_echelle{};
+    QPushButton *m_bouton{};
+    QPushButton *m_bouton_animation{};
+    ControleEchelleEntiere *m_echelle{};
 
-public:
+  public:
     explicit ControleProprieteEntier(BasePropriete *p, int temps, QWidget *parent = nullptr);
-	~ControleProprieteEntier() override;
+    ~ControleProprieteEntier() override;
 
-	ControleProprieteEntier(ControleProprieteEntier const &) = default;
-	ControleProprieteEntier &operator=(ControleProprieteEntier const &) = default;
+    ControleProprieteEntier(ControleProprieteEntier const &) = default;
+    ControleProprieteEntier &operator=(ControleProprieteEntier const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void ajourne_valeur_pointee(int valeur);
-	void montre_echelle();
-	void bascule_animation();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee(int valeur);
+    void montre_echelle();
+    void bascule_animation();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -32,24 +32,26 @@
 namespace danjo {
 
 ControleProprieteBool::ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent)
-	, m_agencement(new QHBoxLayout)
-	, m_case_a_cocher(new QCheckBox(this))
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+      m_case_a_cocher(new QCheckBox(this))
 {
-	m_agencement->addWidget(m_case_a_cocher);
+    m_agencement->addWidget(m_case_a_cocher);
 
     m_case_a_cocher->setChecked(m_propriete->evalue_bool(temps));
 
-	this->setLayout(m_agencement);
+    this->setLayout(m_agencement);
 
-	connect(m_case_a_cocher, &QAbstractButton::toggled, this, &ControleProprieteBool::ajourne_valeur_pointee);
+    connect(m_case_a_cocher,
+            &QAbstractButton::toggled,
+            this,
+            &ControleProprieteBool::ajourne_valeur_pointee);
 }
 
 void ControleProprieteBool::ajourne_valeur_pointee(bool valeur)
 {
-	Q_EMIT(precontrole_change());
+    Q_EMIT(precontrole_change());
     m_propriete->définit_valeur_bool(valeur);
-	Q_EMIT(controle_change());
+    Q_EMIT(controle_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

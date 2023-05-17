@@ -39,25 +39,26 @@
 namespace danjo {
 
 ControleProprieteCouleur::ControleProprieteCouleur(BasePropriete *p, int temps, QWidget *parent)
-    : ControlePropriete(p, temps, parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_controle_couleur(new ControleCouleur(this))
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_controle_couleur(new ControleCouleur(this))
 {
-	m_agencement->addWidget(m_controle_couleur);
+    m_agencement->addWidget(m_controle_couleur);
 
     auto plage = m_propriete->plage_valeur_couleur();
     m_controle_couleur->ajourne_plage(plage.min, plage.max);
     m_controle_couleur->couleur(m_propriete->evalue_couleur(m_temps));
 
-	connect(m_controle_couleur, &ControleCouleur::couleur_changee,
-			this, &ControleProprieteCouleur::ajourne_couleur);
+    connect(m_controle_couleur,
+            &ControleCouleur::couleur_changee,
+            this,
+            &ControleProprieteCouleur::ajourne_couleur);
 }
 
 void ControleProprieteCouleur::ajourne_couleur()
 {
-	Q_EMIT(precontrole_change());
+    Q_EMIT(precontrole_change());
     m_propriete->définit_valeur_couleur(m_controle_couleur->couleur());
-	Q_EMIT(controle_change());
+    Q_EMIT(controle_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */
