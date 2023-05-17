@@ -27,13 +27,7 @@
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/structures/tableau.hh"
 
-namespace vision {
-class Camera3D;
-}
-
-namespace JJL {
-class Objet;
-}
+#include "coeur/jorjala.hh"
 
 class Scene;
 
@@ -69,7 +63,7 @@ struct deleguee_scene {
 
 class MoteurRendu {
   protected:
-    vision::Camera3D *m_camera = nullptr;
+    JJL::Camera3D m_camera = JJL::Camera3D({});
     deleguee_scene *m_delegue = nullptr;
 
   public:
@@ -80,7 +74,7 @@ class MoteurRendu {
     MoteurRendu(MoteurRendu const &) = default;
     MoteurRendu &operator=(MoteurRendu const &) = default;
 
-    void camera(vision::Camera3D *camera);
+    void camera(JJL::Camera3D camera);
 
     deleguee_scene *delegue();
 

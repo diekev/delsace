@@ -41,6 +41,23 @@
 
 #undef RATISSAGE
 
+template <typename TypeCible, typename TypeOrig>
+static TypeCible convertie_type(TypeOrig val)
+{
+    static_assert(sizeof(TypeCible) == sizeof(TypeOrig));
+    return *reinterpret_cast<TypeCible *>(&val);
+}
+
+static dls::math::mat4x4f convertie_matrice(JJL::Mat4r mat)
+{
+    return convertie_type<dls::math::mat4x4f>(mat);
+}
+
+static dls::math::vec3f convertie_vecteur(JJL::Vec3 vec)
+{
+    return convertie_type<dls::math::vec3f>(vec);
+}
+
 #ifdef RATISSAGE
 struct Image {
     float *tampon = nullptr;
@@ -487,13 +504,13 @@ void MoteurRenduOpenGL::calcule_rendu(
     auto contexte = ContexteRendu{};
     auto pile = PileMatrice{};
 
-    m_camera->ajourne();
+    m_camera.ajourne();
 
-    auto const &MV = m_camera->MV();
-    auto const &P = m_camera->P();
+    auto const &MV = convertie_matrice(m_camera.MV());
+    auto const &P = convertie_matrice(m_camera.P());
     auto const &MVP = P * MV;
 
-    contexte.vue(m_camera->dir());
+    contexte.vue(convertie_vecteur(m_camera.direction()));
     contexte.modele_vue(MV);
     contexte.projection(P);
     contexte.MVP(MVP);
@@ -506,7 +523,7 @@ void MoteurRenduOpenGL::calcule_rendu(
         if (m_rendu_grille == nullptr) {
             /* Simule une grille infini en en dessinant une aussi grande que la
              * caméra peut voir. */
-            auto taille_grille = static_cast<int>(m_camera->eloigne() * 2.0f);
+            auto taille_grille = static_cast<int>(m_camera.plan_éloigné() * 2.0f);
             m_rendu_grille = memoire::loge<RenduGrille>(
                 "RenduGrille", taille_grille, taille_grille);
         }

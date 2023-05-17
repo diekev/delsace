@@ -28,15 +28,10 @@
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 
-namespace vision {
-
-class Camera3D;
-
-}  // namespace vision
-
 namespace JJL {
 class Jorjala;
-}
+class Camera3D;
+}  // namespace JJL
 
 class MoteurRendu;
 class RenduManipulatriceEchelle;
@@ -54,7 +49,6 @@ class VisionneurScene {
     VueCanevas3D *m_parent;
     JJL::Jorjala &m_jorjala;
 
-    vision::Camera3D *m_camera = nullptr;
     RenduTexte *m_rendu_texte;
     RenduManipulatricePosition *m_rendu_manipulatrice_pos;
     RenduManipulatriceRotation *m_rendu_manipulatrice_rot;
