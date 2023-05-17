@@ -64,6 +64,8 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
             return danjo::TypePropriete::BOOL;
         case JJL::TypeParametre::VEC3:
             return danjo::TypePropriete::VECTEUR;
+        case JJL::TypeParametre::COULEUR:
+            return danjo::TypePropriete::COULEUR;
         default:  // À FAIRE
         case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::CORPS:
@@ -131,8 +133,9 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
     dls::phys::couleur32 evalue_couleur(int temps) const override
     {
-        // À FAIRE
-        return dls::phys::couleur32();
+        // À FAIRE: animation
+        auto résultat = m_param.lis_valeur_couleur();
+        return dls::phys::couleur32(résultat.r(), résultat.b(), résultat.v(), résultat.a());
     }
     std::string evalue_chaine(int /*temps*/) const override
     {
@@ -162,7 +165,12 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
-        // À FAIRE
+        JJL::CouleurRVBA résultat({});
+        résultat.r(valeur.r);
+        résultat.v(valeur.v);
+        résultat.b(valeur.b);
+        résultat.a(valeur.a);
+        m_noeud.définit_param_couleur(m_param, résultat);
     }
     void définit_valeur_chaine(std::string const &valeur) override
     {
