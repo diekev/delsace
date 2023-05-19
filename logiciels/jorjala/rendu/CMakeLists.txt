@@ -58,6 +58,7 @@ add_library(${NOM_CIBLE} STATIC
         # moteur_rendu_cycles.cc
         # moteur_rendu_koudou.cc
 	moteur_rendu_opengl.cc
+        moteur_rendu_ratissage.cc
 	rendu_corps.cc
 	rendu_lumiere.cc
 
@@ -66,6 +67,7 @@ add_library(${NOM_CIBLE} STATIC
         # moteur_rendu_cycles.hh
         # moteur_rendu_koudou.hh
 	moteur_rendu_opengl.hh
+        moteur_rendu_ratissage.hh
 	rendu_corps.h
 	rendu_lumiere.h
 )
