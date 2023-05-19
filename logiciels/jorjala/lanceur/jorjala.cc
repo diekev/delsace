@@ -51,12 +51,6 @@
   VueEditeurNoeud :
     genere_menu_noeuds_cycles
 
-  EditriceGraphe
-    graphe->info_noeud
-
-  ItemNoeud
-    noeud->type
-
   Visionneuse2D
     m_jorjala.usine_operatrices
     m_jorjala.lcc->fonctions.table.taille
