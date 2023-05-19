@@ -62,6 +62,7 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
             return danjo::TypePropriete::DECIMAL;
         case JJL::TypeParametre::VALEUR_BOOLÉENNE:
             return danjo::TypePropriete::BOOL;
+        case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::VEC3:
             return danjo::TypePropriete::VECTEUR;
         case JJL::TypeParametre::COULEUR:
@@ -69,7 +70,6 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
         case JJL::TypeParametre::ÉNUMÉRATION:
             return danjo::TypePropriete::ENUM;
         default:  // À FAIRE
-        case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::CORPS:
             return {};
     }
@@ -111,6 +111,14 @@ class EnveloppeParametre : public danjo::BasePropriete {
         return "";
     }
 
+    int donne_dimensions_vecteur() const override
+    {
+        if (m_param.type() == JJL::TypeParametre::VEC2) {
+            return 2;
+        }
+        return 3;
+    }
+
     /* Évaluation des valeurs. */
     bool evalue_bool(int temps) const override
     {
@@ -129,6 +137,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
     dls::math::vec3f evalue_vecteur(int temps) const override
     {
+        if (m_param.type() == JJL::TypeParametre::VEC2) {
+            auto résultat = m_param.lis_valeur_vec2();
+            return dls::math::vec3f{résultat.x(), résultat.y(), 0.0f};
+        }
         // À FAIRE: animation
         auto résultat = m_param.lis_valeur_vec3();
         return dls::math::vec3f{résultat.x(), résultat.y(), résultat.z()};
@@ -163,6 +175,13 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
     void définit_valeur_vec3(dls::math::vec3f valeur) override
     {
+        if (m_param.type() == JJL::TypeParametre::VEC2) {
+            JJL::Vec2 résultat({});
+            résultat.x(valeur.x);
+            résultat.y(valeur.y);
+            m_noeud.définit_param_vec2(m_param, résultat);
+            return;
+        }
         JJL::Vec3 résultat({});
         résultat.x(valeur.x);
         résultat.y(valeur.y);

@@ -26,15 +26,20 @@
 
 #include "biblinternes/structures/tableau.hh"
 
+#include <map>
+
 #include "moteur_rendu.hh"
 
 class RenduGrille;
+class RenduCorps;
 class TamponRendu;
 
 class MoteurRenduOpenGL final : public MoteurRendu {
     RenduGrille *m_rendu_grille = nullptr;
 
     dls::tableau<TamponRendu *> m_tampons{};
+
+    std::map<unsigned long, RenduCorps *> m_rendus_corps{};
 
   public:
     MoteurRenduOpenGL() = default;

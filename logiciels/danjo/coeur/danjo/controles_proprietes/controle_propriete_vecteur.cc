@@ -43,84 +43,84 @@ namespace danjo {
 
 ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
-      m_x(new ControleNombreDecimal(this)), m_y(new ControleNombreDecimal(this)),
-      m_z(new ControleNombreDecimal(this)), m_bouton_animation(new QPushButton("C", this)),
-      m_bouton_x(new QPushButton("H", this)), m_bouton_y(new QPushButton("H", this)),
-      m_bouton_z(new QPushButton("H", this)), m_echelle_x(new ControleEchelleDecimale()),
-      m_echelle_y(new ControleEchelleDecimale()), m_echelle_z(new ControleEchelleDecimale())
+      m_bouton_animation(new QPushButton("C", this))
+
 {
+    for (int i = 0; i < DIMENSIONS_MAX; i++) {
+        m_dim[i] = nullptr;
+        m_bouton_echelle_dim[i] = nullptr;
+        m_echelle[i] = nullptr;
+    }
+
+    const int dimensions = p->donne_dimensions_vecteur();
+    m_dimensions = dimensions;
+
     auto metriques = this->fontMetrics();
-    m_bouton_x->setFixedWidth(metriques.horizontalAdvance("H") * 2);
-    m_bouton_y->setFixedWidth(metriques.horizontalAdvance("H") * 2);
-    m_bouton_z->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+
+    for (int i = 0; i < dimensions; i++) {
+        m_bouton_echelle_dim[i] = new QPushButton("H", this);
+        m_bouton_echelle_dim[i]->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+
+        m_dim[i] = new ControleNombreDecimal(this);
+
+        m_echelle[i] = new ControleEchelleDecimale();
+        m_echelle[i]->setWindowFlags(Qt::WindowStaysOnTopHint);
+    }
+
     m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
 
     m_agencement->addWidget(m_bouton_animation);
-    m_agencement->addWidget(m_bouton_x);
-    m_agencement->addWidget(m_x);
-    m_agencement->addWidget(m_bouton_y);
-    m_agencement->addWidget(m_y);
-    m_agencement->addWidget(m_bouton_z);
-    m_agencement->addWidget(m_z);
+
+    for (int i = 0; i < dimensions; i++) {
+        m_agencement->addWidget(m_bouton_echelle_dim[i]);
+        m_agencement->addWidget(m_dim[i]);
+    }
     setLayout(m_agencement);
 
-    m_echelle_x->setWindowFlags(Qt::WindowStaysOnTopHint);
-    m_echelle_y->setWindowFlags(Qt::WindowStaysOnTopHint);
-    m_echelle_z->setWindowFlags(Qt::WindowStaysOnTopHint);
+#define CONNECT_VALEUR_CHANGEE(dim, func)                                                         \
+    if (m_dim[dim]) {                                                                             \
+        connect(m_dim[dim],                                                                       \
+                &ControleNombreDecimal::valeur_changee,                                           \
+                this,                                                                             \
+                &ControleProprieteVec3::func);                                                    \
+    }
 
-    connect(m_x,
-            &ControleNombreDecimal::valeur_changee,
-            this,
-            &ControleProprieteVec3::ajourne_valeur_x);
-    connect(m_y,
-            &ControleNombreDecimal::valeur_changee,
-            this,
-            &ControleProprieteVec3::ajourne_valeur_y);
-    connect(m_z,
-            &ControleNombreDecimal::valeur_changee,
-            this,
-            &ControleProprieteVec3::ajourne_valeur_z);
-    connect(m_x,
-            &ControleNombreDecimal::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
-    connect(m_y,
-            &ControleNombreDecimal::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
-    connect(m_z,
-            &ControleNombreDecimal::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
+    CONNECT_VALEUR_CHANGEE(0, ajourne_valeur_x);
+    CONNECT_VALEUR_CHANGEE(1, ajourne_valeur_y);
+    CONNECT_VALEUR_CHANGEE(2, ajourne_valeur_z);
 
-    connect(m_bouton_x, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_x);
-    connect(m_bouton_y, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_y);
-    connect(m_bouton_z, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_z);
+#undef CONNECT_VALEUR_CHANGEE
 
-    connect(m_echelle_x,
-            &ControleEchelleDecimale::valeur_changee,
-            m_x,
-            &ControleNombreDecimal::ajourne_valeur);
-    connect(m_echelle_y,
-            &ControleEchelleDecimale::valeur_changee,
-            m_y,
-            &ControleNombreDecimal::ajourne_valeur);
-    connect(m_echelle_z,
-            &ControleEchelleDecimale::valeur_changee,
-            m_z,
-            &ControleNombreDecimal::ajourne_valeur);
-    connect(m_echelle_x,
-            &ControleEchelleDecimale::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
-    connect(m_echelle_y,
-            &ControleEchelleDecimale::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
-    connect(m_echelle_z,
-            &ControleEchelleDecimale::prevaleur_changee,
-            this,
-            &ControleProprieteVec3::emet_precontrole_change);
+    for (int i = 0; i < dimensions; i++) {
+        connect(m_dim[i],
+                &ControleNombreDecimal::prevaleur_changee,
+                this,
+                &ControleProprieteVec3::emet_precontrole_change);
+
+        connect(m_echelle[i],
+                &ControleEchelleDecimale::valeur_changee,
+                m_dim[i],
+                &ControleNombreDecimal::ajourne_valeur);
+
+        connect(m_echelle[i],
+                &ControleEchelleDecimale::prevaleur_changee,
+                this,
+                &ControleProprieteVec3::emet_precontrole_change);
+    }
+
+#define CONNECT_MONTRE_ECHELLE(dim, func)                                                         \
+    if (m_bouton_echelle_dim[dim]) {                                                              \
+        connect(m_bouton_echelle_dim[dim],                                                        \
+                &QPushButton::pressed,                                                            \
+                this,                                                                             \
+                &ControleProprieteVec3::func);                                                    \
+    }
+
+    CONNECT_MONTRE_ECHELLE(0, montre_echelle_x);
+    CONNECT_MONTRE_ECHELLE(1, montre_echelle_y);
+    CONNECT_MONTRE_ECHELLE(2, montre_echelle_z);
+
+#undef CONNECT_MONTRE_ECHELLE
 
     connect(m_bouton_animation,
             &QPushButton::pressed,
@@ -130,17 +130,18 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
 
 ControleProprieteVec3::~ControleProprieteVec3()
 {
-    delete m_echelle_x;
-    delete m_echelle_y;
-    delete m_echelle_z;
+    for (int i = 0; i < m_dimensions; i++) {
+        delete m_echelle[i];
+    }
 }
 
 void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 {
     auto plage = m_propriete->plage_valeur_vecteur();
-    m_x->ajourne_plage(plage.min, plage.max);
-    m_y->ajourne_plage(plage.min, plage.max);
-    m_z->ajourne_plage(plage.min, plage.max);
+
+    for (int i = 0; i < m_dimensions; i++) {
+        m_dim[i]->ajourne_plage(plage.min, plage.max);
+    }
 
     if (!m_propriete->est_animable()) {
         m_bouton_animation->hide();
@@ -151,19 +152,20 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
     if (m_animation) {
         m_bouton_animation->setText("c");
         auto temps_exacte = m_propriete->possede_cle(m_temps);
-        m_x->marque_anime(m_animation, temps_exacte);
-        m_y->marque_anime(m_animation, temps_exacte);
-        m_z->marque_anime(m_animation, temps_exacte);
+
+        for (int i = 0; i < m_dimensions; i++) {
+            m_dim[i]->marque_anime(m_animation, temps_exacte);
+        }
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        m_x->valeur(valeur[0]);
-        m_y->valeur(valeur[1]);
-        m_z->valeur(valeur[2]);
+        for (int i = 0; i < m_dimensions; i++) {
+            m_dim[i]->valeur(valeur[i]);
+        }
     }
     else {
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        m_x->valeur(valeur[0]);
-        m_y->valeur(valeur[1]);
-        m_z->valeur(valeur[2]);
+        for (int i = 0; i < m_dimensions; i++) {
+            m_dim[i]->valeur(valeur[i]);
+        }
     }
 
     setToolTip(donnees.infobulle.c_str());
@@ -171,23 +173,17 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 
 void ControleProprieteVec3::montre_echelle_x()
 {
-    m_echelle_x->valeur(m_x->valeur());
-    m_echelle_x->plage(m_x->min(), m_x->max());
-    m_echelle_x->show();
+    montre_echelle(0);
 }
 
 void ControleProprieteVec3::montre_echelle_y()
 {
-    m_echelle_y->valeur(m_y->valeur());
-    m_echelle_y->plage(m_y->min(), m_y->max());
-    m_echelle_y->show();
+    montre_echelle(1);
 }
 
 void ControleProprieteVec3::montre_echelle_z()
 {
-    m_echelle_z->valeur(m_z->valeur());
-    m_echelle_z->plage(m_z->min(), m_z->max());
-    m_echelle_z->show();
+    montre_echelle(2);
 }
 
 void ControleProprieteVec3::bascule_animation()
@@ -197,9 +193,9 @@ void ControleProprieteVec3::bascule_animation()
     if (m_animation == false) {
         m_propriete->supprime_animation();
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        m_x->valeur(valeur[0]);
-        m_y->valeur(valeur[1]);
-        m_z->valeur(valeur[2]);
+        for (int i = 0; i < m_dimensions; i++) {
+            m_dim[i]->valeur(valeur[i]);
+        }
         m_bouton_animation->setText("C");
     }
     else {
@@ -207,42 +203,43 @@ void ControleProprieteVec3::bascule_animation()
         m_bouton_animation->setText("c");
     }
 
-    m_x->marque_anime(m_animation, m_animation);
-    m_y->marque_anime(m_animation, m_animation);
-    m_z->marque_anime(m_animation, m_animation);
+    for (int i = 0; i < m_dimensions; i++) {
+        m_dim[i]->marque_anime(m_animation, m_animation);
+    }
 }
 
 void ControleProprieteVec3::ajourne_valeur_x(float valeur)
 {
-    auto vec = dls::math::vec3f(valeur, m_y->valeur(), m_z->valeur());
-
-    if (m_animation) {
-        m_propriete->ajoute_cle(vec, m_temps);
-    }
-    else {
-        m_propriete->définit_valeur_vec3(vec);
-    }
-
+    ajourne_valeur(0, valeur);
     Q_EMIT(controle_change());
 }
 
 void ControleProprieteVec3::ajourne_valeur_y(float valeur)
 {
-    auto vec = dls::math::vec3f(m_x->valeur(), valeur, m_z->valeur());
-
-    if (m_animation) {
-        m_propriete->ajoute_cle(vec, m_temps);
-    }
-    else {
-        m_propriete->définit_valeur_vec3(vec);
-    }
-
+    ajourne_valeur(1, valeur);
     Q_EMIT(controle_change());
 }
 
 void ControleProprieteVec3::ajourne_valeur_z(float valeur)
 {
-    auto vec = dls::math::vec3f(m_x->valeur(), m_y->valeur(), valeur);
+    ajourne_valeur(2, valeur);
+    Q_EMIT(controle_change());
+}
+
+void ControleProprieteVec3::montre_echelle(int index)
+{
+    m_echelle[index]->valeur(m_dim[index]->valeur());
+    m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
+    m_echelle[index]->show();
+}
+
+void ControleProprieteVec3::ajourne_valeur(int index, float valeur)
+{
+    auto vec = dls::math::vec3f(0.0f);
+    for (int i = 0; i < m_dimensions; i++) {
+        vec[i] = m_dim[i]->valeur();
+    }
+    vec[index] = valeur;
 
     if (m_animation) {
         m_propriete->ajoute_cle(vec, m_temps);
@@ -250,8 +247,6 @@ void ControleProprieteVec3::ajourne_valeur_z(float valeur)
     else {
         m_propriete->définit_valeur_vec3(vec);
     }
-
-    Q_EMIT(controle_change());
 }
 
 } /* namespace danjo */

@@ -27,6 +27,8 @@
 #include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 
+#include <set>
+
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 #include "biblinternes/opengl/rendu_camera.h"
@@ -333,6 +335,10 @@ static auto ratisse_triangle(Image &image,
 MoteurRenduOpenGL::~MoteurRenduOpenGL()
 {
     memoire::deloge("RenduGrille", m_rendu_grille);
+
+    for (auto paire : m_rendus_corps) {
+        memoire::deloge("RendusCorps", paire.second);
+    }
 }
 
 const char *MoteurRenduOpenGL::id() const
@@ -530,6 +536,8 @@ void MoteurRenduOpenGL::calcule_rendu(
         m_rendu_grille->dessine(contexte);
     }
 
+    std::set<RenduCorps *> rendus_utilisés;
+
     for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
         auto objet_rendu = m_delegue->objet(i);
         auto objet = objet_rendu.objet;
@@ -563,9 +571,23 @@ void MoteurRenduOpenGL::calcule_rendu(
 
         contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
-        RenduCorps rendu_corps(corps);
-        rendu_corps.initialise(contexte, stats, objet_rendu.matrices);
-        rendu_corps.dessine(contexte);
+        RenduCorps *rendu_corps = nullptr;
+        auto iter_rendu_corps = m_rendus_corps.find(corps.uuid());
+        if (iter_rendu_corps == m_rendus_corps.end()) {
+            // std::cerr << "Création d'un nouveau rendu corps...\n";
+            rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
+            /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
+            rendu_corps->initialise(contexte, stats, objet_rendu.matrices);
+
+            m_rendus_corps.insert({corps.uuid(), rendu_corps});
+        }
+        else {
+            // std::cerr << "Réutilisation d'un ancien rendu corps...\n";
+            rendu_corps = iter_rendu_corps->second;
+        }
+
+        rendus_utilisés.insert(rendu_corps);
+        rendu_corps->dessine(contexte);
 
         if (objet_rendu.matrices.taille() == 0) {
             pile.enleve_sommet();
@@ -625,6 +647,18 @@ void MoteurRenduOpenGL::calcule_rendu(
 
         pile.enleve_sommet();
     }
+
+    std::map<unsigned long, RenduCorps *> rendus_corps;
+    for (auto paire : m_rendus_corps) {
+        if (rendus_utilisés.find(paire.second) == rendus_utilisés.end()) {
+            memoire::deloge("RendusCorps", paire.second);
+            continue;
+        }
+
+        rendus_corps.insert({paire.first, paire.second});
+    }
+
+    m_rendus_corps = rendus_corps;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 

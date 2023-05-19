@@ -91,6 +91,8 @@ class BasePropriete {
 
     virtual std::string donnne_infobulle() const = 0;
 
+    virtual int donne_dimensions_vecteur() const = 0;
+
     /* Évaluation des valeurs. */
     virtual bool evalue_bool(int temps) const = 0;
     virtual int evalue_entier(int temps) const = 0;
@@ -183,6 +185,11 @@ struct Propriete : public BasePropriete {
     }
 
     std::string donnne_infobulle() const override;
+
+    int donne_dimensions_vecteur() const override
+    {
+        return 3;
+    }
 
     /* Évaluation des valeurs. */
     bool evalue_bool(int temps) const override;

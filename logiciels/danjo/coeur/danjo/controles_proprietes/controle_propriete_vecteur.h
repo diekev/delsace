@@ -36,18 +36,16 @@ namespace danjo {
 class ControleProprieteVec3 final : public ControlePropriete {
     Q_OBJECT
 
+    static constexpr int DIMENSIONS_MAX = 4;
+
     QHBoxLayout *m_agencement{};
-    ControleNombreDecimal *m_x{};
-    ControleNombreDecimal *m_y{};
-    ControleNombreDecimal *m_z{};
+    ControleNombreDecimal *m_dim[DIMENSIONS_MAX]{};
 
     QPushButton *m_bouton_animation{};
-    QPushButton *m_bouton_x{};
-    QPushButton *m_bouton_y{};
-    QPushButton *m_bouton_z{};
-    ControleEchelleDecimale *m_echelle_x{};
-    ControleEchelleDecimale *m_echelle_y{};
-    ControleEchelleDecimale *m_echelle_z{};
+    QPushButton *m_bouton_echelle_dim[DIMENSIONS_MAX]{};
+    ControleEchelleDecimale *m_echelle[DIMENSIONS_MAX]{};
+
+    int m_dimensions = 0;
 
   public:
     explicit ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent = nullptr);
@@ -66,6 +64,10 @@ class ControleProprieteVec3 final : public ControlePropriete {
     void montre_echelle_y();
     void montre_echelle_z();
     void bascule_animation();
+
+  private:
+    void montre_echelle(int index);
+    void ajourne_valeur(int index, float valeur);
 };
 
 } /* namespace danjo */
