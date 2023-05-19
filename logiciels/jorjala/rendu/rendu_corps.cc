@@ -38,6 +38,7 @@
 #include "corps/sphere.hh"
 #include "corps/volume.hh"
 
+#include "coeur/conversion_types.hh"
 #include "coeur/jorjala.hh"
 
 #include "wolika/grille_dense.hh"
@@ -92,23 +93,6 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 /* ************************************************************************** */
 
-template <typename TypeCible, typename TypeOrig>
-static TypeCible convertie_type(TypeOrig val)
-{
-    static_assert(sizeof(TypeCible) == sizeof(TypeOrig));
-    return *reinterpret_cast<TypeCible *>(&val);
-}
-
-static dls::math::vec3f convertis_point(JJL::Point3D point)
-{
-    return dls::math::vec3f(point.x(), point.y(), point.z());
-}
-
-static dls::math::vec3f convertie_vecteur(JJL::Vec3 vec)
-{
-    return convertie_type<dls::math::vec3f>(vec);
-}
-
 void ajoute_polygone_surface(JJL::PrimitivePolygone &polygone,
                              JJL::Corps liste_points,
                              Attribut const *attr_normaux,
@@ -158,9 +142,9 @@ void ajoute_polygone_surface(JJL::PrimitivePolygone &polygone,
             auto normal = polygone.calcule_normal(liste_points);
             auto idx = normaux.taille();
             normaux.redimensionne(idx + 3);
-            normaux[idx] = convertie_vecteur(normal);
-            normaux[idx + 1] = convertie_vecteur(normal);
-            normaux[idx + 2] = convertie_vecteur(normal);
+            normaux[idx] = convertis_vecteur(normal);
+            normaux[idx + 1] = convertis_vecteur(normal);
+            normaux[idx + 2] = convertis_vecteur(normal);
         }
 
         /*if (attr_couleurs) {

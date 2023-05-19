@@ -41,6 +41,7 @@
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
+#include "coeur/conversion_types.hh"
 #include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
 
@@ -143,13 +144,13 @@ class EnveloppeParametre : public danjo::BasePropriete {
         }
         // À FAIRE: animation
         auto résultat = m_param.lis_valeur_vec3();
-        return dls::math::vec3f{résultat.x(), résultat.y(), résultat.z()};
+        return convertis_vecteur(résultat);
     }
     dls::phys::couleur32 evalue_couleur(int temps) const override
     {
         // À FAIRE: animation
         auto résultat = m_param.lis_valeur_couleur();
-        return dls::phys::couleur32(résultat.r(), résultat.b(), résultat.v(), résultat.a());
+        return convertis_couleur(résultat);
     }
     std::string evalue_chaine(int /*temps*/) const override
     {
@@ -182,20 +183,11 @@ class EnveloppeParametre : public danjo::BasePropriete {
             m_noeud.définit_param_vec2(m_param, résultat);
             return;
         }
-        JJL::Vec3 résultat({});
-        résultat.x(valeur.x);
-        résultat.y(valeur.y);
-        résultat.z(valeur.z);
-        m_noeud.définit_param_vec3(m_param, résultat);
+        m_noeud.définit_param_vec3(m_param, convertis_vecteur(valeur));
     }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
-        JJL::CouleurRVBA résultat({});
-        résultat.r(valeur.r);
-        résultat.v(valeur.v);
-        résultat.b(valeur.b);
-        résultat.a(valeur.a);
-        m_noeud.définit_param_couleur(m_param, résultat);
+        m_noeud.définit_param_couleur(m_param, convertis_couleur(valeur));
     }
     void définit_valeur_chaine(std::string const &valeur) override
     {

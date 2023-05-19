@@ -60,6 +60,7 @@ add_library(${NOM_CIBLE} STATIC
 #	composite.cc
 #	configuration.cc
 #	contexte_evaluation.cc
+    conversion_types.cc
 #	delegue_hbe.cc
 #	donnees_aval.cc
 #	donnees_simulation.cc
@@ -92,6 +93,7 @@ add_library(${NOM_CIBLE} STATIC
 #	composite.h
 #	configuration.h
 #	contexte_evaluation.hh
+    conversion_types.hh
 #	delegue_hbe.hh
 #	donnees_aval.hh
 #	donnees_simulation.hh

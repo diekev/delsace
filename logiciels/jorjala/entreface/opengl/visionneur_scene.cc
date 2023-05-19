@@ -32,6 +32,7 @@
 
 // #include "coeur/contexte_evaluation.hh"
 // #include "coeur/manipulatrice.h"
+#include "coeur/conversion_types.hh"
 #include "coeur/jorjala.hh"
 #include "coeur/rendu.hh"
 
@@ -49,23 +50,6 @@
 static int taille_tampon_camera(JJL::Camera3D camera)
 {
     return camera.hauteur() * camera.largeur() * 4;
-}
-
-template <typename TypeCible, typename TypeOrig>
-static TypeCible convertie_type(TypeOrig val)
-{
-    static_assert(sizeof(TypeCible) == sizeof(TypeOrig));
-    return *reinterpret_cast<TypeCible *>(&val);
-}
-
-static dls::math::mat4x4f convertie_matrice(JJL::Mat4r mat)
-{
-    return convertie_type<dls::math::mat4x4f>(mat);
-}
-
-static dls::math::vec3f convertie_vecteur(JJL::Vec3 vec)
-{
-    return convertie_type<dls::math::vec3f>(vec);
 }
 
 /* ************************************************************************** */
@@ -162,11 +146,11 @@ void VisionneurScene::peint_opengl()
 
     /* dessine les surperpositions */
 
-    auto const &MV = convertie_matrice(camera.MV());
-    auto const &P = convertie_matrice(camera.P());
+    auto const &MV = convertis_matrice(camera.MV());
+    auto const &P = convertis_matrice(camera.P());
     auto const &MVP = P * MV;
 
-    m_contexte.vue(convertie_vecteur(camera.direction()));
+    m_contexte.vue(convertis_vecteur(camera.direction()));
     m_contexte.modele_vue(MV);
     m_contexte.projection(P);
     m_contexte.MVP(MVP);

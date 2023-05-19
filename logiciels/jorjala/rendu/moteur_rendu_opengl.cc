@@ -34,6 +34,7 @@
 #include "biblinternes/opengl/rendu_camera.h"
 #include "biblinternes/opengl/rendu_grille.h"
 
+#include "coeur/conversion_types.hh"
 #include "coeur/jorjala.hh"
 #include "coeur/objet.h"
 
@@ -41,23 +42,6 @@
 #include "rendu_lumiere.h"
 
 #undef RATISSAGE
-
-template <typename TypeCible, typename TypeOrig>
-static TypeCible convertie_type(TypeOrig val)
-{
-    static_assert(sizeof(TypeCible) == sizeof(TypeOrig));
-    return *reinterpret_cast<TypeCible *>(&val);
-}
-
-static dls::math::mat4x4f convertie_matrice(JJL::Mat4r mat)
-{
-    return convertie_type<dls::math::mat4x4f>(mat);
-}
-
-static dls::math::vec3f convertie_vecteur(JJL::Vec3 vec)
-{
-    return convertie_type<dls::math::vec3f>(vec);
-}
 
 #ifdef RATISSAGE
 struct Image {
@@ -511,11 +495,11 @@ void MoteurRenduOpenGL::calcule_rendu(
 
     m_camera.ajourne();
 
-    auto const &MV = convertie_matrice(m_camera.MV());
-    auto const &P = convertie_matrice(m_camera.P());
+    auto const &MV = convertis_matrice(m_camera.MV());
+    auto const &P = convertis_matrice(m_camera.P());
     auto const &MVP = P * MV;
 
-    contexte.vue(convertie_vecteur(m_camera.direction()));
+    contexte.vue(convertis_vecteur(m_camera.direction()));
     contexte.modele_vue(MV);
     contexte.projection(P);
     contexte.MVP(MVP);
