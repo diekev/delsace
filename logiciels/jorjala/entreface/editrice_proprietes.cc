@@ -66,6 +66,8 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
             return danjo::TypePropriete::VECTEUR;
         case JJL::TypeParametre::COULEUR:
             return danjo::TypePropriete::COULEUR;
+        case JJL::TypeParametre::ÉNUMÉRATION:
+            return danjo::TypePropriete::ENUM;
         default:  // À FAIRE
         case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::CORPS:
@@ -141,6 +143,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
     {
         return m_param.lis_valeur_chaine().vers_std_string();
     }
+    std::string evalue_énum(int /*temps*/) const override
+    {
+        return m_param.lis_valeur_énum().vers_std_string();
+    }
 
     /* Définition des valeurs. */
     void définit_valeur_entier(int valeur) override
@@ -175,6 +181,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
     void définit_valeur_chaine(std::string const &valeur) override
     {
         m_noeud.définit_param_chaine(m_param, valeur.c_str());
+    }
+    void définit_valeur_énum(std::string const &valeur) override
+    {
+        m_noeud.définit_param_énum(m_param, valeur.c_str());
     }
 
     /* Plage des valeurs. */
@@ -272,6 +282,14 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 
         danjo::DonneesControle donnees_controle;
         donnees_controle.nom = nom;
+
+        if (param.type() == JJL::TypeParametre::ÉNUMÉRATION) {
+            for (auto nom : param.noms_valeurs_énum()) {
+                donnees_controle.valeur_enum.ajoute(
+                    {nom.vers_std_string().c_str(), nom.vers_std_string().c_str()});
+            }
+        }
+
         assembleuse.ajoute_controle_pour_propriété(donnees_controle, prop);
 
         assembleuse.sors_disposition();

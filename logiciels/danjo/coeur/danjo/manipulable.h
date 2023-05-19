@@ -98,6 +98,7 @@ class BasePropriete {
     virtual dls::math::vec3f evalue_vecteur(int temps) const = 0;
     virtual dls::phys::couleur32 evalue_couleur(int temps) const = 0;
     virtual std::string evalue_chaine(int temps) const = 0;
+    virtual std::string evalue_énum(int temps) const = 0;
 
     /* Définition des valeurs. */
     virtual void définit_valeur_entier(int valeur) = 0;
@@ -106,6 +107,7 @@ class BasePropriete {
     virtual void définit_valeur_vec3(dls::math::vec3f valeur) = 0;
     virtual void définit_valeur_couleur(dls::phys::couleur32 valeur) = 0;
     virtual void définit_valeur_chaine(std::string const &valeur) = 0;
+    virtual void définit_valeur_énum(std::string const &valeur) = 0;
 
     /* Plage des valeurs. */
     virtual plage_valeur<float> plage_valeur_decimal() const = 0;
@@ -189,6 +191,7 @@ struct Propriete : public BasePropriete {
     dls::math::vec3f evalue_vecteur(int temps) const override;
     dls::phys::couleur32 evalue_couleur(int temps) const override;
     std::string evalue_chaine(int temps) const override;
+    std::string evalue_énum(int temps) const override;
 
     /* Définition des valeurs. */
     void définit_valeur_entier(int valeur) override;
@@ -197,6 +200,7 @@ struct Propriete : public BasePropriete {
     void définit_valeur_vec3(dls::math::vec3f valeur) override;
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override;
     void définit_valeur_chaine(std::string const &valeur) override;
+    void définit_valeur_énum(std::string const &valeur) override;
 
     /* Plage des valeurs. */
     plage_valeur<float> plage_valeur_decimal() const override;

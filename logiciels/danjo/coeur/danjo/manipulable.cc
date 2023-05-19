@@ -125,6 +125,12 @@ std::string Propriete::evalue_chaine(int /*temps*/) const
     return chn.c_str();
 }
 
+std::string Propriete::evalue_énum(int temps) const
+{
+    dls::chaine chn = std::any_cast<dls::chaine>(valeur);
+    return chn.c_str();
+}
+
 /* Définition des valeurs. */
 void Propriete::définit_valeur_entier(int valeur_)
 {
@@ -147,6 +153,11 @@ void Propriete::définit_valeur_couleur(dls::phys::couleur32 valeur_)
     valeur = valeur_;
 }
 void Propriete::définit_valeur_chaine(std::string const &valeur_)
+{
+    valeur = dls::chaine(valeur_.c_str());
+}
+
+void Propriete::définit_valeur_énum(const std::string &valeur_)
 {
     valeur = dls::chaine(valeur_.c_str());
 }
