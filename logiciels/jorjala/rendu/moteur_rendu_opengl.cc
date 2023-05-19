@@ -223,7 +223,6 @@ void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte)
         RenduCorps *rendu_corps = nullptr;
         auto iter_rendu_corps = m_rendus_corps.find(corps.uuid());
         if (iter_rendu_corps == m_rendus_corps.end()) {
-            // std::cerr << "Création d'un nouveau rendu corps...\n";
             rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
             /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
             rendu_corps->initialise(contexte, objet_rendu.matrices);
@@ -231,7 +230,6 @@ void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte)
             m_rendus_corps.insert({corps.uuid(), rendu_corps});
         }
         else {
-            // std::cerr << "Réutilisation d'un ancien rendu corps...\n";
             rendu_corps = iter_rendu_corps->second;
         }
 
