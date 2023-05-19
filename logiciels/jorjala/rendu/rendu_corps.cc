@@ -92,9 +92,21 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 /* ************************************************************************** */
 
+template <typename TypeCible, typename TypeOrig>
+static TypeCible convertie_type(TypeOrig val)
+{
+    static_assert(sizeof(TypeCible) == sizeof(TypeOrig));
+    return *reinterpret_cast<TypeCible *>(&val);
+}
+
 static dls::math::vec3f convertis_point(JJL::Point3D point)
 {
     return dls::math::vec3f(point.x(), point.y(), point.z());
+}
+
+static dls::math::vec3f convertie_vecteur(JJL::Vec3 vec)
+{
+    return convertie_type<dls::math::vec3f>(vec);
 }
 
 void ajoute_polygone_surface(JJL::PrimitivePolygone &polygone,
@@ -115,30 +127,41 @@ void ajoute_polygone_surface(JJL::PrimitivePolygone &polygone,
         points.ajoute(convertis_point(p0));
         points.ajoute(convertis_point(p1));
         points.ajoute(convertis_point(p2));
+
         //		points.ajoute(liste_points.point_local(polygone->index_point(0)));
         //		points.ajoute(liste_points.point_local(polygone->index_point(i - 1)));
         //		points.ajoute(liste_points.point_local(polygone->index_point(i)));
 
-        //		if (attr_normaux) {
-        //			auto idx = normaux.taille();
-        //			normaux.redimensionne(idx + 3);
+        if (attr_normaux) {
+#if 0
+            auto idx = normaux.taille();
+            normaux.redimensionne(idx + 3);
 
-        //			if (attr_normaux->portee == portee_attr::POINT) {
-        //				extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
-        //				extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
-        //				extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
-        //			}
-        //			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-        //				extrait(attr_normaux->r32(polygone->index), normaux[idx]);
-        //				extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
-        //				extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
-        //			}
-        //			else if (attr_normaux->portee == portee_attr::CORPS) {
-        //				extrait(attr_normaux->r32(0), normaux[idx]);
-        //				extrait(attr_normaux->r32(0), normaux[idx + 1]);
-        //				extrait(attr_normaux->r32(0), normaux[idx + 2]);
-        //			}
-        //		}
+            if (attr_normaux->portee == portee_attr::POINT) {
+                extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
+                extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
+                extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
+            }
+            else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
+                extrait(attr_normaux->r32(polygone->index), normaux[idx]);
+                extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
+                extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
+            }
+            else if (attr_normaux->portee == portee_attr::CORPS) {
+                extrait(attr_normaux->r32(0), normaux[idx]);
+                extrait(attr_normaux->r32(0), normaux[idx + 1]);
+                extrait(attr_normaux->r32(0), normaux[idx + 2]);
+            }
+#endif
+        }
+        else {
+            auto normal = polygone.calcule_normal(liste_points);
+            auto idx = normaux.taille();
+            normaux.redimensionne(idx + 3);
+            normaux[idx] = convertie_vecteur(normal);
+            normaux[idx + 1] = convertie_vecteur(normal);
+            normaux[idx + 2] = convertie_vecteur(normal);
+        }
 
         /*if (attr_couleurs) {
             auto idx = couleurs.taille();
