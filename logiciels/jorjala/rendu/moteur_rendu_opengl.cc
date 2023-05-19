@@ -335,7 +335,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 {
     auto contexte = crée_contexte_rendu();
 
-    ajourne_objets(contexte, stats);
+    ajourne_objets(contexte);
 
 #ifdef RATISSAGE
     /* ****************************************************************** */
@@ -496,6 +496,8 @@ void MoteurRenduOpenGL::calcule_rendu(
         m_rendu_grille->dessine(contexte);
     }
 
+    stats.nombre_objets = m_objets_à_rendre.taille();
+
     for (auto objet_à_rendre : m_objets_à_rendre) {
         auto objet_rendu = m_delegue->objet(objet_à_rendre.index_délégué);
         // auto objet = objet_rendu.objet;
@@ -513,7 +515,7 @@ void MoteurRenduOpenGL::calcule_rendu(
         contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
         RenduCorps *rendu_corps = objet_à_rendre.rendu_corps;
-        rendu_corps->dessine(contexte);
+        rendu_corps->dessine(stats, contexte);
 
         if (objet_rendu.matrices.taille() == 0) {
             pile.enleve_sommet();
@@ -575,7 +577,7 @@ ContexteRendu MoteurRenduOpenGL::crée_contexte_rendu()
     return résultat;
 }
 
-void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte, StatistiquesRendu &stats)
+void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte)
 {
     m_objets_à_rendre.efface();
 
@@ -608,7 +610,7 @@ void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte, StatistiquesRend
             // std::cerr << "Création d'un nouveau rendu corps...\n";
             rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
             /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
-            rendu_corps->initialise(contexte, stats, objet_rendu.matrices);
+            rendu_corps->initialise(contexte, objet_rendu.matrices);
 
             m_rendus_corps.insert({corps.uuid(), rendu_corps});
         }

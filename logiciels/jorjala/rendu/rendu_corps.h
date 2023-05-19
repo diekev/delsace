@@ -55,6 +55,8 @@ class RenduCorps {
 
     JJL::Corps &m_corps;
 
+    StatistiquesRendu m_stats;
+
   public:
     /**
      * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
@@ -70,12 +72,10 @@ class RenduCorps {
      */
     ~RenduCorps();
 
-    void initialise(ContexteRendu const &contexte,
-                    StatistiquesRendu &stats,
-                    dls::tableau<dls::math::mat4x4f> &matrices);
+    void initialise(ContexteRendu const &contexte, dls::tableau<dls::math::mat4x4f> &matrices);
 
     /**
      * Dessine le maillage dans le contexte spécifié.
      */
-    void dessine(ContexteRendu const &contexte);
+    void dessine(StatistiquesRendu &stats, ContexteRendu const &contexte);
 };

@@ -69,5 +69,5 @@ class MoteurRenduOpenGL final : public MoteurRendu {
   private:
     ContexteRendu crée_contexte_rendu();
 
-    void ajourne_objets(ContexteRendu &contexte, StatistiquesRendu &stats);
+    void ajourne_objets(ContexteRendu &contexte);
 };

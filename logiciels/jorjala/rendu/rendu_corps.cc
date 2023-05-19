@@ -643,10 +643,8 @@ RenduCorps::~RenduCorps()
 }
 
 void RenduCorps::initialise(ContexteRendu const &contexte,
-                            StatistiquesRendu &stats,
                             dls::tableau<dls::math::mat4x4f> &matrices)
 {
-    stats.nombre_objets += 1;
     auto est_instance = matrices.taille() != 0;
 
     auto nombre_de_points = m_corps.nombre_de_points();
@@ -655,6 +653,8 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
     if (nombre_de_points == 0l && nombre_de_prims == 0l) {
         return;
     }
+
+    m_stats.nombre_points = nombre_de_points;
 
     dls::tableau<char> point_utilise(nombre_de_points, 0);
 
@@ -675,7 +675,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
                 case JJL::TypePrimitive::POLYGONE:
                 {
                     auto polygone = transtype<JJL::PrimitivePolygone>(prim);
-                    stats.nombre_polygones += 1;
+                    m_stats.nombre_polygones += 1;
 
                     ajoute_polygone_surface(polygone,
                                             m_corps,
@@ -883,8 +883,13 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
 #endif
 }
 
-void RenduCorps::dessine(ContexteRendu const &contexte)
+void RenduCorps::dessine(StatistiquesRendu &stats, ContexteRendu const &contexte)
 {
+    stats.nombre_points += m_stats.nombre_points;
+    stats.nombre_polylignes += m_stats.nombre_polylignes;
+    stats.nombre_polygones += m_stats.nombre_polygones;
+    stats.nombre_volumes += m_stats.nombre_volumes;
+
     if (m_tampon_points != nullptr) {
         m_tampon_points->dessine(contexte);
     }
