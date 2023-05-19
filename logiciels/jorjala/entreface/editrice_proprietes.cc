@@ -323,7 +323,9 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         }
     }
 
-    return assembleuse.disposition();
+    auto disp = assembleuse.disposition();
+    disp->addStretch();
+    return disp;
 }
 
 /* ------------------------------------------------------------------------- */
