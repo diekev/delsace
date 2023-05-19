@@ -210,7 +210,7 @@ class EnveloppeParametre : public danjo::BasePropriete {
     danjo::plage_valeur<float> plage_valeur_decimal() const override
     {
         // À FAIRE
-        return {-1.0f, 1.0f};
+        return {-1000.0f, 1000.0f};
     }
     danjo::plage_valeur<int> plage_valeur_entier() const override
     {
@@ -220,12 +220,12 @@ class EnveloppeParametre : public danjo::BasePropriete {
     danjo::plage_valeur<float> plage_valeur_vecteur() const override
     {
         // À FAIRE
-        return {-1.0f, 1.0f};
+        return {-1000.0f, 1000.0f};
     }
     danjo::plage_valeur<float> plage_valeur_couleur() const override
     {
         // À FAIRE
-        return {-1.0f, 1.0f};
+        return {-1000.0f, 1000.0f};
     }
 
     /* Animation des valeurs. */
