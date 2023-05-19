@@ -333,26 +333,16 @@ const char *MoteurRenduOpenGL::id() const
 void MoteurRenduOpenGL::calcule_rendu(
     StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final)
 {
+    auto contexte = crée_contexte_rendu();
+
+    ajourne_objets(contexte, stats);
+
 #ifdef RATISSAGE
     /* ****************************************************************** */
 
     /* Met en place le contexte. */
-    auto contexte = ContexteRendu{};
     auto pile = PileMatrice{};
-
-    m_camera->ajourne();
-
-    auto const &MV = m_camera->MV();
-    auto const &P = m_camera->P();
-    auto const &MVP = P * MV;
-
-    contexte.vue(m_camera->dir());
-    contexte.modele_vue(MV);
-    contexte.projection(P);
-    contexte.MVP(MVP);
-    contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
     contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-    contexte.pour_surlignage(false);
 
     /* couleur d'arrière plan */
     auto const arriere_plan = dls::math::vec4f(0.5f, 0.5f, 0.5f, 1.0f);
@@ -489,23 +479,9 @@ void MoteurRenduOpenGL::calcule_rendu(
 
     /* ****************************************************************** */
 
-    /* Met en place le contexte. */
-    auto contexte = ContexteRendu{};
     auto pile = PileMatrice{};
 
-    m_camera.ajourne();
-
-    auto const &MV = convertis_matrice(m_camera.MV());
-    auto const &P = convertis_matrice(m_camera.P());
-    auto const &MVP = P * MV;
-
-    contexte.vue(convertis_vecteur(m_camera.direction()));
-    contexte.modele_vue(MV);
-    contexte.projection(P);
-    contexte.MVP(MVP);
-    contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
     contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-    contexte.pour_surlignage(false);
 
     /* Peint la grille. */
     if (!rendu_final) {
@@ -520,32 +496,13 @@ void MoteurRenduOpenGL::calcule_rendu(
         m_rendu_grille->dessine(contexte);
     }
 
-    std::set<RenduCorps *> rendus_utilisés;
-
-    for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
-        auto objet_rendu = m_delegue->objet(i);
-        auto objet = objet_rendu.objet;
-
-        /* À FAIRE : drapeaux pour savoir si l'objet est à rendre. */
-        //		if (!objet->rendu_scene) {
-        //			continue;
-        //		}
-
-        /* À FAIRE : types d'objets */
-        //		if (objet->type != type_objet::CORPS && rendu_final) {
-        //			continue;
-        //      }
+    for (auto objet_à_rendre : m_objets_à_rendre) {
+        auto objet_rendu = m_delegue->objet(objet_à_rendre.index_délégué);
+        // auto objet = objet_rendu.objet;
 
         /* À FAIRE : matrice pour chaque objet */
         // pile.ajoute(objet->transformation.matrice());
         pile.ajoute(dls::math::mat4x4d(1.0));
-
-        /* À FAIRE : mutex pour accéder aux données de l'objet. */
-        // objet->donnees.accede_lecture
-        auto corps = objet->accède_corps();
-        if (!corps) {
-            continue;
-        }
 
         if (objet_rendu.matrices.taille() == 0) {
             /* À FAIRE : matrice pour chaque corps */
@@ -555,94 +512,15 @@ void MoteurRenduOpenGL::calcule_rendu(
 
         contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
-        RenduCorps *rendu_corps = nullptr;
-        auto iter_rendu_corps = m_rendus_corps.find(corps.uuid());
-        if (iter_rendu_corps == m_rendus_corps.end()) {
-            // std::cerr << "Création d'un nouveau rendu corps...\n";
-            rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
-            /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
-            rendu_corps->initialise(contexte, stats, objet_rendu.matrices);
-
-            m_rendus_corps.insert({corps.uuid(), rendu_corps});
-        }
-        else {
-            // std::cerr << "Réutilisation d'un ancien rendu corps...\n";
-            rendu_corps = iter_rendu_corps->second;
-        }
-
-        rendus_utilisés.insert(rendu_corps);
+        RenduCorps *rendu_corps = objet_à_rendre.rendu_corps;
         rendu_corps->dessine(contexte);
 
         if (objet_rendu.matrices.taille() == 0) {
             pile.enleve_sommet();
         }
 
-#    if 0
-
-		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats, &objet_rendu](DonneesObjet const *donnees)
-		{
-			if (objet->type == type_objet::CAMERA) {
-				auto const &camera = extrait_camera(donnees);
-
-				/* la rotation de la caméra est appliquée aux points dans
-				 * RenduCamera, donc on recrée une matrice sans rotation, et dont
-				 * la taille dans la scène est de 1.0 (en mettant à l'échelle
-				 * avec un facteur de 1.0 / distance éloignée. */
-				auto matrice = dls::math::mat4x4d(1.0);
-				matrice = dls::math::translation(matrice, dls::math::vec3d(camera.pos()));
-				matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera.eloigne())));
-				pile.ajoute(matrice);
-				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-				RenduCamera rendu_camera(const_cast<vision::Camera3D *>(&camera));
-				rendu_camera.initialise();
-				rendu_camera.dessine(contexte);
-
-				pile.enleve_sommet();
-			}
-			else if (objet->type == type_objet::LUMIERE) {
-				auto const &lumiere = extrait_lumiere(donnees);
-
-				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-				auto rendu_lumiere = RenduLumiere(&lumiere);
-				rendu_lumiere.initialise();
-				rendu_lumiere.dessine(contexte);
-			}
-			else {
-				auto const &corps = extrait_corps(donnees);
-
-				if (objet_rendu.matrices.taille() == 0) {
-					pile.ajoute(corps.transformation.matrice());
-				}
-
-				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-				RenduCorps rendu_corps(&corps);
-				rendu_corps.initialise(contexte, stats, objet_rendu.matrices);
-				rendu_corps.dessine(contexte);
-
-				if (objet_rendu.matrices.taille() == 0) {
-					pile.enleve_sommet();
-				}
-			}
-		});
-#    endif
-
         pile.enleve_sommet();
     }
-
-    std::map<unsigned long, RenduCorps *> rendus_corps;
-    for (auto paire : m_rendus_corps) {
-        if (rendus_utilisés.find(paire.second) == rendus_utilisés.end()) {
-            memoire::deloge("RendusCorps", paire.second);
-            continue;
-        }
-
-        rendus_corps.insert({paire.first, paire.second});
-    }
-
-    m_rendus_corps = rendus_corps;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
@@ -675,4 +553,134 @@ void MoteurRenduOpenGL::calcule_rendu(
         }
     }
 #endif
+}
+
+ContexteRendu MoteurRenduOpenGL::crée_contexte_rendu()
+{
+    m_camera.ajourne();
+
+    auto résultat = ContexteRendu{};
+
+    auto const &MV = convertis_matrice(m_camera.MV());
+    auto const &P = convertis_matrice(m_camera.P());
+    auto const &MVP = P * MV;
+
+    résultat.vue(convertis_vecteur(m_camera.direction()));
+    résultat.modele_vue(MV);
+    résultat.projection(P);
+    résultat.MVP(MVP);
+    résultat.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+    résultat.pour_surlignage(false);
+
+    return résultat;
+}
+
+void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte, StatistiquesRendu &stats)
+{
+    m_objets_à_rendre.efface();
+
+    std::set<RenduCorps *> rendus_utilisés;
+
+    for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
+        auto objet_rendu = m_delegue->objet(i);
+        auto objet = objet_rendu.objet;
+
+        /* À FAIRE : drapeaux pour savoir si l'objet est à rendre. */
+        //		if (!objet->rendu_scene) {
+        //			continue;
+        //		}
+
+        /* À FAIRE : types d'objets */
+        //		if (objet->type != type_objet::CORPS && rendu_final) {
+        //			continue;
+        //      }
+
+        /* À FAIRE : mutex pour accéder aux données de l'objet. */
+        // objet->donnees.accede_lecture
+        auto corps = objet->accède_corps();
+        if (!corps) {
+            continue;
+        }
+
+        RenduCorps *rendu_corps = nullptr;
+        auto iter_rendu_corps = m_rendus_corps.find(corps.uuid());
+        if (iter_rendu_corps == m_rendus_corps.end()) {
+            // std::cerr << "Création d'un nouveau rendu corps...\n";
+            rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
+            /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
+            rendu_corps->initialise(contexte, stats, objet_rendu.matrices);
+
+            m_rendus_corps.insert({corps.uuid(), rendu_corps});
+        }
+        else {
+            // std::cerr << "Réutilisation d'un ancien rendu corps...\n";
+            rendu_corps = iter_rendu_corps->second;
+        }
+
+        rendus_utilisés.insert(rendu_corps);
+        m_objets_à_rendre.ajoute({i, rendu_corps});
+
+#if 0
+        objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats, &objet_rendu](DonneesObjet const *donnees)
+        {
+            if (objet->type == type_objet::CAMERA) {
+                auto const &camera = extrait_camera(donnees);
+
+                /* la rotation de la caméra est appliquée aux points dans
+                 * RenduCamera, donc on recrée une matrice sans rotation, et dont
+                 * la taille dans la scène est de 1.0 (en mettant à l'échelle
+                 * avec un facteur de 1.0 / distance éloignée. */
+                auto matrice = dls::math::mat4x4d(1.0);
+                matrice = dls::math::translation(matrice, dls::math::vec3d(camera.pos()));
+                matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera.eloigne())));
+                pile.ajoute(matrice);
+                contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+                RenduCamera rendu_camera(const_cast<vision::Camera3D *>(&camera));
+                rendu_camera.initialise();
+                rendu_camera.dessine(contexte);
+
+                pile.enleve_sommet();
+            }
+            else if (objet->type == type_objet::LUMIERE) {
+                auto const &lumiere = extrait_lumiere(donnees);
+
+                contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+                auto rendu_lumiere = RenduLumiere(&lumiere);
+                rendu_lumiere.initialise();
+                rendu_lumiere.dessine(contexte);
+            }
+            else {
+                auto const &corps = extrait_corps(donnees);
+
+                if (objet_rendu.matrices.taille() == 0) {
+                    pile.ajoute(corps.transformation.matrice());
+                }
+
+                contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+                RenduCorps rendu_corps(&corps);
+                rendu_corps.initialise(contexte, stats, objet_rendu.matrices);
+                rendu_corps.dessine(contexte);
+
+                if (objet_rendu.matrices.taille() == 0) {
+                    pile.enleve_sommet();
+                }
+            }
+        });
+#endif
+    }
+
+    std::map<unsigned long, RenduCorps *> rendus_corps;
+    for (auto paire : m_rendus_corps) {
+        if (rendus_utilisés.find(paire.second) == rendus_utilisés.end()) {
+            memoire::deloge("RendusCorps", paire.second);
+            continue;
+        }
+
+        rendus_corps.insert({paire.first, paire.second});
+    }
+
+    m_rendus_corps = rendus_corps;
 }

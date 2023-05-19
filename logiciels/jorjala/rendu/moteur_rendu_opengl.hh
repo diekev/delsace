@@ -30,6 +30,7 @@
 
 #include "moteur_rendu.hh"
 
+class ContexteRendu;
 class RenduGrille;
 class RenduCorps;
 class TamponRendu;
@@ -40,6 +41,14 @@ class MoteurRenduOpenGL final : public MoteurRendu {
     dls::tableau<TamponRendu *> m_tampons{};
 
     std::map<unsigned long, RenduCorps *> m_rendus_corps{};
+
+    struct ObjetÀRendre {
+        /* Index dans le délégué_scène. */
+        long index_délégué = 0;
+        RenduCorps *rendu_corps = nullptr;
+    };
+
+    dls::tableau<ObjetÀRendre> m_objets_à_rendre{};
 
   public:
     MoteurRenduOpenGL() = default;
@@ -56,4 +65,9 @@ class MoteurRenduOpenGL final : public MoteurRendu {
                        int hauteur,
                        int largeur,
                        bool rendu_final) override;
+
+  private:
+    ContexteRendu crée_contexte_rendu();
+
+    void ajourne_objets(ContexteRendu &contexte, StatistiquesRendu &stats);
 };
