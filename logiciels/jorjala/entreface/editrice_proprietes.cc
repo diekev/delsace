@@ -285,14 +285,14 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 
         assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
 
-        dls::chaine nom(param.nom().vers_std_string());
-        assembleuse.ajoute_étiquette(nom);
+        dls::chaine nom_param(param.nom().vers_std_string());
+        assembleuse.ajoute_étiquette(nom_param);
 
         auto prop = memoire::loge<EnveloppeParametre>("EnveloppeParametre", noeud, param);
-        manipulable->ajoute_propriete(nom, prop);
+        manipulable->ajoute_propriete(nom_param, prop);
 
         danjo::DonneesControle donnees_controle;
-        donnees_controle.nom = nom;
+        donnees_controle.nom = nom_param;
 
         if (param.type() == JJL::TypeParametre::ÉNUMÉRATION) {
             for (auto nom : param.noms_valeurs_énum()) {
@@ -524,7 +524,7 @@ void EditriceProprietes::obtiens_liste(dls::chaine const &attache,
     auto param = noeud.trouve_paramètre(attache.c_str());
     assert(param != nullptr);
 
-    auto index_prise = param.index_prise_pour_recherche_chaine();
+    auto index_prise = static_cast<int>(param.index_prise_pour_recherche_chaine());
     assert(index_prise != -1);
 
     // À FAIRE : type de noeud pour correctement transtyper

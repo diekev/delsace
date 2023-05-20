@@ -317,9 +317,9 @@ const char *MoteurRenduRatissage::id() const
 void MoteurRenduRatissage::calcule_rendu(
     StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final)
 {
+#ifdef RATISSAGE
     auto contexte = crée_contexte_rendu();
 
-#ifdef RATISSAGE
     /* ****************************************************************** */
 
     /* Met en place le contexte. */

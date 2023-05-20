@@ -158,13 +158,13 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
         }
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
         for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[i]);
+            m_dim[i]->valeur(valeur[size_t(i)]);
         }
     }
     else {
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
         for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[i]);
+            m_dim[i]->valeur(valeur[size_t(i)]);
         }
     }
 
@@ -194,7 +194,7 @@ void ControleProprieteVec3::bascule_animation()
         m_propriete->supprime_animation();
         const auto &valeur = m_propriete->evalue_vecteur(m_temps);
         for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[i]);
+            m_dim[i]->valeur(valeur[size_t(i)]);
         }
         m_bouton_animation->setText("C");
     }
@@ -237,9 +237,9 @@ void ControleProprieteVec3::ajourne_valeur(int index, float valeur)
 {
     auto vec = dls::math::vec3f(0.0f);
     for (int i = 0; i < m_dimensions; i++) {
-        vec[i] = m_dim[i]->valeur();
+        vec[size_t(i)] = m_dim[size_t(i)]->valeur();
     }
-    vec[index] = valeur;
+    vec[size_t(index)] = valeur;
 
     if (m_animation) {
         m_propriete->ajoute_cle(vec, m_temps);

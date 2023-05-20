@@ -55,7 +55,7 @@ class RenduCorps {
 
     JJL::Corps &m_corps;
 
-    StatistiquesRendu m_stats;
+    StatistiquesRendu m_stats{};
 
   public:
     /**
