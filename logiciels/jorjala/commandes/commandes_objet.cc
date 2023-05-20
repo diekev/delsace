@@ -103,6 +103,9 @@ class CommandeAjouteObjet final : public CommandeJorjala {
 
 int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
+    jorjala.crée_objet("objet");
+    jorjala.notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+
 #if 0
 	auto &bdd = jorjala->bdd;
 	auto nom = donnees.metadonnee;
