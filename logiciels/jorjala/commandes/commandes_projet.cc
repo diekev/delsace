@@ -142,8 +142,7 @@ class CommandeLectureRessource final : public CommandeJorjala {
         if (!donnees.metadonnee.est_vide()) {
             /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
              * appelé pour un préréglage. */
-            // À FAIRE : chemins
-            chemin_projet = "/home/kevin/" + donnees.metadonnee + ".jjr";
+            chemin_projet = "ressources/" + donnees.metadonnee + ".jjr";
         }
         else {
             chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jjr");

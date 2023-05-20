@@ -70,7 +70,7 @@ static void initialise_données_programme(DonnéesProgramme *données_programme,
 
 std::optional<JJL::Jorjala> initialise_jorjala()
 {
-    if (!initialise_jorjala("/opt/bin/jorjala/ipa/jorjala.so")) {
+    if (!initialise_jorjala("ipa/jorjala.so")) {
         return {};
     }
 
