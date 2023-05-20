@@ -2,14 +2,22 @@ menu "Fichier" {
     action(valeur="Ouvrir"; attache=ouvrir_fichier)
 
     menu "Projets Récents" {
-	}
+    }
 
     séparateur
 
     action(valeur="Sauvegarder"; attache=sauvegarder)
-	action(valeur="Sauvegarder sous..."; attache=sauvegarder_sous)
+    action(valeur="Sauvegarder sous..."; attache=sauvegarder_sous)
 
-	séparateur
+    séparateur
 
-	action(valeur="Import Objet"; attache=import_objet)
+    action(valeur="Ouvrir Ressource"; attache=ouvrir_ressource)
+
+    séparateur
+
+    action(valeur="Sauvegarder Ressource"; attache=sauvegarder_ressource_sous)
+
+    séparateur
+
+    action(valeur="Import Objet"; attache=import_objet)
 }

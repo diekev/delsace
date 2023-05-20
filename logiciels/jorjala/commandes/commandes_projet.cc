@@ -108,6 +108,52 @@ class CommandeSauvegarderSous final : public CommandeJorjala {
 
 /* ************************************************************************** */
 
+class CommandeSauvegarderRessource final : public CommandeJorjala {
+  public:
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala,
+                                 dls::chaine const & /*metadonnee*/) override
+    {
+        /* À FAIRE. */
+        return true;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        dls::chaine chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jjr");
+        if (chemin_projet.est_vide()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.sauvegarde_ressource_jorjala(chemin_projet.c_str());
+        jorjala.restaure_curseur_application();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeLectureRessource final : public CommandeJorjala {
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        dls::chaine chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jjr");
+        if (chemin_projet.est_vide()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.lis_ressource_jorjala(chemin_projet.c_str());
+        jorjala.restaure_curseur_application();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
@@ -118,6 +164,14 @@ void enregistre_commandes_projet(UsineCommande &usine)
 
     usine.enregistre_type("sauvegarder_sous",
                           description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false));
+
+    usine.enregistre_type(
+        "sauvegarder_ressource_sous",
+        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false));
+
+    usine.enregistre_type(
+        "ouvrir_ressource",
+        description_commande<CommandeLectureRessource>("projet", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop
