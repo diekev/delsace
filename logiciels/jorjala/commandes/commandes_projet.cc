@@ -138,9 +138,18 @@ class CommandeLectureRessource final : public CommandeJorjala {
   public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        dls::chaine chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jjr");
-        if (chemin_projet.est_vide()) {
-            return EXECUTION_COMMANDE_ECHOUEE;
+        dls::chaine chemin_projet;
+        if (!donnees.metadonnee.est_vide()) {
+            /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
+             * appelé pour un préréglage. */
+            // À FAIRE : chemins
+            chemin_projet = "/home/kevin/" + donnees.metadonnee + ".jjr";
+        }
+        else {
+            chemin_projet = affiche_dialogue(FICHIER_OUVERTURE, "*.jjr");
+            if (chemin_projet.est_vide()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
         }
 
         /* À FAIRE : erreur de lecture. */
