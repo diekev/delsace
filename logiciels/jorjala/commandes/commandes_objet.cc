@@ -60,31 +60,6 @@ static auto cree_noeud_op(
 	return noeud;
 }
 
-static auto cree_graphe_creation_objet(
-		danjo::GestionnaireInterface *gestionnaire,
-		Graphe &graphe,
-		UsineOperatrice &usine,
-		dls::chaine const &nom_noeud,
-		const char *nom_op)
-{
-	auto noeud_creation = cree_noeud_op(gestionnaire, graphe, usine, nom_noeud, nom_op);
-	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
-
-	noeud_creation->pos_y(-200.0f);
-
-	graphe.connecte(noeud_creation->sortie(0), noeud_sortie->entree(0));
-	graphe.dernier_noeud_sortie = noeud_sortie;
-}
-
-static auto cree_graphe_objet_vide(
-		danjo::GestionnaireInterface *gestionnaire,
-		Graphe &graphe,
-		UsineOperatrice &usine)
-{
-	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
-	graphe.dernier_noeud_sortie = noeud_sortie;
-}
-
 static auto cree_graphe_ocean(
 		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
@@ -118,99 +93,6 @@ static auto cree_graphe_ocean(
 	prop->ajoute_cle(static_cast<float>(temps_fin), temps_fin);
 }
 #endif
-
-/* ************************************************************************** */
-
-class CommandeAjoutePrereglage final : public CommandeJorjala {
-  public:
-    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override;
-};
-
-int CommandeAjoutePrereglage::execute_jorjala(JJL::Jorjala &jorjala,
-                                              const DonneesCommande &donnees)
-{
-#if 1
-    jorjala.crée_objet("objet");
-    jorjala.notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
-#else
-    auto &bdd = jorjala->bdd;
-    auto nom = donnees.metadonnee;
-    auto gestionnaire = jorjala->gestionnaire_entreface;
-
-    auto objet = bdd.cree_objet(nom, type_objet::CORPS);
-
-    if (nom == "boîte") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Cube");
-    }
-    else if (nom == "grille") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Grille");
-    }
-    else if (nom == "cercle") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Cercle");
-    }
-    else if (nom == "icosphère") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Sphère Ico");
-    }
-    else if (nom == "tube") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Cylindre");
-    }
-    else if (nom == "cone") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Cone");
-    }
-    else if (nom == "torus") {
-        cree_graphe_creation_objet(gestionnaire,
-                                   objet->noeud->graphe,
-                                   jorjala->usine_operatrices(),
-                                   nom,
-                                   "Création Torus");
-    }
-    else if (nom == "océan") {
-        cree_graphe_ocean(gestionnaire,
-                          objet->noeud->graphe,
-                          jorjala->usine_operatrices(),
-                          jorjala->temps_debut,
-                          jorjala->temps_fin);
-    }
-    else if (nom == "vide") {
-        cree_graphe_objet_vide(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices());
-    }
-    else {
-        jorjala->affiche_erreur("Type de préréglage inconnu");
-        bdd.enleve_objet(objet);
-        return EXECUTION_COMMANDE_ECHOUEE;
-    }
-
-    jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
-
-    requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
-#endif
-
-    return EXECUTION_COMMANDE_REUSSIE;
-}
 
 /* ************************************************************************** */
 
@@ -286,9 +168,6 @@ struct CommandeImportObjet final : public CommandeJorjala {
 
 void enregistre_commandes_objet(UsineCommande &usine)
 {
-    usine.enregistre_type("ajoute_prereglage",
-                          description_commande<CommandeAjoutePrereglage>("objet", 0, 0, 0, false));
-
     usine.enregistre_type("ajoute_objet",
                           description_commande<CommandeAjouteObjet>("objet", 0, 0, 0, false));
 
