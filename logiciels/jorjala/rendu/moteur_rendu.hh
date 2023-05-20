@@ -37,7 +37,7 @@ struct StatistiquesRendu;
 /* ************************************************************************** */
 
 struct ObjetRendu {
-    JJL::Objet *objet{};
+    JJL::Objet objet = JJL::Objet({});
 
     /* matrices pour définir où instancier l'objet */
     dls::tableau<dls::math::mat4x4f> matrices{};

@@ -215,7 +215,7 @@ void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte)
 
         /* À FAIRE : mutex pour accéder aux données de l'objet. */
         // objet->donnees.accede_lecture
-        auto corps = objet->accède_corps();
+        auto corps = objet.accède_corps();
         if (!corps) {
             continue;
         }

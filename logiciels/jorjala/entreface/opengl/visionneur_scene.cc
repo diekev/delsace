@@ -108,7 +108,7 @@ void VisionneurScene::peint_opengl()
     auto graphe_obj = m_jorjala.trouve_graphe_pour_chemin("/obj");
 
     for (auto noeud : graphe_obj.noeuds()) {
-        délégué->objets.ajoute({reinterpret_cast<JJL::Objet *>(&noeud), {}});
+        délégué->objets.ajoute({transtype<JJL::Objet>(noeud), {}});
     }
 
     auto camera = m_jorjala.caméra_3d();
