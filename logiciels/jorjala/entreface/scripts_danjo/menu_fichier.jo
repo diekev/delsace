@@ -1,4 +1,5 @@
 menu "Fichier" {
+    action(valeur="Nouveau Projet"; attache=nouveau_projet)
     action(valeur="Ouvrir"; attache=ouvrir_fichier)
 
     menu "Projets Récents" {

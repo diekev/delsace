@@ -162,6 +162,18 @@ class CommandeLectureRessource final : public CommandeJorjala {
 
 /* ************************************************************************** */
 
+class CommandeNouveauProjet final : public CommandeJorjala {
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        jorjala.réinitialise_pour_lecture_projet();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
@@ -180,6 +192,9 @@ void enregistre_commandes_projet(UsineCommande &usine)
     usine.enregistre_type(
         "ouvrir_ressource",
         description_commande<CommandeLectureRessource>("projet", 0, 0, 0, false));
+
+    usine.enregistre_type("nouveau_projet",
+                          description_commande<CommandeNouveauProjet>("projet", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop
