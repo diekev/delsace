@@ -50,6 +50,8 @@
 
 #include "opengl/visionneur_scene.h"
 
+#include "gestion_entreface.hh"
+
 /* ************************************************************************** */
 
 static void charge_manipulatrice(JJL::Jorjala &jorjala, int type_manipulation)
@@ -245,15 +247,14 @@ void EditriceVue3D::ajourne_etat(int evenement)
     ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
     ajourne |= evenement == (type_evenement::rafraichissement);
 
-    auto signaux_blockes = m_selecteur_rendu->blockSignals(true);
-    m_selecteur_rendu->clear();
-
-    //	for (auto rendu : m_jorjala.bdd.rendus()) {
-    //		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(),
-    // QVariant(rendu->noeud.nom.c_str()));
-    //	}
-
-    m_selecteur_rendu->blockSignals(signaux_blockes);
+#if 0
+    ajourne_combo_box(m_selecteur_rendu,
+                      "",
+                      m_jorjala.bdd.rendus(),
+                      [](Rendu const *rendu) -> DonnéesItemComboxBox {
+                          return {rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str())};
+                      });
+#endif
 
     if (!ajourne) {
         return;

@@ -50,6 +50,8 @@
 
 #include "coeur/jorjala.hh"
 
+#include "gestion_entreface.hh"
+
 EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("graphe", jorjala, parent), m_scene(new QGraphicsScene(this)),
       m_vue(new VueEditeurNoeud(this, this)), m_barre_chemin(new QLineEdit()),
@@ -60,19 +62,7 @@ EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
     auto disposition_vert = new QVBoxLayout();
     auto disposition_barre = new QHBoxLayout();
 
-    auto racines = JJL::liste_informations_graphes_racines();
-    auto current_index = 0;
-    auto index_graphe_courant = 0;
-    for (auto racine : racines) {
-        m_selecteur_graphe->addItem(racine.nom().vers_std_string().c_str(),
-                                    QVariant(racine.dossier().vers_std_string().c_str()));
-        if (racine.dossier().vers_std_string() == "obj") {
-            index_graphe_courant = current_index;
-        }
-        current_index++;
-    }
-
-    m_selecteur_graphe->setCurrentIndex(index_graphe_courant);
+    ajourne_sélecteur_graphe();
 
     connect(
         m_selecteur_graphe, SIGNAL(currentIndexChanged(int)), this, SLOT(change_contexte(int)));
@@ -291,22 +281,16 @@ void EditriceGraphe::ajourne_sélecteur_graphe()
     m_barre_chemin->setText(chemin_courant.c_str());
 
     auto racine_chemin_courant = chemin_courant.substr(1, 3);
-
     auto racines = JJL::liste_informations_graphes_racines();
-    auto current_index = 0;
-    auto index_graphe_courant = 0;
-    for (auto racine : racines) {
-        if (racine.dossier().vers_std_string() == racine_chemin_courant) {
-            index_graphe_courant = current_index;
-        }
-        current_index++;
-    }
 
     /* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
      * fichiers */
-    auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
-    m_selecteur_graphe->setCurrentIndex(index_graphe_courant);
-    m_selecteur_graphe->blockSignals(bloque_signaux);
+    ajourne_combo_box(m_selecteur_graphe,
+                      racine_chemin_courant,
+                      racines,
+                      [](JJL::InformationGrapheRacine info) -> DonnéesItemComboxBox {
+                          return {info.nom().vers_std_string(), info.dossier().vers_std_string()};
+                      });
 }
 
 static const char *chaine_pour_type_information(JJL::TypeInformationNoeud type)
