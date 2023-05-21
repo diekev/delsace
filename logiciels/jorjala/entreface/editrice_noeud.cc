@@ -293,34 +293,41 @@ void EditriceGraphe::ajourne_sélecteur_graphe()
                       });
 }
 
-static const char *chaine_pour_type_information(JJL::TypeInformationNoeud type)
+static void imprime_données_section(JJL::InformationsNoeud_Section section, dls::flux_chaine &ss)
 {
-    switch (type) {
-        case JJL::TypeInformationNoeud::EXÉCUTION:
-        {
-            return "Nombre d'exécution";
-        }
-        case JJL::TypeInformationNoeud::TEMPS:
-        {
-            return "Temps d'exécution";
-        }
-        case JJL::TypeInformationNoeud::MÉMOIRE:
-        {
-            return "Mémoire utilisée";
-        }
+    if (section.infos().taille() == 0) {
+        return;
     }
-    return "";
+
+    ss << "<hr/>";
+
+    auto titre = section.titre().vers_std_string();
+    if (!titre.empty()) {
+        ss << "<h3>" << titre << "</h3>";
+    }
+
+    for (auto info : section.infos()) {
+        ss << "<p>" << info.nom().vers_std_string();
+
+        auto texte = info.texte().vers_std_string();
+        if (!texte.empty()) {
+            ss << " : " << info.texte().vers_std_string();
+        }
+
+        ss << "</p>";
+    }
 }
 
 void EditriceGraphe::affiche_informations_noeud(JJL::Noeud noeud)
 {
     dls::flux_chaine ss;
     ss << "<p>Noeud : " << noeud.nom().vers_std_string() << "</p>";
-    ss << "<hr/>";
 
-    for (auto info : noeud.informations()) {
-        ss << "<p>" << chaine_pour_type_information(info.type()) << " : "
-           << info.texte().vers_std_string() << "</p>";
+    auto infos = noeud.donne_informations();
+    imprime_données_section(infos.entête(), ss);
+
+    for (auto section : infos.sections()) {
+        imprime_données_section(section, ss);
     }
 
     auto point = m_vue->mapFromScene(noeud.pos_x(), noeud.pos_y());
