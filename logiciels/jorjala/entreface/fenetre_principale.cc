@@ -179,9 +179,10 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     EvenementJorjala::id_type_qt = static_cast<QEvent::Type>(QEvent::registerEventType());
 
     auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-    gestionnaire_jjl.mute_rappel_notification(
+    gestionnaire_jjl.définit_rappel_notification(
         reinterpret_cast<void *>(detail::notifie_observatrices));
-    gestionnaire_jjl.mute_rappel_notifie_erreur(reinterpret_cast<void *>(detail::notifie_erreur));
+    gestionnaire_jjl.définit_rappel_notifie_erreur(
+        reinterpret_cast<void *>(detail::notifie_erreur));
     gestionnaire_jjl.définit_rappel_change_curseur(
         reinterpret_cast<void *>(detail::change_curseur));
     gestionnaire_jjl.définit_rappel_restaure_curseur(

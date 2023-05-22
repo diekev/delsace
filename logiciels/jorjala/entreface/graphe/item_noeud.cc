@@ -340,7 +340,7 @@ void ItemNoeud::finalise_dessin(JJL::Noeud &noeud,
     /* pinceaux pour le coeur du noeud */
     QBrush brosse;
 
-    auto erreurs = noeud.accède_erreurs();
+    auto erreurs = noeud.donne_erreurs();
 
     if (erreurs.taille() == 0) {
         brosse = QBrush(QColor(45, 45, 45));
@@ -365,7 +365,7 @@ void ItemNoeud::cree_geometrie_prise(
                         static_cast<double>(y),
                         static_cast<double>(largeur),
                         static_cast<double>(hauteur));
-    item_prise->setBrush(brosse_pour_couleur(prise->accède_description().couleur()));
+    item_prise->setBrush(brosse_pour_couleur(prise->donne_description().couleur()));
     item_prise->setPen(QPen(Qt::white, 0.5));
 
     ajourne_rectangle(prise, x, y, hauteur, largeur);

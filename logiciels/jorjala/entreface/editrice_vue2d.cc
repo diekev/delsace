@@ -280,7 +280,7 @@ static JJL::Composite accède_composite(JJL::Noeud noeud_racine_composite)
         return nullptr;
     }
 
-    auto graphe_composite_ = noeud_racine_composite.accède_sous_graphe();
+    auto graphe_composite_ = noeud_racine_composite.donne_sous_graphe();
     if (graphe_composite_ == nullptr) {
         return nullptr;
     }

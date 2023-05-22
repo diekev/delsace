@@ -924,7 +924,7 @@ class CommandeEntreNoeud final : public CommandeJorjala {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto sous_graphe = noeud.accède_sous_graphe();
+        auto sous_graphe = noeud.donne_sous_graphe();
         if (sous_graphe == nullptr) {
             return EXECUTION_COMMANDE_REUSSIE;
         }
