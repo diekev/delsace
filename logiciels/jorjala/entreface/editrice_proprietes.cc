@@ -65,7 +65,7 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
             return danjo::TypePropriete::BOOL;
         case JJL::TypeParametre::VEC2:
         case JJL::TypeParametre::VEC3:
-            return danjo::TypePropriete::VECTEUR;
+            return danjo::TypePropriete::VECTEUR_DECIMAL;
         case JJL::TypeParametre::COULEUR:
             return danjo::TypePropriete::COULEUR;
         case JJL::TypeParametre::ÉNUMÉRATION:
@@ -136,15 +136,23 @@ class EnveloppeParametre : public danjo::BasePropriete {
         // À FAIRE: animation
         return m_param.lis_valeur_réel();
     }
-    dls::math::vec3f evalue_vecteur(int temps) const override
+    void evalue_vecteur_décimal(int temps, float *données) const override
     {
+        // À FAIRE: animation
         if (m_param.type() == JJL::TypeParametre::VEC2) {
             auto résultat = m_param.lis_valeur_vec2();
-            return dls::math::vec3f{résultat.x(), résultat.y(), 0.0f};
+            données[0] = résultat.x();
+            données[1] = résultat.y();
+            return;
         }
-        // À FAIRE: animation
         auto résultat = m_param.lis_valeur_vec3();
-        return convertis_vecteur(résultat);
+        données[0] = résultat.x();
+        données[1] = résultat.y();
+        données[2] = résultat.z();
+    }
+    void evalue_vecteur_entier(int temps, int *données) const override
+    {
+        // À FAIRE
     }
     dls::phys::couleur32 evalue_couleur(int temps) const override
     {
