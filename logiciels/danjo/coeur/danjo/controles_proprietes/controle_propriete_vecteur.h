@@ -93,6 +93,8 @@ class ControleProprieteVecteurDecimal final : public BaseControleProprieteVecteu
   private:
     void ajourne_valeur(int index, float valeur);
     void montre_echelle(int index) override;
+
+    void ajourne_valeurs_controles();
 };
 
 /* ************************************************************************* */
@@ -124,6 +126,8 @@ class ControleProprieteVecteurEntier final : public BaseControleProprieteVecteur
   private:
     void ajourne_valeur(int index, int valeur);
     void montre_echelle(int index) override;
+
+    void ajourne_valeurs_controles();
 };
 
 } /* namespace danjo */

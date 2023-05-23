@@ -44,7 +44,8 @@ struct ListeManipulable;
 enum TypePropriete {
     ENTIER,
     DECIMAL,
-    VECTEUR,
+    VECTEUR_DECIMAL,
+    VECTEUR_ENTIER,
     COULEUR,
     FICHIER_ENTREE,
     FICHIER_SORTIE,
@@ -97,7 +98,8 @@ class BasePropriete {
     virtual bool evalue_bool(int temps) const = 0;
     virtual int evalue_entier(int temps) const = 0;
     virtual float evalue_decimal(int temps) const = 0;
-    virtual dls::math::vec3f evalue_vecteur(int temps) const = 0;
+    virtual void evalue_vecteur_décimal(int temps, float *données) const = 0;
+    virtual void evalue_vecteur_entier(int temps, int *données) const = 0;
     virtual dls::phys::couleur32 evalue_couleur(int temps) const = 0;
     virtual std::string evalue_chaine(int temps) const = 0;
     virtual std::string evalue_énum(int temps) const = 0;
@@ -195,7 +197,8 @@ struct Propriete : public BasePropriete {
     bool evalue_bool(int temps) const override;
     int evalue_entier(int temps) const override;
     float evalue_decimal(int temps) const override;
-    dls::math::vec3f evalue_vecteur(int temps) const override;
+    void evalue_vecteur_décimal(int temps, float *données) const override;
+    void evalue_vecteur_entier(int temps, int *données) const override;
     dls::phys::couleur32 evalue_couleur(int temps) const override;
     std::string evalue_chaine(int temps) const override;
     std::string evalue_énum(int temps) const override;

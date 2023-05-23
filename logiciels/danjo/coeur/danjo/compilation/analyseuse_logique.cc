@@ -314,7 +314,9 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
                 m_manipulable->ajoute_propriete(nom, TypePropriete::COULEUR, resultat.valeur);
                 break;
             case id_morceau::VECTEUR:
-                m_manipulable->ajoute_propriete(nom, TypePropriete::VECTEUR, resultat.valeur);
+                // À FAIRE : vecteur entier
+                m_manipulable->ajoute_propriete(
+                    nom, TypePropriete::VECTEUR_DECIMAL, resultat.valeur);
                 break;
         }
 

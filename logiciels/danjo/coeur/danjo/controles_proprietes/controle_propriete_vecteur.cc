@@ -198,17 +198,9 @@ void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
         for (int i = 0; i < m_dimensions; i++) {
             m_dim[i]->marque_anime(m_animation, temps_exacte);
         }
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
     }
-    else {
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
-    }
+
+    ajourne_valeurs_controles();
 
     setToolTip(donnees.infobulle.c_str());
 }
@@ -219,14 +211,12 @@ void ControleProprieteVecteurDecimal::bascule_animation()
 
     if (m_animation == false) {
         m_propriete->supprime_animation();
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
+        ajourne_valeurs_controles();
         m_bouton_animation->setText("C");
     }
     else {
-        m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
+        // À FAIRE : restaure ceci
+        // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
         m_bouton_animation->setText("c");
     }
 
@@ -264,6 +254,15 @@ void ControleProprieteVecteurDecimal::montre_echelle(int index)
     m_echelle[index]->valeur(m_dim[index]->valeur());
     m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
     m_echelle[index]->show();
+}
+
+void ControleProprieteVecteurDecimal::ajourne_valeurs_controles()
+{
+    float valeurs[4];
+    m_propriete->evalue_vecteur_décimal(m_temps, valeurs);
+    for (int i = 0; i < m_dimensions; i++) {
+        m_dim[i]->valeur(valeurs[size_t(i)]);
+    }
 }
 
 void ControleProprieteVecteurDecimal::ajourne_valeur(int index, float valeur)
@@ -395,17 +394,9 @@ void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
         for (int i = 0; i < m_dimensions; i++) {
             m_dim[i]->marque_anime(m_animation, temps_exacte);
         }
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
     }
-    else {
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
-    }
+
+    ajourne_valeurs_controles();
 
     setToolTip(donnees.infobulle.c_str());
 }
@@ -416,14 +407,12 @@ void ControleProprieteVecteurEntier::bascule_animation()
 
     if (m_animation == false) {
         m_propriete->supprime_animation();
-        const auto &valeur = m_propriete->evalue_vecteur(m_temps);
-        for (int i = 0; i < m_dimensions; i++) {
-            m_dim[i]->valeur(valeur[size_t(i)]);
-        }
+        ajourne_valeurs_controles();
         m_bouton_animation->setText("C");
     }
     else {
-        m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
+        // À FAIRE : restaure ceci
+        // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
         m_bouton_animation->setText("c");
     }
 
@@ -461,6 +450,15 @@ void ControleProprieteVecteurEntier::montre_echelle(int index)
     m_echelle[index]->valeur(m_dim[index]->valeur());
     m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
     m_echelle[index]->show();
+}
+
+void ControleProprieteVecteurEntier::ajourne_valeurs_controles()
+{
+    int valeurs[4];
+    m_propriete->evalue_vecteur_entier(m_temps, valeurs);
+    for (int i = 0; i < m_dimensions; i++) {
+        m_dim[i]->valeur(valeurs[size_t(i)]);
+    }
 }
 
 void ControleProprieteVecteurEntier::ajourne_valeur(int index, int valeur)

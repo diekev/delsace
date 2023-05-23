@@ -83,14 +83,19 @@ float Propriete::evalue_decimal(int temps) const
     return (1.0f - fac) * i1 + fac * i2;
 }
 
-dls::math::vec3f Propriete::evalue_vecteur(int temps) const
+void Propriete::evalue_vecteur_décimal(int temps, float *données) const
 {
-    assert(type() == TypePropriete::VECTEUR);
+    // À FAIRE : vec2, vec4
+    assert(type() == TypePropriete::VECTEUR_DECIMAL);
     std::any v1, v2;
     int t1, t2;
 
     if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-        return std::any_cast<dls::math::vec3f>(v1);
+        auto val = std::any_cast<dls::math::vec3f>(v1);
+        données[0] = val[0];
+        données[1] = val[1];
+        données[2] = val[2];
+        return;
     }
 
     auto dt = t2 - t1;
@@ -98,7 +103,15 @@ dls::math::vec3f Propriete::evalue_vecteur(int temps) const
     auto i1 = std::any_cast<dls::math::vec3f>(v1);
     auto i2 = std::any_cast<dls::math::vec3f>(v2);
 
-    return (1.0f - fac) * i1 + fac * i2;
+    auto val = (1.0f - fac) * i1 + fac * i2;
+    données[0] = val[0];
+    données[1] = val[1];
+    données[2] = val[2];
+}
+
+void Propriete::evalue_vecteur_entier(int temps, int *données) const
+{
+    // À FAIRE
 }
 
 dls::phys::couleur32 Propriete::evalue_couleur(int temps) const
@@ -195,7 +208,7 @@ void Propriete::ajoute_cle(const float v, int temps)
 
 void Propriete::ajoute_cle(const dls::math::vec3f &v, int temps)
 {
-    assert(type() == TypePropriete::VECTEUR);
+    assert(type() == TypePropriete::VECTEUR_DECIMAL);
     ajoute_cle_impl(std::any(v), temps);
 }
 
@@ -327,8 +340,11 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
         case TypePropriete::DECIMAL:
             valeur = std::any(0.0f);
             break;
-        case TypePropriete::VECTEUR:
+        case TypePropriete::VECTEUR_DECIMAL:
             valeur = std::any(dls::math::vec3f(0));
+            break;
+        case TypePropriete::VECTEUR_ENTIER:
+            // À FAIRE
             break;
         case TypePropriete::COULEUR:
             valeur = std::any(dls::phys::couleur32(0));
@@ -406,7 +422,9 @@ dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps) 
     auto prop = propriete(nom);
 
     if (prop->est_animee()) {
-        return prop->evalue_vecteur(temps);
+        dls::math::vec3f résultat;
+        prop->evalue_vecteur_décimal(temps, &résultat[0]);
+        return résultat;
     }
 
     return {};  // std::any_cast<dls::math::vec3f>(prop->valeur);

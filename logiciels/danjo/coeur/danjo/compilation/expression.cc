@@ -281,10 +281,15 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
                             tmp.genre = id_morceau::COULEUR;
                             break;
                         }
-                        case TypePropriete::VECTEUR:
+                        case TypePropriete::VECTEUR_DECIMAL:
                         {
                             tmp.valeur = manipulable->evalue_vecteur(nom);
                             tmp.genre = id_morceau::VECTEUR;
+                            break;
+                        }
+                        case TypePropriete::VECTEUR_ENTIER:
+                        {
+                            // À FAIRE
                             break;
                         }
                         case TypePropriete::ENUM:

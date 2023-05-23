@@ -78,8 +78,10 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
             return new ControleProprieteFichier(propriete, temps, false);
         case TypePropriete::COULEUR:
             return new ControleProprieteCouleur(propriete, temps);
-        case TypePropriete::VECTEUR:
+        case TypePropriete::VECTEUR_DECIMAL:
             return new ControleProprieteVecteurDecimal(propriete, temps);
+        case TypePropriete::VECTEUR_ENTIER:
+            return new ControleProprieteVecteurEntier(propriete, temps);
         case TypePropriete::COURBE_COULEUR:
             return new ControleProprieteCourbeCouleur(propriete, temps);
         case TypePropriete::COURBE_VALEUR:
@@ -117,7 +119,8 @@ static TypePropriete type_propriete_pour_lexeme(id_morceau lexeme)
         case id_morceau::COULEUR:
             return TypePropriete::COULEUR;
         case id_morceau::VECTEUR:
-            return TypePropriete::VECTEUR;
+            // À FAIRE : vecteur entier
+            return TypePropriete::VECTEUR_DECIMAL;
         case id_morceau::COURBE_COULEUR:
             return TypePropriete::COURBE_COULEUR;
         case id_morceau::COURBE_VALEUR:
@@ -216,7 +219,7 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             résultat->valeur = valeur_defaut;
             break;
         }
-        case TypePropriete::VECTEUR:
+        case TypePropriete::VECTEUR_DECIMAL:
         {
             auto min = parse_valeur_ou_defaut(donnees.valeur_min,
                                               -std::numeric_limits<float>::max());
@@ -233,6 +236,11 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
             résultat->valeur_min.f = min;
             résultat->valeur_max.f = max;
             résultat->valeur = valeur_defaut;
+            break;
+        }
+        case TypePropriete::VECTEUR_ENTIER:
+        {
+            // À FAIRE
             break;
         }
         case TypePropriete::COURBE_COULEUR:
