@@ -92,8 +92,9 @@ set(ENTETES
 	conteneur_controles.h
 	erreur.h
 	danjo.h
+        fournisseuse_icones.hh
 	manipulable.h
-	repondant_bouton.h
+        repondant_bouton.h
 )
 
 set(SOURCES
@@ -151,6 +152,7 @@ set(SOURCES
 	dialogue.cc
 	erreur.cc
 	danjo.cc
+        fournisseuse_icones.cc
 	manipulable.cc
 	repondant_bouton.cc
 

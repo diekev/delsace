@@ -5,16 +5,26 @@
 
 #include <QPushButton>
 
+#include "../fournisseuse_icones.hh"
+
 namespace danjo {
 
 QPushButton *crée_bouton_animation_controle(QWidget *parent)
 {
     auto résultat = new QPushButton("", parent);
 
+    auto &fournisseuse = donne_fournisseuse_icone();
+    auto icone = fournisseuse.icone_pour_bouton_animation();
+
     // À FAIRE : état animé vs. non-animé
-    auto metriques = parent->fontMetrics();
-    résultat->setFixedWidth(metriques.horizontalAdvance("C") * 2);
-    résultat->setText("C");
+    if (icone.has_value()) {
+        résultat->setIcon(icone.value());
+    }
+    else {
+        auto metriques = parent->fontMetrics();
+        résultat->setFixedWidth(metriques.horizontalAdvance("C") * 2);
+        résultat->setText("C");
+    }
 
     résultat->setToolTip("Active ou désactive l'animation de la propriété");
     return résultat;
@@ -34,9 +44,18 @@ QPushButton *crée_bouton_échelle_valeur(QWidget *parent)
 {
     auto résultat = new QPushButton("", parent);
 
-    auto metriques = parent->fontMetrics();
-    résultat->setFixedWidth(metriques.horizontalAdvance("H") * 2);
-    résultat->setText("H");
+    auto &fournisseuse = donne_fournisseuse_icone();
+    auto icone = fournisseuse.icone_pour_echelle_valeur();
+
+    // À FAIRE : état animé vs. non-animé
+    if (icone.has_value()) {
+        résultat->setIcon(icone.value());
+    }
+    else {
+        auto metriques = parent->fontMetrics();
+        résultat->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+        résultat->setText("H");
+    }
 
     résultat->setToolTip("Affiche une échelle de valeur pour éditeur la valeur de la propriété");
     return résultat;
