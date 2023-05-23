@@ -35,6 +35,7 @@
 
 #include "types/rampe_couleur.h"
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
@@ -45,7 +46,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
     : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
       m_agencement_nombre(new QHBoxLayout()), m_entrepolation(new QComboBox(this)),
       m_controle_rampe(new ControleRampeCouleur(this)),
-      m_bouton_echelle(new QPushButton("H", this)), m_echelle(new ControleEchelleDecimale()),
+      m_bouton_echelle(crée_bouton_échelle_valeur(this)), m_echelle(new ControleEchelleDecimale()),
       m_pos(new ControleNombreDecimal(this)), m_controle_couleur(new ControleCouleur(this))
 {
     m_entrepolation->addItem("RVB");
@@ -53,9 +54,6 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
 
     m_agencement_principal->addWidget(m_entrepolation);
     m_agencement_principal->addWidget(m_controle_rampe);
-
-    auto metriques = this->fontMetrics();
-    m_bouton_echelle->setFixedWidth(metriques.horizontalAdvance("H") * 2);
 
     m_agencement_nombre->addWidget(m_bouton_echelle);
     m_agencement_nombre->addWidget(m_pos);

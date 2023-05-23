@@ -35,6 +35,7 @@
 
 #include "types/courbe_bezier.h"
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
@@ -46,8 +47,9 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
       m_agencement_nombre(new QHBoxLayout()), m_selection_mode(new QComboBox(this)),
       m_selection_type(new QComboBox(this)), m_utilise_table(new QCheckBox("Utilise table", this)),
       m_controle_courbe(new ControleCourbeCouleur(this)),
-      m_bouton_echelle_x(new QPushButton("H", this)), m_echelle_x(new ControleEchelleDecimale()),
-      m_pos_x(new ControleNombreDecimal(this)), m_bouton_echelle_y(new QPushButton("H", this)),
+      m_bouton_echelle_x(crée_bouton_échelle_valeur(this)),
+      m_echelle_x(new ControleEchelleDecimale()), m_pos_x(new ControleNombreDecimal(this)),
+      m_bouton_echelle_y(crée_bouton_échelle_valeur(this)),
       m_echelle_y(new ControleEchelleDecimale()), m_pos_y(new ControleNombreDecimal(this))
 {
     m_selection_mode->addItem("Maitresse");
@@ -63,10 +65,6 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
     m_agencement_principal->addWidget(m_selection_type);
     m_agencement_principal->addWidget(m_utilise_table);
     m_agencement_principal->addWidget(m_controle_courbe);
-
-    auto metriques = this->fontMetrics();
-    m_bouton_echelle_x->setFixedWidth(metriques.horizontalAdvance("H") * 2);
-    m_bouton_echelle_y->setFixedWidth(metriques.horizontalAdvance("H") * 2);
 
     m_agencement_nombre->addWidget(m_bouton_echelle_x);
     m_agencement_nombre->addWidget(m_pos_x);

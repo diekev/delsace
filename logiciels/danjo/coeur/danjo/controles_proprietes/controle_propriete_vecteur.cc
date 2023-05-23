@@ -35,6 +35,7 @@
 #include "controles/controle_nombre_decimal.h"
 #include "controles/controle_nombre_entier.h"
 
+#include "commun.hh"
 #include "controle_propriete_decimal.h"
 #include "donnees_controle.h"
 
@@ -48,7 +49,7 @@ BaseControleProprieteVecteur::BaseControleProprieteVecteur(BasePropriete *p,
                                                            int temps,
                                                            QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
-      m_bouton_animation(new QPushButton("C", this))
+      m_bouton_animation(crée_bouton_animation_controle(this))
 {
     for (int i = 0; i < DIMENSIONS_MAX; i++) {
         m_bouton_echelle_dim[i] = nullptr;
@@ -57,11 +58,8 @@ BaseControleProprieteVecteur::BaseControleProprieteVecteur(BasePropriete *p,
     const int dimensions = p->donne_dimensions_vecteur();
     m_dimensions = dimensions;
 
-    auto metriques = this->fontMetrics();
-
     for (int i = 0; i < m_dimensions; i++) {
-        m_bouton_echelle_dim[i] = new QPushButton("H", this);
-        m_bouton_echelle_dim[i]->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+        m_bouton_echelle_dim[i] = crée_bouton_échelle_valeur(this);
     }
 }
 
@@ -98,16 +96,12 @@ ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *
         m_echelle[i] = nullptr;
     }
 
-    auto metriques = this->fontMetrics();
-
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i] = new ControleNombreDecimal(this);
 
         m_echelle[i] = new ControleEchelleDecimale();
         m_echelle[i]->setWindowFlags(Qt::WindowStaysOnTopHint);
     }
-
-    m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
 
     m_agencement->addWidget(m_bouton_animation);
 
@@ -190,9 +184,9 @@ void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
-        m_bouton_animation->setText("c");
         auto temps_exacte = m_propriete->possede_cle(m_temps);
 
         for (int i = 0; i < m_dimensions; i++) {
@@ -212,14 +206,13 @@ void ControleProprieteVecteurDecimal::bascule_animation()
     if (m_animation == false) {
         m_propriete->supprime_animation();
         ajourne_valeurs_controles();
-        m_bouton_animation->setText("C");
     }
     else {
         // À FAIRE : restaure ceci
         // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
-        m_bouton_animation->setText("c");
     }
 
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->marque_anime(m_animation, m_animation);
     }
@@ -294,16 +287,12 @@ ControleProprieteVecteurEntier::ControleProprieteVecteurEntier(BasePropriete *p,
         m_echelle[i] = nullptr;
     }
 
-    auto metriques = this->fontMetrics();
-
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i] = new ControleNombreEntier(this);
 
         m_echelle[i] = new ControleEchelleEntiere();
         m_echelle[i]->setWindowFlags(Qt::WindowStaysOnTopHint);
     }
-
-    m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
 
     m_agencement->addWidget(m_bouton_animation);
 
@@ -386,9 +375,9 @@ void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
-        m_bouton_animation->setText("c");
         auto temps_exacte = m_propriete->possede_cle(m_temps);
 
         for (int i = 0; i < m_dimensions; i++) {
@@ -408,14 +397,13 @@ void ControleProprieteVecteurEntier::bascule_animation()
     if (m_animation == false) {
         m_propriete->supprime_animation();
         ajourne_valeurs_controles();
-        m_bouton_animation->setText("C");
     }
     else {
         // À FAIRE : restaure ceci
         // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
-        m_bouton_animation->setText("c");
     }
 
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->marque_anime(m_animation, m_animation);
     }

@@ -34,20 +34,17 @@
 
 #include "../manipulable.h"
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
 ControleProprieteDecimal::ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
-      m_controle(new ControleNombreDecimal(this)), m_bouton(new QPushButton("H", this)),
-      m_bouton_animation(new QPushButton("C", this)), m_echelle(new ControleEchelleDecimale())
+      m_controle(new ControleNombreDecimal(this)), m_bouton(crée_bouton_échelle_valeur(this)),
+      m_bouton_animation(crée_bouton_animation_controle(this)),
+      m_echelle(new ControleEchelleDecimale())
 {
-    auto metriques = this->fontMetrics();
-
-    m_bouton->setFixedWidth(metriques.horizontalAdvance("H") * 2);
-    m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
-
     m_agencement->addWidget(m_bouton_animation);
     m_agencement->addWidget(m_bouton);
     m_agencement->addWidget(m_controle);
@@ -110,13 +107,12 @@ void ControleProprieteDecimal::bascule_animation()
     if (m_animation == false) {
         m_propriete->supprime_animation();
         m_controle->valeur(m_propriete->evalue_decimal(m_temps));
-        m_bouton_animation->setText("C");
     }
     else {
         m_propriete->ajoute_cle(m_propriete->evalue_decimal(m_temps), m_temps);
-        m_bouton_animation->setText("c");
     }
 
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
     m_controle->marque_anime(m_animation, m_animation);
     Q_EMIT(controle_change());
 }
@@ -128,9 +124,9 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
+    définit_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
-        m_bouton_animation->setText("c");
         m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
     }
 
