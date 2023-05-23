@@ -59,6 +59,7 @@ class ControleNombreEntier : public QWidget {
     void ajourne_plage(int min, int max);
 
     void valeur(const int v);
+    int valeur();
 
     void suffixe(const QString &s);
 

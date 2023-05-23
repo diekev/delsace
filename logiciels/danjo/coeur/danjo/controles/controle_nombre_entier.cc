@@ -219,6 +219,11 @@ void ControleNombreEntier::valeur(const int v)
     m_valeur = v;
 }
 
+int ControleNombreEntier::valeur()
+{
+    return m_valeur;
+}
+
 void ControleNombreEntier::suffixe(const QString &s)
 {
     m_suffixe = s;
