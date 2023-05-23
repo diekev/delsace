@@ -54,7 +54,7 @@ class ControleNombreEntier : public QWidget {
 
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-    void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
 
     void ajourne_plage(int min, int max);
 
