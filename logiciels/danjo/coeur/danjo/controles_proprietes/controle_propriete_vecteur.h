@@ -33,7 +33,7 @@ class QPushButton;
 
 namespace danjo {
 
-class ControleProprieteVec3 final : public ControlePropriete {
+class ControleProprieteVecteurDecimal final : public ControlePropriete {
     Q_OBJECT
 
     static constexpr int DIMENSIONS_MAX = 4;
@@ -48,11 +48,11 @@ class ControleProprieteVec3 final : public ControlePropriete {
     int m_dimensions = 0;
 
   public:
-    explicit ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent = nullptr);
-    ~ControleProprieteVec3() override;
+    explicit ControleProprieteVecteurDecimal(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteVecteurDecimal() override;
 
-    ControleProprieteVec3(ControleProprieteVec3 const &) = default;
-    ControleProprieteVec3 &operator=(ControleProprieteVec3 const &) = default;
+    ControleProprieteVecteurDecimal(ControleProprieteVecteurDecimal const &) = default;
+    ControleProprieteVecteurDecimal &operator=(ControleProprieteVecteurDecimal const &) = default;
 
     void finalise(const DonneesControle &donnees) override;
 

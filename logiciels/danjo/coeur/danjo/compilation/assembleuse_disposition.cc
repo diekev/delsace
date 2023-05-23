@@ -79,7 +79,7 @@ static ControlePropriete *cree_controle_pour_propriete(BasePropriete *propriete,
         case TypePropriete::COULEUR:
             return new ControleProprieteCouleur(propriete, temps);
         case TypePropriete::VECTEUR:
-            return new ControleProprieteVec3(propriete, temps);
+            return new ControleProprieteVecteurDecimal(propriete, temps);
         case TypePropriete::COURBE_COULEUR:
             return new ControleProprieteCourbeCouleur(propriete, temps);
         case TypePropriete::COURBE_VALEUR:

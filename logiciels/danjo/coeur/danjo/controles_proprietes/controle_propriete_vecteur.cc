@@ -41,7 +41,9 @@
 
 namespace danjo {
 
-ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidget *parent)
+ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *p,
+                                                                 int temps,
+                                                                 QWidget *parent)
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
       m_bouton_animation(new QPushButton("C", this))
 
@@ -82,7 +84,7 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
         connect(m_dim[dim],                                                                       \
                 &ControleNombreDecimal::valeur_changee,                                           \
                 this,                                                                             \
-                &ControleProprieteVec3::func);                                                    \
+                &ControleProprieteVecteurDecimal::func);                                          \
     }
 
     CONNECT_VALEUR_CHANGEE(0, ajourne_valeur_x);
@@ -95,7 +97,7 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
         connect(m_dim[i],
                 &ControleNombreDecimal::prevaleur_changee,
                 this,
-                &ControleProprieteVec3::emet_precontrole_change);
+                &ControleProprieteVecteurDecimal::emet_precontrole_change);
 
         connect(m_echelle[i],
                 &ControleEchelleDecimale::valeur_changee,
@@ -105,7 +107,7 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
         connect(m_echelle[i],
                 &ControleEchelleDecimale::prevaleur_changee,
                 this,
-                &ControleProprieteVec3::emet_precontrole_change);
+                &ControleProprieteVecteurDecimal::emet_precontrole_change);
     }
 
 #define CONNECT_MONTRE_ECHELLE(dim, func)                                                         \
@@ -113,7 +115,7 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
         connect(m_bouton_echelle_dim[dim],                                                        \
                 &QPushButton::pressed,                                                            \
                 this,                                                                             \
-                &ControleProprieteVec3::func);                                                    \
+                &ControleProprieteVecteurDecimal::func);                                          \
     }
 
     CONNECT_MONTRE_ECHELLE(0, montre_echelle_x);
@@ -125,17 +127,17 @@ ControleProprieteVec3::ControleProprieteVec3(BasePropriete *p, int temps, QWidge
     connect(m_bouton_animation,
             &QPushButton::pressed,
             this,
-            &ControleProprieteVec3::bascule_animation);
+            &ControleProprieteVecteurDecimal::bascule_animation);
 }
 
-ControleProprieteVec3::~ControleProprieteVec3()
+ControleProprieteVecteurDecimal::~ControleProprieteVecteurDecimal()
 {
     for (int i = 0; i < m_dimensions; i++) {
         delete m_echelle[i];
     }
 }
 
-void ControleProprieteVec3::finalise(const DonneesControle &donnees)
+void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
 {
     auto plage = m_propriete->plage_valeur_vecteur();
 
@@ -171,22 +173,22 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
     setToolTip(donnees.infobulle.c_str());
 }
 
-void ControleProprieteVec3::montre_echelle_x()
+void ControleProprieteVecteurDecimal::montre_echelle_x()
 {
     montre_echelle(0);
 }
 
-void ControleProprieteVec3::montre_echelle_y()
+void ControleProprieteVecteurDecimal::montre_echelle_y()
 {
     montre_echelle(1);
 }
 
-void ControleProprieteVec3::montre_echelle_z()
+void ControleProprieteVecteurDecimal::montre_echelle_z()
 {
     montre_echelle(2);
 }
 
-void ControleProprieteVec3::bascule_animation()
+void ControleProprieteVecteurDecimal::bascule_animation()
 {
     m_animation = !m_animation;
 
@@ -208,32 +210,32 @@ void ControleProprieteVec3::bascule_animation()
     }
 }
 
-void ControleProprieteVec3::ajourne_valeur_x(float valeur)
+void ControleProprieteVecteurDecimal::ajourne_valeur_x(float valeur)
 {
     ajourne_valeur(0, valeur);
     Q_EMIT(controle_change());
 }
 
-void ControleProprieteVec3::ajourne_valeur_y(float valeur)
+void ControleProprieteVecteurDecimal::ajourne_valeur_y(float valeur)
 {
     ajourne_valeur(1, valeur);
     Q_EMIT(controle_change());
 }
 
-void ControleProprieteVec3::ajourne_valeur_z(float valeur)
+void ControleProprieteVecteurDecimal::ajourne_valeur_z(float valeur)
 {
     ajourne_valeur(2, valeur);
     Q_EMIT(controle_change());
 }
 
-void ControleProprieteVec3::montre_echelle(int index)
+void ControleProprieteVecteurDecimal::montre_echelle(int index)
 {
     m_echelle[index]->valeur(m_dim[index]->valeur());
     m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
     m_echelle[index]->show();
 }
 
-void ControleProprieteVec3::ajourne_valeur(int index, float valeur)
+void ControleProprieteVecteurDecimal::ajourne_valeur(int index, float valeur)
 {
     auto vec = dls::math::vec3f(0.0f);
     for (int i = 0; i < m_dimensions; i++) {
