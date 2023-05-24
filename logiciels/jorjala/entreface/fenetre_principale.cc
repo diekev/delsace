@@ -59,6 +59,7 @@
 //#include "editrice_rendu.h"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
+#include "gestion_entreface.hh"
 #include "tache.h"
 
 /* ------------------------------------------------------------------------- */
@@ -250,6 +251,8 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 {
     initialise_evenements(m_jorjala, this);
     initialise_chef_execution(m_jorjala, this);
+    initialise_fournisseuse_icône(m_jorjala);
+
     setWindowTitle("Projet Sans Titre - Jorjala");
 
     genere_barre_menu();

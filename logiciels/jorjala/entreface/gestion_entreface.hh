@@ -64,3 +64,5 @@ void ajourne_combo_box(QComboBox *box,
     box->setCurrentIndex(index_valeur_courante);
     box->blockSignals(les_signaux_sont_bloqués);
 }
+
+void initialise_fournisseuse_icône(JJL::Jorjala &jorjala);

@@ -13,6 +13,8 @@
 #include <QFileDialog>
 #pragma GCC diagnostic pop
 
+#include "danjo/fournisseuse_icones.hh"
+
 #include "base_editrice.h"
 
 #include "coeur/jorjala.hh"
@@ -53,4 +55,46 @@ void appele_commande(JJL::Jorjala &jorjala,
                      dls::chaine const &métadonnée)
 {
     repondant_commande(jorjala)->repond_clique(nom_commande, métadonnée);
+}
+
+/* ------------------------------------------------------------------------- */
+
+class FournisseuseIcôneJorjala final : public danjo::FournisseuseIcône {
+    JJL::Jorjala &m_jorjala;
+
+  public:
+    FournisseuseIcôneJorjala(JJL::Jorjala &jorjala) : m_jorjala(jorjala)
+    {
+    }
+
+    std::optional<QIcon> icone_pour_bouton_animation(danjo::ÉtatIcône /*état*/)
+    {
+        // À FAIRE : icône chronomètre
+        return {};
+    }
+
+    std::optional<QIcon> icone_pour_echelle_valeur(danjo::ÉtatIcône /*état*/)
+    {
+        // À FAIRE : icône échelle
+        return {};
+    }
+
+    std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
+                                                danjo::ÉtatIcône /*état*/)
+    {
+        std::cerr << "Cherche icone pour " << identifiant << '\n';
+        auto chemin = m_jorjala.donne_chemin_pour_identifiant_icône(identifiant.c_str());
+        if (chemin.vers_std_string().empty()) {
+            return {};
+        }
+
+        return QIcon(chemin.vers_std_string().c_str());
+    }
+};
+
+void initialise_fournisseuse_icône(JJL::Jorjala &jorjala)
+{
+    auto fournisseuse = memoire::loge<FournisseuseIcôneJorjala>("FournisseuseIcôneJorjala",
+                                                                jorjala);
+    danjo::définit_fournisseuse_icone(*fournisseuse);
 }

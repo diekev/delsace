@@ -167,9 +167,13 @@ struct DonneesBoutonsManipulation {
 
 static DonneesBoutonsManipulation donnees_boutons_manipulation[NOMBRE_DE_BOUTONS] = {
     {BOUTON_MANIPULATION, "icones/icone_manipulation.png", "icones/icone_manipulation_active.png"},
-    {BOUTON_POSITION, "icones/icone_position.png", "icones/icone_position_active.png"},
-    {BOUTON_ROTATION, "icones/icone_rotation.png", "icones/icone_rotation_active.png"},
-    {BOUTON_ECHELLE, "icones/icone_echelle.png", "icones/icone_echelle_active.png"},
+    {BOUTON_POSITION,
+     "icones/manipulation_position.png",
+     "icones/manipulation_position_active.png"},
+    {BOUTON_ROTATION,
+     "icones/manipulation_rotation.png",
+     "icones/manipulation_rotation_active.png"},
+    {BOUTON_ECHELLE, "icones/manipulation_echelle.png", "icones/manipulation_echelle_active.png"},
 };
 
 EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
