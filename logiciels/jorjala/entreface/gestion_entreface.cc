@@ -82,7 +82,6 @@ class FournisseuseIcôneJorjala final : public danjo::FournisseuseIcône {
     std::optional<QIcon> icone_pour_identifiant(std::string const &identifiant,
                                                 danjo::ÉtatIcône /*état*/)
     {
-        std::cerr << "Cherche icone pour " << identifiant << '\n';
         auto chemin = m_jorjala.donne_chemin_pour_identifiant_icône(identifiant.c_str());
         if (chemin.vers_std_string().empty()) {
             return {};
