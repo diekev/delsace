@@ -14,7 +14,7 @@ QPushButton *crée_bouton_animation_controle(QWidget *parent)
     auto résultat = new QPushButton("", parent);
 
     auto &fournisseuse = donne_fournisseuse_icone();
-    auto icone = fournisseuse.icone_pour_bouton_animation();
+    auto icone = fournisseuse.icone_pour_bouton_animation(ÉtatIcône::ACTIF);
 
     // À FAIRE : état animé vs. non-animé
     if (icone.has_value()) {
@@ -45,7 +45,7 @@ QPushButton *crée_bouton_échelle_valeur(QWidget *parent)
     auto résultat = new QPushButton("", parent);
 
     auto &fournisseuse = donne_fournisseuse_icone();
-    auto icone = fournisseuse.icone_pour_echelle_valeur();
+    auto icone = fournisseuse.icone_pour_echelle_valeur(ÉtatIcône::ACTIF);
 
     // À FAIRE : état animé vs. non-animé
     if (icone.has_value()) {
