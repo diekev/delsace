@@ -793,34 +793,31 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
         }
     }
 
-    //	if (m_tampon_segments || m_tampon_polygones) {
-    //		return;
-    //	}
+    if (m_tampon_segments || m_tampon_polygones) {
+        return;
+    }
 
-#if 0
-	dls::tableau<dls::math::vec3f> points;
-	dls::tableau<dls::math::vec3f> couleurs;
-	points.reserve(liste_points.taille());
-	couleurs.reserve(liste_points.taille());
+    dls::tableau<dls::math::vec3f> points;
+    dls::tableau<dls::math::vec3f> couleurs;
+    points.reserve(nombre_de_points);
+    couleurs.reserve(nombre_de_points);
 
-	auto attr_C = m_corps->attribut("C");
+    // auto attr_C = m_corps->attribut("C");
 
-	stats.nombre_points += liste_points.taille();
+    for (auto i = 0; i < nombre_de_points; ++i) {
+        if (point_utilise[i]) {
+            continue;
+        }
 
-	for (auto i = 0; i < liste_points.taille(); ++i) {
-		if (point_utilise[i]) {
-			continue;
-		}
+        // À FAIRE : point local
+        points.ajoute(convertis_point(m_corps.point_pour_index(i)));
 
-		points.ajoute(liste_points.point_local(i));
-
-		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
-			auto idx = couleurs.taille();
-			couleurs.redimensionne(idx + 1);
-			extrait(attr_C->r32(i), couleurs[idx]);
-		}
-	}
-#endif
+        //        if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
+        //            auto idx = couleurs.taille();
+        //            couleurs.redimensionne(idx + 1);
+        //            extrait(attr_C->r32(i), couleurs[idx]);
+        //        }
+    }
 
     auto parametres_tampon_instance = ParametresTampon{};
 
@@ -842,45 +839,45 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
         }
     }
 
-#if 0
-	if (points.est_vide()) {
-		return;
-	}
+    if (points.est_vide()) {
+        return;
+    }
 
-	m_tampon_points = cree_tampon_segments(est_instance);
+    m_tampon_points = cree_tampon_segments(est_instance);
 
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = points.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.elements = static_cast<size_t>(points.taille());
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = "sommets";
+    parametres_tampon.dimension_attribut = 3;
+    parametres_tampon.pointeur_sommets = points.donnees();
+    parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) *
+                                             sizeof(dls::math::vec3f);
+    parametres_tampon.elements = static_cast<size_t>(points.taille());
 
-	ParametresDessin parametres_dessin;
-	parametres_dessin.taille_point(2.0);
-	parametres_dessin.type_dessin(GL_POINTS);
-	m_tampon_points->parametres_dessin(parametres_dessin);
+    ParametresDessin parametres_dessin;
+    parametres_dessin.taille_point(2.0);
+    parametres_dessin.type_dessin(GL_POINTS);
+    m_tampon_points->parametres_dessin(parametres_dessin);
 
-	m_tampon_points->remplie_tampon(parametres_tampon);
+    m_tampon_points->remplie_tampon(parametres_tampon);
 
-	if (couleurs.taille() != 0l) {
-		parametres_tampon.attribut = "couleur_sommet";
-		parametres_tampon.dimension_attribut = 3;
-		parametres_tampon.pointeur_donnees_extra = couleurs.donnees();
-		parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs.taille()) * sizeof(dls::math::vec3f);
-		parametres_tampon.elements = static_cast<size_t>(couleurs.taille());
+    if (couleurs.taille() != 0l) {
+        parametres_tampon.attribut = "couleur_sommet";
+        parametres_tampon.dimension_attribut = 3;
+        parametres_tampon.pointeur_donnees_extra = couleurs.donnees();
+        parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs.taille()) *
+                                                       sizeof(dls::math::vec3f);
+        parametres_tampon.elements = static_cast<size_t>(couleurs.taille());
 
-		m_tampon_points->remplie_tampon_extra(parametres_tampon);
-		auto programme = m_tampon_points->programme();
-		programme->active();
-		programme->uniforme("possede_couleur_sommet", 1);
-		programme->desactive();
-	}
+        m_tampon_points->remplie_tampon_extra(parametres_tampon);
+        auto programme = m_tampon_points->programme();
+        programme->active();
+        programme->uniforme("possede_couleur_sommet", 1);
+        programme->desactive();
+    }
 
-	if (est_instance) {
-		m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
-	}
-#endif
+    if (est_instance) {
+        m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
+    }
 }
 
 void RenduCorps::dessine(StatistiquesRendu &stats, ContexteRendu const &contexte)
