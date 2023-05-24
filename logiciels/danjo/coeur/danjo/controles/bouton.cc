@@ -24,6 +24,7 @@
 
 #include "bouton.h"
 
+#include "fournisseuse_icones.hh"
 #include "repondant_bouton.h"
 
 namespace danjo {
@@ -50,7 +51,11 @@ void Bouton::etablie_metadonnee(const dls::chaine &metadonnee)
 
 void Bouton::etablie_icone(const dls::chaine &valeur)
 {
-    this->setIcon(QIcon(valeur.c_str()));
+    auto &fournisseuse = donne_fournisseuse_icone();
+    auto icône = fournisseuse.icone_pour_identifiant(valeur.c_str(), ÉtatIcône::ACTIF);
+    if (icône.has_value()) {
+        this->setIcon(icône.value());
+    }
 }
 
 void Bouton::etablie_valeur(const dls::chaine &valeur)
